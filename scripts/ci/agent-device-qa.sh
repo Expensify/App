@@ -79,7 +79,8 @@ write_summary() {
     echo "### Evidence"
     echo
     echo "- JUnit: \`out/junit.xml\` (P1) and \`out/junit-p2.xml\` (P2)"
-    echo "- Screenshots and recordings under \`out/screenshots/\` and \`out/artifacts/\`"
+    echo "- Screen recording: \`out/recording.mp4\` (full sign-in -> P1 -> P2 timeline)"
+    echo "- Screenshots and per-step artifacts under \`out/screenshots/\` and \`out/artifacts/\`"
   } > "$SUMMARY_PATH"
 }
 
@@ -132,6 +133,34 @@ if ! agent-device open "$BUNDLE_ID" --platform android; then
 fi
 agent-device screenshot --output "$ARTIFACTS_DIR/screenshots/00-launch.png" \
   --platform android >/dev/null 2>&1 || true
+echo "::endgroup::"
+
+# ---------- Start screen recording ---------------------------------------
+# Wraps everything from here onwards (sign-in + P1 + P2). The trap
+# guarantees the recording is always finalized, including on the
+# `exit 0` path used by abort_infra. --quality 8 keeps the file
+# reasonable (default 10 is native res = large) while still readable
+# for evidence review.
+RECORDING_PATH="$ARTIFACTS_DIR/recording.mp4"
+RECORDING_STARTED=0
+
+stop_recording() {
+  if [ "$RECORDING_STARTED" -eq 1 ]; then
+    RECORDING_STARTED=0
+    echo "Stopping screen recording -> $RECORDING_PATH"
+    agent-device record stop --platform android >/dev/null 2>&1 || \
+      echo "::warning title=Recording::record stop failed; video may be truncated."
+  fi
+}
+trap stop_recording EXIT
+
+echo "::group::Start screen recording"
+if agent-device record start "$RECORDING_PATH" --platform android --quality 8; then
+  RECORDING_STARTED=1
+  echo "Recording started -> $RECORDING_PATH"
+else
+  echo "::warning title=Recording::record start failed; continuing without video."
+fi
 echo "::endgroup::"
 
 # ---------- P1: fixed sanity suite ---------------------------------------

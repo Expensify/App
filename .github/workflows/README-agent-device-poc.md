@@ -56,6 +56,11 @@ Both produce artifacts under `out/` (uploaded as
 `agent-device-evidence-pr-<n>`) and feed a per-step markdown summary
 posted back to the PR as a comment.
 
+A full **screen recording** (`out/recording.mp4`) covers everything
+from sign-in through P1 and P2 — captured via `agent-device record
+start/stop` and finalized in a trap so partial videos are still saved
+on early aborts (e.g. infra failures).
+
 ## Free-runner constraints baked in
 
 Standard GitHub-hosted `ubuntu-latest` = 2 vCPU / 7 GB RAM / ~14 GB
