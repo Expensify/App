@@ -1,0 +1,233 @@
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect, useRef} from 'react';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
+import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
+import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
+import {calculateBillNewDot, deleteWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
+import {filterInactiveCards} from '@libs/CardUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {isPendingDeletePolicy, shouldBlockWorkspaceDeletionForInvoicifyUser} from '@libs/PolicyUtils';
+import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {canDowngradeSelector} from '@src/selectors/Account';
+import {accountIDToLoginSelector} from '@src/selectors/PersonalDetails';
+import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
+import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+type DeleteWorkspaceFlowProps = {
+    /** ID of the workspace being deleted */
+    policyID: string;
+
+    /** Called when the flow is finished or abandoned, so the parent can unmount this component */
+    onDismiss: () => void;
+};
+
+/**
+ * Self-contained workspace deletion flow. It is mounted only while a deletion is in progress, so all of the
+ * Onyx data needed to delete a workspace (full policy and report collections, card feeds, violations, etc.)
+ * is subscribed to only for the lifetime of the flow instead of re-rendering the workspaces list in the background.
+ *
+ * On mount (once the data is ready) it runs the pre-deletion checks (Invoicify block, outstanding balance,
+ * bill calculation for the last paid workspace) and then shows the delete confirmation modal.
+ */
+function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
+    const {translate, localeCompare} = useLocalize();
+    const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
+    const {showConfirmModal, closeModal} = useConfirmModal();
+
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [policies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
+    const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
+    const [privateSubscription, privateSubscriptionResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [canDowngrade, accountResult] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canDowngradeSelector});
+    const [, amountOwedResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const ownedPaidPoliciesCountsSelector = createOwnedPaidPoliciesCountsSelector(session?.accountID);
+    const ownedPaidPoliciesCounts = ownedPaidPoliciesCountsSelector(policies);
+
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+
+    // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const [cardFeeds, cardFeedsResult, defaultCardFeeds] = useCardFeeds(policyID);
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
+    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
+        selector: filterInactiveCards,
+    });
+    const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyID);
+    const [accountIDToLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: accountIDToLoginSelector(reportsToArchive)});
+
+    const isLoadingData = isLoadingOnyxValue(policiesResult, accountResult, amountOwedResult, privateSubscriptionResult, cardFeedsResult, cardsListResult);
+
+    const hasCardFeedOrExpensifyCard =
+        !isEmptyObject(cardFeeds) ||
+        !isEmptyObject(cardsList) ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
+    const hasExpensifyCard = !!policy?.areExpensifyCardsEnabled && !isEmptyObject(cardsList);
+    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
+
+    const policyLatestErrorMessage = getLatestErrorMessage(policy);
+    const isPendingDelete = isPendingDeletePolicy(policy);
+    const prevIsPendingDeleteRef = useRef(isPendingDelete);
+    const isErrorModalShowingRef = useRef(false);
+
+    const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
+    const {shouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(ownedPaidPoliciesCounts?.active ?? 0, onDismiss);
+
+    // Always invoked after a re-render (from the start effect below for normal deletes, or from usePayAndDowngrade for billed deletes),
+    // so the workspace being deleted and its derived data are read from the latest state.
+    const continueDeleteWorkspace = () => {
+        const policyName = policy?.name;
+
+        showConfirmModal({
+            title: translate('workspace.common.delete'),
+            prompt: hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+            isConfirmLoading: isPendingDelete,
+        }).then((result) => {
+            if (!policyName || result.action !== ModalActions.CONFIRM) {
+                onDismiss();
+                return;
+            }
+
+            deleteWorkspace({
+                policies,
+                policyID,
+                activePolicyID,
+                policyName,
+                lastAccessedWorkspacePolicyID,
+                policyCardFeeds: defaultCardFeeds,
+                lastSelectedFeed,
+                lastSelectedExpensifyCardFeed,
+                reportsToArchive,
+                transactionViolations,
+                reimbursementAccountError,
+                lastUsedPaymentMethods: lastPaymentMethod,
+                localeCompare,
+                personalPolicyID,
+                hasDeleteWorkspaceExpensifyCardsError,
+                currentUserAccountID: session?.accountID ?? 0,
+                accountIDToLogin: accountIDToLogin ?? {},
+            });
+            if (isOffline) {
+                closeModal();
+                if (!hasDeleteWorkspaceExpensifyCardsError) {
+                    onDismiss();
+                }
+            }
+        });
+    };
+
+    const {setIsDeletingPaidWorkspace} = usePayAndDowngrade(continueDeleteWorkspace);
+
+    // Runs the pre-deletion checks and opens the confirmation modal once all the Onyx data the flow depends on has loaded.
+    const hasStartedRef = useRef(false);
+    useEffect(() => {
+        if (hasStartedRef.current || isLoadingData) {
+            return;
+        }
+        hasStartedRef.current = true;
+
+        if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(privateSubscription?.type), policies, policyID, session?.accountID)) {
+            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+            onDismiss();
+            return;
+        }
+
+        if (shouldBlockDeletion()) {
+            // The outstanding balance modal is now visible and will call onDismiss when it is closed.
+            return;
+        }
+
+        if (shouldCalculateBillNewDot) {
+            setIsDeletingPaidWorkspace(true);
+            calculateBillNewDot();
+            return;
+        }
+
+        continueDeleteWorkspace();
+    });
+
+    const hideDeleteWorkspaceErrorModal = () => {
+        if (policy) {
+            dismissWorkspaceError(policy.id, policy.pendingAction);
+        }
+        onDismiss();
+    };
+
+    useEffect(() => {
+        const prevIsPendingDelete = prevIsPendingDeleteRef.current;
+        prevIsPendingDeleteRef.current = isPendingDelete;
+
+        // Handle showing error modal when offline and error occurs
+        if (isOffline && policyLatestErrorMessage) {
+            if (isErrorModalShowingRef.current) {
+                return;
+            }
+            isErrorModalShowingRef.current = true;
+            showConfirmModal({
+                title: translate('workspace.common.delete'),
+                prompt: policyLatestErrorMessage,
+                confirmText: translate('common.buttonConfirm'),
+                cancelText: translate('common.cancel'),
+                success: false,
+                shouldShowCancelButton: false,
+            }).then(() => {
+                isErrorModalShowingRef.current = false;
+                hideDeleteWorkspaceErrorModal();
+            });
+            return;
+        }
+
+        if (!prevIsPendingDelete || isPendingDelete) {
+            return;
+        }
+        closeModal();
+        if (!isFocused || !policyLatestErrorMessage) {
+            // The deletion either succeeded or there is no error modal to show, so the flow is finished.
+            if (!isErrorModalShowingRef.current) {
+                onDismiss();
+            }
+            return;
+        }
+
+        if (isErrorModalShowingRef.current) {
+            return;
+        }
+        isErrorModalShowingRef.current = true;
+        showConfirmModal({
+            title: translate('workspace.common.delete'),
+            prompt: policyLatestErrorMessage,
+            confirmText: translate('common.buttonConfirm'),
+            cancelText: translate('common.cancel'),
+            success: false,
+            shouldShowCancelButton: false,
+        }).then(() => {
+            isErrorModalShowingRef.current = false;
+            hideDeleteWorkspaceErrorModal();
+        });
+    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyLatestErrorMessage, isPendingDelete, isFocused, closeModal, onDismiss]);
+
+    return outstandingBalanceModal;
+}
+
+export default DeleteWorkspaceFlow;
