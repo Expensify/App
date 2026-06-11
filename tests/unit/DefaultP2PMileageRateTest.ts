@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {getDefaultP2PMileageRate} from '@libs/actions/Transaction';
 import * as API from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -8,6 +9,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('@libs/Navigation/Navigation');
+jest.mock('@libs/telemetry/activeSpans');
 
 describe('Default P2P mileage rate', () => {
     beforeAll(() => {
@@ -29,6 +33,18 @@ describe('Default P2P mileage rate', () => {
             const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
 
             getDefaultP2PMileageRate();
+
+            expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null);
+        });
+    });
+
+    describe('startMoneyRequest', () => {
+        // Splitting a distance expense goes through startMoneyRequest, so it must prefetch the default P2P mileage rate
+        // (the same way startDistanceRequest does) or the Distance tab loads with a malformed rate.
+        it('prefetches the default P2P mileage rate when starting a split distance request', () => {
+            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+
+            startMoneyRequest(CONST.IOU.TYPE.SPLIT, '1', [], CONST.IOU.REQUEST_TYPE.DISTANCE);
 
             expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null);
         });
