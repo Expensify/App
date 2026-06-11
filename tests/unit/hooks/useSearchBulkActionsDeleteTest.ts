@@ -7,6 +7,7 @@ import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, SearchResults} from '@src/types/onyx';
+import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -212,6 +213,11 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
         email: 'test@example.com',
     })),
 }));
+
+jest.mock('@hooks/usePaymentContext', () => {
+    const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../../utils/mockUsePaymentContext');
+    return mockUsePaymentContext;
+});
 
 // ---------------------------------------------------------------------------
 // Helpers
