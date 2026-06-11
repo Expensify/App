@@ -33,7 +33,7 @@ function useExpandCollapseAnimation(isExpanded: boolean) {
 
     const animatedStyle = useAnimatedStyle(() => ({
         height: animatedHeight.get(),
-        overflow: 'hidden' as const,
+        overflow: 'hidden',
     }));
 
     const onLayout = (e: LayoutChangeEvent) => {
