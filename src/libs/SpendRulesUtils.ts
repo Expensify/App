@@ -273,7 +273,7 @@ function getSpendRuleSummaryParts(
         summaryParts.push({
             variant: actionVariant,
             badgeLabel: actionLabel,
-            text: `${translate('workspace.rules.spendRules.categories')}: ${categories}`,
+            text: `${translate('workspace.rules.spendRules.merchantTypes')}: ${categories}`,
         });
     }
 

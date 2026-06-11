@@ -292,18 +292,20 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     />
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.spendRules.maxAmount')}
-                        onPress={() => {
-                            clearError();
-                            if (!selectedCurrency) {
-                                openCurrencyMismatchModal();
-                                return;
-                            }
-                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT, {policyID, ruleID: currentRuleID});
-                        }}
                         shouldShowRightIcon
                         title={maxAmountMenuTitle}
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                        onPress={() => {
+                            clearError();
+
+                            if (!selectedCurrency) {
+                                openCurrencyMismatchModal();
+                                return;
+                            }
+
+                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT, {policyID, ruleID: currentRuleID});
+                        }}
                     />
 
                     <View style={[styles.ph5, styles.pv3]}>
