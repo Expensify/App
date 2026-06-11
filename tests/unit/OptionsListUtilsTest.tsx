@@ -4617,6 +4617,34 @@ describe('OptionsListUtils', () => {
             });
         });
         describe('FORWARDED action', () => {
+            it('should return forwarded message with memo', async () => {
+                const report: Report = createRandomReport(0, undefined);
+                const memo = 'Testing approval memo';
+                const forwardedAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        automaticAction: false,
+                        message: memo,
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [forwardedAction.reportActionID]: forwardedAction,
+                });
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    policy: undefined,
+                    isReportArchived: false,
+
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                });
+                expect(lastMessage).toBe(translateLocal('iou.forwarded', memo));
+            });
+
             it('should return automatic forwarded message if forwarded automatically', async () => {
                 const report: Report = createRandomReport(0, undefined);
                 const forwardedAction: ReportAction = {
