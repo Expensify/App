@@ -52,6 +52,7 @@ function useAutoCreateTrackWorkspace() {
 
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const archivedReportsIDSet = useArchivedReportsIDSet();
     const {isBetaEnabled} = usePermissions();
 
@@ -105,6 +106,7 @@ function useAutoCreateTrackWorkspace() {
                     personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
                     introSelected,
                     isSelfTourViewed,
+                    reports: allReports,
                 });
 
                 if (isSidePanelReportSupported) {
@@ -157,6 +159,7 @@ function useAutoCreateTrackWorkspace() {
             conciergeChatReportID,
             archivedReportsIDSet,
             mergedAccountConciergeReportID,
+            allReports,
         ],
     );
 

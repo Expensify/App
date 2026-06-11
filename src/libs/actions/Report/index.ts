@@ -5434,6 +5434,8 @@ type CompleteOnboardingProps = {
     shouldWaitForRHPVariantInitialization?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
+    /** All reports. Optional during migration; the `?` will be removed once every caller passes `reports`. Link to issue https://github.com/Expensify/App/issues/66416 */
+    reports?: OnyxCollection<Report>;
 };
 
 async function completeOnboarding({
@@ -5454,6 +5456,7 @@ async function completeOnboarding({
     shouldWaitForRHPVariantInitialization = false,
     introSelected,
     isSelfTourViewed,
+    reports,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -5467,6 +5470,7 @@ async function completeOnboarding({
         isInvitedAccountant,
         onboardingPurposeSelected,
         isSelfTourViewed,
+        reports,
     });
     if (!onboardingData) {
         return;

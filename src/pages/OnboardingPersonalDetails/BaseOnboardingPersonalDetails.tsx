@@ -42,6 +42,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -93,6 +94,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 onboardingPolicyID,
                 introSelected,
                 isSelfTourViewed,
+                reports: allReports,
             });
 
             setOnboardingAdminsChatReportID();
@@ -120,6 +122,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             conciergeChatReportID,
             introSelected,
             isSelfTourViewed,
+            allReports,
         ],
     );
 

@@ -43,6 +43,7 @@ function useAutoCreateSubmitWorkspace() {
         [],
     );
     const [hasEditableGroupPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const autoCreateSubmitWorkspace = useCallback(
         (firstName: string, lastName: string) => {
@@ -80,6 +81,7 @@ function useAutoCreateSubmitWorkspace() {
                 onboardingPolicyID: newPolicyID,
                 introSelected,
                 isSelfTourViewed,
+                reports: allReports,
             });
 
             setOnboardingAdminsChatReportID();
@@ -105,6 +107,7 @@ function useAutoCreateSubmitWorkspace() {
             betas,
             hasActiveAdminPolicies,
             shouldUseNarrowLayout,
+            allReports,
         ],
     );
 
