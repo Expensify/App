@@ -2919,6 +2919,45 @@ describe('actions/Report', () => {
             expect(onboardingData).toBeTruthy();
             expect(onboardingData?.selfDMParameters?.reportID).toBeUndefined();
         });
+
+        it('should optimistically create a self-DM for a personal spend onboarding when none exists', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            // Only a Concierge chat exists (the onboarding target); there is no self-DM yet
+            const conciergeChatReportID = '1122334455';
+            const conciergeChat: OnyxTypes.Report = {
+                reportID: conciergeChatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`]: conciergeChat,
+            };
+
+            const engagementChoice = CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
+            const {onboardingMessages} = getOnboardingMessages();
+
+            const onboardingData = ReportUtils.prepareOnboardingOnyxData({
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                userReportedIntegration: null,
+                introSelected: {choice: engagementChoice},
+                isSelfTourViewed: false,
+                reports,
+            });
+
+            // A new self-DM is created and added to the optimistic data
+            expect(onboardingData).toBeTruthy();
+            const newSelfDMReportID = onboardingData?.selfDMParameters?.reportID;
+            expect(newSelfDMReportID).toBeTruthy();
+            const createsSelfDM = onboardingData?.optimisticData.some((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${newSelfDMReportID}`);
+            expect(createsSelfDM).toBe(true);
+        });
     });
 
     describe('markAllMessagesAsRead', () => {
