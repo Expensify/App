@@ -18,6 +18,7 @@ const darkContrastTheme = {
     ourMentionBG: colors.green100,
     ourMentionText: colors.green700,
     receiptPlaceholderPlus: colors.green800,
+    floatingActionButtonIcon: colors.productLight900,
 } satisfies ThemeColors;
 
 export default darkContrastTheme;

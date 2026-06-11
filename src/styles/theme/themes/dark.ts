@@ -43,7 +43,7 @@ const darkTheme = {
     signInPage: colors.green800,
     darkSupportingText: colors.productDark800,
     receiptPlaceholderPlus: colors.productLight100,
-    floatingActionButtonIcon: colors.productLight900,
+    floatingActionButtonIcon: colors.productDark900,
 
     // Additional keys
     overlay: colors.productDark400,
