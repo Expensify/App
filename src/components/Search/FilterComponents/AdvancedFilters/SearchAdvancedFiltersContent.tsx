@@ -14,9 +14,8 @@ type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'fil
 type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'filterKey' | 'value' | 'onChange'>;
 type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'filterKey' | 'value' | 'hasFeed' | 'onChange'>;
 type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'>;
-type CommonFilterContentWrapperProps = Pick<CommonFilterContentProps, 'filterKey' | 'value' | 'type' | 'policyIDs' | 'policyIDQuery' | 'onChange'>;
-
-type SearchAdvancedFiltersContentProps = SearchFilterCommonProps & {
+type CommonFilterContentWrapperProps = Omit<CommonFilterContentProps, keyof SearchFilterCommonProps> & Pick<SearchFilterCommonProps, 'ready'>;
+type SearchAdvancedFiltersContentProps = Pick<SearchFilterCommonProps, 'ready'> & {
     filterKey: SearchFilter['key'];
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     policyIDQuery: string[] | undefined;
@@ -30,7 +29,7 @@ type SearchAdvancedFiltersContentProps = SearchFilterCommonProps & {
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, onChange, components}: SearchAdvancedFiltersContentProps) {
+function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
     const {Text: TextFilter, Amount: AmountFilter, Date: DateFilter, ReportField: ReportFieldFilter, Common: CommonFilter} = components;
 
     if (
@@ -112,6 +111,7 @@ function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, onChang
             type={values?.type}
             policyIDs={values?.policyID}
             policyIDQuery={policyIDQuery}
+            ready={ready}
             onChange={(newValue) => onChange({[filterKey]: newValue} as Partial<SearchAdvancedFiltersForm>)}
         />
     );
