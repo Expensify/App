@@ -359,7 +359,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     };
 
     const itemRightSideComponent = (item: OptionWithKey, isFocused?: boolean) => {
-        if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login)) || !item.login) {
+        if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login))) {
             return null;
         }
 
