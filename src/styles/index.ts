@@ -3625,6 +3625,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
+        groupSubHeaderBorderOverlap: {
+            marginTop: -1,
+        },
+
         groupSearchListTableContainerStyle: {
             minHeight: variables.h28,
             paddingBottom: 0,

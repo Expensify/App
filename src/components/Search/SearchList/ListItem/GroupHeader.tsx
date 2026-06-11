@@ -462,7 +462,7 @@ function GroupHeader({
                                                 isActionColumnWide={isSubHeaderActionColumnWide}
                                             />
                                         </View>
-                                        <View style={styles.ph3}>
+                                        <View style={[styles.ph3, styles.groupSubHeaderBorderOverlap]}>
                                             <View style={StyleUtils.getSelectedBorderBottomStyle(isItemSelected)} />
                                         </View>
                                     </View>
