@@ -928,7 +928,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
-            validateAccount: {title: '验证您的账户以继续使用 Expensify', subtitle: '账户', cta: '验证'},
+            validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
                 workspaceTitle: '您的企业银行账户已被锁定',
@@ -1328,7 +1328,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approvedMessage: `已批准`,
         unapproved: `未批准`,
         automaticallyForwarded: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
-        forwarded: `已批准`,
+        forwarded: (memo?: string) => `已批准${memo ? `，备注为 ${memo}` : ''}`,
         rejectedThisReport: '已拒绝',
         waitingOnBankAccount: (submitterDisplayName: string) => `已开始付款，但正在等待${submitterDisplayName}添加银行账户。`,
         adminCanceledRequest: '已取消付款',
@@ -3266,6 +3266,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             subtitle: '添加你的团队或邀请你的会计。人越多越热闹！',
         },
         workEmail2FAError: '此登录使用的是已启用双重身份验证（2FA）的现有账户。',
+        singleSignOnError: '此登录使用的是已启用 SSO/SAML 的现有账户。',
     },
     featureTraining: {
         doNotShowAgain: '不再显示此内容',
@@ -4220,7 +4221,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             customFieldHint: '为该成员的所有支出添加适用的自定义编码。',
             reports: '报表',
             reportFields: '报表字段',
-            invoiceFields: '发票字段',
             reportTitle: '报表标题',
             reportField: '报表字段',
             taxes: '税费',
@@ -4787,6 +4787,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         certinia: {
             title: 'Certinia',
+            titleFFA: 'Certinia (FFA)',
             autoSyncDescription: 'Expensify 将每天自动与 Certinia 同步。',
             syncReimbursedReportsDescription: '启用此选项后，每当在 FFA 中支付应付发票时，关联的 Expensify 报告将自动标记为已报销。',
             exportDescription: '配置 Expensify 数据导出到 Certinia 的方式。',
@@ -5835,29 +5836,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             reportFieldInitialValueRequiredError: '请选择报表字段的初始值',
             genericFailureMessage: '更新报表字段时出错。请重试。',
         },
-        invoiceFields: {
-            subtitle: '当你想添加更多信息时，发票字段会很有帮助。',
-            importedFromAccountingSoftware: '以下发票字段是从你的',
-            disableInvoiceFields: '禁用发票字段',
-            disableInvoiceFieldsConfirmation: '确定吗？发票字段将在发票中被禁用。',
-            delete: '删除发票字段',
-            deleteConfirmation: '确定要删除此发票字段吗？',
-            findInvoiceField: '查找发票字段',
-            nameInputSubtitle: '为发票字段选择一个名称。',
-            typeInputSubtitle: '选择要使用的发票字段类型。',
-            initialValueInputSubtitle: '输入要在发票字段中显示的起始值。',
-            listValuesInputSubtitle: '这些值将显示在你的发票字段下拉菜单中。成员可以选择已启用的值。',
-            listInputSubtitle: '这些值将显示在你的发票字段列表中。成员可以选择已启用的值。',
-            emptyInvoiceFieldsValues: {
-                title: '还没有列表值',
-                subtitle: '添加要显示在发票上的自定义值。',
-            },
-            existingInvoiceFieldNameError: '已存在同名发票字段',
-            invoiceFieldNameRequiredError: '请输入发票字段名称',
-            invoiceFieldTypeRequiredError: '请选择发票字段类型',
-            invoiceFieldInitialValueRequiredError: '请选择发票字段的初始值',
-            addField: '添加字段',
-        },
         tags: {
             tagName: '标签名称',
             requiresTag: '成员必须为所有报销添加标签',
@@ -6258,6 +6236,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `确定要连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '此会计集成'} 吗？这将删除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
+            reconnect: '重新连接',
             updateCredentials: '更新凭证',
             claimOffer: {
                 badgeText: '优惠可用！',
@@ -6636,12 +6615,6 @@ ${reportName}
                 description: `报表字段可用于指定报表级别的头部信息，与适用于各单笔报销项目的标签不同。这些详情可以包括特定项目名称、出差信息、地点等。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>报表字段仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
-            },
-            invoiceFields: {
-                title: '发票字段',
-                description: `发票字段可用于在发票上包含额外的发票级别详情。`,
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>发票字段仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
@@ -7893,6 +7866,7 @@ ${reportName}
     search: {
         resultsAreLimited: '搜索结果已受限制。',
         viewResults: '查看结果',
+        applyFilters: '应用筛选条件',
         appliedFilters: '已应用的筛选条件',
         resetFilters: '重置筛选条件',
         searchResults: {
@@ -7990,7 +7964,12 @@ ${reportName}
             amount: {
                 lessThan: (amount?: string) => `少于 ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `大于 ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `介于 ${greaterThan} 和 ${lessThan} 之间`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `介于 ${greaterThan} 和 ${lessThan} 之间`;
+                    }
+                    return '之间';
+                },
                 equalTo: (amount?: string) => `等于 ${amount ?? ''}`,
             },
             card: {
