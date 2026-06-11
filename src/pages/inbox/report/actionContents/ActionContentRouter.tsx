@@ -75,7 +75,7 @@ type ActionContentRouterProps = {
     originalReport: OnyxEntry<OnyxTypes.Report>;
 
     /** ID of the original report from which the given reportAction is first created */
-    originalReportID: string;
+    originalReportID?: string;
 
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
@@ -107,23 +107,14 @@ type ActionContentRouterProps = {
     /** Whether the report action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport: boolean;
 
-    /** Personal details list */
-    personalDetails?: OnyxTypes.PersonalDetailsList;
-
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
 
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
-    /** Position index of the report action in the overall report FlatList view */
-    index: number;
-
     /** Toggle whether the payment method popover is active */
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
-
-    /** Whether the user is a track intent user */
-    isTrackIntentUser?: boolean;
 };
 
 function ActionContentRouter({
@@ -141,18 +132,16 @@ function ActionContentRouter({
     updateHiddenState,
     isClosedExpenseReportWithNoExpenses,
     isHarvestCreatedExpenseReport,
-    personalDetails,
     shouldShowBorder,
     isOnSearch,
-    index,
     setIsPaymentMethodPopoverActive,
-    isTrackIntentUser,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
 
-    // Report that owns this action for mutations (thread / merged-list cases use originalReport).
-    const actionOwnerReport = originalReport ?? report;
+    // Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped).
+    const actionOwnerReportStable = originalReport ?? report;
+
     const actionOwnerReportID = originalReportID ?? reportID;
     const policyID = report?.policyID;
     const reportOwnerAccountID = report?.ownerAccountID;
@@ -171,7 +160,6 @@ function ActionContentRouter({
                     <ChatTransactionPreview
                         action={action}
                         reportID={reportID}
-                        chatReportID={chatReportID}
                         iouReport={iouReport}
                         shouldShowSplitPreview={shouldShowSplitPreview}
                         transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
@@ -242,7 +230,6 @@ function ActionContentRouter({
                 action={action}
                 report={report}
                 iouReport={iouReport}
-                personalDetails={personalDetails}
             />
         );
     }
@@ -270,7 +257,6 @@ function ActionContentRouter({
                 policyID={policyID}
                 reportID={reportID}
                 originalReport={originalReport}
-                isTrackIntentUser={isTrackIntentUser ?? false}
             />
         );
     }
@@ -298,6 +284,7 @@ function ActionContentRouter({
                 parentReportID={report?.parentReportID}
                 parentReportActionID={report?.parentReportActionID}
                 actionReportID={action.reportID}
+                action={action}
             />
         );
     }
@@ -385,9 +372,10 @@ function ActionContentRouter({
         return (
             <MentionWhisperContent
                 action={action}
-                report={report}
-                originalReport={originalReport}
+                actionOwnerReportStable={actionOwnerReportStable}
                 originalReportID={originalReportID}
+                parentReport={originalReport ? report : undefined}
+                policyID={policyID}
             />
         );
     }
@@ -396,7 +384,7 @@ function ActionContentRouter({
             <ReportMentionWhisperContent
                 action={action}
                 reportID={reportID}
-                actionOwnerReport={actionOwnerReport}
+                actionOwnerReportStable={actionOwnerReportStable}
             />
         );
     }
@@ -405,7 +393,7 @@ function ActionContentRouter({
             <ConfirmWhisperContent
                 action={action}
                 reportID={reportID}
-                actionOwnerReport={actionOwnerReport}
+                actionOwnerReportStable={actionOwnerReportStable}
                 originalReportID={originalReportID}
             />
         );
@@ -490,7 +478,6 @@ function ActionContentRouter({
             originalReportID={originalReportID}
             displayAsGroup={displayAsGroup}
             draftMessage={draftMessage}
-            index={index}
             isHidden={isHidden}
             updateHiddenState={updateHiddenState}
             isOnSearch={isOnSearch}

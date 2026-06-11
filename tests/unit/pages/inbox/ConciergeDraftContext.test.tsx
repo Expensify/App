@@ -2,7 +2,7 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 import type {PropsWithChildren} from 'react';
 import Onyx from 'react-native-onyx';
 import Pusher from '@libs/Pusher';
-import type {ConciergeDraftEvent} from '@libs/Pusher/types';
+import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/types';
 import {ConciergeDraftProvider, useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import {applyConciergeDraftEvent, getCachedDraft, setCachedDraft} from '@pages/inbox/conciergeDraftState';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,6 +11,7 @@ import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Pusher', () => ({
     TYPE: {
+        CONCIERGE_DRAFT_EVENTS: 'conciergeDraftEvents',
         CONCIERGE_DRAFT_STARTED: 'conciergeDraftStarted',
         CONCIERGE_DRAFT_UPDATED: 'conciergeDraftUpdated',
         CONCIERGE_DRAFT_COMPLETED: 'conciergeDraftCompleted',
@@ -31,9 +32,17 @@ const STREAM_SESSION_ID = 'stream-session-1';
 const TARGET_BODY_MARKDOWN = 'Hello';
 const COMPLETED_BODY_MARKDOWN = 'Hello world';
 const FINAL_RENDERED_HTML = '<comment>Server final response</comment>';
+const SHORT_FINAL_RENDERED_HTML = '<comment>OK</comment>';
+const LONG_FINAL_RENDERED_TEXT = Array.from({length: 12}, (_, index) => `Streaming response ${index}`).join(' ');
+const LONG_FINAL_RENDERED_HTML = `<comment>${LONG_FINAL_RENDERED_TEXT}</comment>`;
 
 type MockPusherSubscribe = jest.MockedFunction<
-    (channelName: string, eventName?: string, eventCallback?: (event: ConciergeDraftEvent) => void, onResubscribe?: () => void) => ReturnType<typeof Pusher.subscribe>
+    (
+        channelName: string,
+        eventName?: string,
+        eventCallback?: (event: ConciergeDraftEvent | ConciergeDraftEventsEvent) => void,
+        onResubscribe?: () => void,
+    ) => ReturnType<typeof Pusher.subscribe>
 >;
 
 function getMockPusherSubscribe(): MockPusherSubscribe {
@@ -63,7 +72,7 @@ function createDraftEvent(bodyMarkdown: string, overrides: Partial<ConciergeDraf
     };
 }
 
-function emitPusherEvent(eventType: string, event: ConciergeDraftEvent) {
+function emitPusherEvent(eventType: string, event: ConciergeDraftEvent | ConciergeDraftEventsEvent) {
     const subscriptionCall = getMockPusherSubscribe().mock.calls.find(([, subscribedEventType]) => subscribedEventType === eventType);
     const callback = subscriptionCall?.[2];
 
@@ -129,7 +138,7 @@ describe('ConciergeDraftContext', () => {
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
         await waitFor(() => {
-            expect(Pusher.subscribe).toHaveBeenCalledTimes(5);
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
         });
 
         // Given an active paced Pusher target
@@ -159,12 +168,75 @@ describe('ConciergeDraftContext', () => {
         unmount();
     });
 
+    it('trickles finalRenderedHTML-only Pusher events before completing the draft', async () => {
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        jest.useFakeTimers();
+        try {
+            act(() => {
+                emitPusherEvent(
+                    Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
+                    createDraftEvent('', {
+                        status: 'started',
+                        bodyMarkdown: undefined,
+                        finalRenderedHTML: LONG_FINAL_RENDERED_HTML,
+                    }),
+                );
+            });
+
+            const initialText = getFirstMessageText(result.current.draftReportAction);
+            expect(initialText?.length).toBeGreaterThan(0);
+            expect(initialText).not.toBe(LONG_FINAL_RENDERED_TEXT);
+            expect(result.current.isDraftPendingCompletion).toBe(true);
+
+            act(() => {
+                jest.advanceTimersByTime(15_100);
+            });
+
+            expect(getFirstMessageText(result.current.draftReportAction)).toBe(LONG_FINAL_RENDERED_TEXT);
+            expect(result.current.isDraftPendingCompletion).toBe(false);
+        } finally {
+            unmount();
+            jest.useRealTimers();
+        }
+    });
+
+    it('reveals short finalRenderedHTML-only Pusher events immediately', async () => {
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        act(() => {
+            emitPusherEvent(
+                Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
+                createDraftEvent('', {
+                    status: 'started',
+                    bodyMarkdown: undefined,
+                    finalRenderedHTML: SHORT_FINAL_RENDERED_HTML,
+                }),
+            );
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('OK');
+        expect(result.current.isDraftPendingCompletion).toBe(false);
+
+        unmount();
+    });
+
     it('paces bodyMarkdown from a completed Pusher event before applying final HTML', async () => {
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
         await waitFor(() => {
-            expect(Pusher.subscribe).toHaveBeenCalledTimes(5);
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
         });
 
         // Given an in-progress Pusher target
@@ -185,10 +257,10 @@ describe('ConciergeDraftContext', () => {
             );
         });
 
-        // Then the completed markdown paces before final HTML is applied
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('Hell');
+        // Then the completed markdown is held as the next Pusher target and final HTML waits for pacing
         expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Server final response');
-        expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe(COMPLETED_BODY_MARKDOWN);
+        expect(getCachedDraft(REPORT_ID)?.pusherQueuedTargetEvents?.at(0)?.bodyMarkdown).toBe(COMPLETED_BODY_MARKDOWN);
+        expect(result.current.isDraftPendingCompletion).toBe(true);
 
         await waitFor(() => {
             expect(getCachedDraft(REPORT_ID)?.status).toBe('completed');
@@ -205,7 +277,7 @@ describe('ConciergeDraftContext', () => {
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
         await waitFor(() => {
-            expect(Pusher.subscribe).toHaveBeenCalledTimes(5);
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
         });
 
         // When completion arrives with markdown only
@@ -218,7 +290,7 @@ describe('ConciergeDraftContext', () => {
             );
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('He');
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
         expect(result.current.isDraftPendingCompletion).toBe(true);
 
         // Then the completed markdown becomes fully visible
@@ -226,6 +298,56 @@ describe('ConciergeDraftContext', () => {
             expect(getCachedDraft(REPORT_ID)?.status).toBe('completed');
             expect(getFirstMessageText(result.current.draftReportAction)).toBe(TARGET_BODY_MARKDOWN);
         });
+
+        unmount();
+    });
+
+    it('applies ordered batched Pusher draft events', async () => {
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, {
+                events: [createDraftEvent('H', {sequence: 1, status: 'started'}), createDraftEvent(TARGET_BODY_MARKDOWN, {sequence: 2, status: 'updated'})],
+            });
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
+
+        await waitFor(() => {
+            expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe(TARGET_BODY_MARKDOWN);
+            expect(getCachedDraft(REPORT_ID)?.pusherTargetSequence).toBe(2);
+        });
+
+        unmount();
+    });
+
+    it('reveals short finalRenderedHTML-only batched Pusher draft events immediately', async () => {
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, {
+                events: [
+                    createDraftEvent('', {
+                        status: 'started',
+                        bodyMarkdown: undefined,
+                        finalRenderedHTML: SHORT_FINAL_RENDERED_HTML,
+                    }),
+                ],
+            });
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('OK');
+        expect(result.current.isDraftPendingCompletion).toBe(false);
 
         unmount();
     });

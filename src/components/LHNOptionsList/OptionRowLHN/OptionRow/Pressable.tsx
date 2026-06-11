@@ -5,7 +5,6 @@ import Hoverable from '@components/Hoverable';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import useLHNRowProductTrainingTooltip from '@components/LHNOptionsList/OptionRowLHN/useLHNRowProductTrainingTooltip';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import getActionBadgeText from '@components/utils/getActionBadgeText';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
 import useLocalize from '@hooks/useLocalize';
@@ -42,12 +41,9 @@ type PressableProps = {
 
     /** Row content. */
     children: ReactNode;
-
-    /** Whether to show the "Mark as Done" state for this row. */
-    isMarkAsDone?: boolean;
 };
 
-function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children, isMarkAsDone}: PressableProps) {
+function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children}: PressableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -61,8 +57,7 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
 
     const reportID = optionItem.reportID;
     const brickRoadIndicator = optionItem.brickRoadIndicator;
-
-    const actionBadgeText = getActionBadgeText(optionItem.actionBadge, translate, isMarkAsDone);
+    const actionBadgeText = optionItem.actionBadge ? translate(`common.actionBadge.${optionItem.actionBadge}`) : '';
 
     let accessibilityLabelForBadge = '';
     if (brickRoadIndicator) {
