@@ -4042,7 +4042,6 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GENERAL_SETTINGS: 'generalSettings',
-            ADD_AGENT: 'addAgent',
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
@@ -7754,7 +7753,6 @@ const CONST = {
         HAS_FILTER_NEGATION: 'hasFilterNegation',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
-    AGENTS_WORKFLOWS_BANNER: 'agentsWorkflowsBanner',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
     SMART_BANNER_HEIGHT: 152,
 
@@ -7900,9 +7898,6 @@ const CONST = {
         },
         HIGH_CONTRAST_MODE_SWITCHER: {
             TOGGLE: 'HighContrastModeSwitcher-Toggle',
-        },
-        AGENTS_WORKFLOWS_BANNER: {
-            DISMISS: 'AgentsWorkflowsBanner-Dismiss',
         },
         AGENTS_RULES_BANNER: {
             CTA: 'AgentsRulesBanner-CTA',

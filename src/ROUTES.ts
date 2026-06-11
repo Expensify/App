@@ -1315,13 +1315,10 @@ const ROUTES = {
     SETTINGS_AGENTS: 'settings/agents',
     SETTINGS_AGENTS_ADD: {
         route: 'settings/agents/new',
-        getRoute: ({policyID, workflowApproverEmail}: {policyID?: string; workflowApproverEmail?: string} = {}) => {
+        getRoute: ({policyID}: {policyID?: string} = {}) => {
             const params = new URLSearchParams();
             if (policyID) {
                 params.set('policyID', policyID);
-            }
-            if (workflowApproverEmail) {
-                params.set('workflowApproverEmail', workflowApproverEmail);
             }
             const query = params.toString();
             return `settings/agents/new${query ? `?${query}` : ''}` as const;
@@ -2315,11 +2312,7 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EDIT: {
         route: 'workspaces/:policyID/workflows/approvals/:firstApproverEmail/edit',
-        getRoute: (policyID: string, firstApproverEmail: string, seedApproverEmail?: string, seedApproverAccountID?: number) =>
-            getUrlWithParams(`workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit`, {
-                seedApproverEmail,
-                seedApproverAccountID: seedApproverAccountID !== undefined ? String(seedApproverAccountID) : undefined,
-            }),
+        getRoute: (policyID: string, firstApproverEmail: string) => `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
         route: 'workspaces/:policyID/workflows/approvals/expenses-from',
@@ -2341,11 +2334,6 @@ const ROUTES = {
     WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER: {
         route: 'workspaces/:policyID/workflows/approvals/over-limit-approver',
         getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/over-limit-approver?approverIndex=${approverIndex}` as const,
-    },
-    WORKSPACE_WORKFLOWS_ADD_AGENT: {
-        route: 'workspaces/:policyID/workflows/add-agent',
-        getRoute: ({policyID, workflowApproverEmail}: {policyID: string; workflowApproverEmail?: string}) =>
-            getUrlWithParams(`workspaces/${policyID}/workflows/add-agent`, {workflowApproverEmail}),
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'workspaces/:policyID/workflows/payer',
