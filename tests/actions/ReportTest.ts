@@ -2869,6 +2869,56 @@ describe('actions/Report', () => {
             const targetsConciergeChat = onboardingData?.optimisticData.some((update) => update.key.includes(conciergeChatReportID));
             expect(targetsConciergeChat).toBe(true);
         });
+
+        it('should reuse the existing self-DM for a personal spend onboarding', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            // An existing Concierge chat (the onboarding target) and an existing self-DM the personal spend
+            // onboarding should reuse instead of creating a new one
+            const conciergeChatReportID = '6677889900';
+            const conciergeChat: OnyxTypes.Report = {
+                reportID: conciergeChatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const selfDMReportID = '5544332211';
+            const selfDMReport: OnyxTypes.Report = {
+                reportID: selfDMReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                participants: {
+                    [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, selfDMReport);
+            await waitForBatchedUpdates();
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`]: conciergeChat,
+                [`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`]: selfDMReport,
+            };
+
+            // PERSONAL_SPEND routes the onboarding to the user's self-DM
+            const engagementChoice = CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
+            const {onboardingMessages} = getOnboardingMessages();
+
+            const onboardingData = ReportUtils.prepareOnboardingOnyxData({
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                userReportedIntegration: null,
+                introSelected: {choice: engagementChoice},
+                isSelfTourViewed: false,
+                reports,
+            });
+
+            // The existing self-DM should be reused, so no new self-DM is created
+            expect(onboardingData).toBeTruthy();
+            expect(onboardingData?.selfDMParameters?.reportID).toBeUndefined();
+        });
     });
 
     describe('markAllMessagesAsRead', () => {
