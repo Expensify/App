@@ -37,7 +37,6 @@ import type {
     RestrictedActionParamList,
     RoomMembersNavigatorParamList,
     ScheduleCallParamList,
-    SearchAdvancedFiltersParamList,
     SearchColumnsParamList,
     SearchReportActionsParamList,
     SearchSavedSearchParamList,
@@ -179,6 +178,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTaxRatePage').default,
     [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepCategory').default,
     [SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepCategoryCreate').default,
+    [SCREENS.MONEY_REQUEST.STEP_VENDOR]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepVendor').default,
     [SCREENS.MONEY_REQUEST.STEP_DATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDate').default,
     [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDescription').default,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistance').default,
@@ -243,7 +243,7 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
-    [SCREENS.SPLIT_DETAILS.ROOT]: () => require<ReactComponentModule>('../../../../pages/iou/SplitBillDetailsPage').default,
+    [SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/iou/DynamicSplitBillDetailsPage').default,
 });
 
 const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorParamList>({
@@ -279,7 +279,6 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettin
     [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Report/DynamicNamePage').default,
     [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_WRITE_CAPABILITY]: () => require<ReactComponentModule>('../../../../pages/settings/Report/DynamicWriteCapabilityPage').default,
     [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_VISIBILITY]: () => require<ReactComponentModule>('../../../../pages/settings/Report/DynamicVisibilityPage').default,
-    [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: () => require<ReactComponentModule>('../../../../pages/settings/Report/ReportLayoutPage').default,
     [SCREENS.REPORT_SETTINGS.COLUMNS]: () => require<ReactComponentModule>('../../../../pages/settings/Report/ReportDetailsColumnsPage').default,
 });
 
@@ -368,9 +367,9 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator<Particip
 });
 
 const RoomMembersModalStackNavigator = createModalStackNavigator<RoomMembersNavigatorParamList>({
-    [SCREENS.ROOM_MEMBERS.ROOT]: () => require<ReactComponentModule>('../../../../pages/RoomMembersPage').default,
-    [SCREENS.ROOM_MEMBERS.INVITE]: () => require<ReactComponentModule>('../../../../pages/RoomInvitePage').default,
-    [SCREENS.ROOM_MEMBERS.DETAILS]: () => require<ReactComponentModule>('../../../../pages/RoomMemberDetailsPage').default,
+    [SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/DynamicRoomMembersPage').default,
+    [SCREENS.ROOM_MEMBERS.DYNAMIC_INVITE]: () => require<ReactComponentModule>('../../../../pages/DynamicRoomInvitePage').default,
+    [SCREENS.ROOM_MEMBERS.DYNAMIC_DETAILS]: () => require<ReactComponentModule>('../../../../pages/DynamicRoomMemberDetailsPage').default,
 });
 
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
@@ -995,8 +994,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     ),
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard').default),
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/CreateReportFieldsPage').default,
-    [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/reports/InitialListValueSelector/DynamicReportFieldsInitialListValuePage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsSettingsPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsListValuesPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsAddListValuePage').default,
@@ -1052,6 +1049,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.HR_ZENEFITS_FINAL_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/zenefits/ZenefitsFinalApproverPage').default,
     [SCREENS.WORKSPACE.HR_MERGE_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/merge/MergeHRApprovalModePage').default,
     [SCREENS.WORKSPACE.HR_MERGE_FINAL_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/merge/MergeHRFinalApproverPage').default,
+    [SCREENS.WORKSPACE.HR_MERGE_GROUPS]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/merge/MergeHRGroupsPage').default,
     [SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportsDefaultTitle').default,
     [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesAutoApproveReportsUnderPage').default,
     [SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesRandomReportAuditPage').default,
@@ -1214,8 +1212,9 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.EDIT_MULTIPLE_TAX_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleTaxPage').default,
 });
 
-const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<SearchAdvancedFiltersParamList>({
+const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator({
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersContentPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_TYPE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersTypePage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_STATUS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersStatusPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersDatePage').default,

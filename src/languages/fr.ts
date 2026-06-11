@@ -40,6 +40,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -314,6 +315,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: 'Commerçant',
         change: 'Modifier',
         category: 'Catégorie',
+        vendor: 'Fournisseur',
         report: 'Note de frais',
         billable: 'Facturable',
         nonBillable: 'Non refacturable',
@@ -961,7 +963,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Réparer la connexion de la carte personnelle ${cardName}` : 'Corriger la connexion de la carte personnelle'),
                 subtitle: 'Portefeuille',
             },
-            validateAccount: {title: 'Validez votre compte pour continuer à utiliser Expensify', subtitle: 'Compte', cta: 'Valider'},
+            validateAccount: {title: 'Validez votre compte', subtitle: 'Compte', cta: 'Valider'},
             fixFailedBilling: {title: 'Nous n’avons pas pu débiter votre carte enregistrée', subtitle: 'Abonnement'},
             unlockBankAccount: {
                 workspaceTitle: 'Votre compte bancaire professionnel a été verrouillé',
@@ -1376,7 +1378,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approvedMessage: `approuvé`,
         unapproved: `Non approuvé`,
         automaticallyForwarded: `approuvé via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l'espace de travail</a>`,
-        forwarded: `approuvé`,
+        forwarded: (memo?: string) => `approuvé${memo ? `, indiquant « ${memo} »` : ''}`,
         rejectedThisReport: 'rejeté',
         waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: 'a annulé le paiement',
@@ -1671,6 +1673,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Corrigez l’erreur de taux et réessayez.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Expliquer<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge a associé cette dépense au fournisseur <strong>${vendorName}</strong>`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Vous ne pouvez pas dupliquer les indemnités journalières entre plusieurs espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
         rulesModifiedFields: {
@@ -2915,6 +2918,7 @@ ${amount} pour ${merchant} - ${date}`,
         waitForPDF: 'Veuillez patienter pendant que nous générons le PDF.',
         errorPDF: 'Une erreur s’est produite lors de la tentative de génération de votre PDF',
         successPDF: 'Votre PDF a été généré ! S’il ne s’est pas téléchargé automatiquement, utilisez le bouton ci-dessous.',
+        goToRoom: 'Aller à la salle',
     },
     reportDescriptionPage: {
         roomDescription: 'Description de la salle',
@@ -3367,6 +3371,7 @@ ${amount} pour ${merchant} - ${date}`,
             subtitle: 'Ajoutez votre équipe ou invitez votre comptable. Plus on est de fous, plus on rit !',
         },
         workEmail2FAError: 'Cette connexion est un compte existant avec l’authentification à deux facteurs (2FA) activée.',
+        singleSignOnError: 'Cette connexion correspond à un compte existant avec SSO/SAML activé.',
     },
     featureTraining: {
         doNotShowAgain: 'Ne plus m’afficher ceci',
@@ -4942,6 +4947,7 @@ ${amount} pour ${merchant} - ${date}`,
         },
         certinia: {
             title: 'Certinia',
+            titleFFA: 'Certinia (FFA)',
             autoSyncDescription: 'Expensify se synchronisera automatiquement avec Certinia chaque jour.',
             syncReimbursedReportsDescription:
                 'Lorsque cette option est activée, chaque fois qu’une facture à payer est réglée dans FFA, la note de frais Expensify associée est automatiquement marquée comme remboursée.',
@@ -6456,6 +6462,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Voulez-vous vraiment connecter ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'cette intégration comptable'} ? Cette action supprimera toutes les connexions comptables existantes.`,
             enterCredentials: 'Saisissez vos identifiants',
+            reconnect: 'Reconnecter',
             updateCredentials: 'Mettre à jour les identifiants',
             claimOffer: {
                 badgeText: 'Offre disponible !',
@@ -7490,6 +7497,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncingModalTitle: 'Votre connexion est en cours de synchronisation',
             syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
             syncing: 'Synchronisation des employés',
+            mergeHR: {
+                completeSetup: 'Terminer la configuration',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
+                groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
+            },
         },
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
@@ -8150,6 +8163,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     search: {
         resultsAreLimited: 'Les résultats de recherche sont limités.',
         viewResults: 'Afficher les résultats',
+        applyFilters: 'Appliquer des filtres',
         appliedFilters: 'Filtres appliqués',
         resetFilters: 'Réinitialiser les filtres',
         searchResults: {
@@ -8255,7 +8269,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             amount: {
                 lessThan: (amount?: string) => `Inférieur à ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Supérieur à ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} et ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Entre ${greaterThan} et ${lessThan}`;
+                    }
+                    return 'Entre';
+                },
                 equalTo: (amount?: string) => `Égal à ${amount ?? ''}`,
             },
             card: {
@@ -9412,6 +9431,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
             `En tant que <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copilote</a> pour ${accountOwnerEmail}, vous n’avez pas l’autorisation d’effectuer cette action. Désolé !`,
+        removeCopilotAccess: 'Supprimer mon accès copilote',
+        removeCopilotAccessTitle: "Supprimer l'accès copilote ?",
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `Êtes-vous sûr de vouloir supprimer votre accès copilote au compte Expensify de ${delegatorName} ? Cette action est irréversible.`,
+        removeCopilotAccessConfirm: "Supprimer l'accès",
         copilotAccess: 'Accès Copilot',
     },
     debug: {
