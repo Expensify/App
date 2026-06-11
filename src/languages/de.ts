@@ -40,6 +40,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -314,6 +315,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: 'Händler',
         change: 'Ändern',
         category: 'Kategorie',
+        vendor: 'Anbieter',
         report: 'Bericht',
         billable: 'Abrechenbar',
         nonBillable: 'Nicht abrechenbar',
@@ -1665,6 +1667,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Beheben Sie den Kursfehler und versuchen Sie es erneut.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Erklären<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge hat diese Ausgabe <strong>${vendorName}</strong> zugeordnet`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Sie können Per-Diem-Ausgaben nicht über mehrere Workspaces hinweg duplizieren, da sich die Sätze zwischen den Workspaces unterscheiden können.',
         rulesModifiedFields: {
@@ -8040,21 +8043,19 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} von ${cards}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `hat den Standardsteuersatz der Kategorie „${categoryName}“ auf „${newTax}“ geändert (zuvor „${oldTax}“)`,
         addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `„${rateName}“-Satz von ${rateValue} hinzugefügt`,
         addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `„${rateName}“-Satz von ${rateValue} hinzugefügt, gültig ab ${startDate}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `„${rateName}“-Satz von ${rateValue} hinzugefügt, gültig bis ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `hat den Tarif „${rateName}“ mit ${rateValue} hinzugefügt, gültig vom ${startDate} bis ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `Startdatum des Tarifs „${rateName}“ auf ${newDate} aktualisiert (zuvor ${oldDate})` : `Startdatum des Tarifs „${rateName}“ auf ${newDate} festlegen`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `Enddatum des Tarifs „${rateName}“ auf ${newDate} aktualisiert (zuvor ${oldDate})` : `Enddatum des Tarifs „${rateName}“ auf ${newDate} setzen`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `Start- und Enddatum des Tarifs „${rateName}“ auf ${newStartDate} - ${newEndDate} aktualisiert (zuvor ${oldStartDate} - ${oldEndDate})`
-                : `Start- und Enddatum des Tarifs „${rateName}“ auf ${newStartDate} – ${newEndDate} festlegen`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `Startdatum aus Tarif „${rateName}“ entfernt (zuvor ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `Enddatum aus dem Tarif „${rateName}“ entfernt (zuvor ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `hat den Entfernungs­tarif „${rateName}“ aktualisiert, sodass er für ${newDateRange} gilt (zuvor ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `ab dem ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `bis ${date}`,
+        customUnitRateDateRangeAllDates: () => `für alle Daten`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -9395,6 +9396,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Als <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">Copilot</a> von ${accountOwnerEmail} hast du keine Berechtigung, diese Aktion auszuführen. Entschuldigung!`,
+        removeCopilotAccess: 'Meinen Copilot-Zugriff entfernen',
+        removeCopilotAccessTitle: 'Copilot-Zugriff entfernen?',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `Sind Sie sicher, dass Sie Ihren Copilot-Zugriff auf das Expensify-Konto von ${delegatorName} entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.`,
+        removeCopilotAccessConfirm: 'Zugriff entfernen',
         copilotAccess: 'Copilot-Zugriff',
     },
     debug: {

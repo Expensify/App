@@ -40,6 +40,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -314,6 +315,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: 'Handelaar',
         change: 'Wijzigen',
         category: 'Categorie',
+        vendor: 'Leverancier',
         report: 'Rapport',
         billable: 'Factureerbaar',
         nonBillable: 'Niet-factureerbaar',
@@ -1660,6 +1662,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Los de tarieffout op en probeer het opnieuw.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Uitleggen<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge heeft deze uitgave gekoppeld aan <strong>${vendorName}</strong>`,
         duplicateNonDefaultWorkspacePerDiemError: 'Je kunt dagvergoedingen niet dupliceren tussen werkruimtes, omdat de tarieven per werkruimte kunnen verschillen.',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'markeerde de uitgave als „terugbetaalbaar”' : 'heeft de uitgave als ‘niet-vergoedbaar’ gemarkeerd'),
@@ -7997,21 +8000,19 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} van ${cards}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `heeft het standaardbelastingtarief van de categorie "${categoryName}" gewijzigd naar "${newTax}" (voorheen "${oldTax}")`,
         addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `heeft tarief „${rateName}” van ${rateValue} toegevoegd`,
         addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `tarief "${rateName}" van ${rateValue} toegevoegd, geldig vanaf ${startDate}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `heeft tarief „${rateName}” van ${rateValue} toegevoegd, geldig tot ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `heeft tarief "${rateName}" van ${rateValue} toegevoegd, geldig van ${startDate} - ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `startdatum van tarief "${rateName}" bijgewerkt naar ${newDate} (voorheen ${oldDate})` : `startdatum van tarief "${rateName}" instellen op ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `einddatum van tarief "${rateName}" bijgewerkt naar ${newDate} (voorheen ${oldDate})` : `einddatum van tarief "${rateName}" instellen op ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `start- en einddatum van tarief "${rateName}" bijgewerkt naar ${newStartDate} - ${newEndDate} (voorheen ${oldStartDate} - ${oldEndDate})`
-                : `start- en einddatum van tarief "${rateName}" ingesteld op ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `startdatum verwijderd van tarief "${rateName}" (voorheen ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `einddatum verwijderd van tarief "${rateName}" (voorheen ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `heeft het kilometertarief "${rateName}" bijgewerkt zodat het geldt van ${newDateRange} (voorheen ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `vanaf ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `tot ${date}`,
+        customUnitRateDateRangeAllDates: () => `voor alle data`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -9349,6 +9350,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Als <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copiloot</a> voor ${accountOwnerEmail} heb je geen toestemming om deze actie uit te voeren. Sorry!`,
+        removeCopilotAccess: 'Mijn copilot-toegang verwijderen',
+        removeCopilotAccessTitle: 'Copilot-toegang verwijderen?',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `Weet je zeker dat je je copilot-toegang tot het Expensify-account van ${delegatorName} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.`,
+        removeCopilotAccessConfirm: 'Toegang verwijderen',
         copilotAccess: 'Copilot-toegang',
     },
     debug: {

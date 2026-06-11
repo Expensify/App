@@ -40,6 +40,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -314,6 +315,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: '加盟店',
         change: '変更',
         category: 'カテゴリ',
+        vendor: 'ベンダー',
         report: 'レポート',
         billable: '請求可能',
         nonBillable: '請求不可',
@@ -1648,6 +1650,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'レートのエラーを修正して、もう一度お試しください。',
         AskToExplain: `・<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">説明<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge がこの経費を <strong>${vendorName}</strong> に一致させました`,
         duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? '経費を「精算対象」に指定しました' : '経費を「精算対象外」にマークしました'),
@@ -7934,21 +7937,19 @@ ${reportName}
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${cards} からの ${content}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `「${categoryName}」カテゴリのデフォルト税率を「${newTax}」に変更しました（以前は「${oldTax}」）`,
         addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `「${rateName}」レート（${rateValue}）を追加しました`,
         addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `${startDate}から有効な「${rateName}」レート（${rateValue}）を追加しました`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `「${rateName}」レート（${rateValue}）を${endDate}まで有効として追加しました`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `「${rateName}」レート（${rateValue}）を追加しました。有効期間：${startDate}〜${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `「${rateName}」レートの開始日を${newDate}に更新しました（以前は${oldDate}）` : `「${rateName}」レートの開始日を${newDate}に設定する`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `「${rateName}」レートの終了日を${newDate}（以前は${oldDate}）に更新しました` : `「${rateName}」レートの終了日を${newDate}に設定します`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `「${rateName}」レートの開始日と終了日を${newStartDate}〜${newEndDate}に更新しました（以前は${oldStartDate}〜${oldEndDate}）`
-                : `「${rateName}」レートの開始日と終了日を${newStartDate}〜${newEndDate}に設定しました`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `「${rateName}」レートの開始日を削除しました（以前の開始日：${oldDate}）`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `「${rateName}」レートの終了日を削除しました（以前は ${oldDate}）`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `距離レート「${rateName}」を更新し、${newDateRange} に適用しました（以前は ${oldDateRange}）`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `${date} から`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `${date}まで`,
+        customUnitRateDateRangeAllDates: () => `すべての日付に対して`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -9263,6 +9264,11 @@ ${reportName}
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
             `${accountOwnerEmail} の<a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">コパイロット</a>として、この操作を行う権限がありません。申し訳ありません。`,
+        removeCopilotAccess: '自分のコパイロットアクセスを削除',
+        removeCopilotAccessTitle: 'コパイロットアクセスを削除しますか？',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `${delegatorName}のExpensifyアカウントへのコパイロットアクセスを削除してもよろしいですか？この操作は元に戻せません。`,
+        removeCopilotAccessConfirm: 'アクセスを削除',
         copilotAccess: 'Copilot へのアクセス',
     },
     debug: {

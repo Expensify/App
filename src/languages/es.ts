@@ -14,7 +14,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
-import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, UnsupportedFormulaValueErrorParams} from './params';
+import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, RemoveCopilotAccessConfirmationParams, UnsupportedFormulaValueErrorParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 const translations: TranslationDeepObject<typeof en> = {
@@ -270,6 +270,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: 'Comerciante',
         change: 'Cambio',
         category: 'Categoría',
+        vendor: 'Proveedor',
         report: 'Informe',
         billable: 'Facturable',
         nonBillable: 'No facturable',
@@ -1631,6 +1632,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Corrige el error de la tasa y vuelve a intentarlo.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explicar<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge asoció este gasto con <strong>${vendorName}</strong>`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcó el gasto como "reembolsable"' : 'marcó el gasto como "no reembolsable"'),
             billable: (value: boolean) => (value ? 'marcó el gasto como "facturable"' : 'marcó el gasto como "no facturable"'),
@@ -7749,6 +7751,8 @@ ${amount} para ${merchant} - ${date}`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
             `cambió el umbral de autopago de informes aprobados a "${newLimit}" (previamente "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'eliminó el umbral de autopago de informes aprobados',
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `cambió la tasa de impuesto predeterminada de la categoría "${categoryName}" a "${newTax}" (previamente "${oldTax}")`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `cambió la categoría de gasto predeterminada para "${mccGroupName}" a "${newCategory}" (previamente "${oldCategory}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
@@ -7843,18 +7847,12 @@ ${amount} para ${merchant} - ${date}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `añadió la tasa "${rateName}" de ${rateValue}, válida hasta ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `añadió la tasa "${rateName}" de ${rateValue}, válida del ${startDate} al ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `actualizó la fecha de inicio de la tasa "${rateName}" a ${newDate} (previamente ${oldDate})` : `establecer la fecha de inicio de la tasa "${rateName}" a ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate
-                ? `actualizó la fecha de finalización de la tasa "${rateName}" a ${newDate} (previamente ${oldDate})`
-                : `establecer la fecha de finalización de la tasa "${rateName}" en ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `actualizó la fecha de inicio y fin de la tasa "${rateName}" a ${newStartDate} - ${newEndDate} (previamente ${oldStartDate} - ${oldEndDate})`
-                : `establece la fecha de inicio y fin de la tasa "${rateName}" a ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `se eliminó la fecha de inicio de la tasa "${rateName}" (previamente ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `eliminó la fecha de finalización de la tasa «${rateName}» (previamente ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `actualizó la tasa de distancia «${rateName}» para aplicar ${newDateRange} (previamente ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `desde ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `hasta ${date}`,
+        customUnitRateDateRangeAllDates: () => `para todas las fechas`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -9552,6 +9550,11 @@ ${amount} para ${merchant} - ${date}`,
         },
         removeCopilot: 'Eliminar copiloto',
         removeCopilotConfirmation: '¿Estás seguro de que quieres eliminar este copiloto?',
+        removeCopilotAccess: 'Eliminar mi acceso de copiloto',
+        removeCopilotAccessTitle: '¿Eliminar acceso de copiloto?',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `¿Estás seguro de que quieres eliminar tu acceso de copiloto a la cuenta de Expensify de ${delegatorName}? Esta acción no se puede deshacer.`,
+        removeCopilotAccessConfirm: 'Eliminar acceso',
         changeAccessLevel: 'Cambiar nivel de acceso',
         makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
         enterMagicCode: (contactMethod) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto. Debería llegar en un par de minutos.`,

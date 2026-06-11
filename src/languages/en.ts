@@ -28,6 +28,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -329,6 +330,7 @@ const translations = {
         merchant: 'Merchant',
         change: 'Change',
         category: 'Category',
+        vendor: 'Vendor',
         report: 'Report',
         billable: 'Billable',
         nonBillable: 'Non-billable',
@@ -1725,6 +1727,7 @@ const translations = {
         },
         correctRateError: 'Fix the rate error and try again.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explain<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge matched this expense to <strong>${vendorName}</strong>`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"'),
             billable: (value: boolean) => (value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"'),
@@ -7706,16 +7709,12 @@ const translations = {
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'enabled' : 'disabled'} the ${customUnitName} rate "${customUnitRateName}"`;
         },
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `updated start date of "${rateName}" rate to ${newDate} (previously ${oldDate})` : `set start date of "${rateName}" rate to ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `updated end date of "${rateName}" rate to ${newDate} (previously ${oldDate})` : `set end date of "${rateName}" rate to ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `updated start and end date of "${rateName}" rate to ${newStartDate} - ${newEndDate} (previously ${oldStartDate} - ${oldEndDate})`
-                : `set start and end date of "${rateName}" rate to ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `removed start date from "${rateName}" rate (previously ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `removed end date from "${rateName}" rate (previously ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `updated the distance rate "${rateName}" to apply ${newDateRange} (previously ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `from ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `until ${date}`,
+        customUnitRateDateRangeAllDates: () => `for all dates`,
         updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `added the option "${optionName}" to the report field "${fieldName}"`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `removed the option "${optionName}" from the report field "${fieldName}"`,
@@ -7999,6 +7998,8 @@ const translations = {
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
             `changed the auto-pay approved reports threshold to "${newLimit}" (previously "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'removed the auto-pay approved reports threshold',
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `changed the "${categoryName}" category default tax rate to "${newTax}" (previously "${oldTax}")`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `changed the default spend category for "${mccGroupName}" to "${newCategory}" (previously "${oldCategory}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
@@ -9433,6 +9434,11 @@ const translations = {
         },
         removeCopilot: 'Remove copilot',
         removeCopilotConfirmation: 'Are you sure you want to remove this copilot?',
+        removeCopilotAccess: 'Remove my copilot access',
+        removeCopilotAccessTitle: 'Remove copilot access?',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `Are you sure you want to remove your copilot access to ${delegatorName}'s Expensify account? This action cannot be undone.`,
+        removeCopilotAccessConfirm: 'Remove access',
         changeAccessLevel: 'Change access level',
         makeSureItIsYou: "Let's make sure it's you",
         enterMagicCode: (contactMethod: string) => `Please enter the magic code sent to ${contactMethod} to add a copilot. It should arrive within a minute or two.`,

@@ -1645,6 +1645,7 @@ const CONST = {
                 MARK_REIMBURSED_FROM_INTEGRATION: 'ACTIONMARKEDREIMBURSEDFROMINTEGRATION', // OldDot Action
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
+                CONCIERGE_AUTO_MATCH_VENDOR: 'CONCIERGEAUTOMATCHVENDOR',
                 MOVED: 'MOVED',
                 MOVED_TRANSACTION: 'MOVEDTRANSACTION',
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
@@ -1742,6 +1743,7 @@ const CONST = {
                     UPDATE_AUTO_REPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
                     UPDATE_BUDGET: 'POLICYCHANGELOG_UPDATE_BUDGET',
                     UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
+                    UPDATE_CATEGORY_TAX_RATE: 'POLICYCHANGELOG_UPDATE_CATEGORY_TAX_RATE',
                     UPDATE_CATEGORIES: 'POLICYCHANGELOG_UPDATE_CATEGORIES',
                     UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
                     UPDATE_CUSTOM_UNIT: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT',
@@ -3089,6 +3091,7 @@ const CONST = {
             MANAGER: 'manager',
             CUSTOM: 'custom',
         },
+        COOKIE_CLEAR_DELAY_MS: 500,
         SYNC_STATUS: {
             SYNCING: 'SYNCING',
             DONE: 'DONE',
@@ -8671,6 +8674,8 @@ const CONST = {
             DELEGATE_ITEM: 'SettingsSecurity-DelegateItem',
             DELEGATE_CHANGE_ACCESS: 'SettingsSecurity-DelegateChangeAccess',
             DELEGATE_REMOVE: 'SettingsSecurity-DelegateRemove',
+            DELEGATOR_ITEM: 'SettingsSecurity-DelegatorItem',
+            DELEGATOR_REMOVE: 'SettingsSecurity-DelegatorRemove',
         },
         SETTINGS_WALLET: {
             ADD_BANK_ACCOUNT: 'SettingsWallet-AddBankAccount',
