@@ -184,6 +184,7 @@ function DatePicker({
                     label={label}
                     accessibilityLabel={label}
                     role={CONST.ROLE.COMBOBOX}
+                    accessibilityState={{expanded: isModalVisible}}
                     value={selectedDate}
                     placeholder={placeholder ?? translate('common.dateFormat')}
                     errorText={errorText}
