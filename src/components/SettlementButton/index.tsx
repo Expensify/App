@@ -573,11 +573,7 @@ function SettlementButton({
         }
     };
 
-    const handlePaymentSelection = (
-        event: GestureResponderEvent | KeyboardEvent | undefined,
-        selectedOption: PaymentMethod | undefined,
-        triggerKYCFlow: (params: ContinueActionParams) => void,
-    ) => {
+    const handlePaymentSelection = (event: GestureResponderEvent | KeyboardEvent | undefined, selectedOption: string, triggerKYCFlow: (params: ContinueActionParams) => void) => {
         const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(
             selectedOption,
             activeAdminPolicies,
@@ -585,13 +581,13 @@ function SettlementButton({
             policyIDKey,
         );
 
-        if (checkForNecessaryAction(paymentType, selectedOption)) {
+        if (checkForNecessaryAction(paymentType, selectedOption as PaymentMethod)) {
             return;
         }
         const isPayingWithMethod = paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
         if ((!!policyFromPaymentMethod || shouldSelectPaymentMethod) && (isPayingWithMethod || !!policyFromPaymentMethod)) {
-            selectPaymentMethod(event, paymentType, triggerKYCFlow, selectedOption, policyFromPaymentMethod ?? policyFromContext);
+            selectPaymentMethod(event, paymentType, triggerKYCFlow, selectedOption as PaymentMethod, policyFromPaymentMethod ?? policyFromContext);
             return;
         }
 
@@ -603,7 +599,7 @@ function SettlementButton({
     // can be referenced without hoisting; the matching `setPendingPaymentContinue` happens in `checkForNecessaryAction`.
     useResumePaymentAfterValidation(reportID, (intent) => {
         const triggerKYCFlow = kycWallRef.current?.continueAction;
-        if (!triggerKYCFlow) {
+        if (!triggerKYCFlow || !intent.paymentMethod) {
             return;
         }
         handlePaymentSelection(undefined, intent.paymentMethod, triggerKYCFlow);
