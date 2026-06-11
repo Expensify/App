@@ -623,8 +623,9 @@ function MoneyRequestReceiptView({
                             ref={receiptContainerRef}
                             style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}
                             onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
-                            // Keep `hovered` in sync while moving over the receipt so the distance e-receipt overlay
-                            // (rendered below when `hovered`) stays visible while zooming.
+                            // `onMouseEnter` alone isn't enough to keep `hovered` in sync: when `hovered` resets while
+                            // the cursor is already over the receipt (e.g. after closing the RHP) or `onMouseEnter` fires
+                            // while the receipt is still loading, no new `mouseenter` event occurs, so we re-sync on mouse move.
                             onMouseMove={() => {
                                 if (isLoading || hovered) {
                                     return;
