@@ -137,7 +137,7 @@ function getExportMenuItem(
             };
         }
         case CONST.POLICY.CONNECTIONS.NAME.XERO: {
-            const type = translate('workspace.xero.xeroBankAccount');
+            const type = translate('workspace.xero.bankAccount');
             const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, type) : undefined;
             const exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_XERO_EXPORT_BANK_ACCOUNT;
             const defaultExportAccount = exportConfiguration?.nonReimbursableAccount;
