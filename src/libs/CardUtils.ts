@@ -1786,7 +1786,7 @@ function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedE
  * 1. Card currency, if card is passed and has a currency set on it
  * 2. Feed settings currency, if settings are passed and have a currency
  * 3. Use USD for US program keys
- * 4. For ECUK feeds, determine currency based on card country, defaulting to GBP
+ * 4. For UK/EU feeds, determine currency based on card country, defaulting to GBP
  * 5. Finally, if all else fails, fallback to USD
  */
 function getCardOrFeedCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
