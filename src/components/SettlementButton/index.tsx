@@ -205,8 +205,7 @@ function SettlementButton({
             }
 
             if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                // Remember the payment the user was attempting so `useResumePaymentAfterValidation` can resume it once
-                // the account is validated, instead of forwarding them to a static page that can't reproduce the KYC flow.
+                // Remember the payment the user was attempting so `useResumePaymentAfterValidation` can resume it.
                 if (reportID && paymentMethodType) {
                     setPendingPaymentContinue({reportID, iouPaymentType: paymentMethodType, paymentMethod: selectedOption});
                 }
@@ -594,9 +593,6 @@ function SettlementButton({
         selectPaymentType(event, selectedOption as PaymentMethodType);
     };
 
-    // After the user verifies their account, re-run the exact selection handler they pressed (now validated) so the
-    // KYC wall continues the flow instead of dead-ending on a static page. Placed after `handlePaymentSelection` so it
-    // can be referenced without hoisting; the matching `setPendingPaymentContinue` happens in `checkForNecessaryAction`.
     useResumePaymentAfterValidation(reportID, (intent) => {
         const triggerKYCFlow = kycWallRef.current?.continueAction;
         if (!triggerKYCFlow || !intent.paymentMethod) {
