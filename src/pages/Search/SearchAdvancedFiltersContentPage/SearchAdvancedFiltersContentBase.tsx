@@ -62,7 +62,6 @@ function SearchAdvancedFiltersContentBase() {
                                 values={currentDraftFilters}
                                 filterKey={validFilterKey}
                                 policyIDQuery={currentSearchQueryJSON?.policyID}
-                                autoFocus
                                 ready={didScreenTransitionEnd}
                                 components={{
                                     Common: CommonFilterContentPageWrapper,
