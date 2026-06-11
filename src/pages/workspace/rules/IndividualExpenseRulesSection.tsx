@@ -1,42 +1,73 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import MenuItem from '@components/MenuItem';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setPolicyRequireCompanyCardsEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import type IconAsset from '@src/types/utils/IconAsset';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
     canWriteRules: boolean;
-    withReadOnlyFallback?: (disabledAction?: () => void | Promise<void>) => (() => void | Promise<void>) | undefined;
+    withReadOnlyFallback: (disabledAction?: () => void | Promise<void>) => (() => void | Promise<void>) | undefined;
 };
 
-type BasicRuleMenuItem = {
+type IndividualExpenseRulesSectionSubtitleProps = {
+    policy?: Policy;
+    translate: LocaleContextProps['translate'];
+    environmentURL: string;
+};
+
+type IndividualExpenseRulesMenuItem = {
     title: string;
-    description?: string;
-    icon: IconAsset;
+    descriptionTranslationKey: TranslationPaths;
     action: () => void;
     pendingAction?: PendingAction;
 };
+
+function IndividualExpenseRulesSectionSubtitle({policy, translate, environmentURL}: IndividualExpenseRulesSectionSubtitleProps) {
+    const policyID = policy?.id;
+
+    const categoriesPageLink = useMemo(() => {
+        if (policy?.areCategoriesEnabled) {
+            return `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)}`;
+        }
+
+        return `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
+    }, [policy?.areCategoriesEnabled, policyID, environmentURL]);
+
+    const tagsPageLink = useMemo(() => {
+        if (policy?.areTagsEnabled) {
+            return `${environmentURL}/${ROUTES.WORKSPACE_TAGS.getRoute(policyID)}`;
+        }
+
+        return `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
+    }, [policy?.areTagsEnabled, policyID, environmentURL]);
+
+    return <SectionSubtitleHTML html={translate('workspace.rules.individualExpenseRules.subtitle', categoriesPageLink, tagsPageLink)} />;
+}
 
 function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFallback}: IndividualExpenseRulesSectionProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptScan', 'Task', 'Cash']);
+    const {environmentURL} = useEnvironment();
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -47,143 +78,180 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
         [policyID, policy?.isAttendeeTrackingEnabled],
     );
 
-    const maxExpenseAgeText = useMemo(() => {
-        if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE) {
+    const maxExpenseAmountNoReceiptText = useMemo(() => {
+        if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE) {
             return '';
         }
-        return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge ?? 0});
-    }, [policy?.maxExpenseAge, translate]);
+
+        return convertToDisplayString(policy?.maxExpenseAmountNoReceipt, policyCurrency);
+    }, [convertToDisplayString, policy?.maxExpenseAmountNoReceipt, policyCurrency]);
 
     const maxExpenseAmountText = useMemo(() => {
         if (policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE) {
             return '';
         }
+
         return convertToDisplayString(policy?.maxExpenseAmount, policyCurrency);
     }, [convertToDisplayString, policy?.maxExpenseAmount, policyCurrency]);
 
-    const receiptRequirementText = useMemo(() => {
-        const amount = policy?.maxExpenseAmountNoReceipt;
-        if (amount === CONST.DISABLED_MAX_EXPENSE_VALUE || amount === undefined) {
+    const maxExpenseAgeText = useMemo(() => {
+        if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE) {
             return '';
         }
-        return translate('workspace.rules.generalTab.receiptRequirementsDescription', convertToDisplayString(amount, policyCurrency));
-    }, [convertToDisplayString, policy?.maxExpenseAmountNoReceipt, policyCurrency, translate]);
+
+        return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge ?? 0});
+    }, [policy?.maxExpenseAge, translate]);
 
     const reimbursableMode = getCashExpenseReimbursableMode(policy) ?? CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT;
-    const reimbursableModeTextMap = {
-        [CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT]: translate('workspace.rules.generalTab.cashExpensesReimbursableByDefault'),
-        [CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.NON_REIMBURSABLE_DEFAULT]: translate('workspace.rules.generalTab.cashExpensesNonReimbursableByDefault'),
-        [CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_REIMBURSABLE]: translate('workspace.rules.generalTab.cashExpensesAlwaysReimbursable'),
-        [CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_NON_REIMBURSABLE]: translate('workspace.rules.generalTab.cashExpensesAlwaysNonReimbursable'),
-    };
-    const reimbursableModeText = reimbursableModeTextMap[reimbursableMode];
-    const billableModeText = translate(`workspace.rules.generalTab.${policy?.defaultBillable ? 'billableExpensesBillable' : 'billableExpensesNonBillable'}`);
+    const reimbursableModeText = translate(`workspace.rules.individualExpenseRules.${reimbursableMode}`);
+    const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
 
-    const areEReceiptsEnabled = policy?.eReceipts ?? false;
-    const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
-
-    const requiredFieldsList = useMemo(() => {
-        const fields: string[] = [];
-        if (policy?.requiresCategory) {
-            fields.push(translate('common.category'));
+    const prohibitedExpenses = useMemo(() => {
+        // Otherwise return which expenses are prohibited comma separated
+        const prohibitedExpensesList = [];
+        if (policy?.prohibitedExpenses?.adultEntertainment) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.adultEntertainment'));
         }
-        if (policy?.requiresTag) {
-            fields.push(translate('common.tag'));
-        }
-        return fields.join(', ');
-    }, [policy?.requiresCategory, policy?.requiresTag, translate]);
 
-    const policyControlItems: BasicRuleMenuItem[] = [
+        if (policy?.prohibitedExpenses?.alcohol) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.alcohol'));
+        }
+
+        if (policy?.prohibitedExpenses?.gambling) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.gambling'));
+        }
+
+        if (policy?.prohibitedExpenses?.hotelIncidentals) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.hotelIncidentals'));
+        }
+
+        if (policy?.prohibitedExpenses?.tobacco) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.tobacco'));
+        }
+
+        if (policy?.prohibitedExpenses?.handwrittenReceipt) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.handwrittenReceipt'));
+        }
+
+        if (policy?.prohibitedExpenses?.giftCard) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.giftCard'));
+        }
+
+        // If no expenses are prohibited, return empty string
+        if (!prohibitedExpensesList.length) {
+            return '';
+        }
+
+        return prohibitedExpensesList.join(', ');
+    }, [policy?.prohibitedExpenses, translate]);
+
+    const maxExpenseAmountNoItemizedReceiptText = useMemo(() => {
+        if (policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoItemizedReceipt === undefined) {
+            return '';
+        }
+
+        return convertToDisplayString(policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency);
+    }, [convertToDisplayString, policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency]);
+
+    const individualExpenseRulesItems: IndividualExpenseRulesMenuItem[] = [
         {
-            title: translate('workspace.rules.generalTab.expensesOlderThan'),
-            description: maxExpenseAgeText,
-            icon: icons.CalendarSolid,
-            action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AGE.getRoute(policyID)),
-            pendingAction: policy?.pendingFields?.maxExpenseAge,
-        },
-        {
-            title: translate('workspace.rules.generalTab.expensesAboveAmount'),
-            description: maxExpenseAmountText,
-            icon: icons.Coins,
-            action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AMOUNT.getRoute(policyID)),
-            pendingAction: policy?.pendingFields?.maxExpenseAmount,
-        },
-        {
-            title: translate('workspace.rules.generalTab.flagReceiptLineItems'),
-            icon: icons.Receipt,
-            action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
-        },
-        {
-            title: translate('workspace.rules.generalTab.receiptRequirements'),
-            description: receiptRequirementText,
-            icon: icons.ReceiptScan,
+            title: maxExpenseAmountNoReceiptText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.receiptRequiredAmount',
             action: () => Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt,
         },
         {
-            title: translate('workspace.rules.generalTab.requireFieldsForAllExpenses'),
-            description: requiredFieldsList,
-            icon: icons.Task,
-            // TODO: Navigate to a dedicated RHP page for required fields
-            action: () => {},
+            title: maxExpenseAmountNoItemizedReceiptText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmount',
+            action: () => Navigation.navigate(ROUTES.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt,
         },
-    ];
-
-    const productDefaultItems: BasicRuleMenuItem[] = [
         {
-            title: translate('workspace.rules.generalTab.cashExpenses'),
-            description: reimbursableModeText,
-            icon: icons.Cash,
+            title: maxExpenseAmountText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.maxExpenseAmount',
+            action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AMOUNT.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.maxExpenseAmount,
+        },
+        {
+            title: maxExpenseAgeText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.maxExpenseAge',
+            action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AGE.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.maxExpenseAge,
+        },
+        {
+            title: reimbursableModeText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.cashExpenseDefault',
             action: () => Navigation.navigate(ROUTES.RULES_REIMBURSABLE_DEFAULT.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.defaultReimbursable,
         },
         {
-            title: translate('workspace.rules.generalTab.billableExpenses'),
-            description: billableModeText,
-            icon: icons.Cash,
+            title: billableModeText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.billableDefault',
             action: () => Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.defaultBillable,
         },
     ];
 
-    const renderMenuItems = (items: BasicRuleMenuItem[]) =>
-        items.map((item) => (
-            <OfflineWithFeedback
-                pendingAction={item.pendingAction}
-                key={item.title}
-            >
-                <MenuItem
-                    title={item.title}
-                    description={item.description}
-                    icon={item.icon}
-                    iconWidth={20}
-                    iconHeight={20}
-                    shouldIconUseAutoWidthStyle
-                    shouldShowBasicTitle
-                    innerContainerStyle={{gap: 20}}
-                    titleStyle={[styles.ml0, !item.description && styles.colorMuted]}
-                    descriptionTextStyle={[styles.ml0, styles.breakWord]}
-                    shouldShowRightIcon={canWriteRules}
-                    onPress={item.action}
-                    interactive={canWriteRules}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                />
-            </OfflineWithFeedback>
-        ));
+    individualExpenseRulesItems.push({
+        title: prohibitedExpenses,
+        descriptionTranslationKey: 'workspace.rules.individualExpenseRules.prohibitedExpenses',
+        action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
+        pendingAction: !isEmptyObject(policy?.prohibitedExpenses?.pendingFields) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined,
+    });
+
+    const areEReceiptsEnabled = policy?.eReceipts ?? false;
+    const requireCompanyCardsEnabled = policy?.requireCompanyCardsEnabled ?? false;
+    const disableRequireCompanyCardToggle = !policy?.areCompanyCardsEnabled && !policy?.areExpensifyCardsEnabled;
+
+    const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
     return (
         <Section
             isCentralPane
-            title={translate('workspace.rules.generalTab.title')}
-            subtitle={translate('workspace.rules.generalTab.subtitle')}
+            title={translate('workspace.rules.individualExpenseRules.title')}
+            renderSubtitle={() => (
+                <IndividualExpenseRulesSectionSubtitle
+                    policy={policy}
+                    translate={translate}
+                    environmentURL={environmentURL}
+                />
+            )}
             titleStyles={styles.accountSettingsSectionTitle}
-            subtitleMuted
-            subtitleStyles={styles.mt0}
         >
-            <View style={styles.mt3}>
-                {renderMenuItems(policyControlItems)}
-                <View style={[styles.sectionDividerLine, styles.mv3]} />
-                {renderMenuItems(productDefaultItems)}
+            <View style={[styles.mt3]}>
+                {individualExpenseRulesItems.map((item) => (
+                    <OfflineWithFeedback
+                        pendingAction={item.pendingAction}
+                        key={translate(item.descriptionTranslationKey)}
+                    >
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={canWriteRules}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
+                            title={item.title}
+                            description={translate(item.descriptionTranslationKey)}
+                            onPress={item.action}
+                            interactive={canWriteRules}
+                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                            numberOfLinesTitle={2}
+                        />
+                    </OfflineWithFeedback>
+                ))}
+                <ToggleSettingOptionRow
+                    title={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    subtitle={translate('workspace.rules.individualExpenseRules.requireCompanyCardDescription')}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    disabled={!canWriteRules || disableRequireCompanyCardToggle}
+                    disabledAction={withReadOnlyFallback()}
+                    showLockIcon={!canWriteRules || disableRequireCompanyCardToggle}
+                    disabledText={translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip')}
+                    wrapperStyle={[styles.mt3]}
+                    titleStyle={styles.pv2}
+                    subtitleStyle={styles.pt1}
+                    isActive={requireCompanyCardsEnabled}
+                    pendingAction={policy?.pendingFields?.requireCompanyCardsEnabled}
+                    onToggle={() => (canWriteRules && policy ? setPolicyRequireCompanyCardsEnabled(policy, !requireCompanyCardsEnabled) : undefined)}
+                />
+
                 <ToggleSettingOptionRow
                     title={translate('workspace.rules.individualExpenseRules.eReceipts')}
                     subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
@@ -195,7 +263,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
                     subtitleStyle={styles.pt1}
                     isActive={areEReceiptsEnabled}
                     disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
-                    disabledAction={withReadOnlyFallback?.()}
+                    disabledAction={withReadOnlyFallback()}
                     showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
                     onToggle={() => (canWriteRules ? setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts) : undefined)}
                     pendingAction={policy?.pendingFields?.eReceipts}
@@ -210,7 +278,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
                     subtitleStyle={styles.pt1}
                     isActive={isAttendeeTrackingEnabledForPolicy}
                     disabled={!canWriteRules}
-                    disabledAction={withReadOnlyFallback?.()}
+                    disabledAction={withReadOnlyFallback()}
                     showLockIcon={!canWriteRules}
                     onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}

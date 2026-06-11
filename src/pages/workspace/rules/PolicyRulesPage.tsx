@@ -29,6 +29,7 @@ import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
 import AIRulesSection from './AIRulesSection';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
+import IndividualExpenseRulesSectionRevamp from './IndividualExpenseRulesSectionRevamp';
 import MerchantRulesSection from './MerchantRulesSection';
 
 const RULES_TAB = {
@@ -144,7 +145,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                                 style={[styles.mh5, styles.mb5]}
                             />
                         )}
-                        <IndividualExpenseRulesSection
+                        <IndividualExpenseRulesSectionRevamp
                             policyID={policyID}
                             canWriteRules={canWriteRules}
                         />
