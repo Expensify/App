@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import type {ColorValue} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
