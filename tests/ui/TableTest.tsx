@@ -984,7 +984,7 @@ describe('Table', () => {
             );
 
             // The first row was hidden behind the stretched empty state, so the list resets to the top.
-            expect(mockScrollToOffset).toHaveBeenCalledTimes(1);
+            // (The reset is re-asserted on a second frame for web, so scrollToOffset fires more than once.)
             expect(mockScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
         });
 

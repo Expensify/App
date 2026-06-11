@@ -85,8 +85,9 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     // When the data goes from empty to populated, reset the scroll to the top so the new first row is visible: while empty, the
     // content container is stretched (flexGrow1), so a short/landscape viewport can leave the list scrolled past the top, and
-    // FlashList doesn't reset that offset itself. We key off originalDataLength (the unfiltered count) so that clearing a search
-    // from a zero-result state doesn't also trigger the reset, and defer a frame so the scroll lands after the new row is laid out.
+    // FlashList doesn't reset that offset itself. We key off originalDataLength (the unfiltered count) so clearing a search from a
+    // zero-result state doesn't also trigger it. The reset is re-asserted on a second frame because the first can run before the
+    // stretched empty state has collapsed (on web that otherwise leaves the list a fraction scrolled, hiding the new row's top).
     const previousOriginalDataLengthRef = useRef(originalDataLength);
     useEffect(() => {
         const previousOriginalDataLength = previousOriginalDataLengthRef.current;
@@ -94,8 +95,15 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         if (previousOriginalDataLength !== 0 || originalDataLength === 0) {
             return;
         }
-        const rafId = requestAnimationFrame(() => listRef?.current?.scrollToOffset({offset: 0, animated: false}));
-        return () => cancelAnimationFrame(rafId);
+        let secondFrameId = 0;
+        const firstFrameId = requestAnimationFrame(() => {
+            listRef?.current?.scrollToOffset({offset: 0, animated: false});
+            secondFrameId = requestAnimationFrame(() => listRef?.current?.scrollToOffset({offset: 0, animated: false}));
+        });
+        return () => {
+            cancelAnimationFrame(firstFrameId);
+            cancelAnimationFrame(secondFrameId);
+        };
     }, [originalDataLength, listRef]);
 
     const EmptyResultComponent = (
