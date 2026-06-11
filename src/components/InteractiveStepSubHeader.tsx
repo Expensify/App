@@ -106,6 +106,8 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAcc
                             disabled={isLockedStep || !onStepSelected}
                             onPress={moveToStep}
                             role={CONST.ROLE.GROUP}
+                            aria-current={currentStep === index ? 'step' : undefined}
+                            accessibilityState={{selected: currentStep === index}}
                             accessibilityLabel={translate('stepCounter', {
                                 step: index + 1,
                                 total: stepNames.length,
