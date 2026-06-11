@@ -2976,6 +2976,7 @@ const CONST = {
     CERTINIA_FFA_BUNDLE_VERSION: '1.4',
 
     CERTINIA_CONFIG: {
+        COMPANY_ID: 'companyID',
         EXPORTER: 'exporter',
         EXPORT_STATUS: 'exportStatus',
         EXPORT_DATE: 'exportDate',
@@ -2994,7 +2995,6 @@ const CONST = {
         REPORT_EXPORT_STATUS: 'reportExportStatus',
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
-        COMPANY: 'company',
     },
 
     CERTINIA_EXPORT_STATUS: {
