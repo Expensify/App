@@ -314,6 +314,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: '加盟店',
         change: '変更',
         category: 'カテゴリ',
+        vendor: 'ベンダー',
         report: 'レポート',
         billable: '請求可能',
         nonBillable: '請求不可',
@@ -1648,6 +1649,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'レートのエラーを修正して、もう一度お試しください。',
         AskToExplain: `・<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">説明<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge がこの経費を <strong>${vendorName}</strong> に一致させました`,
         duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? '経費を「精算対象」に指定しました' : '経費を「精算対象外」にマークしました'),

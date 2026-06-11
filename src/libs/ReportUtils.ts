@@ -5649,6 +5649,11 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.reimbursable = transactionChanges?.reimbursable ? 'reimbursable' : 'non-reimbursable';
     }
 
+    if ('vendor' in transactionChanges) {
+        originalMessage.oldVendor = oldTransaction?.comment?.vendor ?? null;
+        originalMessage.vendor = transactionChanges?.vendor ?? null;
+    }
+
     if ('billable' in transactionChanges) {
         const oldBillable = getBillable(oldTransaction);
         originalMessage.oldBillable = oldBillable ? 'billable' : 'non-billable';

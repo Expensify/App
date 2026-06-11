@@ -314,6 +314,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: 'Händler',
         change: 'Ändern',
         category: 'Kategorie',
+        vendor: 'Anbieter',
         report: 'Bericht',
         billable: 'Abrechenbar',
         nonBillable: 'Nicht abrechenbar',
@@ -1665,6 +1666,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Beheben Sie den Kursfehler und versuchen Sie es erneut.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Erklären<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge hat diese Ausgabe <strong>${vendorName}</strong> zugeordnet`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Sie können Per-Diem-Ausgaben nicht über mehrere Workspaces hinweg duplizieren, da sich die Sätze zwischen den Workspaces unterscheiden können.',
         rulesModifiedFields: {

@@ -314,6 +314,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: 'Handelaar',
         change: 'Wijzigen',
         category: 'Categorie',
+        vendor: 'Leverancier',
         report: 'Rapport',
         billable: 'Factureerbaar',
         nonBillable: 'Niet-factureerbaar',
@@ -1660,6 +1661,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Los de tarieffout op en probeer het opnieuw.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Uitleggen<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge heeft deze uitgave gekoppeld aan <strong>${vendorName}</strong>`,
         duplicateNonDefaultWorkspacePerDiemError: 'Je kunt dagvergoedingen niet dupliceren tussen werkruimtes, omdat de tarieven per werkruimte kunnen verschillen.',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'markeerde de uitgave als „terugbetaalbaar”' : 'heeft de uitgave als ‘niet-vergoedbaar’ gemarkeerd'),
