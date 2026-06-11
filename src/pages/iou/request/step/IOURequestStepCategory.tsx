@@ -12,7 +12,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -39,7 +38,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import {getRequestType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -47,14 +46,17 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepCategoryProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY> &
-    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY>;
+type IOURequestStepCategoryProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY>;
 
-function DynamicIOURequestStepCategoryPage({report: reportReal, reportDraft, route, transaction}: IOURequestStepCategoryProps) {
-    const {
-        params: {transactionID, action, iouType, reportActionID, reportID: routeReportID},
-    } = route;
-
+function IOURequestStepCategory({
+    report: reportReal,
+    reportDraft,
+    route: {
+        params: {transactionID, backTo, action, iouType, reportActionID, reportID: routeReportID},
+    },
+    transaction,
+}: IOURequestStepCategoryProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
@@ -95,8 +97,6 @@ function DynamicIOURequestStepCategoryPage({report: reportReal, reportDraft, rou
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.path);
-    const shouldReturnToPreviousScreen = backPath !== ROUTES.HOME;
 
     const canCreateCategoryInSitu = isPolicyAdmin(policy) && !hasAccountingConnections(policy) && !!policy?.areCategoriesEnabled;
 
@@ -110,7 +110,7 @@ function DynamicIOURequestStepCategoryPage({report: reportReal, reportDraft, rou
                       if (!policyID || !reportID) {
                           return;
                       }
-                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.getRoute(action, iouType, transactionID, reportID, reportActionID, Navigation.getActiveRoute()));
+                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.getRoute(action, iouType, transactionID, reportID, reportActionID, backTo));
                   },
               },
           ]
@@ -147,7 +147,7 @@ function DynamicIOURequestStepCategoryPage({report: reportReal, reportDraft, rou
     }, [policyID]);
 
     const navigateBack = () => {
-        Navigation.goBack(backPath);
+        Navigation.goBack(backTo);
     };
 
     const updateCategory = (category: ListItem) => {
@@ -187,7 +187,7 @@ function DynamicIOURequestStepCategoryPage({report: reportReal, reportDraft, rou
 
         setMoneyRequestCategory(transactionID, updatedCategory, policy);
 
-        if (action === CONST.IOU.ACTION.CATEGORIZE && !shouldReturnToPreviousScreen) {
+        if (action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {
             if (report?.reportID) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report.reportID));
             }
@@ -204,7 +204,7 @@ function DynamicIOURequestStepCategoryPage({report: reportReal, reportDraft, rou
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowOfflineIndicator={policyCategories !== undefined}
-            testID="DynamicIOURequestStepCategoryPage"
+            testID="IOURequestStepCategory"
             shouldEnableKeyboardAvoidingView={false}
             threeDotsMenuItems={createCategoryMenuItems}
             shouldMinimizeMenuButton
@@ -241,7 +241,12 @@ function DynamicIOURequestStepCategoryPage({report: reportReal, reportDraft, rou
                                         enablePolicyCategories({...policyData, categories: policyCategories}, true, false);
                                     }
                                     InteractionManager.runAfterInteractions(() => {
-                                        Navigation.navigate(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, Navigation.getActiveRoute()));
+                                        Navigation.navigate(
+                                            ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                                policyID,
+                                                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report.reportID, backTo, reportActionID),
+                                            ),
+                                        );
                                     });
                                 }}
                                 text={translate('workspace.categories.editCategories')}
@@ -263,6 +268,7 @@ function DynamicIOURequestStepCategoryPage({report: reportReal, reportDraft, rou
     );
 }
 
-const DynamicIOURequestStepCategoryPageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepCategoryPage);
-const DynamicIOURequestStepCategoryPageWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepCategoryPageWithFullTransactionOrNotFound);
-export default DynamicIOURequestStepCategoryPageWithWritableReportOrNotFound;
+const IOURequestStepCategoryWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCategory);
+
+const IOURequestStepCategoryWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepCategoryWithFullTransactionOrNotFound);
+export default IOURequestStepCategoryWithWritableReportOrNotFound;
