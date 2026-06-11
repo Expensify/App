@@ -27,7 +27,7 @@ import type SCREENS from '@src/SCREENS';
 
 type PolicyCommuterExclusionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS>;
 
-type ExclusionOptionKey = 'disabled' | typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
+type ExclusionOptionKey = typeof CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED | typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
 
 type ExclusionOption = {
     text: string;
