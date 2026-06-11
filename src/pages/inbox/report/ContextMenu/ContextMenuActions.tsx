@@ -52,6 +52,7 @@ import {
     getDynamicExternalWorkflowSubmitFailedActionMessage,
     getExportIntegrationMessageHTML,
     getForeignCurrencyDefaultTaxUpdateMessage,
+    getForwardedReportActionMessage,
     getForwardsToUpdateMessage,
     getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
@@ -885,7 +886,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 harvestReportOriginalID,
                 currentUserPersonalDetails,
                 bankAccountList,
-                conciergeReportID,
                 reportAttributes,
                 originalReportOfUnapprovedTransaction,
             },
@@ -903,7 +903,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         reportOrID: iouReportID,
                         iouReportAction: reportAction,
                         isCopyAction: true,
-                        conciergeReportID,
+                        reportAttributes,
                     });
                     Clipboard.setString(displayMessage);
                 } else if (isTaskActionReportActionsUtils(reportAction)) {
@@ -1090,7 +1090,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     if (automaticAction) {
                         setClipboardMessage(translate('iou.automaticallyForwarded'));
                     } else {
-                        Clipboard.setString(translate('iou.forwarded'));
+                        Clipboard.setString(getForwardedReportActionMessage(reportAction, translate));
                     }
                 } else if (isRejectedAction(reportAction)) {
                     Clipboard.setString(translate('iou.rejectedThisReport'));

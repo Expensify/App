@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -46,7 +46,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -102,7 +102,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 conciergeChatReportID,
-                archivedReportsIdSet,
+                archivedReportsIDSet,
                 onboardingPolicyID,
                 mergedAccountConciergeReportID,
                 false,
@@ -114,7 +114,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             onboardingMessages,
             onboardingPolicyID,
             isBetaEnabled,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
             isSmallScreenWidth,
             mergedAccountConciergeReportID,
             conciergeChatReportID,
