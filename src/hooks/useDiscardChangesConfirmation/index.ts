@@ -16,38 +16,13 @@ import type UseDiscardChangesConfirmationOptions from './types';
 function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm}: UseDiscardChangesConfirmationOptions) {
     const route = useRoute();
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const shouldNavigateBack = useRef(false);
-    const shouldIgnoreNextBeforeRemove = useRef(false);
-    const clearShouldIgnoreNextBeforeRemoveTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const isDiscardModalOpen = useRef(false);
     const isRestoringHistory = useRef(false);
-    const didSwallowBeforeRemove = useRef(false);
     const didPreventResetOnPopstate = useRef(false);
-
-    const clearShouldIgnoreNextBeforeRemove = () => {
-        if (clearShouldIgnoreNextBeforeRemoveTimeout.current) {
-            clearTimeout(clearShouldIgnoreNextBeforeRemoveTimeout.current);
-            clearShouldIgnoreNextBeforeRemoveTimeout.current = undefined;
-        }
-        shouldIgnoreNextBeforeRemove.current = false;
-    };
-
-    const markNextBeforeRemoveAsModalCleanup = () => {
-        if ((window.history.state as {shouldGoBack?: boolean} | null)?.shouldGoBack !== true) {
-            return;
-        }
-
-        shouldIgnoreNextBeforeRemove.current = true;
-        if (clearShouldIgnoreNextBeforeRemoveTimeout.current) {
-            clearTimeout(clearShouldIgnoreNextBeforeRemoveTimeout.current);
-        }
-        clearShouldIgnoreNextBeforeRemoveTimeout.current = setTimeout(() => {
-            shouldIgnoreNextBeforeRemove.current = false;
-            clearShouldIgnoreNextBeforeRemoveTimeout.current = undefined;
-        }, 250);
-    };
+    const shouldDismissModalOnRestore = useRef(false);
 
     const navigateBack = () => {
         if (blockedNavigationAction.current) {
@@ -72,10 +47,11 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
             confirmText: translate('discardChangesConfirmation.confirmText'),
             cancelText: translate('common.cancel'),
             shouldIgnoreBackHandlerDuringTransition: true,
+            shouldHandleNavigationBack: false,
         }).then((result) => {
-            markNextBeforeRemoveAsModalCleanup();
             isDiscardModalOpen.current = false;
             didPreventResetOnPopstate.current = false;
+            shouldDismissModalOnRestore.current = false;
             onVisibilityChange?.(false);
             if (result.action === ModalActions.CONFIRM) {
                 Promise.resolve()
@@ -104,20 +80,21 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
         }
 
         if (!getHasUnsavedChanges()) {
-            clearShouldIgnoreNextBeforeRemove();
             return;
         }
 
-        if (isDiscardModalOpen.current || shouldIgnoreNextBeforeRemove.current) {
-            clearShouldIgnoreNextBeforeRemove();
-            // The popstate listener must not treat the swallowed modal-cleanup echo as a new browser back
-            didSwallowBeforeRemove.current = true;
+        if (isDiscardModalOpen.current) {
             e.preventDefault();
+            if (e.data.action.type === 'RESET') {
+                didPreventResetOnPopstate.current = true;
+                shouldDismissModalOnRestore.current = true;
+                return;
+            }
+            closeModal();
             return;
         }
 
         if (shouldNavigateBack.current) {
-            clearShouldIgnoreNextBeforeRemove();
             return;
         }
 
@@ -133,9 +110,11 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
     // Callbacks change every render, so stable consumers (the guard registration and the popstate listener) read them through refs
     const getHasUnsavedChangesRef = useRef(getHasUnsavedChanges);
     const showDiscardModalRef = useRef(showDiscardModal);
+    const closeModalRef = useRef(closeModal);
     useEffect(() => {
         getHasUnsavedChangesRef.current = getHasUnsavedChanges;
         showDiscardModalRef.current = showDiscardModal;
+        closeModalRef.current = closeModal;
     });
 
     // The guard vetoes a browser-back reset that would unfocus this screen (e.g. a tab switch) BEFORE the state commits, so local form state survives untouched
@@ -147,6 +126,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
                     blockedNavigationAction.current = action;
                     didPreventResetOnPopstate.current = true;
                     if (isDiscardModalOpen.current) {
+                        shouldDismissModalOnRestore.current = true;
                         return;
                     }
                     navigateAfterInteraction(() => showDiscardModalRef.current());
@@ -157,17 +137,12 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
 
     /**
      * Browser back is blocked before the state commits (removed routes via the patched `beforeRemove`, focus changes via `DiscardChangesGuard`),
-     * but the browser entry has already moved — this listener's only job is restoring it with `history.go(1)`.
+     * but the browser entry has already moved — this listener restores it with `history.go(1)`, and dismisses the prompt as Cancel when the back happened over it.
      */
     useEffect(() => {
         // Register exactly once: re-registering on render would move this listener behind `withInternalPopstate`'s one-shot flag reset, breaking the internal-popstate detection
         const handlePopState = () => {
             if (isInternalPopstateInProgress()) {
-                didSwallowBeforeRemove.current = false;
-                return;
-            }
-            if (didSwallowBeforeRemove.current) {
-                didSwallowBeforeRemove.current = false;
                 return;
             }
             if (isRestoringHistory.current) {
@@ -178,14 +153,16 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
                 didPreventResetOnPopstate.current = false;
                 isRestoringHistory.current = true;
                 window.history.go(1);
+                if (shouldDismissModalOnRestore.current) {
+                    shouldDismissModalOnRestore.current = false;
+                    closeModalRef.current();
+                }
             }
         };
 
         window.addEventListener('popstate', handlePopState);
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
-
-    useEffect(() => clearShouldIgnoreNextBeforeRemove, [clearShouldIgnoreNextBeforeRemove]);
 }
 
 export default useDiscardChangesConfirmation;

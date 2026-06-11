@@ -35,9 +35,10 @@ jest.mock('@libs/Navigation/guards/DiscardChangesGuard', () => ({
 }));
 
 const mockShowConfirmModal = jest.fn();
+const mockCloseModal = jest.fn();
 jest.mock('@hooks/useConfirmModal', () => ({
     __esModule: true,
-    default: () => ({showConfirmModal: mockShowConfirmModal}),
+    default: () => ({showConfirmModal: mockShowConfirmModal, closeModal: mockCloseModal}),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
@@ -131,6 +132,7 @@ describe('useDiscardChangesConfirmation (web)', () => {
                     resolveModal = resolve;
                 }),
         );
+        mockCloseModal.mockImplementation(() => resolveModal?.({action: 'CLOSE'}));
     });
 
     afterEach(() => {
@@ -138,13 +140,14 @@ describe('useDiscardChangesConfirmation (web)', () => {
     });
 
     describe('browser back prevented through beforeRemove', () => {
-        it('prevents the reset, restores the URL once, and shows a single modal', () => {
+        it('prevents the reset, restores the URL once, and shows a single history-inert modal', () => {
             renderDiscardHook(() => true);
 
             const event = invokeBeforeRemove('RESET');
 
             expect(event.defaultPrevented).toBe(true);
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({shouldHandleNavigationBack: false}));
 
             dispatchPopstate();
 
@@ -214,7 +217,7 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
 
-        it('swallows a beforeRemove while the modal is open and skips its popstate', () => {
+        it('dismisses the prompt as Cancel and restores the URL on a browser back while it is open', async () => {
             renderDiscardHook(() => true);
 
             invokeBeforeRemove('RESET');
@@ -224,11 +227,17 @@ describe('useDiscardChangesConfirmation (web)', () => {
             // e.g. a browser back while the modal is open
             const whileOpen = invokeBeforeRemove('RESET');
             expect(whileOpen.defaultPrevented).toBe(true);
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
 
             dispatchPopstate();
 
-            expect(historyGoSpy).toHaveBeenCalledTimes(1);
-            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(historyGoSpy).toHaveBeenCalledTimes(2);
+            expect(mockCloseModal).toHaveBeenCalledTimes(1);
+
+            await act(async () => {
+                await Promise.resolve();
+            });
+            expect(mockNavigationDispatch).not.toHaveBeenCalled();
         });
     });
 
@@ -309,7 +318,7 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockRegisteredScreen?.hasUnsavedChanges()).toBe(true);
         });
 
-        it('restores the URL without stacking a second modal when blocked while the modal is open', () => {
+        it('restores the URL and dismisses the prompt as Cancel without stacking a second modal when blocked while it is open', () => {
             renderDiscardHook(() => true);
 
             invokeGuardBlocked();
@@ -323,6 +332,7 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
             expect(historyGoSpy).toHaveBeenCalledTimes(2);
             expect(historyGoSpy).toHaveBeenNthCalledWith(2, 1);
+            expect(mockCloseModal).toHaveBeenCalledTimes(1);
         });
 
         it('cancelling a block without a popstate (programmatic reset) leaves later popstate events untouched', async () => {
