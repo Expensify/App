@@ -514,6 +514,7 @@ function SearchList({
                         isFocused={isItemFocused}
                         isFirstItem={index === firstVisibleIndex}
                         isLastItem={index + 1 >= lastVisibleIndex && !ListFooterComponent}
+                        originalKey={originalKey}
                         lastPaymentMethod={lastPaymentMethod}
                         personalPolicyID={personalPolicyID}
                         userBillingGracePeriodEnds={userBillingGracePeriodEnds}

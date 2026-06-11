@@ -61,6 +61,7 @@ type GroupHeaderProps = SearchListActionProps & {
     isFocused?: boolean;
     isFirstItem: boolean;
     isLastItem: boolean;
+    originalKey: string;
     visibleColumns?: SearchCustomColumnIds[];
 };
 
@@ -80,6 +81,7 @@ function GroupHeader({
     isFocused,
     isFirstItem,
     isLastItem,
+    originalKey,
     lastPaymentMethod,
     personalPolicyID,
     userBillingGracePeriodEnds,
@@ -197,11 +199,11 @@ function GroupHeader({
         const selectedTransactionIDsSet = new Set(Object.keys(selectedTransactions));
         const filteredTransactions = effectiveTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const selectedCount = filteredTransactions.reduce((acc, transaction) => (selectedTransactionIDsSet.has(transaction.transactionID) ? acc + 1 : acc), 0);
-        const isEmptyReportSelected = isEmpty && item.keyForList && selectedTransactions[item.keyForList]?.isSelected;
+        const isEmptyReportSelected = isEmpty && originalKey && selectedTransactions[originalKey]?.isSelected;
         const allChecked = !!isEmptyReportSelected || (selectedCount === filteredTransactions.length && filteredTransactions.length > 0);
         const indeterminate = selectedCount > 0 && selectedCount !== filteredTransactions.length;
         return {isSelectAllChecked: allChecked, isIndeterminate: indeterminate};
-    }, [selectedTransactions, effectiveTransactions, isEmpty, item.keyForList]);
+    }, [selectedTransactions, effectiveTransactions, isEmpty, originalKey]);
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
