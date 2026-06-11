@@ -10,7 +10,7 @@
   
 - Upstream PR/issue: https://github.com/ShuiRuTian/time-analytics-webpack-plugin/pull/13
 - E/App issue: https://github.com/Expensify/App/issues/93340
-- PR introducing patch: 🛑 TODO
+- PR introducing patch: https://github.com/Expensify/App/pull/93341
 
 
 ## ✅ Patch Submission Checklist
@@ -21,9 +21,9 @@ Before opening a PR, please ensure:
 - [x] The filename uses the correct naming format: `<library>+<version>+<patch-number>+<short-description>.patch`
 - [x] A `details.md` file exists in the same directory as the patch
 - [x] The patch is listed and documented in `details.md`
-- [ ] All fields in `details.md` are filled in:
+- [x] All fields in `details.md` are filled in:
     - Reason
     - Upstream PR/issue
     - E/App issue
     - PR Introducing Patch
-- [ ] The validation script passes on CI (verifies that all patches are documented in `details.md`)
+- [x] The validation script passes on CI (verifies that all patches are documented in `details.md`)
