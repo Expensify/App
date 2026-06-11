@@ -108,7 +108,7 @@ export default {
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     sidePanelWidth: 375,
-    rhpCenteredModalWidth: 400,
+    rhpCenteredModalWidth: 480,
     rhpCenteredModalMaxHeight: 960,
     receiptPaneRHPMaxWidth: 465,
     receiptPreviewMaxWidth: 440,
