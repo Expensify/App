@@ -127,12 +127,25 @@ export default function useReportUnreadMessageScrollTracking({
         const hasUnreadMarkerReportAction = unreadActionIndex !== -1;
         const unreadActionVisible = isInverted ? unreadActionIndex >= minIndex : unreadActionIndex <= maxIndex;
 
+        // In an inverted list, the newest (bottom) action has the lowest index (0).
+        // We need to check whether the unread marker is the newest visible message.
+        // If the marker is visible but there are newer messages below the fold (i.e. the marker
+        // is not the newest visible item), the floating pill should remain visible.
+        const newestVisibleIndex = Math.min(...viewableIndexes);
+        const unreadMarkerIsNewestVisible = isInverted ? unreadActionIndex === newestVisibleIndex : unreadActionIndex === Math.max(...viewableIndexes);
+
         // display floating button if the unread report action is out of view
         if (!unreadActionVisible && hasUnreadMarkerReportAction) {
             setIsFloatingMessageCounterVisible(true);
         }
-        // hide floating button if the unread report action becomes visible
-        if (unreadActionVisible && hasUnreadMarkerReportAction) {
+        // Show floating button if the unread marker IS visible but there are newer messages
+        // below the fold (the marker is not the newest visible item).
+        if (unreadActionVisible && hasUnreadMarkerReportAction && !unreadMarkerIsNewestVisible) {
+            setIsFloatingMessageCounterVisible(true);
+        }
+        // hide floating button if the unread report action is visible AND it is the newest visible item.
+        // This means all messages newer than the marker are also visible.
+        if (unreadActionVisible && hasUnreadMarkerReportAction && unreadMarkerIsNewestVisible) {
             setIsFloatingMessageCounterVisible(false);
         }
 
