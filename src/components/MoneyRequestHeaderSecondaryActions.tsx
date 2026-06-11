@@ -481,7 +481,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                         };
                     }
                     if (isInNarrowPaneModal) {
-                        Navigation.navigateBackToLastSuperWideRHPScreen({afterTransition: afterDelete});
+                        Navigation.navigateBackToLastSuperWideRHPScreen({afterTransition: () => setTimeout(() => afterDelete?.(), 300)});
                         return;
                     }
 

@@ -19,6 +19,7 @@ import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
@@ -512,20 +513,25 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         if (goBackRoute) {
                             navigateOnDeleteExpense(goBackRoute);
                         }
-                        InteractionManager.runAfterInteractions(() => {
-                            const deleteResult = deleteTransactions(
-                                [transaction.transactionID],
-                                duplicateTransactions,
-                                duplicateTransactionViolations,
-                                isReportInSearch ? currentSearchHash : undefined,
-                                false,
-                            );
+                        TransitionTracker.runAfterTransitions({
+                            callback: () => {
+                                setTimeout(() => {
+                                    const deleteResult = deleteTransactions(
+                                        [transaction.transactionID],
+                                        duplicateTransactions,
+                                        duplicateTransactionViolations,
+                                        isReportInSearch ? currentSearchHash : undefined,
+                                        false,
+                                    );
 
-                            if (deleteResult.action === 'redirected') {
-                                return;
-                            }
+                                    if (deleteResult.action === 'redirected') {
+                                        return;
+                                    }
 
-                            removeTransaction(transaction.transactionID);
+                                    removeTransaction(transaction.transactionID);
+                                }, 300);
+                            },
+                            waitForUpcomingTransition: true,
                         });
                     }
                     return;
@@ -548,16 +554,18 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.goBack(backToRoute, {
                         afterTransition: () => {
-                            deleteAppReport({
-                                report: moneyRequestReport,
-                                selfDMReport,
-                                currentUserEmailParam: email ?? '',
-                                currentUserAccountIDParam: accountID,
-                                reportTransactions,
-                                allTransactionViolations,
-                                bankAccountList,
-                                hash: currentSearchHash,
-                            });
+                            setTimeout(() => {
+                                deleteAppReport({
+                                    report: moneyRequestReport,
+                                    selfDMReport,
+                                    currentUserEmailParam: email ?? '',
+                                    currentUserAccountIDParam: accountID,
+                                    reportTransactions,
+                                    allTransactionViolations,
+                                    bankAccountList,
+                                    hash: currentSearchHash,
+                                });
+                            }, 300);
                         },
                     });
                 });
