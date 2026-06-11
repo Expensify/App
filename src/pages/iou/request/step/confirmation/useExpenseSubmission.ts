@@ -587,13 +587,20 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 optimisticChatReportID,
             });
             const targetReportID = backToReport ?? activeReportID;
-            if (shouldHandleNavigation && result && targetReportID) {
+            // The 1→2 transaction transition causes MoneyRequestReportActionsList to fresh-mount, breaking diff-based new transaction detection.
+            // Register pending IDs so the fallback path highlights the new expense.
+            // And when  backToReport exists it means we are creating the expense from chat not the expense report so we don't need to add pending transactions.
+            const isOneToTwoTransition =
+                !backToReport && isMoneyRequestReport && reportTransactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === 1;
+
+            if (result && targetReportID) {
                 navigateAfterExpenseCreate({
                     activeReportID: targetReportID,
                     transactionID: result.transactionID,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                     hasMultipleTransactions: reportTransactions.length > 0,
-                    shouldAddPendingNewTransactionIDs: targetReportID === chatReportID,
+                    shouldAddPendingNewTransactionIDs: (shouldHandleNavigation && targetReportID === chatReportID) || isOneToTwoTransition,
+                    shouldNavigate: shouldHandleNavigation,
                 });
             }
         }

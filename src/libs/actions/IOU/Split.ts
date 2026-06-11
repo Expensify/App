@@ -33,6 +33,7 @@ import {
     getParsedComment,
     getReportNotificationPreference,
     getReportOrDraftReport,
+    getReportTransactions,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
@@ -2175,6 +2176,11 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     };
 
+    // The 1→2 transaction transition causes MoneyRequestReportActionsList to fresh-mount, breaking diff-based new transaction detection.
+    // Register pending IDs so the fallback path highlights the new expense.
+    const isOneToTwoTransition =
+        isMoneyRequestReport && getReportTransactions(moneyRequestReportID).filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === 1;
+
     deferOrExecuteWrite(apiWrite, {
         shouldDeferForSearch: shouldDeferForSearch || !!(shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
@@ -2185,17 +2191,19 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     if (shouldHandleNavigation) {
         TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
-        const navigationActiveReportID = backToReport ?? activeReportID;
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-        handleNavigateAfterExpenseCreate({
-            activeReportID: navigationActiveReportID,
-            isFromGlobalCreate,
-            transactionID: parameters.transactionID,
-            shouldAddPendingNewTransactionIDs: navigationActiveReportID === parameters.chatReportID,
-        });
     } else {
         removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
+
+    const navigationActiveReportID = backToReport ?? activeReportID;
+    handleNavigateAfterExpenseCreate({
+        activeReportID: navigationActiveReportID,
+        isFromGlobalCreate,
+        transactionID: parameters.transactionID,
+        shouldAddPendingNewTransactionIDs: isOneToTwoTransition || (shouldHandleNavigation && navigationActiveReportID === parameters.chatReportID),
+        shouldNavigate: shouldHandleNavigation,
+    });
 
     if (!isMoneyRequestReport) {
         notifyNewAction(activeReportID, undefined, true);
