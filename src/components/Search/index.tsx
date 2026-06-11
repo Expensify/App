@@ -341,7 +341,6 @@ function Search({
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
@@ -603,7 +602,6 @@ function Search({
             cardFeeds,
             cardList: nonPersonalAndWorkspaceCards,
             isOffline,
-            allTransactionViolations: violations,
             customCardNames,
             conciergeReportID,
             onyxPersonalDetailsList,
@@ -638,7 +636,6 @@ function Search({
         cardFeeds,
         nonPersonalAndWorkspaceCards,
         bankAccountList,
-        violations,
         customCardNames,
         conciergeReportID,
         onyxPersonalDetailsList,

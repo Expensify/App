@@ -244,7 +244,6 @@ type GetReportSectionsParams = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     isActionLoadingSet: ReadonlySet<string> | undefined;
     isOffline: boolean | undefined;
-    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
@@ -602,7 +601,6 @@ type GetSectionsParams = {
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
     cardList?: OnyxEntry<OnyxTypes.CardList>;
     customCardNames?: Record<number, string>;
-    allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
     conciergeReportID: string | undefined;
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
@@ -2740,7 +2738,6 @@ function getReportSections({
     isOffline,
     formatPhoneNumber,
     isActionLoadingSet,
-    allTransactionViolations,
     bankAccountList,
     reportActions = {},
     queryJSON,
@@ -2829,7 +2826,7 @@ function getReportSections({
 
                 const hasVisibleViolationsForReport = hasVisibleViolations(
                     reportItem,
-                    allTransactionViolations ?? allViolations,
+                    allViolations,
                     currentUserEmail,
                     currentAccountID ?? CONST.DEFAULT_NUMBER_ID,
                     allReportTransactions,
@@ -3584,7 +3581,6 @@ function getSections({
     cardFeeds,
     cardList,
     customCardNames,
-    allTransactionViolations,
     visibleReportActionsData,
     conciergeReportID,
     onyxPersonalDetailsList,
@@ -3610,7 +3606,6 @@ function getSections({
             isOffline,
             formatPhoneNumber,
             isActionLoadingSet,
-            allTransactionViolations,
             bankAccountList,
             reportActions,
             queryJSON,
