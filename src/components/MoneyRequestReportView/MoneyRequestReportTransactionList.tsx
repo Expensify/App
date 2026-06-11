@@ -486,12 +486,15 @@ function MoneyRequestReportTransactionList({
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldGroupTransactions]);
 
-    // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.
-    // Other callers (e.g. TransactionDuplicateReview.onPreviewPressed) can write to the same
-    // Onyx key with a different ordering. Using the raw array reference would cause the effect
-    // to re-fire on every referential change and overwrite those IDs. The joined string ensures
-    // the effect only re-fires when the actual content changes.
-    const visualOrderTransactionIDsKey = useMemo(() => visualOrderTransactionIDs.join(','), [visualOrderTransactionIDs]);
+    // Membership proxy for visualOrderTransactionIDs used as the effect dependency below.
+    // We key on the *sorted set* of IDs (not their visual order) so the effect only re-fires when a
+    // transaction is added or removed - not when an edit (e.g. changing an expense's date or category)
+    // re-sorts the parent list. This keeps the carousel's stored order frozen across edits so the RHP
+    // carousel counter doesn't jump, mirroring how the report carousel reads from a frozen search
+    // snapshot instead of a live re-sort. Other callers (e.g. TransactionDuplicateReview.onPreviewPressed)
+    // can write a different ordering to the same Onyx key; keying on membership also avoids overwriting
+    // theirs on a referential change.
+    const transactionIDsMembershipKey = useMemo(() => [...visualOrderTransactionIDs].sort().join(','), [visualOrderTransactionIDs]);
 
     // Subscribe so the effect closure captures the latest active list. Used to detect when this report's
     // transactions are a strict subset of a broader carousel (e.g. the user landed here from the flat
@@ -533,8 +536,8 @@ function MoneyRequestReportTransactionList({
         return () => {
             clearActiveTransactionIDs();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array, and we intentionally don't depend on latestActiveTransactionIDs to avoid re-firing when the carousel changes elsewhere
-    }, [visualOrderTransactionIDsKey]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- transactionIDsMembershipKey is a membership proxy for the array, and we intentionally don't depend on latestActiveTransactionIDs to avoid re-firing when the carousel changes elsewhere
+    }, [transactionIDsMembershipKey]);
 
     const groupSelectionState = useMemo(() => {
         const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();
