@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -8,9 +8,10 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCashExpenseReimbursableMode} from '@libs/actions/Policy/Policy';
+import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -30,14 +31,21 @@ type BasicRuleMenuItem = {
     pendingAction?: PendingAction;
 };
 
-function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpenseRulesSectionProps) {
+function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFallback}: IndividualExpenseRulesSectionProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptScan', 'Task', 'Cash', 'Users']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptScan', 'Task', 'Cash']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
+    const handleAttendeeTrackingToggle = useCallback(
+        (newValue: boolean) => {
+            setPolicyAttendeeTrackingEnabled(policyID, newValue, policy?.isAttendeeTrackingEnabled);
+        },
+        [policyID, policy?.isAttendeeTrackingEnabled],
+    );
 
     const maxExpenseAgeText = useMemo(() => {
         if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE) {
@@ -136,22 +144,6 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
             action: () => Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.defaultBillable,
         },
-        {
-            title: translate('workspace.rules.generalTab.trackAttendees'),
-            description: isAttendeeTrackingEnabledForPolicy ? translate('common.enabled') : '',
-            icon: icons.Users,
-            // TODO: Navigate to a dedicated RHP page for attendee tracking
-            action: () => {},
-            pendingAction: policy?.pendingFields?.isAttendeeTrackingEnabled,
-        },
-        {
-            title: translate('workspace.rules.generalTab.autoCreateEReceipts'),
-            description: areEReceiptsEnabled ? translate('workspace.rules.generalTab.autoCreateEReceiptsDescription') : '',
-            icon: icons.Receipt,
-            // TODO: Navigate to a dedicated RHP page for eReceipts
-            action: () => {},
-            pendingAction: policy?.pendingFields?.eReceipts,
-        },
     ];
 
     const renderMenuItems = (items: BasicRuleMenuItem[]) =>
@@ -192,6 +184,37 @@ function IndividualExpenseRulesSection({policyID, canWriteRules}: IndividualExpe
                 {renderMenuItems(policyControlItems)}
                 <View style={[styles.sectionDividerLine, styles.mv3]} />
                 {renderMenuItems(productDefaultItems)}
+                <ToggleSettingOptionRow
+                    title={translate('workspace.rules.individualExpenseRules.eReceipts')}
+                    subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
+                    shouldParseSubtitle
+                    wrapperStyle={[styles.mt3]}
+                    shouldPlaceSubtitleBelowSwitch
+                    titleStyle={styles.pv2}
+                    subtitleStyle={styles.pt1}
+                    isActive={areEReceiptsEnabled}
+                    disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
+                    disabledAction={withReadOnlyFallback?.()}
+                    showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
+                    onToggle={() => (canWriteRules ? setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts) : undefined)}
+                    pendingAction={policy?.pendingFields?.eReceipts}
+                />
+                <ToggleSettingOptionRow
+                    title={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
+                    subtitle={translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
+                    wrapperStyle={[styles.mt3]}
+                    shouldPlaceSubtitleBelowSwitch
+                    titleStyle={styles.pv2}
+                    subtitleStyle={styles.pt1}
+                    isActive={isAttendeeTrackingEnabledForPolicy}
+                    disabled={!canWriteRules}
+                    disabledAction={withReadOnlyFallback?.()}
+                    showLockIcon={!canWriteRules}
+                    onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
+                    pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
+                />
             </View>
         </Section>
     );
