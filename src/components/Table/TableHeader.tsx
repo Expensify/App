@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import {getColumnHeaderAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
 import type {TableColumn, TableData} from './types';
 
@@ -56,6 +57,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, processedData, isMobileSelectionEnabled} = useTableContext<DataType, ColumnKey>();
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     if (shouldUseNarrowTableLayout && !title) {
         return null;
@@ -103,6 +105,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 !shouldUseNarrowTableLayout && {gridTemplateColumns: gridTemplateColumns.join(' ')},
                 style,
             ]}
+            {...getRowAccessibilityProps(isTableSemanticsEnabled, 0, true)}
             {...props}
         >
             {shouldUseNarrowTableLayout && (
@@ -143,6 +146,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                         return (
                             <TableHeaderColumn
                                 column={column}
+                                isTableSemanticsEnabled={isTableSemanticsEnabled}
                                 key={column.key}
                             />
                         );
@@ -159,7 +163,13 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
  * @template DataType - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  */
-function TableHeaderColumn<DataType extends TableData, ColumnKey extends string = string>({column}: {column: TableColumn<ColumnKey>}) {
+function TableHeaderColumn<DataType extends TableData, ColumnKey extends string = string>({
+    column,
+    isTableSemanticsEnabled,
+}: {
+    column: TableColumn<ColumnKey>;
+    isTableSemanticsEnabled: boolean;
+}) {
     const theme = useTheme();
     const toggleCount = useRef(0);
     const styles = useThemeStyles();
@@ -201,11 +211,12 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
         <PressableWithFeedback
             accessible
             accessibilityLabel={column.label}
-            accessibilityRole="button"
+            accessibilityRole={isTableSemanticsEnabled ? undefined : 'button'}
             disabled={!column.sortable}
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
             style={tableHeaderStyles}
             onPress={() => toggleSorting(column.key)}
+            {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, !!column.sortable, isSortingByColumn, activeSorting.order)}
         >
             <Text
                 numberOfLines={1}

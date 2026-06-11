@@ -1,17 +1,20 @@
 import type {FlashListRef} from '@shopify/flash-list';
 import React, {useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
 import useFiltering from './middlewares/filtering';
 import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
+import {getTableContainerAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import TableContext from './TableContext';
 import type {TableContextValue} from './TableContext';
 import type {TableData, TableHandle, TableMethods, TableProps} from './types';
@@ -155,6 +158,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     onRowSelectionChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const isMobileSelectionEnabled = useMobileSelectionMode();
@@ -260,9 +264,16 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         isMobileSelectionEnabled,
     };
 
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
-            {children}
+            <View
+                style={[styles.flex1, styles.mnh0]}
+                {...getTableContainerAccessibilityProps(isTableSemanticsEnabled, title, processedData.length, columns.length)}
+            >
+                {children}
+            </View>
 
             <Modal
                 shouldPreventScrollOnFocus

@@ -6,6 +6,7 @@ import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -83,6 +84,7 @@ function WorkspaceCompanyCardTableRow({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, onDismissError} = item;
 
@@ -146,7 +148,10 @@ function WorkspaceCompanyCardTableRow({
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    <View
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         {isAssigned ? (
                             <ReportActionAvatars
                                 noRightMarginOnSubscriptContainer
@@ -175,7 +180,10 @@ function WorkspaceCompanyCardTableRow({
                     </View>
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.justifyContentCenter]}>
+                        <View
+                            style={[styles.flex1, styles.justifyContentCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <Text
                                 numberOfLines={1}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -186,7 +194,10 @@ function WorkspaceCompanyCardTableRow({
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.justifyContentCenter]}>
+                        <View
+                            style={[styles.flex1, styles.justifyContentCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <Text
                                 numberOfLines={1}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -196,7 +207,10 @@ function WorkspaceCompanyCardTableRow({
                         </View>
                     )}
 
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
+                    <View
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         {!isAssigned && canWriteCompanyCards && (
                             <Button
                                 small
