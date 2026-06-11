@@ -13,6 +13,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -40,6 +41,8 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isCommuterExclusionsEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS);
     const customUnit = getDistanceRateCustomUnit(policy);
     const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
@@ -105,27 +108,30 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     />
                                 </OfflineWithFeedback>
                             )}
-                            <OfflineWithFeedback
-                                errors={getLatestErrorField(policy ?? {}, 'commuterExclusions')}
-                                pendingAction={policy?.pendingFields?.commuterExclusions}
-                                errorRowStyles={styles.mh5}
-                                onClose={() => clearPolicyCommuterExclusionsErrors(policyID)}
-                            >
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={
-                                        policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && policy?.commuterExclusions?.fixedDistance != null
-                                            ? translate('workspace.distanceRates.commuterExclusions.summaryFixedDistance', {
-                                                  distance: policy.commuterExclusions.fixedDistance,
-                                                  unit: policy.commuterExclusions.fixedDistanceUnit ?? defaultUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                                              })
-                                            : translate('workspace.distanceRates.commuterExclusions.summaryDisabled')
-                                    }
-                                    description={translate('workspace.distanceRates.commuterExclusions.title')}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
-                                    wrapperStyle={[styles.ph5, styles.mt3]}
-                                />
-                            </OfflineWithFeedback>
+                            {isCommuterExclusionsEnabled && (
+                                <OfflineWithFeedback
+                                    errors={getLatestErrorField(policy ?? {}, 'commuterExclusions')}
+                                    pendingAction={policy?.pendingFields?.commuterExclusions}
+                                    errorRowStyles={styles.mh5}
+                                    onClose={() => clearPolicyCommuterExclusionsErrors(policyID)}
+                                >
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon
+                                        title={
+                                            policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE &&
+                                            policy?.commuterExclusions?.fixedDistance != null
+                                                ? translate('workspace.distanceRates.commuterExclusions.summaryFixedDistance', {
+                                                      distance: policy.commuterExclusions.fixedDistance,
+                                                      unit: policy.commuterExclusions.fixedDistanceUnit ?? defaultUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                                                  })
+                                                : translate('workspace.distanceRates.commuterExclusions.summaryDisabled')
+                                        }
+                                        description={translate('workspace.distanceRates.commuterExclusions.title')}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
+                                        wrapperStyle={[styles.ph5, styles.mt3]}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
                             {!!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {}) && !!customUnit?.customUnitID && (
                                 <OfflineWithFeedback
                                     errors={getLatestErrorField(customUnit ?? {}, 'defaultCategory')}
