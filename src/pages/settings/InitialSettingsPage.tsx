@@ -561,6 +561,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             includeSafeAreaPaddingBottom
             testID="InitialSettingsPage"
             shouldEnableKeyboardAvoidingView={false}
+            shouldOffsetForGlobalNavBar
             bottomContent={tabBarContent}
             bottomContentStyle={styles.overflowVisible}
         >
@@ -575,6 +576,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                style={styles.flex1}
                 contentContainerStyle={[styles.w100]}
                 showsVerticalScrollIndicator={false}
             >
