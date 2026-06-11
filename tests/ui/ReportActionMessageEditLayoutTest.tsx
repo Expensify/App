@@ -145,7 +145,7 @@ function ReportScreenProviders({children}: PropsWithChildren) {
 }
 
 /**
- * Simulates the product split: on wide, inline @ReportActionItemMessageEdit is mounted (isEditingInline in PureReportActionItem);
+ * Simulates the product split: on wide, inline @ReportActionItemMessageEdit is mounted (isEditingInline in ReportActionItem);
  * on narrow it is not and edit happens in the main composer.
  */
 type LayoutMode = 'narrow' | 'wide';
