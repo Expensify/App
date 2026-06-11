@@ -122,6 +122,41 @@ describe('NewChatPage', () => {
         expect(namesAfter.indexOf(targetName ?? '')).toBe(targetIndex);
     });
 
+    it('should keep a selected non-existing user visible in the top section after the search is cleared', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+        });
+        render(<NewChatPage />, {wrapper});
+        await waitForBatchedUpdatesWithAct();
+        act(() => {
+            triggerTransitionEnd();
+        });
+
+        const invitedEmail = 'nonexistinguser@example.com';
+
+        // Search for a user that doesn't exist yet so the invite option is generated.
+        const input = screen.getByTestId('selection-list-text-input');
+        fireEvent.changeText(input, invitedEmail);
+
+        // Wait for the invite option to appear, then select it via its "Add to group" button.
+        const addButton = await waitFor(() => screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0));
+        if (addButton) {
+            fireEvent.press(addButton);
+        }
+        await waitForBatchedUpdatesWithAct();
+
+        // Clear the search. The regular contacts reappearing confirms the debounced search has settled and the invite row is gone.
+        fireEvent.changeText(input, '');
+        await waitFor(() => {
+            expect(screen.getAllByText(/^Email /).length).toBeGreaterThan(2);
+        });
+
+        // The selected non-existing user has no row in recents/contacts, so it must remain visible in the top section.
+        await waitFor(() => {
+            expect(screen.getAllByText(invitedEmail).length).toBeGreaterThan(0);
+        });
+    });
+
     it('should not auto-scroll when selecting multiple users in sequence', async () => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);

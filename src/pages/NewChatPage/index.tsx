@@ -256,6 +256,30 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const sections: Array<Section<OptionWithKey>> = [];
 
+    // Existing users are marked as selected in place, but a selected non-existing user (an invited contact created from
+    // the search term) has no row in recents/contacts and disappears once the search input is cleared. Surface those in a
+    // top section so they stay visible and can still be deselected. Users already represented elsewhere in the list (recents,
+    // contacts, or the current invite row) are excluded to avoid duplicate rows.
+    const listedAccountIDs = new Set<number>();
+    const listedLogins = new Set<string>();
+    for (const option of [...recentReportsData, ...personalDetails, ...(userToInvite ? [userToInvite] : [])]) {
+        if (option.accountID) {
+            listedAccountIDs.add(option.accountID);
+        }
+        if (option.login) {
+            listedLogins.add(option.login);
+        }
+    }
+    const selectedSection = selectedOptions.filter((option) => !(option.accountID && listedAccountIDs.has(option.accountID)) && !(option.login && listedLogins.has(option.login)));
+
+    if (selectedSection.length) {
+        sections.push({
+            title: undefined,
+            data: selectedSection,
+            sectionIndex: 0,
+        });
+    }
+
     sections.push({
         title: translate('common.recents'),
         data: recentReportsData,
