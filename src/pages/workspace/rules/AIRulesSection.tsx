@@ -78,7 +78,7 @@ function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSec
                                     onClose={() => clearPolicyAIRuleErrors(policyID, rule.ruleID, rule)}
                                 >
                                     <MenuItemWithTopDescription
-                                        title={rule.prompt.replaceAll(/\s+/g, ' ').trim()}
+                                        title={(rule.title ?? rule.prompt).replaceAll(/\s+/g, ' ').trim()}
                                         numberOfLinesTitle={1}
                                         wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
                                         shouldShowRightIcon

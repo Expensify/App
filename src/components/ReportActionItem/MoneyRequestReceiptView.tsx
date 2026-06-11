@@ -51,7 +51,7 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getCreationReportErrors,
     isInvoiceReport,
-    isPaidGroupPolicy,
+    isReportInGroupPolicy,
     isTrackExpenseReportNew,
 } from '@libs/ReportUtils';
 import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
@@ -348,7 +348,7 @@ function MoneyRequestReceiptView({
         !isTransactionScanning &&
         (hasReceipt || !!receiptRequiredViolation || !!itemizedReceiptRequiredViolation || !!customRulesViolation) &&
         !!(receiptViolations.length || didReceiptScanSucceed) &&
-        isPaidGroupPolicy(report);
+        isReportInGroupPolicy(report);
     const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt || hasReceiptUploadError);
 
     const fallbackReceiptError = useMemo(() => {

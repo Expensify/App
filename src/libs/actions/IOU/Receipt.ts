@@ -8,7 +8,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {buildOptimisticDetachReceipt, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -100,7 +100,7 @@ function detachReceipt(
         },
     ];
 
-    if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
+    if (transactionPolicy && isGroupPolicy(transactionPolicy) && newTransaction) {
         const currentTransactionViolations = transactionViolations ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
             updatedTransaction: newTransaction,
@@ -245,7 +245,7 @@ function replaceReceipt({
         },
     ];
 
-    if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
+    if (transactionPolicy && isGroupPolicy(transactionPolicy) && newTransaction) {
         const currentTransactionViolations = transactionViolations ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
             updatedTransaction: newTransaction,
