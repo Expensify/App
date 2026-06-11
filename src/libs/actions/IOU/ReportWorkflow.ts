@@ -117,7 +117,8 @@ function canApproveIOU(
     currentUserAccountID: number,
     iouTransactions?: OnyxTypes.Transaction[],
 ) {
-    // Only expense reports can be approved
+    // TODO: Submit workspaces should show the APPROVE button and redirect to an upgrade modal instead of hiding it.
+    // This will be addressed as part of the Wave 3 "Upgrade on Approval" feature.
     if (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
         return false;
     }
@@ -219,6 +220,8 @@ function canIOUBePaid(
         return true;
     }
 
+    // TODO: Submit workspaces should show the PAY button and redirect to an upgrade modal instead of hiding it.
+    // This will be addressed as part of the Wave 3 "Upgrade on Pay" feature.
     if (isExpenseReport(iouReport) && !isPaidGroupPolicy(policy)) {
         return false;
     }
