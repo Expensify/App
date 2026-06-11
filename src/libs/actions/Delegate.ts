@@ -9,6 +9,7 @@ import Log from '@libs/Log';
 import {clearPreservedSearchNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import Pusher from '@libs/Pusher';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,6 +19,7 @@ import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
+import initializePusher from './initializePusher';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
@@ -53,6 +55,23 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
 function clearOnyxForDelegateTransition(): Promise<void> {
     return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, {
         [ONYXKEYS.IS_LOADING_APP]: true,
+    });
+}
+function initializePusherForDelegateTransition(): Promise<void> {
+    return new Promise((resolve) => {
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.SESSION,
+            callback: (nextSession) => {
+                if (nextSession?.accountID === undefined) {
+                    return;
+                }
+
+                const nextAccountID = nextSession.accountID;
+
+                Onyx.disconnect(connection);
+                initializePusher(nextAccountID, nextSession.email ?? '').finally(resolve);
+            },
+        });
     });
 }
 
@@ -210,22 +229,25 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 })
                 .then(() => {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
+                    Pusher.disconnect();
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
                     confirmReadyToOpenApp();
-                    return openApp().then(() => {
-                        if (!CONFIG.IS_HYBRID_APP || !policyID) {
+                    return openApp()
+                        .then(() => initializePusherForDelegateTransition())
+                        .then(() => {
+                            if (!CONFIG.IS_HYBRID_APP || !policyID) {
+                                return true;
+                            }
+                            HybridAppModule.switchAccount({
+                                newDotCurrentAccountEmail: email,
+                                authToken: restrictedToken,
+                                policyID,
+                                accountID: String(session?.accountID ?? CONST.DEFAULT_NUMBER_ID),
+                            });
                             return true;
-                        }
-                        HybridAppModule.switchAccount({
-                            newDotCurrentAccountEmail: email,
-                            authToken: restrictedToken,
-                            policyID,
-                            accountID: String(session?.accountID ?? CONST.DEFAULT_NUMBER_ID),
                         });
-                        return true;
-                    });
                 });
         })
         .catch((error) => {
@@ -309,6 +331,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                 })
                 .then(() => {
                     NetworkStore.setAuthToken(response?.authToken ?? null);
+                    Pusher.disconnect();
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
@@ -319,17 +342,19 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
                     confirmReadyToOpenApp();
-                    openApp().then(() => {
-                        if (!CONFIG.IS_HYBRID_APP) {
-                            return;
-                        }
-                        HybridAppModule.switchAccount({
-                            newDotCurrentAccountEmail: requesterEmail,
-                            authToken,
-                            policyID: '',
-                            accountID: '',
+                    openApp()
+                        .then(() => initializePusherForDelegateTransition())
+                        .then(() => {
+                            if (!CONFIG.IS_HYBRID_APP) {
+                                return;
+                            }
+                            HybridAppModule.switchAccount({
+                                newDotCurrentAccountEmail: requesterEmail,
+                                authToken,
+                                policyID: '',
+                                accountID: '',
+                            });
                         });
-                    });
                 });
         })
         .catch((error) => {
