@@ -51,7 +51,6 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
 
     const navigateBack = () => {
         if (blockedNavigationAction.current) {
-            // While the confirmed action re-dispatches, the screen must report itself clean so the guard lets it through
             shouldNavigateBack.current = true;
             navigationRef.current?.dispatch(blockedNavigationAction.current);
             shouldNavigateBack.current = false;
