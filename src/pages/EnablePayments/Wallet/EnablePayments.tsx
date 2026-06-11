@@ -90,7 +90,10 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
         }
 
         openEnablePaymentsPage();
-    }, [isOffline, hasFreshData, userWallet?.isLoading]);
+        // userWallet.isLoading is intentionally omitted from the dependencies,
+        // as reacting to it would endlessly retry a failed fetch
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOffline, hasFreshData]);
 
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const userWalletCurrentStep = userWallet?.currentStep ? userWallet.currentStep : CONST.WALLET.STEP.ADDITIONAL_DETAILS;
