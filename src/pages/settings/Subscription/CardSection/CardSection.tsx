@@ -136,11 +136,13 @@ function CardSection() {
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
-    const sectionSubtitle = getSectionSubtitle({
-        translate,
-        hasDefaultCard: !!defaultCard,
-        nextPaymentDate,
-    });
+    const sectionSubtitle = !defaultCard
+        ? undefined
+        : getSectionSubtitle({
+              translate,
+              hasDefaultCard: true,
+              nextPaymentDate,
+          });
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -270,7 +272,6 @@ function CardSection() {
                     icon={expensifyIcons.History}
                     wrapperStyle={styles.sectionMenuItemTopDescription}
                     title={translate('subscription.cardSection.viewPaymentHistory')}
-                    titleStyle={styles.textStrong}
                     onPress={viewPurchases}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.VIEW_PAYMENT_HISTORY}
                 />

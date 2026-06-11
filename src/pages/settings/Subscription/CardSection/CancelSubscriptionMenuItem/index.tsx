@@ -28,7 +28,6 @@ function CancelSubscriptionMenuItem() {
             icon={icons.CircleSlash}
             shouldShowRightIcon
             wrapperStyle={styles.sectionMenuItemTopDescription}
-            titleStyle={styles.textStrong}
             onPress={handleCancelSubscriptionPress}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.CANCEL_SUBSCRIPTION}
         />
