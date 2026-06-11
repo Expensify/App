@@ -28,7 +28,7 @@
 ----
 
 # Local Development
-These instructions should get you set up ready to work on New Expensify 🙌
+These instructions should get you set up ready to work on New Expensify fork 🙌
 
 ## Getting Started
 1. Install `nvm` then `node` & `npm`: `brew install nvm && nvm install`
