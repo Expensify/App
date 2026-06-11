@@ -461,7 +461,7 @@ function prepareRejectMoneyRequestData(
                             partial: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense'),
                         },
                     },
-                }
+                },
             );
         } else {
             // When no existing open report is found, use the sharedRejectedToReportID
