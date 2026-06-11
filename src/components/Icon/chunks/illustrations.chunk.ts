@@ -41,12 +41,14 @@ import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustra
 import ExpensifyCardProtectionIllustration from '@assets/images/expensifyCard/cardProtectionIllustration.svg';
 // Other Images
 import Hand from '@assets/images/hand.svg';
+import LaptopWithMembers from '@assets/images/illustration-laptop-members.svg';
 import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Multifactor Authentication Illustrations
 import ApprovedTransactionHand from '@assets/images/multifactorAuthentication/approved-transaction-hand.svg';
+import CardReader from '@assets/images/multifactorAuthentication/card-reader.svg';
 import DeniedTransactionHand from '@assets/images/multifactorAuthentication/denied-transaction-hand.svg';
 import EncryptionMan from '@assets/images/multifactorAuthentication/encryption-man.svg';
 import HumptyDumpty from '@assets/images/multifactorAuthentication/humpty-dumpty.svg';
@@ -61,6 +63,7 @@ import BigVault from '@assets/images/product-illustrations/big-vault.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import DjBoothReferenceHands from '@assets/images/product-illustrations/dj-booth-reference-hands.svg';
+import EarthWithControls from '@assets/images/product-illustrations/earth-with-controls.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
@@ -111,6 +114,7 @@ import Binoculars from '@assets/images/simple-illustrations/simple-illustration_
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Broom from '@assets/images/simple-illustrations/simple-illustration__broom.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
+import BuildingCross from '@assets/images/simple-illustrations/simple-illustration__building_cross.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CalculatorMoney from '@assets/images/simple-illustrations/simple-illustration__calculator-money.svg';
 import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
@@ -146,6 +150,7 @@ import HandCard from '@assets/images/simple-illustrations/simple-illustration__h
 import Hashtag from '@assets/images/simple-illustrations/simple-illustration__hashtag.svg';
 import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
+import HouseMoney from '@assets/images/simple-illustrations/simple-illustration__house-money.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
@@ -172,6 +177,7 @@ import Pillow from '@assets/images/simple-illustrations/simple-illustration__pil
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
 import QuestionMark from '@assets/images/simple-illustrations/simple-illustration__question-mark.svg';
+import RealEstate from '@assets/images/simple-illustrations/simple-illustration__realestate.svg';
 import RealtimeReport from '@assets/images/simple-illustrations/simple-illustration__realtimereports.svg';
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
@@ -190,6 +196,7 @@ import Sunglasses from '@assets/images/simple-illustrations/simple-illustration_
 import SyncUsers from '@assets/images/simple-illustrations/simple-illustration__syncusers.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import Target from '@assets/images/simple-illustrations/simple-illustration__target.svg';
+import TargetWithArrow from '@assets/images/simple-illustrations/simple-illustration__targetwitharrow.svg';
 import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
 import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration__thumbsdown.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
@@ -249,6 +256,7 @@ const Illustrations = {
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
     LaptopOnDeskWithCoffeeAndKey,
+    LaptopWithMembers,
 
     // Expensify Card
     ExpensifyCardIllustration,
@@ -264,6 +272,7 @@ const Illustrations = {
     HoldExpense,
     ReceiptFairy,
     EmptyStateTravel,
+    EarthWithControls,
     Fireworks,
     FolderWithPapersAndWatch,
     FolderWithPapers,
@@ -312,6 +321,7 @@ const Illustrations = {
     Accounting,
     AiBot,
     Building,
+    BuildingCross,
     BankCoin,
     Coins,
     CreditCardsNew,
@@ -326,6 +336,7 @@ const Illustrations = {
     MoneyIntoWallet,
     PerDiem,
     PiggyBank,
+    RealEstate,
     RealtimeReport,
     ReceiptPartners,
     ReceiptWrangler,
@@ -387,6 +398,7 @@ const Illustrations = {
     HeadSet,
     Hourglass,
     House,
+    HouseMoney,
     LifeRing,
     Lightbulb,
     LockClosed,
@@ -410,6 +422,7 @@ const Illustrations = {
     SmallRocket,
     Sunglasses,
     Target,
+    TargetWithArrow,
     Trophy,
     Trophy1,
     FoodTruck,
@@ -424,6 +437,7 @@ const Illustrations = {
     RunOutOfTime,
     HumptyDumpty,
     EncryptionMan,
+    CardReader,
 };
 
 /**

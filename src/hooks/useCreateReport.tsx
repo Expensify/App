@@ -1,13 +1,14 @@
 import {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultChatEnabledPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
@@ -19,6 +20,8 @@ type UseCreateReportParams = {
     onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => void;
     /** Group paid policies with expense chat enabled */
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<OnyxTypes.Policy>>;
+    /** Optional custom navigation to the workspace selector */
+    onNavigateToWorkspaceSelection?: () => void;
     /** Whether the empty-report confirmation modal should push a history entry so browser-back dismisses it (default: true) */
     shouldHandleNavigationBack?: boolean;
 };
@@ -40,7 +43,12 @@ type UseCreateReportResult = {
  * 3. Show empty report confirmation or create directly if workspace is valid
  * 4. Navigate to restricted action if billing restricts the workspace
  */
-export default function useCreateReport({onCreateReport, groupPoliciesWithChatEnabled, shouldHandleNavigationBack = true}: UseCreateReportParams): UseCreateReportResult {
+export default function useCreateReport({
+    onCreateReport,
+    groupPoliciesWithChatEnabled,
+    onNavigateToWorkspaceSelection,
+    shouldHandleNavigationBack = true,
+}: UseCreateReportParams): UseCreateReportResult {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [, policiesLoadStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -79,13 +87,15 @@ export default function useCreateReport({onCreateReport, groupPoliciesWithChatEn
                 const freshReportID = generateReportID();
                 const freshTransactionID = generateReportID();
                 Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.CREATE,
-                        iouType: CONST.IOU.TYPE.CREATE,
-                        transactionID: freshTransactionID,
-                        reportID: freshReportID,
-                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                    }),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.CREATE,
+                            iouType: CONST.IOU.TYPE.CREATE,
+                            transactionID: freshTransactionID,
+                            reportID: freshReportID,
+                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                        }),
+                    ),
                 );
                 return;
             }
@@ -102,7 +112,11 @@ export default function useCreateReport({onCreateReport, groupPoliciesWithChatEn
                 !!workspaceIDForReportCreation && shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
 
             if (!workspaceIDForReportCreation || (isDefaultPersonal && hasMultipleNonPersonalWorkspaces) || (isDefaultBillingRestricted && hasMultipleNonPersonalWorkspaces)) {
-                Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                if (onNavigateToWorkspaceSelection) {
+                    onNavigateToWorkspaceSelection();
+                } else {
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
+                }
                 return;
             }
 
@@ -129,6 +143,7 @@ export default function useCreateReport({onCreateReport, groupPoliciesWithChatEn
         amountOwed,
         accountID,
         groupPoliciesWithChatEnabled.length,
+        onNavigateToWorkspaceSelection,
         shouldShowEmptyReportConfirmation,
         openCreateReportConfirmation,
         onCreateReport,

@@ -8,6 +8,7 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     getApprovalLimitDescription,
     getOpenConnectedToPolicyBusinessBankAccounts,
+    getOverLimitForwardsToDisplayName,
     mergeWorkflowMembersWithAvailableMembers,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
@@ -16,6 +17,7 @@ import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {BankAccountList} from '@src/types/onyx/BankAccount';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
+import type {Connections} from '@src/types/onyx/Policy';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import createRandomPolicy from '../utils/collections/policies';
@@ -207,6 +209,24 @@ describe('WorkflowUtils', () => {
             ]);
         });
 
+        it('Should surface a DELETE pendingAction from the employee onto the approver row so the workflow card renders with strikethrough', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: '2@example.com',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: undefined,
+                },
+            };
+
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
+
+            expect(approvers).toEqual([buildApprover(1, {forwardsTo: '2@example.com', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), buildApprover(2)]);
+        });
+
         it('Should include approvalLimit and overLimitForwardsTo in approver objects', () => {
             const employees: PolicyEmployeeList = {
                 '1@example.com': {
@@ -248,6 +268,33 @@ describe('WorkflowUtils', () => {
             const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
             expect(approvers).toEqual([buildApprover(1, {approvalLimit: null, overLimitForwardsTo: ''})]);
+        });
+    });
+
+    describe('getOverLimitForwardsToDisplayName', () => {
+        it('Should return undefined when overLimitForwardsTo is undefined', () => {
+            expect(getOverLimitForwardsToDisplayName(undefined, personalDetailsByEmail)).toBeUndefined();
+        });
+
+        it('Should return undefined when overLimitForwardsTo is an empty string', () => {
+            expect(getOverLimitForwardsToDisplayName('', personalDetailsByEmail)).toBeUndefined();
+        });
+
+        it('Should return the display name from personal details when available', () => {
+            expect(getOverLimitForwardsToDisplayName('2@example.com', personalDetailsByEmail)).toBe('2@example.com User');
+        });
+
+        it('Should fall back to the email when personal details are missing', () => {
+            expect(getOverLimitForwardsToDisplayName('unknown@example.com', personalDetailsByEmail)).toBe('unknown@example.com');
+        });
+
+        it('Should fall back to the email when personal details exist but displayName is missing', () => {
+            const {displayName: omittedDisplayName, ...personalDetailsWithoutDisplayNameEntry} = buildPersonalDetails('custom@example.com', 99);
+            const personalDetailsWithoutDisplayName: PersonalDetailsList = {
+                'custom@example.com': personalDetailsWithoutDisplayNameEntry,
+            };
+
+            expect(getOverLimitForwardsToDisplayName('custom@example.com', personalDetailsWithoutDisplayName)).toBe('custom@example.com');
         });
     });
 
@@ -729,6 +776,58 @@ describe('WorkflowUtils', () => {
 
             const approverEmails = approvalWorkflows.flatMap((w) => w.approvers.map((a) => a.email));
             expect(approverEmails).not.toContain('guide@expensify.com');
+        });
+
+        it('Should use HR finalApprover as default approver for unassigned employees in advanced (manager) mode', () => {
+            const employees: PolicyEmployeeList = {
+                'unassigned@example.com': {
+                    email: 'unassigned@example.com',
+                    submitsTo: 'finalapprover@example.com',
+                },
+                'assigned@example.com': {
+                    email: 'assigned@example.com',
+                    submitsTo: 'manager@external.com',
+                },
+                'finalapprover@example.com': {
+                    email: 'finalapprover@example.com',
+                    submitsTo: 'finalapprover@example.com',
+                },
+            };
+            const policy: Partial<Policy> = {
+                ...createMockPolicy(employees, 'owner@example.com'),
+                owner: 'owner@example.com',
+                approver: 'owner@example.com',
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                        config: {
+                            approvalMode: CONST.MERGE_HR.APPROVAL_MODE.MANAGER,
+                            finalApprover: 'finalapprover@example.com',
+                            integration: 'workday',
+                        },
+                    },
+                } as Connections,
+            };
+            const personalDetailsForTest: PersonalDetailsList = {
+                'unassigned@example.com': {accountID: 1, login: 'unassigned@example.com', displayName: 'Unassigned'},
+                'assigned@example.com': {accountID: 2, login: 'assigned@example.com', displayName: 'Assigned'},
+                'finalapprover@example.com': {accountID: 3, login: 'finalapprover@example.com', displayName: 'Final Approver'},
+                'manager@external.com': {accountID: 4, login: 'manager@external.com', displayName: 'Manager'},
+            };
+
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
+                policy: policy as Policy,
+                personalDetails: personalDetailsForTest,
+                localeCompare,
+            });
+
+            // The default workflow should use HR finalApprover (not the policy owner)
+            const defaultWorkflow = approvalWorkflows.find((w) => w.isDefault);
+            expect(defaultWorkflow).toBeDefined();
+            expect(defaultWorkflow?.approvers.at(0)?.email).toBe('finalapprover@example.com');
+
+            // Unassigned employee submits to the finalApprover (HR default), so they end up in the default workflow
+            const unassignedMember = defaultWorkflow?.members.find((m) => m.email === 'unassigned@example.com');
+            expect(unassignedMember).toBeDefined();
         });
     });
 

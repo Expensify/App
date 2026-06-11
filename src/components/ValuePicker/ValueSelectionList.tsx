@@ -31,7 +31,6 @@ function ValueSelectionList({
             initiallyFocusedItemKey={initialSelectedValue}
             shouldStopPropagation
             shouldShowTooltips={shouldShowTooltips}
-            shouldScrollToFocusedIndex={false}
             shouldScrollToFocusedIndexOnMount={false}
             ListItem={SingleSelectListItem}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}

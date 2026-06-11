@@ -31,6 +31,46 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/123/settings/name?backTo=/home')).toBe('/r/123/details/settings/name?backTo=/home');
     });
 
+    it('redirects old task title path', () => {
+        expect(getMatchingNewRoute('/r/123/title')).toBe('/r/123/title');
+    });
+
+    it('redirects old report description path', () => {
+        expect(getMatchingNewRoute('/r/123/description')).toBe('/r/123/description');
+    });
+
+    it('redirects old room members path to report details dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/members')).toBe('/r/123/details/members');
+    });
+
+    it('preserves query params when redirecting old room members path', () => {
+        expect(getMatchingNewRoute('/r/123/members?backTo=/home')).toBe('/r/123/details/members?backTo=/home');
+    });
+
+    it('redirects old room member details path to report details dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/members/456')).toBe('/r/123/details/members/room-member-details/456');
+    });
+
+    it('preserves query params when redirecting old room member details path', () => {
+        expect(getMatchingNewRoute('/r/123/members/456?backTo=/home')).toBe('/r/123/details/members/room-member-details/456?backTo=/home');
+    });
+
+    it('redirects old room invite path to report details dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/invite')).toBe('/r/123/details/room-invite');
+    });
+
+    it('preserves query params when redirecting old room invite path', () => {
+        expect(getMatchingNewRoute('/r/123/invite?backTo=/home')).toBe('/r/123/details/room-invite?backTo=/home');
+    });
+
+    it('redirects old task assignee path', () => {
+        expect(getMatchingNewRoute('/r/123/assignee')).toBe('/r/123/assignee');
+    });
+
+    it('redirects old private notes edit path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/r/123/notes/456/edit')).toBe('/r/123/notes-edit/456');
+    });
+
     it('redirects old workspace overview address path', () => {
         expect(getMatchingNewRoute('/workspaces/abc/overview/address')).toBe('/workspaces/abc/overview/workspace-address');
     });
@@ -95,9 +135,26 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/flag/123/456')).toBe('/r/123/flag/123/456');
     });
 
+    it('redirects old report Share Code paths to the new dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/details/shareCode')).toBe('/r/123/share-code');
+        expect(getMatchingNewRoute('/e/123/details/shareCode')).toBe('/e/123/share-code');
+    });
+
+    it('redirects legacy standalone referral routes to a dynamic route with a home base', () => {
+        expect(getMatchingNewRoute('/referral/shareCode')).toBe('/home/referral/shareCode');
+    });
+
     it('redirects old travel upgrade path to dynamic route', () => {
         expect(getMatchingNewRoute('/travel/upgrade')).toBe('/travel/travel-upgrade');
         expect(getMatchingNewRoute('/travel/upgrade?backTo=/home')).toBe('/travel/travel-upgrade?backTo=/home');
+    });
+
+    it('redirects legacy profile avatar path to new avatar route', () => {
+        expect(getMatchingNewRoute('/a/123/avatar')).toBe('/avatar/123');
+    });
+
+    it('preserves query params when redirecting legacy profile avatar path', () => {
+        expect(getMatchingNewRoute('/a/123/avatar?backTo=/home')).toBe('/avatar/123?backTo=/home');
     });
 
     it('does not redirect paths that look similar but do not match migrated patterns', () => {

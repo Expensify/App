@@ -1,14 +1,12 @@
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
@@ -30,6 +28,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -66,7 +65,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const {currentSearchResults: snapshot} = useSearchStateContext();
+    const {currentSearchResults: snapshot} = useSearchResultsContext();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
@@ -102,11 +101,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
         // Clear the URL only after we navigate away to avoid a brief Not Found flash.
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                clearDeleteTransactionNavigateBackUrl();
-            });
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                requestAnimationFrame(clearDeleteTransactionNavigateBackUrl);
+            },
+            waitForUpcomingTransition: true,
         });
+        return () => handle.cancel();
     }, [isFocused, deleteTransactionNavigateBackUrl]);
 
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
@@ -162,11 +163,15 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         const snapshotData = snapshot.data as Record<string, unknown>;
         const transaction = snapshotData[transactionKey] as Transaction;
+        if (transaction.reportID !== reportIDFromRoute) {
+            return {snapshotTransaction: undefined, snapshotViolations: undefined};
+        }
+
         const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
         const violations = snapshotData[violationKey] as TransactionViolations | undefined;
 
         return {snapshotTransaction: transaction, snapshotViolations: violations};
-    }, [snapshot?.data, allReportTransactions]);
+    }, [snapshot?.data, allReportTransactions, reportIDFromRoute]);
 
     // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
     const shouldShowSuperWideRHP = visibleTransactions.length > 1;

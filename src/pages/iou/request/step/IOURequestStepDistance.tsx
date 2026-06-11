@@ -12,6 +12,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -145,6 +146,7 @@ function IOURequestStepDistance({
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {nonEmptyWaypointsCount, isWaypointsNullIslandError, duplicateWaypointsError, atLeastTwoDifferentWaypointsError} = useWaypointValidation({waypoints, validatedWaypoints});
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
@@ -164,6 +166,7 @@ function IOURequestStepDistance({
         transaction: currentTransaction,
         policy,
         useTransactionDistanceUnit: false,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     });
     const distanceUnit = mileageRate.unit;
     const distanceRate = mileageRate.rate ?? 0;
@@ -346,6 +349,7 @@ function IOURequestStepDistance({
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,
+        action,
         report,
         policy,
         transaction,
@@ -356,6 +360,7 @@ function IOURequestStepDistance({
         waypoints,
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
+        currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backTo,
         backToReport,
         shouldSkipConfirmation,
@@ -476,6 +481,7 @@ function IOURequestStepDistance({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
+                    delegateAccountID,
                     distanceOriginalPolicy,
                 });
             }
@@ -517,6 +523,7 @@ function IOURequestStepDistance({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
+        delegateAccountID,
         distanceOriginalPolicy,
     ]);
 
@@ -582,6 +589,7 @@ function IOURequestStepDistance({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
+            delegateAccountID,
             recentWaypoints,
             distanceOriginalPolicy,
         });
@@ -618,6 +626,7 @@ function IOURequestStepDistance({
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
+        delegateAccountID,
         distanceOriginalPolicy,
     ]);
 

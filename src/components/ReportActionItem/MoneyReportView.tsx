@@ -21,6 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resolveReportFieldValue} from '@libs/Formula';
 import {isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {
@@ -47,7 +48,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -151,6 +152,7 @@ function MoneyReportView({
     const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
+    const areFieldsEnabledForReport = isInvoiceReport ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
     const shouldShowReportField =
         !isClosedExpenseReportWithNoExpenses &&
         (isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
@@ -183,7 +185,7 @@ function MoneyReportView({
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
                         {(isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
-                            !!policy?.areReportFieldsEnabled &&
+                            areFieldsEnabledForReport &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (shouldHideSingleReportField(reportField)) {
@@ -210,9 +212,11 @@ function MoneyReportView({
                                             description={Str.UCFirst(reportField.name)}
                                             title={fieldValue}
                                             onPress={() => {
-                                                Navigation.navigate(
-                                                    ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, reportField.fieldID, Navigation.getReportRHPActiveRoute()),
-                                                );
+                                                if (!report?.policyID) {
+                                                    return;
+                                                }
+
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, reportField.fieldID)));
                                             }}
                                             shouldShowRightIcon={!isFieldDisabled}
                                             wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}

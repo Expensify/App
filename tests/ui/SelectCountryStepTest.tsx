@@ -112,7 +112,6 @@ describe('SelectCountryStep', () => {
             }),
         );
         expect(selectionListProps?.initiallyFocusedItemKey).toBe('US');
-        expect(selectionListProps?.shouldScrollToFocusedIndex).toBe(false);
         expect(selectionListProps?.shouldScrollToFocusedIndexOnMount).toBe(false);
         expect(selectionListProps?.shouldUpdateFocusedIndex).toBe(true);
     });

@@ -27,8 +27,9 @@ type GetOnboardingInitialPathParamsType = {
     onboardingValuesParam?: Onboarding;
     currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
-    onboardingInitialPath: OnyxEntry<string>;
+    onboardingInitialPath: OnyxEntry<string> | null;
     onboardingValues: OnyxEntry<Onboarding>;
+    isAccountValidated?: boolean;
 };
 
 type OnboardingTaskLinks = Partial<{
@@ -105,10 +106,12 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         onboardingValuesParam,
         currentOnboardingPurposeSelected,
         currentOnboardingCompanySize,
-        onboardingInitialPath = '',
+        onboardingInitialPath,
         onboardingValues,
+        isAccountValidated,
     } = getOnboardingInitialPathParams;
-    const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
+    const initialPath = onboardingInitialPath ?? '';
+    const state = getStateFromPath(initialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
     const isVsb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
@@ -117,7 +120,6 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
 
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-        Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, CONST.ONBOARDING_COMPANY_SIZE.MICRO);
     }
     if (isSmb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
@@ -126,19 +128,32 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.TRACK_BUSINESS, CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]);
     }
-    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted) {
+    // A validated account has no reason to be on the onboarding "add work email" screen.
+    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted && !isAccountValidated) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 
+    // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain. Only redirect
+    // validated accounts; unvalidated users mid-AddWorkEmail can legitimately land here while isFromPublicDomain is stale.
+    if (isUserFromPublicDomain && isAccountValidated && initialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route)) {
+        if (isVsb) {
+            return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
+        }
+        if (isSmb) {
+            return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
+        }
+        return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
+    }
+
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
-        if (onboardingInitialPath) {
-            return onboardingInitialPath;
+        if (initialPath) {
+            return initialPath;
         }
         return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
 
     if (isVsb) {
-        return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
+        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
     }
     if (isSmb) {
         return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
@@ -148,18 +163,18 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
+    if (initialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
     if (
-        onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+        initialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
         ((currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) || (currentOnboardingCompanySize === null && currentOnboardingPurposeSelected !== null))
     ) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
-    return onboardingInitialPath;
+    return initialPath;
 }
 
 const getOnboardingMessages = (locale?: Locale) => {

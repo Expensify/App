@@ -1,292 +1,133 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getTagLists} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
-import type CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {Unit} from '@src/types/onyx/Policy';
 import ClassificationFields from './fieldGroups/ClassificationFields';
 import computeFieldVisibility, {hasBelowShowMore} from './fieldGroups/fieldVisibility';
 import SettingsFields from './fieldGroups/SettingsFields';
 import TransactionDetailsFields from './fieldGroups/TransactionDetailsFields';
-
-type TagVisibilityEntry = {
-    /** Whether this tag list should be displayed */
-    shouldShow: boolean;
-    /** Whether the tag for this list is required to submit */
-    isTagRequired: boolean;
-};
+import type {AmountDisplay, CompactState, DistanceData, DistanceFlags, ErrorState, ExpenseMode, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
+import useFooterDerivedFlags from './hooks/useFooterDerivedFlags';
+import useFooterTagVisibility from './hooks/useFooterTagVisibility';
 
 type ConfirmationFieldListProps = {
-    /** Action being performed (drives section navigation targets) */
-    action: IOUAction;
-
-    /** Type of IOU being confirmed */
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-
-    /** ID of the active transaction */
-    transactionID: string | undefined;
-
-    /** ID of the report the transaction belongs to */
-    reportID: string;
-
-    /** ID of the originating report action, when editing */
-    reportActionID: string | undefined;
-
-    /** Active transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** Active policy */
+    /** Active policy (resolved by the caller; passed in to avoid a duplicate Onyx subscription) */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Resolved policy used when moving an expense off track-expense (drives tax fallback) */
-    policyForMovingExpenses: OnyxEntry<OnyxTypes.Policy> | undefined;
-
-    /** Tag lists configured on the policy */
-    policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagLists>>;
-
-    /** Per-tag-list visibility (parallel to `policyTagLists` order) */
-    tagVisibility: TagVisibilityEntry[];
-
-    /** Previous render's per-tag-list `shouldShow` projection (drives `TagFields` transitions) */
-    previousTagsVisibility: boolean[];
+    /** Policy tag lists (resolved by the caller; passed in to avoid a duplicate Onyx subscription) */
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 
     /** Selected participants (drives ReportField presentation) */
     selectedParticipants: Participant[];
 
-    /** Whether the surface is read-only */
-    isReadOnly: boolean;
+    /** What kind of expense the surface is confirming */
+    expenseMode: ExpenseMode;
 
-    /** Whether the user has confirmed (locks editable controls) */
-    didConfirm: boolean;
+    /** Distance-mode discriminators (only meaningful when expenseMode.isDistance) */
+    distanceFlags: DistanceFlags;
 
-    /** Whether the new manual expense flow beta is enabled */
-    isNewManualExpenseFlowEnabled: boolean;
+    /** Distance-rate metadata */
+    distanceData: DistanceData;
 
-    /** Whether to show smart-scan-driven fields (amount, merchant, date) */
-    shouldShowSmartScanFields: boolean;
+    /** Pre-formatted amount values */
+    amountDisplay: AmountDisplay;
 
-    /** Whether the amount field should be displayed when smart-scan fields are shown */
-    shouldShowAmountField: boolean;
+    /** Per-field "required" flags */
+    requiredFlags: RequiredFlags;
 
-    /** Whether the merchant field should be displayed */
-    shouldShowMerchant: boolean;
+    /** Caller-supplied visibility decisions */
+    visibilityFlags: VisibilityFlags;
 
-    /** Whether the categories field should be displayed */
-    shouldShowCategories: boolean;
+    /** Error state */
+    errorState: ErrorState;
 
-    /** Whether the date field should be displayed (smart-scan or distance) */
-    shouldShowDate: boolean;
+    /** Toggle handlers */
+    toggleHandlers: ToggleHandlers;
 
-    /** Whether the tax field should be displayed */
-    shouldShowTax: boolean;
-
-    /** Whether the attendees field should be displayed */
-    shouldShowAttendees: boolean;
-
-    /** Whether the time-request fields should be displayed */
-    shouldShowTimeRequestFields: boolean;
-
-    /** Whether the billable toggle should be displayed */
-    shouldShowBillable: boolean;
-
-    /** Whether the reimbursable toggle should be displayed */
-    shouldShowReimbursable: boolean;
-
-    /** Whether navigating to upgrade is required to proceed past blocked workspaces */
-    shouldNavigateToUpgradePath: boolean;
-
-    /** Whether the user must select a policy before submitting */
-    shouldSelectPolicy: boolean;
-
-    /** Whether tax field modifications are allowed */
-    canModifyTaxFields: boolean;
-
-    /** Whether the active transaction is a distance request */
-    isDistanceRequest: boolean;
-
-    /** Whether the active transaction is a manual distance request */
-    isManualDistanceRequest: boolean;
-
-    /** Whether the active transaction is an odometer distance request */
-    isOdometerDistanceRequest: boolean;
-
-    /** Whether the active transaction is a GPS distance request */
-    isGPSDistanceRequest: boolean;
-
-    /** Whether the merchant is required to submit */
-    isMerchantRequired: boolean | undefined;
-
-    /** Whether the description is required to submit */
-    isDescriptionRequired: boolean;
-
-    /** Whether the categories field is required */
-    isCategoryRequired: boolean;
-
-    /** Whether the surface is in a policy-expense chat */
-    isPolicyExpenseChat: boolean;
-
-    /** Whether we're editing an existing split expense */
-    isEditingSplitBill: boolean;
-
-    /** Whether the active transaction is a per-diem request */
-    isPerDiemRequest: boolean;
-
-    /** Whether to display per-field validation errors */
-    shouldDisplayFieldError: boolean;
-
-    /** Form-level error message */
-    formError: string;
-
-    /** Clears specific form errors by key */
-    clearFormErrors: (errors: string[]) => void;
-
-    /** Sets a form error message */
-    setFormError: (error: TranslationPaths | '') => void;
-
-    /** ISO currency code for the transaction */
-    iouCurrencyCode: string;
-
-    /** Total amount, in the smallest currency unit */
-    amount: number;
-
-    /** Pre-formatted amount string for display */
-    formattedAmount: string;
-
-    /** Pre-formatted amount-per-attendee string for display */
-    formattedAmountPerAttendee: string;
-
-    /** Distance value (drives `DistanceField`) */
-    distance: number;
-
-    /** Whether a route is available for distance requests */
-    hasRoute: boolean;
-
-    /** Distance unit */
-    unit: Unit | undefined;
-
-    /** Distance rate (per-unit cost) */
-    rate: number | undefined;
-
-    /** Display name of the active distance rate */
-    distanceRateName: string | undefined;
-
-    /** Currency of the active distance rate */
-    distanceRateCurrency: string;
-
-    /** Callback when reimbursable is toggled */
-    onToggleReimbursable?: (isOn: boolean) => void;
-
-    /** Callback when billable is toggled */
-    onToggleBillable?: (isOn: boolean) => void;
-
-    /** Setter that expands the optional fields when the user taps "Show more" */
-    setShowMoreFields: (showMoreFields: boolean) => void;
-
-    /** Whether the receipt area is using compact mode (drives the show-more split) */
-    isCompactMode: boolean;
+    /** Compact-mode bookkeeping */
+    compactState: CompactState;
 
     /** Triggers submit from inline inputs */
     onSubmitForm?: () => void;
 };
 
 function ConfirmationFieldList({
-    action,
-    iouType,
-    transactionID,
-    reportID,
-    reportActionID,
-    transaction,
     policy,
-    policyForMovingExpenses,
-    policyTagLists,
-    tagVisibility,
-    previousTagsVisibility,
+    policyTags,
     selectedParticipants,
-    isReadOnly,
-    didConfirm,
-    isNewManualExpenseFlowEnabled,
-    shouldShowSmartScanFields,
-    shouldShowAmountField,
-    shouldShowMerchant,
-    shouldShowCategories,
-    shouldShowDate,
-    shouldShowTax,
-    shouldShowAttendees,
-    shouldShowTimeRequestFields,
-    shouldShowBillable,
-    shouldShowReimbursable,
-    shouldNavigateToUpgradePath,
-    shouldSelectPolicy,
-    canModifyTaxFields,
-    isDistanceRequest,
-    isManualDistanceRequest,
-    isOdometerDistanceRequest,
-    isGPSDistanceRequest,
-    isMerchantRequired,
-    isDescriptionRequired,
-    isCategoryRequired,
-    isPolicyExpenseChat,
-    isEditingSplitBill,
-    isPerDiemRequest,
-    shouldDisplayFieldError,
-    formError,
-    clearFormErrors,
-    setFormError,
-    iouCurrencyCode,
-    amount,
-    formattedAmount,
-    formattedAmountPerAttendee,
-    distance,
-    hasRoute,
-    unit,
-    rate,
-    distanceRateName,
-    distanceRateCurrency,
-    onToggleReimbursable,
-    onToggleBillable,
-    setShowMoreFields,
-    isCompactMode,
+    expenseMode,
+    distanceFlags,
+    distanceData,
+    amountDisplay,
+    requiredFlags,
+    visibilityFlags,
+    errorState,
+    toggleHandlers,
+    compactState,
     onSubmitForm,
 }: ConfirmationFieldListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'DownArrow']);
+    const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat} = useConfirmationFields();
+    const policyTagLists = getTagLists(policyTags);
+
+    const flags = useFooterDerivedFlags({
+        action,
+        iouType,
+        transactionID,
+        policy,
+        policyTagLists,
+        isPolicyExpenseChat,
+        isReadOnly,
+        isDistanceRequest: expenseMode.isDistance,
+        isPerDiemRequest: expenseMode.isPerDiem,
+        isTimeRequest: expenseMode.isTime,
+        isTypeInvoice: expenseMode.isInvoice,
+        shouldShowSmartScanFields: visibilityFlags.shouldShowSmartScanFields,
+    });
+
+    const {tagVisibility, previousTagsVisibility} = useFooterTagVisibility({
+        shouldShowTags: flags.shouldShowTags,
+        policy,
+        policyTags,
+        transactionID,
+    });
 
     const fieldVisibility = computeFieldVisibility({
-        shouldShowSmartScanFields,
-        shouldShowAmountField,
-        isDistanceRequest,
-        shouldShowMerchant,
-        shouldShowTimeRequestFields,
-        shouldShowCategories,
-        isCategoryRequired,
-        shouldShowDate,
+        shouldShowSmartScanFields: visibilityFlags.shouldShowSmartScanFields,
+        shouldShowAmountField: visibilityFlags.shouldShowAmountField,
+        isDistanceRequest: expenseMode.isDistance,
+        shouldShowMerchant: visibilityFlags.shouldShowMerchant,
+        shouldShowTimeRequestFields: flags.shouldShowTimeRequestFields,
+        shouldShowCategories: visibilityFlags.shouldShowCategories,
+        isCategoryRequired: requiredFlags.isCategoryRequired,
+        shouldShowDate: flags.shouldShowDate,
         tagVisibility,
         policyTagLists,
-        shouldShowTax,
-        shouldShowAttendees,
-        shouldShowReimbursable,
-        shouldShowBillable,
+        shouldShowTax: visibilityFlags.shouldShowTax,
+        shouldShowAttendees: flags.shouldShowAttendees,
+        shouldShowReimbursable: flags.shouldShowReimbursable,
+        shouldShowBillable: flags.shouldShowBillable,
         isPolicyExpenseChat,
     });
     const shouldShowMoreButton = hasBelowShowMore(fieldVisibility);
 
     return (
         <View style={[styles.mb5, styles.mt2]}>
-            {isCompactMode && (
+            {compactState.isCompactMode && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.pr10]}>
                     <Icon
                         src={icons.Sparkles}
@@ -299,93 +140,53 @@ function ConfirmationFieldList({
             )}
 
             <TransactionDetailsFields
-                action={action}
-                iouType={iouType}
-                transactionID={transactionID}
-                reportID={reportID}
-                reportActionID={reportActionID}
-                transaction={transaction}
                 policy={policy}
-                isReadOnly={isReadOnly}
-                didConfirm={didConfirm}
-                isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
-                isEditingSplitBill={isEditingSplitBill}
-                isPolicyExpenseChat={isPolicyExpenseChat}
-                isManualDistanceRequest={isManualDistanceRequest}
-                isOdometerDistanceRequest={isOdometerDistanceRequest}
-                isGPSDistanceRequest={isGPSDistanceRequest}
-                isMerchantRequired={isMerchantRequired}
-                isDescriptionRequired={isDescriptionRequired}
-                shouldDisplayFieldError={shouldDisplayFieldError}
-                formError={formError}
-                clearFormErrors={clearFormErrors}
-                setFormError={setFormError}
-                shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
-                shouldSelectPolicy={shouldSelectPolicy}
-                iouCurrencyCode={iouCurrencyCode}
-                amount={amount}
-                formattedAmount={formattedAmount}
-                distance={distance}
-                hasRoute={hasRoute}
-                unit={unit}
-                rate={rate}
-                distanceRateName={distanceRateName}
-                distanceRateCurrency={distanceRateCurrency}
-                isCompactMode={isCompactMode}
+                distanceFlags={distanceFlags}
+                amountDisplay={amountDisplay}
+                distanceData={distanceData}
+                requiredFlags={requiredFlags}
+                errorState={errorState}
+                shouldNavigateToUpgradePath={flags.shouldNavigateToUpgradePath}
+                shouldSelectPolicy={flags.shouldSelectPolicy}
+                iouCurrencyCode={flags.iouCurrencyCode}
+                isCompactMode={compactState.isCompactMode}
                 fieldVisibility={fieldVisibility}
                 onSubmitForm={onSubmitForm}
+                isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
             />
 
             <ClassificationFields
-                action={action}
-                iouType={iouType}
-                transactionID={transactionID}
-                reportID={reportID}
-                reportActionID={reportActionID}
-                transaction={transaction}
                 policy={policy}
-                policyForMovingExpenses={policyForMovingExpenses}
+                policyForMovingExpenses={flags.policyForMovingExpenses}
                 policyTagLists={policyTagLists}
                 previousTagsVisibility={previousTagsVisibility}
-                isReadOnly={isReadOnly}
-                didConfirm={didConfirm}
-                isCategoryRequired={isCategoryRequired}
-                canModifyTaxFields={canModifyTaxFields}
-                shouldDisplayFieldError={shouldDisplayFieldError}
-                shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
-                shouldSelectPolicy={shouldSelectPolicy}
-                iouCurrencyCode={iouCurrencyCode}
-                formattedAmountPerAttendee={formattedAmountPerAttendee}
-                formError={formError}
-                isCompactMode={isCompactMode}
+                isCategoryRequired={requiredFlags.isCategoryRequired}
+                canModifyTaxFields={flags.canModifyTaxFields}
+                errorState={errorState}
+                shouldNavigateToUpgradePath={flags.shouldNavigateToUpgradePath}
+                shouldSelectPolicy={flags.shouldSelectPolicy}
+                iouCurrencyCode={flags.iouCurrencyCode}
+                formattedAmountPerAttendee={amountDisplay.formattedAmountPerAttendee}
+                isCompactMode={compactState.isCompactMode}
                 fieldVisibility={fieldVisibility}
             />
 
             <SettingsFields
-                action={action}
-                iouType={iouType}
-                transactionID={transactionID}
-                reportID={reportID}
-                reportActionID={reportActionID}
-                transaction={transaction}
                 selectedParticipants={selectedParticipants}
-                isReadOnly={isReadOnly}
-                shouldShowBillable={shouldShowBillable}
-                shouldShowReimbursable={shouldShowReimbursable}
-                isPolicyExpenseChat={isPolicyExpenseChat}
-                isPerDiemRequest={isPerDiemRequest}
-                onToggleReimbursable={onToggleReimbursable}
-                onToggleBillable={onToggleBillable}
-                isCompactMode={isCompactMode}
+                shouldShowBillable={flags.shouldShowBillable}
+                shouldShowReimbursable={flags.shouldShowReimbursable}
+                isPerDiemRequest={expenseMode.isPerDiem}
+                toggleHandlers={toggleHandlers}
+                isCompactMode={compactState.isCompactMode}
                 fieldVisibility={fieldVisibility}
             />
 
-            {isCompactMode && shouldShowMoreButton && (
+            {compactState.isCompactMode && shouldShowMoreButton && (
                 <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
                     <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
                     <Button
                         text={translate('common.showMore')}
-                        onPress={() => setShowMoreFields(true)}
+                        onPress={() => compactState.setShowMoreFields(true)}
                         small
                         shouldShowRightIcon
                         iconRight={icons.DownArrow}

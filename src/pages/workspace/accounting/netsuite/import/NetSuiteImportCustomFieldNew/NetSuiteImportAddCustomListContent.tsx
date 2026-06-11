@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {FormRef} from '@components/Form/types';
@@ -51,25 +50,23 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
     const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);
 
     const handleFinishStep = useCallback(() => {
-        InteractionManager.runAfterInteractions(() => {
-            const updatedCustomLists = customLists.concat([
-                {
-                    listName: values[INPUT_IDS.LIST_NAME],
-                    internalID: values[INPUT_IDS.INTERNAL_ID],
-                    transactionFieldID: values[INPUT_IDS.TRANSACTION_FIELD_ID],
-                    mapping: values[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                },
-            ]);
-            updateNetSuiteCustomLists(
-                policyID,
-                updatedCustomLists,
-                customLists,
-                `${CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}_${customLists.length}`,
-                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            );
-            clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM);
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
-        });
+        const updatedCustomLists = customLists.concat([
+            {
+                listName: values[INPUT_IDS.LIST_NAME],
+                internalID: values[INPUT_IDS.INTERNAL_ID],
+                transactionFieldID: values[INPUT_IDS.TRANSACTION_FIELD_ID],
+                mapping: values[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+            },
+        ]);
+        updateNetSuiteCustomLists(
+            policyID,
+            updatedCustomLists,
+            customLists,
+            `${CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}_${customLists.length}`,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        );
+        clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM);
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
     }, [values, customLists, policyID]);
 
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomFieldSubPageWithPolicy>({
@@ -140,6 +137,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
                     onNext={handleNextScreen}
                     onMove={moveTo}
                     policy={policy}
+                    policyIDParam={policyIDParam}
                     importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}
                     netSuiteCustomFieldFormValues={values}
                     customLists={customLists}

@@ -1,0 +1,235 @@
+import reportByIDsSelector from '@selectors/Attributes';
+import {Str} from 'expensify-common';
+import React, {useCallback} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import type {FormOnyxValues} from '@components/Form/types';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {useSession} from '@components/OnyxListItemProvider';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {deleteReportField, updateReportField, updateReportName} from '@libs/actions/Report';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
+import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
+import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
+import {
+    getReportFieldFromReportNameValuePairs,
+    getReportFieldKey,
+    getTitleFieldWithFallback,
+    hasViolations as hasViolationsReportUtils,
+    isInvoiceReport,
+    isPaidGroupPolicyExpenseReport,
+    isReportFieldDisabled,
+    isReportFieldDisabledForUser,
+    isReportFieldOfTypeTitle,
+} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
+import EditReportFieldDate from './EditReportFieldDate';
+import EditReportFieldDropdown from './EditReportFieldDropdown';
+import EditReportFieldText from './EditReportFieldText';
+
+type DynamicEditReportFieldPageProps = PlatformStackScreenProps<EditRequestNavigatorParamList, typeof SCREENS.EDIT_REQUEST.DYNAMIC_REPORT_FIELD>;
+
+function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
+    const {reportID, policyID} = route.params;
+    const fieldKey = getReportFieldKey(route.params.fieldID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.path);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportByIDsSelector([reportID])(attributes), [reportID]);
+    const [reportAttributesByReportID] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: reportAttributesSelector,
+    });
+    const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
+
+    const isTitleField = route.params.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
+    const reportFieldFromNVP = getReportFieldFromReportNameValuePairs(reportNameValuePairs, fieldKey) ?? getReportFieldFromReportNameValuePairs(reportNameValuePairs, route.params.fieldID);
+    let reportField =
+        reportFieldFromNVP ?? report?.fieldList?.[fieldKey] ?? report?.fieldList?.[route.params.fieldID] ?? policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[route.params.fieldID];
+    let policyField = policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[route.params.fieldID] ?? reportField;
+
+    // If the title field is missing, use fallback so that it can still be edited and matches the OldDot behavior.
+    if (isTitleField && !reportField && !policyField) {
+        const fallbackTitleField = getTitleFieldWithFallback(policy);
+        reportField = fallbackTitleField;
+        policyField = fallbackTitleField;
+    }
+
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const isDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const session = useSession();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
+    const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
+    const isReportFieldsFeatureEnabled = report?.type === CONST.REPORT.TYPE.INVOICE ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
+    const reportFieldsEnabled = ((isPaidGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!isReportFieldsFeatureEnabled) || isReportFieldTitle;
+    const hasOtherViolations =
+        report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy));
+
+    if (!reportFieldsEnabled || !reportField || !policyField || !report || isDisabled) {
+        return (
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID="DynamicEditReportFieldPage"
+            >
+                <FullPageNotFoundView shouldShow />
+            </ScreenWrapper>
+        );
+    }
+
+    const goBack = () => {
+        Navigation.goBack(backPath);
+    };
+
+    const handleReportFieldDelete = async () => {
+        const result = await showConfirmModal({
+            title: translate('workspace.reportFields.delete'),
+            prompt: translate('workspace.reportFields.deleteConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+            shouldEnableNewFocusManagement: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            goBack();
+            setTimeout(() => {
+                deleteReportField(report.reportID, reportField);
+            }, CONST.ANIMATED_TRANSITION);
+        });
+    };
+
+    // Provide a default when the report name and the policy field list are empty
+
+    const fieldValue = isReportFieldTitle
+        ? getReportNameFromReportNameUtils(report, reportAttributesByReportID) || (isPolicyFieldListEmpty(policy) ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
+        : (reportField.value ?? reportField.defaultValue);
+
+    const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
+        const value = form[fieldKey];
+        if ((fieldValue ?? '').trim() === value?.trim()) {
+            goBack();
+            return;
+        }
+
+        if (isReportFieldTitle) {
+            updateReportName(report.reportID, value, report.reportName ?? '');
+            goBack();
+        } else {
+            if (value !== '') {
+                updateReportField({
+                    report: {...report, reportID: report.reportID},
+                    reportField: {...reportField, value},
+                    previousReportField: reportField,
+                    policy: policy as unknown as Policy,
+                    isASAPSubmitBetaEnabled,
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    hasViolationsParam: hasViolations,
+                    recentlyUsedReportFields,
+                    shouldFixViolations: hasOtherViolations ?? false,
+                });
+            }
+            goBack();
+        }
+    };
+
+    const menuItems: PopoverMenuItem[] = [];
+
+    const isReportFieldDeletable = reportField.deletable && reportField?.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID;
+
+    if (isReportFieldDeletable) {
+        menuItems.push({
+            icon: icons.Trashcan,
+            text: translate('common.delete'),
+            onSelected: () => {
+                handleReportFieldDelete();
+            },
+            shouldCallAfterModalHide: true,
+        });
+    }
+
+    const fieldName = Str.UCFirst(reportField.name);
+
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
+            testID="DynamicEditReportFieldPage"
+        >
+            <HeaderWithBackButton
+                title={fieldName}
+                threeDotsMenuItems={menuItems}
+                shouldShowThreeDotsButton={!!menuItems?.length}
+                onBackButtonPress={goBack}
+            />
+
+            {(reportField.type === CONST.REPORT_FIELD_TYPES.TEXT || isReportFieldTitle) && (
+                <EditReportFieldText
+                    fieldName={reportField.name}
+                    fieldKey={fieldKey}
+                    fieldValue={fieldValue}
+                    isRequired={!isReportFieldDeletable}
+                    onSubmit={handleReportFieldChange}
+                    fieldList={policy?.fieldList}
+                />
+            )}
+
+            {reportField.type === CONST.REPORT_FIELD_TYPES.DATE && (
+                <EditReportFieldDate
+                    fieldName={Str.UCFirst(reportField.name)}
+                    fieldKey={fieldKey}
+                    fieldValue={fieldValue}
+                    isRequired={!reportField.deletable}
+                    onSubmit={handleReportFieldChange}
+                />
+            )}
+
+            {reportField.type === CONST.REPORT_FIELD_TYPES.LIST && (
+                <EditReportFieldDropdown
+                    fieldKey={fieldKey}
+                    fieldValue={fieldValue}
+                    fieldOptions={policyField.values.filter((_value: string, index: number) => !policyField.disabledOptions.at(index))}
+                    onSubmit={handleReportFieldChange}
+                />
+            )}
+
+            {reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA && !isReportFieldTitle && (
+                <EditReportFieldText
+                    fieldName={reportField.name}
+                    fieldKey={fieldKey}
+                    fieldValue={fieldValue}
+                    isRequired={!isReportFieldDeletable}
+                    onSubmit={handleReportFieldChange}
+                    fieldList={policy?.fieldList}
+                    disabled
+                />
+            )}
+        </ScreenWrapper>
+    );
+}
+
+export default DynamicEditReportFieldPage;
