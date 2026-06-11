@@ -10,6 +10,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FinancialForceConnectionConfig} from '@src/types/onyx/Policy';
 
+type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
+
 function prepareOnyxDataForFinancialForceCodingUpdate<K extends keyof FinancialForceConnectionConfig['coding']>(
     policyID: string,
     settingName: K,
@@ -254,7 +256,7 @@ function updateFinancialForceExporter(policyID: string, exporter: string, previo
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORTER, {policyID, email: exporter}, {optimisticData, failureData, successData});
 }
 
-function updateFinancialForceExportStatus(policyID: string, status: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>, previousStatus: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | null) {
+function updateFinancialForceExportStatus(policyID: string, status: FinancialForceFFAExportStatus, previousStatus: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | null) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceExportUpdate(policyID, CONST.CERTINIA_CONFIG.EXPORT_STATUS, status, previousStatus ?? undefined);
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_STATUS, {policyID, exportStatus: status}, {optimisticData, failureData, successData});
 }

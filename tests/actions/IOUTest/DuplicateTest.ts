@@ -1174,6 +1174,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1237,6 +1238,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1292,6 +1294,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1340,6 +1343,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1388,6 +1392,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1439,6 +1444,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1500,6 +1506,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1546,6 +1553,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1585,6 +1593,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1627,6 +1636,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1675,6 +1685,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1739,6 +1750,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1803,6 +1815,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1851,6 +1864,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1910,6 +1924,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2648,6 +2663,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints: [],
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();

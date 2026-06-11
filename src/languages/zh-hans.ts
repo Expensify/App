@@ -509,6 +509,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: '收起推理',
         expandReasoning: '展开推理',
+        enableNotifications: {
+            prompt: '希望在Concierge回复时收到通知吗？',
+            cta: '通知',
+        },
     },
     supportalNoAccess: {
         title: '先别急',
@@ -924,7 +928,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
-            validateAccount: {title: '验证您的账户以继续使用 Expensify', subtitle: '账户', cta: '验证'},
+            validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
                 workspaceTitle: '您的企业银行账户已被锁定',
@@ -1324,7 +1328,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approvedMessage: `已批准`,
         unapproved: `未批准`,
         automaticallyForwarded: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
-        forwarded: `已批准`,
+        forwarded: (memo?: string) => `已批准${memo ? `，备注为 ${memo}` : ''}`,
         rejectedThisReport: '已拒绝',
         waitingOnBankAccount: (submitterDisplayName: string) => `已开始付款，但正在等待${submitterDisplayName}添加银行账户。`,
         adminCanceledRequest: '已取消付款',
@@ -2817,6 +2821,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         waitForPDF: '正在生成 PDF，请稍候。',
         errorPDF: '尝试生成您的 PDF 时出错',
         successPDF: '您的 PDF 已生成！如果没有自动下载，请使用下面的按钮。',
+        goToRoom: '进入房间',
     },
     reportDescriptionPage: {
         roomDescription: '房间描述',
@@ -2928,6 +2933,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '跟踪我的商务开销',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '管理我的个人支出',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: '其他原因',
+        },
+        personalTrackGoal: {
+            title: '您想跟踪什么？',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: '投资物业成本',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: '家庭开支',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: '副业报销',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: '其他原因',
+            somethingElsePlaceholder: '你在跟踪什么？',
         },
         employees: {
             title: '您有多少名员工？',
@@ -3253,6 +3266,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             subtitle: '添加你的团队或邀请你的会计。人越多越热闹！',
         },
         workEmail2FAError: '此登录使用的是已启用双重身份验证（2FA）的现有账户。',
+        singleSignOnError: '此登录使用的是已启用 SSO/SAML 的现有账户。',
     },
     featureTraining: {
         doNotShowAgain: '不再显示此内容',
@@ -4773,6 +4787,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         certinia: {
             title: 'Certinia',
+            titleFFA: 'Certinia (FFA)',
             autoSyncDescription: 'Expensify 将每天自动与 Certinia 同步。',
             syncReimbursedReportsDescription: '启用此选项后，每当在 FFA 中支付应付发票时，关联的 Expensify 报告将自动标记为已报销。',
             exportDescription: '配置 Expensify 数据导出到 Certinia 的方式。',
@@ -6221,6 +6236,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `确定要连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '此会计集成'} 吗？这将删除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
+            reconnect: '重新连接',
             updateCredentials: '更新凭证',
             claimOffer: {
                 badgeText: '优惠可用！',
@@ -7102,6 +7118,18 @@ ${reportName}
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? '已屏蔽' : '已允许'} ${shownCount > 1 ? '类别' : '类别'}: ${categories}${hiddenCount > 0 ? `，还有 +${hiddenCount} 个` : ''}`,
             },
+            aiRules: {
+                title: 'AI 规则',
+                subtitle: '描述在你需要时运行的灵活规则',
+                addRule: '添加 AI 规则',
+                findRule: '查找 AI 规则',
+                addRuleTitle: '添加规则',
+                editRuleTitle: '编辑规则',
+                deleteRule: '删除规则',
+                deleteRuleConfirmation: '确定要删除此规则吗？',
+                describeRuleTitle: '描述你的规则',
+                describeRuleSubtitle: '描述你的规则，我们会由 Concierge 为你创建',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7200,6 +7228,12 @@ ${reportName}
             syncingModalTitle: '您的连接正在同步',
             syncingModalDescription: '首次连接可能需要一些时间。若发生任何错误，我们会通知你。',
             syncing: '正在同步员工',
+            mergeHR: {
+                completeSetup: '完成设置',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
+                groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
+            },
         },
         emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
     },
@@ -7367,7 +7401,7 @@ ${reportName}
         updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `已将${customUnitName}的${updatedField}更改为“${newValue}”（之前为“${oldValue}”）`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `${newValue ? '已启用' : '已禁用'} 距离费率的税务跟踪`,
-        addCustomUnitRate: (customUnitName: string, rateName: string) => `已添加新的 ${customUnitName} 费率“${rateName}”`,
+        addCustomUnitRate: (customUnitName: string, rateName: string) => `已添加自定义单位 ${customUnitName} 费率“${rateName}”`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `将 ${customUnitName} 的 ${updatedField} 费率“${customUnitRateName}”更改为“${newValue}”（之前为“${oldValue}”）`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
@@ -7748,6 +7782,21 @@ ${reportName}
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `来自 ${cards} 的 ${content}`,
             },
         },
+        addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `已添加“${rateName}”汇率，数值为 ${rateValue}`,
+        addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `已添加“${rateName}”费率 ${rateValue}，自 ${startDate} 起生效`,
+        addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `已添加“${rateName}”费率 ${rateValue}，有效期至 ${endDate}`,
+        addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
+            `已添加“${rateName}”费率 ${rateValue}，有效期为 ${startDate} - ${endDate}`,
+        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `将“${rateName}”费率的开始日期更新为 ${newDate}（之前为 ${oldDate}）` : `将“${rateName}”费率的开始日期设置为 ${newDate}`,
+        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
+            oldDate ? `已将“${rateName}”费率的结束日期更新为 ${newDate}（之前为 ${oldDate}）` : `将“${rateName}”费率的结束日期设置为 ${newDate}`,
+        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
+            oldStartDate && oldEndDate
+                ? `已将“${rateName}”费率的起止日期更新为 ${newStartDate} - ${newEndDate}（此前为 ${oldStartDate} - ${oldEndDate}）`
+                : `将“${rateName}”费率的开始和结束日期设为 ${newStartDate} - ${newEndDate}`,
+        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `已从“${rateName}”费率中移除开始日期（原为 ${oldDate}）`,
+        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `已从“${rateName}”费率中移除结束日期（之前为 ${oldDate}）`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7817,6 +7866,7 @@ ${reportName}
     search: {
         resultsAreLimited: '搜索结果已受限制。',
         viewResults: '查看结果',
+        applyFilters: '应用筛选条件',
         appliedFilters: '已应用的筛选条件',
         resetFilters: '重置筛选条件',
         searchResults: {
@@ -7914,7 +7964,12 @@ ${reportName}
             amount: {
                 lessThan: (amount?: string) => `少于 ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `大于 ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `介于 ${greaterThan} 和 ${lessThan} 之间`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `介于 ${greaterThan} 和 ${lessThan} 之间`;
+                    }
+                    return '之间';
+                },
                 equalTo: (amount?: string) => `等于 ${amount ?? ''}`,
             },
             card: {
