@@ -69,7 +69,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         setSelectedKey(item.keyForList);
         setInlineError('');
 
-        if (item.keyForList === 'disabled' && existingMethod) {
+        if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED && existingMethod) {
             disablePolicyCommuterExclusions(policyID, existingCommuterExclusions);
             goBackToSettings();
         }
