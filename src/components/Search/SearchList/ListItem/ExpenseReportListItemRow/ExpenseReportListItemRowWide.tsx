@@ -38,6 +38,7 @@ function ExpenseReportListItemRowWide({
     isHovered = false,
     isFocused = false,
     isPendingDelete = false,
+    isMarkAsDone,
 }: ExpenseReportListItemRowWideProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -202,6 +203,7 @@ function ExpenseReportListItemRowWide({
                     amount={item.total}
                     chatReport={chatReport}
                     shouldDisablePointerEvents={isPendingDelete}
+                    isMarkAsDone={isMarkAsDone}
                 />
             </View>
         ),

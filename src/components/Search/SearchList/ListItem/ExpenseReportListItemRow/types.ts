@@ -24,6 +24,7 @@ type ExpenseReportListItemRowWideProps = ExpenseReportListItemRowNarrowProps & {
     isFocused?: boolean;
     isPendingDelete?: boolean;
     columns?: SearchColumnType[];
+    isMarkAsDone: boolean;
 };
 
 type ExpenseReportListItemRowProps = ExpenseReportListItemRowWideProps;
