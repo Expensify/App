@@ -100,13 +100,13 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const currencies = spendRuleForm?.currencies ?? [];
     const maxAmount = spendRuleForm?.maxAmount ?? '';
 
-    const clearError = () => {
-        setIsErrorVisible(false);
-    };
-
     const selectedCurrency = getSelectedCardsSharedCurrency(cardIDs, cardsList);
     const parsedMaxAmount = Number.parseFloat(maxAmount);
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), selectedCurrency ?? CONST.CURRENCY.USD) : '';
+
+    const clearError = () => {
+        setIsErrorVisible(false);
+    };
 
     const openCurrencyMismatchModal = async () => {
         const result = await showConfirmModal({
@@ -154,10 +154,10 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const currenciesMenuTitle = currencies.length > 0 ? currencies.join(', ') : undefined;
 
     const hasSelectedCards = !!cardIDs?.length;
-    const hasAnyMerchant = merchantNames.some((name) => name.trim() !== '');
-    const hasAnyCategory = categories.length > 0;
     const hasMaxAmount = maxAmount.trim() !== '';
     const hasAnyCurrency = currencies.length > 0;
+    const hasAnyCategory = categories.length > 0 && !isRestrictMerchantsOff;
+    const hasAnyMerchant = merchantNames.some((name) => name.trim() !== '') && !isRestrictMerchantsOff;
     const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount || hasAnyCurrency;
     const errorMessage = getErrorMessage(hasSelectedCards, hasAnyRuleApplied, translate);
 

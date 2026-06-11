@@ -213,7 +213,7 @@ type MoreCountFormatter = (summary: string, hiddenCount: number, shownCount: num
 type SpendRuleSummaryPart = {
     badgeLabel: string;
     text: string;
-    isNeutral?: boolean;
+    variant: 'neutral' | 'success' | 'error';
 };
 
 function getTruncatedSpendRuleSummary(values: string[] | undefined, formatMoreCount: MoreCountFormatter): string {
@@ -240,33 +240,56 @@ function getTruncatedSpendRuleSummary(values: string[] | undefined, formatMoreCo
 }
 
 function getSpendRuleSummaryParts(
+    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>,
     formValues: SpendRuleForm,
     selectedCurrency: string | undefined,
-    actionLabel: string,
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ): SpendRuleSummaryPart[] {
     const summaryParts: SpendRuleSummaryPart[] = [];
+    const blockLabel = translate('workspace.rules.spendRules.block');
+    const allowLabel = translate('workspace.rules.spendRules.allow');
+
+    const maxAmount = formValues.maxAmount.trim();
+    const allowedCurrencies = formValues.currencies ?? [];
     const merchantNames = getTruncatedSpendRuleSummary(formValues.merchantNames, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
     const categories = getTruncatedSpendRuleSummary(
         formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)),
         (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
     );
-    const maxAmount = formValues.maxAmount.trim();
+
+    const actionVariant = action === CONST.SPEND_RULES.ACTION.BLOCK ? 'error' : 'success';
+    const actionLabel = action === CONST.SPEND_RULES.ACTION.BLOCK ? blockLabel : allowLabel;
 
     if (merchantNames) {
-        summaryParts.push({badgeLabel: actionLabel, text: `${translate('workspace.rules.spendRules.merchants')}: ${merchantNames}`});
+        summaryParts.push({
+            variant: actionVariant,
+            badgeLabel: actionLabel,
+            text: `${translate('workspace.rules.spendRules.merchants')}: ${merchantNames}`,
+        });
     }
 
     if (categories) {
-        summaryParts.push({badgeLabel: actionLabel, text: `${translate('workspace.rules.spendRules.categories')}: ${categories}`});
+        summaryParts.push({
+            variant: actionVariant,
+            badgeLabel: actionLabel,
+            text: `${translate('workspace.rules.spendRules.categories')}: ${categories}`,
+        });
+    }
+
+    if (allowedCurrencies.length > 0) {
+        summaryParts.push({
+            variant: 'success',
+            badgeLabel: allowLabel,
+            text: `${translate('workspace.rules.spendRules.currencies')}: ${allowedCurrencies.join(', ')}`,
+        });
     }
 
     if (maxAmount) {
         summaryParts.push({
+            variant: 'neutral',
             badgeLabel: translate('workspace.rules.spendRules.max'),
             text: `${translate('iou.amount')}: ${convertToDisplayString(convertToBackendAmount(Number.parseFloat(maxAmount)), selectedCurrency ?? CONST.CURRENCY.USD)}`,
-            isNeutral: true,
         });
     }
 

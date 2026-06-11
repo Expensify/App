@@ -7433,6 +7433,7 @@ const translations = {
                 confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
                 categories: 'Categories',
                 merchants: 'Merchants',
+                currencies: 'Currencies',
                 permittedCurrencies: 'Permitted currencies',
                 noAvailableCards: 'All cards already have a rule',
                 noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',

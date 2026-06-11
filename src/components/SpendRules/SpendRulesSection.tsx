@@ -196,8 +196,8 @@ function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRu
                                             <Badge
                                                 text={part.badgeLabel}
                                                 badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
-                                                error={!part.isNeutral && rule.isBlock}
-                                                success={!part.isNeutral && !rule.isBlock}
+                                                error={part.variant === 'error'}
+                                                success={part.variant === 'success'}
                                                 isCondensed
                                             />
                                             <Text
