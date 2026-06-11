@@ -23,6 +23,7 @@ import {search} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSearchValueForPhoneOrEmail, getUserToInviteOption, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getKnownAccountIDByLogin, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, getSubmitToEmail} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -127,6 +128,33 @@ function ReportSubmitToContent({
         });
     }, [policy?.employeeList, personalDetails, managerEmail, currentUserDetails.accountID, prepopulatedEmail]);
 
+    const prepopulatedSubmitToRecipient = useMemo((): WorkspaceMemberItem | null => {
+        const email = prepopulatedEmail?.trim();
+        if (!email) {
+            return null;
+        }
+
+        const emailLower = email.toLowerCase();
+        const isAlreadyListed =
+            workspaceMembers.some((member) => member.email.toLowerCase() === emailLower) || extraSubmitToRecipients.some((member) => member.email.toLowerCase() === emailLower);
+
+        if (isAlreadyListed) {
+            return null;
+        }
+
+        const accountID = getKnownAccountIDByLogin(email);
+        const details = accountID ? getPersonalDetailsByID(accountID, personalDetails) : undefined;
+
+        return {
+            accountID,
+            text: details?.displayName ?? details?.login ?? email,
+            alternateText: email,
+            keyForList: `prepopulated:${email}`,
+            email,
+            isSelected: managerEmail.trim().toLowerCase() === emailLower,
+        };
+    }, [prepopulatedEmail, workspaceMembers, extraSubmitToRecipients, managerEmail, personalDetails]);
+
     const combinedSubmitToMembers = useMemo(() => {
         const workspaceEmailSet = new Set(workspaceMembers.map((m) => m.email.toLowerCase()));
         const extrasWithSelection = extraSubmitToRecipients.map((item) => ({
@@ -134,8 +162,9 @@ function ReportSubmitToContent({
             isSelected: managerEmail.trim().toLowerCase() === item.email.trim().toLowerCase(),
         }));
         const extrasDeduped = extrasWithSelection.filter((item) => !workspaceEmailSet.has(item.email.toLowerCase()));
-        return sortAlphabetically([...workspaceMembers, ...extrasDeduped], 'text', localeCompare);
-    }, [workspaceMembers, extraSubmitToRecipients, managerEmail, localeCompare]);
+        const members = prepopulatedSubmitToRecipient ? [prepopulatedSubmitToRecipient, ...workspaceMembers, ...extrasDeduped] : [...workspaceMembers, ...extrasDeduped];
+        return sortAlphabetically(members, 'text', localeCompare);
+    }, [workspaceMembers, extraSubmitToRecipients, managerEmail, localeCompare, prepopulatedSubmitToRecipient]);
 
     const filteredWorkspaceMembers = useMemo(() => {
         if (!searchTerm.trim()) {

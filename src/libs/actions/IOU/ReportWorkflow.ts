@@ -16,7 +16,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
+import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {arePaymentsEnabled, getSubmitReportManagerAccountID, getSubmitToAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction, isOlderReportAction} from '@libs/ReportActionsUtils';
 import {
@@ -1315,9 +1315,9 @@ function submitReport({
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
     const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
     const approvalChain = getApprovalChain(policy, expenseReport);
-    const managerIDFromChain = getAccountIDsByLogins(approvalChain).at(0);
+    const managerIDFromChain = getKnownAccountIDByLogin(approvalChain.at(0));
     const trimmedManagerEmail = managerEmail?.trim();
-    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDsByLogins([trimmedManagerEmail]).at(0) : undefined;
+    const managerAccountIDFromEmail = trimmedManagerEmail ? getKnownAccountIDByLogin(trimmedManagerEmail) : undefined;
     const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport);
     const managerID = trimmedManagerEmail
         ? (managerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID)

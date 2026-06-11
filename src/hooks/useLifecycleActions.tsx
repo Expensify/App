@@ -206,11 +206,14 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         const doSubmit = () => {
             if (hasSelectedTransactionsOnSubmitPolicy || isSubmitPolicy(policy)) {
                 openReportSubmitToPopover({
-                    onSubmitSuccess: skipAnimation ? undefined : startSubmittingAnimation,
+                    onSubmitSuccess: () => {
+                        if (skipAnimation) {
+                            clearSelectedTransactions(true);
+                            return;
+                        }
+                        startSubmittingAnimation();
+                    },
                 });
-                if (skipAnimation) {
-                    clearSelectedTransactions(true);
-                }
                 return;
             }
             submitReport({

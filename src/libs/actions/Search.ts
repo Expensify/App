@@ -31,7 +31,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
+import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {getSubmitReportManagerAccountID, getSubmitToAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled, isSubmitPolicy} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
@@ -678,8 +678,8 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
 
     const trimmedManagerEmail = managerEmail?.trim();
     const submitToAccountID = getSubmitToAccountID(firstPolicy, firstReport);
-    const managerIDFromChain = getAccountIDsByLogins(getApprovalChain(firstPolicy, firstReport)).at(0);
-    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDsByLogins([trimmedManagerEmail]).at(0) : undefined;
+    const managerIDFromChain = getKnownAccountIDByLogin(getApprovalChain(firstPolicy, firstReport).at(0));
+    const managerAccountIDFromEmail = trimmedManagerEmail ? getKnownAccountIDByLogin(trimmedManagerEmail) : undefined;
     const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport);
     const managerAccountID = trimmedManagerEmail
         ? (managerAccountIDFromEmail ?? managerIDFromChain ?? firstReport.managerID)

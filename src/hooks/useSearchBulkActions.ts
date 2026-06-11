@@ -1463,9 +1463,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
+        const uniqueSelectedReportIDsFromTransactions = new Set(
+            selectedTransactionsKeys.map((id) => selectedTransactions[id]?.reportID).filter((reportID): reportID is string => !!reportID),
+        );
+        const hasSingleSubmitPolicySelection = selectedReports.length === 1 || uniqueSelectedReportIDsFromTransactions.size === 1;
+
         const shouldShowSubmitOption =
             !isOffline &&
-            (!doSelectedItemsBelongToSubmitPolicy || (doSelectedItemsBelongToSubmitPolicy && selectedReports.length === 1)) &&
+            (!doSelectedItemsBelongToSubmitPolicy || (doSelectedItemsBelongToSubmitPolicy && hasSingleSubmitPolicySelection)) &&
             areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.canSubmit)
