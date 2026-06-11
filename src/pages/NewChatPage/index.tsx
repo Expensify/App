@@ -375,7 +375,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             );
         }
 
-        // "Add to group" only makes sense for invitable (login-bearing, non-excluded) users
+        // "Add to group" only makes sense for eligible (login-bearing, non-excluded) users
         if (!item.login || excludedGroupEmails.has(item.login)) {
             return null;
         }
