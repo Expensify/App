@@ -156,7 +156,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                 iconType={CONST.ICON_TYPE_AVATAR}
                 wrapperStyle={[styles.ph0, styles.pv2, !!lastSyncErrorMessage && styles.pb0]}
                 interactive={false}
-                description={card.completeSetupRoute ? undefined : connectionDescription}
+                description={!card.completeSetupRoute && card.isConnected ? connectionDescription : undefined}
                 descriptionAddon={
                     card.completeSetupRoute ? (
                         <RenderHTML html={translate('workspace.hr.mergeHR.setupIncomplete', canWriteMoreFeatures ? `${environmentURL}/${card.completeSetupRoute}` : undefined)} />

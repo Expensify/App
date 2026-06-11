@@ -222,6 +222,14 @@ const DYNAMIC_ROUTES = {
         path: 'certinia/advanced',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
     },
+    POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS: {
+        path: 'certinia-report-status/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR: {
+        path: 'certinia/company',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+    },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
         path: 'vendor/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES],
@@ -3942,6 +3950,33 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_ADVANCED route');
             }
             return `workspaces/${policyID}/accounting/certinia/advanced` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_TAGS_MAPPING: {
+        route: 'workspaces/:policyID/accounting/certinia/import/tags-mapping',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_TAGS_MAPPING route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/import/tags-mapping` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS: {
+        route: 'workspaces/:policyID/accounting/certinia/export/report-status',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/export/report-status` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/certinia/company',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/company` as const;
         },
     },
     ADD_EXISTING_EXPENSE: {
