@@ -31,8 +31,8 @@ import {
     canCreateTaskInReport,
     getPayeeName,
     hasViolations as hasViolationsReportUtils,
-    isPaidGroupPolicy,
     isPolicyExpenseChat,
+    isReportInGroupPolicy,
     isReportOwner,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
@@ -320,7 +320,7 @@ function AttachmentPickerWithMenuItems({
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
-        if (!isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
+        if (!isPolicyExpenseChat(report) || !isReportInGroupPolicy(report) || !isReportOwner(report)) {
             return [];
         }
 
