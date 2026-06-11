@@ -247,8 +247,19 @@ function NewChatPage({ref}: NewChatPageProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {headerMessage, searchTerm, handleEndReached, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
-        useOptions(reportAttributesDerived);
+    const {
+        headerMessage,
+        searchTerm,
+        debouncedSearchTerm,
+        handleEndReached,
+        setSearchTerm,
+        selectedOptions,
+        setSelectedOptions,
+        recentReports,
+        personalDetails,
+        userToInvite,
+        areOptionsInitialized,
+    } = useOptions(reportAttributesDerived);
 
     // Selected rows are marked in place by getValidOptions (isSelected), so the checkmark stays with the row instead of jumping to the top.
     // In group selection mode the self DM stays visible (so the list doesn't shift and jump the scroll position) but is made non-selectable.
@@ -270,7 +281,13 @@ function NewChatPage({ref}: NewChatPageProps) {
             listedLogins.add(option.login);
         }
     }
-    const selectedSection = selectedOptions.filter((option) => !(option.accountID && listedAccountIDs.has(option.accountID)) && !(option.login && listedLogins.has(option.login)));
+    const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+    const selectedSection = selectedOptions.filter(
+        (option) =>
+            !(option.accountID && listedAccountIDs.has(option.accountID)) &&
+            !(option.login && listedLogins.has(option.login)) &&
+            doesPersonalDetailMatchSearchTerm(option, currentUserAccountID, cleanSearchTerm),
+    );
 
     if (selectedSection.length) {
         sections.push({
