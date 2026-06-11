@@ -101,6 +101,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.parentReportID}`];
     }, [searchData, reportItem.parentReportID]);
 
+    const chatReport = parentChatReport ?? snapshotChatReport;
+
     const snapshotPolicy = useMemo(() => {
         return (searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
     }, [searchData, reportItem.policyID]);
@@ -171,7 +173,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
     const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext({
         reportID: reportItem.reportID,
-        chatReportPolicyID: parentChatReport?.policyID ?? snapshotChatReport?.policyID,
+        chatReportPolicyID: chatReport?.policyID,
     });
 
     const handleOnButtonPress = useCallback(() => {
@@ -192,7 +194,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 // Search rows render from a snapshot; the report may not exist in the main
                 // collection yet. Fall back to the snapshot so the modal can submit.
                 const moneyRequestReport = parentReport ?? snapshotReport;
-                const chatReport = parentChatReport ?? snapshotChatReport;
                 const transactionsForHoldMenu = liveReportTransactions.length > 0 ? liveReportTransactions : holdItem.transactions;
                 const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, holdItem.canPay ?? false, transactionsForHoldMenu);
                 const hasNonHeldExpenses = transactionsForHoldMenu.some((t) => !isOnHold(t));
@@ -218,7 +219,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             betas,
             isSelfTourViewed,
             activePolicy,
-            chatReport: parentChatReport ?? snapshotChatReport,
+            chatReport,
             chatReportPolicy,
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData,
@@ -230,11 +231,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
         onSelectRow,
         searchData,
         snapshotReport,
-        snapshotChatReport,
+        chatReport,
         snapshotPolicy,
         parentPolicy,
         parentReport,
-        parentChatReport,
         lastPaymentMethod,
         userBillingGracePeriodEnds,
         personalPolicyID,
@@ -402,6 +402,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         canSelectMultiple={canSelectMultiple}
                         onCheckboxPress={handleSelectionButtonPress}
                         onButtonPress={handleOnButtonPress}
+                        chatReport={chatReport}
                         isSelectAllChecked={isSelected}
                         isIndeterminate={false}
                         isDisabledCheckbox={isDisabledCheckbox}
