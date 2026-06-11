@@ -78,13 +78,21 @@ function FeatureTrainingModalIllustration({
         }
     }, [isFocused, isCarousel, isReduceMotionEnabled]);
 
-    // Once we've been online at any point in this mount we keep showing the video, even if the
-    // network drops later. The first online tick promotes us out of the offline fallback for good.
-    const [hasBeenOnline, setHasBeenOnline] = useState(!isOffline);
-    if (!isOffline && !hasBeenOnline) {
-        setHasBeenOnline(true);
-    }
-    const videoStatus: VideoStatus = hasBeenOnline ? 'video' : 'animation';
+    const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
+    const [isVideoStatusLocked, setIsVideoStatusLocked] = useState(false);
+
+    useEffect(() => {
+        if (isVideoStatusLocked) {
+            return;
+        }
+
+        if (isOffline) {
+            setVideoStatus('animation');
+        } else if (!isOffline) {
+            setVideoStatus('video');
+            setIsVideoStatusLocked(true);
+        }
+    }, [isOffline, isVideoStatusLocked]);
 
     const setAspectRatio = (event: SourceLoadEventPayload) => {
         const track = event.availableVideoTracks.at(0);
@@ -125,8 +133,8 @@ function FeatureTrainingModalIllustration({
                     ) : (
                         <Image
                             accessibilityIgnoresInvertColors
-                            source={image as unknown as ImageSourcePropType}
-                            resizeMode={contentFitImage as unknown as ImageResizeMode}
+                            source={image as ImageSourcePropType}
+                            resizeMode={contentFitImage as ImageResizeMode}
                             style={styles.featureTrainingModalImage}
                             testID={CONST.IMAGE_TEST_ID}
                         />

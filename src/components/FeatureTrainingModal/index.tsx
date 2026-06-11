@@ -1,8 +1,6 @@
 import type {ImageContentFit} from 'expo-image';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-// We import these types directly from react-native because they are not re-exported by the project's
-// preferred wrappers (ScrollView is a re-exported wrapper).
 // eslint-disable-next-line no-restricted-imports
 import type {LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {MergeExclusive} from 'type-fest';
@@ -19,9 +17,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-// Transition tracker is used directly as we defer the opening of the modal until other animations are finished,
-// for which there is no higher-level API.
-// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import variables from '@styles/variables';
 import {setNameValuePair} from '@userActions/User';

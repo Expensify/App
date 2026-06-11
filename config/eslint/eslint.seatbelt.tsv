@@ -172,9 +172,9 @@
 "../../src/components/EmptySelectionListContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/EnvironmentBadge.tsx"	"no-restricted-syntax"	1
 "../../src/components/ExplanationModal.tsx"	"no-restricted-syntax"	1
-"../../src/components/FeatureTrainingModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/FeatureTrainingModal.tsx"	"no-restricted-imports"	1
-"../../src/components/FeatureTrainingModal.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/components/FeatureTrainingModal/FeatureTrainingModalIllustration.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/components/FeatureTrainingModal/FeatureTrainingModalIllustration.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/components/FeatureTrainingModal/index.tsx"	"no-restricted-imports"	1
 "../../src/components/FeedbackSurvey.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/FilePicker/index.native.tsx"	"react-hooks/refs"	1
 "../../src/components/FilePicker/index.tsx"	"react-hooks/refs"	1
@@ -686,6 +686,7 @@
 "../../src/libs/Navigation/PlatformStackNavigation/ScreenLayout.tsx"	"no-restricted-imports"	2
 "../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenFreezeWrapper/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Navigation/PlatformStackNavigation/navigationOptions/animation/withAnimation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
+"../../src/libs/Navigation/guards/AIFeaturesPromoGuard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/guards/MigratedUserWelcomeModalGuard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/guards/OnboardingGuard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Navigation/helpers/createNormalizedConfigs.ts"	"@typescript-eslint/no-deprecated/escape"	1
