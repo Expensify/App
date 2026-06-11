@@ -1,13 +1,13 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
+import useInboxTabSpanLifecycle from '@hooks/useInboxTabSpanLifecycle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks from './SidebarLinks';
@@ -29,42 +29,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
 
-    const hasHadFirstLayout = useRef(false);
-    const spanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB));
-
-    const onLayout = useCallback(() => {
-        hasHadFirstLayout.current = true;
-        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
-        spanOnMount.current = undefined;
-    }, []);
-
-    // Focus: ends span on re-visits (react-freeze cached layout, onLayout won't fire again).
-    // Blur cleanup: cancels orphaned span when user navigates away before onLayout fires.
-    useFocusEffect(
-        useCallback(() => {
-            if (hasHadFirstLayout.current) {
-                endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
-            }
-            return () => cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
-        }, []),
-    );
-
-    // Unmount: cancel only if layout never completed AND the active span is
-    // the same one that existed when this instance mounted (avoids canceling
-    // a newer span started by a subsequent tab click).
-    useEffect(
-        () => () => {
-            if (hasHadFirstLayout.current) {
-                return;
-            }
-            const activeSpan = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
-            if (activeSpan !== spanOnMount.current) {
-                return;
-            }
-            cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
-        },
-        [],
-    );
+    const onLayout = useInboxTabSpanLifecycle();
 
     return (
         <View
