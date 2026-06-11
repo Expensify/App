@@ -40,6 +40,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -314,6 +315,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: '商户',
         change: '更改',
         category: '类别',
+        vendor: '供应商',
         report: '报表',
         billable: '可计费',
         nonBillable: '不可计费',
@@ -928,7 +930,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
-            validateAccount: {title: '验证您的账户以继续使用 Expensify', subtitle: '账户', cta: '验证'},
+            validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
                 workspaceTitle: '您的企业银行账户已被锁定',
@@ -1328,7 +1330,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approvedMessage: `已批准`,
         unapproved: `未批准`,
         automaticallyForwarded: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
-        forwarded: `已批准`,
+        forwarded: (memo?: string) => `已批准${memo ? `，备注为 ${memo}` : ''}`,
         rejectedThisReport: '已拒绝',
         waitingOnBankAccount: (submitterDisplayName: string) => `已开始付款，但正在等待${submitterDisplayName}添加银行账户。`,
         adminCanceledRequest: '已取消付款',
@@ -1613,6 +1615,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: '修复费率错误后请重试。',
         AskToExplain: `。<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">说明<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge 已将此支出匹配到<strong>${vendorName}</strong>`,
         duplicateNonDefaultWorkspacePerDiemError: '您无法在不同工作区之间复制每日津贴报销，因为各工作区的补贴标准可能不同。',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? '将该报销单标记为“可报销”' : '将该报销单标记为“不可报销”'),
@@ -2821,6 +2824,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         waitForPDF: '正在生成 PDF，请稍候。',
         errorPDF: '尝试生成您的 PDF 时出错',
         successPDF: '您的 PDF 已生成！如果没有自动下载，请使用下面的按钮。',
+        goToRoom: '进入房间',
     },
     reportDescriptionPage: {
         roomDescription: '房间描述',
@@ -3265,6 +3269,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             subtitle: '添加你的团队或邀请你的会计。人越多越热闹！',
         },
         workEmail2FAError: '此登录使用的是已启用双重身份验证（2FA）的现有账户。',
+        singleSignOnError: '此登录使用的是已启用 SSO/SAML 的现有账户。',
     },
     featureTraining: {
         doNotShowAgain: '不再显示此内容',
@@ -4785,6 +4790,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         certinia: {
             title: 'Certinia',
+            titleFFA: 'Certinia (FFA)',
             autoSyncDescription: 'Expensify 将每天自动与 Certinia 同步。',
             syncReimbursedReportsDescription: '启用此选项后，每当在 FFA 中支付应付发票时，关联的 Expensify 报告将自动标记为已报销。',
             exportDescription: '配置 Expensify 数据导出到 Certinia 的方式。',
@@ -6233,6 +6239,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `确定要连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '此会计集成'} 吗？这将删除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
+            reconnect: '重新连接',
             updateCredentials: '更新凭证',
             claimOffer: {
                 badgeText: '优惠可用！',
@@ -7224,6 +7231,12 @@ ${reportName}
             syncingModalTitle: '您的连接正在同步',
             syncingModalDescription: '首次连接可能需要一些时间。若发生任何错误，我们会通知你。',
             syncing: '正在同步员工',
+            mergeHR: {
+                completeSetup: '完成设置',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
+                groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
+            },
         },
         emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
     },
@@ -7856,6 +7869,7 @@ ${reportName}
     search: {
         resultsAreLimited: '搜索结果已受限制。',
         viewResults: '查看结果',
+        applyFilters: '应用筛选条件',
         appliedFilters: '已应用的筛选条件',
         resetFilters: '重置筛选条件',
         searchResults: {
@@ -7953,7 +7967,12 @@ ${reportName}
             amount: {
                 lessThan: (amount?: string) => `少于 ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `大于 ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `介于 ${greaterThan} 和 ${lessThan} 之间`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `介于 ${greaterThan} 和 ${lessThan} 之间`;
+                    }
+                    return '之间';
+                },
                 equalTo: (amount?: string) => `等于 ${amount ?? ''}`,
             },
             card: {
@@ -9075,6 +9094,10 @@ ${reportName}
             作为副驾驶，你无权访问此页面。抱歉！
         `),
         notAllowedMessage: (accountOwnerEmail: string) => `作为${accountOwnerEmail}的<a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">副驾驶</a>，你没有权限执行此操作。抱歉！`,
+        removeCopilotAccess: '移除我的副驾驶访问权限',
+        removeCopilotAccessTitle: '移除副驾驶访问权限？',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) => `您确定要移除对${delegatorName}的 Expensify 账户的副驾驶访问权限吗？此操作无法撤销。`,
+        removeCopilotAccessConfirm: '移除访问权限',
         copilotAccess: 'Copilot 访问',
     },
     debug: {
