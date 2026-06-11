@@ -37,7 +37,7 @@
 - Reason: Browser back on web dispatches a root-targeted `RESET` that keeps route keys and only changes nested state, silently bypassing `usePreventRemove`/`beforeRemove` and losing unsaved data. The patch propagates the check into nested navigators; remove it once a react-navigation release containing the fix is adopted.
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/9031
 - E/App issue: [#84246](https://github.com/Expensify/App/issues/84246)
-- PR Introducing Patch: TBD
+- PR Introducing Patch: [#93268](https://github.com/Expensify/App/pull/93268)
 - PR Updating Patch: N/A
 
 ### [@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch](@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch)
