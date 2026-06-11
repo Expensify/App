@@ -18,8 +18,8 @@ type VictoryChartPieProps = {tnode: TNode};
 const START_ANGLE = 270;
 
 /** Alternating multipliers for pie slice label distance (base `labelradius` from HTML). */
-const EVEN_SLICE_LABEL_RADIUS_FACTOR = 1;
-const ODD_SLICE_LABEL_RADIUS_FACTOR = 0.8;
+const EVEN_SLICE_LABEL_RADIUS_FACTOR = 1.1;
+const ODD_SLICE_LABEL_RADIUS_FACTOR = 0.9;
 
 function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const {data, chartContainerStyles} = useVictoryChartContext();
