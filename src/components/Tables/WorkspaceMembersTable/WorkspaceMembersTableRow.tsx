@@ -60,8 +60,9 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
 
     return (
         <Table.Row
+            interactive
             rowIndex={rowIndex}
-            interactive={!item.disabled}
+            disabled={item.disabled}
             skeletonReasonAttributes={{context: 'WorkspaceMembersTableRow'}}
             onPress={item.action}
             offlineWithFeedback={{

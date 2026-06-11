@@ -6,7 +6,7 @@ import Table, {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsIte
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyApprover} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {Policy} from '@src/types/onyx';
@@ -22,7 +22,6 @@ type WorkspaceMemberRowData = TableData & {
     employeeUserID?: string;
     employeePayrollID?: string;
     isSelectionDisabled: boolean;
-    isInteractive: boolean;
     name: string;
     email: string;
     shouldShowEmployeeUserID: boolean;
@@ -117,6 +116,12 @@ export default function WorkspaceMembersTable({
         }
 
         if (activeSorting.columnKey === 'role') {
+            if (!item1.role) {
+                return 1;
+            }
+            if (!item2.role) {
+                return -1;
+            }
             return localeCompare(item1.role, item2.role) * orderMultiplier;
         }
 
@@ -146,12 +151,10 @@ export default function WorkspaceMembersTable({
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.ALL)) {
             return true;
         }
-        // TODO: Add an && that validates the user is an admin
-        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.ADMINS)) {
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.ADMINS) && item.role === CONST.POLICY.ROLE.ADMIN) {
             return true;
         }
-        // TODO: Add an && that validates the user is an approver
-        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS)) {
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && isPolicyApprover(policy, item.login)) {
             return true;
         }
         return false;
@@ -159,7 +162,6 @@ export default function WorkspaceMembersTable({
 
     const filterConfig: FilterConfig = {
         status: {
-            // TODO: Move these configs to a const
             filterType: 'single-select',
             default: WORKSPACE_MEMBER_FILTER_VALUES.ALL,
             options: [
@@ -189,6 +191,8 @@ export default function WorkspaceMembersTable({
         );
     };
 
+    const isEmpty = members.length === 0;
+
     return (
         <Table
             ref={ref}
@@ -204,18 +208,23 @@ export default function WorkspaceMembersTable({
             isItemInSearch={isTableItemInSearch}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5]}>
-                <Table.FilterButtons />
-                {members.length > CONST.STANDARD_LIST_ITEM_LIMIT && (
-                    <Table.SearchBar
-                        label={translate('workspace.people.findMember')}
-                        style={[styles.mb0, styles.mh0]}
-                    />
-                )}
-            </View>
+            {isEmpty && <></>}
+            {!isEmpty && (
+                <>
+                    <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5]}>
+                        <Table.FilterButtons />
+                        {members.length > CONST.STANDARD_LIST_ITEM_LIMIT && (
+                            <Table.SearchBar
+                                label={translate('workspace.people.findMember')}
+                                style={[styles.mb0, styles.mh0]}
+                            />
+                        )}
+                    </View>
 
-            <Table.Header />
-            <Table.Body />
+                    <Table.Header />
+                    <Table.Body />
+                </>
+            )}
         </Table>
     );
 }
