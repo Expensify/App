@@ -102,9 +102,12 @@ jobs:
           npm install -g "agent-device@${AGENT_DEVICE_VERSION}"
           agent-device --version
 
-      - name: Install Cursor Agent CLI (for QA-step runner)
-        # Used by the qa-runner step inside the script to map free-form QA
-        # Steps to .ad flows or improvise agent-device actions.
+      - name: Install Cursor Agent CLI (drives P1 + P2)
+        # Both phases of the QA script are cursor-agent invocations:
+        #   - P1: fixed sanity prompt (sign-in + inbox verify) - hard signal.
+        #   - P2: PR-QA-step prompt - advisory signal.
+        # No .ad macros are invoked from CI; the agent discovers the UI on
+        # the fly via `agent-device snapshot` + tap/fill.
         # Installer: https://cursor.com/docs/cli/headless
         run: |
           set -eu
