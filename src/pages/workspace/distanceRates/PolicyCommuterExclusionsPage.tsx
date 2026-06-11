@@ -125,7 +125,6 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 role={CONST.ROLE.PRESENTATION}
                 autoFocus={existingMethod !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE}
             />
-            {!!inlineError && <FormHelpMessage message={inlineError} />}
         </View>
     );
 
@@ -181,6 +180,12 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 </OfflineWithFeedback>
                 {isFixedDistanceSelected && (
                     <FixedFooter addBottomSafeAreaPadding>
+                        {!!inlineError && (
+                            <FormHelpMessage
+                                message={inlineError}
+                                style={styles.mb3}
+                            />
+                        )}
                         <Button
                             success
                             large
