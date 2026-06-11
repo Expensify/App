@@ -150,6 +150,8 @@ function calculateYourSpendTotalDiff(iouReport: OnyxEntry<Report>, updatedTransa
     const currentCurrency = getCurrency(transaction);
     const updatedCurrency = getCurrency(updatedTransaction);
 
+    // A currency change can't be expressed as a simple amount delta on the snapshot total without converting between
+    // currencies, and FX rates aren't available offline (totals are converted server-side). Skip patching in that case.
     if (currentCurrency !== updatedCurrency) {
         return null;
     }

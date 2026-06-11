@@ -1793,7 +1793,10 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         });
     }
 
-    if ((hasModifiedAmount || hasModifiedCurrency) && transaction && updatedTransaction && iouReport) {
+    // Only amount edits can be patched into the Your spend totals offline. A currency change would require converting
+    // between currencies (rates are only available server-side), so those edits are intentionally left to the next
+    // online search() refresh and handled by the early return in getYourSpendSnapshotTotalUpdates.
+    if (hasModifiedAmount && transaction && updatedTransaction && iouReport) {
         const yourSpendSnapshotTotalUpdates = getYourSpendSnapshotTotalUpdates({
             transaction,
             updatedTransaction,
