@@ -1,6 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
 import React, {useEffect, useRef} from 'react';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -83,10 +83,9 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
-    // When the data goes from empty to populated, reset the scroll to the top so the new first row is visible:
-    // while empty the content container is stretched (flexGrow1), so a short/landscape viewport can leave the list
-    // scrolled past the top once it collapses, and FlashList doesn't reset that itself. Key off originalDataLength
-    // (the unfiltered count) so clearing a search from a zero-result state doesn't also trigger it.
+    // When the list gets its first rows, scroll to the top so the first row is visible: a short/landscape viewport
+    // can leave the empty list scrolled, and FlashList won't reset that on its own. Key off the unfiltered count so
+    // clearing a search from a no-results state doesn't trigger it.
     const previousOriginalDataLengthRef = useRef(originalDataLength);
     useEffect(() => {
         const previousOriginalDataLength = previousOriginalDataLengthRef.current;
@@ -94,18 +93,10 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         if (previousOriginalDataLength !== 0 || originalDataLength === 0) {
             return;
         }
-        // On web, also opt the scroll container out of CSS scroll anchoring: as the empty state collapses and the
-        // new rows are measured, the browser would otherwise re-anchor the scroll position, undoing the reset below.
-        if (Platform.OS === 'web') {
-            const scrollableNode: unknown = listRef?.current?.getScrollableNode();
-            if (scrollableNode instanceof HTMLElement) {
-                scrollableNode.style.setProperty('overflow-anchor', 'none');
-            }
-        }
         let secondFrameId = 0;
         const firstFrameId = requestAnimationFrame(() => {
             listRef?.current?.scrollToOffset({offset: 0, animated: false});
-            // Re-assert on the next frame in case the first ran before the list finished laying out the new rows.
+            // Re-assert next frame in case the first ran before the new rows appeared.
             secondFrameId = requestAnimationFrame(() => listRef?.current?.scrollToOffset({offset: 0, animated: false}));
         });
         return () => {
