@@ -28,7 +28,7 @@ import type SCREENS from '@src/SCREENS';
 
 type PolicyCommuterExclusionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS>;
 
-type ExclusionOptionKey = 'disabled' | typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
+type ExclusionOptionKey = typeof CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED | typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
 
 type ExclusionOption = {
     text: string;
@@ -59,7 +59,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     const existingMethod = existingCommuterExclusions?.method;
 
     const [selectedKey, setSelectedKey] = useState<ExclusionOptionKey>(
-        existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE : 'disabled',
+        existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE : CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED,
     );
     const [fixedDistanceInput, setFixedDistanceInput] = useState<string>(() => (existingCommuterExclusions?.fixedDistance != null ? String(existingCommuterExclusions.fixedDistance) : ''));
     const [inlineError, setInlineError] = useState<string>('');
@@ -78,7 +78,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         setSelectedKey(item.keyForList);
         setInlineError('');
 
-        if (item.keyForList === 'disabled' && existingMethod) {
+        if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED && existingMethod) {
             disablePolicyCommuterExclusions(policyID, existingCommuterExclusions);
             goBackToSettings();
         }
@@ -132,8 +132,8 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         {
             text: translate('workspace.distanceRates.commuterExclusions.optionDisabledTitle'),
             alternateText: translate('workspace.distanceRates.commuterExclusions.optionDisabledHelp'),
-            keyForList: 'disabled',
-            isSelected: selectedKey === 'disabled',
+            keyForList: CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED,
+            isSelected: selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED,
         },
         {
             text: translate('workspace.distanceRates.commuterExclusions.optionFixedDistanceTitle'),
@@ -176,6 +176,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                         initiallyFocusedItemKey={selectedKey}
                         shouldSingleExecuteRowSelect
                         shouldUpdateFocusedIndex
+                        alternateNumberOfSupportedLines={2}
                     />
                 </OfflineWithFeedback>
                 {isFixedDistanceSelected && (
