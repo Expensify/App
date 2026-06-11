@@ -1,21 +1,37 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
-import * as Welcome from '@userActions/Welcome';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import {completeHybridAppOnboarding} from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import FeatureTrainingModal from './FeatureTrainingModal';
+import FeatureTrainingContent from './FeatureTrainingContent';
+import ScreenWrapper from './ScreenWrapper';
 
 function ExplanationModal() {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    const handleClose = () => {
+        completeHybridAppOnboarding();
+        Navigation.goBack();
+    };
 
     return (
-        <FeatureTrainingModal
-            title={translate('onboarding.explanationModal.title')}
-            description={translate('onboarding.explanationModal.description')}
-            secondaryDescription={translate('onboarding.explanationModal.secondaryDescription')}
-            confirmText={translate('footer.getStarted')}
-            videoURL={CONST.WELCOME_VIDEO_URL}
-            onClose={Welcome.completeHybridAppOnboarding}
-        />
+        <ScreenWrapper
+            testID="ExplanationModal"
+            style={styles.flex1}
+            includeSafeAreaPaddingBottom={false}
+            includePaddingTop={false}
+        >
+            <FeatureTrainingContent
+                title={translate('onboarding.explanationModal.title')}
+                description={translate('onboarding.explanationModal.description')}
+                secondaryDescription={translate('onboarding.explanationModal.secondaryDescription')}
+                confirmText={translate('footer.getStarted')}
+                videoURL={CONST.WELCOME_VIDEO_URL}
+                onClose={handleClose}
+            />
+        </ScreenWrapper>
     );
 }
 

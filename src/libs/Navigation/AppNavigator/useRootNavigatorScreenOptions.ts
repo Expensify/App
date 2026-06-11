@@ -1,10 +1,13 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
@@ -12,6 +15,7 @@ import type {EnterAnimation} from './useModalCardStyleInterpolator';
 
 type RootNavigatorScreenOptions = {
     rightModalNavigator: PlatformStackNavigationOptions;
+    centeredModalNavigator: PlatformStackNavigationOptions;
     basicModalNavigator: PlatformStackNavigationOptions;
     splitNavigator: PlatformStackNavigationOptions;
     fullScreen: PlatformStackNavigationOptions;
@@ -26,6 +30,7 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
 
 const useRootNavigatorScreenOptions = () => {
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const themeStyles = useThemeStyles();
@@ -63,6 +68,21 @@ const useRootNavigatorScreenOptions = () => {
                     position: 'fixed',
                 },
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: onboardingEnter}),
+            },
+        },
+        centeredModalNavigator: {
+            presentation: Presentation.TRANSPARENT_MODAL,
+            native: {
+                contentStyle: {
+                    ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
+                },
+                animation: InternalPlatformAnimations.FADE,
+            },
+            web: {
+                cardStyle: {
+                    ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
+                },
+                animation: InternalPlatformAnimations.FADE,
             },
         },
         splitNavigator: {

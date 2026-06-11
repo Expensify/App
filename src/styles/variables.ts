@@ -273,6 +273,7 @@ export default {
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     featureTrainingModalWidth: 500,
+    featureTrainingModalHeight: 635,
     onboardingModalWidth: 640,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
