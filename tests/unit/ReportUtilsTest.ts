@@ -150,6 +150,7 @@ import {
     parseReportActionHtmlToText,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
+    pushTransactionAutoSelectionsOnyxData,
     pushTransactionViolationsOnyxData,
     reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
@@ -181,6 +182,7 @@ import type {
     OnyxInputOrEntry,
     PersonalDetailsList,
     Policy,
+    PolicyCategories,
     PolicyEmployeeList,
     PolicyTag,
     Report,
@@ -10210,6 +10212,223 @@ describe('ReportUtils', () => {
             };
 
             expect(onyxData).toMatchObject(expectedOnyxData);
+        });
+    });
+
+    describe('pushTransactionAutoSelectionsOnyxData', () => {
+        const fakePolicyID = '0';
+
+        beforeAll(() => {
+            initOnyxDerivedValues();
+        });
+
+        /**
+         * Builds a policy with N categories that are all enabled (the factory disables them by default).
+         */
+        function buildEnabledCategories(numberOfCategories: number): PolicyCategories {
+            return Object.fromEntries(Object.entries(createRandomPolicyCategories(numberOfCategories)).map(([name, category]) => [name, {...category, enabled: true}]));
+        }
+
+        /**
+         * Wraps a report in a keyed collection so it can be spread into Onyx.multiSet with a precise key type.
+         */
+        function buildReportCollection(report: Report): Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> {
+            return {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report};
+        }
+
+        it('auto-selects the sole remaining enabled category when the transaction category is disabled', async () => {
+            // Given a policy with two enabled categories, and an update that disables the first one
+            const fakePolicyCategories = buildEnabledCategories(2);
+            const categoryNames = Object.keys(fakePolicyCategories);
+            const categoryToDisable = categoryNames.at(0) ?? '';
+            const remainingCategory = categoryNames.at(1) ?? '';
+            const fakePolicyCategoriesUpdate = {
+                [categoryToDisable]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresCategory: true, areCategoriesEnabled: true};
+
+            // Given an open report whose transaction uses the category about to be disabled
+            const openIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+
+            await Onyx.multiSet({
+                ...buildReportCollection(openIOUReport),
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
+                    ...mockTransaction,
+                    reportID: openIOUReport.reportID,
+                    policyID: fakePolicyID,
+                    category: categoryToDisable,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after the category update
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
+
+            // Then the transaction is moved to the sole remaining enabled category, with a matching rollback
+            expect(autoSelections.get(mockTransaction.transactionID)).toEqual({category: remainingCategory});
+            expect(onyxData).toMatchObject({
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
+                        value: {category: remainingCategory},
+                    },
+                ],
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
+                        value: {category: categoryToDisable},
+                    },
+                ],
+            });
+        });
+
+        it('auto-selects the sole remaining enabled tag when the transaction tag is disabled', async () => {
+            // Given a single-level tag list with two enabled tags, and an update that disables the first one
+            const fakePolicyTagListName = 'Tag List';
+            const fakePolicyTagsLists = createRandomPolicyTags(fakePolicyTagListName, 2);
+            const tagNames = Object.keys(fakePolicyTagsLists[fakePolicyTagListName]?.tags ?? {});
+            const tagToDisable = tagNames.at(0) ?? '';
+            const remainingTag = tagNames.at(1) ?? '';
+            const fakePolicyTagListsUpdate: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
+                [fakePolicyTagListName]: {
+                    tags: {
+                        [tagToDisable]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
+                    },
+                },
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresTag: true, areTagsEnabled: true};
+
+            // Given an open report whose transaction uses the tag about to be disabled
+            const openIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+
+            await Onyx.multiSet({
+                ...buildReportCollection(openIOUReport),
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicyID}`]: fakePolicyTagsLists,
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
+                    ...mockTransaction,
+                    reportID: openIOUReport.reportID,
+                    policyID: fakePolicyID,
+                    tag: tagToDisable,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after the tag update
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate);
+
+            // Then the transaction is moved to the sole remaining enabled tag, with a matching rollback
+            expect(autoSelections.get(mockTransaction.transactionID)).toEqual({tag: remainingTag});
+            expect(onyxData).toMatchObject({
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
+                        value: {tag: remainingTag},
+                    },
+                ],
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
+                        value: {tag: tagToDisable},
+                    },
+                ],
+            });
+        });
+
+        it('does not auto-select when more than one enabled category remains', async () => {
+            // Given a policy with three enabled categories, and an update that disables only one (two remain)
+            const fakePolicyCategories = buildEnabledCategories(3);
+            const categoryToDisable = Object.keys(fakePolicyCategories).at(0) ?? '';
+            const fakePolicyCategoriesUpdate = {
+                [categoryToDisable]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresCategory: true, areCategoriesEnabled: true};
+            const openIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+
+            await Onyx.multiSet({
+                ...buildReportCollection(openIOUReport),
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
+                    ...mockTransaction,
+                    reportID: openIOUReport.reportID,
+                    policyID: fakePolicyID,
+                    category: categoryToDisable,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after the category update
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
+
+            // Then nothing is auto-selected because the remaining choice is ambiguous
+            expect(autoSelections.size).toBe(0);
+            expect(onyxData.optimisticData).toHaveLength(0);
+            expect(onyxData.failureData).toHaveLength(0);
+        });
+
+        it('does not auto-select on a non-open report even when a single category remains', async () => {
+            // Given a policy with two enabled categories, and an update that disables the first one
+            const fakePolicyCategories = buildEnabledCategories(2);
+            const categoryToDisable = Object.keys(fakePolicyCategories).at(0) ?? '';
+            const fakePolicyCategoriesUpdate = {
+                [categoryToDisable]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresCategory: true, areCategoriesEnabled: true};
+
+            // Given an approved (non-open, non-processing) report
+            const approvedIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+
+            await Onyx.multiSet({
+                ...buildReportCollection(approvedIOUReport),
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
+                    ...mockTransaction,
+                    reportID: approvedIOUReport.reportID,
+                    policyID: fakePolicyID,
+                    category: categoryToDisable,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after the category update
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
+
+            // Then nothing is auto-selected because auto-selection is scoped to open/processing reports
+            expect(autoSelections.size).toBe(0);
+            expect(onyxData.optimisticData).toHaveLength(0);
+            expect(onyxData.failureData).toHaveLength(0);
         });
     });
 

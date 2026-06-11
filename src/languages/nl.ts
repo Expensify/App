@@ -4132,30 +4132,27 @@ ${amount} voor ${merchant} - ${date}`,
         verificationFailed: 'De verificatie is mislukt, daarom hebben we extra documenten nodig om jou en je bedrijf te verifiëren',
         taxIDVerification: 'Belastingnummerverificatie',
         taxIDVerificationDescription: dedent(`
-            Upload een van de volgende bestanden:
-            • IRS TIN/EIN-toewijzingsbrief
-            • IRS TIN/EIN-aanvraagbevestiging (bevat meestal "Congratulations! The EIN has been successfully assigned")
-            • IRS-belastingvrijstellingsbrief met bedrijfsnaam en EIN
-        `),
+        Upload een van de volgende bestanden:
+        • IRS TIN/EIN-toewijzingsbrief
+        • IRS TIN/EIN-aanvraagbevestiging (bevat meestal "Congratulations! The EIN has been successfully assigned")
+        • IRS-belastingvrijstellingsbrief met bedrijfsnaam en EIN`),
         nameChangeDocument: 'Document naamswijziging',
         nameChangeDocumentDescription: 'Als de naam van je bedrijf is gewijzigd sinds de TIN/EIN-aanvraag, hebben we dit document nodig om het opgegeven belastingnummer te verifiëren',
         companyAddressVerification: 'Verificatie van bedrijfsadres',
         companyAddressVerificationDescription: dedent(`
-            Upload een van de volgende bestanden:
-            • Recente energierekening met bedrijfsnaam en adres
-            • Bankafschrift met bedrijfsnaam en adres
-            • Huidige huur- of leaseovereenkomst inclusief ondertekeningspagina met bedrijfsnaam en huidig adres
-            • Verzekeringsverklaring met bedrijfsnaam en adres
-            • TIN-toewijzingsdocument met bedrijfsnaam en adres
-        `),
+        Upload een van de volgende bestanden:
+        • Recente energierekening met bedrijfsnaam en adres
+        • Bankafschrift met bedrijfsnaam en adres
+        • Huidige huur- of leaseovereenkomst inclusief ondertekeningspagina met bedrijfsnaam en huidig adres
+        • Verzekeringsverklaring met bedrijfsnaam en adres
+        • TIN-toewijzingsdocument met bedrijfsnaam en adres`),
         userAddressVerification: 'Adresverificatie',
         userAddressVerificationDescription: dedent(`
-            Upload een van de volgende bestanden:
-            • Kiezersregistratiekaart
-            • Rijbewijs
-            • Bankafschrift
-            • Energierekening
-        `),
+        Upload een van de volgende bestanden:
+        • Kiezersregistratiekaart
+        • Rijbewijs
+        • Bankafschrift
+        • Energierekening`),
         userDOBVerification: 'Verificatie van geboortedatum',
         userDOBVerificationDescription: 'Upload een in de VS uitgegeven identiteitsbewijs',
         finishViaChat: 'Afronden via chat',
