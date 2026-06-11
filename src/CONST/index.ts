@@ -3688,6 +3688,8 @@ const CONST = {
 
     IOU: {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
+        MAX_RECENT_ATTENDEES: 40,
+
         // This will guranatee that the quantity input will not exceed 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
