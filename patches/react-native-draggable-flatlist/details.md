@@ -21,4 +21,4 @@
 - Reason: On iOS, `scrollToOffset({animated: true})` does not emit intermediate `onScroll` events, so the `scrollOffset` shared value never updates mid-scroll. This blocks the autoscroll feedback loop (`hasScrolledToTarget` stays false), preventing waypoint reordering beyond the visible viewport. The fix manually advances `scrollOffset` after each `scrollToOffset` call to keep the loop alive.
 - Upstream PR/issue: https://github.com/computerjazz/react-native-draggable-flatlist/issues/509
 - E/App issue: [#87362](https://github.com/Expensify/App/issues/87362)
-- PR Introducing Patch: 🛑
+- PR Introducing Patch: [#90617](https://github.com/Expensify/App/pull/90617)
