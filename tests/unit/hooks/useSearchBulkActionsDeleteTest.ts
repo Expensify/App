@@ -124,6 +124,11 @@ jest.mock('@hooks/useDefaultExpensePolicy', () => ({
     default: () => undefined,
 }));
 
+jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
+    __esModule: true,
+    default: () => ({policyForMovingExpensesID: 'policy1'}),
+}));
+
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({}),
 }));
