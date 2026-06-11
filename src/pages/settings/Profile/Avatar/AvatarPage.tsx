@@ -28,7 +28,44 @@ import type {ErrorData, ImageData} from './types';
 
 const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
 
-function ProfileAvatar() {
+function ProfileAgentAvatar() {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const handleAgentSave = (params: OnSaveParams) => {
+        if ('file' in params) {
+            updateAvatar(params.file, {
+                avatar: currentUserPersonalDetails?.avatar,
+                avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                accountID: currentUserPersonalDetails?.accountID,
+            });
+        } else {
+            const {customExpensifyAvatarID} = params;
+            const uri = AGENT_AVATARS.resolveURI(customExpensifyAvatarID);
+            updateAvatar(
+                {
+                    uri,
+                    name: customExpensifyAvatarID,
+                    customExpensifyAvatarID,
+                },
+                {
+                    avatar: currentUserPersonalDetails?.avatar,
+                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                    accountID: currentUserPersonalDetails?.accountID,
+                },
+            );
+        }
+        Navigation.dismissModal();
+    };
+
+    return (
+        <EditAgentAvatarContent
+            accountID={currentUserPersonalDetails.accountID}
+            onSave={handleAgentSave}
+        />
+    );
+}
+
+function ProfileUserAvatar() {
     const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
     const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
 
@@ -49,7 +86,6 @@ function ProfileAvatar() {
     });
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isAgentAccount = useIsAgentAccount();
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -120,40 +156,6 @@ function ProfileAvatar() {
                 isSavingRef.current = false;
             });
     };
-
-    if (isAgentAccount) {
-        const handleAgentSave = (params: OnSaveParams) => {
-            if ('file' in params) {
-                updateAvatar(params.file, {
-                    avatar: currentUserPersonalDetails?.avatar,
-                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
-                    accountID: currentUserPersonalDetails?.accountID,
-                });
-            } else {
-                const {customExpensifyAvatarID} = params;
-                const uri = AGENT_AVATARS.resolveURI(customExpensifyAvatarID);
-                updateAvatar(
-                    {
-                        uri,
-                        name: customExpensifyAvatarID,
-                        customExpensifyAvatarID,
-                    },
-                    {
-                        avatar: currentUserPersonalDetails?.avatar,
-                        avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
-                        accountID: currentUserPersonalDetails?.accountID,
-                    },
-                );
-            }
-            Navigation.dismissModal();
-        };
-        return (
-            <EditAgentAvatarContent
-                accountID={currentUserPersonalDetails.accountID}
-                onSave={handleAgentSave}
-            />
-        );
-    }
 
     return (
         <ScreenWrapper
@@ -247,6 +249,12 @@ function ProfileAvatar() {
             />
         </ScreenWrapper>
     );
+}
+
+function ProfileAvatar() {
+    const isAgentAccount = useIsAgentAccount();
+
+    return isAgentAccount ? <ProfileAgentAvatar /> : <ProfileUserAvatar />;
 }
 
 export default ProfileAvatar;
