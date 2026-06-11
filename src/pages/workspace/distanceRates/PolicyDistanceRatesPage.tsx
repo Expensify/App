@@ -148,14 +148,6 @@ function PolicyDistanceRatesPage({
 
     useCleanupSelectedOptions(clearTableSelection);
 
-    useEffect(() => {
-        if (isMobileSelectionModeEnabled) {
-            return;
-        }
-
-        clearTableSelection();
-    }, [clearTableSelection, isMobileSelectionModeEnabled]);
-
     const canDisableOrDeleteSelectedRates = useMemo(
         () =>
             Object.keys(selectableRates)
