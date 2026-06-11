@@ -485,13 +485,38 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     hideSearchTableHeader?: boolean;
 };
 
-type GroupHeaderItemType = TransactionGroupListItemType & {
-    listItemType: 'group_header';
-};
+const GROUP_ITEM_TYPES = {
+    GROUP_HEADER: 'group_header',
+    CHILDREN_CONTAINER: 'children_container',
+} as const;
+
+type GroupHeaderListItemType = {listItemType: typeof GROUP_ITEM_TYPES.GROUP_HEADER};
+
+type GroupHeaderItemType =
+    | (TransactionReportGroupListItemType & GroupHeaderListItemType)
+    | (TransactionMemberGroupListItemType & GroupHeaderListItemType)
+    | (TransactionCardGroupListItemType & GroupHeaderListItemType)
+    | (TransactionWithdrawalIDGroupListItemType & GroupHeaderListItemType)
+    | (TransactionCategoryGroupListItemType & GroupHeaderListItemType)
+    | (TransactionMerchantGroupListItemType & GroupHeaderListItemType)
+    | (TransactionTagGroupListItemType & GroupHeaderListItemType)
+    | (TransactionMonthGroupListItemType & GroupHeaderListItemType)
+    | (TransactionWeekGroupListItemType & GroupHeaderListItemType)
+    | (TransactionYearGroupListItemType & GroupHeaderListItemType)
+    | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
+    | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
-    listItemType: 'children_container';
+    listItemType: typeof GROUP_ITEM_TYPES.CHILDREN_CONTAINER;
 };
+
+function isGroupHeaderItem(item: SearchListItem): item is GroupHeaderItemType {
+    return 'listItemType' in item && item.listItemType === GROUP_ITEM_TYPES.GROUP_HEADER;
+}
+
+function isGroupChildrenContainerItem(item: SearchListItem): item is GroupChildrenContainerItemType {
+    return 'listItemType' in item && item.listItemType === GROUP_ITEM_TYPES.CHILDREN_CONTAINER;
+}
 
 type GroupChildrenContentProps = {
     item: GroupChildrenContainerItemType;
@@ -547,3 +572,5 @@ export type {
     GroupChildrenContainerItemType,
     GroupChildrenContentProps,
 };
+
+export {GROUP_ITEM_TYPES, isGroupHeaderItem, isGroupChildrenContainerItem};

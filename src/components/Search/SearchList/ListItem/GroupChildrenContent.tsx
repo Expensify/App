@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
-import type {GroupChildrenContentProps, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from './types';
+import type {GroupChildrenContentProps, TransactionListItemType} from './types';
 
 function GroupChildrenContent({
     item,
@@ -40,11 +40,11 @@ function GroupChildrenContent({
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
 
-    const groupItem = item as unknown as TransactionGroupListItemType;
+    const groupItem = item;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
-    const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
+    const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState<number>(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
     const isActionLoadingSet = useActionLoadingReportIDs();
     const snapshotData = transactionsSnapshot?.data;
 
@@ -192,7 +192,7 @@ function GroupChildrenContent({
     }, [snapshotData, currentUserDetails.email]);
 
     const onExpandedRowLongPress = (transaction: TransactionListItemType) => {
-        onLongPressRow?.(transaction as unknown as SearchListItem);
+        onLongPressRow?.(transaction);
     };
 
     return (

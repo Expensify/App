@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -11,10 +11,9 @@ function useExpandCollapseAnimation(isExpanded: boolean) {
     const hasExpanded = useSharedValue(isExpanded);
     const [isRendered, setIsRendered] = useState(isExpanded);
 
-    useEffect(() => {
-        hasExpanded.set(isExpanded);
-    }, [isExpanded, hasExpanded]);
-
+    hasExpanded.set(isExpanded);
+    // Matches the pattern in AnimatedCollapsible — mount content synchronously on expand,
+    // unmount asynchronously after collapse animation via scheduleOnRN callback.
     if (isExpanded && !isRendered) {
         setIsRendered(true);
     }

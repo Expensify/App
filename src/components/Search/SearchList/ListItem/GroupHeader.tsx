@@ -30,7 +30,7 @@ import {getColumnsToShow} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
@@ -40,24 +40,7 @@ import MonthListItemHeader from './MonthListItemHeader';
 import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
-import type {
-    GroupHeaderItemType,
-    SearchListActionProps,
-    SearchListItem,
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-    TransactionMemberGroupListItemType,
-    TransactionMerchantGroupListItemType,
-    TransactionMonthGroupListItemType,
-    TransactionQuarterGroupListItemType,
-    TransactionReportGroupListItemType,
-    TransactionTagGroupListItemType,
-    TransactionWeekGroupListItemType,
-    TransactionWithdrawalIDGroupListItemType,
-    TransactionYearGroupListItemType,
-} from './types';
+import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, TransactionListItemType} from './types';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -111,7 +94,7 @@ function GroupHeader({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
-    const groupItem = item as unknown as TransactionGroupListItemType;
+    const groupItem = item;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
@@ -184,10 +167,6 @@ function GroupHeader({
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
-    // For non-expense-report groups, children are loaded from the snapshot
-    // rather than groupItem.transactions (which may be empty). Extract
-    // minimal transaction items from the snapshot so selection and
-    // long-press handlers operate on the actual visible children.
     const effectiveTransactions = useMemo((): TransactionListItemType[] => {
         if (isExpenseReportType || groupItem.transactions.length > 0) {
             return groupItem.transactions;
@@ -196,18 +175,19 @@ function GroupHeader({
             return [];
         }
         const items: TransactionListItemType[] = [];
-        for (const [key, value] of Object.entries(snapshotData)) {
+        for (const key of Object.keys(snapshotData)) {
             if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
                 continue;
             }
-            const tx = value as Record<string, unknown>;
-            if (!tx || typeof tx !== 'object' || !('transactionID' in tx)) {
+            const tx = snapshotData[key as keyof typeof snapshotData];
+            if (!tx || typeof tx !== 'object' || !('transactionID' in tx) || !('reportID' in tx)) {
                 continue;
             }
-            const report = snapshotData[`${ONYXKEYS.COLLECTION.REPORT}${tx.reportID as string}`] as TransactionListItemType['report'];
+            const transaction = tx as Transaction;
+            const report = snapshotData[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
             items.push({
-                ...tx,
-                keyForList: tx.transactionID as string,
+                ...transaction,
+                keyForList: transaction.transactionID,
                 report,
             } as TransactionListItemType);
         }
@@ -217,7 +197,7 @@ function GroupHeader({
     const {isSelectAllChecked, isIndeterminate} = useMemo(() => {
         const selectedTransactionIDsSet = new Set(Object.keys(selectedTransactions));
         const filteredTransactions = effectiveTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const selectedCount = effectiveTransactions.reduce((acc, transaction) => (selectedTransactionIDsSet.has(transaction.transactionID) ? acc + 1 : acc), 0);
+        const selectedCount = filteredTransactions.reduce((acc, transaction) => (selectedTransactionIDsSet.has(transaction.transactionID) ? acc + 1 : acc), 0);
         const isEmptyReportSelected = isEmpty && item.keyForList && selectedTransactions[item.keyForList]?.isSelected;
         const allChecked = !!isEmptyReportSelected || (selectedCount === filteredTransactions.length && filteredTransactions.length > 0);
         const indeterminate = selectedCount > 0 && selectedCount !== filteredTransactions.length;
@@ -248,10 +228,10 @@ function GroupHeader({
     };
 
     const renderHeader = (hovered: boolean) => {
-        if (isExpenseReportType) {
+        if (isExpenseReportType && 'groupedBy' in groupItem && groupItem.groupedBy === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             return (
                 <ReportListItemHeader
-                    report={groupItem as TransactionReportGroupListItemType}
+                    report={groupItem}
                     onSelectRow={handleSelectRow}
                     onCheckboxPress={handleSelectionButtonPress}
                     isDisabled={isDisabled}
@@ -270,7 +250,7 @@ function GroupHeader({
             );
         }
 
-        if (!groupBy) {
+        if (!('groupedBy' in groupItem)) {
             return null;
         }
 
@@ -285,11 +265,11 @@ function GroupHeader({
             isExpanded,
         } as const;
 
-        switch (groupBy) {
+        switch (groupItem.groupedBy) {
             case CONST.SEARCH.GROUP_BY.FROM:
                 return (
                     <MemberListItemHeader
-                        member={groupItem as TransactionMemberGroupListItemType}
+                        member={groupItem}
                         {...commonProps}
                         isLargeScreenWidth={isLargeScreenWidth}
                     />
@@ -297,7 +277,7 @@ function GroupHeader({
             case CONST.SEARCH.GROUP_BY.CARD:
                 return (
                     <CardListItemHeader
-                        card={groupItem as TransactionCardGroupListItemType}
+                        card={groupItem}
                         {...commonProps}
                         isFocused={isFocused}
                     />
@@ -305,56 +285,56 @@ function GroupHeader({
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return (
                     <WithdrawalIDListItemHeader
-                        withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
+                        withdrawalID={groupItem}
                         {...commonProps}
                     />
                 );
             case CONST.SEARCH.GROUP_BY.CATEGORY:
                 return (
                     <CategoryListItemHeader
-                        category={groupItem as TransactionCategoryGroupListItemType}
+                        category={groupItem}
                         {...commonProps}
                     />
                 );
             case CONST.SEARCH.GROUP_BY.MERCHANT:
                 return (
                     <MerchantListItemHeader
-                        merchant={groupItem as TransactionMerchantGroupListItemType}
+                        merchant={groupItem}
                         {...commonProps}
                     />
                 );
             case CONST.SEARCH.GROUP_BY.TAG:
                 return (
                     <TagListItemHeader
-                        tag={groupItem as TransactionTagGroupListItemType}
+                        tag={groupItem}
                         {...commonProps}
                     />
                 );
             case CONST.SEARCH.GROUP_BY.MONTH:
                 return (
                     <MonthListItemHeader
-                        month={groupItem as TransactionMonthGroupListItemType}
+                        month={groupItem}
                         {...commonProps}
                     />
                 );
             case CONST.SEARCH.GROUP_BY.WEEK:
                 return (
                     <WeekListItemHeader
-                        week={groupItem as TransactionWeekGroupListItemType}
+                        week={groupItem}
                         {...commonProps}
                     />
                 );
             case CONST.SEARCH.GROUP_BY.YEAR:
                 return (
                     <YearListItemHeader
-                        year={groupItem as TransactionYearGroupListItemType}
+                        year={groupItem}
                         {...commonProps}
                     />
                 );
             case CONST.SEARCH.GROUP_BY.QUARTER:
                 return (
                     <QuarterListItemHeader
-                        quarter={groupItem as TransactionQuarterGroupListItemType}
+                        quarter={groupItem}
                         {...commonProps}
                     />
                 );

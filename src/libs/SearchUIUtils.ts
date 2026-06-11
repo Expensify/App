@@ -36,6 +36,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
+import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import type {
     GroupedItem,
     QueryFilters,
@@ -6218,8 +6219,8 @@ function splitGroupsIntoPairs(data: SearchListItem[]): {splitData: SearchListIte
         if ('transactions' in item) {
             const key = item.keyForList ?? '';
             stickyHeaderIndices.push(splitData.length);
-            splitData.push({...item, listItemType: 'group_header', keyForList: `header_${key}`} as GroupHeaderItemType);
-            splitData.push({...item, listItemType: 'children_container', keyForList: `children_${key}`} as GroupChildrenContainerItemType);
+            splitData.push({...item, listItemType: GROUP_ITEM_TYPES.GROUP_HEADER, keyForList: `header_${key}`} as GroupHeaderItemType);
+            splitData.push({...item, listItemType: GROUP_ITEM_TYPES.CHILDREN_CONTAINER, keyForList: `children_${key}`} as GroupChildrenContainerItemType);
         } else {
             splitData.push(item);
         }

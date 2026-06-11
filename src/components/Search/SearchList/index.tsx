@@ -44,8 +44,6 @@ import type TaskListItem from './ListItem/TaskListItem';
 import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
 import type TransactionListItem from './ListItem/TransactionListItem';
 import type {
-    GroupChildrenContainerItemType,
-    GroupHeaderItemType,
     ReportActionListItemType,
     TaskListItemType,
     TransactionCardGroupListItemType,
@@ -58,6 +56,7 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
 } from './ListItem/types';
+import {isGroupChildrenContainerItem, isGroupHeaderItem} from './ListItem/types';
 import SearchSelectAllMenu from './SearchSelectAllMenu';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
@@ -329,17 +328,21 @@ function SearchList({
         return {splitData, stickyHeaderIndices: activeIndices.length > 0 ? activeIndices : undefined};
     }, [data, shouldSplitGroups, expandedGroups]);
 
-    const getItemType = useMemo(() => {
-        if (!shouldSplitGroups) {
-            return undefined;
-        }
-        return (item: SearchListItem) => {
-            if ('listItemType' in item) {
-                return (item as GroupHeaderItemType | GroupChildrenContainerItemType).listItemType;
+    const getItemType = useCallback(
+        (item: SearchListItem) => {
+            if (!shouldSplitGroups) {
+                return undefined;
+            }
+            if (isGroupHeaderItem(item)) {
+                return item.listItemType;
+            }
+            if (isGroupChildrenContainerItem(item)) {
+                return item.listItemType;
             }
             return 'default';
-        };
-    }, [shouldSplitGroups]);
+        },
+        [shouldSplitGroups],
+    );
 
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -485,8 +488,8 @@ function SearchList({
     const renderItem = useCallback(
         (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
             // Handle group header items (sticky)
-            if ('listItemType' in item && (item as GroupHeaderItemType).listItemType === 'group_header') {
-                const headerItem = item as GroupHeaderItemType;
+            if (isGroupHeaderItem(item)) {
+                const headerItem = item;
                 const originalKey = (item.keyForList ?? '').replace('header_', '');
                 return (
                     <GroupHeader
@@ -521,8 +524,8 @@ function SearchList({
             }
 
             // Handle children container items (animated expand/collapse)
-            if ('listItemType' in item && (item as GroupChildrenContainerItemType).listItemType === 'children_container') {
-                const containerItem = item as GroupChildrenContainerItemType;
+            if (isGroupChildrenContainerItem(item)) {
+                const containerItem = item;
                 const originalKey = (item.keyForList ?? '').replace('children_', '');
                 const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
                 const isContainerSelected =
