@@ -68,7 +68,13 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         if (updatedFile.name !== cleanName) {
             updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
         }
+        const previousUri = updatedFile.uri;
         const inputSource = URL.createObjectURL(updatedFile);
+        if (previousUri && previousUri !== inputSource && previousUri.startsWith('blob:')) {
+            // Release the superseded object URL (e.g. the one AttachmentPicker assigned) so its Blob can be
+            // garbage-collected; orphaned blob: URLs keep the full-size file resident until the document dies.
+            URL.revokeObjectURL(previousUri);
+        }
         updatedFile.uri = inputSource;
 
         return {isValid: true, file: updatedFile};

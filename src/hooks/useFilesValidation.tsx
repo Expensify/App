@@ -170,37 +170,40 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
         const filesToResize: FileObject[] = [];
         const filesToConvert: FileObject[] = [];
-        await Promise.all(
-            files.map(async (file, index) => {
-                const result = await validateAttachmentFile(file, items.at(index), validationState.isValidatingReceipts);
+        // Validate sequentially so only one image is decoded and held in memory at a time. Validating the
+        // whole batch with Promise.all multiplies peak memory by the number of selected files (each pass
+        // decodes the full-resolution image), which can kill the WebContent process on memory-constrained
+        // mobile Safari when 3+ photos are selected — the tab reloads and the attachments are lost.
+        for (const [index, file] of files.entries()) {
+            // eslint-disable-next-line no-await-in-loop
+            const result = await validateAttachmentFile(file, items.at(index), validationState.isValidatingReceipts);
 
-                if (result.isValid) {
-                    if (Str.isPDF(result.file.name ?? '')) {
-                        pdfsToLoad.push(result.file);
-                    } else {
-                        validNonPdfFiles.push(result.file);
-                    }
-                    return;
+            if (result.isValid) {
+                if (Str.isPDF(result.file.name ?? '')) {
+                    pdfsToLoad.push(result.file);
+                } else {
+                    validNonPdfFiles.push(result.file);
                 }
+                continue;
+            }
 
-                if (result.error === CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE && isImageFile(file)) {
-                    filesToResize.push(file);
-                    return;
-                }
+            if (result.error === CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE && isImageFile(file)) {
+                filesToResize.push(file);
+                continue;
+            }
 
-                if (result.error === CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE) {
-                    filesToConvert.push(file);
-                    return;
-                }
+            if (result.error === CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE) {
+                filesToConvert.push(file);
+                continue;
+            }
 
-                const errorData = {
-                    error: result.error,
-                    isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
-                    fileType: result.error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE ? splitExtensionFromFileName(file.name ?? '').fileExtension : undefined,
-                } satisfies FileValidationError;
-                collectedErrors.current.push(errorData);
-            }),
-        );
+            const errorData = {
+                error: result.error,
+                isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
+                fileType: result.error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE ? splitExtensionFromFileName(file.name ?? '').fileExtension : undefined,
+            } satisfies FileValidationError;
+            collectedErrors.current.push(errorData);
+        }
 
         if (filesToConvert.length > 0) {
             showLoader();
