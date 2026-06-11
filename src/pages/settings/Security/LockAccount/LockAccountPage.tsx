@@ -34,10 +34,18 @@ function LockAccountPage() {
 
     const lockAccountPagePrompt = (
         <View style={[styles.renderHTML, styles.gap4]}>
-            <RenderHTML html={translate('lockAccountPage.findYourSituation')} />
-            <RenderHTML html={translate('lockAccountPage.lostCardOrCharges')} />
-            <RenderHTML html={translate('lockAccountPage.unauthorizedAccess')} />
-            <RenderHTML html={translate('lockAccountPage.securityTeamFollowUp')} />
+            <View>
+                <RenderHTML html={translate('lockAccountPage.findYourSituation')} />
+            </View>
+            <View>
+                <RenderHTML html={translate('lockAccountPage.lostCardOrCharges')} />
+            </View>
+            <View>
+                <RenderHTML html={translate('lockAccountPage.unauthorizedAccess')} />
+            </View>
+            <View>
+                <RenderHTML html={translate('lockAccountPage.securityTeamFollowUp')} />
+            </View>
         </View>
     );
 
