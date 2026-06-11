@@ -1470,22 +1470,6 @@ function isReportSelected(reportOption: SearchOptionData, selectedOptions: Array
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
-/**
- * Checks if a personal detail option is selected based on matching accountID or login.
- *
- * @param personalDetailOption - The personal detail option to be checked.
- * @param selectedOptions - Array of selected options to compare with.
- * @returns true if the personal detail option matches any of the selected options by accountID or login, false otherwise.
- */
-function isPersonalDetailSelected(personalDetailOption: SearchOptionData, selectedOptions: Array<Partial<SearchOptionData>>) {
-    if (!selectedOptions || selectedOptions.length === 0) {
-        return false;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return selectedOptions.some((option) => (option.accountID && option.accountID === personalDetailOption.accountID) || (option.login && option.login === personalDetailOption.login));
-}
-
 function processReport(
     report: OnyxEntry<Report> | null,
     personalDetails: OnyxEntry<PersonalDetailsList>,
@@ -2671,6 +2655,17 @@ function getValidOptions(
 
         hasMore = hasMore || groupedPersonalDetails.hasMore;
 
+        const selectedAccountIDs = new Set<number>();
+        const selectedLogins = new Set<string>();
+        for (const selectedOption of selectedOptions) {
+            if (selectedOption.accountID) {
+                selectedAccountIDs.add(selectedOption.accountID);
+            }
+            if (selectedOption.login) {
+                selectedLogins.add(selectedOption.login);
+            }
+        }
+
         for (let i = 0; i < personalDetailsOptions.length; i++) {
             const personalDetail = personalDetailsOptions.at(i);
             if (!personalDetail) {
@@ -2683,7 +2678,8 @@ function getValidOptions(
             if (personalDetail.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
                 personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
             }
-            personalDetail.isSelected = isPersonalDetailSelected(personalDetail, selectedOptions);
+            personalDetail.isSelected =
+                (!!personalDetail.accountID && selectedAccountIDs.has(personalDetail.accountID)) || (!!personalDetail.login && selectedLogins.has(personalDetail.login));
         }
     }
 
