@@ -36,7 +36,10 @@ type SearchSidebarProps = {
     state: PlatformStackNavigationState<ParamListBase>;
 };
 
-const PEEK_DISMISS_AFTER_MODAL_CLOSE_DELAY_MS = Math.max(CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_OUT_WEB, CONST.MODAL.ANIMATION_TIMING.CENTERED_DURATION_OUT_WEB) + 50;
+type PointerPosition = {
+    clientX: number;
+    clientY: number;
+};
 
 function SearchSidebar({state}: SearchSidebarProps) {
     const {translate} = useLocalize();
@@ -49,8 +52,9 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const [isAnyModalActive = false] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
     const isAnyModalActiveRef = useRef(false);
     const wasAnyModalActiveRef = useRef(false);
-    const delayedPeekDismissUntilRef = useRef(0);
     const isSidebarHoveredRef = useRef(false);
+    const latestPointerPositionRef = useRef<PointerPosition | null>(null);
+    const sidebarElementRef = useRef<HTMLElement | null>(null);
     const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
     const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
@@ -80,12 +84,50 @@ function SearchSidebar({state}: SearchSidebarProps) {
         return endPeek;
     }, [endPeek, shouldUseNarrowLayout]);
 
-    const endPeekIfPointerIsOutsideSidebar = () => {
-        if (!isPeeking || isAnyModalActiveRef.current || Date.now() < delayedPeekDismissUntilRef.current || typeof document === 'undefined') {
+    const updateLatestPointerPosition = (event?: PointerEvent) => {
+        if (!event) {
             return;
         }
 
-        if (isSidebarHoveredRef.current) {
+        latestPointerPositionRef.current = {
+            clientX: event.clientX,
+            clientY: event.clientY,
+        };
+    };
+
+    const isPointerInsideSidebar = () => {
+        const sidebarElement = sidebarElementRef.current;
+
+        if (!sidebarElement) {
+            return isSidebarHoveredRef.current;
+        }
+
+        const latestPointerPosition = latestPointerPositionRef.current;
+        if (!latestPointerPosition) {
+            return sidebarElement.matches(':hover');
+        }
+
+        const sidebarBounds = sidebarElement.getBoundingClientRect();
+        return (
+            latestPointerPosition.clientX >= sidebarBounds.left &&
+            latestPointerPosition.clientX <= sidebarBounds.right &&
+            latestPointerPosition.clientY >= sidebarBounds.top &&
+            latestPointerPosition.clientY <= sidebarBounds.bottom
+        );
+    };
+
+    const endPeekIfPointerIsOutsideSidebar = (event?: PointerEvent) => {
+        updateLatestPointerPosition(event);
+
+        const hasDocument = typeof document !== 'undefined';
+        const isPointerInside = hasDocument ? isPointerInsideSidebar() : isSidebarHoveredRef.current;
+        isSidebarHoveredRef.current = isPointerInside;
+
+        if (!isPeeking || isAnyModalActiveRef.current || !hasDocument) {
+            return;
+        }
+
+        if (isPointerInside) {
             return;
         }
 
@@ -99,7 +141,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const endPeekWhenNoModalIsActive = () => {
         isSidebarHoveredRef.current = false;
 
-        if (isAnyModalActiveRef.current || Date.now() < delayedPeekDismissUntilRef.current) {
+        if (isAnyModalActiveRef.current) {
             return;
         }
 
@@ -116,9 +158,13 @@ function SearchSidebar({state}: SearchSidebarProps) {
         }
 
         document.addEventListener('pointermove', endPeekIfPointerIsOutsideSidebar);
+        document.addEventListener('pointerdown', endPeekIfPointerIsOutsideSidebar);
+        document.addEventListener('pointerup', endPeekIfPointerIsOutsideSidebar);
 
         return () => {
             document.removeEventListener('pointermove', endPeekIfPointerIsOutsideSidebar);
+            document.removeEventListener('pointerdown', endPeekIfPointerIsOutsideSidebar);
+            document.removeEventListener('pointerup', endPeekIfPointerIsOutsideSidebar);
         };
     }, [endPeekIfPointerIsOutsideSidebar, isPeeking]);
 
@@ -130,24 +176,12 @@ function SearchSidebar({state}: SearchSidebarProps) {
             return;
         }
 
-        const dismissPeekAt = Date.now() + PEEK_DISMISS_AFTER_MODAL_CLOSE_DELAY_MS;
-        delayedPeekDismissUntilRef.current = dismissPeekAt;
-        const timeout = window.setTimeout(() => {
-            if (delayedPeekDismissUntilRef.current === dismissPeekAt) {
-                delayedPeekDismissUntilRef.current = 0;
-            }
-
-            endPeekIfPointerIsOutsideSidebar();
-        }, PEEK_DISMISS_AFTER_MODAL_CLOSE_DELAY_MS);
+        const animationFrame = window.requestAnimationFrame(() => endPeekIfPointerIsOutsideSidebar());
 
         return () => {
-            if (delayedPeekDismissUntilRef.current === dismissPeekAt) {
-                delayedPeekDismissUntilRef.current = 0;
-            }
-
-            window.clearTimeout(timeout);
+            window.cancelAnimationFrame(animationFrame);
         };
-    }, [endPeekIfPointerIsOutsideSidebar, isAnyModalActive]);
+    }, [endPeekIfPointerIsOutsideSidebar, isAnyModalActive, isPeeking]);
 
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
@@ -179,6 +213,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     return (
         <Animated.View style={layoutSpacerStyle}>
             <Hoverable
+                ref={sidebarElementRef}
                 onHoverIn={markSidebarHovered}
                 onHoverOut={endPeekWhenNoModalIsActive}
             >
