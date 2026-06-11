@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 
 type Part =
     | 'overview'
@@ -136,10 +137,20 @@ function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | u
  * the backend re-provisions per target. Mirrors Auth's TRAVEL_SETTINGS_COPYABLE_FIELDS allow-list.
  */
 function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'travelSettings'> | undefined {
-    if (sourcePolicy.travelSettings?.autoAddTripName === undefined) {
+    const sourceAutoAddTripName = sourcePolicy.travelSettings?.autoAddTripName;
+    const targetTravelSettings = targetPolicy.travelSettings;
+    if (sourceAutoAddTripName === undefined || !targetTravelSettings) {
         return undefined;
     }
-    return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourcePolicy.travelSettings.autoAddTripName}};
+
+    const travelSettings: WorkspaceTravelSettings = {
+        spotnanaCompanyID: targetTravelSettings.spotnanaCompanyID,
+        associatedTravelDomainAccountID: targetTravelSettings.associatedTravelDomainAccountID,
+        hasAcceptedTerms: targetTravelSettings.hasAcceptedTerms,
+        autoAddTripName: sourceAutoAddTripName,
+    };
+
+    return {travelSettings};
 }
 
 /**
