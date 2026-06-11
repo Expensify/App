@@ -236,7 +236,6 @@ type TransactionQuarterGroupSorting = ColumnSortMapping<TransactionQuarterGroupL
 
 type GetReportSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
-    policies: OnyxCollection<OnyxTypes.Policy>;
     currentSearch: SearchKey;
     currentAccountID: number;
     currentUserEmail: string;
@@ -587,7 +586,6 @@ type GetSectionsResult = [
 type GetSectionsParams = {
     type: SearchDataTypes;
     data: OnyxTypes.SearchResults['data'];
-    policies?: OnyxCollection<OnyxTypes.Policy>;
     currentAccountID: number;
     currentUserEmail: string;
     translate: LocalizedTranslate;
@@ -2735,7 +2733,6 @@ function getReportActionsSections(
  */
 function getReportSections({
     data,
-    policies,
     currentSearch,
     currentAccountID,
     currentUserEmail,
@@ -2826,8 +2823,7 @@ function getReportSections({
                 const formattedTo = !shouldShowBlankTo ? formatPhoneNumber(getDisplayNameOrDefault(toDetails)) : '';
 
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
-                const policyFromKey = getPolicyFromKey(data, reportItem);
-                const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID ?? String(CONST.DEFAULT_NUMBER_ID)}`] ?? policyFromKey;
+                const policy = getPolicyFromKey(data, reportItem);
 
                 const shouldShowStatusAsPending = !!isOffline && reportItem?.pendingFields?.nextStep === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
@@ -3573,7 +3569,6 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: Sear
 function getSections({
     type,
     data,
-    policies,
     currentAccountID,
     currentUserEmail,
     translate,
@@ -3608,7 +3603,6 @@ function getSections({
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         return getReportSections({
             data,
-            policies,
             currentSearch,
             currentAccountID,
             currentUserEmail,
@@ -6274,6 +6268,7 @@ export {
     shouldShowDeleteOption,
     getToFieldValueForTransaction,
     getSearchReportAvatarProps,
+    hasVisibleViolations,
     isTodoSearch,
     getActiveGroupSearchHashes,
     getSelectedGroupFilterEntry,

@@ -342,7 +342,6 @@ function Search({
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
@@ -590,7 +589,6 @@ function Search({
         const [filteredData1, allLength, hasDeletedTransactionFromSections] = getSections({
             type,
             data: searchDataWithOptimisticTransaction,
-            policies,
             currentAccountID: accountID,
             currentUserEmail: email ?? '',
             translate,
@@ -639,7 +637,6 @@ function Search({
         isActionLoadingSet,
         cardFeeds,
         nonPersonalAndWorkspaceCards,
-        policies,
         bankAccountList,
         violations,
         customCardNames,
