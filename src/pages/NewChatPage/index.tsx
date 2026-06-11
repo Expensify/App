@@ -451,6 +451,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 onSelectRow={selectOption}
                 shouldShowTextInput
                 textInputOptions={textInputOptions}
+                shouldUpdateFocusedIndex
                 shouldSingleExecuteRowSelect
                 confirmButtonOptions={{
                     onConfirm: (e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option)),
