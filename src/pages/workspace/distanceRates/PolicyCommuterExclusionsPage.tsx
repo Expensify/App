@@ -124,8 +124,8 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         {
             text: translate('workspace.distanceRates.commuterExclusions.optionDisabledTitle'),
             alternateText: translate('workspace.distanceRates.commuterExclusions.optionDisabledHelp'),
-            keyForList: 'disabled',
-            isSelected: selectedKey === 'disabled',
+            keyForList: CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED,
+            isSelected: selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED,
         },
         {
             text: translate('workspace.distanceRates.commuterExclusions.optionFixedDistanceTitle'),
