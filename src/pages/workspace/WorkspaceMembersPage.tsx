@@ -11,13 +11,8 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
-import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
-import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import SearchBar from '@components/SearchBar';
-import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
-import WorkspaceMembersTable, {WorkspaceMemberRowData, WorkspaceMembersTableColumnKey} from '@components/Tables/WorkspaceMembersTable';
+import WorkspaceMembersTable, {WorkspaceMemberRowData} from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextLink from '@components/TextLink';
