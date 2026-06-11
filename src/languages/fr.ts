@@ -1376,7 +1376,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approvedMessage: `approuvé`,
         unapproved: `Non approuvé`,
         automaticallyForwarded: `approuvé via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l'espace de travail</a>`,
-        forwarded: `approuvé`,
+        forwarded: (memo?: string) => `approuvé${memo ? `, indiquant « ${memo} »` : ''}`,
         rejectedThisReport: 'rejeté',
         waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: 'a annulé le paiement',
