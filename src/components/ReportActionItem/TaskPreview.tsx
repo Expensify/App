@@ -155,6 +155,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
             <View style={[styles.flexRow, styles.justifyContentBetween, style]}>
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mr2]}>
                     <PressableWithoutFeedback
+                        accessible
                         role={CONST.ROLE.CHECKBOX}
                         accessibilityState={{checked: isTaskCompleted}}
                         accessibilityLabel={taskAccessibilityLabel}
@@ -163,15 +164,17 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                         style={iconWrapperStyle}
                         sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
                     >
-                        <Checkbox
-                            accessible={false}
-                            style={[styles.mr2]}
-                            isChecked={isTaskCompleted}
-                            disabled={!isTaskActionable}
-                            onPress={toggleTask}
-                            accessibilityLabel={taskAccessibilityLabel}
-                            sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
-                        />
+                        <View importantForAccessibility="no-hide-descendants">
+                            <Checkbox
+                                accessible={false}
+                                style={[styles.mr2]}
+                                isChecked={isTaskCompleted}
+                                disabled={!isTaskActionable}
+                                onPress={toggleTask}
+                                accessibilityLabel={taskAccessibilityLabel}
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
+                            />
+                        </View>
                     </PressableWithoutFeedback>
                     <PressableWithoutFeedback
                         accessible

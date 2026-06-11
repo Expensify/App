@@ -190,6 +190,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                 <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
                                                 <View style={[styles.flexRow, styles.flex1]}>
                                                     <PressableWithoutFeedback
+                                                        accessible
                                                         role={CONST.ROLE.CHECKBOX}
                                                         accessibilityState={{checked: isCompleted}}
                                                         accessibilityLabel={taskAccessibilityLabel}
@@ -197,19 +198,21 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         onPress={toggleTask}
                                                         sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                                     >
-                                                        <Checkbox
-                                                            accessible={false}
-                                                            shouldSelectOnPressEnter
-                                                            onPress={toggleTask}
-                                                            isChecked={isCompleted}
-                                                            style={styles.taskMenuItemCheckbox}
-                                                            containerSize={24}
-                                                            containerBorderRadius={8}
-                                                            caretSize={16}
-                                                            accessibilityLabel={taskAccessibilityLabel}
-                                                            disabled={!isTaskActionable}
-                                                            sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
-                                                        />
+                                                        <View importantForAccessibility="no-hide-descendants">
+                                                            <Checkbox
+                                                                accessible={false}
+                                                                shouldSelectOnPressEnter
+                                                                onPress={toggleTask}
+                                                                isChecked={isCompleted}
+                                                                style={styles.taskMenuItemCheckbox}
+                                                                containerSize={24}
+                                                                containerBorderRadius={8}
+                                                                caretSize={16}
+                                                                accessibilityLabel={taskAccessibilityLabel}
+                                                                disabled={!isTaskActionable}
+                                                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
+                                                            />
+                                                        </View>
                                                     </PressableWithoutFeedback>
                                                     {titleContent}
                                                 </View>
