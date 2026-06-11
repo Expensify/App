@@ -41,7 +41,7 @@ describe('actions/PolicyRules', () => {
     });
 
     describe('addPolicyAgentRule', () => {
-        it('optimistically adds the AI rule with a pending ADD action, then clears it on success', async () => {
+        it('optimistically adds the agent rule with a pending ADD action, then clears it on success', async () => {
             const fakePolicy = createRandomPolicy(0);
             const agentRuleID = 'agentRule1';
             const prompt = 'Flag any expense over $1000';
@@ -69,7 +69,7 @@ describe('actions/PolicyRules', () => {
             expect(finalRule?.errors).toBeFalsy();
         });
 
-        it('sets an error on the AI rule when the request fails', async () => {
+        it('sets an error on the agent rule when the request fails', async () => {
             const fakePolicy = createRandomPolicy(0);
             const agentRuleID = 'agentRule2';
             const prompt = 'Reject duplicates';
