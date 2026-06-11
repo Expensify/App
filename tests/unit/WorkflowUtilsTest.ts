@@ -209,6 +209,24 @@ describe('WorkflowUtils', () => {
             ]);
         });
 
+        it('Should surface a DELETE pendingAction from the employee onto the approver row so the workflow card renders with strikethrough', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: '2@example.com',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: undefined,
+                },
+            };
+
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
+
+            expect(approvers).toEqual([buildApprover(1, {forwardsTo: '2@example.com', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), buildApprover(2)]);
+        });
+
         it('Should include approvalLimit and overLimitForwardsTo in approver objects', () => {
             const employees: PolicyEmployeeList = {
                 '1@example.com': {

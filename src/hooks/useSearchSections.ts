@@ -3,12 +3,13 @@ import {getSections, getSortedSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 import useActionLoadingReportIDs from './useActionLoadingReportIDs';
-import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useFilterPendingDeleteReports from './useFilterPendingDeleteReports';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import useReportAttributes from './useReportAttributes';
 
 type UseSearchSectionsResult = {
     allReports: Array<string | undefined>;
@@ -29,8 +30,9 @@ function useSearchSections(): UseSearchSectionsResult {
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributesDerivedValue = useReportAttributes();
 
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     const searchResultsData = currentSearchResults?.data;
@@ -51,13 +53,14 @@ function useSearchSections(): UseSearchSectionsResult {
             bankAccountList,
             groupBy,
             currentSearch: searchKey,
-            archivedReportsIDList: archivedReportsIdSet,
+            archivedReportsIDList: archivedReportsIDSet,
             isActionLoadingSet,
             cardFeeds,
             cardList: personalAndWorkspaceCards,
             nonPersonalAndWorkspaceCardList: nonPersonalAndWorkspaceCards,
             conciergeReportID,
             convertToDisplayString,
+            reportAttributesDerivedValue,
         });
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
