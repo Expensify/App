@@ -1625,6 +1625,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Dit rapport is afgekeurd. We wachten tot jij de problemen oplost en het handmatig opnieuw indient.',
             selectMemberError: 'Selecteer een lid om dit rapport naar terug te sturen.',
             couldNotReject: 'Het rapport kon niet worden afgewezen. Probeer het opnieuw.',
+            couldNotRejectExpense: 'De uitgave kon niet worden afgewezen.',
         },
         moveExpenses: 'Verplaatsen naar rapport',
         moveExpensesError: 'Je kunt dagvergoedingdeclaraties niet naar rapporten in andere werkruimten verplaatsen, omdat de dagvergoedingsbedragen per werkruimte kunnen verschillen.',

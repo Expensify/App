@@ -1610,6 +1610,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'このレポートは却下されました。問題を修正し、手動で再提出していただくのをお待ちしています。',
             selectMemberError: 'このレポートを差し戻すメンバーを選択してください。',
             couldNotReject: 'レポートを拒否できませんでした。もう一度お試しください。',
+            couldNotRejectExpense: '経費を却下できませんでした。',
         },
         moveExpenses: 'レポートに移動',
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',

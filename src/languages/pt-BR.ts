@@ -1623,6 +1623,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Este relatório foi rejeitado. Aguardando você corrigir os problemas e reenviar manualmente.',
             selectMemberError: 'Selecione um membro para o qual rejeitar este relatório.',
             couldNotReject: 'Não foi possível rejeitar o relatório. Tente novamente.',
+            couldNotRejectExpense: 'A despesa não pôde ser rejeitada.',
         },
         moveExpenses: 'Mover para relatório',
         moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros workspaces, porque as tarifas de diária podem ser diferentes entre os workspaces.',

@@ -1624,6 +1624,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Ten raport został odrzucony. Czekamy, aż naprawisz problemy i wyślesz go ponownie ręcznie.',
             selectMemberError: 'Wybierz członka, do którego chcesz odesłać ten raport do odrzucenia.',
             couldNotReject: 'Nie udało się odrzucić raportu. Spróbuj ponownie.',
+            couldNotRejectExpense: 'Nie udało się odrzucić wydatku.',
         },
         moveExpenses: 'Przenieś do raportu',
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',

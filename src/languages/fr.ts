@@ -1635,6 +1635,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Cette note de frais a été rejetée. En attente de votre action pour corriger les problèmes et la soumettre manuellement à nouveau.',
             selectMemberError: 'Sélectionnez un membre vers qui rejeter cette note de frais.',
             couldNotReject: 'La note de frais n’a pas pu être rejetée. Veuillez réessayer.',
+            couldNotRejectExpense: 'La dépense n’a pas pu être rejetée.',
         },
         moveExpenses: 'Déplacer vers le rapport',
         moveExpensesError:
