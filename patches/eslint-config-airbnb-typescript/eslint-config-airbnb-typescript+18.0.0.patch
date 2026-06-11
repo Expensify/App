@@ -1,8 +1,8 @@
 diff --git a/node_modules/eslint-config-airbnb-typescript/lib/shared.js b/node_modules/eslint-config-airbnb-typescript/lib/shared.js
-index 306550b..574bc49 100644
+index 306550b..ca981ed 100644
 --- a/node_modules/eslint-config-airbnb-typescript/lib/shared.js
 +++ b/node_modules/eslint-config-airbnb-typescript/lib/shared.js
-@@ -1,10 +1,10 @@
+@@ -1,10 +1,39 @@
  /* eslint-disable import/no-extraneous-dependencies */
 -const { rules: baseBestPracticesRules } = require('eslint-config-airbnb-base/rules/best-practices');
 -const { rules: baseErrorsRules } = require('eslint-config-airbnb-base/rules/errors');
@@ -10,12 +10,41 @@ index 306550b..574bc49 100644
 -const { rules: baseImportsRules } = require('eslint-config-airbnb-base/rules/imports');
 -const { rules: baseStyleRules } = require('eslint-config-airbnb-base/rules/style');
 -const { rules: baseVariablesRules } = require('eslint-config-airbnb-base/rules/variables');
-+const { rules: baseBestPracticesRules } = require('eslint-config-expensify/rules/base/best-practices').default[0];
-+const { rules: baseErrorsRules } = require('eslint-config-expensify/rules/base/errors').default[0];
-+const { rules: baseES6Rules } = require('eslint-config-expensify/rules/base/es6').default[0];
-+const { rules: baseImportsRules } = require('eslint-config-expensify/rules/base/imports').default[0];
-+const { rules: baseStyleRules } = require('eslint-config-expensify/rules/base/style').default[0];
-+const { rules: baseVariablesRules } = require('eslint-config-expensify/rules/base/variables').default[0];
++const path = require('path');
++
++const expensifyConfigDirectory = path.dirname(require.resolve('eslint-config-expensify'));
++const mergeExpensifyConfigRules = (...configPaths) => {
++    const mergedRules = Object.assign(
++        {},
++        ...configPaths.flatMap((configPath) => {
++            const configModule = require(path.join(expensifyConfigDirectory, configPath));
++            return configModule.default.filter((entry) => entry.rules).map((entry) => entry.rules);
++        }),
++    );
++
++    if (Array.isArray(mergedRules['comma-dangle']) && typeof mergedRules['comma-dangle'][1] === 'string') {
++        const option = mergedRules['comma-dangle'][1];
++        mergedRules['comma-dangle'] = [
++            mergedRules['comma-dangle'][0],
++            {
++                arrays: option,
++                objects: option,
++                imports: option,
++                exports: option,
++                functions: option,
++            },
++        ];
++    }
++
++    return mergedRules;
++};
++
++const baseBestPracticesRules = mergeExpensifyConfigRules('configs/private/best-practices.js');
++const baseErrorsRules = mergeExpensifyConfigRules('configs/private/errors.js');
++const baseES6Rules = mergeExpensifyConfigRules('configs/private/es6.js');
++const baseImportsRules = mergeExpensifyConfigRules('configs/private/imports.js');
++const baseStyleRules = mergeExpensifyConfigRules('configs/private/style.js', 'configs/public/formatting.js');
++const baseVariablesRules = mergeExpensifyConfigRules('configs/private/variables.js');
  /* eslint-enable import/no-extraneous-dependencies */
  
  module.exports = {

@@ -36,7 +36,7 @@ const projectRoot = path.resolve(dirname, '../..');
 // rely on `rulesdir/<rule>` resolve them) and at our own `eslint-plugin-local-rules/`
 // at the repo root.
 const require = createRequire(import.meta.url);
-const expensifyConfigDirectory = path.dirname(require.resolve('eslint-config-expensify/package.json'));
+const expensifyConfigDirectory = path.dirname(require.resolve('eslint-config-expensify'));
 const expensifyRulesDir = path.resolve(expensifyConfigDirectory, 'eslint-plugin-expensify');
 const localRulesDir = path.resolve(projectRoot, 'eslint-plugin-local-rules');
 
@@ -212,6 +212,13 @@ const config = defineConfig([
     ...tsExpensifyConfig,
     ...expensifyPluginConfig,
     ...scriptsConfig,
+    {
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
+        },
+    },
     typescriptEslint.configs.recommendedTypeChecked,
     typescriptEslint.configs.stylisticTypeChecked,
     fileProgress.configs['recommended-ci'],
@@ -347,6 +354,10 @@ const config = defineConfig([
             '@typescript-eslint/no-use-before-define': ['error', {functions: false}],
 
             // ESLint core rules
+            // Previously set in eslint-config-expensify/style (now in ./formatting, which we skip because Prettier handles formatting)
+            'no-console': ['error', {allow: ['debug', 'error']}],
+            // Previously set in eslint-config-expensify/rules/style.js after react (4.0.1 react re-enables this rule)
+            'class-methods-use-this': 'off',
             'es/no-nullish-coalescing-operators': 'off',
             'es/no-optional-chaining': 'off',
             '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
@@ -384,6 +395,7 @@ const config = defineConfig([
             'react-native-a11y/has-valid-accessibility-ignores-invert-colors': 'error',
             'react/require-default-props': 'off',
             'react/prop-types': 'off',
+            'react/no-unused-prop-types': ['error', {customValidators: [], skipShapeProps: true}],
             'react/jsx-key': 'error',
             'react/jsx-no-constructed-context-values': 'error',
             'react/forbid-component-props': [
@@ -652,6 +664,10 @@ const config = defineConfig([
                 ...globals.node,
             },
         },
+        // Re-apply after the main rules block, which sets no-console with allow: [debug, error]
+        rules: {
+            'no-console': 'off',
+        },
     },
 
     {
@@ -780,6 +796,7 @@ const config = defineConfig([
         '**/node_modules/**/*',
         '**/dist/**/*',
         'server/**/dist/**',
+        'server/victory-chart-renderer/.dev/**',
         '.eslint-reports/**/*',
         'android/**/build/**/*',
         'docs/vendor/**/*',
