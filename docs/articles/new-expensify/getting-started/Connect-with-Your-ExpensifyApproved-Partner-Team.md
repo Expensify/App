@@ -25,7 +25,7 @@ To learn how firms join the program and receive a dedicated partner team, see th
 
 ## How to connect with your Approved! partner team
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile).
+1. In the navigation tabs (on the left on web, on the bottom on mobile).
 2. Select **Account**.
 3. Select **Help**.
 4. Under **Meet your Approved! partner team**, find your **Partner Manager**, **Account Executive**, or **Account Manager**.
@@ -37,12 +37,7 @@ To learn how firms join the program and receive a dedicated partner team, see th
 
 ## Why don't I see the Approved! partner team on my Help page?
 
-The **Meet your Approved! partner team** section appears only if:
-
-- Your account is enrolled as an **ExpensifyApproved! Accountant**.
-- A Partner Manager, Account Executive, or Account Manager has been assigned to your account.
-
-If neither applies, the section will not appear and you'll see the standard **Help and support** page.
+The **Meet your Approved! partner team** section appears only if your account is enrolled as an **ExpensifyApproved! Accountant**. 
 
 ## How do I message a contact on the Help page?
 
