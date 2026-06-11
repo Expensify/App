@@ -8,6 +8,7 @@ import {
 } from '@libs/actions/connections/FinancialForce';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {FinancialForceFFAExportStatus} from '@src/types/onyx/Policy';
 
 const CERTINIA_DIMENSION_PARAMS = [
     CONST.CERTINIA_CONFIG.CODING_DIMENSION1,
@@ -18,11 +19,10 @@ const CERTINIA_DIMENSION_PARAMS = [
 
 type CertiniaDimensionParam = TupleToUnion<typeof CERTINIA_DIMENSION_PARAMS>;
 
-const CERTINIA_FFA_EXPORT_STATUSES = [CONST.CERTINIA_EXPORT_STATUS.COMPLETE, CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS] as const;
+const CERTINIA_FFA_EXPORT_STATUSES: FinancialForceFFAExportStatus[] = [CONST.CERTINIA_EXPORT_STATUS.COMPLETE, CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS];
 
 type CertiniaMappingValue = ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
 type CertiniaExportStatus = ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
-type CertiniaFFAExportStatus = TupleToUnion<typeof CERTINIA_FFA_EXPORT_STATUSES>;
 
 function dimensionParamToNumber(dimension: string): number {
     return Number(dimension.replace('dimension', ''));
@@ -57,8 +57,14 @@ function getCertiniaExportStatusValue(status: string | undefined): CertiniaExpor
 
 /**
  * Same as getCertiniaExportStatusValue, but only returns statuses that apply to FFA payable invoices.
+ * The uppercase identifier "APPROVED" maps to COMPLETE: it was only ever written by the pre-native FFA
+ * picker, whose "APPROVED" option was labeled "Complete". The native PSA value "Approved" stays excluded.
  */
-function getCertiniaFFAExportStatusValue(status: string | undefined): CertiniaFFAExportStatus | undefined {
+function getCertiniaFFAExportStatusValue(status: string | undefined): FinancialForceFFAExportStatus | undefined {
+    if (status === 'APPROVED') {
+        return CONST.CERTINIA_EXPORT_STATUS.COMPLETE;
+    }
+
     const value = getCertiniaExportStatusValue(status);
     return CERTINIA_FFA_EXPORT_STATUSES.find((ffaStatus) => ffaStatus === value);
 }
@@ -100,4 +106,4 @@ export {
     isCertiniaDimensionParam,
     updateFinancialForceDimensionMapping,
 };
-export type {CertiniaDimensionParam, CertiniaFFAExportStatus, CertiniaMappingValue};
+export type {CertiniaDimensionParam, CertiniaMappingValue};

@@ -1389,6 +1389,9 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 /** Certinia (FinancialForce) export destination — FFA Payable Invoice vs PSA Expense Report */
 type FinancialForceExportDestination = ValueOf<typeof CONST.CERTINIA_EXPORT_DESTINATION>;
 
+/** Certinia export statuses that apply to FFA payable invoices */
+type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.COMPLETE | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
+
 /** Certinia PSA parent tag mapping mode */
 type FinancialForceParentTagMappingMode = ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>;
 
@@ -2497,6 +2500,7 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     FinancialForceConnectionConfig,
+    FinancialForceFFAExportStatus,
     ACHAccount,
     ApprovalRule,
     ExpenseRule,

@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {SageIntacctMappingValue} from '@src/types/onyx/Policy';
+import type {FinancialForceFFAExportStatus, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 // We have to disable eslint for this import because otherwise the import will be 300 lines long
 // eslint-disable-next-line no-restricted-syntax
@@ -9,7 +9,6 @@ import type SignInUserParams from './parameters/SignInUserParams';
 import type UpdateBeneficialOwnersForBankAccountParams from './parameters/UpdateBeneficialOwnersForBankAccountParams';
 
 type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
-type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.COMPLETE | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
 type FinancialForceReportExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.SUBMITTED;
 
 const WRITE_COMMANDS = {

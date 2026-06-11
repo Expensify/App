@@ -9,14 +9,14 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import {CERTINIA_FFA_EXPORT_STATUSES, getCertiniaFFAExportStatusValue} from '@pages/workspace/accounting/certinia/utils';
-import type {CertiniaFFAExportStatus} from '@pages/workspace/accounting/certinia/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {FinancialForceFFAExportStatus} from '@src/types/onyx/Policy';
 
 type ExportStatusListItem = ListItem & {
-    value: CertiniaFFAExportStatus;
+    value: FinancialForceFFAExportStatus;
 };
 
 function CertiniaExportStatusPage({policy}: WithPolicyConnectionsProps) {
