@@ -136,6 +136,14 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
     const shouldShowCardReconciliationOption = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
+    const shouldShowReconnect = hasAuthError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
+    let credentialsMenuTextKey: Parameters<typeof translate>[0] = 'workspace.accounting.enterCredentials';
+    if (shouldShowReconnect) {
+        credentialsMenuTextKey = 'workspace.accounting.reconnect';
+    } else if (isSageIntacct && !hasAuthError) {
+        credentialsMenuTextKey = 'workspace.accounting.updateCredentials';
+    }
+
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
             ...(shouldShowReinstallConnectorMenuItem
@@ -154,7 +162,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ? [
                       {
                           icon: icons.Key,
-                          text: translate(isSageIntacct && !hasAuthError ? 'workspace.accounting.updateCredentials' : 'workspace.accounting.enterCredentials'),
+                          text: translate(credentialsMenuTextKey),
                           onSelected: () => {
                               if (isSageIntacct && policyID) {
                                   Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
@@ -200,6 +208,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             startIntegrationFlow,
             isSageIntacct,
             hasAuthError,
+            credentialsMenuTextKey,
             policyID,
         ],
     );

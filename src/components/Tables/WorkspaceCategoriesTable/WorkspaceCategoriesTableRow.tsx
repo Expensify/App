@@ -4,7 +4,6 @@ import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
-import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -24,21 +23,36 @@ type WorkspaceCategoriesTableRowProps = {
     /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 
+    /** Whether the GL Code column is visible on web screens or not */
+    shouldShowGLCodeColumn: boolean;
+
     /** Whether the approver column is visible on web screens or not */
     shouldShowApproverColumn: boolean;
 };
 
-export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTableLayout, shouldShowApproverColumn, item}: WorkspaceCategoriesTableRowProps) {
+export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTableLayout, shouldShowGLCodeColumn, shouldShowApproverColumn, item}: WorkspaceCategoriesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
+    const accessibilityLabel = [
+        item.name,
+        item.enabled ? translate('common.enabled') : translate('common.disabled'),
+        shouldShowGLCodeColumn && item.glCode ? `${translate('workspace.categories.glCode')}: ${item.glCode}` : null,
+        shouldShowApproverColumn && item.approverDisplayName ? `${translate('common.approver')}: ${item.approverDisplayName}` : null,
+    ]
+        .filter(Boolean)
+        .join(', ');
+
     return (
         <Table.Row
+            interactive
             rowIndex={rowIndex}
-            interactive={!item.disabled}
+            disabled={item.disabled}
+            accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={{context: 'categoriesTableRow'}}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ROW}
             onPress={item.action}
             offlineWithFeedback={{
                 errors: item.errors,
@@ -50,12 +64,20 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
             {() => (
                 <>
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                        <Text>{item.name}</Text>
+                        <TextWithTooltip
+                            shouldShowTooltip
+                            numberOfLines={1}
+                            text={item.name}
+                        />
                     </View>
 
-                    {!shouldUseNarrowTableLayout && (
+                    {!shouldUseNarrowTableLayout && shouldShowGLCodeColumn && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text>{item.glCode}</Text>
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.glCode ?? ''}
+                            />
                         </View>
                     )}
 
@@ -69,15 +91,20 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                                         type={CONST.ICON_TYPE_AVATAR}
                                         size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                                     />
-                                    <TextWithTooltip text={item.approverDisplayName ?? ''} />
+                                    <TextWithTooltip
+                                        shouldShowTooltip
+                                        numberOfLines={1}
+                                        text={item.approverDisplayName ?? ''}
+                                    />
                                 </>
                             )}
                         </View>
                     )}
 
-                    <View style={[styles.justifyContentCenter]}>
+                    <View style={[styles.justifyContentCenter, styles.alignItemsEnd]}>
                         <Switch
                             isOn={item.enabled}
+                            showLockIcon={item.isLocked}
                             disabled={item.disabled}
                             accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
                             onToggle={item.onToggleEnabled}
@@ -87,7 +114,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                     <Icon
                         src={icons.ArrowRight}
                         fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter]}
+                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, item.disabled && styles.opacitySemiTransparent]}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />

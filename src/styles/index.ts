@@ -947,7 +947,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonDangerText: {
-            color: theme.textLight,
+            color: theme.buttonDangerText,
         },
 
         buttonBlendContainer: {
@@ -3140,7 +3140,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: 28,
             justifyContent: 'center',
             borderRadius: 20,
-            padding: 15,
         },
 
         switchThumb: {
@@ -3572,7 +3571,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchInputSkeleton: {
-            height: 54,
+            height: 46,
             justifyContent: 'center',
         },
 
@@ -4220,10 +4219,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 20,
             width: 335,
             overflow: 'hidden',
-        },
-
-        eReceiptHoverFill: {
-            backgroundColor: colors.green800,
         },
 
         eReceiptBackgroundThumbnail: {
@@ -5032,6 +5027,26 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 3,
         },
 
+        typeFiltersPopupContainer: {
+            borderRightWidth: 1,
+            borderRightColor: theme.border,
+            paddingVertical: 8,
+        },
+
+        typeFilterMenu: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            height: 52,
+            paddingHorizontal: 20,
+            paddingVertical: 4,
+            gap: 12,
+        },
+
+        filterContentContainer: {
+            flex: 1,
+            minWidth: CONST.ADVANCED_FILTERS_CONTENT_WIDTH,
+        },
+
         searchActionsBarContainer: {
             marginBottom: 16,
             paddingHorizontal: 20,
@@ -5043,6 +5058,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchActionsBarCreateButton: {
             alignSelf: 'flex-start',
+        },
+
+        searchFiltersClearButton: {
+            flexDirection: 'row',
+            gap: 4,
+            alignItems: 'center',
+            borderRadius: variables.buttonBorderRadius,
+            paddingHorizontal: 12,
+            minHeight: 28,
         },
 
         searchPageInputWideTouchableWrapper: {height: 32, width: 200},

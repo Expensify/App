@@ -35,6 +35,7 @@ const lightTheme = {
     buttonSuccessText: colors.productLight100,
     buttonSecondarySuccessBG: colors.green700,
     buttonSecondarySuccessHoveredBG: colors.green800,
+    buttonDangerText: colors.white,
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,

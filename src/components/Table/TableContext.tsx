@@ -57,6 +57,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Whether the table has an empty result caused by search or filters. */
     isEmptyResult: boolean;
 
+    /** Whether or not table selection is enabled on mobile */
+    isMobileSelectionEnabled: boolean;
+
     /** Whether to use a narrow layout (e.g. on mobile screens). */
     shouldUseNarrowTableLayout: boolean;
 };
@@ -79,6 +82,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     hasSearchString: false,
     isEmptyResult: false,
     shouldUseNarrowTableLayout: false,
+    isMobileSelectionEnabled: false,
 };
 
 const TableContext = createContext(defaultTableContextValue);

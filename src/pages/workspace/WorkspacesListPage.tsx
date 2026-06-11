@@ -38,6 +38,7 @@ import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace,
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -564,6 +565,10 @@ function WorkspacesListPage() {
                     return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 }
 
+                if (isMergeHRCompleteSetupNeeded(policy)) {
+                    return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+                }
+
                 return getPolicyBrickRoadIndicatorStatus(
                     policy,
                     isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
@@ -578,6 +583,7 @@ function WorkspacesListPage() {
                 const ownerDetails = policyOwnerAccountID && getPersonalDetailsByIDs({accountIDs: [policyOwnerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
 
                 const pendingWorkspaceRow: WorkspaceRowData = {
+                    keyForList: policyID,
                     policyID,
                     disabled: true,
                     errors: undefined,
@@ -607,6 +613,7 @@ function WorkspacesListPage() {
                 const ownerDetails = policyOwnerAccountID && getPersonalDetailsByIDs({accountIDs: [policyOwnerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
 
                 const workspaceRow: WorkspaceRowData = {
+                    keyForList: policy.id,
                     policyID: policy.id,
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     errors: policy.errors,

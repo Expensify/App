@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
+import AIRulesSection from './AIRulesSection';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 import MerchantRulesSection from './MerchantRulesSection';
 
@@ -94,6 +95,13 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                     />
                     {!!policy?.areExpensifyCardsEnabled && (
                         <SpendRulesSection
+                            policyID={policyID}
+                            canWriteRules={canWriteRules}
+                            showReadOnlyModal={showReadOnlyModal}
+                        />
+                    )}
+                    {isCustomAgentBetaEnabled && (
+                        <AIRulesSection
                             policyID={policyID}
                             canWriteRules={canWriteRules}
                             showReadOnlyModal={showReadOnlyModal}

@@ -1,14 +1,20 @@
 import type {Dispatch, SetStateAction} from 'react';
-import {useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import type {TableData, TableRow} from '@components/Table/types';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {MiddlewareHookResult} from './types';
 
 type UseSelectionProps<DataType extends TableData> = {
     /** The data being used in the table */
     data: DataType[];
 
+    /** The list of selected keys */
+    selectedKeys: string[];
+
     /** Callback that is fired when the selection of rows in the table changes */
-    onRowSelectionChange?: (selectedRows: Array<TableRow<DataType>>) => void;
+    onRowSelectionChange?: (selectedRowKeys: string[]) => void;
 };
 
 type SelectionMethods = {
@@ -25,57 +31,58 @@ type SelectionMethods = {
     clearSelection: () => void;
 
     /** Set whether or not the mobile selection modal is visible */
-    setIsMobileSelectionModalVisible: Dispatch<SetStateAction<boolean>>;
+    setMobileSelectionModalRowKey: Dispatch<SetStateAction<string | null>>;
 };
 
 type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>> & {
     /** Whether or not the mobile selection modal is visible */
-    isMobileSelectionModalVisible: boolean;
+    mobileSelectionModalRowKey: string | null;
 };
 
-export default function useSelection<DataType extends TableData>({data, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
+export default function useSelection<DataType extends TableData>({data, selectedKeys, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isSelectionModeEnabled = useMobileSelectionMode();
     const lastSelectedRowKeyRef = useRef<string | null>(null);
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
 
-    const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-    const [isMobileSelectionModalVisible, setIsMobileSelectionModalVisible] = useState(false);
+    // When a user long-presses a row on mobile, store the key of the row that will be selected if
+    // the user confirms the selection
+    const [mobileSelectionModalRowKey, setMobileSelectionModalRowKey] = useState<string | null>(null);
 
     const selectableKeys = data.filter((item) => !item.disabled).map((item) => item.keyForList);
+    const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
 
-    let areAllSelectableRowsSelected = true;
-    const tableRowData: Array<TableRow<DataType>> = [];
-
-    for (const item of data) {
-        const isSelected = selectedKeys.includes(item.keyForList);
-        tableRowData.push({...item, selected: isSelected});
-
-        if (!isSelected && !item.disabled) {
-            areAllSelectableRowsSelected = false;
+    // Automatically disable selection mode when switching to desktop, or enable it when switching to mobile if there are selected rows
+    useEffect(() => {
+        if (shouldUseNarrowLayout && !isSelectionModeEnabled && selectedKeys.length) {
+            turnOnMobileSelectionMode();
+        } else if (!shouldUseNarrowLayout && isSelectionModeEnabled && !selectedKeys.length) {
+            turnOffMobileSelectionMode();
         }
-    }
+    }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length]);
 
-    /**
-     * Helper method to ensure that the row selection callback is called every time that the selected
-     * keys are updated
-     */
-    const updateSelectedKeys: Dispatch<SetStateAction<string[]>> = (action) => {
-        setSelectedKeys((prevSelectedKeys) => {
-            const updatedSelectedKeys = typeof action === 'function' ? action(prevSelectedKeys) : action;
+    // When there are no more items to be selected, turn off selection mode on mobile
+    useEffect(() => {
+        if (selectableKeys.length || !isSelectionModeEnabled) {
+            return;
+        }
 
-            if (onRowSelectionChange) {
-                const selectedRows = tableRowData.filter((row) => updatedSelectedKeys.includes(row.keyForList));
-                onRowSelectionChange(selectedRows);
-            }
+        turnOffMobileSelectionMode();
+    }, [selectableKeys.length, isSelectionModeEnabled]);
 
-            return updatedSelectedKeys;
-        });
-    };
+    const prevSelectionModeEnabledRef = useRef(isSelectionModeEnabled);
+    useEffect(() => {
+        if (prevSelectionModeEnabledRef.current && !isSelectionModeEnabled) {
+            onRowSelectionChange?.([]);
+        }
+        prevSelectionModeEnabledRef.current = isSelectionModeEnabled;
+    }, [isSelectionModeEnabled, onRowSelectionChange]);
 
     /**
      * Clear all of the currently selected keys
      */
     const clearSelection = () => {
-        updateSelectedKeys([]);
+        onRowSelectionChange?.([]);
     };
 
     /**
@@ -83,10 +90,16 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
      * rows in the table
      */
     const handleSelectAll = () => {
-        if (areAllSelectableRowsSelected) {
-            updateSelectedKeys([]);
-        } else {
-            updateSelectedKeys(selectableKeys);
+        const areAllSelectableRowsSelected = selectableKeys.every((key) => selectedKeys.includes(key));
+
+        const isSelectionEmpty = selectedKeys.length === 0;
+        const isSelectionFull = areAllSelectableRowsSelected;
+        const isSelectionIndeterminate = selectedKeys.length > 0 && !areAllSelectableRowsSelected;
+
+        if (isSelectionEmpty) {
+            onRowSelectionChange?.(selectableKeys);
+        } else if (isSelectionFull || isSelectionIndeterminate) {
+            onRowSelectionChange?.([]);
         }
     };
 
@@ -95,19 +108,18 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
      * on or off
      */
     const handleSingleRowSelection = (keyForList: string) => {
-        updateSelectedKeys((prevSelectedKeys) => {
-            const keyIndex = prevSelectedKeys.indexOf(keyForList);
-            const isCurrentlySelected = keyIndex !== -1;
+        const keyIndex = selectedKeys.indexOf(keyForList);
+        const isCurrentlySelected = keyIndex !== -1;
 
-            lastSelectedRowKeyRef.current = keyForList;
-            lastSelectedRowIsSelectedRef.current = !isCurrentlySelected;
+        lastSelectedRowKeyRef.current = keyForList;
+        lastSelectedRowIsSelectedRef.current = !isCurrentlySelected;
 
-            if (isCurrentlySelected) {
-                return [...prevSelectedKeys.slice(0, keyIndex), ...prevSelectedKeys.slice(keyIndex + 1)];
-            }
+        if (isCurrentlySelected) {
+            onRowSelectionChange?.([...selectedKeys.slice(0, keyIndex), ...selectedKeys.slice(keyIndex + 1)]);
+            return;
+        }
 
-            return [...prevSelectedKeys, keyForList];
-        });
+        onRowSelectionChange?.([...selectedKeys, keyForList]);
     };
 
     /**
@@ -140,30 +152,28 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
         const endIndex = Math.max(currentSelectedRowIndex, lastSelectedRowIndex);
         const startIndex = Math.min(currentSelectedRowIndex, lastSelectedRowIndex);
 
-        updateSelectedKeys((prevSelectedKeys) => {
-            const newSelectedKeys = [...prevSelectedKeys];
+        const newSelectedKeys = [...selectedKeys];
 
-            for (let i = startIndex; i <= endIndex; i++) {
-                const key = selectableKeys.at(i);
+        for (let i = startIndex; i <= endIndex; i++) {
+            const key = selectableKeys.at(i);
 
-                if (!key) {
-                    continue;
-                }
-
-                if (lastSelectedRowIsSelected) {
-                    if (!newSelectedKeys.includes(key)) {
-                        newSelectedKeys.push(key);
-                    }
-                } else {
-                    const index = newSelectedKeys.indexOf(key);
-                    if (index !== -1) {
-                        newSelectedKeys.splice(index, 1);
-                    }
-                }
+            if (!key) {
+                continue;
             }
 
-            return newSelectedKeys;
-        });
+            if (lastSelectedRowIsSelected) {
+                if (!newSelectedKeys.includes(key)) {
+                    newSelectedKeys.push(key);
+                }
+            } else {
+                const index = newSelectedKeys.indexOf(key);
+                if (index !== -1) {
+                    newSelectedKeys.splice(index, 1);
+                }
+            }
+        }
+
+        onRowSelectionChange?.(newSelectedKeys);
     };
 
     const middleware = () => {
@@ -172,13 +182,13 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
 
     return {
         middleware,
-        isMobileSelectionModalVisible,
+        mobileSelectionModalRowKey,
         methods: {
             handleSelectAll,
             handleMultipleRowSelection,
             handleSingleRowSelection,
             clearSelection,
-            setIsMobileSelectionModalVisible,
+            setMobileSelectionModalRowKey,
         },
     };
 }
