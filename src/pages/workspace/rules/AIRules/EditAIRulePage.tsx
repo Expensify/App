@@ -141,6 +141,7 @@ function EditAIRulePage({
                             onKeyPress={handleKeyPress}
                             defaultValue={aiRule.prompt}
                             multiline
+                            shouldLabelStayOnSingleLine
                             containerStyles={[styles.flex1]}
                             touchableInputWrapperStyle={[styles.flex1]}
                             textInputContainerStyles={[styles.flex1]}
