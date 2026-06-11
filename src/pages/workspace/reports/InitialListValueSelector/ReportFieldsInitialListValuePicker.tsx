@@ -39,7 +39,6 @@ function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value,
             ListItem={SingleSelectListItem}
             onSelectRow={(item) => onValueChange(item.value)}
             initiallyFocusedItemKey={listValueOptions.find((listValue) => listValue.isSelected)?.keyForList}
-            shouldSingleExecuteRowSelect
             addBottomSafeAreaPadding
         />
     );
