@@ -407,8 +407,10 @@ function startMoneyRequest(
     isFromFloatingActionButton?: boolean,
 ) {
     const sourceRoute = Navigation.getActiveRoute();
-    // Prefetch the default P2P mileage rate so it's available if the user picks the Distance tab (e.g. when splitting a distance expense).
-    getDefaultP2PMileageRate();
+    // Only the split flow exposes a Distance tab from here, so prefetch the default P2P mileage rate solely for splits to avoid an unnecessary read on other flows.
+    if (iouType === CONST.IOU.TYPE.SPLIT) {
+        getDefaultP2PMileageRate();
+    }
     startSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE, {
         name: '/money-request-create',
         op: CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE,

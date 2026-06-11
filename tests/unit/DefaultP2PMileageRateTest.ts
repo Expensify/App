@@ -49,6 +49,16 @@ describe('Default P2P mileage rate', () => {
 
             expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null);
         });
+
+        // Non-split flows never expose a Distance tab, so they must not issue the (uncached) prefetch read.
+        it('does not prefetch the default P2P mileage rate for non-split requests', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+
+            startMoneyRequest(CONST.IOU.TYPE.SUBMIT, '1', [], CONST.IOU.REQUEST_TYPE.MANUAL);
+
+            expect(readSpy).not.toHaveBeenCalledWith(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null);
+        });
     });
 
     describe('getRateForP2P', () => {
