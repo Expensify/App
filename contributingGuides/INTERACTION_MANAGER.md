@@ -59,6 +59,8 @@ Sometimes a transition starts in the same tick as the `runAfterTransitions` call
 
 To fix this, pass the `waitForUpcomingTransition` flag along with the callback. This tells TransitionTracker to wait for a transition that hasn't started yet, ensuring the callback truly runs after the transition completes.
 
+> **Important:** `waitForUpcomingTransition` waits up to 1 second for a transition to begin. If no transition starts within that window, the callback fires anyway — effectively acting as a 1-second timeout. When using this flag, always make sure that TransitionTracker actually picks up the transition (i.e. the transition is registered within the 1-second window). Otherwise you're not waiting for a real transition, just adding an arbitrary delay.
+
 ## How
 The migration is split into 9 issues. Current status of the migration can be found in the parent Github issue [here](https://github.com/Expensify/App/issues/71913). 
 
