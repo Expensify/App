@@ -1,10 +1,12 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import actionTranslationsMap from './actionTranslationsMap';
 import PayActionCell from './PayActionCell';
@@ -21,6 +23,7 @@ type ActionCellProps = {
     amount?: number;
     extraSmall?: boolean;
     shouldDisablePointerEvents?: boolean;
+    chatReport?: OnyxEntry<Report>;
 };
 
 function ActionCell({
@@ -35,6 +38,7 @@ function ActionCell({
     amount,
     extraSmall = false,
     shouldDisablePointerEvents,
+    chatReport,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -75,6 +79,7 @@ function ActionCell({
                 amount={amount}
                 extraSmall={extraSmall}
                 shouldDisablePointerEvents={shouldDisablePointerEvents}
+                chatReport={chatReport}
             />
         );
     }

@@ -250,7 +250,7 @@
 "../../src/components/MapView/MapViewImpl.web.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MapView/MapViewImpl.web.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MapView/ToggleDistanceUnitButton/index.android.tsx"	"no-restricted-syntax"	1
-"../../src/components/MenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/components/MenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/Modal/BaseModal.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Modal/Global/ConfirmModalWrapper.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/Modal/Global/ModalContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1439,7 +1439,7 @@
 "../../src/pages/workspace/accounting/xero/import/XeroCustomerConfigurationPage.tsx"	"no-restricted-syntax"	3
 "../../src/pages/workspace/accounting/xero/import/XeroCustomerConfigurationPage.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/workspace/categories/CategorySettingsPage.tsx"	"react-hooks/preserve-manual-memoization"	1
-"../../src/pages/workspace/categories/WorkspaceCategoriesPage.tsx"	"react-hooks/set-state-in-effect"	2
+"../../src/pages/workspace/categories/WorkspaceCategoriesPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/BankConnection/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardAddWorkEmailPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
