@@ -2998,6 +2998,7 @@ const CONST = {
         REPORT_EXPORT_STATUS: 'reportExportStatus',
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
+        COMPANY: 'company',
     },
 
     CERTINIA_EXPORT_STATUS: {
