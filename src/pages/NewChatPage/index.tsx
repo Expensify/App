@@ -359,7 +359,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     };
 
     const itemRightSideComponent = (item: OptionWithKey, isFocused?: boolean) => {
-        if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login))) {
+        if (item.isSelfDM) {
             return null;
         }
 
@@ -374,6 +374,12 @@ function NewChatPage({ref}: NewChatPageProps) {
                 />
             );
         }
+
+        // "Add to group" only makes sense for invitable (login-bearing, non-excluded) users
+        if (!item.login || excludedGroupEmails.has(item.login)) {
+            return null;
+        }
+
         const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
         return (
             <Button
