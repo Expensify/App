@@ -8,7 +8,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
- 
 const ReactTestRenderer: typeof ReactTestRendererType = require('react-test-renderer');
 
 Onyx.init({keys: ONYXKEYS});

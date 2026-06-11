@@ -450,7 +450,6 @@ function BaseTextInput({
 
                                     input.current = element as HTMLInputElement | null;
                                 }}
-                                 
                                 {...inputProps}
                                 // Filter out role="presentation" so it doesn't strip the native
                                 // semantics of the <input>. Other roles (e.g. searchbox) are preserved.

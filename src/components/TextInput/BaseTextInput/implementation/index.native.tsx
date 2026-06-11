@@ -392,7 +392,6 @@ function BaseTextInput({
                                     const elementRef = element as AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null;
                                     input.current = elementRef;
                                 }}
-                                 
                                 {...inputProps}
                                 autoFocus={isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? false : inputProps.autoFocus}
                                 accessibilityLabel={resolvedAccessibilityLabel}

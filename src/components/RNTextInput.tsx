@@ -37,7 +37,6 @@ function RNTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.UNMAS
             }}
             // eslint-disable-next-line react/forbid-component-props
             fsClass={forwardedFSClass}
-             
             {...props}
             onBlur={handleBlur}
         />
