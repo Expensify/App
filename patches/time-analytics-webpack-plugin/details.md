@@ -5,11 +5,11 @@
 - Reason:
   
     ```
-    Updates time-analytics-webpack-plugin's `loader` function to preserve sourceMap configuration so our sourcemaps accurately reflect the source code on disk
+    Updates time-analytics-webpack-plugin's `loader` function to preserve sourceMaps from loaders, so our sourcemaps accurately reflect the source code on disk
     ```
   
-- Upstream PR/issue: 🛑 TODO
-- E/App issue: 🛑 TODO
+- Upstream PR/issue: https://github.com/ShuiRuTian/time-analytics-webpack-plugin/pull/13
+- E/App issue: https://github.com/Expensify/App/issues/93340
 - PR introducing patch: 🛑 TODO
 
 
