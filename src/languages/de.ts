@@ -8048,16 +8048,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `„${rateName}“-Satz von ${rateValue} hinzugefügt, gültig bis ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `hat den Tarif „${rateName}“ mit ${rateValue} hinzugefügt, gültig vom ${startDate} bis ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `Startdatum des Tarifs „${rateName}“ auf ${newDate} aktualisiert (zuvor ${oldDate})` : `Startdatum des Tarifs „${rateName}“ auf ${newDate} festlegen`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `Enddatum des Tarifs „${rateName}“ auf ${newDate} aktualisiert (zuvor ${oldDate})` : `Enddatum des Tarifs „${rateName}“ auf ${newDate} setzen`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `Start- und Enddatum des Tarifs „${rateName}“ auf ${newStartDate} - ${newEndDate} aktualisiert (zuvor ${oldStartDate} - ${oldEndDate})`
-                : `Start- und Enddatum des Tarifs „${rateName}“ auf ${newStartDate} – ${newEndDate} festlegen`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `Startdatum aus Tarif „${rateName}“ entfernt (zuvor ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `Enddatum aus dem Tarif „${rateName}“ entfernt (zuvor ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `hat den Entfernungs­tarif „${rateName}“ aktualisiert, sodass er für ${newDateRange} gilt (zuvor ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `ab dem ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `bis ${date}`,
+        customUnitRateDateRangeAllDates: () => `für alle Daten`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
