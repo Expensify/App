@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -15,6 +14,7 @@ import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useFilteredOptions from '@hooks/useFilteredOptions';
+import useIsFocusedUntilTransitionEnd from '@hooks/useIsFocusedUntilTransitionEnd';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -139,7 +139,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
     );
 }
 
-function SearchAutocompleteList({
+function SearchAutocompleteListContent({
     autocompleteQueryValue,
     handleSearch,
     searchQueryItems,
@@ -154,8 +154,6 @@ function SearchAutocompleteList({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    const isFocused = useIsFocused();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -180,7 +178,6 @@ function SearchAutocompleteList({
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
 
     const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({
-        enabled: isFocused,
         isSearching: !!autocompleteQueryValue.trim(),
         betas: betas ?? [],
     });
@@ -671,6 +668,18 @@ function SearchAutocompleteList({
             }}
         />
     );
+}
+
+SearchAutocompleteListContent.displayName = 'SearchAutocompleteListContent';
+
+function SearchAutocompleteList(props: SearchAutocompleteListProps) {
+    const isFocusedUntilTransitionEnd = useIsFocusedUntilTransitionEnd();
+
+    if (!isFocusedUntilTransitionEnd) {
+        return null;
+    }
+
+    return <SearchAutocompleteListContent {...props} />;
 }
 
 SearchAutocompleteList.displayName = 'SearchAutocompleteList';
