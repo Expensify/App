@@ -1121,12 +1121,23 @@ function authenticatePusher(socketID: string, channelName: string, callback?: Ch
 
                 // Attempt to refresh the authToken then reconnect to Pusher
                 reauthenticatePusher();
+
+                // When called without a callback (native onAuthorizer path), the Promise must reject rather than
+                // resolve to undefined. Returning undefined causes the native PusherSwift fetchAuthValue to receive
+                // a null auth dict, which crashes with SIGSEGV (_NativeDictionary.setValue on nil).
+                if (!callback) {
+                    throw new Error('Pusher auth failed: NOT_AUTHENTICATED');
+                }
                 return;
             }
 
             if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher for reason other than expired session');
                 callback?.(new Error(`Pusher failed to authenticate because code: ${response?.jsonCode} message: ${response?.message}`), {auth: ''});
+
+                if (!callback) {
+                    throw new Error(`Pusher auth failed: code ${response?.jsonCode}`);
+                }
                 return;
             }
 
@@ -1144,6 +1155,12 @@ function authenticatePusher(socketID: string, channelName: string, callback?: Ch
         .catch((error: unknown) => {
             Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
             callback?.(new Error('AuthenticatePusher request failed'), {auth: ''});
+
+            // Re-throw so the native onAuthorizer Promise rejects instead of resolving to undefined.
+            // A resolved undefined causes PusherSwift fetchAuthValue to crash (SIGSEGV on nil dict access).
+            if (!callback) {
+                throw error;
+            }
         });
 }
 
