@@ -29,12 +29,24 @@ On top of TransitionTracker, existing APIs gain transition-aware callbacks:
 
 This makes the code self-descriptive: instead of a generic `runAfterInteractions`, each call site says exactly what it's waiting for and why.
 
+### What TransitionTracker actually tracks
+
+TransitionTracker registers transitions **only** in the following cases:
+
+1. **Navigation transitions** — screen push/pop/replace animations (via `transitionStart`/`transitionEnd` events in `ScreenLayout`)
+2. **Modal transitions** — modal open/close animations (via `ReanimatedModal`)
+3. **Keyboard transitions** — keyboard dismiss animations (via `KeyboardUtils.dismiss`)
+
 ### When to use `runAfterTransitions` directly
 
 Prefer higher-level APIs (`Navigation` with `afterTransition`/`waitForTransition`, `KeyboardUtils`, `useConfirmModal`) whenever possible. Use `TransitionTracker.runAfterTransitions` directly **only** when:
 
 - There is no specific navigation/keyboard/modal action you can attach a callback to, or
 - There are too many concurrent actions and it's impossible to bind the callback to a particular one.
+
+### When NOT to use `runAfterTransitions`
+
+If you are not waiting for any of the tracked events (navigation, modal, keyboard), adding `runAfterTransitions` is meaningless - TransitionTracker will have no active transitions and the callback will fire synchronously in the same tick. For example, scroll events, layout animations, or Lottie playback are **not** tracked, so wrapping post-scroll logic in `runAfterTransitions` provides no benefit.
 
 ### How `runAfterTransitions` works
 
