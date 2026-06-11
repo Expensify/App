@@ -28,6 +28,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -330,6 +331,7 @@ const translations = {
         merchant: 'Merchant',
         change: 'Change',
         category: 'Category',
+        vendor: 'Vendor',
         report: 'Report',
         billable: 'Billable',
         nonBillable: 'Non-billable',
@@ -1005,7 +1007,7 @@ const translations = {
                 cta: 'Review',
             },
             validateAccount: {
-                title: 'Validate your account to continue using Expensify',
+                title: 'Validate your account',
                 subtitle: 'Account',
                 cta: 'Validate',
             },
@@ -1436,7 +1438,7 @@ const translations = {
         approvedMessage: `approved`,
         unapproved: `unapproved`,
         automaticallyForwarded: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
-        forwarded: `approved`,
+        forwarded: (memo?: string) => `approved${memo ? `, saying ${memo}` : ''}`,
         rejectedThisReport: 'rejected',
         waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a bank account.`,
         adminCanceledRequest: 'canceled the payment',
@@ -1726,6 +1728,7 @@ const translations = {
         },
         correctRateError: 'Fix the rate error and try again.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explain<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge matched this expense to <strong>${vendorName}</strong>`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"'),
             billable: (value: boolean) => (value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"'),
@@ -4430,7 +4433,6 @@ const translations = {
             customFieldHint: 'Add custom coding that applies to all spend from this member.',
             reports: 'Reports',
             reportFields: 'Report fields',
-            invoiceFields: 'Invoice fields',
             reportTitle: 'Report title',
             reportField: 'Report field',
             taxes: 'Taxes',
@@ -5024,6 +5026,7 @@ const translations = {
         },
         certinia: {
             title: 'Certinia',
+            titleFFA: 'Certinia (FFA)',
             autoSyncDescription: 'Expensify will automatically sync with Certinia every day.',
             syncReimbursedReportsDescription: 'With this option enabled, anytime a Payable Invoice is paid in FFA, the related Expensify report will be automatically marked as reimbursed.',
             exportDescription: 'Configure how Expensify data exports to Certinia.',
@@ -6072,29 +6075,6 @@ const translations = {
             reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
             genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
         },
-        invoiceFields: {
-            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
-            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
-            disableInvoiceFields: 'Disable invoice fields',
-            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
-            delete: 'Delete invoice field',
-            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
-            findInvoiceField: 'Find invoice field',
-            nameInputSubtitle: 'Choose a name for the invoice field.',
-            typeInputSubtitle: 'Choose what type of invoice field to use.',
-            initialValueInputSubtitle: 'Enter a starting value to show in the invoice field.',
-            listValuesInputSubtitle: 'These values will appear in your invoice field dropdown. Enabled values can be selected by members.',
-            listInputSubtitle: 'These values will appear in your invoice field list. Enabled values can be selected by members.',
-            emptyInvoiceFieldsValues: {
-                title: 'No list values yet',
-                subtitle: 'Add custom values to appear on invoices.',
-            },
-            existingInvoiceFieldNameError: 'An invoice field with this name already exists',
-            invoiceFieldNameRequiredError: 'Please enter an invoice field name',
-            invoiceFieldTypeRequiredError: 'Please choose an invoice field type',
-            invoiceFieldInitialValueRequiredError: 'Please choose an invoice field initial value',
-            addField: 'Add field',
-        },
         tags: {
             tagName: 'Tag name',
             requiresTag: 'Members must tag all expenses',
@@ -6512,6 +6492,7 @@ const translations = {
                 `Are you sure you want to connect ${
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'this accounting integration'
                 }? This will remove any existing accounting connections.`,
+            reconnect: 'Reconnect',
             enterCredentials: 'Enter your credentials',
             updateCredentials: 'Update credentials',
             claimOffer: {
@@ -6973,12 +6954,6 @@ const translations = {
                 description: `Report fields let you specify header-level details, distinct from tags that pertain to expenses on individual line items. These details can encompass specific project names, business trip information, locations, and more.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Report fields are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
-            },
-            invoiceFields: {
-                title: 'Invoice fields',
-                description: `Invoice fields let you include extra invoice-level details on invoices.`,
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Invoice fields are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
@@ -9465,6 +9440,11 @@ const translations = {
         },
         removeCopilot: 'Remove copilot',
         removeCopilotConfirmation: 'Are you sure you want to remove this copilot?',
+        removeCopilotAccess: 'Remove my copilot access',
+        removeCopilotAccessTitle: 'Remove copilot access?',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `Are you sure you want to remove your copilot access to ${delegatorName}'s Expensify account? This action cannot be undone.`,
+        removeCopilotAccessConfirm: 'Remove access',
         changeAccessLevel: 'Change access level',
         makeSureItIsYou: "Let's make sure it's you",
         enterMagicCode: (contactMethod: string) => `Please enter the magic code sent to ${contactMethod} to add a copilot. It should arrive within a minute or two.`,

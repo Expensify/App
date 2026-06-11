@@ -833,27 +833,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.route,
                             exact: true,
                         },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_CREATE.route,
-                        },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_LIST_VALUES]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_LIST_VALUES.route,
-                        },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_ADD_VALUE]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_ADD_VALUE.route,
-                        },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_VALUE_SETTINGS]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_VALUE_SETTINGS.route,
-                        },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_VALUE]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_EDIT_VALUE.route,
-                        },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_SETTINGS]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_SETTINGS.route,
-                        },
-                        [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_INITIAL_VALUE]: {
-                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_EDIT_INITIAL_VALUE.route,
-                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
                         },
@@ -1199,7 +1178,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
                             path: ROUTES.WORKSPACE_CREATE_REPORT_FIELD.route,
                         },
-                        [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: DYNAMIC_ROUTES.WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE.path,
                         [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.route,
                         },
@@ -1779,8 +1757,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_REPORT]: ROUTES.MONEY_REQUEST_STEP_REPORT.route,
                         [SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO]: ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.route,
                         [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
-                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.path,
+                        [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,
                         [SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE]: ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.route,
+                        [SCREENS.MONEY_REQUEST.STEP_VENDOR]: ROUTES.MONEY_REQUEST_STEP_VENDOR.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION_VERIFY_ACCOUNT]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION_VERIFY_ACCOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_DATE]: ROUTES.MONEY_REQUEST_STEP_DATE.route,
@@ -1799,15 +1778,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: ROUTES.MONEY_REQUEST_RECEIPT_VIEW.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAG]: ROUTES.MONEY_REQUEST_STEP_TAG.route,
                         [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
-                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.path,
-                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.path,
+                        [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
+                        [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: ROUTES.MONEY_REQUEST_STEP_TAX_RATE.route,
                         [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: {
                             path: ROUTES.MONEY_REQUEST_STATE_SELECTOR.route,
                             exact: true,
                         },
-                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ATTENDEES]: DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.path,
-                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ACCOUNTANT]: DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.path,
-                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE]: DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.path,
+                        [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: ROUTES.MONEY_REQUEST_ATTENDEE.route,
+                        [SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT]: ROUTES.MONEY_REQUEST_ACCOUNTANT.route,
+                        [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: ROUTES.MONEY_REQUEST_UPGRADE.route,
                         [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: ROUTES.MONEY_REQUEST_STEP_DESTINATION.route,
                         [SCREENS.MONEY_REQUEST.STEP_TIME]: ROUTES.MONEY_REQUEST_STEP_TIME.route,
                         [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: ROUTES.MONEY_REQUEST_STEP_SUBRATE.route,
