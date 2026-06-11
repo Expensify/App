@@ -10,7 +10,6 @@ import Tooltip from '@components/Tooltip';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Accessibility from '@libs/Accessibility';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {hideContextMenu, showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
@@ -36,7 +35,6 @@ function BaseAnchorForCommentsOnly({
     const StyleUtils = useStyleUtils();
     const linkRef = useRef<RNText>(null);
     const flattenStyle = StyleSheet.flatten(style);
-    const isScreenReaderActive = Accessibility.useScreenReaderStatus();
 
     useEffect(
         () => () => {
@@ -81,7 +79,7 @@ function BaseAnchorForCommentsOnly({
             }}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
-            role={linkProps.onPress ? CONST.ROLE.LINK : undefined}
+            role={CONST.ROLE.LINK}
             tabIndex={-1}
             accessibilityLabel={href}
             wrapperStyle={wrapperStyle}
@@ -100,15 +98,6 @@ function BaseAnchorForCommentsOnly({
                         target: isEmail || !linkProps.href ? '_self' : target,
                     }}
                     href={linkHref}
-                    onPress={
-                        isScreenReaderActive && linkProps.onPress
-                            ? (e) => {
-                                  e?.stopPropagation();
-                                  e?.preventDefault();
-                                  linkProps.onPress?.();
-                              }
-                            : undefined
-                    }
                     suppressHighlighting
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
                     testID="a"
