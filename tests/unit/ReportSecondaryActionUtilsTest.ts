@@ -3410,7 +3410,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             transactionThreadReport,
-
             isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
@@ -3426,7 +3425,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             transactionThreadReport,
-
             isProduction: false,
         });
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
@@ -3885,7 +3883,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             grandParentReport: selfDMReport,
-
             isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
@@ -3944,7 +3941,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             isChatReportArchived: false,
-
             isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
@@ -3974,7 +3970,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             isChatReportArchived: false,
-
             isProduction: false,
         });
         expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
