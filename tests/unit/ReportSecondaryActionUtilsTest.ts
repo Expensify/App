@@ -8,7 +8,7 @@ import {
     isMergeActionForSelectedTransactions,
 } from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
-import {getValidConnectedIntegration, isPaidGroupPolicy, isPreferredExporter} from '@src/libs/PolicyUtils';
+import {getValidConnectedIntegration, isPreferredExporter} from '@src/libs/PolicyUtils';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,6 +40,57 @@ const POLICY_ID = 'POLICY_ID';
 const OLD_POLICY_ID = 'OLD_POLICY_ID';
 const ORIGINAL_TRANSACTION_ID = 'ORIGINAL_TRANSACTION_ID';
 const SPLIT_TRANSACTION_ID = 'SPLIT_TRANSACTION_ID';
+type QBOConfig = NonNullable<Policy['connections']>[typeof CONST.POLICY.CONNECTIONS.NAME.QBO]['config'];
+
+const createQBOConfig = (autoSyncEnabled: boolean, exporter = EMPLOYEE_EMAIL): QBOConfig => ({
+    realmId: 'realm-id',
+    companyName: 'QBO Company',
+    autoSync: {
+        jobID: '',
+        enabled: autoSyncEnabled,
+    },
+    syncPeople: false,
+    syncItems: false,
+    markChecksToBePrinted: false,
+    reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+    nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+    nonReimbursableBillDefaultVendor: '',
+    autoCreateVendor: false,
+    hasChosenAutoSyncOption: true,
+    syncClasses: CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT,
+    syncCustomers: CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT,
+    syncLocations: CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT,
+    lastConfigurationTime: 0,
+    syncTax: false,
+    enableNewCategories: false,
+    exportDate: CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED,
+    export: {
+        exporter,
+    },
+    credentials: {
+        companyID: 'company-id',
+        companyName: 'QBO Company',
+        scope: '',
+    },
+});
+
+const createQBOConnections = (autoSyncEnabled: boolean, exporter = EMPLOYEE_EMAIL) =>
+    ({
+        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+            config: createQBOConfig(autoSyncEnabled, exporter),
+        },
+    }) as NonNullable<Policy['connections']>;
+
+const createQBOPolicy = (role: Policy['role'], autoSyncEnabled: boolean, exporter = EMPLOYEE_EMAIL): Policy => ({
+    id: POLICY_ID,
+    name: 'QBO Policy',
+    role,
+    type: CONST.POLICY.TYPE.TEAM,
+    owner: ADMIN_EMAIL,
+    outputCurrency: CONST.CURRENCY.USD,
+    isPolicyExpenseChatEnabled: true,
+    connections: createQBOConnections(autoSyncEnabled, exporter),
+});
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
@@ -67,7 +118,7 @@ describe('getSecondaryAction', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         jest.mocked(getValidConnectedIntegration).mockReturnValue('netsuite');
-        jest.mocked(isPaidGroupPolicy).mockReturnValue(true);
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPaidGroupPolicy).mockReturnValue(true);
         jest.mocked(isPreferredExporter).mockReturnValue(true);
         Onyx.clear();
     });
@@ -3444,6 +3495,20 @@ describe('getSecondaryExportReportActions', () => {
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
+    it('includes MARK_AS_EXPORTED option for expense report preferred exporter when auto-sync is enabled', () => {
+        const report: Report = {
+            reportID: `${REPORT_ID}`,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+        const policy = createQBOPolicy(CONST.POLICY.ROLE.USER, true);
+
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
     it('includes MARK_AS_EXPORTED option for expense report admin', () => {
         const report = {
             reportID: REPORT_ID,
@@ -3466,16 +3531,13 @@ describe('getSecondaryExportReportActions', () => {
         jest.mocked(isPreferredExporter).mockReturnValue(false);
 
         const report: Report = {
-            reportID: REPORT_ID,
+            reportID: `${REPORT_ID}`,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         };
-        const policy: Policy = {
-            role: CONST.POLICY.ROLE.ADMIN,
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {autoSync: {enabled: false}}}},
-        };
+        const policy = createQBOPolicy(CONST.POLICY.ROLE.ADMIN, false);
 
         const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(false);
@@ -3483,42 +3545,36 @@ describe('getSecondaryExportReportActions', () => {
     });
 
     it('includes MARK_AS_EXPORTED option for reimbursed expense report payer', () => {
-        jest.mocked(isPaidGroupPolicy).mockReturnValue(false);
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPaidGroupPolicy).mockReturnValue(false);
         jest.mocked(isPreferredExporter).mockReturnValue(false);
 
         const report: Report = {
-            reportID: REPORT_ID,
+            reportID: `${REPORT_ID}`,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             managerID: EMPLOYEE_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
         };
-        const policy: Policy = {
-            role: CONST.POLICY.ROLE.USER,
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {autoSync: {enabled: false}}}},
-        };
+        const policy = createQBOPolicy(CONST.POLICY.ROLE.USER, false);
 
         const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
     it('does not include MARK_AS_EXPORTED option for expense report non-admin who is not preferred exporter or payer', () => {
-        jest.mocked(isPaidGroupPolicy).mockReturnValue(false);
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPaidGroupPolicy).mockReturnValue(false);
         jest.mocked(isPreferredExporter).mockReturnValue(false);
 
         const report: Report = {
-            reportID: REPORT_ID,
+            reportID: `${REPORT_ID}`,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             managerID: MANAGER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         };
-        const policy: Policy = {
-            role: CONST.POLICY.ROLE.USER,
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {autoSync: {enabled: false}}}},
-        };
+        const policy = createQBOPolicy(CONST.POLICY.ROLE.USER, false);
 
         const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(false);

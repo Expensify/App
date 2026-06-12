@@ -556,12 +556,11 @@ function isMarkAsExportedAction(currentAccountID: number, currentUserLogin: stri
         return true;
     }
 
-    const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const isExporter = isPreferredExporter(policy, currentUserLogin);
 
-    return isAdmin || (isExporter && !syncEnabled);
+    return isAdmin || isExporter;
 }
 
 function isHoldAction(
