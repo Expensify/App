@@ -100,12 +100,12 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         if (!measurements.firstLabelWidth || !measurements.lastLabelWidth) {
             return BASE_DOMAIN_PADDING;
         }
-        const willRotate = tickSpacing > 0 && measurements.maxLabelWidth + LABEL_PADDING > tickSpacing;
+        const labelsExceedTickSpacing = tickSpacing > 0 && measurements.maxLabelWidth + LABEL_PADDING > tickSpacing;
 
         return {
             ...BASE_DOMAIN_PADDING,
             left: Math.max(0, measurements.firstLabelWidth / 2 - chartPaddingLeft),
-            right: willRotate ? measurements.lineHeight / 2 : measurements.lastLabelWidth / 2,
+            right: labelsExceedTickSpacing ? measurements.lineHeight / 2 : measurements.lastLabelWidth / 2,
         };
     })();
 
