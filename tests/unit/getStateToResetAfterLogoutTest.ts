@@ -4,15 +4,14 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 /** Build a minimal root NavigationState from a list of `{name, params?}` routes. */
-const buildRootState = (routes: Array<{name: string; params?: Record<string, unknown>}>) =>
-    ({
-        key: 'stack-root',
-        index: routes.length - 1,
-        routeNames: routes.map((route) => route.name),
-        routes: routes.map((route, i) => ({key: `${route.name}-${i}`, name: route.name, params: route.params})),
-        type: 'stack',
-        stale: false,
-    }) as unknown as NavigationState;
+const buildRootState = (routes: Array<{name: string; params?: Record<string, unknown>}>): NavigationState => ({
+    key: 'stack-root',
+    index: routes.length - 1,
+    routeNames: routes.map((route) => route.name),
+    routes: routes.map((route, i) => ({key: `${route.name}-${i}`, name: route.name, params: route.params})),
+    type: 'stack',
+    stale: false,
+});
 
 describe('getStateToResetAfterLogout', () => {
     it('returns undefined when there is no state', () => {
