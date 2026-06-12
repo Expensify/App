@@ -4,7 +4,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {search} from '@libs/actions/Search';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-// eslint-disable-next-line no-restricted-imports -- TransitionTracker is the right primitive here: search should be deferred until after navigation transitions complete, not blocked on idle time
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
