@@ -22,7 +22,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const {policyID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew', 'FolderOpen']);
+    const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'ReportReceipt']);
 
     return (
         <AccessOrNotFoundWrapper
@@ -36,28 +36,28 @@ function RulesNewPage({route}: RulesNewPageProps) {
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.rules.newRule.subtitle')}</Text>
                 <View style={styles.mh5}>
                     <MenuItem
-                        icon={illustrations.CreditCardsNew}
+                        icon={illustrations.CardReaderAlt}
                         title={translate('workspace.rules.newRule.restrictCardSpend')}
                         description={translate('workspace.rules.newRule.restrictCardSpendDescription')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
                         displayInDefaultIconColor
                         iconStyles={[styles.ml3, styles.mr2]}
-                        iconWidth={variables.menuIconSize}
-                        iconHeight={variables.menuIconSize}
+                        iconWidth={variables.iconSizeExtraLarge}
+                        iconHeight={variables.iconSizeExtraLarge}
                         wrapperStyle={styles.purposeMenuItem}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
                     />
                     <MenuItem
-                        icon={illustrations.FolderOpen}
+                        icon={illustrations.ReportReceipt}
                         title={translate('workspace.rules.newRule.applyExpenseDefaults')}
                         description={translate('workspace.rules.newRule.applyExpenseDefaultsDescription')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
                         displayInDefaultIconColor
                         iconStyles={[styles.ml3, styles.mr2]}
-                        iconWidth={variables.menuIconSize}
-                        iconHeight={variables.menuIconSize}
+                        iconWidth={variables.iconSizeExtraLarge}
+                        iconHeight={variables.iconSizeExtraLarge}
                         wrapperStyle={styles.purposeMenuItem}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
                     />

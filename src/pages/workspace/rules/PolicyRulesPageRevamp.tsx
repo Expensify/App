@@ -71,7 +71,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Flash', 'ExpensifyCardCoins', 'ExpensifyCardProtectionIllustration']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'Document']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
@@ -247,7 +247,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         {
             key: RULES_TAB.EXPENSE_DEFAULTS,
             title: translate('workspace.rules.tabs.expenseDefaults'),
-            icon: icons.Document,
+            icon: icons.DocumentMagicWand,
         },
     ];
 
