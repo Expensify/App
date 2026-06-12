@@ -3085,6 +3085,108 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(transactionCardGroupListItems);
         });
 
+        it('should label personal card groups as "Personal card" while keeping company-feed names for company cards and "Deleted feed" for removed feeds', () => {
+            const personalCardID = 40404040;
+            const csvPersonalCardID = 50505050;
+            const deletedFeedCardID = 60606060;
+            const workspaceFeedCardID = 70707070;
+
+            const data: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}${personalCardID}` as const]: {
+                    accountID: adminAccountID,
+                    bank: CONST.PERSONAL_CARDS.BANK_NAME.CHASE,
+                    cardID: personalCardID,
+                    cardName: 'Personal Chase',
+                    count: 1,
+                    currency: 'USD',
+                    lastFourPAN: '1111',
+                    total: 10,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}${csvPersonalCardID}` as const]: {
+                    accountID: adminAccountID,
+                    bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
+                    cardID: csvPersonalCardID,
+                    cardName: 'CSV import',
+                    count: 1,
+                    currency: 'USD',
+                    lastFourPAN: '2222',
+                    total: 20,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}${deletedFeedCardID}` as const]: {
+                    accountID: adminAccountID,
+                    bank: CONST.BANK_NAMES.CITIBANK,
+                    cardID: deletedFeedCardID,
+                    cardName: 'Removed company card',
+                    count: 1,
+                    currency: 'USD',
+                    lastFourPAN: '3333',
+                    total: 30,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}${workspaceFeedCardID}` as const]: {
+                    accountID: adminAccountID,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardID: workspaceFeedCardID,
+                    cardName: 'Workspace Visa',
+                    count: 1,
+                    currency: 'USD',
+                    lastFourPAN: '4444',
+                    total: 40,
+                },
+            };
+
+            // Personal cards have no fundID; the deleted company feed card keeps its fundID so it is not personal.
+            // The workspace-feed company card also has no fundID (company-feed cards never carry one), so it must be
+            // distinguished from a personal card via the non-personal card list rather than `isPersonalCard` alone.
+            const cardList = {
+                [personalCardID]: {cardID: personalCardID, bank: CONST.PERSONAL_CARDS.BANK_NAME.CHASE},
+                [csvPersonalCardID]: {cardID: csvPersonalCardID, bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV, fundID: '123'},
+                [deletedFeedCardID]: {cardID: deletedFeedCardID, bank: CONST.BANK_NAMES.CITIBANK, fundID: '456'},
+                [workspaceFeedCardID]: {cardID: workspaceFeedCardID, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA},
+            } as unknown as OnyxTypes.CardList;
+
+            // The non-personal list keeps every company/workspace-feed card while filtering personal cards out.
+            const nonPersonalAndWorkspaceCardList = {
+                [workspaceFeedCardID]: {cardID: workspaceFeedCardID, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA},
+            } as unknown as OnyxTypes.CardList;
+
+            // The VISA feed exists in the workspace, so it should resolve to a real feed name (not "Deleted feed").
+            const cardFeeds = {
+                policy1: {
+                    settings: {
+                        companyCards: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: {} as CustomCardFeedData,
+                        },
+                    },
+                } as OnyxTypes.CardFeeds,
+            };
+
+            const [sections] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data,
+                currentAccountID: adminAccountID,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.CARD,
+                cardFeeds,
+                cardList,
+                nonPersonalAndWorkspaceCardList,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+            }) as [TransactionCardGroupListItemType[], number, boolean];
+
+            const feedNameByCardID = new Map(sections.map((section) => [section.cardID, section.formattedFeedName]));
+
+            expect(feedNameByCardID.get(personalCardID)).toBe('Personal card');
+            expect(feedNameByCardID.get(csvPersonalCardID)).toBe('Personal card');
+            expect(feedNameByCardID.get(deletedFeedCardID)).toBe('Deleted feed');
+            // A workspace-feed company card without a fundID must NOT be mislabeled as a personal card.
+            expect(feedNameByCardID.get(workspaceFeedCardID)).not.toBe('Personal card');
+            expect(feedNameByCardID.get(workspaceFeedCardID)).not.toBe('Deleted feed');
+        });
+
         it('should return getWithdrawalIDSections result when type is EXPENSE and groupBy is withdrawal-id', () => {
             expect(
                 SearchUIUtils.getSections({

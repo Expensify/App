@@ -253,6 +253,16 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(translateLocal('iou.forwarded'))).toBeOnTheScreen();
         });
 
+        it('FORWARDED action with memo', async () => {
+            const memo = 'Testing approval memo';
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {automaticAction: false, message: memo});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.forwarded', memo))).toBeOnTheScreen();
+        });
+
         it('SUBMITTED action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: false});
             renderItemWithAction(action);

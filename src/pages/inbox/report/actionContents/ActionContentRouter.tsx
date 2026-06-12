@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getChangedApproverActionMessage,
     getCompanyCardConnectionBrokenMessage,
+    getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
@@ -48,6 +49,7 @@ import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
+import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import FraudAlertContent from './FraudAlertContent';
 import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
@@ -114,6 +116,9 @@ type ActionContentRouterProps = {
 
     /** Toggle whether the payment method popover is active */
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
+
+    /** Whether the user is a track intent user */
+    isTrackIntentUser?: boolean;
 };
 
 function ActionContentRouter({
@@ -134,6 +139,7 @@ function ActionContentRouter({
     shouldShowBorder,
     isOnSearch,
     setIsPaymentMethodPopoverActive,
+    isTrackIntentUser,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
@@ -233,6 +239,14 @@ function ActionContentRouter({
             />
         );
     }
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR) {
+        return (
+            <ConciergeAutoMatchVendorContent
+                action={action}
+                originalReport={originalReport}
+            />
+        );
+    }
     if (isApprovalFlowAction(action)) {
         return (
             <ApprovalFlowContent
@@ -240,6 +254,7 @@ function ActionContentRouter({
                 policyID={policyID}
                 reportID={reportID}
                 originalReport={originalReport}
+                isTrackIntentUser={isTrackIntentUser ?? false}
             />
         );
     }
@@ -283,7 +298,7 @@ function ActionContentRouter({
                 </ReportActionItemBasicMessage>
             );
         }
-        return <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
+        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(action, translate)} />;
     }
     if (isHandledPolicyChangeLogAction(action)) {
         return (

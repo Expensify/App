@@ -259,6 +259,7 @@ const CONST = {
     COMPOSER_FOCUS_DELAY: 150,
     MAX_TRANSITION_DURATION_MS: 1000,
     MAX_TRANSITION_START_WAIT_MS: 1000,
+    EXPENSE_REPORT_DELETE_DELAY_MS: 300,
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
@@ -368,6 +369,8 @@ const CONST = {
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
 
     API_TRANSACTION_TAG_MAX_LENGTH: 255,
+
+    TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES: 5,
 
     AUTO_AUTH_STATE: {
         NOT_STARTED: 'not-started',
@@ -1645,6 +1648,7 @@ const CONST = {
                 MARK_REIMBURSED_FROM_INTEGRATION: 'ACTIONMARKEDREIMBURSEDFROMINTEGRATION', // OldDot Action
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
+                CONCIERGE_AUTO_MATCH_VENDOR: 'CONCIERGEAUTOMATCHVENDOR',
                 MOVED: 'MOVED',
                 MOVED_TRANSACTION: 'MOVEDTRANSACTION',
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
@@ -1742,6 +1746,7 @@ const CONST = {
                     UPDATE_AUTO_REPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
                     UPDATE_BUDGET: 'POLICYCHANGELOG_UPDATE_BUDGET',
                     UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
+                    UPDATE_CATEGORY_TAX_RATE: 'POLICYCHANGELOG_UPDATE_CATEGORY_TAX_RATE',
                     UPDATE_CATEGORIES: 'POLICYCHANGELOG_UPDATE_CATEGORIES',
                     UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
                     UPDATE_CUSTOM_UNIT: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT',
@@ -1962,6 +1967,7 @@ const CONST = {
         MESSAGE_KEY: {
             WAITING_TO_ADD_TRANSACTIONS: 'waitingToAddTransactions',
             WAITING_TO_SUBMIT: 'waitingToSubmit',
+            WAITING_TO_MARK_AS_DONE: 'waitingToMarkAsDone',
             NO_FURTHER_ACTION: 'noFurtherAction',
             WAITING_FOR_SUBMITTER_ACCOUNT: 'waitingForSubmitterAccount',
             WAITING_FOR_AUTOMATIC_SUBMIT: 'waitingForAutomaticSubmit',
@@ -2327,6 +2333,11 @@ const CONST = {
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
+    },
+    INBOX_TAB: {
+        ALL: 'all',
+        TODO: 'todo',
+        UNREAD: 'unread',
     },
     THEME: {
         DEFAULT: 'system',
@@ -2995,6 +3006,7 @@ const CONST = {
         REPORT_EXPORT_STATUS: 'reportExportStatus',
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
+        COMPANY: 'company',
     },
 
     CERTINIA_EXPORT_STATUS: {
@@ -3089,6 +3101,7 @@ const CONST = {
             MANAGER: 'manager',
             CUSTOM: 'custom',
         },
+        COOKIE_CLEAR_DELAY_MS: 500,
         SYNC_STATUS: {
             SYNCING: 'SYNCING',
             DONE: 'DONE',
@@ -3683,6 +3696,8 @@ const CONST = {
 
     IOU: {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
+        MAX_RECENT_ATTENDEES: 40,
+
         // This will guranatee that the quantity input will not exceed 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
@@ -3967,6 +3982,7 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
             MAKE_AUDITOR: 'makeAuditor',
+            MAKE_CARD_ADMIN: 'makeCardAdmin',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -3981,7 +3997,6 @@ const CONST = {
             ARE_DISTANCE_RATES_ENABLED: 'areDistanceRatesEnabled',
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
             ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
-            ARE_INVOICE_FIELDS_ENABLED: 'areInvoiceFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
             ARE_RECEIPT_PARTNERS_ENABLED: 'receiptPartners',
             ARE_COMPANY_CARDS_ENABLED: 'areCompanyCardsEnabled',
@@ -4035,7 +4050,6 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GENERAL_SETTINGS: 'generalSettings',
-            ADD_AGENT: 'addAgent',
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
@@ -4282,6 +4296,12 @@ const CONST = {
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         MILES_TO_KILOMETERS: 1.609344,
         KILOMETERS_TO_MILES: 0.621371,
+        RATE_STATUS: {
+            ACTIVE: 'active',
+            FUTURE: 'future',
+            EXPIRED: 'expired',
+            INACTIVE: 'inactive',
+        },
         RATE_FIELD: {
             START_DATE: 'startDate',
             END_DATE: 'endDate',
@@ -4791,6 +4811,10 @@ const CONST = {
         ACTION: {
             ALLOW: 'allow',
             BLOCK: 'block',
+        },
+        NOUN: {
+            MERCHANT: 'merchant',
+            SPEND_CATEGORY: 'spendCategory',
         },
     },
     get SUBSCRIPTION_PRICES() {
@@ -7248,14 +7272,6 @@ const CONST = {
                 description: 'workspace.upgrade.reportFields.description' as const,
                 icon: 'Pencil',
             },
-            invoiceFields: {
-                id: 'invoiceFields' as const,
-                alias: 'invoice-fields',
-                name: 'Invoice Fields',
-                title: 'workspace.upgrade.invoiceFields.title' as const,
-                description: 'workspace.upgrade.invoiceFields.description' as const,
-                icon: 'Pencil',
-            },
             policyPreventMemberChangingTitle: {
                 id: 'policyPreventMemberChangingTitle' as const,
                 alias: 'policy-prevent-member-changing-title',
@@ -7429,12 +7445,12 @@ const CONST = {
                 description: 'workspace.upgrade.distanceRates.description' as const,
                 icon: 'CarIce',
             },
-            auditor: {
-                id: 'auditor' as const,
-                alias: 'auditor',
-                name: 'Auditor',
-                title: 'workspace.upgrade.auditor.title' as const,
-                description: 'workspace.upgrade.auditor.description' as const,
+            controlPolicyRoles: {
+                id: 'controlPolicyRoles' as const,
+                alias: 'control-policy-roles',
+                name: 'Control policy roles',
+                title: 'workspace.upgrade.controlPolicyRoles.title' as const,
+                description: 'workspace.upgrade.controlPolicyRoles.description' as const,
                 icon: 'BlueShield',
             },
             reports: {
@@ -7516,10 +7532,6 @@ const CONST = {
         DATE: 'date',
         LIST: 'dropdown',
         FORMULA: 'formula',
-    },
-    REPORT_FIELD_TARGETS: {
-        EXPENSE: 'expense',
-        INVOICE: 'invoice',
     },
 
     NAVIGATION_ACTIONS: {
@@ -7751,9 +7763,9 @@ const CONST = {
         MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
         GPS_TOOLTIP: 'gpsTooltip',
         HAS_FILTER_NEGATION: 'hasFilterNegation',
+        MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
-    AGENTS_WORKFLOWS_BANNER: 'agentsWorkflowsBanner',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
     SMART_BANNER_HEIGHT: 152,
 
@@ -7899,9 +7911,6 @@ const CONST = {
         },
         HIGH_CONTRAST_MODE_SWITCHER: {
             TOGGLE: 'HighContrastModeSwitcher-Toggle',
-        },
-        AGENTS_WORKFLOWS_BANNER: {
-            DISMISS: 'AgentsWorkflowsBanner-Dismiss',
         },
         AGENTS_RULES_BANNER: {
             CTA: 'AgentsRulesBanner-CTA',
@@ -8464,6 +8473,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTaxes-BulkActionsDropdown',
             },
             DISTANCE_RATES: {
+                ROW: 'WorkspaceDistanceRates-Row',
                 ADD_BUTTON: 'WorkspaceDistanceRates-AddButton',
                 MORE_DROPDOWN: 'WorkspaceDistanceRates-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceDistanceRates-BulkActionsDropdown',
@@ -8501,10 +8511,10 @@ const CONST = {
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
-                AI_RULE_ITEM: 'WorkspaceRules-AIRuleItem',
-                ADD_AI_RULE: 'WorkspaceRules-AddAIRule',
-                AI_RULE_SAVE: 'WorkspaceRules-AIRuleSave',
-                AI_RULE_DELETE: 'WorkspaceRules-AIRuleDelete',
+                AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',
+                ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',
+                AGENT_RULE_SAVE: 'WorkspaceRules-AgentRuleSave',
+                AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
@@ -8684,6 +8694,8 @@ const CONST = {
             DELEGATE_ITEM: 'SettingsSecurity-DelegateItem',
             DELEGATE_CHANGE_ACCESS: 'SettingsSecurity-DelegateChangeAccess',
             DELEGATE_REMOVE: 'SettingsSecurity-DelegateRemove',
+            DELEGATOR_ITEM: 'SettingsSecurity-DelegatorItem',
+            DELEGATOR_REMOVE: 'SettingsSecurity-DelegatorRemove',
         },
         SETTINGS_WALLET: {
             ADD_BANK_ACCOUNT: 'SettingsWallet-AddBankAccount',

@@ -21,7 +21,6 @@ import type {FormulaContext} from '@libs/Formula';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -109,7 +108,6 @@ import {
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
     getReportActionWithSmartscanError,
-    getReportFieldMaps,
     getReportFieldsByPolicyID,
     getReportIDFromLink,
     getReportOrDraftReport,
@@ -166,6 +164,7 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    shouldShowMarkAsDone,
     sortIconsByName,
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
@@ -175,7 +174,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {
     BankAccountList,
     Beta,
@@ -10424,26 +10423,17 @@ describe('ReportUtils', () => {
             const policyID = '123456';
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
-            const policyWithoutCurrentUser: Policy = {
-                ...createRandomPolicy(1),
-                id: policyID,
-                employeeList: {
-                    'employee@test.com': {
-                        role: CONST.POLICY.ROLE.USER,
-                        errors: {},
-                    },
-                },
-            };
+            // policy.role holds the current user's own role and is synced for every workspace they belong to,
+            // even when employeeList has not loaded (the roster is only fully synced for the active workspace).
+            // A non-member therefore has no role, so membership is determined from policy.role.
+            const policyWithoutCurrentUser: Policy = {...createRandomPolicy(1), id: policyID, employeeList: {}};
+            delete (policyWithoutCurrentUser as Partial<Policy>).role;
 
             const policyWithCurrentUser: Policy = {
                 ...createRandomPolicy(2),
                 id: policyID,
-                employeeList: {
-                    [currentUserEmail]: {
-                        role: CONST.POLICY.ROLE.USER,
-                        errors: {},
-                    },
-                },
+                role: CONST.POLICY.ROLE.USER,
+                employeeList: {},
             };
 
             const restrictedReport: Report = {
@@ -14633,106 +14623,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getReportFieldMaps', () => {
-        it('should read invoice field values from report name value pairs keyed by raw field ID', async () => {
-            const reportID = 'getReportFieldMapsRawKey';
-            const report: Report = {
-                reportID,
-                policyID: '1',
-                type: CONST.REPORT.TYPE.INVOICE,
-                fieldList: {},
-            };
-            const policyFieldList: Record<string, PolicyReportField> = {
-                expensify_field_id_LIST: {
-                    type: 'dropdown',
-                    values: ['policy default'],
-                    disabledOptions: [false],
-                    fieldID: 'field_id_LIST',
-                    name: 'Client',
-                    defaultValue: 'policy default',
-                    orderWeight: 0,
-                    deletable: true,
-                    keys: [],
-                    externalIDs: [],
-                    isTax: false,
-                    target: CONST.REPORT_FIELD_TARGETS.INVOICE,
-                },
-            };
-            const reportNameValuePairField: PolicyReportField = {
-                type: 'dropdown',
-                values: ['policy default'],
-                disabledOptions: [false],
-                fieldID: 'field_id_LIST',
-                name: 'Client',
-                defaultValue: 'policy default',
-                orderWeight: 0,
-                deletable: true,
-                keys: [],
-                externalIDs: [],
-                isTax: false,
-                value: 'persisted value',
-                target: CONST.REPORT_FIELD_TARGETS.INVOICE,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, Object.fromEntries([['field_id_LIST', reportNameValuePairField]]));
-
-            const {fieldValues, fieldsByName} = getReportFieldMaps(report, policyFieldList);
-
-            expect(fieldValues.client).toBe('persisted value');
-            expect(fieldsByName.client.value).toBe('persisted value');
-        });
-
-        it('should not read expense field values from report name value pairs', async () => {
-            const reportID = 'getReportFieldMapsExpenseField';
-            const report: Report = {
-                reportID,
-                policyID: '1',
-                type: CONST.REPORT.TYPE.EXPENSE,
-                fieldList: {},
-            };
-            const policyFieldList: Record<string, PolicyReportField> = {
-                expensify_field_id_LIST: {
-                    type: 'dropdown',
-                    values: ['policy default'],
-                    disabledOptions: [false],
-                    fieldID: 'field_id_LIST',
-                    name: 'Client',
-                    defaultValue: 'policy default',
-                    orderWeight: 0,
-                    deletable: true,
-                    keys: [],
-                    externalIDs: [],
-                    isTax: false,
-                    target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
-                },
-            };
-            const reportNameValuePairField: PolicyReportField = {
-                type: 'dropdown',
-                values: ['policy default'],
-                disabledOptions: [false],
-                fieldID: 'field_id_LIST',
-                name: 'Client',
-                defaultValue: 'policy default',
-                orderWeight: 0,
-                deletable: true,
-                keys: [],
-                externalIDs: [],
-                isTax: false,
-                value: 'persisted value',
-                target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, Object.fromEntries([['field_id_LIST', reportNameValuePairField]]));
-
-            const {fieldValues, fieldsByName} = getReportFieldMaps(report, policyFieldList);
-
-            expect(fieldValues.client).toBe('policy default');
-            expect(fieldsByName.client.value).toBeUndefined();
-        });
-    });
-
     describe('canEditReportTitle', () => {
         const getTitleField = (deletable: boolean): PolicyReportField => ({
             fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
@@ -15822,17 +15712,7 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CATEGORIZE,
-                            CONST.IOU.TYPE.SUBMIT,
-                            transaction.transactionID,
-                            policyExpenseReport.reportID,
-                            undefined,
-                            true,
-                        ),
-                    ),
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
                 );
             });
 
@@ -15875,17 +15755,7 @@ describe('ReportUtils', () => {
 
                 // Then it should automatically pick the available policy and navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CATEGORIZE,
-                            CONST.IOU.TYPE.SUBMIT,
-                            transaction.transactionID,
-                            policyExpenseReport.reportID,
-                            undefined,
-                            true,
-                        ),
-                    ),
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
                 );
             });
 
@@ -15915,16 +15785,15 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.CATEGORIZE,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            transactionID: transaction.transactionID,
-                            reportID: '1',
-                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                            shouldSubmitExpense: true,
-                        }),
-                    ),
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CATEGORIZE,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: transaction.transactionID,
+                        reportID: '1',
+                        backTo: '',
+                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                        shouldSubmitExpense: true,
+                    }),
                 );
             });
 
@@ -15967,16 +15836,15 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.CATEGORIZE,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            transactionID: transaction.transactionID,
-                            reportID: '1',
-                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                            shouldSubmitExpense: true,
-                        }),
-                    ),
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CATEGORIZE,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: transaction.transactionID,
+                        reportID: '1',
+                        backTo: '',
+                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                        shouldSubmitExpense: true,
+                    }),
                 );
             });
 
@@ -16063,17 +15931,7 @@ describe('ReportUtils', () => {
                 // Then it should NOT navigate to restricted action page, but to category step
                 expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CATEGORIZE,
-                            CONST.IOU.TYPE.SUBMIT,
-                            transaction.transactionID,
-                            policyExpenseReport.reportID,
-                            undefined,
-                            true,
-                        ),
-                    ),
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
                 );
             });
 
@@ -18603,5 +18461,138 @@ describe('ReportUtils', () => {
 
             expect(getBankAccountRoute(report, false)).toBe(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
         });
+    });
+});
+describe('shouldShowMarkAsDone', () => {
+    const policyID = '1';
+    const otherAccountID = 42;
+
+    it('should return false when user is not a track-intent user', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: false, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when policy is not submit-and-close', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when user does not own the report', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: otherAccountID,
+            managerID: otherAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when next approver is different from owner', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: otherAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when isTrackIntentUser is undefined', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: undefined, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when report is undefined', () => {
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report: undefined, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when policy is undefined', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: undefined})).toBe(false);
+    });
+
+    it('should return true when user is track-intent, policy is submit-and-close, user owns report, and submits to self', async () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: currentUserEmail,
+        } as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
+        });
+        await waitForBatchedUpdates();
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(true);
     });
 });
