@@ -44,6 +44,16 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.MEMBERS, initialP
     );
 };
 
+const selectCheckboxByMemberName = (memberName: string) => {
+    const memberRowsOrder = ['Owner', 'Admin', 'Auditor', 'Member', 'Self'];
+    const memberIndex = memberRowsOrder.indexOf(memberName);
+    const element = screen.getAllByLabelText(TestHelper.translateLocal('common.select')).at(memberIndex);
+    if (!element) {
+        return;
+    }
+    fireEvent.press(element);
+};
+
 describe('WorkspaceMembers', () => {
     const ownerAccountID = 1;
     const ownerEmail = 'owner@gmail.com';
@@ -117,7 +127,7 @@ describe('WorkspaceMembers', () => {
             });
 
             // Select admin option by clicking the checkbox
-            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${ADMIN_OPTION}`));
+            selectCheckboxByMemberName('Admin');
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -166,7 +176,7 @@ describe('WorkspaceMembers', () => {
             });
 
             // Select member option by clicking the checkbox
-            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${USER_OPTION}`));
+            selectCheckboxByMemberName('Member');
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -215,7 +225,7 @@ describe('WorkspaceMembers', () => {
             });
 
             // Select auditor option by clicking the checkbox
-            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${AUDITOR_OPTION}`));
+            selectCheckboxByMemberName('Auditor');
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -267,8 +277,8 @@ describe('WorkspaceMembers', () => {
             });
 
             // Select options by clicking the checkboxes
-            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${AUDITOR_OPTION}`));
-            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${ADMIN_OPTION}`));
+            selectCheckboxByMemberName('Auditor');
+            selectCheckboxByMemberName('Admin');
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -316,7 +326,7 @@ describe('WorkspaceMembers', () => {
             await screen.findByText(ADMIN_OPTION);
 
             // Select all
-            fireEvent.press(screen.getByTestId('selection-list-select-all-checkbox'));
+            fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
 
             // Open dropdown
             fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));

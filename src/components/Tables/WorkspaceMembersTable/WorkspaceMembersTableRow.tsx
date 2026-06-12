@@ -63,13 +63,10 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
             interactive
             rowIndex={rowIndex}
             disabled={item.disabled}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.LIST_ROW}
             skeletonReasonAttributes={{context: 'WorkspaceMembersTableRow'}}
+            offlineWithFeedback={{errors: item.errors, pendingAction: item.pendingAction, dismissError: item.dismissError}}
             onPress={item.action}
-            offlineWithFeedback={{
-                errors: item.errors,
-                pendingAction: item.pendingAction,
-                dismissError: item.dismissError,
-            }}
         >
             {(hovered) => (
                 <>

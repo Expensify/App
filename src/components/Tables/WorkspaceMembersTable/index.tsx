@@ -205,6 +205,7 @@ export default function WorkspaceMembersTable({
             compareItems={compareTableItems}
             isItemInFilter={isItemInFilter}
             isItemInSearch={isTableItemInSearch}
+            keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
             {isEmpty && <></>}
