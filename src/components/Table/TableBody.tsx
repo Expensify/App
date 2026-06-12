@@ -1,5 +1,5 @@
 import {FlashList} from '@shopify/flash-list';
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import Text from '@components/Text';
@@ -51,7 +51,6 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
     const {translate} = useLocalize();
     const {
         processedData: filteredAndSortedData,
-        originalDataLength,
         activeSearchString,
         listProps,
         listRef,
@@ -82,28 +81,6 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
     const message = getEmptyMessage();
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
-
-    // When the list gets its first rows, scroll to the top so the first row is visible: a short/landscape viewport
-    // can leave the empty list scrolled, and FlashList won't reset that on its own. Key off the unfiltered count so
-    // clearing a search from a no-results state doesn't trigger it.
-    const previousOriginalDataLengthRef = useRef(originalDataLength);
-    useEffect(() => {
-        const previousOriginalDataLength = previousOriginalDataLengthRef.current;
-        previousOriginalDataLengthRef.current = originalDataLength;
-        if (previousOriginalDataLength !== 0 || originalDataLength === 0) {
-            return;
-        }
-        let secondFrameId = 0;
-        const firstFrameId = requestAnimationFrame(() => {
-            listRef?.current?.scrollToOffset({offset: 0, animated: false});
-            // Re-assert next frame in case the first ran before the new rows appeared.
-            secondFrameId = requestAnimationFrame(() => listRef?.current?.scrollToOffset({offset: 0, animated: false}));
-        });
-        return () => {
-            cancelAnimationFrame(firstFrameId);
-            cancelAnimationFrame(secondFrameId);
-        };
-    }, [originalDataLength, listRef]);
 
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
