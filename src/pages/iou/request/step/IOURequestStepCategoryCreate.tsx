@@ -14,13 +14,14 @@ import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasTags} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CategoryForm from '@pages/workspace/categories/CategoryForm';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -35,7 +36,7 @@ function IOURequestStepCategoryCreate({
     report: reportReal,
     reportDraft,
     route: {
-        params: {transactionID, action, iouType, reportID, backTo},
+        params: {transactionID, action, iouType, reportID, reportActionID, backTo},
     },
     transaction,
 }: IOURequestStepCategoryCreateProps) {
@@ -163,7 +164,11 @@ function IOURequestStepCategoryCreate({
         >
             <StepScreenWrapper
                 headerTitle={translate('workspace.categories.addCategory')}
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() =>
+                    Navigation.goBack(
+                        createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? reportID, reportActionID), backTo),
+                    )
+                }
                 shouldShowWrapper
                 testID="IOURequestStepCategoryCreate"
             >

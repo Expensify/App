@@ -110,7 +110,7 @@ function DynamicIOURequestStepCategoryPage({report: reportReal, reportDraft, rou
                       if (!policyID || !reportID) {
                           return;
                       }
-                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.getRoute(action, iouType, transactionID, reportID, reportActionID, Navigation.getActiveRoute()));
+                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.getRoute(action, iouType, transactionID, reportID, reportActionID, backPath));
                   },
               },
           ]
