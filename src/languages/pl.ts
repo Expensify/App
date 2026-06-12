@@ -4115,27 +4115,30 @@ ${amount} dla ${merchant} - ${date}`,
         verificationFailed: 'Weryfikacja nie powiodła się, dlatego potrzebujemy dodatkowych dokumentów do potwierdzenia Twojej tożsamości i firmy',
         taxIDVerification: 'Weryfikacja numeru podatkowego',
         taxIDVerificationDescription: dedent(`
-        Prześlij jeden z poniższych plików:
-        • List przydziału TIN/EIN z IRS
-        • Potwierdzenie wniosku TIN/EIN z IRS (zwykle zawiera „Congratulations! The EIN has been successfully assigned”)
-        • Pismo o zwolnieniu podatkowym z IRS zawierające nazwę firmy i EIN`),
+            Prześlij jeden z poniższych plików:
+            • List przydziału TIN/EIN z IRS
+            • Potwierdzenie wniosku TIN/EIN z IRS (zwykle zawiera „Congratulations! The EIN has been successfully assigned”)
+            • Pismo o zwolnieniu podatkowym z IRS zawierające nazwę firmy i EIN
+        `),
         nameChangeDocument: 'Dokument zmiany nazwy',
         nameChangeDocumentDescription: 'Jeśli nazwa firmy zmieniła się od momentu złożenia wniosku o TIN/EIN, dokument ten jest wymagany do weryfikacji podanego numeru podatkowego',
         companyAddressVerification: 'Weryfikacja adresu firmy',
         companyAddressVerificationDescription: dedent(`
-        Prześlij jeden z poniższych plików:
-        • Aktualny rachunek za media z nazwą i adresem firmy
-        • Wyciąg bankowy z nazwą i adresem firmy
-        • Aktualna umowa najmu z podpisaną stroną zawierającą nazwę i adres firmy
-        • Dokument ubezpieczeniowy z nazwą i adresem firmy
-        • Dokument przydziału TIN z nazwą i adresem firmy`),
+            Prześlij jeden z poniższych plików:
+            • Aktualny rachunek za media z nazwą i adresem firmy
+            • Wyciąg bankowy z nazwą i adresem firmy
+            • Aktualna umowa najmu z podpisaną stroną zawierającą nazwę i adres firmy
+            • Dokument ubezpieczeniowy z nazwą i adresem firmy
+            • Dokument przydziału TIN z nazwą i adresem firmy
+        `),
         userAddressVerification: 'Weryfikacja adresu',
         userAddressVerificationDescription: dedent(`
-        Prześlij jeden z poniższych plików:
-        • Karta rejestracji wyborcy
-        • Prawo jazdy
-        • Wyciąg bankowy
-        • Rachunek za media`),
+            Prześlij jeden z poniższych plików:
+            • Karta rejestracji wyborcy
+            • Prawo jazdy
+            • Wyciąg bankowy
+            • Rachunek za media
+        `),
         userDOBVerification: 'Weryfikacja daty urodzenia',
         userDOBVerificationDescription: 'Prześlij dokument tożsamości wydany w USA',
         finishViaChat: 'Zakończ przez czat',
@@ -4399,7 +4402,7 @@ ${amount} dla ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrator';
+                        return 'Administrator przestrzeni roboczej';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Audytor';
                     case CONST.POLICY.ROLE.EDITOR:
@@ -6241,12 +6244,14 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} ma nierozliczony raport w trakcie przetwarzania, który wymaga działania. Poproś tę osobę o wykonanie wymaganej czynności przed jej usunięciem z przestrzeni roboczej.`,
             allMembers: 'Wszyscy członkowie',
-            admins: 'Administratorzy',
+            admins: 'Administratorzy przestrzeni roboczej',
             approvers: 'Osoby zatwierdzające',
             auditors: 'Audytorzy',
             emptyRoleFilter: {title: 'Żadni członkowie nie pasują do tego filtra', subtitle: 'Zaproś członka lub zmień filtr powyżej.'},
             configureHRSync: (providerName: string) => `Skonfiguruj synchronizację ${providerName}.`,
             syncWithHR: (providerName: string) => `Synchronizuj z ${providerName}`,
+            makeCardAdmin: {one: 'Ustaw jako administratora karty', other: 'Ustaw administratorów kart'},
+            cardAdmins: 'Administratorzy kart',
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
@@ -6992,6 +6997,12 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     'Twórz, wysyłaj i śledź profesjonalne faktury — wszystko w Expensify. Otrzymuj płatności szybciej dzięki zintegrowanym płatnościom i wglądowi w czasie rzeczywistym.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Fakturowanie jest dostępne w planach Collect i Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka za miesiąc.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            controlPolicyRoles: {
+                title: 'Role zasad kontroli',
+                description: 'Użyj wyspecjalizowanych ról, takich jak Audytor i Administrator kart, żeby dać członkom dostęp tylko do tego, czego potrzebują.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Specjalistyczne role w przestrzeni roboczej są dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
         },
         downgrade: {
@@ -8445,8 +8456,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     `Połączenie ${feedName} jest przerwane. Aby przywrócić importy kart, <a href='${workspaceCompanyCardRoute}'>zaloguj się do swojego banku</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `połączenie Plaid z twoim firmowym kontem bankowym jest przerwane. Proszę, <a href='${walletRoute}'>połącz ponownie swoje konto bankowe ${maskedAccountNumber}</a>, aby móc dalej używać Kart Expensify.`,
-                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} dołączył(a) przez link z zaproszeniem do przestrzeni roboczej` : `dodano ${email} jako ${role === 'member' ? 'a' : 'jeden'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
+                    const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'an' : 'a';
+                    return didJoinPolicy ? `${email} dołączył za pomocą linku z zaproszeniem do przestrzeni roboczej` : `dodano ${email} jako ${article} ${translatedRole}`;
+                },
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `zaktualizowano rolę użytkownika ${email} na ${newRole} (wcześniej ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {

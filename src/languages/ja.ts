@@ -4099,27 +4099,30 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         verificationFailed: '確認に失敗したため、追加の書類で本人および事業の確認が必要です',
         taxIDVerification: '納税者番号の確認',
         taxIDVerificationDescription: dedent(`
-        以下のいずれかの書類をアップロードしてください：
-        • IRS TIN/EIN 割当通知書
-        • IRS TIN/EIN 申請確認書（通常「Congratulations! The EIN has been successfully assigned」と記載）
-        • 会社名と EIN が記載された IRS の免税通知書`),
+            以下のいずれかの書類をアップロードしてください：
+            • IRS TIN/EIN 割当通知書
+            • IRS TIN/EIN 申請確認書（通常「Congratulations! The EIN has been successfully assigned」と記載）
+            • 会社名と EIN が記載された IRS の免税通知書
+        `),
         nameChangeDocument: '名称変更書類',
         nameChangeDocumentDescription: 'TIN/EIN 申請後に会社名が変更された場合、提供された納税者番号を確認するためにこの書類が必要です',
         companyAddressVerification: '会社住所の確認',
         companyAddressVerificationDescription: dedent(`
-        以下のいずれかの書類をアップロードしてください：
-        • 会社名と住所が記載された最近の公共料金請求書
-        • 会社名と住所が記載された銀行取引明細書
-        • 署名ページを含む現行の賃貸契約書（会社名と現住所が記載されたもの）
-        • 会社名と住所が記載された保険証書
-        • 会社名と住所が記載された TIN 割当書類`),
+            以下のいずれかの書類をアップロードしてください：
+            • 会社名と住所が記載された最近の公共料金請求書
+            • 会社名と住所が記載された銀行取引明細書
+            • 署名ページを含む現行の賃貸契約書（会社名と現住所が記載されたもの）
+            • 会社名と住所が記載された保険証書
+            • 会社名と住所が記載された TIN 割当書類
+        `),
         userAddressVerification: '住所確認',
         userAddressVerificationDescription: dedent(`
-        以下のいずれかの書類をアップロードしてください：
-        • 有権者登録カード
-        • 運転免許証
-        • 銀行取引明細書
-        • 公共料金請求書`),
+            以下のいずれかの書類をアップロードしてください：
+            • 有権者登録カード
+            • 運転免許証
+            • 銀行取引明細書
+            • 公共料金請求書
+        `),
         userDOBVerification: '生年月日の確認',
         userDOBVerificationDescription: '米国発行の身分証明書をアップロードしてください',
         finishViaChat: 'チャットで完了',
@@ -4382,18 +4385,17 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return '管理者';
+                        return 'ワークスペース管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '監査人';
                     case CONST.POLICY.ROLE.EDITOR:
                         return '編集者';
-                        return '監査担当者';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'カード管理者';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
                         return 'メンバー管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return '支払管理者';
+                        return '支払い管理者';
                     case CONST.POLICY.ROLE.USER:
                         return 'メンバー';
                     default:
@@ -6198,12 +6200,14 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} は、対応が必要な未処理のレポートがあります。ワークスペースから削除する前に、必要な対応を完了するよう依頼してください。`,
             allMembers: 'すべてのメンバー',
-            admins: '管理者',
+            admins: 'ワークスペース管理者',
             approvers: '承認者',
             auditors: '監査担当者',
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
             configureHRSync: (providerName: string) => `${providerName} の同期を設定します。`,
             syncWithHR: (providerName: string) => `${providerName}と同期`,
+            makeCardAdmin: {one: 'カード管理者にする', other: 'カード管理者に設定'},
+            cardAdmins: 'カード管理者',
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -6942,6 +6946,12 @@ ${reportName}
                 description: 'Expensify 内でプロ仕様の請求書を作成・送信・追跡。統合された支払い機能とリアルタイムの可視性で、より早く入金を受けましょう。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>請求書発行機能は、Collect プランと Control プランでご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
+            },
+            controlPolicyRoles: {
+                title: 'コントロールポリシーのロール',
+                description: '監査人やカード管理者などの専用ロールを使って、メンバーが必要なものにだけアクセスできるようにします。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>特別なワークスペースロールは Control プランでのみご利用いただけます（<strong>${formattedPrice}</strong> から、${hasTeam2025Pricing ? `メンバー1人あたり月額。` : `アクティブメンバー1人あたり／月`}）。</muted-text>`,
             },
         },
         downgrade: {
@@ -8379,8 +8389,11 @@ ${reportName}
                     `${feedName} との接続が切断されています。カードの取引明細の取込を再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
-                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} さんがワークスペースの招待リンクから参加しました` : `${role === 'member' ? 'a' : '1つの'} ${role} として ${email} を追加しました`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
+                    const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? '1つの' : 'a';
+                    return didJoinPolicy ? `${email} さんがワークスペースの招待リンクから参加しました` : `${email} を ${article} ${translatedRole} として追加しました`;
+                },
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `${email} のロールを ${currentRole} から ${newRole} に更新しました`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {

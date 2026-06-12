@@ -4152,28 +4152,31 @@ ${amount} pour ${merchant} - ${date}`,
         verificationFailed: 'La vérification a échoué, nous aurons donc besoin de documents supplémentaires pour te vérifier ainsi que ton entreprise',
         taxIDVerification: 'Vérification de l’identifiant fiscal',
         taxIDVerificationDescription: dedent(`
-        Veuillez téléverser l’un des fichiers suivants :
-        • Lettre d’attribution TIN/EIN de l’IRS
-        • Confirmation de demande TIN/EIN de l’IRS (indique généralement « Congratulations! The EIN has been successfully assigned »)
-        • Lettre d’exonération fiscale de l’IRS indiquant le nom de l’entreprise et l’EIN`),
+            Veuillez téléverser l’un des fichiers suivants :
+            • Lettre d’attribution TIN/EIN de l’IRS
+            • Confirmation de demande TIN/EIN de l’IRS (indique généralement « Congratulations! The EIN has been successfully assigned »)
+            • Lettre d’exonération fiscale de l’IRS indiquant le nom de l’entreprise et l’EIN
+        `),
         nameChangeDocument: 'Document de changement de nom',
         nameChangeDocumentDescription:
             'Si le nom de ton entreprise a changé depuis la demande du TIN/EIN, ce document est nécessaire pour vérifier le numéro d’identification fiscale fourni',
         companyAddressVerification: 'Vérification de l’adresse de l’entreprise',
         companyAddressVerificationDescription: dedent(`
-        Veuillez téléverser l’un des fichiers suivants :
-        • Facture récente de services publics indiquant le nom et l’adresse de l’entreprise
-        • Relevé bancaire indiquant le nom et l’adresse de l’entreprise
-        • Contrat de location en cours incluant la page de signature avec le nom et l’adresse actuelle de l’entreprise
-        • Attestation d’assurance indiquant le nom et l’adresse de l’entreprise
-        • Document d’attribution TIN indiquant le nom et l’adresse de l’entreprise`),
+            Veuillez téléverser l’un des fichiers suivants :
+            • Facture récente de services publics indiquant le nom et l’adresse de l’entreprise
+            • Relevé bancaire indiquant le nom et l’adresse de l’entreprise
+            • Contrat de location en cours incluant la page de signature avec le nom et l’adresse actuelle de l’entreprise
+            • Attestation d’assurance indiquant le nom et l’adresse de l’entreprise
+            • Document d’attribution TIN indiquant le nom et l’adresse de l’entreprise
+        `),
         userAddressVerification: 'Vérification de l’adresse',
         userAddressVerificationDescription: dedent(`
-        Veuillez téléverser l’un des fichiers suivants :
-        • Carte d’inscription électorale
-        • Permis de conduire
-        • Relevé bancaire
-        • Facture de services publics`),
+            Veuillez téléverser l’un des fichiers suivants :
+            • Carte d’inscription électorale
+            • Permis de conduire
+            • Relevé bancaire
+            • Facture de services publics
+        `),
         userDOBVerification: 'Vérification de la date de naissance',
         userDOBVerificationDescription: 'Veuillez téléverser une pièce d’identité délivrée aux États-Unis',
         finishViaChat: 'Finaliser via le chat',
@@ -4438,7 +4441,7 @@ ${amount} pour ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrateur';
+                        return 'Administrateur d’espace de travail';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditeur';
                     case CONST.POLICY.ROLE.EDITOR:
@@ -4446,7 +4449,7 @@ ${amount} pour ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrateur de carte';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administration des personnes';
+                        return 'Admin personnes';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrateur des paiements';
                     case CONST.POLICY.ROLE.USER:
@@ -6305,12 +6308,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} a une note de frais en cours de traitement sur laquelle il doit agir. Veuillez lui demander d’effectuer l’action requise avant de le retirer de l’espace de travail.`,
             allMembers: 'Tous les membres',
-            admins: 'Administrateurs',
+            admins: 'Administrateurs de l’espace de travail',
             approvers: 'Approbateurs',
             auditors: 'Auditeurs',
             emptyRoleFilter: {title: 'Aucun membre ne correspond à ce filtre', subtitle: 'Invitez un membre ou modifiez le filtre ci-dessus.'},
             configureHRSync: (providerName: string) => `Configurer la synchronisation ${providerName}.`,
             syncWithHR: (providerName: string) => `Synchroniser avec ${providerName}`,
+            makeCardAdmin: {one: 'Nommer administrateur de carte', other: 'Nommer des administrateurs de carte'},
+            cardAdmins: 'Administrateurs de cartes',
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -7064,6 +7069,12 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     'Créez, envoyez et suivez des factures professionnelles, le tout dans Expensify. Soyez payé plus rapidement grâce aux paiements intégrés et à la visibilité en temps réel.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La facturation est disponible avec les offres Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            controlPolicyRoles: {
+                title: 'Contrôler les rôles de politique',
+                description: 'Utilisez des rôles spécialisés comme Auditeur et Administrateur de cartes pour donner aux membres accès uniquement à ce dont ils ont besoin.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les rôles spécialisés dans l’espace de travail sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
         },
         downgrade: {
@@ -8532,8 +8543,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     `La connexion ${feedName} est interrompue. Pour rétablir l’importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connexion Plaid à votre compte bancaire professionnel est rompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> afin de pouvoir continuer à utiliser vos Cartes Expensify.`,
-                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} a rejoint via le lien d’invitation de l’espace de travail` : `a ajouté ${email} en tant que ${role === 'member' ? 'a' : 'un'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
+                    const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'un' : 'a';
+                    return didJoinPolicy ? `${email} a rejoint via le lien d’invitation de l’espace de travail` : `a ajouté ${email} en tant que ${article} ${translatedRole}`;
+                },
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `a mis à jour le rôle de ${email} en ${newRole} (précédemment ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
