@@ -12,7 +12,7 @@ describe('localizeVictoryChartLabelText', () => {
             expect(utcDate?.toISOString()).toBe('2026-06-12T08:48:00.000Z');
         });
 
-        it('returns null for unparseable timestamps', () => {
+        it('returns null for invalid timestamps', () => {
             expect(parseDateAsUTC('not a date')).toBeNull();
         });
     });
