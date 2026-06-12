@@ -45,7 +45,7 @@ import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import AIRulesSection from './AIRulesSection';
+import AgentRulesSection from './AgentRulesSection';
 import IndividualExpenseRulesSectionRevamp from './IndividualExpenseRulesSectionRevamp';
 
 const RULES_TAB = CONST.TAB.RULES;
@@ -380,7 +380,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     {activeTab === RULES_TAB.CARD_RESTRICTIONS && renderCardRestrictionsContent()}
                     {activeTab === RULES_TAB.EXPENSE_DEFAULTS && renderExpenseDefaultsContent()}
                     {isCustomAgentBetaEnabled && !isRulesRevampEnabled && (
-                        <AIRulesSection
+                        <AgentRulesSection
                             policyID={policyID}
                             canWriteRules={canWriteRules}
                             showReadOnlyModal={showReadOnlyModal}
