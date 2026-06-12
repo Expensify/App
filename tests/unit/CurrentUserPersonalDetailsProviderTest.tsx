@@ -3,6 +3,7 @@ import React, {useContext} from 'react';
 import {CurrentUserPersonalDetailsContext, CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {useSession} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
@@ -11,35 +12,47 @@ jest.mock('@components/OnyxListItemProvider', () => ({
     useSession: jest.fn(),
 }));
 
-const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
-const mockUseSession = useSession as jest.MockedFunction<typeof useSession>;
+const mockUseOnyx = jest.mocked(useOnyx);
+const mockUseSession = jest.mocked(useSession);
 
 type PersonalDetailsSelector = (allPersonalDetails: PersonalDetailsList | undefined) => CurrentUserPersonalDetails;
 
 /**
- * Render the provider and return the `selector` it passes to `useOnyx`.
+ * Render the provider and capture the `selector` it passes to `useOnyx` for PERSONAL_DETAILS_LIST.
  * The fix made this selector pure, so we exercise it directly here.
  */
 function getSelector(): PersonalDetailsSelector {
+    let capturedSelector: PersonalDetailsSelector | undefined;
+    mockUseOnyx.mockImplementation((key, options) => {
+        if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
+            // jest erases the generic type info, so the captured selector needs a narrowing assertion back to its real signature.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            capturedSelector = options.selector as PersonalDetailsSelector;
+        }
+        return [undefined, {status: 'loaded'}];
+    });
+
     renderHook(() => useContext(CurrentUserPersonalDetailsContext), {
         wrapper: ({children}) => <CurrentUserPersonalDetailsProvider>{children}</CurrentUserPersonalDetailsProvider>,
     });
 
-    const lastCall = mockUseOnyx.mock.calls.at(-1);
-    const options = lastCall?.at(1) as {selector: PersonalDetailsSelector} | undefined;
-    return options?.selector as PersonalDetailsSelector;
+    if (!capturedSelector) {
+        throw new Error('Expected CurrentUserPersonalDetailsProvider to pass a selector to useOnyx');
+    }
+    return capturedSelector;
 }
 
 describe('CurrentUserPersonalDetailsProvider', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}] as ReturnType<typeof useOnyx>);
+        mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
     });
 
     it('returns the current account details from the selector', () => {
         mockUseSession.mockReturnValue({accountID: 1, email: 'owner@example.com'});
 
         const selector = getSelector();
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         const result = selector({1: {accountID: 1, login: 'owner@example.com', displayName: 'Owner'}});
 
         expect(result.accountID).toBe(1);
@@ -52,6 +65,7 @@ describe('CurrentUserPersonalDetailsProvider', () => {
 
         const selector = getSelector();
         const cached = {accountID: 2, login: 'agent@example.com', displayName: 'Agent'} as const;
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         const allPersonalDetails = {2: {...cached}};
 
         selector(allPersonalDetails);
@@ -64,6 +78,7 @@ describe('CurrentUserPersonalDetailsProvider', () => {
         mockUseSession.mockReturnValue({accountID: 3, email: 'user@example.com'});
 
         const selector = getSelector();
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         const allPersonalDetails = {3: {accountID: 3, login: 'user@example.com', displayName: 'User'}};
 
         const first = selector(allPersonalDetails);
