@@ -23,7 +23,6 @@ import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
-import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
@@ -50,7 +49,6 @@ import {
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
-import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
@@ -288,13 +286,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [storedTransactions] = useTransactionsByID(transactionIDs);
 
     function performPostBatchCleanup({
-        participant,
-        shouldHandleNavigation,
         allTransactionsCreated,
-        fallbackOptimisticChatReportID,
-        navigateBackToReport,
-        lastOptimisticTransactionID,
-        preResolvedChatTarget,
     }: {
         participant: Participant;
         shouldHandleNavigation: boolean;
@@ -309,32 +301,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!allTransactionsCreated) {
             return;
         }
-        if (!shouldHandleNavigation) {
-            cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction});
-            return;
-        }
-        // requestMoney passes the chat it wrote to (iouReport.chatReportID) as preResolvedChatTarget; trackExpense is void so it still derives (self-DM case).
-        const {report: resolvedReport, chatReportID} =
-            preResolvedChatTarget ??
-            resolveChatTargetForSubmitCleanup({
-                participant,
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                report,
-                fallbackOptimisticChatReportID,
-                action,
-            });
-        // Move-from-track (SUBMIT/CATEGORIZE/SHARE) reuses the tracked transaction's ID — mirror the builder's `existingTransactionID ?? optimisticTransactionID`.
-        const lastTransactionID = getExistingTransactionID(lastTransaction?.linkedTrackedExpenseReportAction) ?? lastOptimisticTransactionID;
-        cleanupAndNavigateAfterExpenseCreate({
-            report: resolvedReport,
-            action,
-            draftTransactionIDs,
-            transactionID: lastTransactionID,
-            isFromGlobalCreate: getIsFromGlobalCreate(lastTransaction),
-            backToReport: navigateBackToReport,
-            optimisticChatReportID: chatReportID,
-            linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction,
-        });
+        // Navigation + the "Expense added" growl are owned by the IOU action itself (requestMoney/trackExpense
+        // call handleNavigateAfterExpenseCreate / showExpenseAddedGrowl internally). Doing it here as well fired
+        // the growl twice and ran navigation twice on the shouldHandleNavigation=true paths, so this only performs
+        // the non-navigation cleanup now.
+        cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction});
     }
 
     function requestMoney(shouldHandleNavigation: boolean, gpsPoint?: GpsPoint) {
