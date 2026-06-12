@@ -1,12 +1,13 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {CardID} from './Card';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
-import type {Reservation} from './Transaction';
+import type {Reservation, TransactionCommentVendor} from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
 
 /** Types of join workspace resolutions */
@@ -111,6 +112,12 @@ type Decision = {
 
     /** When was the decision made */
     timestamp?: string;
+};
+
+/** Model of `smart scan failed` report action */
+type OriginalMessageSmartScanFailed = {
+    /** Fields that are missing */
+    missingFields: string[];
 };
 
 /** Model of `add comment` report action */
@@ -517,6 +524,15 @@ type OriginalMessagePolicyChangeLog = {
     /** New default reimbursable value */
     newDefaultReimbursable?: string;
 
+    /** MCC group name whose default spend category changed (e.g. "Airlines") */
+    mccGroupName?: string;
+
+    /** Previous category name for the MCC group */
+    oldCategory?: string;
+
+    /** New category name for the MCC group */
+    newCategory?: string;
+
     /** Old default report title formula */
     oldDefaultTitle?: string;
 
@@ -566,11 +582,41 @@ type OriginalMessagePolicyChangeLog = {
     /** Custom unit name */
     rateName?: string;
 
-    /** Tax percentage of the new tax rate linked to distance rate */
+    /** Rate amount in cents for the custom unit rate */
+    rate?: number;
+
+    /** Unit of the custom unit (e.g. "mi", "km") */
+    unit?: string;
+
+    /** Start date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
+    startDate?: string;
+
+    /** End date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
+    endDate?: string;
+
+    /** New start date of the custom unit rate (yyyy-MM-dd), used in UPDATE actions */
+    newStartDate?: string;
+
+    /** New end date of the custom unit rate (yyyy-MM-dd), used in UPDATE actions */
+    newEndDate?: string;
+
+    /** Previous start date of the custom unit rate (yyyy-MM-dd) */
+    oldStartDate?: string;
+
+    /** Previous end date of the custom unit rate (yyyy-MM-dd) */
+    oldEndDate?: string;
+
+    /** Tax percentage of the new tax rate linked to distance rate or category */
     newTaxPercentage?: string;
 
-    /** Tax percentage of the old tax rate linked to distance rate */
+    /** Tax percentage of the old tax rate linked to distance rate or category */
     oldTaxPercentage?: string;
+
+    /** Name of the new tax rate (without percentage) for category default tax rate */
+    newTaxName?: string;
+
+    /** Name of the old tax rate (without percentage) for category default tax rate */
+    oldTaxName?: string;
 
     /** Added/Updated tag name */
     tagName?: string;
@@ -766,6 +812,69 @@ type OriginalMessagePolicyChangeLog = {
     didJoinPolicy?: boolean;
 };
 
+/** Amount operators for spend rules */
+type SpendRuleAmountOperator = typeof CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN | typeof CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO;
+
+/** Model of an Expensify card spend rule change log action (add, update, or remove) */
+type OriginalMessageSpendRuleChangeLog = {
+    /** Spend rule action */
+    action?: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+
+    /** Previous spend rule action when the rule's restriction type was updated */
+    oldAction?: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+
+    /** Merchants included in a spend rule */
+    merchants?: string[];
+
+    /** Previous list of merchants when a spend rule was updated */
+    oldMerchants?: string[];
+
+    /** Categories included in a spend rule */
+    categories?: string[];
+
+    /** Previous list of categories when a spend rule was updated */
+    oldCategories?: string[];
+
+    /** Max-amount filters in a spend rule */
+    amounts?: Array<{
+        /** Operator (`gt` for "over", `lte` for "under") */
+        operator: SpendRuleAmountOperator;
+
+        /** Amount value as a decimal dollar string array (e.g. `['100.40']`) */
+        value: string[];
+    }>;
+
+    /** Previous list of max-amount filters when a spend rule was updated */
+    oldAmounts?: Array<{
+        /** Operator (`gt` for "over", `lte` for "under") */
+        operator: SpendRuleAmountOperator;
+
+        /** Amount value as a decimal dollar string array (e.g. `['100.40']`) */
+        value: string[];
+    }>;
+
+    /** Cards a spend rule is scoped to */
+    cards?: Array<{
+        /** Card identifier */
+        cardID: CardID;
+
+        /** Display name shown when the rule covers a single card */
+        displayName?: string;
+    }>;
+
+    /** Previous list of cards when a spend rule's card scope was updated */
+    oldCards?: Array<{
+        /** Card identifier */
+        cardID: CardID;
+
+        /** Display name shown when the rule covers a single card */
+        displayName?: string;
+    }>;
+
+    /** Currency of the spend rule */
+    currency?: string;
+};
+
 /** Model of `join policy` report action */
 type OriginalMessageJoinPolicy = {
     /** What was the invited user decision */
@@ -849,6 +958,12 @@ type OriginalMessageModifiedExpense = {
     /** Old expense reimbursable */
     oldReimbursable?: string;
 
+    /** Edited accounting-system vendor on the transaction's comment NVP. `null` means the vendor was cleared. */
+    vendor?: TransactionCommentVendor | null;
+
+    /** Previous accounting-system vendor on the transaction's comment NVP. `null` means there was no prior vendor. */
+    oldVendor?: TransactionCommentVendor | null;
+
     /** Collection of accountIDs of users mentioned in expense report */
     whisperedTo?: number[];
 
@@ -880,6 +995,15 @@ type OriginalMessageModifiedExpense = {
     personalRulesModifiedFields?: PersonalRulesModifiedFields;
 
     /** The Concierge reasoning for the action */
+    reasoning?: string;
+};
+
+/** Model of `concierge auto match vendor` report action — emitted on the transaction thread when the PHP fuzzy matcher auto-matches a non-reimbursable expense to a QBO vendor. */
+type OriginalMessageConciergeAutoMatchVendor = {
+    /** Display name of the matched vendor */
+    vendorName?: string;
+
+    /** LLM-consumable explanation of why this vendor was matched — surfaced behind the "Explain" link */
     reasoning?: string;
 };
 
@@ -1521,6 +1645,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED]: OriginalMessageMarkedReimbursed;
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
+    [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR]: OriginalMessageConciergeAutoMatchVendor;
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
     [CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION]: OriginalMessageMovedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION]: OriginalMessageUnreportedTransaction;
@@ -1580,14 +1705,17 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
-    [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: OriginalMessageSmartScanFailed;
     [CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER]: OriginalMessageReassignApprover;
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
 } & OldDotOriginalMessageMap &
-    Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
-    Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
+    Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> & {
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
+    } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
 type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;
 
@@ -1607,7 +1735,6 @@ export type {
     OriginalMessageExportIntegration,
     IssueNewCardOriginalMessage,
     OriginalMessageChangePolicy,
-    OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
     PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,

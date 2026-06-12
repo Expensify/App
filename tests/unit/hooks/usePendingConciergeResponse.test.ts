@@ -1,6 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
+import {MAX_AGE_MS as PENDING_FOLLOWUP_LIST_HARD_CAP_MS} from '@libs/AgentZeroOptimisticStore';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -337,6 +338,27 @@ describe('usePendingConciergeResponse', () => {
             unmount();
         });
 
+        it('also writes the followup-list skeleton flag when the binary reveal applies the optimistic', async () => {
+            // Given a short pending Concierge response (under the trickle gate → binary reveal at displayAfter)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}`, {
+                reportAction: fakeConciergeAction,
+                displayAfter: Date.now() + SHORT_DELAY,
+            });
+            await waitForBatchedUpdates();
+
+            renderHook(() => usePendingConciergeResponse(REPORT_ID));
+            await waitForBatchedUpdates();
+
+            // When the binary reveal fires
+            await delay(SHORT_DELAY + 50);
+            await waitForBatchedUpdates();
+
+            // Then the followup-list skeleton flag is written for the same action — this is
+            // what drives `<FollowupListSkeleton>` until the canonical reply lands.
+            const pendingFollowupList = await getOnyxValue(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}` as const);
+            expect(pendingFollowupList?.reportActionID).toBe(REPORT_ACTION_ID);
+        });
+
         it('cleans up the interval on unmount mid-trickle', async () => {
             // Given a long pending response
             await Onyx.merge(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}`, {
@@ -366,6 +388,147 @@ describe('usePendingConciergeResponse', () => {
             // And REPORT_ACTIONS should NOT contain the action (trickle was cancelled mid-way)
             const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
             expect(reportActions?.[REPORT_ACTION_ID]).toBeUndefined();
+        });
+    });
+
+    describe('followup-list reconciliation', () => {
+        it('clears the followup-list pending flag once the canonical action HTML carries a real <followup-list>', async () => {
+            // Given the skeleton flag is set (post-trickle / post-binary-reveal state) and the
+            // optimistic action exists in REPORT_ACTIONS with no <followup-list> yet
+            await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}`, {
+                reportActionID: REPORT_ACTION_ID,
+                createdAt: Date.now(),
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [REPORT_ACTION_ID]: fakeConciergeAction,
+            });
+            await waitForBatchedUpdates();
+
+            const {unmount} = renderHook(() => usePendingConciergeResponse(REPORT_ID));
+            await waitForBatchedUpdates();
+
+            // Flag is still set: no <followup-list> in HTML yet
+            const flagBefore = await getOnyxValue(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}` as const);
+            expect(flagBefore?.reportActionID).toBe(REPORT_ACTION_ID);
+
+            // When the canonical reply overwrites the optimistic with a real (unresolved) followup-list
+            const canonicalAction = {
+                ...fakeConciergeAction,
+                message: [
+                    {
+                        html: '<p>Pick one:</p><followup-list><followup><followup-text>Yes</followup-text></followup><followup><followup-text>No</followup-text></followup></followup-list>',
+                        text: 'Pick one:',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    },
+                ],
+            } as ReportAction;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [REPORT_ACTION_ID]: canonicalAction,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the reconciliation effect clears the flag so the skeleton stops rendering
+            const flagAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}` as const);
+            expect(flagAfter).toBeUndefined();
+
+            unmount();
+        });
+
+        it('keeps the flag when the canonical action has a resolved (selected) followup-list — parseFollowupsFromHtml returns []', async () => {
+            // Given the skeleton flag is set and the action carries a `selected` followup-list (resolved state)
+            await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}`, {
+                reportActionID: REPORT_ACTION_ID,
+                createdAt: Date.now(),
+            });
+            const resolvedAction = {
+                ...fakeConciergeAction,
+                message: [
+                    {
+                        html: '<p>Already resolved.</p><followup-list selected><followup><followup-text>Yes</followup-text></followup></followup-list>',
+                        text: 'Already resolved.',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    },
+                ],
+            } as ReportAction;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: resolvedAction});
+            await waitForBatchedUpdates();
+
+            const {unmount} = renderHook(() => usePendingConciergeResponse(REPORT_ID));
+            await waitForBatchedUpdates();
+
+            // Then the flag remains — a resolved (already-selected) list isn't a "real" pending answer,
+            // so the skeleton should continue until the genuine list arrives (or TTL fires).
+            const flag = await getOnyxValue(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}` as const);
+            expect(flag?.reportActionID).toBe(REPORT_ACTION_ID);
+
+            unmount();
+        });
+
+        it('clears the flag synchronously on mount when the TTL has already expired (app relaunch beyond the safety window)', async () => {
+            // Given a stale flag from a prior session, well past the TTL
+            await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}`, {
+                reportActionID: REPORT_ACTION_ID,
+                createdAt: Date.now() - (PENDING_FOLLOWUP_LIST_HARD_CAP_MS + 60_000),
+            });
+            await waitForBatchedUpdates();
+
+            const {unmount} = renderHook(() => usePendingConciergeResponse(REPORT_ID));
+            await waitForBatchedUpdates();
+
+            // Then the flag is cleared on mount without scheduling any timer
+            const flag = await getOnyxValue(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}` as const);
+            expect(flag).toBeUndefined();
+
+            unmount();
+        });
+
+        it('clears the flag via the TTL timer when no followup-list ever arrives', async () => {
+            // Given a flag whose remaining TTL is just `TINY_REMAINING` ms — TTL fires shortly after mount
+            const TINY_REMAINING = 100;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}`, {
+                reportActionID: REPORT_ACTION_ID,
+                createdAt: Date.now() - (PENDING_FOLLOWUP_LIST_HARD_CAP_MS - TINY_REMAINING),
+            });
+            await waitForBatchedUpdates();
+
+            const {unmount} = renderHook(() => usePendingConciergeResponse(REPORT_ID));
+            await waitForBatchedUpdates();
+
+            // Right after mount the flag is still there (TTL not fired yet)
+            const flagBefore = await getOnyxValue(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}` as const);
+            expect(flagBefore?.reportActionID).toBe(REPORT_ACTION_ID);
+
+            // When we wait past the residual TTL
+            await delay(TINY_REMAINING + 50);
+            await waitForBatchedUpdates();
+
+            // Then the TTL fired and cleared the flag
+            const flagAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}` as const);
+            expect(flagAfter).toBeUndefined();
+
+            unmount();
+        });
+
+        it('cleans up the TTL timer on unmount', async () => {
+            // Given a flag with ~100ms TTL left
+            const TINY_REMAINING = 100;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}`, {
+                reportActionID: REPORT_ACTION_ID,
+                createdAt: Date.now() - (PENDING_FOLLOWUP_LIST_HARD_CAP_MS - TINY_REMAINING),
+            });
+            await waitForBatchedUpdates();
+
+            const {unmount} = renderHook(() => usePendingConciergeResponse(REPORT_ID));
+            await waitForBatchedUpdates();
+
+            // When we unmount before TTL fires…
+            unmount();
+            await delay(TINY_REMAINING + 50);
+            await waitForBatchedUpdates();
+
+            // Then the flag is NOT cleared (the TTL setTimeout was cancelled)
+            const flag = await getOnyxValue(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}` as const);
+            expect(flag?.reportActionID).toBe(REPORT_ACTION_ID);
         });
     });
 });

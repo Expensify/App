@@ -13,11 +13,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import MockSearchContextProvider from '../utils/MockSearchContextProvider';
+import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@components/AvatarWithDisplayName.tsx');
+
+jest.mock('@hooks/usePaymentContext', () => {
+    const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../utils/mockUsePaymentContext');
+    return mockUsePaymentContext;
+});
 
 // Mock search context with all required SearchContextStateValue and SearchContextActionsValue fields
 const mockSearchStateContext = {
@@ -30,7 +36,6 @@ const mockSearchStateContext = {
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
     currentSelectedTransactionReportID: undefined,
-    shouldShowSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
@@ -49,7 +54,6 @@ const mockSearchActionsContext = {
     setSelectedTransactions: jest.fn(),
     setSelectedReports: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
-    setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
     removeTransaction: jest.fn(),

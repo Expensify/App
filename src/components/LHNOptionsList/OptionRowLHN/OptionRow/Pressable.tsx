@@ -61,7 +61,6 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
 
     const reportID = optionItem.reportID;
     const brickRoadIndicator = optionItem.brickRoadIndicator;
-
     const actionBadgeText = getActionBadgeText(optionItem.actionBadge, translate, isMarkAsDone);
 
     let accessibilityLabelForBadge = '';

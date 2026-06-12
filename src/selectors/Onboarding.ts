@@ -69,10 +69,22 @@ function wasInvitedToNewDotSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP
 }
 
 /**
+ * Combined selector that derives both the self-tour status and the guided-setup
+ * completion flag from a single NVP_ONBOARDING read, avoiding two subscriptions
+ * to the same key from callers that need both.
+ */
+function guidedSetupAndTourStatusSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): {isSelfTourViewed: boolean | undefined; hasCompletedGuidedSetupFlow: boolean | undefined} {
+    return {
+        isSelfTourViewed: hasSeenTourSelector(onboarding),
+        hasCompletedGuidedSetupFlow: hasCompletedGuidedSetupFlowSelector(onboarding),
+    };
+}
+
+/**
  * Selector to check if the user selected a track-intent onboarding choice
  */
 function isTrackIntentUserSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>): boolean {
     return isTrackOnboardingChoice(introSelected?.choice);
 }
 
-export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, isTrackIntentUserSelector};
+export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, guidedSetupAndTourStatusSelector, isTrackIntentUserSelector};

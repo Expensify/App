@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
@@ -96,6 +97,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const {isPressed, startPressLoading} = usePressLoading();
@@ -244,6 +246,9 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     };
 
     const handleSubmit = () => {
+        if (!canWriteRules) {
+            return;
+        }
         if (errorMessage) {
             setShouldShowError(true);
             return;
@@ -273,6 +278,9 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     };
 
     const handleDelete = () => {
+        if (!canWriteRules) {
+            return;
+        }
         if (!ruleID || !policy) {
             return;
         }
@@ -382,7 +390,11 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         return <NotFoundPage />;
     }
 
-    const footer = (
+    if (!isEditing && !!policy && !canWriteRules) {
+        return <NotFoundPage />;
+    }
+
+    const footer = canWriteRules ? (
         <FormAlertWithSubmitButton
             buttonText={translate('workspace.rules.merchantRules.saveRule')}
             containerStyles={[styles.m4, styles.mb5]}
@@ -429,13 +441,14 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                 </>
             }
         />
-    );
+    ) : null;
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
         >
             <ScreenWrapper
                 testID={testID}
@@ -453,10 +466,11 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                     <MenuItemWithTopDescription
                                         key={item.key}
                                         description={item.description}
-                                        errorText={shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
-                                        onPress={item.onPress}
-                                        rightLabel={item.required ? translate('common.required') : undefined}
-                                        shouldShowRightIcon
+                                        errorText={canWriteRules && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
+                                        onPress={canWriteRules ? item.onPress : undefined}
+                                        rightLabel={canWriteRules && item.required ? translate('common.required') : undefined}
+                                        shouldShowRightIcon={canWriteRules}
+                                        interactive={canWriteRules}
                                         title={item.title}
                                         titleStyle={styles.flex1}
                                         shouldRenderAsHTML={item.shouldRenderAsHTML}

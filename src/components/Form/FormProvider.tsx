@@ -1,8 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import {useInputBlurActions} from '@components/InputBlurContext';
@@ -17,6 +15,8 @@ import useOnyx from '@hooks/useOnyx';
 import usePressLoading from '@hooks/usePressLoading';
 import {isSafari} from '@libs/Browser';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import {clearErrorFields, clearErrors, setDraftValues, setErrors as setFormErrors} from '@userActions/FormActions';
@@ -161,6 +161,10 @@ function FormProvider({
     const [errorAnnouncementKey, setErrorAnnouncementKey] = useState(0);
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
     const {setIsBlurred} = useInputBlurActions();
+    const blurTransitionHandle = useRef<CancelHandle | null>(null);
+
+    // Cancel any in-flight blur transition callback on unmount so it doesn't fire after the form is gone.
+    useEffect(() => () => blurTransitionHandle.current?.cancel(), []);
 
     const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
     const isGeneralAlertVisible = ((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage;
@@ -487,8 +491,12 @@ function FormProvider({
                     }
                     inputProps.onBlur?.(event);
                     if (isSafari()) {
-                        InteractionManager.runAfterInteractions(() => {
-                            setIsBlurred(true);
+                        blurTransitionHandle.current?.cancel();
+                        blurTransitionHandle.current = TransitionTracker.runAfterTransitions({
+                            callback: () => {
+                                setIsBlurred(true);
+                            },
+                            waitForUpcomingTransition: true,
                         });
                     }
                 },

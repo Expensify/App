@@ -1,0 +1,111 @@
+diff --git a/node_modules/victory-native/dist/cartesian/components/BarGroup.d.ts b/node_modules/victory-native/dist/cartesian/components/BarGroup.d.ts
+index b486f76..45788f0 100644
+--- a/node_modules/victory-native/dist/cartesian/components/BarGroup.d.ts
++++ b/node_modules/victory-native/dist/cartesian/components/BarGroup.d.ts
+@@ -16,6 +16,7 @@ type BarGroupProps = {
+         groupWidth: number;
+         gapWidth: number;
+     }) => void;
++    isHorizontal?: boolean;
+ };
+ export declare function BarGroup({ betweenGroupPadding, withinGroupPadding, chartBounds, roundedCorners, children, onBarSizeChange, barWidth: customBarWidth, barCount, }: BarGroupProps): React.DetailedReactHTMLElement<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>[] | null;
+ export declare namespace BarGroup {
+diff --git a/node_modules/victory-native/dist/cartesian/hooks/useBarGroupPaths.d.ts b/node_modules/victory-native/dist/cartesian/hooks/useBarGroupPaths.d.ts
+index 63b69bc..75641b1 100644
+--- a/node_modules/victory-native/dist/cartesian/hooks/useBarGroupPaths.d.ts
++++ b/node_modules/victory-native/dist/cartesian/hooks/useBarGroupPaths.d.ts
+@@ -1,6 +1,6 @@
+ import type { ChartBounds, PointsArray } from "../../types";
+ import { type RoundedCorners } from "../../utils/createRoundedRectPath";
+-export declare const useBarGroupPaths: (points: PointsArray[], chartBounds: ChartBounds, betweenGroupPadding?: number, withinGroupPadding?: number, roundedCorners?: RoundedCorners, customBarWidth?: number, barCount?: number) => {
++export declare const useBarGroupPaths: (points: PointsArray[], chartBounds: ChartBounds, betweenGroupPadding?: number, withinGroupPadding?: number, roundedCorners?: RoundedCorners, customBarWidth?: number, barCount?: number, isHorizontal?: boolean) => {
+     barWidth: number;
+     groupWidth: number;
+     gapWidth: number;
+diff --git a/node_modules/victory-native/src/cartesian/components/BarGroup.tsx b/node_modules/victory-native/src/cartesian/components/BarGroup.tsx
+index f46fad7..ad75c04 100644
+--- a/node_modules/victory-native/src/cartesian/components/BarGroup.tsx
++++ b/node_modules/victory-native/src/cartesian/components/BarGroup.tsx
+@@ -20,6 +20,7 @@ type BarGroupProps = {
+     groupWidth: number;
+     gapWidth: number;
+   }) => void;
++  isHorizontal?: boolean;
+ };
+ 
+ export function BarGroup({
+@@ -31,6 +32,7 @@ export function BarGroup({
+   onBarSizeChange,
+   barWidth: customBarWidth,
+   barCount,
++  isHorizontal,
+ }: BarGroupProps) {
+   // Collect the bar props
+   const bars = [] as BarGroupBarProps[];
+@@ -49,6 +51,7 @@ export function BarGroup({
+     roundedCorners,
+     customBarWidth,
+     barCount,
++    isHorizontal,
+   );
+ 
+   // Handle bar size change
+diff --git a/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts b/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
+index 4bfb6d4..9805bfe 100644
+--- a/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
++++ b/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
+@@ -15,17 +15,19 @@ export const useBarGroupPaths = (
+   roundedCorners?: RoundedCorners,
+   customBarWidth?: number,
+   barCount?: number,
++  isHorizontal?: boolean,
+ ) => {
+   const numGroups = points[0]?.length || 0;
+ 
+-  const { yScale } = useCartesianChartContext();
++  const { xScale, yScale } = useCartesianChartContext();
+ 
+   const groupWidth = React.useMemo(() => {
++    const boundSize = isHorizontal ? chartBounds.top - chartBounds.bottom : chartBounds.right - chartBounds.left;
+     return (
+-      ((1 - betweenGroupPadding) * (chartBounds.right - chartBounds.left)) /
++      ((1 - betweenGroupPadding) * boundSize) /
+       Math.max(1, numGroups)
+     );
+-  }, [betweenGroupPadding, chartBounds.left, chartBounds.right, numGroups]);
++  }, [betweenGroupPadding, chartBounds, numGroups, isHorizontal]);
+ 
+   const barWidth = React.useMemo(() => {
+     if (customBarWidth) return customBarWidth;
+@@ -46,19 +48,24 @@ export const useBarGroupPaths = (
+       const offset = -groupWidth / 2 + i * (barWidth + gapWidth);
+       pointSet.forEach(({ x, y, yValue }) => {
+         if (typeof y !== "number") return;
+-        const barHeight = yScale(0) - y;
++        const barHeight = isHorizontal ? xScale(0) - x : yScale(0) - y;
+         if (roundedCorners) {
+           const nonUniformRoundedRect = createRoundedRectPath(
+-            x + offset,
+-            y,
+-            barWidth,
+-            barHeight,
+-            roundedCorners,
++            isHorizontal ? x : x + offset,
++            isHorizontal ? y + offset : y,
++            isHorizontal ? barHeight : barWidth,
++            isHorizontal ? barWidth : barHeight,
++            isHorizontal ? {topLeft: roundedCorners.bottomLeft, topRight: roundedCorners.topLeft, bottomLeft: roundedCorners.bottomRight, bottomRight: roundedCorners.topRight} : roundedCorners,
+             Number(yValue),
+           );
+           p.addRRect(nonUniformRoundedRect);
+         } else {
+-          p.addRect(Skia.XYWHRect(x + offset, y, barWidth, barHeight));
++          p.addRect(Skia.XYWHRect(
++            isHorizontal ? x : x + offset,
++            isHorizontal ? y + offset : y,
++            isHorizontal ? barHeight : barWidth,
++            isHorizontal ? barWidth : barHeight,
++          ));
+         }
+       });
+       return p;
