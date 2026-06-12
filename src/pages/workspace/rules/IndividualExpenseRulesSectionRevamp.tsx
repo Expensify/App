@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -39,34 +39,36 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const handleAttendeeTrackingToggle = useCallback(
-        (newValue: boolean) => {
-            setPolicyAttendeeTrackingEnabled(policyID, newValue, policy?.isAttendeeTrackingEnabled);
-        },
-        [policyID, policy?.isAttendeeTrackingEnabled],
-    );
+    const handleAttendeeTrackingToggle = (newValue: boolean) => {
+        setPolicyAttendeeTrackingEnabled(policyID, newValue, policy?.isAttendeeTrackingEnabled);
+    };
 
-    const maxExpenseAgeText = useMemo(() => {
+    const maxExpenseAgeText = (() => {
         if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE) {
             return '';
         }
         return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge ?? 0});
-    }, [policy?.maxExpenseAge, translate]);
+    })();
 
-    const maxExpenseAmountText = useMemo(() => {
+    const maxExpenseAmountText = (() => {
         if (policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE) {
             return '';
         }
         return convertToDisplayString(policy?.maxExpenseAmount, policyCurrency);
-    }, [convertToDisplayString, policy?.maxExpenseAmount, policyCurrency]);
+    })();
 
-    const receiptRequirementText = useMemo(() => {
-        const amount = policy?.maxExpenseAmountNoReceipt;
-        if (amount === CONST.DISABLED_MAX_EXPENSE_VALUE || amount === undefined) {
-            return '';
-        }
-        return translate('workspace.rules.generalTab.receiptRequirementsDescription', convertToDisplayString(amount, policyCurrency));
-    }, [convertToDisplayString, policy?.maxExpenseAmountNoReceipt, policyCurrency, translate]);
+    const receiptRequirementText = (() => {
+        const receiptAmount = policy?.maxExpenseAmountNoReceipt;
+        const itemizedAmount = policy?.maxExpenseAmountNoItemizedReceipt;
+
+        const isReceiptEnabled = receiptAmount !== undefined && receiptAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && receiptAmount !== 0;
+        const isItemizedEnabled = itemizedAmount !== undefined && itemizedAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && itemizedAmount !== 0;
+
+        return translate('workspace.rules.generalTab.receiptRequirementsSummary', {
+            regularAmount: isReceiptEnabled ? convertToDisplayString(receiptAmount, policyCurrency) : undefined,
+            itemizedAmount: isItemizedEnabled ? convertToDisplayString(itemizedAmount, policyCurrency) : undefined,
+        });
+    })();
 
     const reimbursableMode = getCashExpenseReimbursableMode(policy) ?? CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT;
     const reimbursableModeTextMap = {
@@ -81,7 +83,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
-    const requiredFieldsList = useMemo(() => {
+    const requiredFieldsList = (() => {
         const fields: string[] = [];
         if (policy?.requiresCategory) {
             fields.push(translate('common.category'));
@@ -90,7 +92,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             fields.push(translate('common.tag'));
         }
         return fields.join(', ');
-    }, [policy?.requiresCategory, policy?.requiresTag, translate]);
+    })();
 
     const policyControlItems: BasicRuleMenuItem[] = [
         {

@@ -7223,8 +7223,21 @@ const translations = {
                 expensesOlderThan: 'Expenses older than',
                 expensesAboveAmount: 'Expenses above amount',
                 flagReceiptLineItems: 'Flag receipt line items',
-                receiptRequirements: 'Receipt or itemized receipt requirements',
+                receiptRequirements: 'Require receipts',
                 receiptRequirementsDescription: (amount: string) => `Amount is above ${amount}`,
+                dontRequireReceipts: "Don't require receipts",
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `Regular above ${regularAmount}, itemized above ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `Regular above ${regularAmount}, don't require itemized`;
+                    }
+                    if (itemizedAmount) {
+                        return `Don't require regular, itemized above ${itemizedAmount}`;
+                    }
+                    return "Don't require receipts";
+                },
                 requireFieldsForAllExpenses: 'Require fields for all expenses',
                 cashExpenses: 'Cash expenses',
                 cashExpensesReimbursableByDefault: 'Reimbursable by default',
