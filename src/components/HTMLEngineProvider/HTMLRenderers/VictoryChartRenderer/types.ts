@@ -3,6 +3,7 @@ import type {ComponentProps} from 'react';
 import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type {CartesianChart} from 'victory-native';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {CHART_TYPE, COLOR_KEY, LABEL_KEY, VALUE_KEY, X_KEY, Y_KEY_PREFIX} from './constants';
 
 type VictoryChartRendererProps = CustomRendererProps<TBlock>;
@@ -171,7 +172,7 @@ type ProcessNodeResult = {
 /** Partial slice produced by a single per-tag parser before merging. */
 type PartialProcessNodeResult = Partial<ProcessNodeResult>;
 
-type NodeParser = (tnode: TNode, typeface: SkTypeface | null, rootProcessedResult: ProcessNodeResult | null) => PartialProcessNodeResult;
+type NodeParser = (tnode: TNode, typeface: SkTypeface | null, rootProcessedResult: ProcessNodeResult | null, viewerTimezone?: SelectedTimezone) => PartialProcessNodeResult;
 
 type ChartType = ValueOf<typeof CHART_TYPE>;
 

@@ -1,19 +1,23 @@
 import type {TNode} from 'react-native-render-html';
+import type {SkTypeface} from '@shopify/react-native-skia';
 import normalizeChartFontWeight from '@components/Charts/utils/normalizeChartFontWeight';
-import type {LabelItem, PartialProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {LabelItem, PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import {getLocalizedAsOfVictoryChartLabelText} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/formatAsOfVictoryChartLabel';
 import {parseAttributeAsNumber, parseAttributeAsNumberArray, parseAttributeAsString} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseRawLabelStyle from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawLabelStyle';
 import parseTextAnchor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseTextAnchor';
 import unescapeVictoryChartText from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/unescapeVictoryChartText';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 /**
  * Parse label config from a `<victorylabel>` node.
  */
-function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
+function parseVictoryLabelNode(tnode: TNode, _typeface: SkTypeface | null = null, _rootProcessedResult: ProcessNodeResult | null = null, viewerTimezone?: SelectedTimezone): PartialProcessNodeResult {
+    const rawText = unescapeVictoryChartText(parseAttributeAsString(tnode.attributes.text) ?? '');
     const labelItem: LabelItem = {
         x: parseAttributeAsNumber(tnode.attributes.x) ?? 0,
         y: parseAttributeAsNumber(tnode.attributes.y) ?? 0,
-        text: unescapeVictoryChartText(parseAttributeAsString(tnode.attributes.text) ?? ''),
+        text: getLocalizedAsOfVictoryChartLabelText(rawText, viewerTimezone),
         color: {},
         fontSize: {},
         fontWeight: {},
