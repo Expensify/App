@@ -44,7 +44,7 @@ function formatAsOfDateTimeForTimezone(utcDate: Date, viewerTimezone: SelectedTi
  * Rewrites a `<victorylabel>` "As of: ..." string in the viewer's timezone.
  * Returns the original text when the label does not match or cannot be parsed.
  */
-function getLocalizedAsOfVictoryChartLabelText(text: string, viewerTimezone?: SelectedTimezone): string {
+function getLocalizedVictoryChartLabelText(text: string, viewerTimezone?: SelectedTimezone): string {
     if (!viewerTimezone) {
         return text;
     }
@@ -62,4 +62,4 @@ function getLocalizedAsOfVictoryChartLabelText(text: string, viewerTimezone?: Se
     return `As of: ${formatAsOfDateTimeForTimezone(utcDate, viewerTimezone)}`;
 }
 
-export {AS_OF_LABEL_PATTERN, formatAsOfDateTimeForTimezone, getLocalizedAsOfVictoryChartLabelText, parseUtcAsOfDateTime};
+export {AS_OF_LABEL_PATTERN, formatAsOfDateTimeForTimezone, getLocalizedVictoryChartLabelText, parseUtcAsOfDateTime};

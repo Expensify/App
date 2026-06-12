@@ -5,7 +5,7 @@ import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';
-import {getLocalizedAsOfVictoryChartLabelText} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/formatAsOfVictoryChartLabel';
+import {getLocalizedVictoryChartLabelText} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/formatAsOfVictoryChartLabel';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import CONST from '@src/CONST';
 
@@ -28,7 +28,7 @@ function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily,
     const typefaces = useChartTypefaces();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const timezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
-    const displayText = getLocalizedAsOfVictoryChartLabelText(text, timezone);
+    const displayText = getLocalizedVictoryChartLabelText(text, timezone);
     const processedLines = displayText.split('\n').reduce(
         (acc, line, index) => {
             const lineColor = color?.[index];

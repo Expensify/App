@@ -1,6 +1,6 @@
 import {
     formatAsOfDateTimeForTimezone,
-    getLocalizedAsOfVictoryChartLabelText,
+    getLocalizedVictoryChartLabelText,
     parseUtcAsOfDateTime,
 } from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/formatAsOfVictoryChartLabel';
 
@@ -29,10 +29,10 @@ describe('formatAsOfVictoryChartLabel', () => {
     });
 
     it('rewrites As of labels and leaves other labels unchanged', () => {
-        const localized = getLocalizedAsOfVictoryChartLabelText('As of: Jun 5, 2026 at 06:47 PM', 'America/Los_Angeles');
+        const localized = getLocalizedVictoryChartLabelText('As of: Jun 5, 2026 at 06:47 PM', 'America/Los_Angeles');
         expect(localized).toBe('As of: Jun 5, 2026 at 11:47 AM');
 
-        expect(getLocalizedAsOfVictoryChartLabelText('Top employees by spend', 'America/Los_Angeles')).toBe('Top employees by spend');
-        expect(getLocalizedAsOfVictoryChartLabelText('As of: Jun 5, 2026 at 06:47 PM')).toBe('As of: Jun 5, 2026 at 06:47 PM');
+        expect(getLocalizedVictoryChartLabelText('Top employees by spend', 'America/Los_Angeles')).toBe('Top employees by spend');
+        expect(getLocalizedVictoryChartLabelText('As of: Jun 5, 2026 at 06:47 PM')).toBe('As of: Jun 5, 2026 at 06:47 PM');
     });
 });
