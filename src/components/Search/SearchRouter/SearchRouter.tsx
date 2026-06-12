@@ -221,6 +221,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             sortedActions,
             contextualReportNVP,
             contextualReportPolicy,
+            isTrackIntentUser,
         ],
     );
 
