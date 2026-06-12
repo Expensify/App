@@ -17,7 +17,7 @@ type MultifactorAuthenticationInternalApi = {
     /** Close the modal overlay. */
     closeModal: () => void;
 
-    /** Navigator's report that the close animation fully finished; re-enters idle, wiping the flow data. */
+    /** Notify the machine that the close animation has fully finished. Called by the modal navigator on teardown; the machine then moves from `closing` back to `idle`. */
     notifyModalClosed: () => void;
 
     /** Centralized back-press / backdrop entry. */
