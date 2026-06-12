@@ -6,6 +6,7 @@ import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow'
 import type Platform from './libs/getPlatform/types';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
+import type DefaultP2PMileageRate from './types/onyx/DefaultP2PMileageRate';
 import type {Attendee, DistanceExpenseType, Participant} from './types/onyx/IOU';
 import type Onboarding from './types/onyx/Onboarding';
 import type {AnyOnyxUpdate} from './types/onyx/Request';
@@ -26,6 +27,9 @@ const ONYXKEYS = {
     /** Holds an array of client IDs which is used for multi-tabs on web in order to know
      * which tab is the leader, and which ones are the followers */
     ACTIVE_CLIENTS: 'activeClients',
+
+    /** Contains the default rate and unit to use for P2P distance expenses, based on the user's personal policy outputCurrency (default / report currency). */
+    DEFAULT_P2P_MILEAGE_RATE: 'defaultP2PMileageRate',
 
     /** A unique ID for the device */
     DEVICE_ID: 'deviceID',
@@ -167,6 +171,9 @@ const ONYXKEYS = {
 
     /** Contains the user preference for the LHN priority mode */
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
+
+    /** Contains the user preference for the active inbox tab filter */
+    NVP_INBOX_TAB: 'nvp_inboxTab',
 
     /** Contains the users's block expiration (if they have one) */
     NVP_BLOCKED_FROM_CONCIERGE: 'nvp_private_blockedFromConcierge',
@@ -595,25 +602,6 @@ const ONYXKEYS = {
     /** Stores the information about currently edited advanced approval workflow */
     APPROVAL_WORKFLOW: 'approvalWorkflow',
 
-    /**
-     * Workflow saves the user committed while a freshly-created agent was still pending. Keyed
-     * by `${policyID}:${firstApproverEmail}`. WorkspaceWorkflowsPage overlays these entries on
-     * top of the regular workflows so the new agent shows up faded in the approver card, and
-     * a watcher fires the actual `updateApprovalWorkflow` once the agent gets its real email
-     * and clears the entry. This lets the admin "Save" before CREATE_AGENT resolves without
-     * the modal blocking on a `This field is required` validation error.
-     */
-    DEFERRED_AGENT_WORKFLOW_SAVES: 'deferredAgentWorkflowSaves',
-
-    /**
-     * Maps optimistic agent account IDs (randomly generated) to the real, server-assigned IDs returned
-     * by CREATE_AGENT. The server echoes this mapping in the response's `onyxData` (and queues
-     * it on the owner's account channel) so the WorkspaceWorkflowsPage and Edit Approvers
-     * reconciliation can swap the pending approver to the real agent without falling back to
-     * matching by prompt — which is ambiguous when multiple agents share the same prompt text.
-     */
-    OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING: 'optimisticAgentAccountIDMapping',
-
     /** Stores the user search value for persistence across the screens */
     ROOM_MEMBERS_USER_SEARCH_PHRASE: 'roomMembersUserSearchPhrase',
 
@@ -986,8 +974,6 @@ const ONYXKEYS = {
         DISPLAY_NAME_FORM_DRAFT: 'displayNameFormDraft',
         ONBOARDING_PERSONAL_DETAILS_FORM: 'onboardingPersonalDetailsForm',
         ONBOARDING_PERSONAL_DETAILS_FORM_DRAFT: 'onboardingPersonalDetailsFormDraft',
-        ONBOARDING_WORKSPACE_DETAILS_FORM: 'onboardingWorkspaceDetailsForm',
-        ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT: 'onboardingWorkspaceDetailsFormDraft',
         ROOM_NAME_FORM: 'roomNameForm',
         ROOM_NAME_FORM_DRAFT: 'roomNameFormDraft',
         CHRONOS_SCHEDULE_OOO_FORM: 'chronosScheduleOOOForm',
@@ -1226,7 +1212,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM]: FormTypes.WorkspaceCategoryForm;
     [ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM]: FormTypes.WorkspaceConfirmationForm;
     [ONYXKEYS.FORMS.WORKSPACE_DUPLICATE_FORM]: FormTypes.WorkspaceDuplicateForm;
-    [ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM]: FormTypes.WorkspaceConfirmationForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAG_FORM]: FormTypes.WorkspaceTagForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME]: FormTypes.WorkspaceTaxCustomName;
     [ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME]: FormTypes.WorkspaceCompanyCardFeedName;
@@ -1443,6 +1428,7 @@ type OnyxCollectionValuesMapping = {
 type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
+    [ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE]: DefaultP2PMileageRate;
 
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding;
 
@@ -1494,6 +1480,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.BETA_CONFIGURATION]: OnyxTypes.BetaConfiguration;
     [ONYXKEYS.NVP_MUTED_PLATFORMS]: Partial<Record<Platform, true>>;
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
+    [ONYXKEYS.NVP_INBOX_TAB]: ValueOf<typeof CONST.INBOX_TAB>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.QUEUE_FLUSHED_DATA]: AnyOnyxUpdate[];
     [ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW]: OnyxTypes.TransactionsPending3DSReview;
@@ -1637,8 +1624,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
-    [ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES]: Record<string, OnyxTypes.DeferredAgentWorkflowSave>;
-    [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: Record<string, number>;
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA]: OnyxTypes.ImportedSpreadsheetMemberData[];
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE]: ValueOf<typeof CONST.POLICY.ROLE>;
