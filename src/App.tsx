@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import {setWasmUrl} from '@lottiefiles/dotlottie-react';
 import * as Sentry from '@sentry/react-native';
 import {maybeCompleteAuthSession} from 'expo-web-browser';
 import React from 'react';
@@ -50,10 +51,13 @@ import './setup/backgroundTask';
 import './setup/fraudProtection';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
-import {setWasmUrl} from '@lottiefiles/dotlottie-react';
 
 // This is needed to close pop-up window during logout for users logged in via SSO
 maybeCompleteAuthSession();
+
+// On web, dotlottie-web fetches its WASM binary from a third-party CDN (jsdelivr/unpkg) at runtime,
+// which is blocked by our Content Security Policy. Point it at the Expensify CDN proxy instead.
+setWasmUrl('https://cdn.expensify.com/cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web@0.44.0/dist/dotlottie-player.wasm');
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -69,8 +73,6 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode
 function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
-
-    setWasmUrl("https://cdn.expensify.com/cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web@0.44.0/dist/dotlottie-player.wasm");
 
     return (
         <StrictModeWrapper>
