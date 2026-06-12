@@ -35,6 +35,13 @@ function getStringParam(params: unknown, key: string): string | undefined {
     return undefined;
 }
 
+function startNavigateToInboxTabSpan() {
+    startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
+        name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+        op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+    });
+}
+
 type InboxTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
@@ -51,25 +58,22 @@ function makeDoesLastReportActionExistSelector(actionID: string | undefined) {
     };
 }
 
-function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
+type WideInboxTabButtonProps = {
+    selectedTab: ValueOf<typeof NAVIGATION_TABS>;
+    statusIndicatorColor: string | undefined;
+    accessibilityLabel: string;
+};
+
+// The last-viewed report deep link only exists in the wide layout, so the report and report-action
+// Onyx subscriptions live here and are only created when the wide layout is rendered. In the narrow
+// layout tapping Inbox always routes to ROUTES.INBOX, so these subscriptions are never set up.
+function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLabel}: WideInboxTabButtonProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const {chatTabBrickRoad} = useSidebarOrderedReportsState();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
 
-    let statusIndicatorColor: string | undefined;
-    if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-        statusIndicatorColor = theme.iconSuccessFill;
-    } else if (chatTabBrickRoad) {
-        statusIndicatorColor = theme.danger;
-    }
-
-    // The last-report deep link only runs in the wide layout, so gate the lookups on isWideLayout.
-    // In the narrow layout this keeps reportID/reportActionID undefined, leaving the report and
-    // report-action Onyx subscriptions below inert (tapping Inbox always routes to ROUTES.INBOX).
     const lastReportRouteReportID = useRootNavigationState((rootState) => {
-        if (!isWideLayout || !rootState) {
+        if (!rootState) {
             return undefined;
         }
         const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
@@ -77,7 +81,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
     });
 
     const lastReportRouteReportActionID = useRootNavigationState((rootState) => {
-        if (!isWideLayout || !rootState) {
+        if (!rootState) {
             return undefined;
         }
         const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
@@ -92,19 +96,14 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
         lastReportRouteReportActionID,
     ]);
 
-    const inboxAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.INBOX};
-
     const navigateToChats = () => {
         if (selectedTab === NAVIGATION_TABS.INBOX) {
             return;
         }
 
-        startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
-            name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
-            op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
-        });
+        startNavigateToInboxTabSpan();
 
-        if (isWideLayout && doesLastReportExist) {
+        if (doesLastReportExist) {
             // Fetch route params on-demand to avoid storing the full route object in render-time state
             const rootState = navigationRef.getRootState();
             const lastRoute = rootState ? getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT) : undefined;
@@ -121,37 +120,69 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
         Navigation.navigate(ROUTES.INBOX);
     };
 
+    return (
+        <PressableWithFeedback
+            onPress={navigateToChats}
+            role={CONST.ROLE.TAB}
+            accessibilityLabel={accessibilityLabel}
+            accessibilityState={{selected: selectedTab === NAVIGATION_TABS.INBOX}}
+            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
+        >
+            {({hovered}) => (
+                <TabBarItem
+                    icon={expensifyIcons.Inbox}
+                    label={translate('common.inbox')}
+                    isSelected={selectedTab === NAVIGATION_TABS.INBOX}
+                    isHovered={hovered}
+                    statusIndicatorColor={statusIndicatorColor}
+                />
+            )}
+        </PressableWithFeedback>
+    );
+}
+
+function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const {chatTabBrickRoad} = useSidebarOrderedReportsState();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
+
+    let statusIndicatorColor: string | undefined;
+    if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+        statusIndicatorColor = theme.iconSuccessFill;
+    } else if (chatTabBrickRoad) {
+        statusIndicatorColor = theme.danger;
+    }
+
     const accessibilityLabel = chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox');
 
     if (isWideLayout) {
         return (
-            <PressableWithFeedback
-                onPress={navigateToChats}
-                role={CONST.ROLE.TAB}
+            <WideInboxTabButton
+                selectedTab={selectedTab}
+                statusIndicatorColor={statusIndicatorColor}
                 accessibilityLabel={accessibilityLabel}
-                accessibilityState={inboxAccessibilityState}
-                style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
-                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
-            >
-                {({hovered}) => (
-                    <TabBarItem
-                        icon={expensifyIcons.Inbox}
-                        label={translate('common.inbox')}
-                        isSelected={selectedTab === NAVIGATION_TABS.INBOX}
-                        isHovered={hovered}
-                        statusIndicatorColor={statusIndicatorColor}
-                    />
-                )}
-            </PressableWithFeedback>
+            />
         );
     }
+
+    const navigateToChats = () => {
+        if (selectedTab === NAVIGATION_TABS.INBOX) {
+            return;
+        }
+
+        startNavigateToInboxTabSpan();
+        Navigation.navigate(ROUTES.INBOX);
+    };
 
     return (
         <PressableWithFeedback
             onPress={navigateToChats}
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel}
-            accessibilityState={inboxAccessibilityState}
+            accessibilityState={{selected: selectedTab === NAVIGATION_TABS.INBOX}}
             wrapperStyle={styles.flex1}
             style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
