@@ -7389,11 +7389,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blockiert' : 'Erlaubt'} ${shownCount > 1 ? 'Kategorien' : 'Kategorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
             },
-            aiRules: {
-                title: 'KI-Regeln',
+            agentRules: {
+                title: 'Agent-Regeln',
                 subtitle: 'Beschreiben Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen',
-                addRule: 'KI-Regel hinzufügen',
-                findRule: 'KI-Regel finden',
+                addRule: 'Agent-Regel hinzufügen',
+                findRule: 'Agent-Regel finden',
                 addRuleTitle: 'Regel hinzufügen',
                 editRuleTitle: 'Regel bearbeiten',
                 deleteRule: 'Regel löschen',

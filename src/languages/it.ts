@@ -7373,11 +7373,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloccato' : 'Consentito'} ${shownCount > 1 ? 'categorie' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} in più` : ''}`,
             },
-            aiRules: {
-                title: 'Regole IA',
+            agentRules: {
+                title: 'Regole Agente',
                 subtitle: 'Descrivi regole flessibili che vengono eseguite quando ne hai bisogno',
-                addRule: 'Aggiungi regola IA',
-                findRule: 'Trova regola IA',
+                addRule: 'Aggiungi regola Agente',
+                findRule: 'Trova regola Agente',
                 addRuleTitle: 'Aggiungi regola',
                 editRuleTitle: 'Modifica regola',
                 deleteRule: 'Elimina regola',

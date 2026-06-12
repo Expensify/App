@@ -7502,11 +7502,11 @@ const translations = {
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Travel agencies',
                 },
             },
-            aiRules: {
-                title: 'AI Rules',
+            agentRules: {
+                title: 'Agent Rules',
                 subtitle: 'Describe flexible rules that run when you need them',
-                addRule: 'Add AI rule',
-                findRule: 'Find AI rule',
+                addRule: 'Add Agent rule',
+                findRule: 'Find Agent rule',
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
                 deleteRule: 'Delete rule',

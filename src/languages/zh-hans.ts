@@ -7159,11 +7159,11 @@ ${reportName}
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? '已屏蔽' : '已允许'} ${shownCount > 1 ? '类别' : '类别'}: ${categories}${hiddenCount > 0 ? `，还有 +${hiddenCount} 个` : ''}`,
             },
-            aiRules: {
-                title: 'AI 规则',
+            agentRules: {
+                title: '代理规则',
                 subtitle: '描述在你需要时运行的灵活规则',
-                addRule: '添加 AI 规则',
-                findRule: '查找 AI 规则',
+                addRule: '添加代理规则',
+                findRule: '查找代理规则',
                 addRuleTitle: '添加规则',
                 editRuleTitle: '编辑规则',
                 deleteRule: '删除规则',

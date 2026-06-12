@@ -7291,11 +7291,11 @@ ${reportName}
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'ブロック済み' : '許可されています'} ${shownCount > 1 ? 'カテゴリ' : 'カテゴリ'}: ${categories}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
             },
-            aiRules: {
-                title: 'AI ルール',
+            agentRules: {
+                title: 'エージェント ルール',
                 subtitle: '必要なときに実行される柔軟なルールを記述します',
-                addRule: 'AI ルールを追加',
-                findRule: 'AI ルールを検索',
+                addRule: 'エージェント ルールを追加',
+                findRule: 'エージェント ルールを検索',
                 addRuleTitle: 'ルールを追加',
                 editRuleTitle: 'ルールを編集',
                 deleteRule: 'ルールを削除',
