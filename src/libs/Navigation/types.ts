@@ -647,9 +647,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
         policyID: string;
         reportFieldID?: string;
@@ -3210,6 +3207,9 @@ type SearchFullscreenNavigatorParamList = {
 
 type SearchAdvancedFiltersParamList = {
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
+    [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: {
+        filterKey: string;
+    };
 };
 
 type SearchSavedSearchParamList = {
