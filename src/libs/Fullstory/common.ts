@@ -14,7 +14,6 @@ import type {GetChatFSClass, ShouldInitialize} from './types';
 let allReports: OnyxCollection<Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },

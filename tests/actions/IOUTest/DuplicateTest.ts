@@ -552,7 +552,6 @@ describe('actions/Duplicate', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -564,7 +563,6 @@ describe('actions/Duplicate', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -1218,7 +1216,6 @@ describe('actions/Duplicate', () => {
             recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     targetPolicyTags = value?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${mockPolicy.id}`] ?? {};
                 },
@@ -1270,7 +1267,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1334,7 +1330,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     const transactions = Object.values(allTransactions ?? {}).filter((t) => !!t);
                     expect(transactions).toHaveLength(1);
@@ -1389,7 +1384,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1438,7 +1432,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1488,7 +1481,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1540,7 +1532,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1602,7 +1593,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     const transactions = Object.values(allTransactions ?? {}).filter((t) => !!t);
                     expect(transactions).toHaveLength(1);
@@ -1780,7 +1770,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== transactionID);
                 },
@@ -1968,7 +1957,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -2021,7 +2009,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -2337,7 +2324,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== scanExpenseTx.transactionID);
                 },

@@ -5,7 +5,7 @@ export default function getOnyxValue<TKey extends OnyxKey>(key: TKey): Promise<O
     return new Promise((resolve) => {
         Onyx.connect({
             key,
-            callback: (value) => resolve(value),
+            callback: (value) => resolve(value as OnyxEntry<KeyValueMapping[TKey]>),
         });
     });
 }

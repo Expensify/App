@@ -12,7 +12,6 @@ import type {
     TransactionThreadInfo,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as CollectionUtils from '@libs/CollectionUtils';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -87,7 +86,6 @@ import type TransactionState from '@src/types/utils/TransactionStateType';
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;
@@ -96,20 +94,20 @@ Onyx.connect({
     },
 });
 
-let allTransactionViolation: OnyxCollection<TransactionViolation[]> = {};
+let allTransactionViolations: OnyxCollection<TransactionViolation[]> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     callback: (snapshot) => {
         if (!snapshot) {
-            allTransactionViolation = {};
+            allTransactionViolations = {};
             return;
         }
         // Rebuild the transactionID-keyed view from the prefixed-key snapshot.
         const next: OnyxCollection<TransactionViolation[]> = {};
-        for (const [k, v] of Object.entries(snapshot as unknown as Record<string, TransactionViolation[] | undefined>)) {
-            next[CollectionUtils.extractCollectionItemID(k as `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`)] = v;
+        for (const [k, v] of Object.entries(snapshot)) {
+            next[k.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')] = v;
         }
-        allTransactionViolation = next;
+        allTransactionViolations = next;
     },
 });
 
@@ -1151,7 +1149,7 @@ function changeTransactionsReport({
                         // For each duplicate, write its own violations minus the DUPLICATED_TRANSACTION marker.
                         // Previously this read a stale `allTransactionViolations` flat-array that held only
                         // the last-fired per-member value (latent bug, now removed alongside per-member dispatch).
-                        value: (allTransactionViolation?.[id] ?? []).filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                        value: (allTransactionViolations?.[id] ?? []).filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
                     });
                 }
             }
