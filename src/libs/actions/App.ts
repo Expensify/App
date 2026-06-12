@@ -10,7 +10,7 @@ import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
-import DateUtils from '@libs/DateUtils';
+import {getFullReconnectSeedTime} from '@libs/FullReconnectUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
@@ -90,6 +90,17 @@ Onyx.connectWithoutView({
     callback: (value) => {
         hasLoadedApp = value;
         resolveHasLoadedAppPromise?.();
+    },
+});
+
+// reconnectAppIfFullReconnectBefore is used in the "ForOpenOrReconnect" functions and is not directly associated with the View,
+// so retrieving it using Onyx.connectWithoutView is correct.
+// If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
+let reconnectAppIfFullReconnectBefore = '';
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
+    callback: (value) => {
+        reconnectAppIfFullReconnectBefore = value ?? '';
     },
 });
 
@@ -380,10 +391,14 @@ function getOnyxDataForOpenOrReconnect(
     }
 
     if (isOpenApp || isFullReconnect) {
+        // The receipt must never compare below the NVP demand this command answers, even on a
+        // client clock behind the server — a plain client-now value would re-trigger
+        // subscribeToFullReconnect on every response and sustain a reconnect storm.
+        // See getFullReconnectSeedTime for the full rationale.
         result.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
-            value: DateUtils.getDBTime(),
+            value: getFullReconnectSeedTime(reconnectAppIfFullReconnectBefore),
         });
     }
 
@@ -519,6 +534,19 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
                 endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
             });
     });
+}
+
+/**
+ * Fires a full reconnect in response to the server's NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE
+ * demand, optimistically seeding the LAST_FULL_RECONNECT_TIME receipt first so the NVP
+ * re-delivered by the response cannot re-arm the trigger. The seed write re-enters
+ * subscribeToFullReconnect's callback, but with the receipt at max(now, NVP) the trigger
+ * comparison fails in every clock regime, so the re-entrancy is a no-op by construction.
+ * See getFullReconnectSeedTime for the clock-skew rationale.
+ */
+function triggerFullReconnect(fullReconnectBefore: string) {
+    Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getFullReconnectSeedTime(fullReconnectBefore));
+    reconnectApp();
 }
 
 /**
@@ -960,6 +988,7 @@ export {
     openApp,
     setAppLoading,
     reconnectApp,
+    triggerFullReconnect,
     confirmReadyToOpenApp,
     handleRestrictedEvent,
     getMissingOnyxUpdates,
