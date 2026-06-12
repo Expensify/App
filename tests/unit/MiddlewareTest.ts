@@ -1,13 +1,20 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
+import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+// This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
+import '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import HttpUtils from '@src/libs/HttpUtils';
 import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
+import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report as OnyxReport} from '@src/types/onyx';
+import type {Report as OnyxReport, PersonalDetailsList} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 type FormDataObject = {body: TestHelper.FormData};
@@ -16,39 +23,85 @@ Onyx.init({
     keys: ONYXKEYS,
 });
 
-beforeAll(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
-});
-
 beforeEach(async () => {
-    SequentialQueue.pause();
+    // Network arms a module-level setInterval(processMainQueue) once ActiveClientManager is
+    // ready. Left running, it re-fires non-cancellable MainQueue requests (e.g. Log) into the
+    // next test — inflating global.fetch call counts — and is itself the open handle behind the
+    // "worker process failed to exit gracefully" leak. Clear it the same way NetworkTest does.
+    Network.clearProcessQueueInterval();
+    await Onyx.clear();
+    await waitForBatchedUpdates();
+    // Explicitly reset PersistedRequests module state (knownRequestIDs, ongoingRequest,
+    // pendingSaveOperations) which Onyx.clear() alone does not fully reset.
+    await PersistedRequests.clear();
+    await waitForBatchedUpdates();
+    SequentialQueue.resetQueue();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     NetworkStore.checkRequiredData();
     await waitForNetworkPromises();
+    // Reassign global.fetch to a fresh mock to clear any leftover mockImplementationOnce
+    // queue from the previous test. jest.clearAllMocks() only resets call counts, not the queue.
+    global.fetch = TestHelper.getGlobalFetchMock();
     jest.clearAllMocks();
     Request.clearMiddlewares();
 });
 
 describe('Middleware', () => {
+    describe('SaveResponseInOnyx', () => {
+        test('preserves the response for side-effect requests when the update is already applied', async () => {
+            // Given the client already has a lastUpdateID applied
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
+            await waitForBatchedUpdates();
+
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            const mockResponse = {
+                jsonCode: 200,
+                lastUpdateID: 100,
+                previousUpdateID: 99,
+                transactionsPending3DSReview: {
+                    // an ID map key is not a name!
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    1234: {amount: 500, currency: 'USD', created: '2026-02-23', expires: '2026-02-24', lastFourPAN: '1234', merchant: 'TestMerchant', transactionID: '1234'},
+                },
+            };
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce(mockResponse);
+
+            // When we process a side-effect request with no successData/failureData/finallyData
+            const result = await Request.processWithMiddleware({
+                command: 'GetTransactionsPending3DSReview',
+                data: {apiRequestType: 'makeRequestWithSideEffects'},
+                requestIndex: 1,
+            });
+
+            // Then the response should not be undefined — the caller may need the raw response for side effects
+            expect(result).toBeDefined();
+            expect(result?.jsonCode).toBe(200);
+        });
+    });
+
     describe('HandleUnusedOptimisticID', () => {
         test('Normal request', async () => {
-            Request.use(handleUnusedOptimisticID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '1234'},
+                    requestIndex: 2,
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
+                    requestIndex: 3,
                 },
             ];
             for (const request of requests) {
                 SequentialQueue.push(request);
             }
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
@@ -68,25 +121,26 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID', async () => {
-            Request.use(handleUnusedOptimisticID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '1234'},
+                    requestIndex: 4,
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
+                    requestIndex: 5,
                 },
             ];
             for (const request of requests) {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
+
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -102,7 +156,8 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
@@ -117,29 +172,31 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID and no reportID in params', async () => {
-            Request.use(handleUnusedOptimisticID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'RequestMoney',
                     data: {authToken: 'testToken'},
+                    requestIndex: 6,
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
+                    requestIndex: 7,
                 },
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '2345', reportActionID: undefined, parentReportActionID: undefined},
+                    requestIndex: 8,
                 },
             ];
             for (const request of requests) {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
+
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -155,7 +212,8 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(3);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/OpenReport?', expect.anything());
@@ -181,21 +239,21 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID and optimisticReportID param', async () => {
-            Request.use(handleUnusedOptimisticID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'MoveIOUReportToExistingPolicy',
                     data: {authToken: 'testToken', optimisticReportID: '1234'},
+                    requestIndex: 9,
                 },
             ];
             for (const request of requests) {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
+
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -211,11 +269,224 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(1);
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/MoveIOUReportToExistingPolicy?', expect.anything());
             TestHelper.assertFormDataMatchesObject({optimisticReportID: '1234'} as unknown as OnyxReport, ((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1)?.body);
+        });
+
+        test('OpenReport to a chat with preexistingReportID and clean up optimistic participant data', async () => {
+            const optimisticReportID = '1234';
+            const preexistingReportID = '5555';
+            const optimisticAccountID = 999;
+            const preexistingAccountID = 333;
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [optimisticAccountID]: {
+                        accountID: optimisticAccountID,
+                        isOptimisticPersonalDetail: true,
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            const requests = [
+                {
+                    command: 'OpenReport',
+                    data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678'},
+                    requestIndex: 10,
+                },
+                {
+                    command: 'OpenReport',
+                    data: {authToken: 'testToken', reportID: preexistingReportID},
+                    requestIndex: 11,
+                },
+            ];
+            for (const request of requests) {
+                SequentialQueue.push(request);
+            }
+
+            (global.fetch as jest.Mock)
+                .mockImplementationOnce(async () => ({
+                    ok: true,
+
+                    json: async () => ({
+                        jsonCode: 200,
+                        onyxData: [
+                            {
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                                value: {
+                                    preexistingReportID,
+                                },
+                            },
+                        ],
+                    }),
+                }))
+                .mockImplementationOnce(async () => ({
+                    ok: true,
+
+                    json: async () => ({
+                        jsonCode: 200,
+                        onyxData: [
+                            {
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key: `${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`,
+                                value: {
+                                    reportID: preexistingReportID,
+                                    participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
+                                },
+                            },
+                            {
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                                value: {
+                                    [preexistingAccountID]: {
+                                        accountID: preexistingAccountID,
+                                    },
+                                },
+                            },
+                        ],
+                    }),
+                }));
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            expect(global.fetch).toHaveBeenCalledTimes(2);
+
+            const optimisticReportUpdated = await new Promise<OnyxEntry<OnyxReport>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(optimisticReportUpdated?.participants?.[optimisticAccountID]).toBeUndefined();
+
+            const preexistingReportUpdated = await new Promise<OnyxEntry<OnyxReport>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(preexistingReportUpdated?.participants?.[optimisticAccountID]).toBeUndefined();
+            expect(preexistingReportUpdated?.participants?.[preexistingAccountID]).not.toBeUndefined();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+            expect(personalDetails?.[preexistingAccountID]).not.toBeUndefined();
+        });
+
+        test('OpenReport to a new chat without preexistingReportID and clean up optimistic participant data', async () => {
+            const optimisticReportID = '1234';
+            const optimisticAccountID = 999;
+            const preexistingAccountID = 333;
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [optimisticAccountID]: {
+                        accountID: optimisticAccountID,
+                        isOptimisticPersonalDetail: true,
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            const requests = [
+                {
+                    command: 'OpenReport',
+                    data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678'},
+                    requestIndex: 12,
+                },
+            ];
+            for (const request of requests) {
+                SequentialQueue.push(request);
+            }
+
+            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
+                ok: true,
+
+                json: async () => ({
+                    jsonCode: 200,
+                    onyxData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                            value: {
+                                reportID: optimisticReportID,
+                                participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
+                            },
+                        },
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                            value: {
+                                [preexistingAccountID]: {
+                                    accountID: preexistingAccountID,
+                                },
+                            },
+                        },
+                    ],
+                }),
+            }));
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+
+            const optimisticReportUpdated = await new Promise<OnyxEntry<OnyxReport>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(optimisticReportUpdated?.participants?.[optimisticAccountID]).toBeUndefined();
+            expect(optimisticReportUpdated?.participants?.[preexistingAccountID]).not.toBeUndefined();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+            expect(personalDetails?.[preexistingAccountID]).not.toBeUndefined();
         });
     });
 });

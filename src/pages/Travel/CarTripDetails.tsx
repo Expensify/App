@@ -1,9 +1,8 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
+import UserPills from '@components/UserPills';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -78,24 +77,33 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                 <MenuItemWithTopDescription
                     description={translate('travel.carDetails.confirmation')}
                     title={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
+                    interactive={false}
                     copyValue={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
+                    copyable
                 />
             )}
             {!!displayName && (
-                <MenuItem
-                    label={translate('travel.carDetails.driver')}
-                    title={displayName}
-                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                <MenuItemWithTopDescription
+                    description={translate('travel.carDetails.driver')}
+                    descriptionTextStyle={styles.fontSizeLabel}
                     interactive={false}
-                    wrapperStyle={styles.pb3}
+                    accessibilityLabel={`${translate('travel.carDetails.driver')} ${displayName}`}
+                    titleComponent={
+                        <UserPills
+                            users={[
+                                {
+                                    avatar: personalDetails?.avatar,
+                                    displayName,
+                                    accountID: personalDetails?.accountID,
+                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                },
+                            ]}
+                        />
+                    }
                 />
             )}
         </>
     );
 }
-
-CarTripDetails.displayName = 'CarTripDetails';
 
 export default CarTripDetails;

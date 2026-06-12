@@ -1,15 +1,19 @@
-import React, {createContext, useMemo} from 'react';
+import React, {createContext, useContext} from 'react';
 import useSingleExecution from '@hooks/useSingleExecution';
 import type {Action} from '@hooks/useSingleExecution';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
-type MenuItemGroupContextProps = {
+type MenuItemGroupStateContextProps = {
     isExecuting: boolean;
+};
+
+type MenuItemGroupActionsContextProps = {
     singleExecution: <T extends unknown[]>(action: Action<T>) => (...params: T) => void;
     waitForNavigate: ReturnType<typeof useWaitForNavigation>;
 };
 
-const MenuItemGroupContext = createContext<MenuItemGroupContextProps | undefined>(undefined);
+const MenuItemGroupStateContext = createContext<MenuItemGroupStateContextProps | null>(null);
+const MenuItemGroupActionsContext = createContext<MenuItemGroupActionsContextProps | null>(null);
 
 type MenuItemGroupProps = {
     /* Actual content wrapped by this component */
@@ -23,13 +27,23 @@ function MenuItemGroup({children, shouldUseSingleExecution = true}: MenuItemGrou
     const {isExecuting, singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
 
-    const value = useMemo(
-        () => (shouldUseSingleExecution ? {isExecuting, singleExecution, waitForNavigate} : undefined),
-        [shouldUseSingleExecution, isExecuting, singleExecution, waitForNavigate],
-    );
+    const stateValue = shouldUseSingleExecution ? {isExecuting} : null;
+    const actionsValue = shouldUseSingleExecution ? {singleExecution, waitForNavigate} : null;
 
-    return <MenuItemGroupContext.Provider value={value}>{children}</MenuItemGroupContext.Provider>;
+    return (
+        <MenuItemGroupStateContext.Provider value={stateValue}>
+            <MenuItemGroupActionsContext.Provider value={actionsValue}>{children}</MenuItemGroupActionsContext.Provider>
+        </MenuItemGroupStateContext.Provider>
+    );
 }
 
-export {MenuItemGroupContext};
+function useMenuItemGroupState() {
+    return useContext(MenuItemGroupStateContext);
+}
+
+function useMenuItemGroupActions() {
+    return useContext(MenuItemGroupActionsContext);
+}
+
+export {useMenuItemGroupState, useMenuItemGroupActions};
 export default MenuItemGroup;

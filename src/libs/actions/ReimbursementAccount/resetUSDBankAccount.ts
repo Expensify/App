@@ -29,7 +29,17 @@ function resetUSDBankAccount(
     const isLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
     const isPreviousLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<
+        | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
+        | typeof ONYXKEYS.COLLECTION.POLICY
+        | typeof ONYXKEYS.ONFIDO_TOKEN
+        | typeof ONYXKEYS.ONFIDO_APPLICANT_ID
+        | typeof ONYXKEYS.PLAID_DATA
+        | typeof ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN
+        | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT
+        | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
+        | typeof ONYXKEYS.BANK_ACCOUNT_LIST
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -47,6 +57,11 @@ function resetUSDBankAccount(
                 value: {
                     achAccount: null,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
             },
         ],
         successData: [
@@ -67,13 +82,19 @@ function resetUSDBankAccount(
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.PLAID_LINK_TOKEN,
+                key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
                 value: '',
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
+                value: {
+                    ...CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
+                    achData: {
+                        ...CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA.achData,
+                        policyID,
+                    },
+                },
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -119,6 +140,11 @@ function resetUSDBankAccount(
                     [INPUT_IDS.AMOUNT3]: '',
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: null},
+            },
         ],
         failureData: [
             {
@@ -132,6 +158,11 @@ function resetUSDBankAccount(
                 value: {
                     achAccount,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: {pendingAction: null}},
             },
         ],
     };
@@ -157,7 +188,6 @@ function resetUSDBankAccount(
         WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP,
         {
             bankAccountID,
-            ownerEmail: session.email,
             policyID,
         },
         onyxData,

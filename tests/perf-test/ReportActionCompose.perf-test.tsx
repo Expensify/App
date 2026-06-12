@@ -3,16 +3,18 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
 import {measureRenders} from 'reassure';
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {KeyboardStateProvider} from '@components/withKeyboardState';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';
-import ComposeProviders from '@src/components/ComposeProviders';
-import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
-import {KeyboardStateProvider} from '@src/components/withKeyboardState';
-import * as Localize from '@src/libs/Localize';
+import {setHasRadio} from '@libs/NetworkState';
+import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ReportActionCompose from '@src/pages/home/report/ReportActionCompose/ReportActionCompose';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
+import type {Report} from '@src/types/onyx';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // mock PortalStateContext
@@ -28,6 +30,7 @@ jest.mock('react-native-reanimated', () => ({
         easing: jest.fn().mockReturnThis(),
         withCallback: jest.fn().mockReturnThis(),
     })),
+    makeShareableCloneRecursive: jest.fn,
 }));
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
@@ -47,6 +50,7 @@ jest.mock('@react-navigation/native', () => {
         useIsFocused: () => true,
         useNavigationState: () => {},
         useFocusEffect: jest.fn(),
+        useRoute: () => jest.fn(),
     };
 });
 
@@ -72,24 +76,25 @@ beforeAll(() =>
     }),
 );
 
-// Initialize the network key for OfflineWithFeedback
+// Initialize the network key for OfflineWithFeedback and seed report data
 beforeEach(() => {
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    setHasRadio(true);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+        reportID: '1',
+        reportName: 'Test Report',
+        type: CONST.REPORT.TYPE.CHAT,
+    } as Report);
 });
+
+const mockEvent = {preventDefault: jest.fn()};
 
 function ReportActionComposeWrapper() {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider]}>
-            <ReportActionCompose
-                onSubmit={() => jest.fn()}
-                reportID="1"
-                report={LHNTestUtils.getFakeReport()}
-                isComposerFullSize
-            />
+            <ReportActionCompose reportID="1" />
         </ComposeProviders>
     );
 }
-const mockEvent = {preventDefault: jest.fn()};
 
 test('[ReportActionCompose] should render Composer with text input interactions', async () => {
     const scenario = async () => {
@@ -105,7 +110,7 @@ test('[ReportActionCompose] should render Composer with text input interactions'
 test('[ReportActionCompose] should press create button', async () => {
     const scenario = async () => {
         // Query for the create button
-        const hintAttachmentButtonText = Localize.translateLocal('common.create');
+        const hintAttachmentButtonText = translateLocal('accessibilityHints.openActionsMenu');
         const createButton = await screen.findByLabelText(hintAttachmentButtonText);
 
         fireEvent.press(createButton, mockEvent);
@@ -118,7 +123,7 @@ test('[ReportActionCompose] should press create button', async () => {
 test('[ReportActionCompose] should press send message button', async () => {
     const scenario = async () => {
         // Query for the send button
-        const hintSendButtonText = Localize.translateLocal('common.send');
+        const hintSendButtonText = translateLocal('common.send');
         const sendButton = await screen.findByLabelText(hintSendButtonText);
 
         fireEvent.press(sendButton);

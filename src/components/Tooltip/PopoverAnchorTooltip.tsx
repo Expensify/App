@@ -1,15 +1,15 @@
 import type {BoundsObserver} from '@react-ng/bounds-observer';
-import React, {useContext, useMemo, useRef} from 'react';
-import {PopoverContext} from '@components/PopoverProvider';
+import React, {useMemo, useRef} from 'react';
+import {usePopoverState} from '@components/PopoverProvider';
 import BaseTooltip from './BaseTooltip';
 import type {TooltipExtendedProps} from './types';
 
 function PopoverAnchorTooltip({shouldRender = true, children, ...props}: TooltipExtendedProps) {
-    const {isOpen, popoverAnchor} = useContext(PopoverContext);
+    const {isOpen, popoverAnchor} = usePopoverState();
     const tooltipRef = useRef<BoundsObserver>(null);
 
     const isPopoverRelatedToTooltipOpen = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/dot-notation, react-compiler/react-compiler
+        // eslint-disable-next-line @typescript-eslint/dot-notation
         const tooltipNode = (tooltipRef.current?.['_childNode'] as Node | undefined) ?? null;
 
         if (isOpen && popoverAnchor && tooltipNode && ((popoverAnchor instanceof Node && tooltipNode.contains(popoverAnchor)) || tooltipNode === popoverAnchor)) {
@@ -25,7 +25,6 @@ function PopoverAnchorTooltip({shouldRender = true, children, ...props}: Tooltip
 
     return (
         <BaseTooltip
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={tooltipRef}
         >
@@ -33,7 +32,5 @@ function PopoverAnchorTooltip({shouldRender = true, children, ...props}: Tooltip
         </BaseTooltip>
     );
 }
-
-PopoverAnchorTooltip.displayName = 'PopoverAnchorTooltip';
 
 export default PopoverAnchorTooltip;

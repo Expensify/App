@@ -15,7 +15,7 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
         return parsedPhoneNumber;
     }
 
-    const phoneNumberWithoutSpecialChars = phoneNumber.replace(CONST.REGEX.SPECIAL_CHARS_WITHOUT_NEWLINE, '');
+    const phoneNumberWithoutSpecialChars = phoneNumber.replaceAll(CONST.REGEX.SPECIAL_CHARS_WITHOUT_NEWLINE, '');
 
     if (!CONST.REGEX.PHONE_NUMBER.test(phoneNumberWithoutSpecialChars)) {
         return {
@@ -68,5 +68,4 @@ function addSMSDomainIfPhoneNumber(login = ''): string {
     return login;
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export {parsePhoneNumber, addSMSDomainIfPhoneNumber};

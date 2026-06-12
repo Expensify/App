@@ -1,10 +1,9 @@
-import 'core-js/features/array/at';
 // eslint-disable-next-line no-restricted-imports
 import type {CSSProperties} from 'react';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,7 +22,7 @@ import type {PDFViewProps} from './types';
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
 
-function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, style, isUsedAsChatAttachment, onLoadError}: PDFViewProps) {
+function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, style, isUsedAsChatAttachment, onLoadError, rotation}: PDFViewProps) {
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -32,9 +31,9 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
     const prevWindowHeight = usePrevious(windowHeight);
     const {translate} = useLocalize();
 
-    const [maxCanvasArea] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA, {canBeMissing: true});
-    const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT, {canBeMissing: true});
-    const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH, {canBeMissing: true});
+    const [maxCanvasArea] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA);
+    const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);
+    const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH);
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
@@ -72,7 +71,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
     useEffect(() => {
         retrieveCanvasLimits();
         // This rule needs to be applied so that this effect is executed only when the component is mounted
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -106,7 +105,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
                     maxCanvasHeight={maxCanvasHeight}
                     maxCanvasArea={maxCanvasArea}
                     LoadingComponent={
-                        <FullScreenLoadingIndicator
+                        <LoadingIndicator
                             style={
                                 isUsedAsChatAttachment && [
                                     styles.chatItemPDFAttachmentLoading,
@@ -118,6 +117,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
                     }
                     shouldShowErrorComponent={false}
                     onLoadError={onLoadError}
+                    rotation={rotation}
                     renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
                         <PDFPasswordForm
                             isFocused={!!isFocused}
@@ -133,11 +133,12 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
 
     return onPress ? (
         <PressableWithoutFeedback
-            onPress={onPress}
+            onPress={() => onPress()}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
             accessibilityRole={CONST.ROLE.BUTTON}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
+            sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.DOCUMENT}
         >
             {renderPDFView()}
         </PressableWithoutFeedback>

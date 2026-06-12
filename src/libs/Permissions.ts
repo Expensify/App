@@ -15,13 +15,6 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-/**
- * Temporary check for Unreported Expense Project - change to true for testing
- */
-function canUseUnreportedExpense(): boolean {
-    return false;
-}
-
 function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>): boolean {
     const hasAllBetasEnabled = canUseAllBetas(betas);
     const isFeatureEnabled = !!betas?.includes(beta);
@@ -35,8 +28,25 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?:
     return isFeatureEnabled || hasAllBetasEnabled;
 }
 
+/**
+ * Track flows ("Share with my accountant", "Categorize it") are hardcoded off.
+ * TODO: Remove this gate and its call sites once the new track flows feature is complete.
+ * See: https://github.com/Expensify/Expensify/issues/504214
+ */
+function canUseTrackFlows(): boolean {
+    return false;
+}
+
+/**
+ * Private notes are temporarily disabled.
+ */
+function canUsePrivateNotes(): boolean {
+    return false;
+}
+
 export default {
     canUseLinkPreviews,
+    canUseTrackFlows,
+    canUsePrivateNotes,
     isBetaEnabled,
-    canUseUnreportedExpense,
 };

@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -23,9 +23,12 @@ type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'error
 
     /** Function to call when the user selects a type */
     onTypeSelected?: (reportFieldType: PolicyReportFieldType) => void;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText = '', onInputChange, onTypeSelected}: TypeSelectorProps, forwardedRef: ForwardedRef<View>) {
+function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText = '', onInputChange, onTypeSelected, ref}: TypeSelectorProps) {
     const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -47,7 +50,7 @@ function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText =
     return (
         <View>
             <MenuItemWithTopDescription
-                ref={forwardedRef}
+                ref={ref}
                 shouldShowRightIcon
                 title={value ? Str.recapitalize(translate(getReportFieldTypeTranslationKey(value as PolicyReportFieldType))) : ''}
                 description={label}
@@ -68,6 +71,4 @@ function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText =
     );
 }
 
-TypeSelector.displayName = 'TypeSelector';
-
-export default forwardRef(TypeSelector);
+export default TypeSelector;

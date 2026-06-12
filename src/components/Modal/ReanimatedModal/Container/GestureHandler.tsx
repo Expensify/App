@@ -2,7 +2,8 @@ import type {PropsWithChildren} from 'react';
 import React, {useMemo} from 'react';
 import type {GestureStateChangeEvent, GestureType, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {runOnJS, useSharedValue} from 'react-native-reanimated';
+import {useSharedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import type {GestureHandlerProps, SwipeDirection} from '@components/Modal/ReanimatedModal/types';
 import CONST from '@src/CONST';
 
@@ -15,7 +16,6 @@ function hasSwipeEnded(
 ) {
     'worklet';
 
-    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     if (!swipeDirection || !swipeDirection?.length || !onSwipeComplete) {
         return;
     }
@@ -25,22 +25,22 @@ function hasSwipeEnded(
         switch (direction) {
             case CONST.SWIPE_DIRECTION.RIGHT:
                 if (e.translationX - initialPosition.x > swipeThreshold) {
-                    runOnJS(onSwipeComplete)();
+                    scheduleOnRN(onSwipeComplete);
                 }
                 break;
             case CONST.SWIPE_DIRECTION.LEFT:
                 if (initialPosition.x - e.translationX > swipeThreshold) {
-                    runOnJS(onSwipeComplete)();
+                    scheduleOnRN(onSwipeComplete);
                 }
                 break;
             case CONST.SWIPE_DIRECTION.UP:
                 if (initialPosition.y - e.translationY > swipeThreshold) {
-                    runOnJS(onSwipeComplete)();
+                    scheduleOnRN(onSwipeComplete);
                 }
                 break;
             case CONST.SWIPE_DIRECTION.DOWN:
                 if (e.translationY - initialPosition.y > swipeThreshold) {
-                    runOnJS(onSwipeComplete)();
+                    scheduleOnRN(onSwipeComplete);
                 }
                 break;
             default:
@@ -65,14 +65,11 @@ function GestureHandler({swipeDirection, onSwipeComplete, swipeThreshold = 100, 
         [initialTranslationX, initialTranslationY, onSwipeComplete, swipeDirection, swipeThreshold],
     );
 
-    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     if (!swipeDirection || !swipeDirection?.length || !onSwipeComplete) {
         return children;
     }
 
     return <GestureDetector gesture={panGesture}>{children}</GestureDetector>;
 }
-
-GestureHandler.displayName = 'GestureHandler';
 
 export default GestureHandler;

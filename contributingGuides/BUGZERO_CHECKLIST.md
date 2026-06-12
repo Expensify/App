@@ -1,35 +1,9 @@
 # BugZero Checklist:
 
-- [ ] **[Contributor]** Classify the bug:
+- [ ] **[Contributor]** The offending PR and associated issue have been commented on, pointing out the bug it caused and why, so the author and reviewers can learn from the mistake.
 
-<details>
-<summary>Bug classification</summary>
-<!-- Please keep the "1a." text in tact on all of the options below so that the results can be easily parsed by a script. Each of the "Other" options should be last on the list which is why they have a "z" in the selector (eg. "1z."). This allows the list to grow if someone desires to add more options down the road. -->
-
-Source of bug:
-  - [ ] 1a. Result of the original design (eg. a case wasn't considered)
-  - [ ] 1b. Mistake during implementation
-  - [ ] 1c. Backend bug
-  - [ ] 1z. Other:
-
-Where bug was reported:
-  - [ ] 2a. Reported on production (eg. bug slipped through the normal regression and PR testing process on staging)
-  - [ ] 2b. Reported on staging (eg. found during regression or PR testing)
-  - [ ] 2d. Reported on a PR
-  - [ ] 2z. Other:
-
-Who reported the bug:
-  - [ ] 3a. Expensify user
-  - [ ] 3b. Expensify employee
-  - [ ] 3c. Contributor
-  - [ ] 3d. QA
-  - [ ] 3z. Other:
-
-</details>
-
-- [ ] **[Contributor]** The offending PR has been commented on, pointing out the bug it caused and why, so the author and reviewers can learn from the mistake.
-
-    Link to comment:
+    Link to the comment on the PR:
+    Link to the comment on the Issue:
 
 - [ ] **[Contributor]** If the regression was CRITICAL (e.g. interrupts a core flow) A discussion in [#expensify-open-source](https://app.slack.com/client/E047TPA624F/C01GTK53T8Q) has been started about whether any other steps should be taken (e.g. updating the PR review checklist) in order to catch this type of bug sooner.
 

@@ -1,8 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
 import * as ReactNative from 'react-native';
-import type StartupTimer from '@libs/StartupTimer/types';
-
-const {BootSplash} = ReactNative.NativeModules;
 
 jest.doMock('react-native', () => {
     let url = 'https://new.expensify.com/';
@@ -26,11 +23,10 @@ jest.doMock('react-native', () => {
     type ReactNativeMock = typeof ReactNative & {
         NativeModules: typeof ReactNative.NativeModules & {
             BootSplash: {
-                hide: typeof BootSplash.hide;
+                hide: typeof ReactNative.NativeModules.BootSplash.hide;
                 logoSizeRatio: number;
                 navigationBarHeight: number;
             };
-            StartupTimer: StartupTimer;
         };
         Linking: typeof ReactNative.Linking & {
             setInitialURL: (newUrl: string) => void;
@@ -45,11 +41,10 @@ jest.doMock('react-native', () => {
             NativeModules: {
                 ...ReactNative.NativeModules,
                 BootSplash: {
-                    hide: jest.fn(),
+                    hide: jest.fn().mockResolvedValue(undefined),
                     logoSizeRatio: 1,
                     navigationBarHeight: 0,
                 },
-                StartupTimer: {stop: jest.fn()},
             },
             Linking: {
                 ...ReactNative.Linking,
@@ -65,7 +60,9 @@ jest.doMock('react-native', () => {
                 },
                 emitCurrentTestState(state: ReactNative.AppStateStatus) {
                     appState = state;
-                    Object.entries(changeListeners).forEach(([, listener]) => listener(appState));
+                    for (const [, listener] of Object.entries(changeListeners)) {
+                        listener(appState);
+                    }
                 },
                 addEventListener(type: ReactNative.AppStateEvent, listener: (state: ReactNative.AppStateStatus) => void) {
                     if (type === 'change') {

@@ -2,7 +2,6 @@
  * @jest-environment node
  * @jest-config bail=true
  */
-
 /* eslint-disable no-console */
 import * as core from '@actions/core';
 import {execSync} from 'child_process';
@@ -24,12 +23,14 @@ const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 // Used to mock the Octokit GithubAPI
 const mockGetInput = jest.fn<string | undefined, [string]>();
 
+const isVerbose = process.env.JEST_VERBOSE === 'true';
+
 type ExecSyncError = {stderr: Buffer};
 
 function exec(command: string) {
     try {
         Log.info(command);
-        execSync(command, {stdio: 'inherit'});
+        execSync(command, {stdio: isVerbose ? 'inherit' : 'pipe'});
     } catch (error) {
         if ((error as ExecSyncError).stderr) {
             Log.error((error as ExecSyncError).stderr.toString());
@@ -249,7 +250,6 @@ function updateStagingFromMain() {
     try {
         execSync('git rev-parse --verify staging', {stdio: 'ignore'});
         exec('git branch -D staging');
-        // eslint-disable-next-line no-empty
     } catch (e) {}
     exec('git switch -c staging');
     exec('git push --force origin staging');
@@ -270,7 +270,6 @@ function updateProductionFromStaging() {
     try {
         execSync('git rev-parse --verify production', {stdio: 'ignore'});
         exec('git branch -D production');
-        // eslint-disable-next-line no-empty
     } catch (e) {}
 
     exec('git switch -c production');

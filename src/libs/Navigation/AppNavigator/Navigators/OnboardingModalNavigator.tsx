@@ -1,5 +1,5 @@
 import {CardStyleInterpolators} from '@react-navigation/stack';
-import {accountIDSelector} from '@selectors/Session';
+import {accountIDSelector, emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -21,30 +21,28 @@ import OnboardingAccounting from '@pages/OnboardingAccounting';
 import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
+import OnboardingPersonalTrackGoal from '@pages/OnboardingPersonalTrackGoal';
 import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
-import OnboardingWorkspaceConfirmation from '@pages/OnboardingWorkspaceConfirmation';
-import OnboardingWorkspaceCurrency from '@pages/OnboardingWorkspaceCurrency';
-import OnboardingWorkspaceInvite from '@pages/OnboardingWorkspaceInvite';
-import OnboardingWorkspaceOptional from '@pages/OnboardingWorkspaceOptional';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import OnboardingModalNavigatorContentWrapper from './OnboardingModalNavigatorContentWrapper';
 import Overlay from './Overlay';
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
+
+let signUpEventPublishedForAccountID: number | undefined;
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
-    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
-    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 
     let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
@@ -57,24 +55,23 @@ function OnboardingModalNavigator() {
         initialRouteName = SCREENS.ONBOARDING.WORK_EMAIL;
     }
 
-    if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND && !!onboardingPolicyID) {
-        initialRouteName = SCREENS.ONBOARDING.WORKSPACE_INVITE;
-    }
-
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: accountIDSelector,
-        canBeMissing: false,
+    });
+    const [email] = useOnyx(ONYXKEYS.SESSION, {
+        selector: emailSelector,
     });
 
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
     // as well as Google and Apple SSO.
     useEffect(() => {
-        if (!accountID) {
+        if (!accountID || !email || signUpEventPublishedForAccountID === accountID) {
             return;
         }
 
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.SIGN_UP, accountID);
-    }, [accountID]);
+        signUpEventPublishedForAccountID = accountID;
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.SIGN_UP.NAME, accountID, email);
+    }, [accountID, email]);
 
     const handleOuterClick = useCallback(() => {
         OnboardingRefManager.handleOuterClick();
@@ -87,10 +84,11 @@ function OnboardingModalNavigator() {
         return {
             headerShown: false,
             animation: Animations.SLIDE_FROM_RIGHT,
+            animationTypeForReplace: 'pop',
             gestureDirection: 'horizontal',
             web: {
                 // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
-                cardStyleInterpolator: isMobileSafari() ? (props) => customInterpolator({props}) : CardStyleInterpolators.forHorizontalIOS,
+                cardStyleInterpolator: isMobileSafari() ? (props) => customInterpolator({props, enter: {kind: 'slide-from-width'}}) : CardStyleInterpolators.forHorizontalIOS,
                 gestureDirection: 'horizontal',
                 cardStyle: {
                     height: '100%',
@@ -113,10 +111,7 @@ function OnboardingModalNavigator() {
                 style={styles.onboardingNavigatorOuterView}
             >
                 <FocusTrapForScreens>
-                    <View
-                        onClick={(e) => e.stopPropagation()}
-                        style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)}
-                    >
+                    <OnboardingModalNavigatorContentWrapper onboardingIsMediumOrLargerScreenWidth={onboardingIsMediumOrLargerScreenWidth}>
                         <Stack.Navigator
                             screenOptions={defaultScreenOptions}
                             initialRouteName={initialRouteName}
@@ -124,6 +119,7 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PURPOSE}
                                 component={OnboardingPurpose}
+                                options={{animationTypeForReplace: 'push'}}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
@@ -132,6 +128,7 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.WORK_EMAIL}
                                 component={OnboardingWorkEmail}
+                                options={{animationTypeForReplace: 'push'}}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
@@ -158,29 +155,15 @@ function OnboardingModalNavigator() {
                                 component={OnboardingInterestedFeatures}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACE_OPTIONAL}
-                                component={OnboardingWorkspaceOptional}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION}
-                                component={OnboardingWorkspaceConfirmation}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACE_CURRENCY}
-                                component={OnboardingWorkspaceCurrency}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACE_INVITE}
-                                component={OnboardingWorkspaceInvite}
+                                name={SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL}
+                                component={OnboardingPersonalTrackGoal}
                             />
                         </Stack.Navigator>
-                    </View>
+                    </OnboardingModalNavigatorContentWrapper>
                 </FocusTrapForScreens>
             </View>
         </NoDropZone>
     );
 }
-
-OnboardingModalNavigator.displayName = 'OnboardingModalNavigator';
 
 export default OnboardingModalNavigator;

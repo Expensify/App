@@ -16,6 +16,8 @@ function ValueSelectorModal({
     shouldShowTooltips = true,
     onBackdropPress,
     shouldEnableKeyboardAvoidingView = true,
+    disableKeyboardShortcuts = false,
+    alternateNumberOfSupportedLines,
 }: ValueSelectorModalProps) {
     return (
         <Modal
@@ -30,7 +32,7 @@ function ValueSelectorModal({
             <ScreenWrapper
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={ValueSelectorModal.displayName}
+                testID="ValueSelectorModal"
                 shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
             >
                 <HeaderWithBackButton
@@ -40,14 +42,15 @@ function ValueSelectorModal({
                 <ValueSelectionList
                     items={items}
                     selectedItem={selectedItem}
+                    isVisible={isVisible}
                     onItemSelected={onItemSelected}
                     shouldShowTooltips={shouldShowTooltips}
+                    disableKeyboardShortcuts={disableKeyboardShortcuts}
+                    alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
                 />
             </ScreenWrapper>
         </Modal>
     );
 }
-
-ValueSelectorModal.displayName = 'ValueSelectorModal';
 
 export default ValueSelectorModal;

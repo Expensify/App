@@ -2,20 +2,27 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo, useRe
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import useSortedActions from '@hooks/useSortedActions';
 import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxListItemProvider';
 
-type OptionsListContextProps = {
+type OptionsListStateContextProps = {
     /** List of options for reports and personal details */
     options: OptionList;
-    /** Function to initialize the options */
-    initializeOptions: () => void;
     /** Flag to check if the options are initialized */
     areOptionsInitialized: boolean;
+};
+
+type OptionsListActionsContextProps = {
+    /** Function to initialize the options */
+    initializeOptions: () => void;
     /** Function to reset the options */
     resetOptions: () => void;
 };
@@ -25,13 +32,16 @@ type OptionsListProviderProps = {
     children: React.ReactNode;
 };
 
-const OptionsListContext = createContext<OptionsListContextProps>({
+const OptionsListStateContext = createContext<OptionsListStateContextProps>({
     options: {
         reports: [],
         personalDetails: [],
     },
-    initializeOptions: () => {},
     areOptionsInitialized: false,
+});
+
+const OptionsListActionsContext = createContext<OptionsListActionsContextProps>({
+    initializeOptions: () => {},
     resetOptions: () => {},
 });
 
@@ -41,29 +51,45 @@ const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails, personalDeta
     prevPersonalDetail?.login === personalDetail?.login &&
     prevPersonalDetail?.displayName === personalDetail?.displayName;
 
+function buildUpdatedReportsMap(reportOptions: OptionList['reports']) {
+    return new Map(reportOptions.filter((report) => report?.reportID).map((report) => [report.reportID, report]));
+}
+
 function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const areOptionsInitialized = useRef(false);
     const [options, setOptions] = useState<OptionList>({
         reports: [],
         personalDetails: [],
     });
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const prevReportAttributesLocale = usePrevious(reportAttributes?.locale);
-    const [reports, {sourceValue: changedReports}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [reports, {sourceValue: changedReports}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allPolicies, {sourceValue: changedPolicies}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const prevPolicies = usePrevious(allPolicies);
     const prevReports = usePrevious(reports);
-    const [, {sourceValue: changedReportActions}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+    const [, {sourceValue: changedReportActions}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const sortedActions = useSortedActions();
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const getReprocessedReportOption = useCallback(
+        (report: OnyxEntry<Report> | null, reportID: string, policyID?: string) => {
+            const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? report?.policyID}`];
+
+            return processReport(report, personalDetails, privateIsArchived, policy, reportAttributes?.reports).reportOption;
+        },
+        [allPolicies, personalDetails, privateIsArchivedMap, reportAttributes?.reports],
+    );
 
     const loadOptions = useCallback(() => {
-        const optionLists = createOptionList(personalDetails, reports, reportAttributes?.reports);
+        const optionLists = createOptionList(personalDetails, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports);
         setOptions({
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
         });
-    }, [personalDetails, reports, reportAttributes?.reports]);
+    }, [personalDetails, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports]);
 
     /**
      * This effect is responsible for generating the options list when their data is not yet initialized
@@ -81,7 +107,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
      * Since options might use report attributes, it's necessary to call this after report attributes are loaded with the new locale to make sure the options are generated in a proper language
      */
     useEffect(() => {
-        if (reportAttributes?.locale === prevReportAttributesLocale) {
+        if (!areOptionsInitialized.current || reportAttributes?.locale === prevReportAttributesLocale) {
             return;
         }
 
@@ -91,13 +117,13 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const changedReportsEntries = useMemo(() => {
         const result: OnyxCollection<OnyxEntry<Report> | null> = {};
 
-        Object.keys(changedReports ?? {}).forEach((key) => {
+        for (const key of Object.keys(changedReports ?? {})) {
             let report: Report | null = reports?.[key] ?? null;
             result[key] = report;
             if (reports?.[key] === undefined && prevReports?.[key]) {
                 report = null;
             }
-        });
+        }
         return result;
     }, [changedReports, reports, prevReports]);
 
@@ -115,25 +141,25 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 return prevOptions;
             }
 
-            const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
-            changedReportKeys.forEach((reportKey) => {
+            const updatedReportsMap = buildUpdatedReportsMap(prevOptions.reports);
+            for (const reportKey of changedReportKeys) {
                 const report = changedReportsEntries[reportKey];
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
-                const {reportOption} = processReport(report, personalDetails, reportAttributes?.reports);
+                const reportOption = getReprocessedReportOption(report, reportID);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
                 } else {
                     updatedReportsMap.delete(reportID);
                 }
-            });
+            }
 
             return {
                 ...prevOptions,
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportsEntries, personalDetails, reportAttributes?.reports]);
+    }, [changedReportsEntries, getReprocessedReportOption]);
 
     useEffect(() => {
         if (!changedReportActions || !areOptionsInitialized.current) {
@@ -146,26 +172,83 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 return prevOptions;
             }
 
-            const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
-            changedReportActionsEntries.forEach(([key, reportAction]) => {
+            const updatedReportsMap = buildUpdatedReportsMap(prevOptions.reports);
+            for (const [key, reportAction] of changedReportActionsEntries) {
                 if (!reportAction) {
-                    return;
+                    continue;
                 }
 
                 const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-                const {reportOption} = processReport(updatedReportsMap.get(reportID)?.item, personalDetails, reportAttributes?.reports);
+                const reportItem = updatedReportsMap.get(reportID)?.item;
+                const reportOption = getReprocessedReportOption(reportItem, reportID);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
                 }
-            });
+            }
 
             return {
                 ...prevOptions,
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportActions, personalDetails, reportAttributes?.reports, transactions]);
+    }, [changedReportActions, getReprocessedReportOption]);
+
+    useEffect(() => {
+        if (!changedPolicies || !areOptionsInitialized.current || !reports || !prevPolicies) {
+            return;
+        }
+
+        const changedPolicyIDs = new Set<string>();
+
+        for (const policyKey of Object.keys(changedPolicies)) {
+            const previousName = prevPolicies?.[policyKey]?.name;
+            const updatedName = allPolicies?.[policyKey]?.name;
+
+            if (previousName === updatedName) {
+                continue;
+            }
+
+            changedPolicyIDs.add(policyKey.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+        }
+
+        if (changedPolicyIDs.size === 0) {
+            return;
+        }
+
+        setOptions((prevOptions) => {
+            const updatedReportsMap = buildUpdatedReportsMap(prevOptions.reports);
+            let hasUpdatedReportOption = false;
+
+            for (const option of prevOptions.reports) {
+                const policyID = option?.item?.policyID;
+                const reportID = option?.reportID;
+
+                if (!policyID || !reportID || !changedPolicyIDs.has(policyID)) {
+                    continue;
+                }
+
+                hasUpdatedReportOption = true;
+                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                const reportOption = getReprocessedReportOption(report, reportID, policyID);
+
+                if (reportOption) {
+                    updatedReportsMap.set(reportID, reportOption);
+                } else {
+                    updatedReportsMap.delete(reportID);
+                }
+            }
+
+            if (!hasUpdatedReportOption) {
+                return prevOptions;
+            }
+
+            return {
+                ...prevOptions,
+                reports: Array.from(updatedReportsMap.values()),
+            };
+        });
+    }, [changedPolicies, reports, allPolicies, prevPolicies, getReprocessedReportOption]);
 
     /**
      * This effect is used to update the options list when personal details change.
@@ -183,7 +266,13 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         // Handle initial personal details load. This initialization is required here specifically to prevent
         // UI freezing that occurs when resetting the app from the troubleshooting page.
         if (!prevPersonalDetails) {
-            const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(personalDetails, reports, reportAttributes?.reports);
+            const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(
+                personalDetails,
+                privateIsArchivedMap,
+                reports,
+                allPolicies,
+                reportAttributes?.reports,
+            );
             setOptions((prevOptions) => ({
                 ...prevOptions,
                 personalDetails: newPersonalDetailsOptions,
@@ -197,46 +286,68 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             newReportOption: SearchOption<Report>;
         }> = [];
 
-        Object.keys(personalDetails).forEach((accountID) => {
+        for (const accountID of Object.keys(personalDetails)) {
             const prevPersonalDetail = prevPersonalDetails?.[accountID];
             const personalDetail = personalDetails[accountID];
 
             if (prevPersonalDetail && personalDetail && isEqualPersonalDetail(prevPersonalDetail, personalDetail)) {
-                return;
+                continue;
             }
 
-            Object.values(reports ?? {})
-                .filter((report) => !!Object.keys(report?.participants ?? {}).includes(accountID) || (isSelfDM(report) && report?.ownerAccountID === Number(accountID)))
-                .forEach((report) => {
-                    if (!report) {
-                        return;
-                    }
-                    const newReportOption = createOptionFromReport(report, personalDetails, reportAttributes?.reports);
-                    const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
-                    newReportOptions.push({
-                        newReportOption,
-                        replaceIndex,
-                    });
+            for (const report of Object.values(reports ?? {})) {
+                if (!report) {
+                    continue;
+                }
+
+                const isParticipant = accountID in (report.participants ?? {});
+                const isOwnerOfSelfDM = isSelfDM(report) && report?.ownerAccountID === Number(accountID);
+                if (!isParticipant && !isOwnerOfSelfDM) {
+                    continue;
+                }
+
+                const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const newReportOption = createOptionFromReport(report, personalDetails, privateIsArchived, policy, sortedActions, reportAttributes?.reports, {
+                    showPersonalDetails: true,
                 });
-        });
+                const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
+                newReportOptions.push({
+                    newReportOption,
+                    replaceIndex,
+                });
+            }
+        }
 
         // since personal details are not a collection, we need to recreate the whole list from scratch
-        const newPersonalDetailsOptions = createOptionList(personalDetails, reports, reportAttributes?.reports).personalDetails;
+        const newPersonalDetailsOptions = createOptionList(personalDetails, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports).personalDetails;
 
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
             newOptions.personalDetails = newPersonalDetailsOptions;
-            newReportOptions.forEach((newReportOption) => (newOptions.reports[newReportOption.replaceIndex] = newReportOption.newReportOption));
+            for (const newReportOption of newReportOptions) {
+                newOptions.reports[newReportOption.replaceIndex] = newReportOption.newReportOption;
+            }
             return newOptions;
         });
 
         // This effect is used to update the options list when personal details change so we ignore all dependencies except personalDetails
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [personalDetails]);
 
     const initializeOptions = useCallback(() => {
+        const isSearchRouterSpanActive = !!getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
+        if (isSearchRouterSpanActive) {
+            startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_OPTIONS_INIT, {
+                name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_OPTIONS_INIT,
+                op: 'function',
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
+            });
+        }
         loadOptions();
         areOptionsInitialized.current = true;
+        if (isSearchRouterSpanActive) {
+            endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_OPTIONS_INIT);
+        }
     }, [loadOptions]);
 
     const resetOptions = useCallback(() => {
@@ -251,25 +362,30 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         });
     }, []);
 
+    const stateValue = useMemo(() => ({options, areOptionsInitialized: areOptionsInitialized.current}), [options]);
+    const actionsValue = useMemo(() => ({initializeOptions, resetOptions}), [initializeOptions, resetOptions]);
+
     return (
-        <OptionsListContext.Provider // eslint-disable-next-line react-compiler/react-compiler
-            value={useMemo(() => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized.current, resetOptions}), [options, initializeOptions, resetOptions])}
-        >
-            {children}
-        </OptionsListContext.Provider>
+        <OptionsListStateContext.Provider value={stateValue}>
+            <OptionsListActionsContext.Provider value={actionsValue}>{children}</OptionsListActionsContext.Provider>
+        </OptionsListStateContext.Provider>
     );
 }
 
-const useOptionsListContext = () => useContext(OptionsListContext);
+const useOptionsListState = () => useContext(OptionsListStateContext);
+
+const useOptionsListActions = () => useContext(OptionsListActionsContext);
 
 // Hook to use the OptionsListContext with an initializer to load the options
 const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
-    const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
+    const {options: optionsList, areOptionsInitialized} = useOptionsListState();
+    const {initializeOptions, resetOptions} = useOptionsListActions();
     const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
     const prevOptions = useRef<OptionList>(null);
     const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
 
+    const prevIsInitialized = usePrevious(areOptionsInitialized);
     useEffect(() => {
         if (!prevOptions.current) {
             prevOptions.current = optionsList;
@@ -283,12 +399,17 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
          */
         const areOptionsEqual = shallowOptionsListCompare(prevOptions.current, optionsList);
         prevOptions.current = optionsList;
+        const hasInitializedChanged = prevIsInitialized !== areOptionsInitialized;
         if (areOptionsEqual) {
+            if (hasInitializedChanged) {
+                setAreInternalOptionsInitialized(areOptionsInitialized);
+            }
+
             return;
         }
         setInternalOptions(optionsList);
         setAreInternalOptionsInitialized(areOptionsInitialized);
-    }, [optionsList, areOptionsInitialized]);
+    }, [optionsList, areOptionsInitialized, prevIsInitialized]);
 
     useEffect(() => {
         if (!shouldInitialize || areOptionsInitialized) {
@@ -316,4 +437,4 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
 
 export default OptionsListContextProvider;
 
-export {useOptionsList, OptionsListContext};
+export {useOptionsList, OptionsListStateContext, OptionsListActionsContext};

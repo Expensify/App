@@ -198,9 +198,9 @@ describe('ErrorUtils', () => {
             const combinedErrors = {...error1, ...error2};
 
             // All values should be valid translation key errors
-            Object.values(combinedErrors).forEach((errorValue) => {
+            for (const errorValue of Object.values(combinedErrors)) {
                 expect(ErrorUtils.isTranslationKeyError(errorValue)).toBe(true);
-            });
+            }
         });
 
         test('should verify the structure of created translation key errors', () => {

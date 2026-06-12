@@ -11,13 +11,10 @@ const openAppSettings = () => {
 function LocationErrorMessage(props: LocationErrorMessageProps) {
     return (
         <BaseLocationErrorMessage
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onAllowLocationLinkPress={openAppSettings}
         />
     );
 }
-
-LocationErrorMessage.displayName = 'LocationErrorMessage';
 
 export default LocationErrorMessage;

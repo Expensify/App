@@ -1,20 +1,24 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
@@ -34,36 +38,35 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {clearPolicyTagErrors, deletePolicyTags, setWorkspaceTagEnabled} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 type TagSettingsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS>;
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS>;
 
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`, {canBeMissing: true});
-    const {orderWeight, policyID, tagName, backTo, parentTagsFilter} = route.params;
+    const {policyID, tagName, parentTagsFilter} = route.params;
+    const orderWeight = Number(route.params.orderWeight);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const policyTag = useMemo(() => getTagListByOrderWeight(policyTags, orderWeight), [policyTags, orderWeight]);
-    const policy = usePolicy(policyID);
+    const {translate, formatPhoneNumber} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const policyData = usePolicyData(policyID);
+    const {policy, tags: policyTags} = policyData;
+    const {canWrite: canWriteTags, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
+    const policyTag = getTagListByOrderWeight(policyTags, orderWeight);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
-    const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
-    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS;
-    const tagApprover = getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Trashcan']);
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.path);
+    const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
     const approver = getPersonalDetailByEmail(tagApprover);
-    const approverText = approver?.displayName ?? tagApprover;
-    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
-    const currentPolicyTag = useMemo(() => {
-        if (hasDependentTags) {
-            return Object.values(policyTag.tags ?? {}).find((tag) => tag?.name === tagName && tag.rules?.parentTagsFilter === parentTagsFilter);
-        }
-        return policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
-    }, [policyTag, tagName, parentTagsFilter, hasDependentTags]);
+    const approverText = formatPhoneNumber(approver?.displayName ?? tagApprover);
+    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
+    const currentPolicyTag = hasDependentTags
+        ? Object.values(policyTag.tags ?? {}).find((tag) => tag?.name === tagName && tag.rules?.parentTagsFilter === parentTagsFilter)
+        : (policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName));
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledTag(policyTag, [currentPolicyTag]);
 
@@ -78,24 +81,23 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         return <NotFoundPage />;
     }
 
-    const deleteTagAndHideModal = () => {
-        deletePolicyTags(policyID, [currentPolicyTag.name]);
-        setIsDeleteTagModalOpen(false);
-        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
-    };
-
     const updateWorkspaceTagEnabled = (value: boolean) => {
         if (shouldPreventDisableOrDelete) {
-            setIsCannotDeleteOrDisableLastTagModalVisible(true);
+            showConfirmModal({
+                title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
             return;
         }
-        setWorkspaceTagEnabled(policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
+        setWorkspaceTagEnabled(policyData, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
     };
 
     const navigateToEditTag = () => {
         Navigation.navigate(
             isQuickSettingsFlow
-                ? ROUTES.SETTINGS_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.getRoute(orderWeight, currentPolicyTag.name))
                 : ROUTES.WORKSPACE_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name),
         );
     };
@@ -107,7 +109,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     policyID,
                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
                     isQuickSettingsFlow
-                        ? ROUTES.SETTINGS_TAG_GL_CODE.getRoute(policyID, orderWeight, tagName, backTo)
+                        ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, tagName))
                         : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, tagName),
                 ),
             );
@@ -115,16 +117,14 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         }
         Navigation.navigate(
             isQuickSettingsFlow
-                ? ROUTES.SETTINGS_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name))
                 : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name),
         );
     };
 
     const navigateToEditTagApprover = () => {
         Navigation.navigate(
-            isQuickSettingsFlow
-                ? ROUTES.SETTINGS_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
-                : ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name),
+            isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path) : ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name),
         );
     };
 
@@ -140,54 +140,42 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.TAGS}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={TagSettingsPage.displayName}
+                testID="TagSettingsPage"
             >
                 <HeaderWithBackButton
                     title={getCleanedTagName(tagName)}
                     shouldSetModalVisibility={false}
-                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
-                />
-                <ConfirmModal
-                    title={translate('workspace.tags.deleteTag')}
-                    isVisible={isDeleteTagModalOpen}
-                    onConfirm={deleteTagAndHideModal}
-                    onCancel={() => setIsDeleteTagModalOpen(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('workspace.tags.deleteTagConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
-                <ConfirmModal
-                    isVisible={isCannotDeleteOrDisableLastTagModalVisible}
-                    onConfirm={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
-                    onCancel={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
-                    title={translate('workspace.tags.cannotDeleteOrDisableAllTags.title')}
-                    prompt={translate('workspace.tags.cannotDeleteOrDisableAllTags.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
+                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backPath : undefined)}
                 />
 
-                <View style={styles.flexGrow1}>
+                <ScrollView>
                     {!hasDependentTags && (
                         <OfflineWithFeedback
                             errors={getLatestErrorMessageField(currentPolicyTag)}
                             pendingAction={currentPolicyTag.pendingFields?.enabled}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearPolicyTagErrors(policyID, tagName, orderWeight)}
+                            onClose={() => clearPolicyTagErrors({policyID, tagName, tagListIndex: orderWeight, policyTags})}
                         >
                             <View style={[styles.mt2, styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Text>{translate('workspace.tags.enableTag')}</Text>
+                                    <Text
+                                        accessible={false}
+                                        aria-hidden
+                                    >
+                                        {translate('workspace.tags.enableTag')}
+                                    </Text>
                                     <Switch
                                         isOn={currentPolicyTag.enabled}
                                         accessibilityLabel={translate('workspace.tags.enableTag')}
                                         onToggle={updateWorkspaceTagEnabled}
-                                        showLockIcon={shouldPreventDisableOrDelete}
+                                        disabled={!canWriteTags}
+                                        disabledAction={withReadOnlyFallback()}
+                                        showLockIcon={!canWriteTags || shouldPreventDisableOrDelete}
                                     />
                                 </View>
                             </View>
@@ -198,8 +186,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             title={getCleanedTagName(currentPolicyTag.name)}
                             description={translate(`common.name`)}
                             onPress={navigateToEditTag}
-                            interactive={!hasDependentTags}
-                            shouldShowRightIcon={!hasDependentTags}
+                            interactive={canWriteTags && !hasDependentTags}
+                            shouldShowRightIcon={canWriteTags && !hasDependentTags}
                         />
                     </OfflineWithFeedback>
                     {(!hasDependentTags || !!currentPolicyTag?.['GL Code']) && (
@@ -208,9 +196,9 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 description={translate(`workspace.tags.glCode`)}
                                 title={currentPolicyTag?.['GL Code']}
                                 onPress={navigateToEditGlCode}
-                                iconRight={hasAccountingConnections ? Expensicons.Lock : undefined}
-                                interactive={!hasAccountingConnections && !hasDependentTags}
-                                shouldShowRightIcon={!hasDependentTags}
+                                iconRight={hasAccountingConnections ? expensifyIcons.Lock : undefined}
+                                interactive={canWriteTags && !hasAccountingConnections && !hasDependentTags}
+                                shouldShowRightIcon={canWriteTags && !hasDependentTags}
                             />
                         </OfflineWithFeedback>
                     )}
@@ -224,13 +212,12 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 title={approverText}
                                 description={translate(`workspace.tags.approverDescription`)}
                                 onPress={navigateToEditTagApprover}
-                                shouldShowRightIcon
+                                interactive={canWriteTags}
+                                shouldShowRightIcon={canWriteTags}
                                 disabled={approverDisabled}
                                 helperText={
                                     approverDisabled
-                                        ? translate('workspace.rules.categoryRules.enableWorkflows', {
-                                              moreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`,
-                                          })
+                                        ? translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`)
                                         : undefined
                                 }
                                 shouldParseHelperText
@@ -238,25 +225,41 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                         </>
                     )}
 
-                    {shouldShowDeleteMenuItem && (
+                    {canWriteTags && shouldShowDeleteMenuItem && (
                         <MenuItem
-                            icon={Expensicons.Trashcan}
+                            icon={expensifyIcons.Trashcan}
                             title={translate('common.delete')}
-                            onPress={() => {
+                            onPress={async () => {
                                 if (shouldPreventDisableOrDelete) {
-                                    setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                                    showConfirmModal({
+                                        title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                                        prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                                        confirmText: translate('common.buttonConfirm'),
+                                        shouldShowCancelButton: false,
+                                    });
                                     return;
                                 }
-                                setIsDeleteTagModalOpen(true);
+                                const {action} = await showConfirmModal({
+                                    title: translate('workspace.tags.deleteTag'),
+                                    prompt: translate('workspace.tags.deleteTagConfirmation'),
+                                    confirmText: translate('common.delete'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                });
+                                if (action === ModalActions.CONFIRM) {
+                                    if (!currentPolicyTag?.name) {
+                                        return;
+                                    }
+                                    deletePolicyTags(policyData, [currentPolicyTag.name]);
+                                    Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
+                                }
                             }}
                         />
                     )}
-                </View>
+                </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-TagSettingsPage.displayName = 'TagSettingsPage';
 
 export default TagSettingsPage;

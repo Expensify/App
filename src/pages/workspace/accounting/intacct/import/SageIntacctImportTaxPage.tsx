@@ -35,7 +35,7 @@ function SageIntacctImportTaxPage({route}: SageIntacctImportTaxPageProps) {
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctImportTaxPage.displayName}
+            displayName="SageIntacctImportTaxPage"
             headerTitleAlreadyTranslated={translate('common.tax')}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -78,7 +78,5 @@ function SageIntacctImportTaxPage({route}: SageIntacctImportTaxPageProps) {
         </ConnectionLayout>
     );
 }
-
-SageIntacctImportTaxPage.displayName = 'SageIntacctImportTaxPage';
 
 export default SageIntacctImportTaxPage;

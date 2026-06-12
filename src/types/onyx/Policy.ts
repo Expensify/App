@@ -1,7 +1,9 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
+import type HrSyncResult from '@libs/API/HrSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
@@ -59,6 +61,15 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Subrates of the given rate */
         subRates?: Subrate[];
+
+        /** Sort order index for displaying rates */
+        index?: number;
+
+        /** ISO 8601 date string for when this rate becomes effective */
+        startDate?: string | null;
+
+        /** ISO 8601 date string for when this rate expires */
+        endDate?: string | null;
     },
     keyof TaxRateAttributes
 >;
@@ -107,6 +118,9 @@ type CompanyAddress = {
     /** Street address */
     addressStreet: string;
 
+    /** Street address line 2 */
+    addressStreet2?: string;
+
     /** City */
     city: string;
 
@@ -144,19 +158,33 @@ type UberReceiptPartner = {
      * organization id for connected uber
      */
     organizationID?: string;
+    /**
+     * name of the organization in uber
+     */
+    organizationName?: string;
+    /**
+     * account to import the receipts to
+     */
+    centralBillingAccountEmail?: string;
 
     /**
      * Mapping of workspace member email to Uber employee status
      */
     employees?: Record<
         string,
-        {
+        OnyxCommon.OnyxValueWithOfflineFeedback<{
             /**
              * status of the employee
              */
             status?: string;
-        }
+            /** A list of errors keyed by microtime */
+            errors?: OnyxCommon.Errors | null;
+        }>
     >;
+    /**
+     * Whether credentials are invalid
+     */
+    error?: string;
     /**
      * Collection of errors coming from BE
      */
@@ -167,12 +195,21 @@ type UberReceiptPartner = {
     errorFields?: OnyxCommon.ErrorFields;
 };
 
+/** Receipt partner data keyed by partner name */
+type ReceiptPartnerDataByName = {
+    /** uber partner */
+    [CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER]: UberReceiptPartner;
+};
+
 /** Policy Receipt partners */
 type ReceiptPartners = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Whether receipt partners are enabled */
         enabled?: boolean;
-    } & Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>
+    } & {
+        /** Per receipt partner integration data */
+        [K in keyof ReceiptPartnerDataByName]?: OnyxCommon.OnyxValueWithOfflineFeedback<ReceiptPartnerDataByName[K]>;
+    }
 >;
 
 /** Policy disabled fields */
@@ -269,6 +306,15 @@ type ConnectionLastSync = {
      * show an error message
      */
     isConnected?: boolean;
+};
+
+/** Last sync state specific to Merge HR connections */
+type MergeHRConnectionLastSync = ConnectionLastSync & {
+    /** Type of the sync */
+    syncType?: ValueOf<typeof CONST.MERGE_HR.SYNC_TYPE>;
+
+    /** Status of the sync */
+    syncStatus?: ValueOf<typeof CONST.MERGE_HR.SYNC_STATUS>;
 };
 
 /**
@@ -472,6 +518,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
 
+    /** Default vendor used as a fallback when a non-reimbursable Credit/Debit card expense has no vendor set on the expense itself. */
+    nonReimbursableCreditCardDefaultVendor?: string;
+
     /** ID of the invoice collection account */
     collectionAccountID?: string;
 
@@ -492,6 +541,12 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
      * transactions upon import
      */
     autoCreateVendor: boolean;
+
+    /** Default vendor ID for travel expenses */
+    travelInvoicingVendorID?: string;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
 
     /** TODO: Will be handled in another issue */
     hasChosenAutoSyncOption: boolean;
@@ -523,7 +578,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Configuration of the export */
     export: {
         /** E-mail of the exporter */
-        exporter: string;
+        exporter?: string;
     };
 
     /** Collections of form field errors */
@@ -624,9 +679,7 @@ type XeroConnectionData = {
 type XeroMappingType = {
     /** TODO: Will be handled in another issue */
     customer: string;
-} & {
-    [key in `trackingCategory_${string}`]: string;
-};
+} & Record<`trackingCategory_${string}`, string>;
 
 /** Xero auto synchronization configs */
 type XeroAutoSyncConfig = {
@@ -655,7 +708,7 @@ type XeroExportConfig = {
     billable: ExpenseTypesValues;
 
     /** The e-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** TODO: Will be handled in another issue */
     nonReimbursable: ExpenseTypesValues;
@@ -668,6 +721,9 @@ type XeroExportConfig = {
 
     /** The accounting Method for Xero connection config */
     accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
 };
 
 /** TODO: Will be handled in another issue */
@@ -1026,7 +1082,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoCreateEntities: boolean;
 
         /** The account to run auto export */
-        exporter: string;
+        exporter?: string;
 
         /** The transaction date to set upon export */
         exportDate?: NetSuiteExportDateOptions;
@@ -1048,6 +1104,12 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The default vendor to use for Transactions in NetSuite */
         defaultVendor?: string;
+
+        /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
+        travelInvoicingPayableAccountID?: string;
+
+        /** Whether Travel Invoicing JEs post as individual entries per expense or a single grouped entry */
+        travelInvoicingJournalPostingPreference?: NetSuiteJournalPostingPreferences;
 
         /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
         provincialTaxPostingAccount?: string;
@@ -1236,7 +1298,7 @@ type SageIntacctExportConfig = {
     exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
 
     /** The e-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** Defines how non-reimbursable expenses are exported */
     nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
@@ -1258,6 +1320,9 @@ type SageIntacctExportConfig = {
 
     /** Accounting method for Sage Intacct */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** The payable account to use for Expensify Travel expenses when exporting to Sage Intacct */
+    travelInvoicingPayableAccountID?: string;
 };
 
 /**
@@ -1321,6 +1386,224 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig | keyof SageIntacctExportConfig
 >;
 
+/** Certinia (FinancialForce) export destination — FFA Payable Invoice vs PSA Expense Report */
+type FinancialForceExportDestination = ValueOf<typeof CONST.CERTINIA_EXPORT_DESTINATION>;
+
+/** Certinia PSA parent tag mapping mode */
+type FinancialForceParentTagMappingMode = ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>;
+
+/** Keys on {@link FinancialForceConnectionConfig} tracked for offline pending / error field state */
+type FinancialForceOfflineStateKeys = ValueOf<typeof CONST.CERTINIA_CONFIG>;
+
+/** Synced Certinia entity with display name and external ID */
+type FinancialForceSyncedEntity = {
+    /** Display name of the synced entity */
+    name: string;
+
+    /** External ID of the synced entity */
+    id: string;
+};
+
+/** Data synced from Certinia (parent sync service); arrays may be empty until sync completes */
+type FinancialForceConnectionData = {
+    /** Salesforce Accounts used as Default Vendor options (FFA) */
+    vendors: FinancialForceSyncedEntity[];
+
+    /** Certinia companies (c2g__codaCompany__c); FFA validates presence when applicable */
+    companies: FinancialForceSyncedEntity[];
+
+    /** PSA: projects synced for mapping (Release 2) */
+    projects?: FinancialForceSyncedEntity[];
+
+    /** PSA: assignments synced for mapping (Release 2) */
+    assignments?: FinancialForceSyncedEntity[];
+};
+
+/** Certinia credentials (Salesforce / Certinia org); fields populate as OAuth / sync complete */
+type FinancialForceCredentials = {
+    /** Certinia company ID */
+    companyID?: string;
+
+    /** Salesforce enterprise / instance URL */
+    enterpriseUrl?: string;
+
+    /** Whether this is a sandbox connection */
+    isSandbox?: boolean;
+};
+
+/** Certinia import / coding settings */
+type FinancialForceCodingConfig = {
+    /** Dimension 1 mapping */
+    dimension1?: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
+
+    /** Dimension 2 mapping */
+    dimension2?: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
+
+    /** Dimension 3 mapping */
+    dimension3?: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
+
+    /** Dimension 4 mapping */
+    dimension4?: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
+
+    /** Whether tax should be synced */
+    syncTax?: boolean;
+
+    /** PSA: how parent tags map to projects / assignments */
+    parentTagMapping?: FinancialForceParentTagMappingMode;
+
+    /** PSA: sync milestones */
+    syncMilestones?: boolean;
+};
+
+/** Certinia export settings (FFA and PSA) */
+type FinancialForceExportConfig = {
+    /** FFA / PSA: reimbursable expenses destination */
+    reimbursable?: FinancialForceExportDestination;
+
+    /** FFA / PSA: non-reimbursable expenses destination */
+    nonReimbursable?: FinancialForceExportDestination;
+
+    /** Payable invoice / expense report export status. */
+    exportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
+
+    /** Date basis for export */
+    exportDate?: ValueOf<typeof CONST.CERTINIA_EXPORT_DATE>;
+
+    /** Preferred exporter email */
+    exporter?: string;
+
+    /** FFA: default vendor Salesforce Account ID */
+    vendorAccount?: string;
+
+    /** PSA / SRP: company ID for export */
+    companyID?: string;
+
+    /** PSA: report-level export status. */
+    reportExportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
+};
+
+/** Certinia auto-sync */
+type FinancialForceAutoSyncConfig = {
+    /** Whether daily auto-sync is enabled */
+    enabled: boolean;
+};
+
+/** Certinia advanced settings */
+type FinancialForceAdvancedConfig = {
+    /** When a Payable Invoice is paid in FFA, mark the Expensify report reimbursed */
+    syncReimbursedReports: boolean;
+
+    /** PSA: default whether tax is non-billable */
+    taxNonBillable?: boolean;
+
+    /** PSA: export in foreign currency */
+    exportForeignCurrency?: boolean;
+};
+
+/** Certinia (FinancialForce) connection config */
+type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Certinia credentials */
+        credentials: FinancialForceCredentials;
+
+        /** True when only PSA is enabled (no FFA) */
+        hasPSAOnly?: boolean;
+
+        /** Whether the PSA module is active */
+        hasPSA?: boolean;
+
+        /** Whether the connection has been fully set up */
+        isConfigured?: boolean;
+
+        /** Certinia import / coding settings */
+        coding: FinancialForceCodingConfig;
+
+        /** Certinia export settings */
+        export: FinancialForceExportConfig;
+
+        /** Certinia auto-sync settings */
+        autoSync: FinancialForceAutoSyncConfig;
+
+        /** Certinia advanced settings */
+        advanced: FinancialForceAdvancedConfig;
+
+        /** Collection of errors coming from the backend */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    FinancialForceOfflineStateKeys
+>;
+
+/** Gusto connection data */
+type GustoConnectionData = Record<string, never>;
+
+/** Shared config for HR integrations (Gusto, Merge HR) */
+type HRConnectionConfigBase = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Workspace member who acts as the final approver */
+        finalApprover: string | null;
+
+        /** Collections of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    'approvalMode' | 'finalApprover'
+>;
+
+/** Gusto connection config */
+type GustoConnectionConfig = HRConnectionConfigBase & {
+    /** Approval mode */
+    approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
+};
+
+/** A group of employees the admin can choose to import from (e.g. a company, cost center, department). */
+type MergeHRGroup = {
+    /** Group ID */
+    id: string;
+
+    /** Human-readable name of the group */
+    name: string;
+
+    /** Group type (department/division etc.) */
+    type: string;
+};
+
+/** Merge HR connection data */
+type MergeHRConnectionData = {
+    /** Groups available to import employees from. Distinct from `config.groups`, which is the admin's selection. */
+    groups?: MergeHRGroup[];
+};
+
+/** Merge HR connection config */
+type MergeHRConnectionConfig = HRConnectionConfigBase &
+    OnyxCommon.OnyxValueWithOfflineFeedback<{
+        /** Integration provider slug identifying which HR system is linked */
+        integration: MergeHRProviderSlug;
+
+        /** Approval mode controlling how reports are routed for approval */
+        approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
+
+        /**
+         * Groups the admin chose to import employees from.
+         * - `string[]` with one or more IDs — setup complete, sync only those groups.
+         * - `null` — setup not yet complete.
+         */
+        groups: string[] | null;
+    }>;
+
+/** TriNet (Zenefits) connection data */
+type ZenefitsConnectionData = Record<string, never>;
+
+/** TriNet (Zenefits) connection config */
+type ZenefitsConnectionConfig = HRConnectionConfigBase & {
+    /** Zenefits approval mode */
+    approvalMode: ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | null;
+
+    /** Whether the connection has been configured */
+    isConfigured: boolean;
+};
+
 /**
  * Data imported from QuickBooks Desktop.
  */
@@ -1349,7 +1632,7 @@ type QBDConnectionData = {
  */
 type QBDExportConfig = {
     /** E-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** Defines how reimbursable expenses are exported */
     reimbursable: QBDReimbursableExportAccountType;
@@ -1368,6 +1651,12 @@ type QBDExportConfig = {
 
     /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
+
+    /** Accounting method for QBD */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /**
@@ -1418,9 +1707,9 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 >;
 
 /** State of integration connection */
-type Connection<ConnectionData, ConnectionConfig> = {
+type Connection<ConnectionData, ConnectionConfig, TLastSync extends ConnectionLastSync = ConnectionLastSync> = {
     /** State of the last synchronization */
-    lastSync?: ConnectionLastSync;
+    lastSync?: TLastSync;
 
     /** Data imported from integration */
     data?: ConnectionData;
@@ -1445,6 +1734,18 @@ type Connections = {
 
     /** QuickBooks Desktop integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
+
+    /** Certinia integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<FinancialForceConnectionData, FinancialForceConnectionConfig>;
+
+    /** Gusto integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
+
+    /** TriNet (Zenefits) integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: Connection<ZenefitsConnectionData, ZenefitsConnectionConfig>;
+
+    /** Merge HR integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: Connection<MergeHRConnectionData, MergeHRConnectionConfig, MergeHRConnectionLastSync>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -1494,6 +1795,9 @@ type ACHAccount = {
 
     /** Bank account state */
     state?: string;
+
+    /** Emails of users who have had the bank account shared with them */
+    sharees?: string[];
 };
 
 /** Prohibited expense types */
@@ -1512,6 +1816,12 @@ type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the policy prohibits adult entertainment expenses */
     adultEntertainment?: boolean;
+
+    /** Whether the policy prohibits gift card purchases */
+    giftCard?: boolean;
+
+    /** Whether the policy prohibits handwritten receipt expenses */
+    handwrittenReceipt?: boolean;
 }>;
 
 /** Day of the month to schedule submission  */
@@ -1667,6 +1977,94 @@ type ExpenseRule = {
     id?: string;
 };
 
+/** Coding rule filter condition */
+type CodingRuleFilter = {
+    /** The left side of the filter condition (e.g., 'merchant') */
+    left: string;
+
+    /** The operator for the filter, defined in CONST.SEARCH.SYNTAX_OPERATORS */
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+
+    /** The right side of the filter condition (e.g., 'Snoop') */
+    right: string;
+};
+
+/** Tax configuration for coding rule */
+type CodingRuleTax = {
+    /** Object wrapping the tax field - field_id_TAX matches the backend API format */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    field_id_TAX: {
+        /** The external ID of the tax rate */
+        externalID: string;
+
+        /** The tax rate value (e.g., "8.5%") */
+        value: string;
+
+        /** The name of the tax rate */
+        name: string;
+    };
+};
+
+/** Policy coding rule data model */
+type CodingRule = {
+    /** Unique identifier for the rule */
+    ruleID?: string;
+
+    /** Filter conditions for when this rule applies */
+    filters: CodingRuleFilter;
+
+    /** The merchant name to set on matching expenses */
+    merchant?: string;
+
+    /** Whether the expense should be billable */
+    billable?: boolean;
+
+    /** The category to set on matching expenses */
+    category?: string;
+
+    /** The comment/description to set on matching expenses */
+    comment?: string;
+
+    /** Whether the expense should be reimbursable */
+    reimbursable?: boolean;
+
+    /** The tag to set on matching expenses */
+    tag?: string;
+
+    /** Tax configuration for the expense */
+    tax?: CodingRuleTax;
+
+    /** When this rule was created */
+    created?: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
+};
+
+/** Policy AI rule data model */
+type AIRule = {
+    /** Unique identifier for the rule */
+    ruleID: string;
+
+    /** The AI prompt (i.e. the rule defined with natural language) */
+    prompt: string;
+
+    /** Short one-line summary generated server-side from the prompt */
+    title?: string;
+
+    /** When this rule was created */
+    created: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
+};
+
 /** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -1697,6 +2095,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL for the policy avatar */
         avatarURL?: string;
 
+        /** The client ID set by an Approved! Accountant for tracking purposes */
+        clientID?: string;
+
         /** Error objects keyed by field name containing errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
@@ -1708,6 +2109,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** When this policy was last modified */
         lastModified?: string;
+
+        /** When this policy was created */
+        created?: string;
 
         /** The custom units data for this policy */
         customUnits?: Record<string, CustomUnit>;
@@ -1775,7 +2179,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoApproval?: OnyxCommon.OnyxValueWithOfflineFeedback<
             {
                 /**
-                 * The maximum report total allowed to trigger auto approval.
+                 * The maximum per-expense amount allowed to trigger auto approval.
                  */
                 limit?: number;
                 /**
@@ -1791,9 +2195,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Original file name which is used for the policy avatar */
         originalFileName?: string;
-
-        /** Alert message for the policy */
-        alertMessage?: string;
 
         /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
         primaryLoginsInvited?: Record<string, string>;
@@ -1852,6 +2253,18 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of tax rates attached to a policy */
         taxRates?: TaxRatesWithDefault;
 
+        /** Units configuration */
+        units?: {
+            /** Time tracking configuration */
+            time?: {
+                /** Whether time tracking is enabled */
+                enabled?: boolean;
+
+                /** Default hourly rate */
+                rate?: number;
+            };
+        };
+
         /** A set of rules related to the workspace */
         rules?: {
             /** A set of rules related to the workspace approvals */
@@ -1859,16 +2272,28 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /** A set of rules related to the workspace expenses */
             expenseRules?: ExpenseRule[];
+
+            /** A set of coding rules for automatic expense field population based on merchant matching */
+            codingRules?: Record<string, CodingRule>;
+
+            /** A set of AI rules defined with natural language - The rules are run by the "RuleBot" */
+            aiRules?: Record<string, AIRule>;
         };
+
+        /** The "RuleBot" agent account ID */
+        ruleBotAccountID?: number;
 
         /** A set of custom rules defined with natural language */
         customRules?: string;
 
-        /** ReportID of the admins room for this workspace */
-        chatReportIDAdmins?: number;
+        /** URL of the workspace rules PDF document stored in a private S3 bucket */
+        rulesDocumentURL?: string;
 
-        /** ReportID of the announce room for this workspace */
-        chatReportIDAnnounce?: number;
+        /** ReportID of the admins room for this workspace - This should be a string, we are keeping the number for backward compatibility */
+        chatReportIDAdmins?: string | number;
+
+        /** ReportID of the announce room for this workspace - This should be a string, we are keeping the number for backward compatibility */
+        chatReportIDAnnounce?: string | number;
 
         /** All the integration connections attached to the policy */
         connections?: Connections;
@@ -1887,6 +2312,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
+
+        /** Whether the Travel feature is enabled */
+        isTravelEnabled?: boolean;
 
         /** Whether the Per diem rates feature is enabled */
         arePerDiemRatesEnabled?: boolean;
@@ -1912,6 +2340,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Company Cards feature is enabled */
         areCompanyCardsEnabled?: boolean;
 
+        /** Whether the HR feature is enabled */
+        isHREnabled?: boolean;
+
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
 
@@ -1926,6 +2357,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates the Policy's SetWorkspaceReimbursement call loading state */
         isLoadingWorkspaceReimbursement?: boolean;
+
+        /** Indicates if the receipt partners page is loading */
+        isLoadingReceiptPartners?: boolean;
 
         /** Indicates if the Policy ownership change is successful */
         isChangeOwnerSuccessful?: boolean;
@@ -1951,6 +2385,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Max amount for an expense with no receipt violation */
         maxExpenseAmountNoReceipt?: number;
 
+        /** Max amount for an expense with no itemized receipt violation */
+        maxExpenseAmountNoItemizedReceipt?: number;
+
         /** Whether GL codes are enabled */
         glCodes?: boolean;
 
@@ -1960,14 +2397,17 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Policy MCC Group settings */
         mccGroup?: Record<string, MccGroup>;
 
-        /** Workspace account ID configured for Expensify Card */
-        workspaceAccountID?: number;
+        /** Policy account ID configured for Expensify Card */
+        policyAccountID?: number;
 
-        /** Setup specialist guide assigned for the policy */
+        /** Account executive guide assigned for the policy */
         assignedGuide?: {
             /** The guide's email */
             email: string;
         };
+
+        /** Email address of the technical contact */
+        technicalContact?: string;
 
         /** Indicate whether the Workspace plan can be downgraded */
         canDowngrade?: boolean;
@@ -1977,8 +2417,11 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether Attendee Tracking is enabled */
         isAttendeeTrackingEnabled?: boolean;
+
+        /** Whether the policy requires purchases to be on a company card */
+        requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */
@@ -1997,11 +2440,15 @@ type PolicyConnectionSyncProgress = {
 
     /** Timestamp of the connection */
     timestamp: string;
+
+    /** Optional result payload shown after a completed sync */
+    result?: HrSyncResult;
 };
 
 export default Policy;
 
 export type {
+    AutoReportingOffset,
     PolicyReportField,
     PolicyReportFieldType,
     Unit,
@@ -2039,9 +2486,6 @@ export type {
     NetSuiteCustomSegment,
     NetSuiteCustomFieldMapping,
     NetSuiteAccount,
-    NetSuiteVendor,
-    InvoiceItem,
-    NetSuiteTaxAccount,
     NetSuiteCustomFormID,
     SageIntacctMappingValue,
     SageIntacctMappingType,
@@ -2052,11 +2496,21 @@ export type {
     SageIntacctDataElement,
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
+    FinancialForceConnectionConfig,
     ACHAccount,
     ApprovalRule,
     ExpenseRule,
+    CodingRule,
+    CodingRuleFilter,
+    CodingRuleTax,
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,
     ProhibitedExpenses,
+    NetSuiteConnectionData,
+    MergeHRConnectionConfig,
+    GustoConnectionConfig,
+    ZenefitsConnectionConfig,
+    Vendor,
+    AIRule,
 };

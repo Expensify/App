@@ -7,6 +7,7 @@ import path from 'path';
 import dedent from '@libs/StringUtils/dedent';
 import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
 import Git from '@scripts/utils/Git';
+import DummyTranslator from '@scripts/utils/Translator/DummyTranslator';
 import Translator from '@scripts/utils/Translator/Translator';
 
 let processExitSpy: jest.SpyInstance;
@@ -15,7 +16,6 @@ let consoleErrorSpy: jest.SpyInstance;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
 let mockEn: any = jest.requireActual('@src/languages/en');
 jest.mock('@src/languages/en', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     get default() {
@@ -32,11 +32,11 @@ const mockDiff = jest.fn();
 const mockShow = jest.fn();
 
 // Apply mocks to Git using jest.spyOn (ignore type errors for now)
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 jest.spyOn(Git as any, 'isValidRef').mockImplementation(mockIsValidRef);
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 jest.spyOn(Git as any, 'diff').mockImplementation(mockDiff);
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 jest.spyOn(Git as any, 'show').mockImplementation(mockShow);
 
 let tempDir: string;
@@ -356,6 +356,7 @@ describe('generateTranslations', () => {
             `),
                 'utf8',
             );
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
             expect(itContent).toStrictEqual(
@@ -363,37 +364,82 @@ describe('generateTranslations', () => {
                 import type en from './en';
 
                 const strings = {
-                    // @context As in a financial institution
                     bank: '[it][ctx: As in a financial institution] Bank',
-                    // @context As in a financial institution
                     bankTemplate: \`[it][ctx: As in a financial institution] Bank\`,
-                    // @context As in an aviation maneuver
                     aviationBank: '[it][ctx: As in an aviation maneuver] Bank',
-                    // This key has regular comments mixed with context-comments
-                    // eslint-disable-next-line max-len
-                    // @context foo
                     foo: '[it][ctx: foo] Foo',
-                    // @context bar
-                    // What about if the context comment isn't the last comment?
                     bar: '[it][ctx: bar] Bar',
                     some: {
                         nested: {
-                            // @context nested
                             str: '[it][ctx: nested] nested string',
-                            // @context for my template function
                             func: ({destructuredArg}) => \`[it][ctx: for my template function] My template string contains a single \${destructuredArg} argument\`,
                         },
                     },
-                    // @context will be applied to both translations
                     boolFunc: (flag: boolean) => (flag ? '[it][ctx: will be applied to both translations] ValueIfTrue' : '[it][ctx: will be applied to both translations] ValueIfFalse'),
-                    separateContextTernaries: (flag: boolean) => (flag ? /* @context only for true */ '[it][ctx: only for true] True with context' : '[it] False without context'),
-                    // @context formal greeting, only provided to outermost template translation
+                    separateContextTernaries: (flag: boolean) => (flag ? '[it][ctx: only for true] True with context' : '[it] False without context'),
                     onlyInTopLevelOfTemplates: (name: string) =>
-                        \`[it][ctx: formal greeting, only provided to outermost template translation] Salutations, \${name ?? /* @context inline context */ '[it][ctx: inline context] my very good friend'}\`,
+                        \`[it][ctx: formal greeting, only provided to outermost template translation] Salutations, \${name ?? '[it][ctx: inline context] my very good friend'}\`,
                 };
                 export default strings;
             `)}`,
             );
+
+            // Verify no @context comments leaked into the output
+            expect(itContent).not.toContain('@context');
+
+            // Verify the translator was called with the correct context values
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Bank', 'As in a financial institution', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Bank', 'As in an aviation maneuver', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Foo', 'foo', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Bar', 'bar', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'nested string', 'nested', expect.anything());
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(translateSpy).toHaveBeenCalledWith('it', 'My template string contains a single ${destructuredArg} argument', 'for my template function', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'ValueIfTrue', 'will be applied to both translations', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'ValueIfFalse', 'will be applied to both translations', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'True with context', 'only for true', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'False without context', undefined, expect.anything());
+            // Complex template expression with nullish coalesce gets serialized with hash for the complex span
+            // We just verify it was called with the context, not the exact hash value
+            expect(translateSpy).toHaveBeenCalledWith('it', expect.stringContaining('Salutations'), 'formal greeting, only provided to outermost template translation', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'my very good friend', 'inline context', expect.anything());
+        });
+
+        it('does not include any comments in generated translation files', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    // Regular comment before a string
+                    greeting: 'Hello',
+                    // @context As in a financial institution
+                    bank: 'Bank',
+                    /* Multi-line comment
+                       spanning several lines */
+                    farewell: 'Goodbye',
+                    /* @context inline multi-line */ inline: 'Inline',
+                    // eslint-disable-next-line max-len
+                    longString: 'This is a very long string',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Verify no comments of any kind appear in the output (except the generated file prefix)
+            const contentAfterPrefix = itContent.substring(GENERATED_FILE_PREFIX.length);
+            expect(contentAfterPrefix).not.toContain('//');
+            expect(contentAfterPrefix).not.toContain('/*');
+            expect(contentAfterPrefix).not.toContain('*/');
+            expect(contentAfterPrefix).not.toContain('@context');
+            expect(contentAfterPrefix).not.toContain('eslint-disable');
+
+            // Verify translations still work correctly
+            expect(itContent).toContain('[it][ctx: As in a financial institution] Bank');
+            expect(itContent).toContain('[it] Hello');
+            expect(itContent).toContain('[it] Goodbye');
         });
 
         it("doesn't request duplicate translations", async () => {
@@ -430,16 +476,15 @@ describe('generateTranslations', () => {
                         anotherGreeting: '[it] Hello',
                         anotherFarewell: '[it] Goodbye',
                     },
-                    // @context diff
                     greetingWithDifferentContext: '[it][ctx: diff] Hello',
                 };
                 export default strings;
             `)}`,
             );
             expect(translateSpy).toHaveBeenCalledTimes(3);
-            expect(translateSpy).toHaveBeenNthCalledWith(1, 'it', 'Hello', undefined);
-            expect(translateSpy).toHaveBeenNthCalledWith(2, 'it', 'Goodbye', undefined);
-            expect(translateSpy).toHaveBeenNthCalledWith(3, 'it', 'Hello', 'diff');
+            expect(translateSpy).toHaveBeenNthCalledWith(1, 'it', 'Hello', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenNthCalledWith(2, 'it', 'Goodbye', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenNthCalledWith(3, 'it', 'Hello', 'diff', expect.anything());
         });
 
         it("doesn't translate type annotations", async () => {
@@ -529,6 +574,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello',
                     unchanged: '[it] Unchanged',
@@ -584,7 +630,7 @@ describe('generateTranslations', () => {
 
             // Should only translate the new string
             expect(translateSpy).toHaveBeenCalledTimes(1);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined, expect.anything());
         });
 
         it('translates only specified paths when --paths is provided', async () => {
@@ -616,6 +662,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
@@ -656,8 +703,8 @@ describe('generateTranslations', () => {
             expect(itContent).not.toContain('[it] Old Error Translation');
 
             expect(translateSpy).toHaveBeenCalledTimes(2);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'An error occurred', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'An error occurred', undefined, expect.anything());
         });
 
         it('translates nested paths when parent path is specified', async () => {
@@ -691,6 +738,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello (existing)',
                     common: {
@@ -732,9 +780,9 @@ describe('generateTranslations', () => {
             expect(itContent).not.toContain('[it] Deep value (existing)');
 
             expect(translateSpy).toHaveBeenCalledTimes(3);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Cancel', undefined);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Deep value', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Cancel', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Deep value', undefined, expect.anything());
         });
 
         it('ignores --compare-ref when --paths is provided', async () => {
@@ -760,6 +808,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello (existing)',
                     common: {
@@ -789,7 +838,7 @@ describe('generateTranslations', () => {
             expect(itContent).not.toContain('[it] Save (existing)');
 
             expect(translateSpy).toHaveBeenCalledTimes(1);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined, expect.anything());
         });
 
         it('throws error when target file does not exist for --paths', async () => {
@@ -867,6 +916,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello (existing)',
                     common: {
@@ -1081,8 +1131,8 @@ describe('generateTranslations', () => {
 
             // Only the new string should have been translated
             expect(translateSpy).toHaveBeenCalledTimes(2); // Once for IT, once for FR
-            expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
-            expect(translateSpy).toHaveBeenCalledWith('fr', 'New value!', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('fr', 'New value!', undefined, expect.anything());
         });
 
         it('validates compare-ref is a valid git reference', async () => {
@@ -1130,6 +1180,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     deepTemplate: (user: User, settings: Settings) => \`[it] Old complex template\`,
                     unchanged: '[it] Keep this (existing)'
@@ -1202,6 +1253,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     keep: {
                         this: '[it] Keep this section (existing)'
@@ -1302,6 +1354,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     existingSection: {
                         keep: '[it] Keep this existing translation',
@@ -1349,10 +1402,10 @@ describe('generateTranslations', () => {
             expect(itContent).toContain('[it] Typed output');
 
             // Should translate the new strings
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined, expect.anything());
             // eslint-disable-next-line no-template-curly-in-string
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Hello ${name}', undefined);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Typed output', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Hello ${name}', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Typed output', undefined, expect.anything());
         });
 
         it('handles adding new properties to existing nested structures with --compare-ref', async () => {
@@ -1381,6 +1434,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     existingSection: {
                         keep: '[it] Keep this existing translation',
@@ -1429,7 +1483,7 @@ describe('generateTranslations', () => {
 
             // Should only translate the new string
             expect(translateSpy).toHaveBeenCalledTimes(1);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'New value added to existing nested structure', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'New value added to existing nested structure', undefined, expect.anything());
         });
 
         it('handles modifying existing string values with --compare-ref', async () => {
@@ -1454,6 +1508,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     testDrive: {
                         modal: {
@@ -1508,7 +1563,7 @@ describe('generateTranslations', () => {
 
             // Should translate the modified string
             expect(translateSpy).toHaveBeenCalledTimes(1);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Skip it if you dare', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Skip it if you dare', undefined, expect.anything());
         });
 
         it('should handle string concatenation expressions', async () => {
@@ -1547,6 +1602,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     onboarding: {
                         tasks: {
@@ -1605,6 +1661,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     common: {
                         tasks: '[it] Tasks',
@@ -1634,6 +1691,727 @@ describe('generateTranslations', () => {
             expect(result).toContain('createWorkspaceTask');
             expect(result).toContain('[it] Create a workspace');
             expect(result).toContain('satisfies Record<'); // Should preserve the satisfies expression
+        });
+
+        it('detects modifications when only a context annotation is added with --compare-ref', async () => {
+            // Create English source with a context annotation on one translation
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // @context as a verb, not a noun
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation without the context annotation
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+
+                const strings = {
+                    unchanged: '[it] This stays the same',
+                    pin: '[it] Pin',
+                    alsoUnchanged: '[it] Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock git diff showing only the comment line was added (line 3)
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([3]), // Only the context comment line
+                        removedLines: new Set(),
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            // Mock Git.show to return the old version without the context annotation
+            mockShow.mockReturnValue(
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve unchanged translations
+            expect(itContent).toContain('[it] This stays the same');
+            expect(itContent).toContain('[it] Also unchanged');
+
+            // BUG: The 'pin' translation should be retranslated with the new context
+            // The translation should now include the context indicator
+            expect(itContent).toContain('[it][ctx: as a verb, not a noun] Pin');
+
+            // Should translate the string with the new context
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Pin', 'as a verb, not a noun', expect.anything());
+        });
+
+        it('detects modifications when a context annotation is changed with --compare-ref', async () => {
+            // Create English source with a modified context annotation
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // @context as a verb, not a noun
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation with the old context
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+
+                const strings = {
+                    unchanged: '[it] This stays the same',
+                    // @context original context
+                    pin: '[it][ctx: original context] Pin',
+                    alsoUnchanged: '[it] Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock git diff showing the context comment line was modified
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([3]), // New context comment
+                        removedLines: new Set([3]), // Old context comment on same line in old version
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            // Mock Git.show to return the old version with different context
+            mockShow.mockReturnValue(
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // @context original context
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve unchanged translations
+            expect(itContent).toContain('[it] This stays the same');
+            expect(itContent).toContain('[it] Also unchanged');
+
+            // Should retranslate with new context
+            expect(itContent).toContain('[it][ctx: as a verb, not a noun] Pin');
+            expect(itContent).not.toContain('[it][ctx: original context] Pin');
+
+            // Should translate the string with the new context
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Pin', 'as a verb, not a noun', expect.anything());
+        });
+
+        it('detects modifications when a context annotation is removed with --compare-ref', async () => {
+            // Update mockEn to match the test data
+            const strings = {
+                unchanged: 'This stays the same',
+                pin: 'Pin',
+                alsoUnchanged: 'Also unchanged',
+            };
+            mockEn = strings;
+
+            // Create English source without context annotation
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation with context
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+
+                const strings = {
+                    unchanged: '[it] This stays the same',
+                    // @context as a verb, not a noun
+                    pin: '[it][ctx: as a verb, not a noun] Pin',
+                    alsoUnchanged: '[it] Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock git diff showing the context comment line was removed
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set(),
+                        removedLines: new Set([3]), // Context comment removed
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            // Mock Git.show to return the old version with context
+            mockShow.mockReturnValue(
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // @context as a verb, not a noun
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve unchanged translations
+            expect(itContent).toContain('[it] This stays the same');
+            expect(itContent).toContain('[it] Also unchanged');
+
+            // Should retranslate without context (no context indicator in translation)
+            expect(itContent).toContain("pin: '[it] Pin'");
+            expect(itContent).not.toContain('[it][ctx: as a verb, not a noun] Pin');
+
+            // Should translate the string without context
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Pin', undefined, expect.anything());
+
+            // The context comment should not be in the output
+            expect(itContent).not.toContain('// @context as a verb, not a noun');
+        });
+
+        it('does NOT trigger retranslation when only a regular comment is added with --compare-ref', async () => {
+            // Create English source with a regular comment
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // This is just a regular comment
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation without any comment
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+
+                const strings = {
+                    unchanged: '[it] This stays the same',
+                    pin: '[it] Pin (existing)',
+                    alsoUnchanged: '[it] Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock git diff showing only the regular comment line was added
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([3]), // Regular comment line
+                        removedLines: new Set(),
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            // Mock Git.show to return the old version without the comment
+            mockShow.mockReturnValue(
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve all existing translations unchanged
+            expect(itContent).toContain('[it] This stays the same');
+            expect(itContent).toContain('[it] Pin (existing)');
+            expect(itContent).toContain('[it] Also unchanged');
+
+            // Should NOT retranslate since it's just a regular comment
+            expect(translateSpy).not.toHaveBeenCalled();
+        });
+
+        it('does NOT trigger retranslation when a regular comment is modified with --compare-ref', async () => {
+            // Create English source with a modified regular comment
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // TODO: update this translation later
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation with different regular comment
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+
+                const strings = {
+                    unchanged: '[it] This stays the same',
+                    // TODO: fix this
+                    pin: '[it] Pin (existing)',
+                    alsoUnchanged: '[it] Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock git diff showing the regular comment was modified
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([3]), // Modified comment
+                        removedLines: new Set([3]), // Old comment
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            // Mock Git.show to return the old version with old comment
+            mockShow.mockReturnValue(
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // TODO: fix this
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve all existing translations unchanged
+            expect(itContent).toContain('[it] This stays the same');
+            expect(itContent).toContain('[it] Pin (existing)');
+            expect(itContent).toContain('[it] Also unchanged');
+
+            // Should NOT retranslate since it's just a regular comment change
+            expect(translateSpy).not.toHaveBeenCalled();
+        });
+
+        it('works with multiline dedent template strings', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                import dedent from '@libs/StringUtils/dedent';
+
+                const strings = {
+                    codesLoseAccess: dedent(\`
+                        If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
+
+                            1. Sometimes we have further indentation
+                            2. With bulleted lists and such
+
+                        Note: Setting up two-factor authentication will log you out of all other active sessions.
+                    \`),
+                };
+
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // The translated output should preserve the dedent structure with proper indentation on empty lines
+            // The empty line between the two paragraphs should have the same indentation as the content lines
+            const expectedFormat = `codesLoseAccess: dedent(\`
+        [it] If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
+
+            1. Sometimes we have further indentation
+            2. With bulleted lists and such
+
+        Note: Setting up two-factor authentication will log you out of all other active sessions.
+    \`),`;
+            expect(itContent).toContain(expectedFormat);
+        });
+
+        it('works with simple template expressions in dedent calls', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                import dedent from '@libs/StringUtils/dedent';
+
+                const strings = {
+                    welcomeMessage: (name: string, company: string) =>
+                        dedent(\`
+                            Welcome to \${company}, \${name}!
+
+                            We're excited to have you here.
+                        \`),
+                };
+
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            expect(itContent).toContain(`
+    welcomeMessage: (name: string, company: string) =>
+        dedent(\`
+            [it] Welcome to \${company}, \${name}!
+
+            We're excited to have you here.
+        \`),`);
+        });
+
+        it('does not retranslate unchanged nested properties when nearby properties are modified', async () => {
+            // This test reproduces a bug where unchanged properties get incorrectly
+            // flagged as changed when nearby properties are modified and cause line number shifts
+
+            // OLD file (before changes) - line numbers before dedent():
+            // 1: const strings = {
+            // 2:     prop1: 'First property',
+            // 3:     prop2: 'Second property',
+            // 4:     prop3: 'Third property',
+            // 5: };
+            // 6: export default strings;
+            const oldEnContent = dedent(`
+                const strings = {
+                    prop1: 'First property',
+                    prop2: 'Second property',
+                    prop3: 'Third property',
+                };
+                export default strings;
+            `);
+
+            // NEW file (after changes) - line numbers after dedent():
+            // 1: import dedent from '@libs/StringUtils/dedent';
+            // 2: (empty line)
+            // 3: const strings = {
+            // 4:     prop1: dedent(`
+            // 5:         First property
+            // 6:     `),
+            // 7:     prop2: 'Second property',
+            // 8:     prop3: 'Third property',
+            // 9: };
+            // 10: export default strings;
+            //
+            // Only prop1 was actually changed (single-line -> dedent multi-line)
+            // prop2 and prop3 are unchanged, just shifted to new line numbers
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                    import dedent from '@libs/StringUtils/dedent';
+
+                    const strings = {
+                        prop1: dedent(\`
+                            First property
+                        \`),
+                        prop2: 'Second property',
+                        prop3: 'Third property',
+                    };
+                    export default strings;
+                `),
+                'utf8',
+            );
+
+            // Existing Italian translation (all properties already translated)
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                    import dedent from '@libs/StringUtils/dedent';
+                    import type en from './en';
+
+                    const strings = {
+                        prop1: '[it] First property',
+                        prop2: '[it] Second property',
+                        prop3: '[it] Third property',
+                    };
+                    export default strings;
+                `),
+                'utf8',
+            );
+
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([1, 2, 5, 6]), // Import, empty, dedent middle/end
+                        removedLines: new Set([2]), // Old line 2: prop1: 'First property',
+                        modifiedLines: new Set([4]), // NEW line 4 (dedent opening) paired with OLD line 2
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            mockShow.mockReturnValue(oldEnContent);
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+
+            // Only prop1 should be translated (it actually changed)
+            expect(translateSpy).toHaveBeenCalledWith('it', 'First property\n', undefined, expect.anything());
+
+            // prop2 and prop3 should NOT be translated (they didn't change, just moved line numbers)
+            // BUG: Due to the bug, these WILL be called, causing this test to FAIL
+            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Second property', undefined, expect.anything());
+            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Third property', undefined, expect.anything());
+
+            // Verify only 1 translation was requested
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('error summary', () => {
+        let consoleLogSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            consoleLogSpy = jest.spyOn(console, 'log');
+        });
+
+        it('does not print error summary when there are no failures', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            await generateTranslations();
+
+            // Should not print error summary header
+            expect(consoleLogSpy).not.toHaveBeenCalledWith(expect.stringContaining('TRANSLATION ERRORS SUMMARY'));
+        });
+
+        it('prints error summary when there are failures', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock getFailedTranslations to return failures
+            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error message'}];
+            jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
+
+            await generateTranslations();
+
+            // Should print error summary header
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('TRANSLATION ERRORS SUMMARY'));
+            // Should print failure count
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('1 translation(s) failed'));
+        });
+
+        it('displays locales in lowercase', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock getFailedTranslations with uppercase locale
+            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error'}];
+            jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
+
+            await generateTranslations();
+
+            // Should display locale in lowercase (as stored), not uppercase
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📍 it (1 failure)'));
+            expect(consoleLogSpy).not.toHaveBeenCalledWith(expect.stringContaining('📍 IT'));
+        });
+
+        it('displays the id (path) when present', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock getFailedTranslations with id
+            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error', id: 'common.greeting'}];
+            jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
+
+            await generateTranslations();
+
+            // Should display the path
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Path: common.greeting'));
+        });
+
+        it('does not display path line when id is not present', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock getFailedTranslations without id
+            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error'}];
+            jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
+
+            await generateTranslations();
+
+            // Should not display "Path:" line
+            const pathCalls = consoleLogSpy.mock.calls.filter((call: unknown[]) => {
+                const firstArg = call.at(0);
+                return typeof firstArg === 'string' && firstArg.includes('Path:');
+            });
+            expect(pathCalls).toHaveLength(0);
+        });
+
+        it('groups failures by locale', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                    farewell: 'Goodbye',
+                    welcome: 'Welcome',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock getFailedTranslations with multiple locales
+            const mockFailures = [
+                {text: 'Hello', targetLang: 'it' as const, error: 'Error 1'},
+                {text: 'Goodbye', targetLang: 'it' as const, error: 'Error 2'},
+                {text: 'Welcome', targetLang: 'fr' as const, error: 'Error 3'},
+            ];
+            jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
+
+            await generateTranslations();
+
+            // Should group by locale with correct counts
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📍 it (2 failures)'));
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📍 fr (1 failure)'));
+            // Should show total count
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Total failures: 3'));
         });
     });
 });

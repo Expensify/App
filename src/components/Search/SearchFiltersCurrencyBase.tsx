@@ -1,16 +1,18 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SearchMultipleSelectionPicker from './SearchMultipleSelectionPicker';
 import type {SearchSingleSelectionPickerItem} from './SearchSingleSelectionPicker';
 import SearchSingleSelectionPicker from './SearchSingleSelectionPicker';
@@ -25,42 +27,42 @@ type SearchFiltersCurrencyBaseProps = {
 function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: SearchFiltersCurrencyBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
+    const {currencyList} = useCurrencyListState();
+    const {getCurrencySymbol} = useCurrencyListActions();
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const selectedCurrencyData = searchAdvancedFiltersForm?.[filterKey];
 
-    const {selectedCurrenciesItems, currencyItems} = useMemo(() => {
-        const currencies: SearchSingleSelectionPickerItem[] = [];
-        const selectedCurrencies: SearchSingleSelectionPickerItem[] = [];
+    const currencies: SearchSingleSelectionPickerItem[] = [];
+    const selectedCurrencies: SearchSingleSelectionPickerItem[] = [];
 
-        Object.keys(currencyList ?? {}).forEach((currencyCode) => {
-            if (currencyList?.[currencyCode]?.retired) {
-                return;
-            }
+    for (const currencyCode of Object.keys(currencyList)) {
+        if (currencyList[currencyCode]?.retired) {
+            continue;
+        }
 
-            if (Array.isArray(selectedCurrencyData) && selectedCurrencyData?.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
-                selectedCurrencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
-            }
+        const currencyName = currencyList[currencyCode]?.name;
+        const displayName = `${currencyCode} - ${getCurrencySymbol(currencyCode)}`;
 
-            if (!Array.isArray(selectedCurrencyData) && selectedCurrencyData === currencyCode) {
-                selectedCurrencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
-            }
+        if (Array.isArray(selectedCurrencyData) && selectedCurrencyData?.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
+            selectedCurrencies.push({name: displayName, value: currencyCode, searchableText: currencyName});
+        }
 
-            if (!currencies.some((item) => item.value === currencyCode)) {
-                currencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
-            }
-        });
+        if (!Array.isArray(selectedCurrencyData) && selectedCurrencyData === currencyCode) {
+            selectedCurrencies.push({name: displayName, value: currencyCode, searchableText: currencyName});
+        }
 
-        return {selectedCurrenciesItems: selectedCurrencies, currencyItems: currencies};
-    }, [currencyList, selectedCurrencyData]);
+        if (!currencies.some((item) => item.value === currencyCode)) {
+            currencies.push({name: displayName, value: currencyCode, searchableText: currencyName});
+        }
+    }
 
     const handleOnSubmit = (values: string[] | string | undefined) => {
-        updateAdvancedFilters({[filterKey]: values ?? null});
+        updateAdvancedFilters({[filterKey]: values ?? null} as Partial<SearchAdvancedFiltersForm>);
     };
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersCurrencyBase.displayName}
+            testID="SearchFiltersCurrencyBase"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -73,17 +75,17 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
                 }}
             />
             <View style={[styles.flex1]}>
-                {multiselect && (
+                {multiselect && !isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
                     <SearchMultipleSelectionPicker
-                        items={currencyItems}
-                        initiallySelectedItems={selectedCurrenciesItems}
+                        items={currencies}
+                        initiallySelectedItems={selectedCurrencies}
                         onSaveSelection={handleOnSubmit}
                     />
                 )}
                 {!multiselect && (
                     <SearchSingleSelectionPicker
-                        items={currencyItems}
-                        initiallySelectedItem={selectedCurrenciesItems.at(0)}
+                        items={currencies}
+                        initiallySelectedItem={selectedCurrencies.at(0)}
                         onSaveSelection={handleOnSubmit}
                     />
                 )}
@@ -91,7 +93,5 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
         </ScreenWrapper>
     );
 }
-
-SearchFiltersCurrencyBase.displayName = 'SearchFiltersCurrencyBase';
 
 export default SearchFiltersCurrencyBase;

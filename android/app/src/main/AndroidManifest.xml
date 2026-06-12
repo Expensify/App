@@ -9,7 +9,10 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
 
     <!-- android:hardwareAccelerated is essential for Android performance: https://developer.android.com/topic/performance/hardware-accel -->
     <application
@@ -26,6 +29,12 @@
         <service
             android:name="com.expensify.reactnativebackgroundtask.BackgroundJobService"
             android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false" />
+
+        <service
+            android:name=".GpsTripService"
+            android:foregroundServiceType="location"
+            android:stopWithTask="false"
             android:exported="false" />
 
         <activity
@@ -160,10 +169,11 @@
         <activity
                 android:name="com.plaid.internal.link.LinkActivity"
                 android:launchMode="singleTask"
+                android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
                 tools:replace="android:launchMode"/>
 
         <meta-data
-            android:name="com.urbanairship.reactnative.AIRSHIP_EXTENDER"
+            android:name="com.urbanairship.plugin.extender"
             android:value="com.expensify.chat.customairshipextender.CustomAirshipExtender" />
 
         <meta-data

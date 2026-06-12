@@ -1,16 +1,14 @@
-import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -42,21 +40,37 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const policy = usePolicy(policyID);
     const backTo = route.params.backTo;
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isImportingTags, setIsImportingTags] = useState(false);
     const {setIsClosing} = useCloseImportPage();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
-
-    const isFocused = useIsFocused();
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
 
     useEffect(() => {
         setImportedSpreadsheetIsFirstLineHeader(true);
         setImportedSpreadsheetIsImportingIndependentMultiLevelTags(true);
         setImportedSpreadsheetIsGLAdjacent(false);
     }, []);
+
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImportingTags(false);
+        Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+    };
+
+    const importTags = async () => {
+        setIsImportingTags(true);
+        const importFinalModal = await importMultiLevelTags(policyID, spreadsheet);
+        const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
+        if (!didShowImportFinalModal) {
+            setIsImportingTags(false);
+            return;
+        }
+        closeImportPageAndModal();
+    };
 
     if (hasAccountingConnections) {
         return <NotFoundPage />;
@@ -65,25 +79,16 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
     }
-
-    const closeImportPageAndModal = () => {
-        setIsClosing(true);
-        setIsImportingTags(false);
-        Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-    };
-
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return;
-    }
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
-                testID={ImportSpreadsheet.displayName}
+                testID="ImportSpreadsheet"
                 shouldEnableMaxHeight={canUseTouchScreen()}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -95,7 +100,13 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     <Text style={[styles.textSupporting, styles.textNormal, styles.ph5]}>{translate('workspace.tags.configureMultiLevelTags')}</Text>
 
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal, styles.flex1]}>{translate('workspace.tags.importMultiLevelTags.firstRowTitle')}</Text>
+                        <Text
+                            style={[styles.textNormal, styles.flex1]}
+                            accessible={false}
+                            aria-hidden
+                        >
+                            {translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
+                        </Text>
                         <Switch
                             isOn={spreadsheet?.containsHeader ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
@@ -106,7 +117,13 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     </View>
 
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal, styles.flex1, styles.mr2]}>{translate('workspace.tags.importMultiLevelTags.independentTags')}</Text>
+                        <Text
+                            style={[styles.textNormal, styles.flex1, styles.mr2]}
+                            accessible={false}
+                            aria-hidden
+                        >
+                            {translate('workspace.tags.importMultiLevelTags.independentTags')}
+                        </Text>
                         <Switch
                             isOn={spreadsheet?.isImportingIndependentMultiLevelTags ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.independentTags')}
@@ -117,7 +134,13 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     </View>
 
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal, styles.flex1, styles.mr2]}>{translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}</Text>
+                        <Text
+                            style={[styles.textNormal, styles.flex1, styles.mr2]}
+                            accessible={false}
+                            aria-hidden
+                        >
+                            {translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
+                        </Text>
                         <Switch
                             isOn={spreadsheet?.isGLAdjacent ?? false}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
@@ -133,35 +156,18 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     >
                         <Button
                             text={spreadsheet?.isImportingIndependentMultiLevelTags ? translate('common.next') : translate('common.import')}
-                            onPress={() => {
-                                if (spreadsheet?.isImportingIndependentMultiLevelTags) {
-                                    Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.getRoute(policyID));
-                                } else {
-                                    setIsImportingTags(true);
-                                    importMultiLevelTags(policyID, spreadsheet);
-                                }
-                            }}
+                            onPress={
+                                spreadsheet?.isImportingIndependentMultiLevelTags ? () => Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.getRoute(policyID)) : importTags
+                            }
                             isLoading={isImportingTags}
                             success
                             large
                         />
                     </FixedFooter>
-                    <ConfirmModal
-                        isVisible={isFocused && (spreadsheet?.shouldFinalModalBeOpened ?? false)}
-                        title={spreadsheet?.importFinalModal?.title ?? ''}
-                        prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                        onConfirm={closeImportPageAndModal}
-                        onCancel={closeImportPageAndModal}
-                        confirmText={translate('common.buttonConfirm')}
-                        shouldShowCancelButton={false}
-                        shouldHandleNavigationBack
-                    />
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-ImportMultiLevelTagsSettingsPage.displayName = 'ImportMultiLevelTagsSettingsPage';
 
 export default ImportMultiLevelTagsSettingsPage;

@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -46,11 +46,12 @@ function DebugTransactionViolationPage({
     const deleteTransactionViolation = useCallback(() => {
         const updatedTransactionViolations = [...(transactionViolations ?? [])];
         updatedTransactionViolations.splice(Number(index), 1);
-        Navigation.goBack();
-        // We need to wait for navigation animations to finish before deleting a violation,
-        // otherwise the user will see a not found page briefly.
-        InteractionManager.runAfterInteractions(() => {
-            Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+        Navigation.goBack(undefined, {
+            // We need to wait for navigation animations to finish before deleting a violation,
+            // otherwise the user will see a not found page briefly.
+            afterTransition: () => {
+                Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+            },
         });
     }, [index, transactionID, transactionViolations]);
 
@@ -86,7 +87,7 @@ function DebugTransactionViolationPage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugTransactionViolationPage.displayName}
+            testID="DebugTransactionViolationPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -103,7 +104,5 @@ function DebugTransactionViolationPage({
         </ScreenWrapper>
     );
 }
-
-DebugTransactionViolationPage.displayName = 'DebugTransactionViolationPage';
 
 export default DebugTransactionViolationPage;

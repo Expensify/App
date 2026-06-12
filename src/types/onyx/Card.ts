@@ -1,9 +1,51 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type * as OnyxCommon from './OnyxCommon';
+import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
+import type {CardFeedWithNumber} from './CardFeeds';
+import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback, PendingAction} from './OnyxCommon';
+import type PersonalDetails from './PersonalDetails';
+
+/** Card identifier */
+type CardID = number | string;
+
+/** Model of Expensify card status changes */
+type CardStatusChanges = {
+    /** Card status change date */
+    date: string;
+
+    /** Card status change value */
+    status: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
+};
+
+/** Model of possible fraud data stored on a card */
+type PossibleFraudData = {
+    /** Fraud state of the card */
+    state?: number;
+
+    /** Date when fraud was detected */
+    date?: string;
+
+    /** Card ID that triggered the fraud detection (for domain-level fraud) */
+    triggerCardID?: number;
+
+    /** Amount that triggered the fraud detection (in cents) */
+    triggerAmount?: number;
+
+    /** Merchant name that triggered the fraud detection */
+    triggerMerchant?: string;
+
+    /** Currency of the transaction that triggered the fraud detection */
+    currency?: string;
+
+    /** Report ID for the fraud alert action (used for deeplink) */
+    fraudAlertReportID?: number;
+
+    /** Report action ID for the fraud alert (used for deeplink) */
+    fraudAlertReportActionID?: number;
+};
 
 /** Model of Expensify card */
-type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
+type Card = OnyxValueWithOfflineFeedback<{
     /** Card ID number */
     cardID: number;
 
@@ -11,7 +53,7 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     state: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
 
     /** Bank name */
-    bank: string;
+    bank: CardFeedWithNumber;
 
     /** Available amount to spend */
     availableSpend?: number;
@@ -43,6 +85,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card number */
     cardNumber?: string;
 
+    /** Encrypted card number */
+    encryptedCardNumber?: string;
+
     /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
 
@@ -58,14 +103,20 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Last updated time */
     lastScrape?: string;
 
+    /** Whether transactions from the card should be marked reimbursable by default */
+    reimbursable?: boolean;
+
     /** Last update result */
     lastScrapeResult?: number;
 
+    /** Last import attempt */
+    lastImportAttempt?: string;
+
     /** Card related error messages */
-    errors?: OnyxCommon.Errors;
+    errors?: Errors;
 
     /** Collection of form field errors  */
-    errorFields?: OnyxCommon.ErrorFields;
+    errorFields?: ErrorFields;
 
     /** Is card data loading */
     isLoading?: boolean;
@@ -76,8 +127,11 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card's primary account identifier token */
     token?: string;
 
+    /** Whether the card is in an offline PIN market */
+    isOfflinePINMarket?: boolean;
+
     /** Additional card data */
-    nameValuePairs?: OnyxCommon.OnyxValueWithOfflineFeedback<{
+    nameValuePairs?: OnyxValueWithOfflineFeedback<{
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 
@@ -102,6 +156,12 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Card product under which the card is provisioned */
         feedCountry?: string;
 
+        /** Issued card country */
+        country?: string;
+
+        /** Program currency of the card (USD, GBP, or EUR) */
+        currency?: string;
+
         /** Is a virtual card */
         isVirtual?: boolean;
 
@@ -114,6 +174,12 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Card expiration date */
         expirationDate?: string;
 
+        /** Card status changes */
+        statusChanges?: CardStatusChanges[];
+
+        /** Card terminated reason */
+        terminationReason?: ValueOf<typeof CONST.EXPENSIFY_CARD.TERMINATION_REASON>;
+
         /** Card's primary account identifier */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         expensifyCard_panReferenceID?: string;
@@ -122,16 +188,34 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         // eslint-disable-next-line @typescript-eslint/naming-convention
         expensifyCard_tokenReferenceIdList?: string[];
 
+        /** Date when card becomes valid (YYYY-MM-DD format) */
+        validFrom?: string;
+
+        /** Date when card expires (YYYY-MM-DD format) */
+        validThru?: string;
+
+        /** Whether the card's PIN is currently blocked due to too many incorrect entries */
+        isPINBlocked?: boolean;
+
         /** Collection of errors coming from BE */
-        errors?: OnyxCommon.Errors;
+        errors?: Errors;
 
         /** Collection of form field errors  */
-        errorFields?: OnyxCommon.ErrorFields;
+        errorFields?: ErrorFields;
+
+        /**
+         * Metadata about when and by whom the card was frozen.
+         * null/undefined if card is not frozen
+         */
+        frozen?: FrozenCardData | null;
+
+        /** Possible fraud information */
+        possibleFraud?: PossibleFraudData;
     }> &
-        OnyxCommon.OnyxValueWithOfflineFeedback<{
+        OnyxValueWithOfflineFeedback<
             /** Type of export card */
-            [key in ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>]: string;
-        }>;
+            Record<ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>, string>
+        >;
 }>;
 
 /** Model of card just added to a wallet */
@@ -158,7 +242,7 @@ type ProvisioningCardData = {
     isLoading?: boolean;
 
     /** Error message */
-    errors?: OnyxCommon.Errors;
+    errors?: Errors;
 
     /** User's address, required to add card to wallet */
     userAddress: {
@@ -201,7 +285,25 @@ type ExpensifyCardDetails = {
     cvv: string;
 };
 
-/** Record of Expensify cards, indexed by cardID */
+/**
+ * Unified type for unassigned cards that normalizes the difference between
+ * direct feeds (Plaid/OAuth) and commercial/custom feeds (Visa/Mastercard/Amex).
+ *
+ * For direct feeds: cardName === cardID (both are the card name string)
+ * For commercial feeds: cardName is the masked card number, cardID is the encrypted value
+ */
+type UnassignedCard = {
+    /** The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234") */
+    cardName: string;
+
+    /** The identifier sent to backend - equals cardName for direct feeds, encrypted value for commercial feeds */
+    cardID: string;
+};
+
+/** List of assignable cards */
+type AssignableCardsList = Record<string, string>;
+
+/** Record of Company or Expensify cards, indexed by cardID */
 type CardList = Record<string, Card>;
 
 /** Issue new card flow steps */
@@ -214,6 +316,12 @@ type CardLimitType = ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 type IssueNewCardData = {
     /** The email address of the cardholder */
     assigneeEmail: string;
+
+    /** The email address of the inviting member */
+    invitingMemberEmail: string;
+
+    /** The accountID of the inviting member */
+    invitingMemberAccountID: number;
 
     /** Card type */
     cardType: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>;
@@ -229,6 +337,39 @@ type IssueNewCardData = {
 
     /** Currency of the card */
     currency: string;
+
+    /** Optional start date for card validity (YYYY-MM-DD) */
+    validFrom?: string;
+
+    /** Optional end date for card validity (YYYY-MM-DD) */
+    validThru?: string;
+
+    /** Whether or not we are adding a spend rule to the card or not */
+    spendRuleEnabled?: boolean;
+
+    /** Whether or not we will use an existing spend rule, or create a new one */
+    spendRuleOption?: ValueOf<typeof CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION>;
+
+    /** Optional card rule ID for card rule creation/duplicating */
+    spendRuleID?: string;
+
+    /** Optional card rule value for creating a new card rule */
+    spendRuleValue?: {
+        /** The type of restriction on the card */
+        restrictionAction?: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+
+        /** The merchant names for the spend rule, if applicable */
+        merchantNames?: string[];
+
+        /** The merchant match types for the spend rule, if applicable */
+        merchantMatchTypes?: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>;
+
+        /** The categories for the spend rule, if applicable */
+        categories?: SpendRuleCategory[];
+
+        /** The maximum amount for the spend rule, if applicable (in cents) */
+        maxAmount?: string;
+    };
 };
 
 /** Model of Issue new card flow */
@@ -249,20 +390,76 @@ type IssueNewCard = {
     isLoading?: boolean;
 
     /** Error message */
-    errors?: OnyxCommon.Errors;
+    errors?: Errors;
 
     /** Whether the request was successful */
     isSuccessful?: boolean;
 };
 
 /** List of Expensify cards */
-type WorkspaceCardsList = Record<string, Card> & {
+type WorkspaceCardsList = CardList & {
     /** List of cards to assign */
     cardList?: Record<string, string>;
 };
 
-/** Card list with only available card */
-type FilteredCardList = Record<string, string>;
+/**
+ *
+ */
+type CardAssignmentData = {
+    /**
+     * The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234").
+     */
+    cardName: string;
+
+    /**
+     * The card identifier sent to backend.
+     * For direct feeds (Plaid/OAuth): equals cardName
+     * For commercial feeds (Visa/Mastercard/Amex): encrypted value
+     */
+    encryptedCardNumber: string;
+
+    /** User-defined name for the card (e.g., "John's card") */
+    customCardName?: string;
+
+    /** Cardholder personal details */
+    cardholder?: PersonalDetails | null;
+
+    /** Errors */
+    errors?: Errors;
+
+    /**
+     *
+     */
+    errorFields?: ErrorFields;
+
+    /** Pending action */
+    pendingAction?: PendingAction;
+};
+
+/**
+ * Data for a frozen card
+ */
+type FrozenCardData = {
+    /** Account ID of the user who froze the card */
+    byAccountID: number;
+
+    /** UTC datetime when card was frozen (ISO format: YYYY-MM-DD HH:MM:SS) */
+    date: string;
+};
 
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType, FilteredCardList, ProvisioningCardData};
+export type {
+    CardID,
+    ExpensifyCardDetails,
+    CardList,
+    IssueNewCard,
+    IssueNewCardStep,
+    IssueNewCardData,
+    WorkspaceCardsList,
+    CardLimitType,
+    ProvisioningCardData,
+    AssignableCardsList,
+    CardAssignmentData,
+    UnassignedCard,
+    PossibleFraudData,
+};

@@ -6,17 +6,20 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {startTracking} from '@libs/telemetry/submitFollowUpAction';
+import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {extractUrlDomain} from '@libs/Url';
 import {getFieldRequiredErrors, isPublicDomain, isValidWebsite} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
-import {getIOURequestPolicyID, sendInvoice} from '@userActions/IOU';
+import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
+import {sendInvoice} from '@userActions/IOU/SendInvoice';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -35,23 +38,26 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
 
     const policyID = getIOURequestPolicyID(transaction, report);
     const policy = usePolicy(policyID);
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
 
     const formattedAmount = convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM> => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME, INPUT_IDS.COMPANY_WEBSITE]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME, INPUT_IDS.COMPANY_WEBSITE], translate);
             if (values.companyWebsite) {
                 const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
                 if (!isValidWebsite(companyWebsite)) {
@@ -74,18 +80,32 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        sendInvoice(
-            currentUserPersonalDetails.accountID,
+        const isFromGlobalCreate = getIsFromGlobalCreate(transaction);
+        startTracking(
+            {
+                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.INVOICE,
+                iouType: CONST.IOU.TYPE.INVOICE,
+                requestType: 'invoice',
+                isFromGlobalCreate: !!isFromGlobalCreate,
+                hasReceipt: false,
+            },
+            {skipSubmitExpenseSpan: true},
+        );
+        sendInvoice({
+            currentUserAccountID: currentUserPersonalDetails.accountID,
             transaction,
-            report,
-            undefined,
+            policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+            invoiceChatReport: report,
             policy,
-            policyTags,
+            policyTagList: policyTags,
             policyCategories,
-            values.companyName,
+            companyName: values.companyName,
             companyWebsite,
             policyRecentlyUsedCategories,
-        );
+            policyRecentlyUsedTags,
+            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+            senderPolicyTags: policyTags ?? {},
+        });
     };
 
     return (
@@ -93,7 +113,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             headerTitle={translate('iou.companyInfo')}
             onBackButtonPress={() => Navigation.goBack(backTo)}
             shouldShowWrapper
-            testID={IOURequestStepCompanyInfo.displayName}
+            testID="IOURequestStepCompanyInfo"
         >
             <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('iou.companyInfoDescription')}</Text>
             <FormProvider
@@ -101,7 +121,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM}
                 onSubmit={submit}
                 validate={validate}
-                submitButtonText={translate('iou.sendInvoice', {amount: formattedAmount})}
+                submitButtonText={translate('iou.sendInvoice', formattedAmount)}
                 enabledWhenOffline
             >
                 <InputWrapper
@@ -129,7 +149,5 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepCompanyInfo.displayName = 'IOURequestStepCompanyInfo';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepCompanyInfo));

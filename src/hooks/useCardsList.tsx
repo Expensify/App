@@ -1,20 +1,15 @@
 import type {ResultMetadata} from 'react-native-onyx';
-import {filterInactiveCards, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {filterInactiveCards, splitCardFeedWithDomainID} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, CompanyCardFeed} from '@src/types/onyx';
-import useCardFeeds from './useCardFeeds';
+import type {CardFeedWithDomainID, WorkspaceCardsList} from '@src/types/onyx';
 import useOnyx from './useOnyx';
-import useWorkspaceAccountID from './useWorkspaceAccountID';
 
-/* Custom hook that retrieves a list of company cards for the given policy and selected feed. */
-const useCardsList = (policyID: string | undefined, selectedFeed: CompanyCardFeed | undefined): [CardList | undefined, ResultMetadata<CardList>] => {
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardFeeds] = useCardFeeds(policyID);
-    const companyCards = getCompanyFeeds(cardFeeds);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed ? companyCards[selectedFeed] : undefined);
-    const [cardsList, cardsListMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`, {
+/* Custom hook that retrieves a list of company cards for the given selected feed. */
+const useCardsList = (selectedFeed: CardFeedWithDomainID | undefined): [WorkspaceCardsList | undefined, ResultMetadata<WorkspaceCardsList>] => {
+    const splitFeedName = splitCardFeedWithDomainID(selectedFeed);
+
+    const [cardsList, cardsListMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${splitFeedName?.domainID}_${splitFeedName?.feedName}`, {
         selector: filterInactiveCards,
-        canBeMissing: true,
     });
 
     return [cardsList, cardsListMetadata];

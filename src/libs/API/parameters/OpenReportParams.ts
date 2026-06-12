@@ -25,6 +25,9 @@ type OpenReportParams = {
      * Used when we need to create a money request report action on the selfDM for an unreported expense.
      */
     moneyRequestPreviewReportActionID?: string;
+    includePartiallySetupBankAccounts?: boolean;
+    useLastUnreadReportAction?: boolean;
+    includeLockedBankAccounts?: boolean;
 };
 
 export default OpenReportParams;

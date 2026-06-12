@@ -1,15 +1,14 @@
-import {useContext} from 'react';
-import {EnvironmentContext} from '@components/withEnvironment';
-import type {EnvironmentContextValue} from '@components/withEnvironment';
+import {useEnvironmentState} from '@components/EnvironmentContextProvider';
+import type {EnvironmentStateContextType} from '@components/EnvironmentContextProvider';
 import CONST from '@src/CONST';
 
-type UseEnvironment = EnvironmentContextValue & {
+type UseEnvironment = EnvironmentStateContextType & {
     isProduction: boolean;
     isDevelopment: boolean;
 };
 
 export default function useEnvironment(): UseEnvironment {
-    const {environment, environmentURL} = useContext(EnvironmentContext);
+    const {environment, environmentURL} = useEnvironmentState();
     return {
         environment,
         environmentURL,

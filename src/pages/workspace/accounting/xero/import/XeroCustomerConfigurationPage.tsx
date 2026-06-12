@@ -21,7 +21,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={XeroCustomerConfigurationPage.displayName}
+            displayName="XeroCustomerConfigurationPage"
             headerTitle="workspace.xero.customers"
             title="workspace.xero.customersDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -51,7 +51,5 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-XeroCustomerConfigurationPage.displayName = 'XeroCustomerConfigurationPage';
 
 export default withPolicyConnections(XeroCustomerConfigurationPage);

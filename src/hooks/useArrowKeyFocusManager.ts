@@ -8,6 +8,7 @@ type Config = {
     onFocusedIndexChange?: (index: number) => void;
     initialFocusedIndex?: number;
     disabledIndexes?: readonly number[];
+    captureOnInputs?: boolean;
     shouldExcludeTextAreaNodes?: boolean;
     isActive?: boolean;
     itemsPerRow?: number;
@@ -16,6 +17,7 @@ type Config = {
     allowNegativeIndexes?: boolean;
     isFocused?: boolean;
     setHasKeyBeenPressed?: () => void;
+    onArrowUpDownCallback?: () => void;
 };
 
 type UseArrowKeyFocusManager = [number, (index: number) => void];
@@ -44,6 +46,7 @@ export default function useArrowKeyFocusManager({
     // The "disabledIndexes" array needs to be stable to prevent the "useCallback" hook from being recreated unnecessarily.
     // Hence the use of CONST.EMPTY_ARRAY.
     disabledIndexes = CONST.EMPTY_ARRAY,
+    captureOnInputs = true,
     shouldExcludeTextAreaNodes = true,
     isActive,
     itemsPerRow,
@@ -52,6 +55,7 @@ export default function useArrowKeyFocusManager({
     allowNegativeIndexes = false,
     isFocused = true,
     setHasKeyBeenPressed,
+    onArrowUpDownCallback = () => {},
 }: Config): UseArrowKeyFocusManager {
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
     const prevIsFocusedIndex = usePrevious(focusedIndex);
@@ -59,16 +63,18 @@ export default function useArrowKeyFocusManager({
         () => ({
             excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
             isActive,
+            captureOnInputs,
         }),
-        [isActive, shouldExcludeTextAreaNodes],
+        [captureOnInputs, isActive, shouldExcludeTextAreaNodes],
     );
 
     const horizontalArrowConfig = useMemo(
         () => ({
             excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
             isActive: isActive && allowHorizontalArrowKeys,
+            captureOnInputs,
         }),
-        [isActive, shouldExcludeTextAreaNodes, allowHorizontalArrowKeys],
+        [allowHorizontalArrowKeys, captureOnInputs, isActive, shouldExcludeTextAreaNodes],
     );
 
     useEffect(() => {
@@ -76,7 +82,7 @@ export default function useArrowKeyFocusManager({
             return;
         }
         onFocusedIndexChange(focusedIndex);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [focusedIndex, prevIsFocusedIndex]);
 
     const arrowUpCallback = useCallback(() => {
@@ -107,7 +113,8 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [maxIndex, isFocused, disableCyclicTraversal, itemsPerRow, disabledIndexes, allowNegativeIndexes, setHasKeyBeenPressed]);
+        onArrowUpDownCallback();
+    }, [maxIndex, isFocused, disableCyclicTraversal, itemsPerRow, disabledIndexes, allowNegativeIndexes, setHasKeyBeenPressed, onArrowUpDownCallback]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, arrowUpCallback, arrowConfig);
 
@@ -153,7 +160,8 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [disableCyclicTraversal, disabledIndexes, isFocused, itemsPerRow, maxIndex, setHasKeyBeenPressed]);
+        onArrowUpDownCallback();
+    }, [disableCyclicTraversal, disabledIndexes, isFocused, itemsPerRow, maxIndex, setHasKeyBeenPressed, onArrowUpDownCallback]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN, arrowDownCallback, arrowConfig);
 

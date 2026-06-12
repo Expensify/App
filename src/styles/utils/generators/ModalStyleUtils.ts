@@ -1,6 +1,6 @@
 import type {ViewStyle} from 'react-native';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
-import {isMobileSafari} from '@libs/Browser';
+import {isMobile} from '@libs/Browser';
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -48,6 +48,7 @@ type GetModalStylesStyleUtil = {
             shouldDisableBottomSafeAreaPadding?: boolean;
             modalOverlapsWithTopSafeArea?: boolean;
         },
+        shouldDisplayBelowModals?: boolean,
     ) => GetModalStyles;
 };
 
@@ -60,12 +61,14 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         outerStyle = {},
         shouldUseModalPaddingStyle = true,
         safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
+        shouldDisplayBelowModals = false,
     ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {
             margin: 0,
             ...outerStyle,
+            zIndex: variables.modalBaseZIndex,
         };
 
         let modalContainerStyle: GetModalStyles['modalContainerStyle'];
@@ -221,6 +224,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     alignItems: 'center',
                     justifyContent: 'flex-end',
                     height: '100%',
+                    zIndex: shouldDisplayBelowModals ? variables.modalLowestZIndex : variables.modalBaseZIndex,
                 };
                 modalContainerStyle = {
                     width: '100%',
@@ -232,7 +236,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     // Workaround for Safari not supporting interactive-widget=resizes-content, sets max height of a container modal.
                     // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
                     // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
-                    ...(isMobileSafari() ? {maxHeight: `${windowDimensions.windowHeight}px`} : {}),
+                    ...(isMobile() ? {maxHeight: `${windowDimensions.windowHeight}px`, height: 'fit-content'} : {}),
                 };
 
                 if (shouldUseModalPaddingStyle) {
@@ -253,6 +257,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     position: 'absolute',
                     alignItems: 'center',
                     justifyContent: 'flex-end',
+                    zIndex: shouldDisplayBelowModals ? variables.modalLowestZIndex : variables.popoverZIndex,
                 };
                 modalContainerStyle = {
                     borderRadius: variables.componentBorderRadiusLarge,
@@ -276,6 +281,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     flexDirection: 'row',
                     justifyContent: 'flex-end',
                     height: '100%',
+                    zIndex: variables.modalRightDockedZIndex,
                 };
                 modalContainerStyle = {
                     width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,

@@ -8,6 +8,7 @@ import FontUtils from '@styles/utils/FontUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
+import VICTORY_HTML_ELEMENT_MODELS from './HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
     /** Whether text elements should be selectable */
@@ -44,7 +45,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.block,
             }),
             'deleted-action': HTMLElementModel.fromCustomModel({
-                tagName: 'alert-text',
+                tagName: 'deleted-action',
                 mixedUAStyles: {...styles.formError, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
@@ -71,6 +72,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'muted-text-label': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-text-label',
                 mixedUAStyles: {...styles.mutedNormalTextLabel, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
+            }),
+            'label-text': HTMLElementModel.fromCustomModel({
+                tagName: 'label-text',
+                mixedUAStyles: {...styles.textLabel, ...styles.mb0, ...styles.textLineHeightNormal},
                 contentModel: HTMLContentModel.block,
             }),
             'muted-text-xs': HTMLElementModel.fromCustomModel({
@@ -140,7 +146,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
             'mention-short': HTMLElementModel.fromCustomModel({tagName: 'mention-short', contentModel: HTMLContentModel.textual}),
+            'user-details': HTMLElementModel.fromCustomModel({tagName: 'user-details', contentModel: HTMLContentModel.textual}),
+            'copy-text': HTMLElementModel.fromCustomModel({tagName: 'copy-text', contentModel: HTMLContentModel.textual}),
             'concierge-link': HTMLElementModel.fromCustomModel({tagName: 'concierge-link', contentModel: HTMLContentModel.textual}),
+            'transaction-history-link': HTMLElementModel.fromCustomModel({tagName: 'transaction-history-link', contentModel: HTMLContentModel.textual}),
+            'account-manager-link': HTMLElementModel.fromCustomModel({tagName: 'account-manager-link', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
                 mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
@@ -168,11 +178,36 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     return isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
                 },
             }),
+            'bullet-list': HTMLElementModel.fromCustomModel({
+                tagName: 'bullet-list',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: {marginVertical: 12},
+            }),
+            'bullet-item': HTMLElementModel.fromCustomModel({
+                tagName: 'bullet-item',
+                contentModel: HTMLContentModel.block,
+            }),
+            ul: HTMLElementModel.fromCustomModel({
+                tagName: 'ul',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: styles.mv3,
+            }),
+            ol: HTMLElementModel.fromCustomModel({
+                tagName: 'ol',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: styles.mv3,
+            }),
+            'sparkles-icon': HTMLElementModel.fromCustomModel({
+                tagName: 'sparkles-icon',
+                contentModel: HTMLContentModel.mixed,
+            }),
+            ...VICTORY_HTML_ELEMENT_MODELS,
         }),
         [
             styles.taskTitleMenuItem,
             styles.formError,
             styles.mb0,
+            styles.mv3,
             styles.colorMuted,
             styles.mutedNormalTextLabel,
             styles.productTrainingTooltipText,
@@ -193,6 +228,8 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.textSuccess,
             styles.textExtraSmallSupporting,
             styles.textMicroSupporting,
+            styles.textLabel,
+            styles.textLineHeightNormal,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
@@ -211,8 +248,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 recognizeSelfClosing: true,
             }}
             domVisitors={{
-                // eslint-disable-next-line no-param-reassign
-                onText: (text) => (text.data = convertToLTR(text.data)),
+                onText: (text) => {
+                    // Avoid injecting LTR controls into whitespace-only nodes.
+                    // Doing so turns otherwise ignorable whitespace into visible content in some renderers (Android),
+                    // which can create empty bullets between list items.
+                    if (!/\S/.test(text.data)) {
+                        return;
+                    }
+                    // eslint-disable-next-line no-param-reassign
+                    text.data = convertToLTR(text.data);
+                },
             }}
         >
             <RenderHTMLConfigProvider
@@ -227,7 +272,5 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
         </TRenderEngineProvider>
     );
 }
-
-BaseHTMLEngineProvider.displayName = 'BaseHTMLEngineProvider';
 
 export default BaseHTMLEngineProvider;

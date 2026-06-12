@@ -74,8 +74,8 @@ const policy420A: Policy = {
     employeeList: {},
     isPolicyExpenseChatEnabled: true,
     lastModified: '1744880511066991',
-    chatReportIDAnnounce: 0,
-    chatReportIDAdmins: 1552825053855260,
+    chatReportIDAnnounce: '0',
+    chatReportIDAdmins: '1552825053855260',
     autoReimbursement: {
         limit: 0,
     },
@@ -103,7 +103,7 @@ const policy420A: Policy = {
         companyName: 'Company',
         markUp: 0,
     },
-    workspaceAccountID: 93521943,
+    policyAccountID: 93521943,
     address: {
         addressStreet: 'Street',
         city: 'City',

@@ -1,4 +1,4 @@
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
 import Tooltip from '@components/Tooltip';
 import type {TooltipExtendedProps} from '@components/Tooltip/types';
@@ -19,7 +19,6 @@ function Template(props: TooltipExtendedProps) {
     return (
         <div style={{width: 100}}>
             <Tooltip
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 // Disable nullish coalescing to handle cases when maxWidth is 0
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

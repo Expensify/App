@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 type DisplayNamesTooltipItemProps = ForwardedFSClassProps & {
     index?: number;
@@ -64,7 +64,7 @@ function DisplayNamesTooltipItem({
                     if (!childRefs.current?.at(index) || !el) {
                         return;
                     }
-                    // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
+                    // eslint-disable-next-line no-param-reassign
                     childRefs.current[index] = el;
                 }}
                 style={[textStyles, styles.pre]}
@@ -75,7 +75,5 @@ function DisplayNamesTooltipItem({
         </UserDetailsTooltip>
     );
 }
-
-DisplayNamesTooltipItem.displayName = 'DisplayNamesTooltipItem';
 
 export default DisplayNamesTooltipItem;

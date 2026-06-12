@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {parsePhoneNumber} from './PhoneNumber';
 
 let countryCodeByIPOnyx: number;
+
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
     callback: (val) => (countryCodeByIPOnyx = val ?? 1),
@@ -20,7 +21,7 @@ function formatPhoneNumber(number: string): string {
     }
 
     // eslint-disable-next-line no-param-reassign
-    number = number.replace(/ /g, '\u00A0');
+    number = number.replaceAll(' ', '\u00A0');
 
     // do not parse the string, if it doesn't contain the SMS domain and it's not a phone number
     if (number.indexOf(CONST.SMS.DOMAIN) === -1 && !CONST.REGEX.DIGITS_AND_PLUS.test(number)) {
@@ -57,7 +58,7 @@ function formatPhoneNumberWithCountryCode(number: string, countryCodeByIP: numbe
     }
 
     // eslint-disable-next-line no-param-reassign
-    number = number.replace(/ /g, '\u00A0');
+    number = number.replaceAll(' ', '\u00A0');
 
     // do not parse the string, if it doesn't contain the SMS domain and it's not a phone number
     if (number.indexOf(CONST.SMS.DOMAIN) === -1 && !CONST.REGEX.DIGITS_AND_PLUS.test(number)) {
@@ -83,8 +84,4 @@ function formatPhoneNumberWithCountryCode(number: string, countryCodeByIP: numbe
     return parsedPhoneNumber.number.international;
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    formatPhoneNumber,
-    formatPhoneNumberWithCountryCode,
-};
+export {formatPhoneNumber, formatPhoneNumberWithCountryCode};

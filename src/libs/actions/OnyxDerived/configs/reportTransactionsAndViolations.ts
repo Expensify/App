@@ -4,6 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
+const transactionReportIDMapping: Record<string, string> = {};
 
 const transactionToReportIDMap: Record<string, string> = {};
 
@@ -28,17 +29,41 @@ export default createOnyxDerivedValueConfig({
             );
         }
 
-        const reportTransactionsAndViolations = currentValue ?? {};
+        const reportTransactionsAndViolations = currentValue ? {...currentValue} : {};
+
+        // Track which reportID entries have been cloned so we only clone once per reportID.
+        // This avoids mutating nested objects that are still referenced by the cached value.
+        const clonedReportIDs = new Set<string>();
+        const ensureCloned = (id: string) => {
+            if (clonedReportIDs.has(id) || !reportTransactionsAndViolations[id]) {
+                return;
+            }
+
+            reportTransactionsAndViolations[id] = {
+                transactions: {...reportTransactionsAndViolations[id].transactions},
+                violations: {...reportTransactionsAndViolations[id].violations},
+            };
+            clonedReportIDs.add(id);
+        };
+
         for (const transactionKey of transactionsToProcess) {
             const transaction = transactions[transactionKey];
             const reportID = transaction?.reportID;
 
             // If the reportID of the transaction has changed (e.g. the transaction was split into multiple reports), we need to delete the transaction from the previous reportID and the violations from the previous reportID
-            const previousReportID = transactionToReportIDMap[transactionKey];
+            const previousReportID = transactionReportIDMapping[transactionKey];
+
             if (previousReportID && previousReportID !== reportID && reportTransactionsAndViolations[previousReportID]) {
+                ensureCloned(previousReportID);
                 delete reportTransactionsAndViolations[previousReportID].transactions[transactionKey];
                 const transactionID = transactionKey.replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
-                delete reportTransactionsAndViolations[previousReportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                if (transactionID) {
+                    delete reportTransactionsAndViolations[previousReportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                }
+            }
+
+            if (!transaction && transactionReportIDMapping[transactionKey]) {
+                delete transactionReportIDMapping[transactionKey];
             }
 
             if (!reportID) {
@@ -51,6 +76,9 @@ export default createOnyxDerivedValueConfig({
                     transactions: {},
                     violations: {},
                 };
+                clonedReportIDs.add(reportID);
+            } else {
+                ensureCloned(reportID);
             }
 
             const transactionID = transaction.transactionID;
@@ -69,7 +97,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             reportTransactionsAndViolations[reportID].transactions[transactionKey] = transaction;
-            transactionToReportIDMap[transactionKey] = reportID;
+            transactionReportIDMapping[transactionKey] = reportID;
         }
 
         previousViolations = violations;

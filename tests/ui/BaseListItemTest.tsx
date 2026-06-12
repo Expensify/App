@@ -1,5 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import BaseListItem from '@components/SelectionList/BaseListItem';
+import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import useHover from '@hooks/useHover';
 import CONST from '@src/CONST';
 
@@ -21,6 +21,7 @@ describe('BaseListItem', () => {
         render(
             <BaseListItem
                 item={{keyForList: '1'}}
+                keyForList="1"
                 onSelectRow={() => {}}
                 showTooltip={false}
                 isFocused={false}
@@ -28,8 +29,8 @@ describe('BaseListItem', () => {
         );
         const testID = `${CONST.BASE_LIST_ITEM_TEST_ID}1`;
         fireEvent(screen.getByTestId(testID), 'mouseEnter');
-        expect(mouseEnterMock).toBeCalled();
+        expect(mouseEnterMock).toHaveBeenCalled();
         fireEvent(screen.getByTestId(testID), 'mouseLeave', {stopPropagation: jest.fn()});
-        expect(mouseLeaveMock).toBeCalled();
+        expect(mouseLeaveMock).toHaveBeenCalled();
     });
 });

@@ -1,27 +1,26 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import Button from '@components/Button';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getDateFilterKeys} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
-import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
+import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SearchDatePresetFilterBase from './SearchDatePresetFilterBase';
-import type {SearchDatePresetFilterBaseHandle} from './SearchDatePresetFilterBase';
-import type {SearchDateFilterKeys} from './types';
+import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import DateFilterBase from './FilterComponents/DateFilterBase';
+import type {SearchDateFilterKeys, SearchFilterKey} from './types';
 
 type SearchDatePresetFilterBasePageProps = {
     /** Key used for the date filter */
-    dateKey: SearchDateFilterKeys;
+    dateKey: Extract<SearchDateFilterKeys, SearchFilterKey>;
 
     /** The translation key for the page title */
     titleKey: TranslationPaths;
@@ -30,110 +29,128 @@ type SearchDatePresetFilterBasePageProps = {
 function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFilterBasePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const route = useRoute();
+    const params = route.params as {subPage?: string} | undefined;
 
-    const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const isSearchAdvancedFiltersFormLoading = isLoadingOnyxValue(searchAdvancedFiltersFormMetadata);
 
-    const defaultDateValues = {
-        [CONST.SEARCH.DATE_MODIFIERS.ON]: searchAdvancedFiltersForm?.[`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`],
-        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: searchAdvancedFiltersForm?.[`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`],
-        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: searchAdvancedFiltersForm?.[`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`],
+    const {dateOnKey, dateBeforeKey, dateAfterKey, dateRangeKey} = getDateFilterKeys(dateKey) as {
+        dateOnKey: SearchAdvancedFiltersKey;
+        dateBeforeKey: SearchAdvancedFiltersKey;
+        dateAfterKey: SearchAdvancedFiltersKey;
+        dateRangeKey: SearchAdvancedFiltersKey;
     };
 
-    const presets = useMemo(() => {
+    // Dynamic key lookup requires narrowing the form to string-valued fields.
+    const dateFormValues = searchAdvancedFiltersForm as Record<string, string | undefined> | undefined;
+    const dateOnValue = dateFormValues?.[dateOnKey];
+    const dateBeforeValue = dateFormValues?.[dateBeforeKey];
+    const dateAfterValue = dateFormValues?.[dateAfterKey];
+    const dateRangeValue = dateFormValues?.[dateRangeKey];
+
+    function getDefaultDateValues() {
+        return {
+            [CONST.SEARCH.DATE_MODIFIERS.ON]: dateOnValue,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: dateBeforeValue,
+            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: dateAfterValue,
+            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: dateRangeValue,
+        };
+    }
+
+    function getPresets() {
         const hasFeed = !!searchAdvancedFiltersForm?.feed?.length;
         return getDatePresets(dateKey, hasFeed);
-    }, [dateKey, searchAdvancedFiltersForm?.feed]);
-
-    const title = useMemo(() => {
-        if (selectedDateModifier) {
-            return translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`);
-        }
-
-        return translate(titleKey);
-    }, [selectedDateModifier, titleKey, translate]);
+    }
 
     const goBack = useCallback(() => {
-        if (selectedDateModifier) {
-            setSelectedDateModifier(null);
-            return;
-        }
-
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [selectedDateModifier]);
+    }, []);
 
-    const reset = useCallback(() => {
-        if (!searchDatePresetFilterBaseRef.current) {
-            return;
-        }
+    const buildSubPageRoute = useCallback((subPage?: string) => ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(dateKey, subPage), [dateKey]);
 
-        if (selectedDateModifier) {
-            searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
-            goBack();
-            return;
-        }
+    let selectedDateModifier: SearchDateModifier | null = null;
+    if (params?.subPage === CONST.SEARCH.DATE_FILTER_SUB_PAGE.ON) {
+        selectedDateModifier = CONST.SEARCH.DATE_MODIFIERS.ON;
+    } else if (params?.subPage === CONST.SEARCH.DATE_FILTER_SUB_PAGE.AFTER) {
+        selectedDateModifier = CONST.SEARCH.DATE_MODIFIERS.AFTER;
+    } else if (params?.subPage === CONST.SEARCH.DATE_FILTER_SUB_PAGE.BEFORE) {
+        selectedDateModifier = CONST.SEARCH.DATE_MODIFIERS.BEFORE;
+    } else if (params?.subPage === CONST.SEARCH.DATE_FILTER_SUB_PAGE.RANGE) {
+        selectedDateModifier = CONST.SEARCH.DATE_MODIFIERS.RANGE;
+    }
 
-        searchDatePresetFilterBaseRef.current.clearDateValues();
-    }, [selectedDateModifier, goBack]);
+    const selectDateModifier = useCallback(
+        (dateModifier: SearchDateModifier | null) => {
+            if (!dateModifier) {
+                Navigation.goBack(buildSubPageRoute());
+                return;
+            }
 
-    const save = useCallback(() => {
-        if (!searchDatePresetFilterBaseRef.current) {
-            return;
-        }
+            let newSubPage: string;
+            if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON) {
+                newSubPage = CONST.SEARCH.DATE_FILTER_SUB_PAGE.ON;
+            } else if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER) {
+                newSubPage = CONST.SEARCH.DATE_FILTER_SUB_PAGE.AFTER;
+            } else if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+                newSubPage = CONST.SEARCH.DATE_FILTER_SUB_PAGE.RANGE;
+            } else {
+                newSubPage = CONST.SEARCH.DATE_FILTER_SUB_PAGE.BEFORE;
+            }
 
-        if (selectedDateModifier) {
-            searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
-            goBack();
-            return;
-        }
+            // When already on a date modifier subPage, update route params in-place instead of
+            // pushing a new screen. This avoids a side-by-side slide animation and preserves
+            // ephemeral date state (the calendar value) across modifier switches.
+            if (params?.subPage) {
+                Navigation.setParams({subPage: newSubPage});
+                return;
+            }
 
-        const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
-        updateAdvancedFilters({
-            [`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
-            [`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`]: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
-            [`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
-        });
-        goBack();
-    }, [selectedDateModifier, goBack, dateKey]);
+            Navigation.navigate(buildSubPageRoute(newSubPage));
+        },
+        [buildSubPageRoute, params?.subPage],
+    );
+
+    const defaultDateValues = getDefaultDateValues();
+    const presets = getPresets();
 
     return (
         <ScreenWrapper
-            testID={SearchDatePresetFilterBasePage.displayName}
+            testID="SearchDatePresetFilterBasePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={title}
+            <DateFilterBase
+                style={styles.flex1}
+                title={translate(titleKey)}
+                defaultDateValues={defaultDateValues}
+                presets={presets}
+                isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
                 onBackButtonPress={goBack}
-            />
-            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                <SearchDatePresetFilterBase
-                    ref={searchDatePresetFilterBaseRef}
-                    defaultDateValues={defaultDateValues}
-                    selectedDateModifier={selectedDateModifier}
-                    onSelectDateModifier={setSelectedDateModifier}
-                    presets={presets}
-                />
-            </ScrollView>
-            <Button
-                text={translate('common.reset')}
-                onPress={reset}
-                style={[styles.mh4, styles.mt4]}
-                large
-            />
-            <FormAlertWithSubmitButton
-                buttonText={translate('common.save')}
-                containerStyles={[styles.m4, styles.mt3, styles.mb5]}
-                onSubmit={save}
-                enabledWhenOffline
+                selectedDateModifier={selectedDateModifier}
+                onSelectDateModifier={selectDateModifier}
+                onSubmit={(values) => {
+                    updateAdvancedFilters({
+                        [dateOnKey]: values[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
+                        [dateBeforeKey]: values[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
+                        [dateAfterKey]: values[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
+                        [dateRangeKey]: values[CONST.SEARCH.DATE_MODIFIERS.RANGE] ?? null,
+                    });
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                }}
+                onReset={(values) => {
+                    updateAdvancedFilters({
+                        [dateOnKey]: values[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
+                        [dateBeforeKey]: values[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
+                        [dateAfterKey]: values[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
+                        [dateRangeKey]: values[CONST.SEARCH.DATE_MODIFIERS.RANGE] ?? null,
+                    });
+                }}
             />
         </ScreenWrapper>
     );
 }
-
-SearchDatePresetFilterBasePage.displayName = 'SearchDatePresetFilterBasePage';
 
 export default SearchDatePresetFilterBasePage;

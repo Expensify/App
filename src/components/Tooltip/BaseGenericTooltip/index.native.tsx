@@ -1,7 +1,6 @@
 import {Portal} from '@gorhom/portal';
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
 import type {View as RNView} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import AnimatedPressableWithoutFeedback from '@components/AnimatedPressableWithoutFeedback';
@@ -57,7 +56,6 @@ function BaseGenericTooltip({
     const {rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             StyleUtils.getTooltipStyles({
-                // eslint-disable-next-line react-compiler/react-compiler
                 tooltip: rootWrapper.current,
                 windowWidth,
                 xOffset,

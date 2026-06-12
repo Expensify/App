@@ -13,13 +13,10 @@ function KeyboardAvoidingView({shouldOffsetBottomSafeAreaPadding = false, keyboa
 
     return (
         <BaseKeyboardAvoidingView
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             keyboardVerticalOffset={keyboardVerticalOffset}
         />
     );
 }
-
-KeyboardAvoidingView.displayName = 'KeyboardAvoidingView';
 
 export default KeyboardAvoidingView;

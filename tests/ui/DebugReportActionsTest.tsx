@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -21,9 +21,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@src/libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
-}));
+jest.mock('@src/libs/Navigation/Navigation');
 
 describe('DebugReportActions', () => {
     beforeAll(() => {
@@ -31,11 +29,15 @@ describe('DebugReportActions', () => {
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
-        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        act(() => {
+            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        });
     });
 
     afterEach(async () => {
-        await Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
+        });
     });
 
     it('should show no results message when search is empty', async () => {
@@ -43,7 +45,7 @@ describe('DebugReportActions', () => {
         const reportID = '1';
         const reportActionID = '123';
         const policy: Policy = createRandomPolicy(Number(policyID));
-        const report: Report = {...createRandomReport(Number(reportID)), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM, policyID};
+        const report: Report = {...createRandomReport(Number(reportID), CONST.REPORT.CHAT_TYPE.POLICY_ROOM), policyID};
         const reportActionL: ReportAction = {
             ...createRandomReportAction(Number(reportActionID)),
             reportID,
@@ -53,11 +55,13 @@ describe('DebugReportActions', () => {
                 type: '',
             },
         };
-        await Onyx.merge(`${ONYXKEYS.NVP_PREFERRED_LOCALE}`, 'en');
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            [reportActionID]: reportActionL,
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.NVP_PREFERRED_LOCALE}`, 'en');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportActionID]: reportActionL,
+            });
         });
 
         render(
@@ -72,6 +76,6 @@ describe('DebugReportActions', () => {
 
         const input = screen.getByTestId('selection-list-text-input');
         fireEvent.changeText(input, 'Should show no results found');
-        expect(await screen.findByText('No results found')).toBeOnTheScreen();
+        expect(await screen.findByText('No results found', {includeHiddenElements: true})).toBeOnTheScreen();
     });
 });

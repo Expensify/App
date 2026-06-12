@@ -1,82 +1,100 @@
-import React from 'react';
+import {isUserValidatedSelector} from '@selectors/Account';
+import {Str} from 'expensify-common';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
-import useCardFeeds from '@hooks/useCardFeeds';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import Text from '@components/Text';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
+import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useCompanyCards from '@hooks/useCompanyCards';
+import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOtherFeedsForFeedSelector from '@hooks/useOtherFeedsForFeedSelector';
+import type {CardFeedListItem} from '@hooks/useOtherFeedsForFeedSelector';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    checkIfFeedConnectionIsBroken,
-    filterInactiveCards,
-    getCardFeedIcon,
-    getCompanyFeeds,
-    getCustomOrFormattedFeedName,
-    getDomainOrWorkspaceAccountID,
-    getPlaidInstitutionIconUrl,
-    getSelectedFeed,
-} from '@libs/CardUtils';
+import {getLinkedPolicyName} from '@libs/CardFeedUtils';
+import {getCardFeedIcon, getCardFeedWithDomainID, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isCollectPolicy} from '@libs/PolicyUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {updateSelectedFeed} from '@userActions/Card';
-import {clearAddNewCardFlow} from '@userActions/CompanyCards';
+import {clearAddNewCardFlow, linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
-
-type CardFeedListItem = ListItem & {
-    /** Card feed value */
-    value: CompanyCardFeed;
-};
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
 
 function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedSelectorPageProps) {
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
-    const [cardFeeds] = useCardFeeds(policyID);
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
-    const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const companyFeeds = getCompanyFeeds(cardFeeds);
-    const isCollect = isCollectPolicy(policy);
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
+    const {isBlockedToAddNewFeeds} = useIsBlockedToAddFeed(policyID);
+    const {canWrite: canWriteCompanyCards} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const [feedWithError, setFeedWithError] = useState<{feed?: string; error?: Errors} | undefined>(undefined);
 
-    const feeds: CardFeedListItem[] = Object.entries(companyFeeds).map(([key, feedSettings]) => {
-        const feed = key as CompanyCardFeed;
-        const filteredFeedCards = filterInactiveCards(
-            allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getDomainOrWorkspaceAccountID(workspaceAccountID, feedSettings)}_${feed}`],
-        );
-        const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
-        const plaidUrl = getPlaidInstitutionIconUrl(feed);
+    const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
+    const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
+    const otherFeeds = useOtherFeedsForFeedSelector(policyID);
+    const primaryContactMethod = usePrimaryContactMethod();
+
+    const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
+
+    const feeds: CardFeedListItem[] = (Object.entries(companyCardFeeds ?? {}) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([feedName, feedSettings]) => {
+        const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
+        const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feedSettings.domainID}`];
+        const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
+
+        const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedName];
+
+        const policyName = getLinkedPolicyName(allPolicies, feedSettings?.preferredPolicy, policyID, policy?.name);
 
         return {
-            value: feed,
-            text: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
-            keyForList: feed,
-            isSelected: feed === selectedFeed,
-            isDisabled: companyFeeds[feed]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            pendingAction: companyFeeds[feed]?.pendingAction,
-            brickRoadIndicator: isFeedConnectionBroken ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            canShowSeveralIndicators: isFeedConnectionBroken,
+            value: feedName,
+            feed: feedSettings.feed as CompanyCardFeedWithNumber,
+            alternateText: domainName ?? policyName,
+            text: getCustomOrFormattedFeedName(translate, feedSettings.feed, feedSettings.customFeedName),
+            keyForList: feedName,
+            isSelected: feedName === selectedFeedName,
+            isDisabled: feedSettings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: feedSettings.pendingAction,
+            brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            canShowSeveralIndicators: shouldShowRBR,
             leftElement: plaidUrl ? (
                 <PlaidCardFeedIcon
                     plaidUrl={plaidUrl}
@@ -84,7 +102,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 />
             ) : (
                 <Icon
-                    src={getCardFeedIcon(feed, illustrations)}
+                    src={getCardFeedIcon(feedSettings.feed, illustrations, companyCardFeedIcons)}
                     height={variables.cardIconHeight}
                     width={variables.cardIconWidth}
                     additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -94,14 +112,18 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     });
 
     const onAddCardsPress = () => {
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute(policyID));
+            return;
+        }
         clearAddNewCardFlow();
-        if (isCollect && feeds.length === 1) {
+        if (isBlockedToAddNewFeeds) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)),
             );
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path));
     };
 
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
@@ -111,13 +133,82 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         goBack();
     };
 
+    const selectOtherFeed = (feed: CardFeedListItem) => {
+        if (isUserFromPublicDomain) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
+            return;
+        }
+        const primaryLoginKey = primaryContactMethod ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === primaryContactMethod.toLowerCase()) : undefined;
+        const isPrimaryContactValidated = primaryLoginKey ? !!loginList?.[primaryLoginKey]?.validatedDate : !primaryContactMethod;
+        if (!isPrimaryContactValidated) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed.value));
+            return;
+        }
+        if (!feed.fundID) {
+            return;
+        }
+        const feedValue = getCardFeedWithDomainID(feed.feed, feed.fundID) as CompanyCardFeedWithDomainID;
+        linkCardFeedToPolicy(feed.fundID, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feed?.country, feed.feed)
+            .then(() => {
+                updateSelectedFeed(feedValue, policyID);
+                goBack();
+            })
+            .catch((error: TranslationPaths) => {
+                setFeedWithError({
+                    feed: feed.value,
+                    error: getMicroSecondOnyxErrorWithTranslationKey(error),
+                });
+            });
+    };
+
+    const onDismissError = () => {
+        setFeedWithError(undefined);
+    };
+
+    const otherMenuItemFeeds = canWriteCompanyCards ? (
+        <View style={[styles.w100, styles.flexColumn]}>
+            <MenuItem
+                title={translate('workspace.companyCards.addCards')}
+                icon={icons.Plus}
+                onPress={onAddCardsPress}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CARD_SECTION_ADD_BUTTON}
+            />
+            {otherFeeds.length > 0 && (
+                <>
+                    <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>
+                    {otherFeeds.map((feed) => {
+                        const isFeedWithError = feedWithError?.feed === feed.value;
+                        const itemWithError = isFeedWithError && feedWithError?.error ? {...feed, errors: feedWithError.error} : feed;
+                        return (
+                            <SingleSelectListItem
+                                isDisabled={isOffline}
+                                onDismissError={onDismissError}
+                                key={feed.keyForList}
+                                keyForList={itemWithError.keyForList}
+                                showTooltip={false}
+                                item={itemWithError}
+                                onSelectRow={selectOtherFeed}
+                                isMultilineSupported
+                                isAlternateTextMultilineSupported
+                                alternateTextNumberOfLines={2}
+                                titleNumberOfLines={2}
+                                // BaseSelectListItem defaults to flex1 on the row; inside a column footer that makes rows split height and overlap. Size rows to content instead.
+                                wrapperStyle={[styles.flexReset, styles.w100]}
+                            />
+                        );
+                    })}
+                </>
+            )}
+        </View>
+    ) : null;
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceCompanyCardFeedSelectorPage.displayName}
+                testID="WorkspaceCompanyCardFeedSelectorPage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -126,27 +217,28 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                     title={translate('workspace.companyCards.selectCards')}
                     onBackButtonPress={goBack}
                 />
-                <SelectionList
-                    ListItem={RadioListItem}
-                    onSelectRow={selectFeed}
-                    sections={[{data: feeds}]}
-                    shouldUpdateFocusedIndex
-                    isAlternateTextMultilineSupported
-                    initiallyFocusedOptionKey={selectedFeed}
-                    addBottomSafeAreaPadding
-                    listFooterContent={
-                        <MenuItem
-                            title={translate('workspace.companyCards.addCards')}
-                            icon={Expensicons.Plus}
-                            onPress={onAddCardsPress}
-                        />
-                    }
-                />
+                {feeds.length ? (
+                    <SelectionList
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={selectFeed}
+                        data={feeds}
+                        alternateNumberOfSupportedLines={2}
+                        initiallyFocusedItemKey={selectedFeedName}
+                        addBottomSafeAreaPadding
+                        listFooterContent={otherMenuItemFeeds}
+                    />
+                ) : (
+                    <ScrollView
+                        addBottomSafeAreaPadding
+                        style={styles.flex1}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        {otherMenuItemFeeds}
+                    </ScrollView>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCompanyCardFeedSelectorPage.displayName = 'WorkspaceCompanyCardFeedSelectorPage';
 
 export default WorkspaceCompanyCardFeedSelectorPage;

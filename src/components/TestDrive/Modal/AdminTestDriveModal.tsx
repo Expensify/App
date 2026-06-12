@@ -1,9 +1,10 @@
 import React from 'react';
-import {InteractionManager} from 'react-native';
+import {shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isAdminRoom} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -11,14 +12,17 @@ import BaseTestDriveModal from './BaseTestDriveModal';
 
 function AdminTestDriveModal() {
     const {translate} = useLocalize();
-    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
-    const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`, {canBeMissing: true});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`);
 
     const navigate = () => {
         Log.hmmm('[AdminTestDriveModal] Navigate function called');
-        InteractionManager.runAfterInteractions(() => {
-            Log.hmmm('[AdminTestDriveModal] Calling Navigation.navigate()');
-            Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                Log.hmmm('[AdminTestDriveModal] Calling Navigation.navigate()');
+                Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+            },
+            waitForUpcomingTransition: true,
         });
     };
 
@@ -26,8 +30,13 @@ function AdminTestDriveModal() {
         Log.hmmm('[AdminTestDriveModal] Skip test drive function called');
         Navigation.dismissModal();
 
+        if (shouldOpenRHPVariant()) {
+            Log.hmmm('[AdminTestDriveModal] User was redirected to Workspace Editor, skipping navigation to admin room');
+            return;
+        }
+
         Log.hmmm('[AdminTestDriveModal] Running after interactions');
-        InteractionManager.runAfterInteractions(() => {
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
             if (!isAdminRoom(onboardingReport)) {
                 Log.hmmm('[AdminTestDriveModal] Not an admin room');
                 return;
@@ -47,7 +56,5 @@ function AdminTestDriveModal() {
         />
     );
 }
-
-AdminTestDriveModal.displayName = 'AdminTestDriveModal';
 
 export default AdminTestDriveModal;

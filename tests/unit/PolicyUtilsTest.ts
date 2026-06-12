@@ -1,26 +1,59 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {
+    canAccessSubmitWorkspaceFeatures,
+    canMemberRead,
+    canMemberWrite,
+    canSendInvoiceFromWorkspace,
     getActivePolicies,
+    getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
+    getAllTaxRates,
+    getAllTaxRatesNamesAndValues,
+    getConnectedIntegrationNamesForPolicies,
+    getCustomUnitsForDuplication,
+    getDefaultTimeTrackingRate,
+    getEligibleBankAccountShareRecipients,
+    getExpensifyTeamExclusions,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
-    getPolicyNameByID,
+    getQBOVendorByID,
+    getQBOVendors,
     getRateDisplayValue,
     getSubmitToAccountID,
+    getTagApproverRule,
     getTagList,
     getTagListByOrderWeight,
+    getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
-    isCurrentUserMemberOfAnyPolicy,
+    hasConfiguredRules,
+    hasDependentTags,
+    hasDynamicExternalWorkflow,
+    hasEligibleActiveAdminFromWorkspaces,
+    hasIndependentTags,
+    hasOnlyPersonalPolicies,
+    hasOtherControlWorkspaces,
+    hasPolicyRulesError,
+    hasPolicyWithXeroConnection,
+    hasVendorFeature,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
+    sortPoliciesByName,
     sortWorkspacesBySelected,
+    tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -31,7 +64,6 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
-const CARLOS_ACCOUNT_ID = 1;
 function toLocaleDigitMock(dot: string): string {
     return dot;
 }
@@ -40,6 +72,10 @@ const GENERATED_ACCOUNT_ID = '555555';
 jest.mock('@libs/UserUtils', () => ({
     // generateAccountID: () => GENERATED_ACCOUNT_ID,
     generateAccountID: jest.fn().mockReturnValue(GENERATED_ACCOUNT_ID),
+}));
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
 }));
 
 const testDate = DateUtils.getDBTime();
@@ -93,6 +129,8 @@ const employeeEmail = 'employee@test.com';
 const adminEmail = 'admin@test.com';
 const categoryApprover1Email = 'categoryapprover1@test.com';
 const approverEmail = 'approver@test.com';
+const guideEmail = 'guide@expensify.com';
+const guideAccountID = 9;
 
 const personalDetails: PersonalDetailsList = {
     '1': {
@@ -126,6 +164,10 @@ const personalDetails: PersonalDetailsList = {
     '8': {
         accountID: approverAccountID,
         login: approverEmail,
+    },
+    '9': {
+        accountID: guideAccountID,
+        login: guideEmail,
     },
 };
 
@@ -175,6 +217,17 @@ const rules = {
             approver: 'tagapprover2@test.com',
             id: '4',
         },
+        {
+            applyWhen: [
+                {
+                    condition: 'matches',
+                    field: 'category',
+                    value: 'cat3',
+                },
+            ],
+            approver: 'categoryapprover1@test.com',
+            id: '5',
+        },
     ],
 };
 const policyTags = {
@@ -193,6 +246,141 @@ const policyTags = {
 };
 
 describe('PolicyUtils', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
+    describe('canMemberRead and canMemberWrite', () => {
+        const memberLogin = 'member@test.com';
+        const buildPolicy = (role: Policy['role']): Policy =>
+            ({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                role,
+                employeeList: {
+                    [memberLogin]: {
+                        role,
+                    },
+                },
+            }) as Policy;
+
+        it('allows write access to satisfy read access', () => {
+            expect(canMemberRead(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(true);
+        });
+
+        it('denies access when the role does not have the feature', () => {
+            expect(canMemberRead(buildPolicy(CONST.POLICY.ROLE.USER), memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
+        });
+
+        it('uses the requested member role when login is provided', () => {
+            const policy = {
+                ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+                employeeList: {
+                    'member@test.com': {
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
+        });
+
+        it('allows admins to write every policy feature', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+
+            for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                expect(canMemberWrite(policy, memberLogin, feature)).toBe(true);
+            }
+        });
+
+        it('does not allow editors to assign elevated roles', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.EDITOR);
+
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)).toBe(false);
+        });
+
+        it('allows auditors to read but not write every policy feature', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
+
+            for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
+                expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
+            }
+        });
+
+        it('limits scoped admins to their assigned write features', () => {
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS)).toBe(true);
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(false);
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS)).toBe(true);
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PAYMENTS_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(true);
+        });
+    });
+
+    describe('useDefaultFundID', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return domainID for given policyID when workspaceID is not set', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                policyAccountID: 0,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}18441278`, {
+                currentBalance: 0,
+                domainName: 'expensify-policy8fe6324c4897.exfy',
+                earnedCashback: 0,
+                isLoading: false,
+                isMonthlySettlementAllowed: false,
+                marqetaBusinessToken: 18441278,
+                paymentBankAccountAddressName: 'Alberta Bobbeth Charleson',
+                paymentBankAccountID: 3288123,
+                paymentBankAccountNumber: 'XXXXXXXXXXXX1111',
+                preferredPolicy: '2',
+                remainingLimit: 0,
+            });
+            const {result} = renderHook(() => useDefaultFundID(policy.id));
+
+            expect(result?.current).toBe(18441278);
+        });
+
+        it('should return lastSelectedExpensifyCardFeed for given policyID when lastSelectedExpensifyCardFeed is set', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                policyAccountID: 0,
+            };
+            const lastSelectedExpensifyCardFeed = 11111;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}2`, lastSelectedExpensifyCardFeed);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`, {
+                [CONST.COUNTRY.US]: {
+                    paymentBankAccountID: 1234,
+                },
+            });
+            const {result} = renderHook(() => useDefaultFundID(policy.id));
+
+            expect(result?.current).toBe(lastSelectedExpensifyCardFeed);
+        });
+
+        it('should return workspaceAccountID for given policyID', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                policyAccountID: 123234,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+            const {result} = renderHook(() => useDefaultFundID(policy.id));
+
+            expect(result?.current).toBe(123234);
+        });
+    });
+
     describe('getActivePolicies', () => {
         it("getActivePolicies should filter out policies that the current user doesn't belong to", () => {
             const policies = createCollection<Policy>(
@@ -201,6 +389,182 @@ describe('PolicyUtils', () => {
                 2,
             );
             expect(getActivePolicies(policies, undefined)).toHaveLength(1);
+        });
+    });
+    describe('getCustomUnitsForDuplication', () => {
+        const perDiemUnit = {
+            customUnitID: '123',
+            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+            enabled: true,
+            rates: {},
+        };
+        const otherUnit = {
+            customUnitID: '456',
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            enabled: true,
+            rates: {},
+        };
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            customUnits: {
+                [perDiemUnit.customUnitID]: perDiemUnit,
+                [otherUnit.customUnitID]: otherUnit,
+            },
+        };
+
+        const policyWithoutCustomUnits: Policy = {
+            ...createRandomPolicy(0),
+        };
+
+        it('returns undefined if neither option is selected', () => {
+            expect(getCustomUnitsForDuplication(policy, false, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID})).toBeUndefined();
+        });
+
+        it('returns all custom units if both options are selected', () => {
+            const result = getCustomUnitsForDuplication(policy, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
+            expect(result).toEqual(policy.customUnits);
+        });
+        it('returns only non-per-diem units if only custom units option is selected', () => {
+            const result = getCustomUnitsForDuplication(policy, true, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
+            expect(result).toEqual({[otherUnit.customUnitID]: otherUnit});
+        });
+
+        it('returns only per diem unit if only per diem option is selected', () => {
+            const result = getCustomUnitsForDuplication(policy, false, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
+            expect(result).toEqual({[perDiemUnit.customUnitID]: perDiemUnit});
+        });
+
+        it('returns undefined if customUnits is empty', () => {
+            expect(
+                getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID}),
+            ).toBeUndefined();
+        });
+
+        it('rebinds the default rate to the API-known customUnitRateID and keeps non-default rates with their source IDs', () => {
+            const distanceUnitWithMultipleRates = {
+                customUnitID: 'srcDist',
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                enabled: true,
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: true},
+                rates: {
+                    rateB: {customUnitRateID: 'rateB', name: 'New Rate 1', rate: 100, currency: 'USD', enabled: true, index: 1, attributes: {taxRateExternalID: 'tax_other'}},
+                    rateA: {customUnitRateID: 'rateA', name: 'Default Rate', rate: 70, currency: 'USD', enabled: true, index: 0, attributes: {taxRateExternalID: 'tax_default'}},
+                },
+            };
+            const policyWithMultipleRates: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {[distanceUnitWithMultipleRates.customUnitID]: distanceUnitWithMultipleRates},
+            };
+            const result = getCustomUnitsForDuplication(policyWithMultipleRates, true, false, {
+                distanceCustomUnitID: 'newDist',
+                perDiemCustomUnitID: 'newPerDiem',
+                customUnitRateID: 'newRate',
+            });
+            expect(result).toEqual({
+                newDist: {
+                    ...distanceUnitWithMultipleRates,
+                    customUnitID: 'newDist',
+                    rates: {
+                        rateB: {customUnitRateID: 'rateB', name: 'New Rate 1', rate: 100, currency: 'USD', enabled: true, index: 1, attributes: {taxRateExternalID: 'tax_other'}},
+                        newRate: {customUnitRateID: 'newRate', name: 'Default Rate', rate: 70, currency: 'USD', enabled: true, index: 0, attributes: {taxRateExternalID: 'tax_default'}},
+                    },
+                },
+            });
+        });
+
+        it('keeps source rates with their source IDs when no enabled rate exists', () => {
+            const distanceUnitAllDisabled = {
+                customUnitID: 'srcDist',
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                enabled: true,
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                rates: {
+                    rateA: {customUnitRateID: 'rateA', name: 'Disabled', rate: 50, currency: 'USD', enabled: false, index: 0},
+                },
+            };
+            const policyAllDisabled: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {[distanceUnitAllDisabled.customUnitID]: distanceUnitAllDisabled},
+            };
+            const result = getCustomUnitsForDuplication(policyAllDisabled, true, false, {
+                distanceCustomUnitID: 'newDist',
+                perDiemCustomUnitID: 'newPerDiem',
+                customUnitRateID: 'newRate',
+            });
+            expect(result?.newDist.rates).toEqual({
+                rateA: {customUnitRateID: 'rateA', name: 'Disabled', rate: 50, currency: 'USD', enabled: false, index: 0},
+            });
+        });
+
+        it('treats missing index as 0 when picking the default rate', () => {
+            const distanceUnitWithMissingIndex = {
+                customUnitID: 'srcDist',
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                enabled: true,
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                rates: {
+                    rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
+                    rateA: {customUnitRateID: 'rateA', name: 'No-Index Rate', rate: 70, currency: 'USD', enabled: true},
+                },
+            };
+            const policyWithMissingIndex: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {[distanceUnitWithMissingIndex.customUnitID]: distanceUnitWithMissingIndex},
+            };
+            const result = getCustomUnitsForDuplication(policyWithMissingIndex, true, false, {
+                distanceCustomUnitID: 'newDist',
+                perDiemCustomUnitID: 'newPerDiem',
+                customUnitRateID: 'newRate',
+            });
+            expect(result?.newDist.rates).toEqual({
+                rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
+                newRate: {customUnitRateID: 'newRate', name: 'No-Index Rate', rate: 70, currency: 'USD', enabled: true},
+            });
+        });
+
+        it('preserves source iteration order so getDefaultMileageRate still picks the original default when a non-default rate has a missing index', () => {
+            // Source has 3 rates: Default (index 0), Indexed (index 1), and No-Index (no index field).
+            // No-Index ties with Default at the index-0 sort key after `?? CONST.DEFAULT_NUMBER_ID`.
+            // The optimistic clone must keep the source's iteration order so JavaScript's stable
+            // sort still places Default before No-Index — otherwise getDefaultMileageRate would
+            // pick whichever tied rate appeared first in iteration order, swapping the default.
+            const sourceUnit = {
+                customUnitID: 'srcDist',
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                enabled: true,
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                rates: {
+                    rateA: {customUnitRateID: 'rateA', name: 'Default Rate', rate: 72.5, currency: 'USD', enabled: true, index: 0},
+                    rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
+                    rateC: {customUnitRateID: 'rateC', name: 'No-Index Rate', rate: 200, currency: 'USD', enabled: true},
+                },
+            };
+            const policyWithTiedIndex: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {[sourceUnit.customUnitID]: sourceUnit},
+            };
+            const result = getCustomUnitsForDuplication(policyWithTiedIndex, true, false, {
+                distanceCustomUnitID: 'newDist',
+                perDiemCustomUnitID: 'newPerDiem',
+                customUnitRateID: 'newRate',
+            });
+
+            const cloned = result?.newDist;
+            if (!cloned) {
+                throw new Error('Expected cloned distance unit');
+            }
+            // Iteration order: the rebound default should still be first, before the No-Index rate.
+            const orderedKeys = Object.keys(cloned.rates);
+            expect(orderedKeys).toEqual(['newRate', 'rateB', 'rateC']);
+
+            // Sanity-check that getDefaultMileageRate's selection (enabled, sorted by index ?? 0,
+            // first) lands on the rebound default and not on No-Index Rate.
+            const pickedDefault = Object.values(cloned.rates)
+                .filter((rate) => rate.enabled !== false)
+                .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
+                .at(0);
+            expect(pickedDefault?.customUnitRateID).toBe('newRate');
+            expect(pickedDefault?.name).toBe('Default Rate');
         });
     });
     describe('getRateDisplayValue', () => {
@@ -246,6 +610,50 @@ describe('PolicyUtils', () => {
                 const rate = getRateDisplayValue(10.53135, toLocaleDigitMock, true);
                 expect(rate).toEqual('10.5313');
             });
+        });
+    });
+
+    describe('getUberConnectionErrorDirectlyFromPolicy', () => {
+        it('should return true if Uber connection is enabled and has an error', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                receiptPartners: {
+                    uber: {
+                        enabled: true,
+                        error: 'Some error',
+                        connectFormData: 'Some data',
+                    },
+                },
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(true);
+        });
+
+        it('should return false if Uber connection is enabled but has no error', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                receiptPartners: {
+                    uber: {
+                        enabled: true,
+                        error: undefined,
+                        connectFormData: 'Some data',
+                    },
+                },
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+        });
+
+        it('should return false if Uber connection does not exist', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+        });
+
+        it('should return false if policy is undefined', () => {
+            expect(getUberConnectionErrorDirectlyFromPolicy(undefined)).toBe(false);
         });
     });
 
@@ -299,7 +707,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -314,7 +722,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -330,7 +738,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -349,7 +757,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -363,10 +771,10 @@ describe('PolicyUtils', () => {
                     category: '',
                     reportID: expenseReport.reportID,
                 };
-                await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
-                    [transaction1.transactionID]: transaction1,
-                    [transaction2.transactionID]: transaction2,
-                });
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                } as unknown as OnyxMultiSetInput);
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover1AccountID);
             });
             it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
@@ -381,7 +789,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: categoryApprover1AccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -392,9 +800,7 @@ describe('PolicyUtils', () => {
                     tag: '',
                 };
 
-                await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
-                    [transaction.transactionID]: transaction,
-                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(adminAccountID);
             });
             it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async () => {
@@ -408,7 +814,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -424,11 +830,58 @@ describe('PolicyUtils', () => {
                     created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                     reportID: expenseReport.reportID,
                 };
-                await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
-                    [transaction1.transactionID]: transaction1,
-                    [transaction2.transactionID]: transaction2,
-                });
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                } as unknown as OnyxMultiSetInput);
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover2AccountID);
+            });
+            it('should return the first rule approver who is not the current submitter', async () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'owner@test.com',
+                    owner: 'owner@test.com',
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    employeeList,
+                    rules,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0, undefined),
+                    ownerAccountID: categoryApprover1AccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                const transaction1: Transaction = {
+                    ...createRandomTransaction(0),
+                    category: 'cat1',
+                    reportID: expenseReport.reportID,
+                    tag: '',
+                    created: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
+                };
+
+                const transaction2: Transaction = {
+                    ...createRandomTransaction(1),
+                    category: 'cat3',
+                    reportID: expenseReport.reportID,
+                    tag: '',
+                    created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                };
+
+                const transaction3: Transaction = {
+                    ...createRandomTransaction(2),
+                    category: '',
+                    reportID: expenseReport.reportID,
+                    tag: 'tag1',
+                    created: testDate,
+                };
+
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction3.transactionID}`]: transaction3,
+                } as unknown as OnyxMultiSetInput);
+
+                expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover1AccountID);
             });
             describe('Has no transaction match with the category approver rule', () => {
                 it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async () => {
@@ -442,7 +895,7 @@ describe('PolicyUtils', () => {
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
                     const expenseReport: Report = {
-                        ...createRandomReport(0),
+                        ...createRandomReport(0, undefined),
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -460,10 +913,10 @@ describe('PolicyUtils', () => {
                         created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
-                    await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
-                        [transaction1.transactionID]: transaction1,
-                        [transaction2.transactionID]: transaction2,
-                    });
+                    await Onyx.multiSet({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                    } as unknown as OnyxMultiSetInput);
                     expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover1AccountID);
                 });
                 it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
@@ -477,7 +930,7 @@ describe('PolicyUtils', () => {
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
                     const expenseReport: Report = {
-                        ...createRandomReport(0),
+                        ...createRandomReport(0, undefined),
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -495,25 +948,16 @@ describe('PolicyUtils', () => {
                         created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
-                    await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
-                        [transaction1.transactionID]: transaction1,
-                        [transaction2.transactionID]: transaction2,
-                    });
+                    await Onyx.multiSet({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                    } as unknown as OnyxMultiSetInput);
                     expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover2AccountID);
                 });
             });
         });
     });
     describe('shouldShowPolicy', () => {
-        beforeAll(() => {
-            Onyx.init({
-                keys: ONYXKEYS,
-                initialKeyStates: {
-                    [ONYXKEYS.SESSION]: {accountID: CARLOS_ACCOUNT_ID, email: CARLOS_EMAIL},
-                },
-            });
-        });
-
         beforeEach(() => {
             global.fetch = TestHelper.getGlobalFetchMock();
             return Onyx.clear().then(waitForBatchedUpdates);
@@ -547,31 +991,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getPolicyNameByID', () => {
-        it('should return the policy name for a given policyID', async () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                name: 'testName',
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-
-            expect(getPolicyNameByID('1')).toBe('testName');
-        });
-
-        it('should return the empty if the name is not set', async () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                name: null!,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-
-            expect(getPolicyNameByID('1')).toBe('');
-        });
-    });
-
     describe('getManagerAccountID', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
@@ -589,7 +1008,7 @@ describe('PolicyUtils', () => {
                 approver: categoryApprover1Email,
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
             };
             const result = getManagerAccountID(policy, report);
 
@@ -605,7 +1024,7 @@ describe('PolicyUtils', () => {
                 owner: '',
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
             };
 
             const result = getManagerAccountID(policy, report);
@@ -626,7 +1045,7 @@ describe('PolicyUtils', () => {
                 },
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 ownerAccountID: employeeAccountID,
             };
 
@@ -643,7 +1062,7 @@ describe('PolicyUtils', () => {
                 approver: categoryApprover1Email,
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 ownerAccountID: employeeAccountID,
             };
 
@@ -665,7 +1084,6 @@ describe('PolicyUtils', () => {
 
         it('returns false if policy is not paid group policy', async () => {
             const currentUserLogin = employeeEmail;
-            const currentUserAccountID = employeeAccountID;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL),
@@ -673,24 +1091,16 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
                 },
+                pendingAction: null,
             };
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
-            const report = {
-                ...createRandomReport(0),
-                type: CONST.REPORT.TYPE.IOU,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                ownerAccountID: currentUserAccountID,
-                managerID: approverAccountID,
-            };
 
-            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(false);
         });
 
-        it('returns true if policy is paid group policy and the manger is the payer', async () => {
+        it('returns true if policy is paid group policy and the manager is the payer', async () => {
             const currentUserLogin = employeeEmail;
-            const currentUserAccountID = employeeAccountID;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -699,22 +1109,17 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
+                pendingAction: null,
             };
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
-            const report = {
-                ...createRandomReport(0),
-                type: CONST.REPORT.TYPE.IOU,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                ownerAccountID: approverAccountID,
-                managerID: currentUserAccountID,
-            };
 
-            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(true);
         });
 
-        it('returns false if the manager is not the payer of the new policy', async () => {
+        it('returns true if the manager is not the payer of the new policy', async () => {
+            const currentUserLogin = employeeEmail;
+
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 isPolicyExpenseChatEnabled: true,
@@ -722,24 +1127,16 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.USER},
                 },
+                pendingAction: null,
             };
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
-            const report = {
-                ...createRandomReport(0),
-                type: CONST.REPORT.TYPE.IOU,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                ownerAccountID: employeeAccountID,
-                managerID: approverAccountID,
-            };
 
-            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
-            expect(result).toBe(false);
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            expect(result).toBe(true);
         });
 
         it('returns false if policies are not policyExpenseChatEnabled', async () => {
             const currentUserLogin = employeeEmail;
-            const currentUserAccountID = employeeAccountID;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -748,95 +1145,26 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
+                pendingAction: null,
             };
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
-            const report = {
-                ...createRandomReport(0),
-                type: CONST.REPORT.TYPE.IOU,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                ownerAccountID: approverAccountID,
-                managerID: currentUserAccountID,
-            };
 
-            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            expect(result).toBe(false);
+        });
+
+        it('returns false if policy is pending delete', async () => {
+            const currentUserLogin = employeeEmail;
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                isPolicyExpenseChatEnabled: true,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(false);
         });
     });
 
-    describe('isCurrentUserMemberOfAnyPolicy', () => {
-        beforeEach(() => {
-            wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        });
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('should return false if user has no policies', async () => {
-            const currentUserLogin = approverEmail;
-            const currentUserAccountID = approverAccountID;
-
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
-
-            const result = isCurrentUserMemberOfAnyPolicy();
-
-            expect(result).toBeFalsy();
-        });
-
-        it('should return true if user owns a workspace', async () => {
-            const currentUserLogin = approverEmail;
-            const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID: approverAccountID, isPolicyExpenseChatEnabled: true};
-
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
-
-            const result = isCurrentUserMemberOfAnyPolicy();
-
-            expect(result).toBeTruthy();
-        });
-
-        it('should return false if expense chat is not enabled', async () => {
-            const currentUserLogin = approverEmail;
-            const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), isPolicyExpenseChatEnabled: false};
-
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
-
-            const result = isCurrentUserMemberOfAnyPolicy();
-
-            expect(result).toBeFalsy();
-        });
-
-        it('should return false if its a fake policy id', async () => {
-            const currentUserLogin = approverEmail;
-            const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), id: CONST.POLICY.ID_FAKE};
-
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
-
-            const result = isCurrentUserMemberOfAnyPolicy();
-
-            expect(result).toBeFalsy();
-        });
-
-        it('should return true if user is invited to a workspace', async () => {
-            const currentUserLogin = approverEmail;
-            const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID, isPolicyExpenseChatEnabled: true};
-
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
-
-            const result = isCurrentUserMemberOfAnyPolicy();
-
-            expect(result).toBeTruthy();
-        });
-    });
     describe('getTagList', () => {
         it.each([
             ['when index is 0', 0, policyTags.TagListTest0.name],
@@ -963,6 +1291,1781 @@ describe('PolicyUtils', () => {
             };
             const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy as unknown as Policy);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getPolicyBrickRoadIndicatorStatus', () => {
+        const baseAdminPolicy: OnyxEntry<Policy> = {
+            id: 'ABC123',
+            name: 'Test Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {},
+            connections: {},
+            errors: {},
+            errorFields: {},
+        } as OnyxEntry<Policy>;
+
+        const baseUserPolicy: OnyxEntry<Policy> = {
+            id: 'DEF456',
+            name: 'User Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            employeeList: {},
+            connections: {},
+            errors: {},
+            errorFields: {},
+        } as OnyxEntry<Policy>;
+
+        it('does return an ERROR RBR when a sync error exists for an admin', () => {
+            const policyWithConnectionFailures = {
+                ...baseAdminPolicy,
+                // Failed sync
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: false,
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Error',
+                            isAuthenticationError: true,
+                            isConnected: false,
+                            isSuccessful: false,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
+            expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it('does not return an ERROR RBR when a sync error exists for a user', () => {
+            const policyWithConnectionFailures = {
+                ...baseUserPolicy,
+                // Failed sync
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: false,
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Error',
+                            isAuthenticationError: true,
+                            isConnected: false,
+                            isSuccessful: false,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
+            expect(result).toBeUndefined();
+        });
+
+        it('does not return an ERROR RBR when no sync errors exist for an admin', () => {
+            const policyWithoutConnections = {
+                ...baseAdminPolicy,
+                connections: {} as Connections,
+            } as OnyxEntry<Policy>;
+
+            const policyWithoutConnectionFailures = {
+                ...baseAdminPolicy,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: true,
+                        lastSync: {
+                            errorDate: '',
+                            errorMessage: '',
+                            isAuthenticationError: false,
+                            isConnected: true,
+                            isSuccessful: true,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
+            expect(result).toBeUndefined();
+
+            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
+            expect(result2).toBeUndefined();
+        });
+
+        it('does not return an ERROR RBR when no sync error exists for a user', () => {
+            const policyWithoutConnections = {
+                ...baseUserPolicy,
+                connections: {} as Connections,
+            } as OnyxEntry<Policy>;
+
+            const policyWithoutConnectionFailures = {
+                ...baseUserPolicy,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: true,
+                        lastSync: {
+                            errorDate: '',
+                            errorMessage: '',
+                            isAuthenticationError: false,
+                            isConnected: true,
+                            isSuccessful: true,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
+            expect(result).toBeUndefined();
+
+            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
+            expect(result2).toBeUndefined();
+        });
+
+        describe('QBO Export Errors', () => {
+            it('does return an ERROR RBR when a QBO sync error exists for an admin', () => {
+                const policyWithQBOSyncError = {
+                    ...baseAdminPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            verified: false,
+                            lastSync: {
+                                errorDate: new Date().toISOString(),
+                                errorMessage: 'QBO sync failed',
+                                isAuthenticationError: true,
+                                isConnected: false,
+                                isSuccessful: false,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
+                expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            });
+
+            it('does not return an ERROR RBR when a QBO sync error exists for a user', () => {
+                const policyWithQBOSyncError = {
+                    ...baseUserPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            verified: false,
+                            lastSync: {
+                                errorDate: new Date().toISOString(),
+                                errorMessage: 'QBO sync failed',
+                                isAuthenticationError: true,
+                                isConnected: false,
+                                isSuccessful: false,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
+                expect(result).toBeUndefined();
+            });
+
+            it('does not return an ERROR RBR when no QBO sync errors exist for an admin', () => {
+                const policyWithSuccessfulQBOSync = {
+                    ...baseAdminPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            verified: true,
+                            lastSync: {
+                                errorDate: '',
+                                errorMessage: '',
+                                isAuthenticationError: false,
+                                isConnected: true,
+                                isSuccessful: true,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: new Date().toISOString(),
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithSuccessfulQBOSync, false);
+                expect(result).toBeUndefined();
+            });
+
+            it('does not return an ERROR RBR when QBO sync is in progress for an admin', () => {
+                const policyWithQBOSyncError = {
+                    ...baseAdminPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            verified: false,
+                            lastSync: {
+                                errorDate: new Date().toISOString(),
+                                errorMessage: 'QBO sync failed',
+                                isAuthenticationError: true,
+                                isConnected: false,
+                                isSuccessful: false,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                // When sync is in progress (second parameter is true), should not show error
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, true);
+                expect(result).toBeUndefined();
+            });
+
+            it('does return an ERROR RBR when QBO reimbursable export destination account is missing for an admin', () => {
+                const policyWithMissingQBOAccount = {
+                    ...baseAdminPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {
+                                reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+                                reimbursableExpensesAccount: undefined,
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
+                expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            });
+
+            it('does not return an ERROR RBR when QBO reimbursable export destination account is missing for a user', () => {
+                const policyWithMissingQBOAccount = {
+                    ...baseUserPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {
+                                reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+                                reimbursableExpensesAccount: undefined,
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
+                expect(result).toBeUndefined();
+            });
+
+            it('does not return an ERROR RBR when QBO reimbursable export destination account is configured for an admin', () => {
+                const policyWithQBOConfigured = {
+                    ...baseAdminPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {
+                                reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+                                reimbursableExpensesAccount: {id: '123', name: 'Test Account'},
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOConfigured, false);
+                expect(result).toBeUndefined();
+            });
+
+            it('does not return an ERROR RBR when QBO connection does not exist for an admin', () => {
+                const policyWithoutQBOConnection = {
+                    ...baseAdminPolicy,
+                    connections: {},
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithoutQBOConnection, false);
+                expect(result).toBeUndefined();
+            });
+
+            it('does not return an ERROR RBR when QBO reimbursable export destination is not set for an admin', () => {
+                const policyWithQBONoExportDestination = {
+                    ...baseAdminPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {
+                                reimbursableExpensesExportDestination: undefined,
+                                reimbursableExpensesAccount: undefined,
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBONoExportDestination, false);
+                expect(result).toBeUndefined();
+            });
+        });
+    });
+
+    describe('hasDynamicExternalWorkflow', () => {
+        it('should return true when policy has DYNAMICEXTERNAL approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(true);
+        });
+
+        it('should return false when policy has BASIC approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy has ADVANCED approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy has OPTIONAL approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy is undefined', () => {
+            const result = hasDynamicExternalWorkflow(undefined);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy has no approvalMode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: undefined,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('hasOnlyPersonalPolicies', () => {
+        it('should return true when policies is empty', () => {
+            const result = hasOnlyPersonalPolicies({});
+            expect(result).toBe(true);
+        });
+
+        it('should return false when there are policies other than personal policies', () => {
+            const policies = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            };
+            const result = hasOnlyPersonalPolicies(policies);
+            expect(result).toBe(false);
+        });
+
+        it('should return true when there are no policies other than personal policies', () => {
+            const policies = {
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            };
+            const result = hasOnlyPersonalPolicies(policies);
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('getEligibleBankAccountShareRecipients', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return empty array if no admins in policies', () => {
+            const policies = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
+            expect(result).toHaveLength(0);
+        });
+        it('should return array with admins', () => {
+            const currentUserLogin = adminEmail;
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
+            expect(result).toHaveLength(1);
+        });
+        it('should not return user with already shared bank account', async () => {
+            const bankAccountID = '1';
+            const currentUserLogin = adminEmail;
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        sharees: [adminEmail],
+                    },
+                },
+            });
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
+            expect(result).toHaveLength(0);
+        });
+        it('should not return current user for sharing account', async () => {
+            const bankAccountID = '1';
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                '2': {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, bankAccountID);
+            expect(result).toHaveLength(1);
+        });
+        it('should not return Expensify guide when policy owner is not Expensify team', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    owner: 'normalowner@test.com',
+                    employeeList: {
+                        [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            expect(result).toHaveLength(0);
+        });
+        it('should return Expensify guide when policy owner is Expensify team', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    owner: 'owner@expensify.com',
+                    employeeList: {
+                        [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            expect(result).toHaveLength(1);
+        });
+        it('should return Expensify guide when current user is Expensify team', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    owner: 'normalowner@test.com',
+                    employeeList: {
+                        [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, 'someone@expensify.com', '1');
+            expect(result).toHaveLength(1);
+        });
+    });
+
+    describe('hasEligibleActiveAdminFromWorkspaces', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return false when the only admin is an Expensify guide on a non-Expensify policy', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    owner: 'normalowner@test.com',
+                    employeeList: {
+                        [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, '1');
+            expect(result).toBe(false);
+        });
+        it('should return true when there is a non-guide admin', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    owner: 'normalowner@test.com',
+                    employeeList: {
+                        [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, '1');
+            expect(result).toBe(true);
+        });
+        it('should return true when the guide is on an Expensify-owned policy', () => {
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    owner: 'owner@expensify.com',
+                    employeeList: {
+                        [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, '1');
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('hasOtherControlWorkspaces', () => {
+        it('should return false when policies is empty', () => {
+            const result = hasOtherControlWorkspaces([], '1');
+            expect(result).toBe(false);
+        });
+
+        it('should return false when there are no control workspaces other than the current one', () => {
+            const policies = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            ];
+            const result = hasOtherControlWorkspaces(policies, '1');
+            expect(result).toBe(false);
+        });
+
+        it('should return true when there are other control workspaces', () => {
+            const policies = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            ];
+            const result = hasOtherControlWorkspaces(policies, '1');
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('hasPolicyWithXeroConnection', () => {
+        it('should return false when no admin policies are provided', () => {
+            const result = hasPolicyWithXeroConnection(undefined);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when no admin policies have Xero connection', () => {
+            const adminPolicies: Policy[] = [
+                {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: true,
+                            lastSync: {
+                                errorDate: '',
+                                errorMessage: '',
+                                isAuthenticationError: false,
+                                isConnected: true,
+                                isSuccessful: true,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as Connections,
+                },
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            ];
+            const result = hasPolicyWithXeroConnection(adminPolicies);
+            expect(result).toBe(false);
+        });
+
+        it('should return true when at least one admin policy has Xero connection', () => {
+            const adminPolicies: Policy[] = [
+                {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            lastSync: {
+                                errorDate: '',
+                                errorMessage: '',
+                                isAuthenticationError: false,
+                                isConnected: true,
+                                isSuccessful: true,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                            config: {} as unknown as Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['config'],
+                            data: {} as unknown as Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['data'],
+                        },
+                    } as Connections,
+                },
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            ];
+            const result = hasPolicyWithXeroConnection(adminPolicies);
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('getTagApproverRule', () => {
+        it('should return undefined when no approval rules are present', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                rules: {
+                    approvalRules: [],
+                },
+            };
+            const result = getTagApproverRule(policy, '');
+            expect(result).toBeUndefined();
+        });
+    });
+
+    describe('getAllTaxRatesNamesAndValues', () => {
+        it('returns empty object when there are no policies or no tax rates', () => {
+            expect(getAllTaxRatesNamesAndValues(undefined)).toEqual({});
+            expect(getAllTaxRatesNamesAndValues({})).toEqual({});
+            const policiesWithoutTaxes: OnyxCollection<Policy> = {
+                policy1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: undefined,
+                },
+            };
+            expect(getAllTaxRatesNamesAndValues(policiesWithoutTaxes)).toEqual({});
+        });
+
+        it('aggregates tax rates across policies', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            TAX_A: {name: 'A', value: '5'},
+                            TAX_B: {name: 'B', value: '10'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            TAX_C: {name: 'C', value: '15'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+            };
+            const result = getAllTaxRatesNamesAndValues(policies);
+            expect(Object.keys(result).sort()).toEqual(['TAX_A', 'TAX_B', 'TAX_C']);
+            expect(result.TAX_B).toEqual({name: 'B', value: '10'});
+        });
+
+        it('preserves the first occurrence when duplicate tax keys appear in multiple policies', () => {
+            const policies: OnyxCollection<Policy> = {
+                first: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            DUP_TAX: {name: 'First', value: '1'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                second: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            DUP_TAX: {name: 'Second', value: '2'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+            };
+            const result = getAllTaxRatesNamesAndValues(policies);
+            expect(result.DUP_TAX).toEqual({name: 'First', value: '1'});
+        });
+    });
+
+    describe('getAllTaxRates (getAllTaxRatesNamesAndKeys)', () => {
+        it('returns empty object when there are no policies or no tax rates', () => {
+            expect(getAllTaxRates(undefined)).toEqual({});
+            expect(getAllTaxRates({})).toEqual({});
+            const policiesWithoutTaxes: OnyxCollection<Policy> = {
+                policy1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: undefined,
+                },
+            };
+            expect(getAllTaxRates(policiesWithoutTaxes)).toEqual({});
+        });
+
+        it('maps tax rate names to their keys across policies', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            id_vat: {name: 'VAT', value: '20'},
+                            id_gst: {name: 'GST', value: '10'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            id_sales: {name: 'Sales Tax', value: '8'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+            };
+            const result = getAllTaxRates(policies);
+            expect(result).toEqual({
+                VAT: ['id_vat'],
+                GST: ['id_gst'],
+                'Sales Tax': ['id_sales'],
+            });
+        });
+
+        it('groups different keys under the same tax name', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            key_a: {name: 'VAT', value: '20'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            key_b: {name: 'VAT', value: '15'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+            };
+            const result = getAllTaxRates(policies);
+            expect(result.VAT).toEqual(['key_a', 'key_b']);
+        });
+
+        it('deduplicates identical keys for the same tax name', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            same_key: {name: 'VAT', value: '20'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            same_key: {name: 'VAT', value: '20'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+            };
+            const result = getAllTaxRates(policies);
+            expect(result.VAT).toEqual(['same_key']);
+        });
+
+        it('skips undefined policy entries', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {id_vat: {name: 'VAT', value: '20'}},
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: undefined,
+            };
+            const result = getAllTaxRates(policies);
+            expect(result).toEqual({VAT: ['id_vat']});
+        });
+    });
+
+    describe('canSendInvoiceFromWorkspace', () => {
+        it('returns true when areInvoicesEnabled is true', () => {
+            const policy = {areInvoicesEnabled: true} as Policy;
+            expect(canSendInvoiceFromWorkspace(policy)).toBe(true);
+        });
+
+        it('returns false when areInvoicesEnabled is false', () => {
+            const policy = {areInvoicesEnabled: false} as Policy;
+            expect(canSendInvoiceFromWorkspace(policy)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(canSendInvoiceFromWorkspace(undefined)).toBe(false);
+        });
+    });
+
+    it('should return undefined when no tag approver rule is present', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            rules: {
+                approvalRules: [
+                    {
+                        id: 'rule-1',
+                        applyWhen: [
+                            {
+                                field: CONST.POLICY.FIELDS.TAG,
+                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                value: 'Fake tag',
+                            },
+                        ],
+                        approver: 'lol@hhh.com',
+                    },
+                ],
+            },
+        };
+        const result = getTagApproverRule(policy, 'NonExistentTag');
+        expect(result).toBeUndefined();
+    });
+
+    it('should return the tag approver rule when present', () => {
+        const tagName = 'ImportantTag';
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            rules: {
+                approvalRules: [
+                    {
+                        id: 'rule-1',
+                        applyWhen: [
+                            {
+                                field: CONST.POLICY.FIELDS.TAG,
+                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                value: tagName,
+                            },
+                        ],
+                        approver: 'approver@example.com',
+                    },
+                ],
+            },
+        };
+        const result = getTagApproverRule(policy, tagName);
+        expect(result).toEqual({
+            id: 'rule-1',
+            applyWhen: [
+                {
+                    field: CONST.POLICY.FIELDS.TAG,
+                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                    value: tagName,
+                },
+            ],
+            approver: 'approver@example.com',
+        });
+    });
+
+    describe('getDefaultTimeTrackingRate', () => {
+        it('should return rate in subunits', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                units: {
+                    time: {
+                        enabled: true,
+                        rate: 20,
+                    },
+                },
+            };
+            expect(getDefaultTimeTrackingRate(policy)).toBe(2000);
+        });
+
+        it('should return 0 when the rate is 0, not undefined', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                units: {
+                    time: {
+                        enabled: true,
+                        rate: 0,
+                    },
+                },
+            };
+            expect(getDefaultTimeTrackingRate(policy)).toBe(0);
+        });
+
+        it('should return undefined when the rate is not defined on the policy', () => {
+            const policy = createRandomPolicy(1);
+            expect(getDefaultTimeTrackingRate(policy)).toBeUndefined();
+        });
+    });
+
+    describe('per diem policy filters', () => {
+        const perDiemCustomUnit = {
+            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+            customUnitID: 'ABCDEF',
+            enabled: true,
+            rates: {
+                London: {
+                    customUnitRateID: 'London',
+                    name: 'London',
+                },
+            },
+        };
+
+        it('returns only control policies from getActivePoliciesWithExpenseChatAndPerDiemEnabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                corporate: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+                collect: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+            };
+
+            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+        });
+
+        it('returns only control policies with rates from getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates', () => {
+            const policies: OnyxCollection<Policy> = {
+                corporateWithRates: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+                corporateWithoutRates: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: {
+                            ...perDiemCustomUnit,
+                            rates: {},
+                        },
+                    },
+                },
+                collectWithRates: {
+                    ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+            };
+
+            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe('1');
+        });
+    });
+
+    describe('sortPoliciesByName', () => {
+        const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+        it('sorts policies alphabetically by name', () => {
+            const policies: Policy[] = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
+            ];
+
+            const result = sortPoliciesByName(policies, localeCompare);
+            expect(result.map((p) => p.name)).toEqual(['Alpha', 'Bravo', 'Charlie']);
+        });
+
+        it('returns empty array for empty input', () => {
+            expect(sortPoliciesByName([], localeCompare)).toEqual([]);
+        });
+
+        it('treats undefined or empty names as empty string', () => {
+            const policies: Policy[] = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: ''},
+                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+            ];
+
+            const result = sortPoliciesByName(policies, localeCompare);
+            expect(result.map((p) => p.name)).toEqual(['', 'Alpha', 'Bravo']);
+        });
+
+        it('returns single-element array as-is', () => {
+            const policies: Policy[] = [{...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Only'}];
+
+            const result = sortPoliciesByName(policies, localeCompare);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.name).toBe('Only');
+        });
+    });
+
+    describe('getConnectedIntegrationNamesForPolicies', () => {
+        it('returns empty Set when policies is undefined', () => {
+            expect(getConnectedIntegrationNamesForPolicies(undefined)).toEqual(new Set());
+        });
+
+        it('returns empty Set when policies is empty object', () => {
+            expect(getConnectedIntegrationNamesForPolicies({})).toEqual(new Set());
+        });
+
+        it('returns Set with connection name when policy has verified connection', () => {
+            const policyWithXero = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                        lastSync: {isConnected: true},
+                    },
+                } as Connections,
+            } as Policy;
+            const policies: OnyxCollection<Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policyWithXero,
+            };
+            expect(getConnectedIntegrationNamesForPolicies(policies)).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]));
+        });
+
+        it('filters by policyIDs when provided', () => {
+            const policy1WithQBO = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {lastSync: {isConnected: true}},
+                } as Connections,
+            } as Policy;
+            const policy2WithXero = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {lastSync: {isConnected: true}},
+                } as Connections,
+            } as Policy;
+            const policies: OnyxCollection<Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1WithQBO,
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2WithXero,
+            };
+            expect(getConnectedIntegrationNamesForPolicies(policies, ['1'])).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.QBO]));
+        });
+
+        it('returns all connection names when policies have different connections', () => {
+            const policy1 = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {lastSync: {isConnected: true}},
+                } as Connections,
+            } as Policy;
+
+            const policy2 = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {lastSync: {isConnected: true}},
+                } as Connections,
+            } as Policy;
+
+            const policies: OnyxCollection<Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1,
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
+            };
+            const result = getConnectedIntegrationNamesForPolicies(policies);
+            expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
+            expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
+            expect(result.size).toBe(2);
+        });
+    });
+
+    describe('hasDependentTags', () => {
+        it('returns false when policy has no multiple tag lists', () => {
+            const policy = {hasMultipleTagLists: false} as Policy;
+            const policyTagList: PolicyTagLists = {};
+            expect(hasDependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(hasDependentTags(undefined, {})).toBe(false);
+        });
+
+        it('returns false when tags have no parentTagsFilter', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasDependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns true when a tag has rules.parentTagsFilter', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns true when a tag has parentTagsFilter at the top level', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, parentTagsFilter: '^California$'},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+    });
+
+    describe('hasIndependentTags', () => {
+        it('returns false when policy has no multiple tag lists', () => {
+            const policy = {hasMultipleTagLists: false} as Policy;
+            const policyTagList: PolicyTagLists = {};
+            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(hasIndependentTags(undefined, {})).toBe(false);
+        });
+
+        it('returns false when tags are dependent (have parentTagsFilter)', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns false when all tag lists are empty', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {},
+                    required: false,
+                    orderWeight: 0,
+                },
+                Location: {
+                    name: 'Location',
+                    tags: {},
+                    required: false,
+                    orderWeight: 1,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns true when tags are independent and at least one tag exists', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns true when at least one tag list has tags and others are empty', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {},
+                    required: false,
+                    orderWeight: 0,
+                },
+                Location: {
+                    name: 'Location',
+                    tags: {
+                        'New York': {name: 'New York', enabled: true},
+                    },
+                    required: false,
+                    orderWeight: 1,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns false when policyTagList is undefined', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            expect(hasIndependentTags(policy, undefined)).toBe(false);
+        });
+    });
+
+    describe('hasConfiguredRules', () => {
+        it('returns false when policy is undefined', () => {
+            expect(hasConfiguredRules(undefined)).toBe(false);
+        });
+
+        it('returns false when policy has no rules configured', () => {
+            expect(hasConfiguredRules({} as Policy)).toBe(false);
+        });
+
+        describe('customRules', () => {
+            it('returns true when customRules is non-empty', () => {
+                expect(hasConfiguredRules({customRules: 'some rule'} as Policy)).toBe(true);
+            });
+
+            it('returns false when customRules is an empty string', () => {
+                expect(hasConfiguredRules({customRules: ''} as Policy)).toBe(false);
+            });
+
+            it('returns false when customRules is only whitespace', () => {
+                expect(hasConfiguredRules({customRules: '   '} as Policy)).toBe(false);
+            });
+        });
+
+        describe('rules.approvalRules', () => {
+            it('returns true when approvalRules has items', () => {
+                const policy = {rules: {approvalRules: [{id: '1', applyWhen: [], approver: 'approver@test.com'}]}} as unknown as Policy;
+                expect(hasConfiguredRules(policy)).toBe(true);
+            });
+
+            it('returns false when approvalRules is empty', () => {
+                expect(hasConfiguredRules({rules: {approvalRules: []}} as unknown as Policy)).toBe(false);
+            });
+        });
+
+        describe('rules.expenseRules', () => {
+            it('returns true when expenseRules has items', () => {
+                const policy = {
+                    rules: {
+                        expenseRules: [
+                            {
+                                id: '1',
+                                applyWhen: [],
+                                tax: {field_id_TAX: {externalID: 'TAX_US'}},
+                            },
+                        ],
+                    },
+                } as unknown as Policy;
+                expect(hasConfiguredRules(policy)).toBe(true);
+            });
+
+            it('returns false when expenseRules is empty', () => {
+                expect(hasConfiguredRules({rules: {expenseRules: []}} as unknown as Policy)).toBe(false);
+            });
+        });
+
+        describe('rules.codingRules', () => {
+            it('returns true when codingRules has entries', () => {
+                const policy = {
+                    rules: {
+                        codingRules: {
+                            rule1: {
+                                ruleID: 'rule1',
+                                filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
+                            },
+                        },
+                    },
+                } as unknown as Policy;
+                expect(hasConfiguredRules(policy)).toBe(true);
+            });
+
+            it('returns false when codingRules is empty', () => {
+                expect(hasConfiguredRules({rules: {codingRules: {}}} as unknown as Policy)).toBe(false);
+            });
+        });
+
+        describe('maxExpenseAmount', () => {
+            it('returns true when maxExpenseAmount is set to a non-default value', () => {
+                expect(hasConfiguredRules({maxExpenseAmount: 500000} as Policy)).toBe(true);
+            });
+
+            it('returns false when maxExpenseAmount is the default value', () => {
+                expect(hasConfiguredRules({maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT} as Policy)).toBe(false);
+            });
+
+            it('returns false when maxExpenseAmount is the disabled value', () => {
+                expect(hasConfiguredRules({maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE} as Policy)).toBe(false);
+            });
+        });
+
+        describe('maxExpenseAge', () => {
+            it('returns true when maxExpenseAge is set to a non-default value', () => {
+                expect(hasConfiguredRules({maxExpenseAge: 30} as Policy)).toBe(true);
+            });
+
+            it('returns false when maxExpenseAge is the default value', () => {
+                expect(hasConfiguredRules({maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE} as Policy)).toBe(false);
+            });
+
+            it('returns false when maxExpenseAge is the disabled value', () => {
+                expect(hasConfiguredRules({maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE} as Policy)).toBe(false);
+            });
+        });
+
+        describe('maxExpenseAmountNoReceipt', () => {
+            it('returns true when maxExpenseAmountNoReceipt is set to a non-default value', () => {
+                expect(hasConfiguredRules({maxExpenseAmountNoReceipt: 5000} as Policy)).toBe(true);
+            });
+
+            it('returns false when maxExpenseAmountNoReceipt is the default value', () => {
+                expect(hasConfiguredRules({maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT} as Policy)).toBe(false);
+            });
+
+            it('returns false when maxExpenseAmountNoReceipt is the disabled value', () => {
+                expect(hasConfiguredRules({maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE} as Policy)).toBe(false);
+            });
+        });
+
+        describe('maxExpenseAmountNoItemizedReceipt', () => {
+            it('returns true when maxExpenseAmountNoItemizedReceipt is set to a non-default value', () => {
+                expect(hasConfiguredRules({maxExpenseAmountNoItemizedReceipt: 10000} as Policy)).toBe(true);
+            });
+
+            it('returns false when maxExpenseAmountNoItemizedReceipt is the default value', () => {
+                expect(hasConfiguredRules({maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT} as Policy)).toBe(false);
+            });
+
+            it('returns false when maxExpenseAmountNoItemizedReceipt is the disabled value', () => {
+                expect(hasConfiguredRules({maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE} as Policy)).toBe(false);
+            });
+        });
+
+        describe('defaultBillable', () => {
+            it('returns true when defaultBillable is true', () => {
+                expect(hasConfiguredRules({defaultBillable: true} as Policy)).toBe(true);
+            });
+
+            it('returns false when defaultBillable is false', () => {
+                expect(hasConfiguredRules({defaultBillable: false} as Policy)).toBe(false);
+            });
+        });
+
+        describe('defaultReimbursable', () => {
+            it('returns true when defaultReimbursable is false', () => {
+                expect(hasConfiguredRules({defaultReimbursable: false} as Policy)).toBe(true);
+            });
+
+            it('returns false when defaultReimbursable is true', () => {
+                expect(hasConfiguredRules({defaultReimbursable: true} as Policy)).toBe(false);
+            });
+        });
+
+        describe('eReceipts', () => {
+            it('returns true when eReceipts is true', () => {
+                expect(hasConfiguredRules({eReceipts: true} as Policy)).toBe(true);
+            });
+
+            it('returns false when eReceipts is false', () => {
+                expect(hasConfiguredRules({eReceipts: false} as Policy)).toBe(false);
+            });
+        });
+
+        describe('requireCompanyCardsEnabled', () => {
+            it('returns true when requireCompanyCardsEnabled is true', () => {
+                expect(hasConfiguredRules({requireCompanyCardsEnabled: true} as Policy)).toBe(true);
+            });
+
+            it('returns false when requireCompanyCardsEnabled is false', () => {
+                expect(hasConfiguredRules({requireCompanyCardsEnabled: false} as Policy)).toBe(false);
+            });
+        });
+
+        describe('prohibitedExpenses', () => {
+            it('returns true when a prohibitedExpenses value differs from its default', () => {
+                // alcohol defaults to false — setting it to true triggers the rule
+                expect(hasConfiguredRules({prohibitedExpenses: {alcohol: true}} as Policy)).toBe(true);
+            });
+
+            it('returns true when gambling is disabled (differs from default true)', () => {
+                expect(hasConfiguredRules({prohibitedExpenses: {gambling: false}} as Policy)).toBe(true);
+            });
+
+            it('returns false when prohibitedExpenses matches all defaults', () => {
+                expect(hasConfiguredRules({prohibitedExpenses: {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES}} as Policy)).toBe(false);
+            });
+
+            it('returns false when prohibitedExpenses is an empty object', () => {
+                expect(hasConfiguredRules({prohibitedExpenses: {}} as Policy)).toBe(false);
+            });
+        });
+    });
+
+    describe('getExpensifyTeamExclusions', () => {
+        const buildPersonalDetails = (logins: string[]): PersonalDetailsList => {
+            const result: PersonalDetailsList = {};
+            for (const [index, login] of logins.entries()) {
+                const accountID = index + 1;
+                result[accountID] = {accountID, login};
+            }
+            return result;
+        };
+        const buildPolicies = (
+            specs: Array<{
+                owner: string;
+                employeeLogins: string[];
+            }>,
+        ): OnyxCollection<Policy> => {
+            const result: OnyxCollection<Policy> = {};
+            for (const [index, {owner, employeeLogins}] of specs.entries()) {
+                const memberList: PolicyEmployeeList = {};
+                for (const login of employeeLogins) {
+                    memberList[login] = {email: login};
+                }
+                result[`policy_${index + 1}`] = {id: `${index + 1}`, owner, employeeList: memberList} as Policy;
+            }
+            return result;
+        };
+
+        it('returns empty when currentUserLogin is undefined', () => {
+            const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([{owner: 'customer@acme.com', employeeLogins: ['bob@acme.com']}]);
+            expect(getExpensifyTeamExclusions(details, policies, undefined)).toEqual({});
+        });
+
+        it('returns empty when currentUserLogin is on the Expensify team (exception)', () => {
+            const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([{owner: 'customer@acme.com', employeeLogins: ['am@expensify.com', 'bob@acme.com']}]);
+            expect(getExpensifyTeamExclusions(details, policies, 'staff@expensify.com')).toEqual({});
+        });
+
+        it('excludes all Expensify-team logins from personalDetails when current user is non-Expensify and has no Expensify-owned policies', () => {
+            const details = buildPersonalDetails(['am@expensify.com', 'guide@team.expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([{owner: 'customer@acme.com', employeeLogins: ['bob@acme.com']}]);
+            const result = getExpensifyTeamExclusions(details, policies, 'customer@acme.com');
+            expect(result['am@expensify.com']).toBe(true);
+            expect(result['guide@team.expensify.com']).toBe(true);
+            expect(result['bob@acme.com']).toBeUndefined();
+        });
+
+        it('preserves Expensify-team members of an Expensify-owned policy the current user belongs to', () => {
+            const details = buildPersonalDetails(['lead@expensify.com', 'unrelated_am@expensify.com', 'contractor@acme.com']);
+            const policies = buildPolicies([{owner: 'lead@expensify.com', employeeLogins: ['contractor@acme.com', 'lead@expensify.com']}]);
+            const result = getExpensifyTeamExclusions(details, policies, 'contractor@acme.com');
+            expect(result['lead@expensify.com']).toBeUndefined();
+            expect(result['unrelated_am@expensify.com']).toBe(true);
+            expect(result['contractor@acme.com']).toBeUndefined();
+        });
+
+        it('does not preserve Expensify-team members of policies the current user is not in', () => {
+            const details = buildPersonalDetails(['lead@expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([{owner: 'lead@expensify.com', employeeLogins: ['lead@expensify.com', 'someone_else@acme.com']}]);
+            const result = getExpensifyTeamExclusions(details, policies, 'bob@acme.com');
+            expect(result['lead@expensify.com']).toBe(true);
+        });
+
+        it('does not preserve when policy owner is non-Expensify', () => {
+            const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([{owner: 'bob@acme.com', employeeLogins: ['am@expensify.com', 'bob@acme.com']}]);
+            const result = getExpensifyTeamExclusions(details, policies, 'bob@acme.com');
+            expect(result['am@expensify.com']).toBe(true);
+        });
+
+        it('handles undefined and empty inputs gracefully', () => {
+            expect(getExpensifyTeamExclusions(undefined, undefined, 'customer@acme.com')).toEqual({});
+            expect(getExpensifyTeamExclusions(null as unknown as OnyxEntry<PersonalDetailsList>, null as unknown as OnyxCollection<Policy>, 'customer@acme.com')).toEqual({});
+            expect(getExpensifyTeamExclusions({}, {}, 'customer@acme.com')).toEqual({});
+        });
+
+        it('lowercases comparison keys for current user and employeeList matching', () => {
+            const details = buildPersonalDetails(['AM@expensify.com', 'Bob@Acme.com']);
+            const policies = buildPolicies([{owner: 'lead@expensify.com', employeeLogins: ['AM@expensify.com', 'Contractor@Acme.com']}]);
+            const result = getExpensifyTeamExclusions(details, policies, 'Contractor@Acme.com');
+            expect(result['am@expensify.com']).toBeUndefined();
+            expect(result['bob@acme.com']).toBeUndefined();
+        });
+    });
+    describe('canAccessSubmitWorkspaceFeatures', () => {
+        const submitPolicyForAccessTest: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-access-test'};
+        const teamPolicyForAccessTest: Policy = {...createRandomPolicy(99002, CONST.POLICY.TYPE.TEAM), id: 'policy-team-access-test'};
+
+        it('returns true when policy is Submit and SUBMIT_2026 beta is enabled', () => {
+            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, true)).toBe(true);
+        });
+
+        it('returns false when policy is Submit and SUBMIT_2026 beta is disabled', () => {
+            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, false)).toBe(false);
+        });
+
+        it('returns false when policy is not Submit even if beta is enabled', () => {
+            expect(canAccessSubmitWorkspaceFeatures(teamPolicyForAccessTest, true)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(canAccessSubmitWorkspaceFeatures(undefined, true)).toBe(false);
+        });
+    });
+
+    describe('tryNavigateToSubmitWorkspaceUpgrade', () => {
+        const submitPolicyForNavTest: Policy = {...createRandomPolicy(99003, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-nav-test'};
+        const teamPolicyForNavTest: Policy = {...createRandomPolicy(99004, CONST.POLICY.TYPE.TEAM), id: 'policy-team-nav-test'};
+        const featureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias;
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('returns false and does not navigate when isEnabling is false', () => {
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias)).toBe(false);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('returns false when policy is not Submit', () => {
+            expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, true, featureAlias)).toBe(false);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('navigates to workspace upgrade and returns true for Submit policy regardless of beta', () => {
+            const policyID = submitPolicyForNavTest.id;
+            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, featureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias)).toBe(true);
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+        });
+    });
+
+    describe('Vendor matching helpers', () => {
+        const buildQBOPolicy = (
+            exportDestination: string | undefined,
+            vendors: Array<{id: string; name: string; currency: string}> = [{id: 'v-1', name: 'Acme Co', currency: 'USD'}],
+        ): Policy =>
+            ({
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: exportDestination ? {nonReimbursableExpensesExportDestination: exportDestination} : {},
+                        data: {vendors},
+                    },
+                } as unknown as Connections,
+            }) as Policy;
+
+        describe('hasVendorFeature', () => {
+            it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), true)).toBe(true);
+            });
+
+            it('returns true when beta is enabled and QBO non-reimbursable export is Debit Card', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD), true)).toBe(true);
+            });
+
+            it('returns false when beta is disabled, even with Credit Card export configured', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(false);
+            });
+
+            it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL), true)).toBe(false);
+            });
+
+            it('returns false when QBO export destination is not set', () => {
+                expect(hasVendorFeature(buildQBOPolicy(undefined), true)).toBe(false);
+            });
+
+            it('returns false when no QBO connection exists on the policy', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(hasVendorFeature(policy, true)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(hasVendorFeature(undefined, true)).toBe(false);
+            });
+        });
+
+        describe('getQBOVendors', () => {
+            it('returns the vendor list from the QBO connection', () => {
+                const vendors = [
+                    {id: 'v-1', name: 'Acme', currency: 'USD'},
+                    {id: 'v-2', name: 'Other Co', currency: 'USD'},
+                ];
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, vendors);
+                expect(getQBOVendors(policy)).toEqual(vendors);
+            });
+
+            it('returns an empty array when no QBO connection exists', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(getQBOVendors(policy)).toEqual([]);
+            });
+
+            it('returns an empty array when policy is undefined', () => {
+                expect(getQBOVendors(undefined)).toEqual([]);
+            });
+        });
+
+        describe('getQBOVendorByID', () => {
+            it('returns the matching vendor when the ID exists in the list', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
+                    {id: 'v-1', name: 'Acme', currency: 'USD'},
+                    {id: 'v-2', name: 'Other Co', currency: 'USD'},
+                ]);
+                expect(getQBOVendorByID(policy, 'v-2')).toEqual({id: 'v-2', name: 'Other Co', currency: 'USD'});
+            });
+
+            it('returns undefined when the ID is not in the list (the inactive-vendor case)', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+                expect(getQBOVendorByID(policy, 'v-missing')).toBeUndefined();
+            });
+
+            it('returns undefined when no QBO connection exists', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(getQBOVendorByID(policy, 'v-1')).toBeUndefined();
+            });
+        });
+    });
+
+    describe('hasPolicyRulesError', () => {
+        it('returns false for an undefined policy', () => {
+            expect(hasPolicyRulesError(undefined)).toBe(false);
+        });
+
+        it('returns false when no coding or AI rules exist', () => {
+            const policy: Policy = {...createRandomPolicy(0), rules: {}};
+            expect(hasPolicyRulesError(policy)).toBe(false);
+        });
+
+        it('returns false when rules exist but none have errors', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                rules: {
+                    codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}}},
+                    aiRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}},
+                },
+            };
+            expect(hasPolicyRulesError(policy)).toBe(false);
+        });
+
+        it('returns true when a coding rule has errors', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                rules: {
+                    codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}, errors: {123: 'boom'}}},
+                },
+            };
+            expect(hasPolicyRulesError(policy)).toBe(true);
+        });
+
+        it('returns true when an AI rule has errors', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                rules: {
+                    aiRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
+                },
+            };
+            expect(hasPolicyRulesError(policy)).toBe(true);
         });
     });
 });

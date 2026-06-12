@@ -1,11 +1,11 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import Composer from '@components/Composer';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/RNMarkdownTextInput', () => {
     return jest.fn().mockImplementation(() => null);
@@ -20,7 +20,10 @@ describe('Composer', () => {
     });
 
     afterEach(async () => {
-        await Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     it('should show large emoji size if only has header markdown + emoji', async () => {
@@ -30,7 +33,7 @@ describe('Composer', () => {
             </OnyxListItemProvider>,
         );
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         const props = (RNMarkdownTextInput as jest.MockedFunction<typeof RNMarkdownTextInput>).mock.calls.at(0)?.at(0);
         expect(props).toEqual(

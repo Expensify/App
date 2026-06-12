@@ -9,13 +9,10 @@ function QuickEmojiReactions({closeContextMenu, ...rest}: QuickEmojiReactionsPro
 
     return (
         <BaseQuickEmojiReactions
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             onPressOpenPicker={onPressOpenPicker}
         />
     );
 }
-
-QuickEmojiReactions.displayName = 'QuickEmojiReactions';
 
 export default QuickEmojiReactions;

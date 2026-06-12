@@ -1,18 +1,12 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import useHoldMenuSubmit from '@hooks/useHoldMenuSubmit';
+import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import Navigation from '@libs/Navigation/Navigation';
-import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
-import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import DecisionModal from './DecisionModal';
-
-type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
 
 type ProcessMoneyReportHoldMenuProps = {
     /** The chat report this report is linked to */
@@ -36,66 +30,62 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Type of payment */
     paymentType?: PaymentMethodType;
 
+    /** Selected VBBA ID for payment */
+    methodID?: number;
+
     /** Type of action handled */
     requestType?: ActionHandledType;
 
     /** Number of transaction of a money request */
     transactionCount: number;
 
-    /** Callback for displaying payment animation on IOU preview component */
-    startAnimation?: () => void;
+    /** Callback invoked after the user confirms pay/approve, receives whether the full amount was chosen */
+    onConfirm?: (full: boolean) => void;
+
+    /** Whether the report has non held expenses */
+    hasNonHeldExpenses?: boolean;
 };
 
 function ProcessMoneyReportHoldMenu({
     requestType,
-    nonHeldAmount,
+    nonHeldAmount = '0',
     fullAmount,
     onClose,
     isVisible,
     paymentType,
+    methodID,
     chatReport,
     moneyRequestReport,
     transactionCount,
-    startAnimation,
+    onConfirm,
+    hasNonHeldExpenses,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
-    const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const onSubmit = (full: boolean) => {
-        if (isApprove) {
-            if (startAnimation) {
-                startAnimation();
-            }
-            approveMoneyRequest(moneyRequestReport, full);
-            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId(), moneyRequestReport?.reportID)) {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID));
-            }
-        } else if (chatReport && paymentType) {
-            if (startAnimation) {
-                startAnimation();
-            }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, undefined, full);
-        }
-        onClose();
-    };
-
-    const promptText = useMemo(() => {
-        if (nonHeldAmount) {
-            return translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount');
-        }
-        return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount});
-    }, [nonHeldAmount, transactionCount, translate, isApprove]);
+    const {onSubmit, isApprove} = useHoldMenuSubmit({
+        moneyRequestReport,
+        chatReport,
+        requestType,
+        paymentType,
+        methodID,
+        onClose,
+        onConfirm,
+    });
 
     return (
         <DecisionModal
             title={translate(isApprove ? 'iou.confirmApprove' : 'iou.confirmPay')}
             onClose={onClose}
             isVisible={isVisible}
-            prompt={promptText}
-            firstOptionText={nonHeldAmount ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
+            prompt={
+                hasNonHeldExpenses
+                    ? translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount')
+                    : translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount})
+            }
+            firstOptionText={hasNonHeldExpenses ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}
@@ -103,8 +93,6 @@ function ProcessMoneyReportHoldMenu({
         />
     );
 }
-
-ProcessMoneyReportHoldMenu.displayName = 'ProcessMoneyReportHoldMenu';
 
 export default ProcessMoneyReportHoldMenu;
 export type {ActionHandledType};

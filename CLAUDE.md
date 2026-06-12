@@ -7,7 +7,7 @@
 - **Language**: TypeScript
 - **State Management**: React Native Onyx
 - **Navigation**: React Navigation
-- **Platforms**: iOS, Android, Web, Desktop (Electron)
+- **Platforms**: iOS, Android, Web
 
 ## HybridApp Architecture (Critical Context)
 
@@ -22,7 +22,7 @@
 - Mobile builds **must** be initiated from the Mobile-Expensify directory
 
 ### Build Modes
-- **Standalone**: Pure NewDot application (web/desktop)
+- **Standalone**: Pure NewDot application (web)
 - **HybridApp**: Combined OldDot + NewDot (mobile apps)
 - Controlled via `STANDALONE_NEW_DOT` environment variable
 
@@ -154,7 +154,6 @@ Key GitHub Actions workflows:
 - `test.yml`: Unit tests
 - `typecheck.yml`: TypeScript validation
 - `lint.yml`: Code quality checks
-- `e2ePerformanceTests.yml`: Performance testing
 
 ## Related Repositories
 
@@ -172,15 +171,37 @@ Key GitHub Actions workflows:
 
 ## Development Practices
 
+### React Native Best Practices
+Use the `/react-native-best-practices` skill when working on performance-sensitive code, native modules, or release preparation. This ensures code respects established best practices from the start, resulting in more consistent code, fewer review iterations, and better resilience against regressions.
+
+The skill provides guidance on:
+- **Performance**: FPS optimization, virtualized lists (FlashList), memoization, atomic state, animations
+- **Bundle & App Size**: Barrel imports, tree shaking, bundle analysis, R8 shrinking
+- **Startup (TTI)**: Hermes bytecode optimization, native navigation, deferred work
+- **Native Modules**: Turbo Module development, threading model, Swift/Kotlin/C++ patterns
+- **Memory**: JS and native memory leak detection and patterns
+- **Build Compliance**: Android 16KB page alignment (Google Play requirement)
+- **Platform Tooling**: Xcode/Android Studio profiling and debugging setup
+
+### Memoization
+
+React Compiler (`babel-plugin-react-compiler`) runs in the build pipeline (see `babel.config.js`) and auto-memoizes object literals, callbacks, JSX, and derived values inside components and hooks, excluding `tests/`.
+
 ### Code Quality
 - **TypeScript**: Strict mode enabled
-- **ESLint**: Linter
-- **Prettier**: Automatic formatting
+- **ESLint**: Linter. Pre-existing violations are grandfathered via [`eslint-seatbelt`](https://github.com/justjake/eslint-seatbelt).
+- **Prettier**: Code formatting - run `npm run prettier` after making changes
 - **Patch Management**: patch-package for dependency fixes
+
+### Post-Edit Checklist (IMPORTANT)
+**ALWAYS run these steps after making code changes, before committing:**
+1. **Prettier**: Run `npx prettier --write <changed files>` on every file you modified. This is mandatory - CI will reject unformatted code.
+2. **ESLint**: Run `npm run lint-changed` to catch lint errors early.
+3. **TypeScript**: Run `npm run typecheck-tsgo` after changes that may affect typing (types, interfaces, or function signatures). It is ~10x faster and usually stricter than tsc. CI validates with `npm run typecheck` (tsc), which remains the required merge gate.
+4. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI: new components/hooks must compile, and existing compiled files must not regress. See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
 
 ### Testing
 - **Unit Tests**: Jest with React Native Testing Library
-- **E2E Tests**: Custom test runner
 - **Performance Tests**: Reassure framework
 
 ## Special Considerations
@@ -208,6 +229,10 @@ Key GitHub Actions workflows:
 
 ## Development Setup Requirements
 
+### Sentry analysis
+
+Use Sentry skill whenever user wants to analyze any data from Sentry. It may be: spans, metrics, crashes, crash free rate etc.
+
 ## Command Reference
 
 ### Common Tasks
@@ -218,11 +243,17 @@ npm install
 # Clean build artifacts
 npm run clean
 
-# Type checking
+# Type checking (tsgo, fast, for development only)
+npm run typecheck-tsgo
+
+# Type checking (tsc, CI production gate)
 npm run typecheck
 
 # Linting
 npm run lint
+
+# Format code with Prettier
+npm run prettier
 
 # Testing
 npm run test
@@ -236,12 +267,23 @@ npm run ios
 # Android build
 npm run android
 
-# Desktop build
-npm run desktop
-
 # Web build
 npm run web
 ```
+
+## Development Environment
+
+### Dev Server
+- **Location**: Runs on HOST machine (not in VM)
+- **URL**: `https://dev.new.expensify.com:8082/`
+- **Start command**: `npm run web`
+- **VM is only for**: Backend services (Auth, Bedrock, Integration-Server, Web-Expensify)
+
+### Browser Testing
+Use the `/playwright-app-testing` skill to test and debug the App in a browser. Use this skill after making frontend changes to verify your work, or when the user requests testing.
+
+### Mobile Device Testing
+Use the `/agent-device` skill to drive the App on iOS and Android (simulators or real devices) for interactive testing, performance profiling, bug reproduction, and device-specific debugging. Requires `npm install -g agent-device` - the skill's pre-flight check will surface the install instruction if missing.
 
 ## Architecture Decisions
 

@@ -9,16 +9,7 @@ function EducationalTooltip({children, ...props}: TooltipExtendedProps) {
         return children;
     }
 
-    return (
-        <BaseEducationalTooltip
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        >
-            {children}
-        </BaseEducationalTooltip>
-    );
+    return <BaseEducationalTooltip {...props}>{children}</BaseEducationalTooltip>;
 }
-
-EducationalTooltip.displayName = 'EducationalTooltip';
 
 export default EducationalTooltip;

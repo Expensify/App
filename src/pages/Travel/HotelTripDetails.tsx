@@ -1,10 +1,9 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
+import UserPills from '@components/UserPills';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -46,6 +45,8 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                 numberOfLinesTitle={2}
                 pressableTestID={CONST.RESERVATION_ADDRESS_TEST_ID}
                 copyValue={reservation.start.address}
+                copyable
+                interactive={false}
             />
             <MenuItemWithTopDescription
                 description={translate('travel.hotelDetails.checkIn')}
@@ -78,23 +79,32 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                     description={translate('travel.hotelDetails.confirmation')}
                     title={reservation.confirmations?.at(0)?.value}
                     copyValue={reservation.confirmations?.at(0)?.value}
+                    copyable
+                    interactive={false}
                 />
             )}
             {!!displayName && (
-                <MenuItem
-                    label={translate('travel.hotelDetails.guest')}
-                    title={displayName}
-                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                <MenuItemWithTopDescription
+                    description={translate('travel.hotelDetails.guest')}
+                    descriptionTextStyle={styles.fontSizeLabel}
                     interactive={false}
-                    wrapperStyle={styles.pb3}
+                    accessibilityLabel={`${translate('travel.hotelDetails.guest')} ${displayName}`}
+                    titleComponent={
+                        <UserPills
+                            users={[
+                                {
+                                    avatar: personalDetails?.avatar,
+                                    displayName,
+                                    accountID: personalDetails?.accountID,
+                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                },
+                            ]}
+                        />
+                    }
                 />
             )}
         </>
     );
 }
-
-HotelTripDetails.displayName = 'HotelTripDetails';
 
 export default HotelTripDetails;

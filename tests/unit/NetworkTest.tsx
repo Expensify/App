@@ -1,13 +1,9 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
-import {sub as dateSubtract} from 'date-fns/sub';
-import type {Mock} from 'jest-mock';
 import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
-import TestToolMenu from '@components/TestToolMenu';
 import {confirmReadyToOpenApp, reconnectApp} from '@libs/actions/App';
+import * as Reconnect from '@libs/actions/Reconnect';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import CONST from '@src/CONST';
-import * as NetworkActions from '@src/libs/actions/Network';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import * as PersonalDetails from '@src/libs/actions/PersonalDetails';
@@ -18,7 +14,7 @@ import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
-import NetworkConnection from '@src/libs/NetworkConnection';
+import {getIsOffline, setHasRadio} from '@src/libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as OnyxSession} from '@src/types/onyx';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
@@ -41,6 +37,7 @@ const originalXHR = HttpUtils.xhr;
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
+    setHasRadio(true);
 
     // Reset any pending requests
     MainQueue.clear();
@@ -115,7 +112,7 @@ describe('NetworkTests', () => {
                 // Verify:
                 // 1. We attempted to authenticate twice (first failed, retry succeeded)
                 // 2. The session has the new auth token (user wasn't logged out)
-                const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
                 expect(callsToAuthenticate.length).toBe(2);
                 expect(sessionState?.authToken).toBe(NEW_AUTH_TOKEN);
             });
@@ -137,6 +134,7 @@ describe('NetworkTests', () => {
         // Sign in test user and wait for updates
         await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdates();
 
         const initialAuthToken = sessionState?.authToken;
@@ -163,16 +161,17 @@ describe('NetworkTests', () => {
         HttpUtils.xhr = mockedXhr;
 
         // 3. Test Execution Phase - Start with online network
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         // Trigger reconnect which will fail due to expired token
         confirmReadyToOpenApp();
         reconnectApp();
         await waitForBatchedUpdates();
 
-        // 4. First API Call Verification - Check ReconnectApp
+        // 4. First API Call Verification - Check that an app sync call was made (OpenApp or ReconnectApp)
         const firstCall = mockedXhr.mock.calls.at(0) as [string, Record<string, unknown>];
-        expect(firstCall[0]).toBe('ReconnectApp');
+        expect(['OpenApp', 'ReconnectApp']).toContain(firstCall[0]);
 
         // 5. Authentication Start - Verify authenticate was triggered
         await waitForBatchedUpdates();
@@ -180,56 +179,51 @@ describe('NetworkTests', () => {
         expect(secondCall[0]).toBe('Authenticate');
 
         // 6. Network State Change - Set offline and back online while authenticate is pending
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
-        // 7.Trigger another reconnect due to network change
+        // 7. Trigger another reconnect due to network change
         confirmReadyToOpenApp();
         reconnectApp();
 
         // 8. Now fail the pending authentication request
         resolveAuthRequest(Promise.reject(new Error('Network request failed')));
-        await waitForBatchedUpdates(); // Now we wait for all updates after the auth request fails
+        await waitForBatchedUpdates();
 
         // 9. Verify the session remained intact and wasn't cleared
         expect(sessionState?.authToken).toBe(initialAuthToken);
     });
 
-    test('consecutive API calls eventually succeed when authToken is expired', () => {
-        // Given a test user login and account ID
+    test('READ requests trigger reconnect after successful re-authentication', () => {
         const TEST_USER_LOGIN = 'test@testguy.com';
         const TEST_USER_ACCOUNT_ID = 1;
 
-        const reconnectionCallbacksSpy = jest.spyOn(NetworkConnection, 'triggerReconnectionCallbacks');
-        expect(reconnectionCallbacksSpy.mock.calls.length).toBe(0);
+        const reconnectSpy = jest.spyOn(Reconnect, 'reconnect');
 
         // When we sign in
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
                 const mockedXhr = jest.fn();
                 mockedXhr
-
-                    // And mock the first call to openPublicProfilePage return with an expired session code
+                    // First 3 READ calls return expired session
                     .mockImplementationOnce(() =>
                         Promise.resolve({
                             jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                         }),
                     )
-
-                    // The next 2 API calls will also fire and also return a 407
                     .mockImplementationOnce(() =>
                         Promise.resolve({
                             jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                         }),
                     )
-
                     .mockImplementationOnce(() =>
                         Promise.resolve({
                             jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                         }),
                     )
-
-                    // The request to Authenticate should succeed and we mock the responses for the remaining calls
+                    // Authenticate succeeds
                     .mockImplementationOnce(() =>
                         Promise.resolve({
                             jsonCode: CONST.JSON_CODE.SUCCESS,
@@ -239,22 +233,21 @@ describe('NetworkTests', () => {
 
                 HttpUtils.xhr = mockedXhr;
 
-                // And then make 3 API READ requests in quick succession with an expired authToken and handle the response
-                // It doesn't matter which requests these are really as all the response is mocked we just want to see
-                // that we get re-authenticated
+                // Make 3 READ requests with an expired authToken
                 PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
                 PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
                 PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                // We should expect to see the three calls to OpenApp, but only one call to Authenticate.
-                // And we should also see the reconnection callbacks triggered.
-                const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
-                const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                // Verify: 3 calls to the API, 1 authenticate call, and reconnect was triggered
+                const callsToOpenPublicProfilePage = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
+                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
                 expect(callsToOpenPublicProfilePage.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
-                expect(reconnectionCallbacksSpy.mock.calls.length).toBe(3);
+                expect(reconnectSpy).toHaveBeenCalled();
+
+                reconnectSpy.mockRestore();
             });
     });
 
@@ -294,7 +287,7 @@ describe('NetworkTests', () => {
     test('Non-retryable request will not be retried if connection is lost in flight', () => {
         // Given a xhr mock that will fail as if network connection dropped
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockImplementationOnce(() => {
-            Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+            setHasRadio(false);
             return Promise.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
         });
 
@@ -304,7 +297,7 @@ describe('NetworkTests', () => {
         return waitForBatchedUpdates()
             .then(() => {
                 // When network connection is recovered
-                Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -327,7 +320,7 @@ describe('NetworkTests', () => {
         const logHmmmSpy = jest.spyOn(Log, 'hmmm');
 
         // Given we have a request made while online
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
+        return Promise.resolve(setHasRadio(true))
             .then(() => {
                 Network.post('MockBadNetworkResponse', {param1: 'value1'});
                 return waitForBatchedUpdates();
@@ -343,7 +336,7 @@ describe('NetworkTests', () => {
         const logAlertSpy = jest.spyOn(Log, 'alert');
 
         // Given we have a request made while online
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
+        return Promise.resolve(setHasRadio(true))
             .then(() => {
                 Network.post('MockBadNetworkResponse', {param1: 'value1'});
                 return waitForBatchedUpdates();
@@ -359,9 +352,9 @@ describe('NetworkTests', () => {
         const onResolved = jest.fn() as jest.MockedFunction<OnResolved>;
 
         // Given we have a request made while online
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
+        return Promise.resolve(setHasRadio(true))
             .then(() => {
-                expect(NetworkStore.isOffline()).toBe(false);
+                expect(getIsOffline()).toBe(false);
 
                 // When network calls with are made
                 Network.post('mock command', {param1: 'value1'}).then(onResolved);
@@ -380,7 +373,7 @@ describe('NetworkTests', () => {
         // GIVEN a mock that will return a "cancelled" request error
         global.fetch = jest.fn().mockRejectedValue(new DOMException('Aborted', CONST.ERROR.REQUEST_CANCELLED));
 
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
+        return Promise.resolve(setHasRadio(true))
             .then(() => {
                 // WHEN we make a few requests and then cancel them
                 Network.post('MockCommandOne');
@@ -395,47 +388,5 @@ describe('NetworkTests', () => {
                 expect(MainQueue.getAll().length).toBe(0);
                 expect(xhr.mock.calls.length).toBe(3);
             });
-    });
-
-    test('poor connection simulation', async () => {
-        const logSpy = jest.spyOn(Log, 'info');
-        const setShouldForceOfflineSpy = jest.spyOn(NetworkActions, 'setShouldForceOffline');
-        const setShouldFailAllRequestsSpy = jest.spyOn(NetworkActions, 'setShouldFailAllRequests');
-
-        // Given an opened test tool menu
-        render(<TestToolMenu />);
-        expect(screen.getByAccessibilityHint('Force offline')).not.toBeDisabled();
-        expect(screen.getByAccessibilityHint('Simulate failing network requests')).not.toBeDisabled();
-
-        // When the connection simulation is turned on
-        NetworkActions.setShouldSimulatePoorConnection(true, undefined);
-        await waitForBatchedUpdates();
-
-        // Then the connection status change log should be displayed as well Simulate poor internet connection toggle should be checked
-        expect(logSpy).toHaveBeenCalledWith(expect.stringMatching(/\[NetworkConnection\] Set connection status "(online|offline)" for (\d+(?:\.\d+)?) sec/));
-        expect(screen.getByAccessibilityHint('Simulate poor internet connection')).toBeChecked();
-
-        // And the setShouldForceOffline and setShouldFailAllRequests should not be called as the Force offline and Simulate failing network requests toggles are disabled
-        fireEvent.press(screen.getByAccessibilityHint('Force offline'));
-        await waitForBatchedUpdates();
-        expect(setShouldForceOfflineSpy).not.toHaveBeenCalled();
-
-        fireEvent.press(screen.getByAccessibilityHint('Simulate failing network requests'));
-        await waitForBatchedUpdates();
-        expect(setShouldFailAllRequestsSpy).not.toHaveBeenCalled();
-    });
-
-    test('connection changes tracking', async () => {
-        const logSpy = jest.spyOn(Log, 'info');
-
-        // Given tracked connection changes started at least an hour ago
-        Onyx.merge(ONYXKEYS.NETWORK, {connectionChanges: {amount: 5, startTime: dateSubtract(new Date(), {hours: 1}).getTime()}});
-        await waitForBatchedUpdates();
-
-        // When the connection is changed one more time
-        NetworkConnection.setOfflineStatus(true);
-
-        // Then the log with information about connection changes since the start time should be shown
-        expect(logSpy).toHaveBeenCalledWith('[NetworkConnection] Connection has changed 6 time(s) for the last 1 hour(s). Poor connection simulation is turned off');
     });
 });

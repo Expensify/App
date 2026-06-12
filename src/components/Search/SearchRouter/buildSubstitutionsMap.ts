@@ -1,12 +1,12 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {SearchAutocompleteQueryRange} from '@components/Search/types';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
-import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
-
-const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
+import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
 
 /**
  * Given a plaintext query and specific entities data,
@@ -29,10 +29,12 @@ function buildSubstitutionsMap(
     personalDetails: PersonalDetailsList | undefined,
     reports: OnyxCollection<Report>,
     allTaxRates: Record<string, string[]>,
-    cardList: CardList,
+    cardList: CardList | undefined,
     cardFeeds: OnyxCollection<CardFeeds>,
     policies: OnyxCollection<Policy>,
     currentUserAccountID: number,
+    translate: LocalizedTranslate,
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
@@ -40,6 +42,8 @@ function buildSubstitutionsMap(
     if (searchAutocompleteQueryRanges.length === 0) {
         return {};
     }
+
+    const substitutionKeyOccurrences = new Map<string, number>();
 
     const substitutionsMap = searchAutocompleteQueryRanges.reduce((map, range) => {
         const {key: filterKey, value: filterValue} = range;
@@ -52,12 +56,15 @@ function buildSubstitutionsMap(
 
             const taxRateNames = taxRates.length > 0 ? taxRates : [taxRateID];
             const uniqueTaxRateNames = [...new Set(taxRateNames)];
-            uniqueTaxRateNames.forEach((taxRateName) => {
-                const substitutionKey = getSubstitutionsKey(filterKey, taxRateName);
+            for (const taxRateName of uniqueTaxRateNames) {
+                const substitutionBaseKey = getSubstitutionMapKey(filterKey, taxRateName);
+                const occurrenceIndex = substitutionKeyOccurrences.get(substitutionBaseKey) ?? 0;
+                substitutionKeyOccurrences.set(substitutionBaseKey, occurrenceIndex + 1);
+                const substitutionKey = getSubstitutionMapKeyWithIndex(filterKey, taxRateName, occurrenceIndex);
 
                 // eslint-disable-next-line no-param-reassign
                 map[substitutionKey] = taxRateID;
-            });
+            }
         } else if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
@@ -71,11 +78,25 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
-            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID);
+            const displayValue = getFilterDisplayValue({
+                filterName: filterKey,
+                filterValue,
+                personalDetails,
+                reports,
+                cardList,
+                cardFeeds,
+                policies,
+                currentUserAccountID,
+                translate,
+                reportAttributes,
+            });
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {
-                const substitutionKey = getSubstitutionsKey(filterKey, displayValue);
+                const substitutionBaseKey = getSubstitutionMapKey(filterKey, displayValue);
+                const occurrenceIndex = substitutionKeyOccurrences.get(substitutionBaseKey) ?? 0;
+                substitutionKeyOccurrences.set(substitutionBaseKey, occurrenceIndex + 1);
+                const substitutionKey = getSubstitutionMapKeyWithIndex(filterKey, displayValue, occurrenceIndex);
                 // eslint-disable-next-line no-param-reassign
                 map[substitutionKey] = filterValue;
             }

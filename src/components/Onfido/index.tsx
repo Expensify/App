@@ -25,7 +25,7 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps) {
                 }
             }
         });
-        if (baseOnfidoRef.current) {
+        if (baseOnfidoRef.current instanceof Node) {
             observer.observe(baseOnfidoRef.current, {attributes: false, childList: true, subtree: true});
         }
 
@@ -53,7 +53,5 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps) {
         />
     );
 }
-
-Onfido.displayName = 'Onfido';
 
 export default Onfido;

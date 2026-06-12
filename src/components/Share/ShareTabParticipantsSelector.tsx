@@ -1,37 +1,46 @@
-import React, {forwardRef} from 'react';
+import React, {useState} from 'react';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
+import {clearMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {getOptimisticChatReport, saveReportDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type ROUTES from '@src/ROUTES';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 
 type ShareTabParticipantsSelectorProps = {
     detailsPageRouteObject: typeof ROUTES.SHARE_SUBMIT_DETAILS | typeof ROUTES.SHARE_DETAILS;
 };
 
-type InputFocusRef = {
-    focus?: () => void;
-};
-
-function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTabParticipantsSelectorProps, ref: React.Ref<InputFocusRef>) {
+function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTabParticipantsSelectorProps) {
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
     return (
         <MoneyRequestParticipantsSelector
-            ref={ref}
             iouType={CONST.IOU.TYPE.SUBMIT}
+            initiallySelectedReportID={typeof selectedReportID === 'string' ? selectedReportID : undefined}
             onParticipantsAdded={(value) => {
+                // clear the existing draft transaction from the previous flow to prevent the old data from being displayed
+                clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs);
+
                 const participant = value.at(0);
                 let reportID = participant?.reportID ?? CONST.DEFAULT_NUMBER_ID;
                 const accountID = participant?.accountID;
                 if (accountID && !reportID) {
                     saveUnknownUserDetails(participant);
-                    const optimisticReport = getOptimisticChatReport(accountID);
+                    const optimisticReport = getOptimisticChatReport(accountID, currentUserAccountID);
                     reportID = optimisticReport.reportID;
 
+                    setSelectedReportID(reportID);
                     saveReportDraft(reportID, optimisticReport).then(() => {
                         Navigation.navigate(detailsPageRouteObject.getRoute(reportID.toString()));
                     });
                 } else {
+                    setSelectedReportID(reportID);
                     Navigation.navigate(detailsPageRouteObject.getRoute(reportID.toString()));
                 }
             }}
@@ -40,4 +49,4 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     );
 }
 
-export default forwardRef<InputFocusRef, ShareTabParticipantsSelectorProps>(ShareTabParticipantsSelectorComponent);
+export default ShareTabParticipantsSelectorComponent;

@@ -1,12 +1,13 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {MagnifyingGlass} from './Icon/Expensicons';
 import Text from './Text';
 import TextInput from './TextInput';
 
@@ -18,16 +19,22 @@ type SearchBarProps = {
     onSubmitEditing?: (text: string) => void;
     style?: StyleProp<ViewStyle>;
     shouldShowEmptyState?: boolean;
+    emptyStateContainerStyle?: StyleProp<ViewStyle>;
 };
 
-function SearchBar({label, style, icon = MagnifyingGlass, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState}: SearchBarProps) {
+function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle}: SearchBarProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
+    const noResultsMessage = translate('common.noResultsFoundMatching', inputValue);
+    const shouldAnnounceNoResults = !!shouldShowEmptyState && inputValue.length !== 0;
+
+    useDebouncedAccessibilityAnnouncement(noResultsMessage, shouldAnnounceNoResults, inputValue);
 
     return (
         <>
-            <View style={[styles.getSearchBarStyle(shouldUseNarrowLayout), style]}>
+            <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowLayout && !isInLandscapeMode), style]}>
                 <TextInput
                     label={label}
                     accessibilityLabel={label}
@@ -37,21 +44,25 @@ function SearchBar({label, style, icon = MagnifyingGlass, inputValue, onChangeTe
                     inputMode={CONST.INPUT_MODE.TEXT}
                     selectTextOnFocus
                     spellCheck={false}
-                    icon={inputValue?.length ? undefined : icon}
+                    icon={inputValue?.length ? undefined : (icon ?? expensifyIcons.MagnifyingGlass)}
                     iconContainerStyle={styles.p0}
                     onSubmitEditing={() => onSubmitEditing?.(inputValue)}
                     shouldShowClearButton
                     shouldHideClearButton={!inputValue?.length}
                 />
             </View>
-            {!!shouldShowEmptyState && inputValue.length !== 0 && (
-                <View style={[styles.ph5, styles.pt3, styles.pb5]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', {searchString: inputValue})}</Text>
+            {shouldAnnounceNoResults && (
+                <View style={[styles.ph5, styles.pt3, styles.pb5, emptyStateContainerStyle]}>
+                    <Text
+                        style={[styles.textNormal, styles.colorMuted]}
+                        aria-hidden
+                    >
+                        {noResultsMessage}
+                    </Text>
                 </View>
             )}
         </>
     );
 }
 
-SearchBar.displayName = 'SearchBar';
 export default SearchBar;

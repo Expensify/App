@@ -1,8 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -55,11 +54,10 @@ function NetSuiteExpenseReportApprovalLevelSelectPage({policy}: WithPolicyConnec
 
     return (
         <SelectionScreen
-            displayName={NetSuiteExpenseReportApprovalLevelSelectPage.displayName}
+            displayName="NetSuiteExpenseReportApprovalLevelSelectPage"
             title="workspace.netsuite.advancedConfig.exportReportsTo.label"
             headerContent={headerContent}
-            sections={[{data}]}
-            listItem={RadioListItem}
+            data={data}
             onSelectRow={(selection: SelectorType) => selectExpenseReportApprovalLevel(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}
@@ -75,7 +73,5 @@ function NetSuiteExpenseReportApprovalLevelSelectPage({policy}: WithPolicyConnec
         />
     );
 }
-
-NetSuiteExpenseReportApprovalLevelSelectPage.displayName = 'NetSuiteExpenseReportApprovalLevelSelectPage';
 
 export default withPolicyConnections(NetSuiteExpenseReportApprovalLevelSelectPage);

@@ -5,6 +5,7 @@ type CreateDigitalAppleWalletParams = {
     certificates: string;
     nonce: string;
     nonceSignature: string;
+    cardID: number;
 };
 
 type CreateDigitalGoogleWalletParams = {
@@ -17,5 +18,4 @@ type CreateDigitalGoogleWalletParams = {
 
 type CreateDigitalWalletParams = CreateDigitalAppleWalletParams | CreateDigitalGoogleWalletParams;
 
-export type {CreateDigitalAppleWalletParams, CreateDigitalGoogleWalletParams};
 export default CreateDigitalWalletParams;

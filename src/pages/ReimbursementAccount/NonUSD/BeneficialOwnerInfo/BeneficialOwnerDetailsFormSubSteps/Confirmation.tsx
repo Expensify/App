@@ -2,29 +2,31 @@ import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForBeneficialOwner';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import SafeString from '@src/utils/SafeString';
 
-type ConfirmationProps = SubStepProps & {ownerBeingModifiedID: string};
+type ConfirmationProps = SubPageProps & {ownerBeingModifiedID: string};
 
-const {PREFIX, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {PREFIX, NATIONALITY, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
 function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: ConfirmationProps) {
     const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const values = useMemo(() => getValuesForBeneficialOwner(ownerBeingModifiedID, reimbursementAccountDraft), [ownerBeingModifiedID, reimbursementAccountDraft]);
-    const beneficialOwnerCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
-    const beneficialOwnerCountry = String(reimbursementAccountDraft?.[beneficialOwnerCountryInputID] ?? '');
+    const beneficialOwnerNationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
+    const beneficialOwnerNationality = SafeString(reimbursementAccountDraft?.[beneficialOwnerNationalityInputID]);
+    const beneficialOwnerAddressCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
+    const beneficialOwnerAddressCountry = SafeString(reimbursementAccountDraft?.[beneficialOwnerAddressCountryInputID]);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currency = policy?.outputCurrency ?? '';
-    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
-    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, countryStepCountryValue, beneficialOwnerCountry);
+    const {country, currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
+    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, country, beneficialOwnerAddressCountry);
 
     const summaryItems = useMemo(
         () => [
@@ -37,11 +39,19 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                 },
             },
             {
+                title: CONST.ALL_COUNTRIES[values.nationality as keyof typeof CONST.ALL_COUNTRIES],
+                description: translate('ownershipInfoStep.countryOfCitizenship'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(1);
+                },
+            },
+            {
                 title: values.ownershipPercentage,
                 description: translate('ownershipInfoStep.ownershipPercentage'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(1);
+                    onMove(2);
                 },
             },
             {
@@ -49,17 +59,17 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                 description: translate('common.dob'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(2);
+                    onMove(3);
                 },
             },
-            ...(beneficialOwnerCountry === CONST.COUNTRY.US
+            ...(beneficialOwnerNationality === CONST.COUNTRY.US
                 ? [
                       {
                           title: values.ssnLast4,
                           description: translate('ownershipInfoStep.last4'),
                           shouldShowRightIcon: true,
                           onPress: () => {
-                              onMove(4);
+                              onMove(5);
                           },
                       },
                   ]
@@ -69,7 +79,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                 description: translate('ownershipInfoStep.address'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(3);
+                    onMove(4);
                 },
             },
             ...(isDocumentNeededStatus.isProofOfOwnershipNeeded
@@ -79,7 +89,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                           description: translate('ownershipInfoStep.proofOfBeneficialOwner'),
                           shouldShowRightIcon: true,
                           onPress: () => {
-                              onMove(5);
+                              onMove(6);
                           },
                       },
                   ]
@@ -91,7 +101,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                           description: translate('ownershipInfoStep.copyOfID'),
                           shouldShowRightIcon: true,
                           onPress: () => {
-                              onMove(5);
+                              onMove(6);
                           },
                       },
                   ]
@@ -103,7 +113,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                           description: translate('ownershipInfoStep.proofOfAddress'),
                           shouldShowRightIcon: true,
                           onPress: () => {
-                              onMove(5);
+                              onMove(6);
                           },
                       },
                   ]
@@ -115,14 +125,14 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                           description: translate('ownershipInfoStep.codiceFiscale'),
                           shouldShowRightIcon: true,
                           onPress: () => {
-                              onMove(5);
+                              onMove(6);
                           },
                       },
                   ]
                 : []),
         ],
         [
-            beneficialOwnerCountry,
+            beneficialOwnerNationality,
             isDocumentNeededStatus.isCodiceFiscaleNeeded,
             isDocumentNeededStatus.isCopyOfIDNeeded,
             isDocumentNeededStatus.isProofOfAddressNeeded,
@@ -136,6 +146,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             values.dob,
             values.firstName,
             values.lastName,
+            values.nationality,
             values.ownershipPercentage,
             values.proofOfOwnership,
             values.ssnLast4,
@@ -156,7 +167,5 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
         />
     );
 }
-
-Confirmation.displayName = 'Confirmation';
 
 export default Confirmation;

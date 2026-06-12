@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Report, UserMetadata} from '@src/types/onyx';
 
 type FSClass = ValueOf<typeof CONST.FULLSTORY.CLASS>;
 
@@ -24,7 +24,9 @@ interface FSPageLikeConstructor {
     new (name: string, properties: PropertiesWithoutPageName): FSPageLike;
 }
 
-type GetChatFSClass = (context: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>) => FSClass;
+type GetChatFSClass = (report: OnyxInputOrEntry<Report>) => FSClass;
+
+type ShouldInitialize = (userMetadata: UserMetadata, envName: string) => boolean;
 
 type Fullstory = {
     /**
@@ -48,6 +50,11 @@ type Fullstory = {
     onReady: () => Promise<unknown>;
 
     /**
+     * Whether Fullstory should be initialized.
+     */
+    shouldInitialize: ShouldInitialize;
+
+    /**
      * Sets the identity consent status using the Fullstory library.
      */
     consent: (shouldConsent: boolean) => void;
@@ -66,6 +73,36 @@ type Fullstory = {
      * Sets the identity as anonymous using the Fullstory library.
      */
     anonymize: () => void;
+
+    /**
+     * Returns the current FullStory session ID.
+     */
+    getSessionId: () => Promise<string | undefined>;
+
+    /**
+     * Returns the current FullStory session URL.
+     */
+    getSessionURL: () => Promise<string | undefined>;
+
+    /**
+     * Sends a custom event to FullStory.
+     */
+    event: (eventName: string, eventProperties?: Record<string, unknown>) => void;
+
+    /**
+     * Sends a log message to FullStory with the specified log level.
+     */
+    log: (level: 'log' | 'info' | 'warn' | 'error', message: string) => void;
+
+    /**
+     * Updates user properties without re-identifying.
+     */
+    setUserVars: (userVars: Record<string, unknown>) => void;
+
+    /**
+     * Resets the idle timer to prevent session timeout.
+     */
+    resetIdleTimer: () => void;
 };
 
 /**
@@ -111,53 +148,4 @@ type ForwardedFSClassProps = {
     forwardedFSClass?: FSClass;
 };
 
-/**
- * Use this type when you want your component to be able to be supplied multiple `fsClass`-like props that are going
- * to be used in its inner components.
- *
- * TS allows the `fsClass` prop to be used in any components, but the prop is only effective when passed directly to
- * core React Native components like `View`, `Text`, `Pressable`, etc.
- *
- * To solve this we have an ESLint rule that forbids the use of `fsClass` prop in all components expect those listed here,
- * and instructs the developer to use this type instead.
- *
- * @example
- * ```tsx
- * type CustomComponentProps = MultipleFSClassProps<'headerFSClass' | 'contentFSClass'> & {
- *     title: string;
- * };
- *
- * function CustomComponent({title, headerFSClass, contentFSClass}: CustomComponentProps) {
- *     return (
- *         <View>
- *             <View fsClass={headerFSClass}>
- *                 <Text>Header</Text>
- *             </View>
- *             <View fsClass={contentFSClass}>
- *                 <Text>{title}</Text>
- *             </View>
- *         </View>
- *     );
- * }
- *
- * // ...
- *
- * function Page() {
- *     return (
- *         <CustomComponent
- *             title={title}
- *             headerFSClass={shouldMaskHeader()}
- *             contentFSClass={CONST.FULLSTORY.CLASS.MASK}
- *         />
- *     );
- * }
- * ```
- */
-type MultipleFSClassProps<T extends `${string}FSClass`> = {
-    /**
-     * Used to pass down multiple `fsClass` props to inner components that will need them for Fullstory masking.
-     */
-    [key in T]?: FSClass;
-};
-
-export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, ForwardedFSClassProps, MultipleFSClassProps};
+export type {FSPageLike, Fullstory, GetChatFSClass, ForwardedFSClassProps, ShouldInitialize};

@@ -4,66 +4,33 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {GetOnboardingInitialPathParamsType, OnboardingCompanySize} from './OnboardingFlow';
-import {startOnboardingFlow} from './OnboardingFlow';
-
-type OnboardingData = Onboarding | undefined;
+import type OnboardingRHPVariant from '@src/types/onyx/OnboardingRHPVariant';
+import type {OnboardingCompanySize} from './OnboardingFlow';
 
 let isLoadingReportData = true;
-let onboarding: OnboardingData;
-
-type HasCompletedOnboardingFlowProps = {
-    onCompleted?: () => void;
-    onNotCompleted?: () => void;
-    onCanceled?: () => void;
-};
+// Tracks whether we've seen loading start (true) in the current session.
+// Without this, a stale persisted `false` from a previous session would
+// resolve the onServerDataReady() promise before OpenApp/ReconnectApp completes.
+let hasStartedLoading = false;
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
 let isServerDataReadyPromise = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-let resolveOnboardingFlowStatus: () => void;
-let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
-    resolveOnboardingFlowStatus = resolve;
-});
-
 function onServerDataReady(): Promise<void> {
     return isServerDataReadyPromise;
-}
-
-let isOnboardingInProgress = false;
-function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: HasCompletedOnboardingFlowProps) {
-    isOnboardingFlowStatusKnownPromise.then(() => {
-        if (isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
-            onCanceled?.();
-            return;
-        }
-
-        // The value `undefined` should not be used here because `testDriveModalDismissed` may not always exist in `onboarding`.
-        // So we only compare it to `false` to avoid unintentionally opening the test drive modal.
-        if (onboarding?.testDriveModalDismissed === false) {
-            startOnboardingFlow({onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route} as GetOnboardingInitialPathParamsType);
-            return;
-        }
-
-        if (onboarding?.hasCompletedGuidedSetupFlow) {
-            isOnboardingInProgress = false;
-            onCompleted?.();
-        } else if (!isOnboardingInProgress) {
-            isOnboardingInProgress = true;
-            onNotCompleted?.();
-        }
-    });
 }
 
 /**
@@ -75,17 +42,6 @@ function checkServerDataReady() {
     }
 
     resolveIsReadyPromise?.();
-}
-
-/**
- * Check if the onboarding data is loaded
- */
-function checkOnboardingDataReady() {
-    if (onboarding === undefined) {
-        return;
-    }
-
-    resolveOnboardingFlowStatus();
 }
 
 function setOnboardingPurposeSelected(value: OnboardingPurpose) {
@@ -100,8 +56,12 @@ function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null
     Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
-function setOnboardingErrorMessage(value: string) {
-    Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, value ?? null);
+function setOnboardingPersonalTrackGoal(value: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL, value);
+}
+
+function setOnboardingErrorMessage(value: TranslationPaths | null) {
+    Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, value);
 }
 
 function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
@@ -110,6 +70,10 @@ function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
 
 function setOnboardingPolicyID(policyID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
+}
+
+function setOnboardingRHPVariant(value?: OnboardingRHPVariant) {
+    Onyx.set(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, value ?? null);
 }
 
 function updateOnboardingLastVisitedPath(path: string) {
@@ -139,7 +103,7 @@ function completeHybridAppOnboarding() {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRY_NEW_DOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_TRY_NEW_DOT,
@@ -163,24 +127,37 @@ function completeHybridAppOnboarding() {
     });
 }
 
-// We use `connectWithoutView` here since this connection only updates a module-level variable
-// and doesn't need to trigger component re-renders.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_ONBOARDING,
-    callback: (value) => {
-        onboarding = value;
-        checkOnboardingDataReady();
-    },
-});
+function addWorkEmailFormError(error: string, isLoading = false) {
+    Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+        errors: getMicroSecondOnyxErrorWithMessage(error),
+        errorFields: {
+            [INPUT_IDS.ONBOARDING_WORK_EMAIL]: getMicroSecondOnyxErrorWithMessage(error),
+        },
+        isLoading,
+    });
+}
+function clearWorkEmailFormErrors(isLoading = false) {
+    Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+        errors: null,
+        errorFields: null,
+        isLoading,
+    });
+}
 
 // We use `connectWithoutView` here since this connection only to get loading flag
 // and doesn't need to trigger component re-renders.
 Onyx.connectWithoutView({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    initWithStoredValues: false,
     callback: (value) => {
         isLoadingReportData = value ?? false;
-        checkServerDataReady();
+        if (isLoadingReportData) {
+            hasStartedLoading = true;
+        }
+        // Only resolve once loading has started — this ensures a stale
+        // persisted `false` from a previous session is ignored.
+        if (hasStartedLoading) {
+            checkServerDataReady();
+        }
     },
 });
 
@@ -188,11 +165,8 @@ function resetAllChecks() {
     isServerDataReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
-    isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
-        resolveOnboardingFlowStatus = resolve;
-    });
     isLoadingReportData = true;
-    isOnboardingInProgress = false;
+    hasStartedLoading = false;
 }
 
 function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
@@ -201,7 +175,7 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_ONBOARDING>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
@@ -234,13 +208,13 @@ function dismissProductTraining(elementName: string, isDismissedUsingCloseButton
 
 export {
     onServerDataReady,
-    isOnboardingFlowCompleted,
     dismissProductTraining,
     setOnboardingPurposeSelected,
     updateOnboardingLastVisitedPath,
     resetAllChecks,
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
+    setOnboardingRHPVariant,
     completeHybridAppOnboarding,
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
@@ -248,5 +222,8 @@ export {
     setOnboardingMergeAccountStepValue,
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,
+    setOnboardingPersonalTrackGoal,
     setOnboardingTestDriveModalDismissed,
+    addWorkEmailFormError,
+    clearWorkEmailFormErrors,
 };

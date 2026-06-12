@@ -1,11 +1,12 @@
 import {render, renderHook} from '@testing-library/react-native';
-import {createRef, forwardRef, useImperativeHandle} from 'react';
+import {createRef, useImperativeHandle} from 'react';
 import type {Ref} from 'react';
 import Onyx from 'react-native-onyx';
 import {ProductTrainingContextProvider, useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import DateUtils from '@libs/DateUtils';
+import {setHasRadio} from '@libs/NetworkState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as TestHelper from '../../utils/TestHelper';
@@ -13,7 +14,6 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
@@ -29,6 +29,7 @@ const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE = {
     isSmallScreen: false,
     onboardingIsMediumOrLargerScreenWidth: false,
     isExtraLargeScreenWidth: false,
+    isInLandscapeMode: false,
 };
 
 const TEST_USER_ACCOUNT_ID = 1;
@@ -40,13 +41,13 @@ type ProductTrainingRef = ReturnType<typeof useProductTrainingContext>;
 
 // A simple component that calls useProductTrainingContext and sets its result into the ref.
 // Used in cases where using renderHook is not possible, for example, when we need to share the same instance of the context.
-const ProductTraining = forwardRef(({tooltipName, shouldShow}: {tooltipName: ProductTrainingTooltipName; shouldShow?: boolean}, ref: Ref<ProductTrainingRef>) => {
+function ProductTraining({tooltipName, shouldShow, ref}: {tooltipName: ProductTrainingTooltipName; shouldShow?: boolean; ref?: Ref<ProductTrainingRef>}) {
     const result = useProductTrainingContext(tooltipName, shouldShow);
 
     useImperativeHandle(ref, () => result);
 
     return null;
-});
+}
 
 const signUpWithTestUser = () => {
     TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
@@ -64,7 +65,7 @@ describe('ProductTrainingContextProvider', () => {
     beforeEach(() => {
         // Set up test environment before each test
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         signUpWithTestUser();
     });
@@ -84,7 +85,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Then tooltip should not show
@@ -96,7 +97,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Then tooltip should not show
@@ -108,7 +109,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Then tooltip should show
@@ -116,7 +117,7 @@ describe('ProductTrainingContextProvider', () => {
         });
 
         it('should keep tooltip visible when another tooltip with shouldShow=false is unmounted', async () => {
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
             const ref = createRef<ProductTrainingRef>();
 
             // When multiple tooltips with the same name but different shouldShow values are rendered
@@ -161,47 +162,12 @@ describe('ProductTrainingContextProvider', () => {
         });
     });
 
-    describe('Migrated User Scenarios', () => {
-        it('should not show tooltips for migrated users before welcome modal dismissal', async () => {
-            // When user is a migrated user and welcome modal is not dismissed
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {nudgeMigration: {timestamp: new Date()}});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then tooltips should not show
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
-            const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
-
-            // Expect tooltip to be hidden
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
-        });
-
-        it('should show tooltips for migrated users after welcome modal dismissal', async () => {
-            // When migrated user has dismissed welcome modal
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {nudgeMigration: {timestamp: new Date()}});
-            const date = new Date();
-            Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
-            const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
-
-            // Then tooltip should show
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
-        });
-    });
-
     describe('Tooltip Dismissal', () => {
         it('should not show dismissed tooltips', async () => {
             // When a tooltip has been dismissed
             const date = new Date();
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {
                     timestamp: DateUtils.getDBTime(date.valueOf()),
@@ -227,7 +193,7 @@ describe('ProductTrainingContextProvider', () => {
                 },
             });
             await waitForBatchedUpdatesWithAct();
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
             const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
             // When the user dismiss the tooltip
             result.current.hideProductTrainingTooltip();
@@ -285,8 +251,8 @@ describe('ProductTrainingContextProvider', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then only highest priority tooltip should show
-            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
+            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
 
             const {result} = renderHook(
                 () => ({
@@ -305,8 +271,8 @@ describe('ProductTrainingContextProvider', () => {
             // When higher priority tooltip is dismissed
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             const date = new Date();
-            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
+            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
 
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {
@@ -343,8 +309,8 @@ describe('ProductTrainingContextProvider', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
+            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
 
             const {result} = renderHook(
                 () => ({

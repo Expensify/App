@@ -1,4 +1,4 @@
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React, {useState} from 'react';
 import type {AddressSearchProps} from '@components/AddressSearch';
 import AddressSearch from '@components/AddressSearch';
@@ -25,9 +25,9 @@ function Template(props: AddressSearchProps) {
     const [value, setValue] = useState<string | number | Address | StreetValue>('');
     return (
         <AddressSearch
+            inputID="addressLine1"
             value={value as string}
             onInputChange={(inputValue) => setValue(inputValue)}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

@@ -29,7 +29,7 @@ function QuickbooksDesktopCustomersPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksDesktopCustomersPage.displayName}
+            displayName="QuickbooksDesktopCustomersPage"
             headerTitle="workspace.qbd.customers"
             title="workspace.qbd.customersDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -76,7 +76,5 @@ function QuickbooksDesktopCustomersPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-QuickbooksDesktopCustomersPage.displayName = 'QuickbooksDesktopCustomersPage';
 
 export default withPolicyConnections(QuickbooksDesktopCustomersPage);

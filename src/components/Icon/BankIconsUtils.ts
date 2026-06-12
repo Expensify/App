@@ -7,6 +7,7 @@ type BankIconParams = {
     styles: ThemeStyles;
     bankName?: BankName;
     isCard?: boolean;
+    maxIconSize?: number;
 };
 
 /**
@@ -65,7 +66,7 @@ function getBankIconAsset(bankNameKey: BankNameKey, isCard: boolean): IconAsset 
 
 function getBankNameKey(bankName: string): BankNameKey {
     const bank = Object.entries(CONST.BANK_NAMES).find(([, value]) => {
-        const condensedValue = value.replace(/\s/g, '');
+        const condensedValue = value.replaceAll(/\s/g, '');
         return (
             bankName === value ||
             bankName.includes(value) ||

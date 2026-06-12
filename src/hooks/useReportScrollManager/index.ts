@@ -1,5 +1,5 @@
-import {useCallback, useContext} from 'react';
-import {ActionListContext} from '@pages/home/ReportScreenContext';
+import {useContext} from 'react';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
@@ -8,53 +8,44 @@ function useReportScrollManager(): ReportScrollManagerData {
     /**
      * Scroll to the provided index. On non-native implementations we do not want to scroll when we are scrolling because
      */
-    const scrollToIndex = useCallback(
-        (index: number, isEditing?: boolean) => {
-            if (!flatListRef?.current || isEditing) {
-                return;
-            }
+    const scrollToIndex = (index: number, isEditing?: boolean) => {
+        if (!flatListRef?.current || isEditing) {
+            return;
+        }
 
-            flatListRef.current.scrollToIndex({index, animated: true});
-        },
-        [flatListRef],
-    );
+        flatListRef.current.scrollToIndex({index, animated: true});
+    };
 
     /**
      * Scroll to the bottom of the inverted FlatList.
      * When FlatList is inverted it's "bottom" is really it's top
      */
-    const scrollToBottom = useCallback(() => {
+    const scrollToBottom = () => {
         if (!flatListRef?.current) {
             return;
         }
 
-        flatListRef.current.scrollToOffset({animated: false, offset: 0});
-    }, [flatListRef]);
+        flatListRef.current.scrollToIndex({animated: false, index: 0});
+    };
 
     /**
      * Scroll to the end of the FlatList.
      */
-    const scrollToEnd = useCallback(
-        (animated = false) => {
-            if (!flatListRef?.current) {
-                return;
-            }
+    const scrollToEnd = () => {
+        if (!flatListRef?.current) {
+            return;
+        }
 
-            flatListRef.current.scrollToEnd({animated});
-        },
-        [flatListRef],
-    );
+        flatListRef.current.scrollToEnd({animated: false});
+    };
 
-    const scrollToOffset = useCallback(
-        (offset: number, animated = true) => {
-            if (!flatListRef?.current) {
-                return;
-            }
+    const scrollToOffset = (offset: number) => {
+        if (!flatListRef?.current) {
+            return;
+        }
 
-            flatListRef.current.scrollToOffset({animated, offset});
-        },
-        [flatListRef],
-    );
+        flatListRef.current.scrollToOffset({animated: true, offset});
+    };
 
     return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
 }

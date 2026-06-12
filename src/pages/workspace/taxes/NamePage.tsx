@@ -58,9 +58,9 @@ function NamePage({
             if (values[INPUT_IDS.NAME] === currentTaxRate?.name) {
                 return {};
             }
-            return validateTaxName(policy, values);
+            return validateTaxName(policy, values, translate);
         },
-        [currentTaxRate?.name, policy],
+        [currentTaxRate?.name, policy, translate],
     );
 
     if (!currentTaxRate) {
@@ -76,7 +76,7 @@ function NamePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={NamePage.displayName}
+                testID="NamePage"
             >
                 <HeaderWithBackButton
                     title={translate('common.name')}
@@ -92,6 +92,7 @@ function NamePage({
                     validate={validate}
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
+                    shouldUseStrictHtmlTagValidation
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -110,7 +111,5 @@ function NamePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-NamePage.displayName = 'NamePage';
 
 export default withPolicyAndFullscreenLoading(NamePage);

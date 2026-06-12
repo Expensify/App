@@ -5,11 +5,12 @@ import Onyx from 'react-native-onyx';
 import ReceiptDoc from '@assets/images/receipt-doc.png';
 import ComposeProviders from '@components/ComposeProviders';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
-import * as Illustrations from '@components/Icon/Illustrations';
-import {FullScreenContextProvider} from '@components/VideoPlayerContexts/FullScreenContext';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import FullScreenContextProvider from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeContext';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -22,40 +23,22 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => '/'),
 }));
 
-jest.mock('expo-av', () => {
-    const {View} = require<typeof ReactNative>('react-native');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...jest.requireActual('expo-av'),
-        Video: class extends View {
-            setStatusAsync = jest.fn().mockResolvedValue(undefined);
-        },
-    };
-});
-
 jest.mock('@components/ImageSVG', () => {
     const {View} = require<typeof ReactNative>('react-native');
-    // eslint-disable-next-line react/jsx-props-no-spreading
+
     return (props: ViewProps) => <View {...props} />;
 });
-
-jest.unmock('react-native-reanimated');
 
 describe('FeatureTrainingModal', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            initialKeyStates: {
-                [ONYXKEYS.NETWORK]: {
-                    isOffline: false,
-                },
-            },
         });
     });
     describe('renderIllustration', () => {
         it('renders video', () => {
             render(
-                <ComposeProviders components={[PlaybackContextProvider, FullScreenContextProvider, VolumeContextProvider, VideoPopoverMenuContextProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, PlaybackContextProvider, FullScreenContextProvider, VolumeContextProvider, VideoPopoverMenuContextProvider]}>
                     <FeatureTrainingModal
                         confirmText={CONFIRM_TEXT}
                         videoURL={CONST.WELCOME_VIDEO_URL}
@@ -66,13 +49,17 @@ describe('FeatureTrainingModal', () => {
             expect(screen.getByTestId(CONST.VIDEO_PLAYER_TEST_ID)).toBeOnTheScreen();
         });
         it('renders svg image', () => {
-            render(
-                <FeatureTrainingModal
-                    confirmText={CONFIRM_TEXT}
-                    image={Illustrations.HoldExpense}
-                />,
-            );
+            function Component() {
+                const illustrations = useMemoizedLazyIllustrations(['HoldExpense']);
+                return (
+                    <FeatureTrainingModal
+                        confirmText={CONFIRM_TEXT}
+                        image={illustrations.HoldExpense}
+                    />
+                );
+            }
 
+            render(<Component />);
             expect(screen.getByTestId(CONST.IMAGE_SVG_TEST_ID)).toBeOnTheScreen();
         });
         it('renders non-svg image', () => {

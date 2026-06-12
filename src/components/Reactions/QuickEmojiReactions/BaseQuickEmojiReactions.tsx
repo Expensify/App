@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import AddReactionBubble from '@components/Reactions/AddReactionBubble';
@@ -6,6 +6,7 @@ import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocalizedEmojiName, getPreferredEmojiCode} from '@libs/EmojiUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -25,11 +26,19 @@ function BaseQuickEmojiReactions({
 }: BaseQuickEmojiReactionsProps) {
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
-    const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true});
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+    const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
+
+    const selectEmojiWithReaction = useCallback(
+        (emoji: Emoji, skinTone: number) => {
+            onEmojiSelected(emoji, emojiReactions, skinTone);
+        },
+        [onEmojiSelected, emojiReactions],
+    );
 
     return (
-        <View style={styles.quickReactionsContainer}>
+        <View style={[styles.quickReactionsContainer, !shouldUseNarrowLayout && styles.compactQuickReactionsContainer]}>
             {CONST.QUICK_REACTIONS.map((emoji: Emoji) => (
                 <Tooltip
                     text={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
@@ -39,7 +48,7 @@ function BaseQuickEmojiReactions({
                         <EmojiReactionBubble
                             emojiCodes={[getPreferredEmojiCode(emoji, preferredSkinTone)]}
                             isContextMenu
-                            onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
+                            onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone))}
                         />
                     </View>
                 </Tooltip>
@@ -48,14 +57,12 @@ function BaseQuickEmojiReactions({
                 isContextMenu
                 onPressOpenPicker={onPressOpenPicker}
                 onWillShowPicker={onWillShowPicker}
-                onSelectEmoji={(emoji) => onEmojiSelected(emoji, emojiReactions)}
+                onSelectEmoji={selectEmojiWithReaction}
                 reportAction={reportAction}
                 setIsEmojiPickerActive={setIsEmojiPickerActive}
             />
         </View>
     );
 }
-
-BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 
 export default BaseQuickEmojiReactions;

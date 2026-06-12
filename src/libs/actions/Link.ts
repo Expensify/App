@@ -1,29 +1,42 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import Log from '@libs/Log';
+import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import normalizePath from '@libs/Navigation/helpers/normalizePath';
+import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
+import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
+import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
+import {getIsOffline} from '@libs/NetworkState';
+import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
+import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import * as Url from '@libs/Url';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn} from './Session';
-
-let isNetworkOffline = false;
-// Use connectWithoutView since this is to open an external link and doesn't affect any UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NETWORK,
-    callback: (value) => (isNetworkOffline = value?.isOffline ?? false),
-});
+import SCREENS from '@src/SCREENS';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
+import type {Beta, IntroSelected, Report} from '@src/types/onyx';
+import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
+import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
+import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserEmail = '';
-let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
+let currentUserAccountID = -1;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -65,7 +78,7 @@ function openExternalLink(url: string, shouldSkipCustomSafariLogic = false, shou
 }
 
 function openOldDotLink(url: string, shouldOpenInSameTab = false) {
-    if (isNetworkOffline) {
+    if (getIsOffline()) {
         buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL, undefined, shouldOpenInSameTab));
         return;
     }
@@ -88,7 +101,7 @@ function buildTravelDotURL(spotnanaToken: string, isTestAccount: boolean, postLo
 
     const authCode = `authCode=${spotnanaToken}`;
     const tmcIDParam = `tmcId=${tmcID}`;
-    const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
+    const redirectURL = postLoginPath ? `redirectUrl=${encodeURIComponent(Url.addLeadingForwardSlash(postLoginPath))}` : '';
 
     const paramsArray = [authCode, tmcIDParam, redirectURL];
     const params = paramsArray.filter(Boolean).join('&');
@@ -163,6 +176,22 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
     const internalExpensifyPath = getInternalExpensifyPath(href);
 
+    const isNarrowLayout = getIsNarrowLayout();
+    const currentState = navigationRef.getRootState();
+    const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+    let shouldCloseRHP = false;
+    if (!isNarrowLayout && isRHPOpen) {
+        const targetWillNavigateToRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
+        if (!targetWillNavigateToRHP) {
+            shouldCloseRHP = true;
+        } else if (hasSameOrigin) {
+            // Cross-tab RHP→RHP: swap the background tab in place so the RHP stays mounted and the
+            // user sees only the RHP content update + the underlying tab animate, no close+reopen
+            // flicker (issue: https://github.com/Expensify/App/issues/89710).
+            swapBackgroundTabForRHPTarget(currentState, internalNewExpensifyPath as Route);
+        }
+    }
+
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
     // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
     // clicking on the link will open the chat in NewDot. However, when a user is in NewDot and clicks on the concierge link, the link needs to be handled differently.
@@ -171,6 +200,9 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     if (hasExpensifyOrigin && href.indexOf('newdotreport?reportID=') > -1) {
         const reportID = href.split('newdotreport?reportID=').pop();
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+        if (shouldCloseRHP) {
+            Navigation.closeRHPFlow();
+        }
         Navigation.navigate(reportRoute);
         return;
     }
@@ -181,6 +213,9 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
         if (isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
             signOutAndRedirectToSignIn();
             return;
+        }
+        if (shouldCloseRHP) {
+            Navigation.closeRHPFlow();
         }
         Navigation.navigate(internalNewExpensifyPath as Route);
         return;
@@ -196,30 +231,159 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
-function buildURLWithAuthToken(url: string, shortLivedAuthToken?: string) {
-    const authTokenParam = shortLivedAuthToken ? `shortLivedAuthToken=${shortLivedAuthToken}` : '';
-    const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
-    const exitTo = `exitTo=${encodeURIComponent(url)}`;
-    const accountID = `accountID=${currentUserAccountID}`;
-    const referrer = 'referrer=desktop';
-    const paramsArray = [accountID, emailParam, authTokenParam, exitTo, referrer];
-    const params = paramsArray.filter(Boolean).join('&');
+function openReportFromDeepLink(
+    url: string,
+    reports: OnyxCollection<Report>,
+    isAuthenticated: boolean,
+    conciergeReportID: string | undefined,
+    introSelected: OnyxEntry<IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
+    betas: OnyxEntry<Beta[]>,
+) {
+    const reportID = getReportIDFromLink(url);
 
-    return `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}transition?${params}`;
-}
+    if (reportID && !isAuthenticated) {
+        // Start span for public room API call
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK),
+        });
 
-/**
- * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
- */
-function openExternalLinkWithToken(url: string, shouldSkipCustomSafariLogic = false) {
-    asyncOpenURL(
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
-            .then((response) => (response ? buildURLWithAuthToken(url, response.shortLivedAuthToken) : buildURLWithAuthToken(url)))
-            .catch(() => buildURLWithAuthToken(url)),
-        (link) => link,
-        shouldSkipCustomSafariLogic,
-    );
+        // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
+        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas});
+
+        // Show the sign-in page if the app is offline
+        if (getIsOffline()) {
+            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
+            doneCheckingPublicRoom();
+        }
+    } else {
+        // If we're not opening a public room (no reportID) or the user is authenticated, we unblock the UI (hide splash screen)
+        doneCheckingPublicRoom();
+    }
+
+    let route = getRouteFromLink(url);
+
+    // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
+    if (normalizePath(route) === CONST.SIGNIN_ROUTE) {
+        route = '';
+    }
+
+    // React Navigation generates /Home (capitalized) for the root URL because PublicScreens uses SCREENS.HOME ('Home')
+    // at the root level without a path mapping. Treat it as empty route to avoid showing a “not found” page after sign-in.
+    if (normalizePath(route) === `/${SCREENS.HOME}`) {
+        route = '';
+    }
+
+    // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
+    if (!isAuthenticated && isPublicScreenRoute(route)) {
+        return;
+    }
+
+    // If the route is the transition route, we don't want to navigate and start the onboarding flow
+    if (route?.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+        return;
+    }
+
+    // The Plaid OAuth redirect URI is handled by the native Plaid SDK on iOS — skip navigation to avoid showing NotFound
+    if (route?.includes(CONST.PLAID.OAUTH_REDIRECT_PATH_IOS)) {
+        return;
+    }
+
+    // Navigate to the report after sign-in/sign-up.
+    waitForUserSignIn().then(() => {
+        // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.NVP_ONBOARDING,
+            callback: (val) => {
+                if (!val && !isAnonymousUser()) {
+                    return;
+                }
+
+                Navigation.waitForProtectedRoutes().then(() => {
+                    if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
+                        signOutAndRedirectToSignIn(true);
+                        return;
+                    }
+
+                    // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+                    // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+                    // which is already called when AuthScreens mounts.
+                    if (!CONFIG.IS_HYBRID_APP && url && new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                        return;
+                    }
+
+                    const handleDeeplinkNavigation = () => {
+                        // We want to disconnect the connection so it won't trigger the deeplink again
+                        // every time the data is changed, for example, when re-login.
+                        Onyx.disconnect(connection);
+
+                        const state = navigationRef.getRootState();
+                        const currentFocusedRoute = findFocusedRoute(state);
+
+                        if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                            setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+                            return;
+                        }
+
+                        if (shouldSkipDeepLinkNavigation(route)) {
+                            return;
+                        }
+
+                        if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
+                            return;
+                        }
+
+                        // Navigation for signed users is handled by react-navigation.
+                        if (isAuthenticated) {
+                            return;
+                        }
+
+                        const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
+                            // Check if the report exists in the collection
+                            const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                            // If the report does not exist, navigate to the last accessed report or Concierge chat
+                            if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
+                                const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), reportID)?.reportID;
+                                if (lastAccessedReportID) {
+                                    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+                                    Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
+                                    return;
+                                }
+                                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true);
+                                return;
+                            }
+
+                            // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
+                            const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+                            Navigation.navigate(route as Route, {forceReplace, waitForTransition: true});
+                        };
+                        // If we log with deeplink with reportID and data for this report is not available yet,
+                        // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
+                        if (reportID && !isAuthenticated && !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
+                            const reportConnection = Onyx.connectWithoutView({
+                                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                                // eslint-disable-next-line rulesdir/prefer-early-return
+                                callback: (report) => {
+                                    if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
+                                        Onyx.disconnect(reportConnection);
+                                        navigateHandler(report);
+                                    }
+                                },
+                            });
+                        } else {
+                            navigateHandler();
+                        }
+                    };
+
+                    if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
+                        handleDeeplinkNavigation();
+                    }
+                });
+            },
+        });
+    });
 }
 
 function getTravelDotLink(policyID: OnyxEntry<string>) {
@@ -240,4 +404,35 @@ function getTravelDotLink(policyID: OnyxEntry<string>) {
     });
 }
 
-export {openOldDotLink, openExternalLink, openLink, getInternalNewExpensifyPath, getInternalExpensifyPath, openTravelDotLink, buildTravelDotURL, openExternalLinkWithToken, getTravelDotLink};
+/**
+ * Fetches a short-lived auth token and appends it to the given setup link.
+ * Falls back to returning the original link if the token request fails.
+ */
+function getShortLivedAuthTokenURL(setupLink: string): Promise<string> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
+        .then((response) => {
+            if (!response?.shortLivedAuthToken) {
+                return setupLink;
+            }
+            return Url.appendParam(setupLink, 'authToken', response.shortLivedAuthToken);
+        })
+        .catch((error) => {
+            Log.warn('[Link] Failed to fetch short-lived auth token', {error});
+            return setupLink;
+        });
+}
+
+export {
+    openOldDotLink,
+    openExternalLink,
+    openLink,
+    getInternalNewExpensifyPath,
+    getInternalExpensifyPath,
+    openTravelDotLink,
+    buildTravelDotURL,
+    getTravelDotLink,
+    buildOldDotURL,
+    openReportFromDeepLink,
+    getShortLivedAuthTokenURL,
+};

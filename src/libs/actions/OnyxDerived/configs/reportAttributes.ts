@@ -1,15 +1,18 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import {generateIsEmptyReport, generateReportAttributes, getReportName, isArchivedReport, isValidReport} from '@libs/ReportUtils';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {getIsOffline} from '@libs/NetworkState';
+import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
+import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isPolicyAdmin, isPolicyExpenseChat, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 
-let isFullyComputed = false;
 let previousDisplayNames: Record<string, string | undefined> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
+let previousPolicies: OnyxCollection<Policy>;
 
 const prepareReportKeys = (keys: string[]) => {
     return [
@@ -22,6 +25,23 @@ const prepareReportKeys = (keys: string[]) => {
             ),
         ),
     ];
+};
+
+const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Policy | null | undefined): boolean => {
+    if (!prev && !next) {
+        return false;
+    }
+    if (!prev || !next) {
+        return true;
+    }
+    return (
+        prev.type !== next.type ||
+        prev.approvalMode !== next.approvalMode ||
+        prev.reimbursementChoice !== next.reimbursementChoice ||
+        prev.autoReimbursementLimit !== next.autoReimbursementLimit ||
+        prev.role !== next.role ||
+        prev.autoReimbursement?.limit !== next.autoReimbursement?.limit
+    );
 };
 
 const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList>) => {
@@ -39,7 +59,7 @@ const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList
     if (Object.keys(previousDisplayNames).length === 0) {
         previousDisplayNames = currentDisplayNames;
         previousPersonalDetails = personalDetails;
-        return false;
+        return Object.keys(currentDisplayNames).length > 0;
     }
 
     const currentKeys = Object.keys(currentDisplayNames);
@@ -56,7 +76,6 @@ const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList
 /**
  * This derived value is used to get the report attributes for the report.
  */
-
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     dependencies: [
@@ -67,17 +86,19 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ONYXKEYS.COLLECTION.TRANSACTION,
         ONYXKEYS.PERSONAL_DETAILS_LIST,
+        ONYXKEYS.SESSION,
         ONYXKEYS.COLLECTION.POLICY,
+        ONYXKEYS.COLLECTION.POLICY_TAGS,
+        ONYXKEYS.CONCIERGE_REPORT_ID,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
+        ONYXKEYS.NETWORK,
     ],
-    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails], {currentValue, sourceValues, areAllConnectionsSet}) => {
-        if (!areAllConnectionsSet) {
-            return {
-                reports: {},
-                locale: null,
-            };
-        }
-
+    compute: (
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags, conciergeReportID],
+        {currentValue, sourceValues},
+    ) => {
+        // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
+        const isOffline = getIsOffline();
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
@@ -86,16 +107,49 @@ export default createOnyxDerivedValueConfig({
             if (!displayNamesChanged) {
                 return currentValue ?? {reports: {}, locale: null};
             }
+        } else if (!sourceValues) {
+            previousDisplayNames = {};
+            previousPersonalDetails = undefined;
         }
 
-        // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
-        // we need to recompute all report attributes on locale change because the report names are locale dependent
-        if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || displayNamesChanged) {
-            isFullyComputed = false;
+        // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
+        // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
+        // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
+        let needsFullRecompute =
+            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
+            displayNamesChanged ||
+            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues);
+
+        // if policies are loaded first time, we need to recompute all report attributes to get correct action badge in LHN, such as Approve because it depends on policy's type (see canApproveIOU function)
+        const policyChangedReportKeys: string[] = [];
+        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
+            if (Object.keys(previousPolicies ?? {}).length === 0 && Object.keys(policies ?? {}).length > 0) {
+                needsFullRecompute = true;
+            } else if (!needsFullRecompute) {
+                // Policy updated — only recompute reports whose relevant fields actually changed
+                const changedPolicyIDs = new Set<string>();
+                for (const key of Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {})) {
+                    if (hasPolicyRelevantFieldChanged(previousPolicies?.[key], policies?.[key])) {
+                        changedPolicyIDs.add(key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+                    }
+                }
+                if (changedPolicyIDs.size > 0) {
+                    for (const [reportKey, report] of Object.entries(reports ?? {})) {
+                        if (report?.policyID && changedPolicyIDs.has(report.policyID)) {
+                            policyChangedReportKeys.push(reportKey);
+                        }
+                    }
+                }
+            }
+            previousPolicies = policies;
         }
+
+        // Use incremental updates when currentValue is already populated and no full recompute is required.
+        // If currentValue has no reports (fresh install or cleared storage), fall back to a full scan.
+        const useIncrementalUpdates = !!currentValue?.reports && Object.keys(currentValue.reports).length > 0 && !needsFullRecompute;
 
         // if we already computed the report attributes and there is no new reports data, return the current value
-        if ((isFullyComputed && !sourceValues) || !reports) {
+        if ((useIncrementalUpdates && !sourceValues) || !reports) {
             return currentValue ?? {reports: {}, locale: null};
         }
 
@@ -105,6 +159,7 @@ export default createOnyxDerivedValueConfig({
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
+        const policyTagsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.POLICY_TAGS];
 
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
@@ -129,18 +184,47 @@ export default createOnyxDerivedValueConfig({
             ...Object.keys(reportActionsUpdates),
             ...Object.keys(reportNameValuePairsUpdates),
             ...Array.from(reportUpdatesRelatedToReportActions),
+            ...policyChangedReportKeys,
         ];
 
-        if (isFullyComputed) {
+        if (useIncrementalUpdates) {
             // if there are report-related updates, iterate over the updates
-            if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates) {
+            if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates || !!policyTagsUpdates) {
+                dataToIterate = [];
                 if (updates.length > 0) {
                     dataToIterate = prepareReportKeys(updates);
+
+                    // When an IOU report changes, we need to re-evaluate its parent chat report as well.
+                    const parentChatReportIDsToUpdate = new Set<string>();
+                    for (const reportKey of dataToIterate) {
+                        const report = reports[reportKey];
+                        if (report?.chatReportID && report.reportID !== report.chatReportID) {
+                            parentChatReportIDsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
+                        }
+                    }
+                    if (parentChatReportIDsToUpdate.size > 0) {
+                        dataToIterate.push(...Array.from(parentChatReportIDsToUpdate));
+                    }
                 }
                 if (!!transactionsUpdates || !!transactionViolationsUpdates) {
                     let transactionReportIDs: string[] = [];
                     if (transactionsUpdates) {
                         transactionReportIDs = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+
+                        const updatedTransactionIDs = new Set(Object.keys(transactionsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.TRANSACTION, '')));
+                        if (updatedTransactionIDs.size > 0) {
+                            for (const report of Object.values(reports)) {
+                                if (!report?.reportID || !report.parentReportID || !report.parentReportActionID) {
+                                    continue;
+                                }
+
+                                const parentReportAction = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
+                                const linkedTransactionID = getLinkedTransactionID(parentReportAction);
+                                if (linkedTransactionID && updatedTransactionIDs.has(linkedTransactionID)) {
+                                    transactionReportIDs.push(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`);
+                                }
+                            }
+                        }
                     }
                     // Also handle transaction violations updates by extracting transaction IDs and finding their reports
                     if (transactionViolationsUpdates) {
@@ -160,54 +244,170 @@ export default createOnyxDerivedValueConfig({
                     }
                     dataToIterate.push(...prepareReportKeys(transactionReportIDs));
                 }
+                if (policyTagsUpdates) {
+                    const changedPolicyIDs = new Set(Object.keys(policyTagsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY_TAGS, '')));
+                    const affectedReportKeys = Object.values(reports)
+                        .filter((report) => !!report?.policyID && changedPolicyIDs.has(report.policyID))
+                        .map((report) => `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`);
+                    dataToIterate.push(...prepareReportKeys(affectedReportKeys));
+                }
             } else {
                 // No updates to process, return current value to prevent unnecessary computation
                 return currentValue ?? {reports: {}, locale: null};
             }
         }
-        const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>((acc, key) => {
-            // source value sends partial data, so we need an entire report object to do computations
-            const report = reports[key];
 
-            if (!report || !isValidReport(report)) {
+        const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>(
+            (acc, key) => {
+                // source value sends partial data, so we need an entire report object to do computations
+                const report = reports[key];
+
+                if (!report || !isValidReport(report)) {
+                    const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+                    if (acc[reportID]) {
+                        delete acc[reportID];
+                    }
+                    return acc;
+                }
+
+                const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+                const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+                const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
+                const isReportArchived = isArchivedReport(reportNameValuePair);
+                const {
+                    hasAnyViolations,
+                    requiresAttention,
+                    reportErrors,
+                    oneTransactionThreadReportID,
+                    actionBadge: actionGreenBadge,
+                    actionTargetReportActionID: actionGreenTargetReportActionID,
+                } = generateReportAttributes({
+                    report,
+                    chatReport,
+                    reportActions,
+                    transactionViolations,
+                    isReportArchived,
+                    allTransactions: transactions,
+                    reports,
+                    currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserLogin: session?.email ?? '',
+                });
+
+                const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const hasFieldViolations = hasVisibleReportFieldViolations(report, policy, session?.accountID);
+
+                let brickRoadStatus;
+                let actionBadge;
+                let actionTargetReportActionID;
+                let needsParentChatErrorPropagation = false;
+                const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                    report,
+                    chatReport,
+                    reportActionsList,
+                    hasAnyViolations || hasFieldViolations,
+                    reportErrors,
+                    transactions,
+                    isOffline,
+                    transactionViolations,
+                    !!isReportArchived,
+                    reports,
+                );
+
+                // When the report is ready to submit, always show the green Submit badge
+                // regardless of violations — the user can submit without fix.
+                const willShowGreenSubmit = requiresAttention && actionGreenBadge === CONST.REPORT.ACTION_BADGE.SUBMIT;
+
+                // if report has errors or violations, show red dot
+                // Also skip setting ERROR when we'll show the green Submit badge — let the user submit without fix.
+                if (reasonAndReportAction && !willShowGreenSubmit) {
+                    needsParentChatErrorPropagation = true;
+
+                    // RBR/Fix mirrors GBR's access rule: only show on the child when the user can't already
+                    // see it on the parent workspace chat. The parent still gets ERROR/FIX through the
+                    // propagation loop below, so the actionable indicator surfaces on the workspace chat row
+                    // (which is where C+ wants it). Skips when the chat parent isn't accessible to the user.
+                    const chatPolicy = chatReport?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReport.policyID}`] : undefined;
+                    const isChildOfAccessiblePolicyExpenseChat = !!chatReport && isPolicyExpenseChat(chatReport) && (!!chatReport.isOwnPolicyExpenseChat || isPolicyAdmin(chatPolicy));
+                    if (!isChildOfAccessiblePolicyExpenseChat) {
+                        brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                        actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
+                        actionTargetReportActionID = reasonAndReportAction.reportAction?.reportActionID;
+                    }
+                }
+                // if report does not have error, check if it should show green dot
+                if (brickRoadStatus !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && requiresAttention) {
+                    brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+                    actionBadge = actionGreenBadge;
+                    actionTargetReportActionID = actionGreenTargetReportActionID;
+                }
+
+                acc[report.reportID] = {
+                    reportName: report
+                        ? computeReportName({
+                              report,
+                              reports,
+                              policies,
+                              transactions,
+                              allReportNameValuePairs: reportNameValuePairs,
+                              personalDetailsList: personalDetails,
+                              reportActions,
+                              currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                              currentUserLogin: session?.email ?? '',
+                              allPolicyTags: policyTags,
+                              conciergeReportID: conciergeReportID ?? undefined,
+                              reportAttributes: currentValue?.reports,
+                          })
+                        : '',
+                    isEmpty: generateIsEmptyReport(report, isReportArchived),
+                    brickRoadStatus,
+                    requiresAttention,
+                    actionBadge,
+                    actionTargetReportActionID,
+                    reportErrors,
+                    oneTransactionThreadReportID,
+                    needsParentChatErrorPropagation,
+                };
+
                 return acc;
+            },
+            currentValue?.reports ? {...currentValue.reports} : {},
+        );
+
+        // Propagate errors from IOU reports to their parent chat reports.
+        const chatReportIDsWithErrors = new Set<string>();
+        for (const report of Object.values(reports)) {
+            if (!report?.reportID) {
+                continue;
             }
 
-            const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
-            const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
-            const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-            const isReportArchived = isArchivedReport(reportNameValuePair);
-            const {hasAnyViolations, requiresAttention, reportErrors} = generateReportAttributes({
-                report,
-                chatReport,
-                reportActions,
-                transactionViolations,
-                isReportArchived,
-            });
-
-            let brickRoadStatus;
-            // if report has errors or violations, show red dot
-            if (SidebarUtils.shouldShowRedBrickRoad(report, chatReport, reportActionsList, hasAnyViolations, reportErrors, transactions, transactionViolations, !!isReportArchived)) {
-                brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+            // If this is an IOU report and its calculated attributes have an error,
+            // then we need to mark its parent chat report.
+            // We read `needsParentChatErrorPropagation` rather than `brickRoadStatus` because the per-report
+            // pass suppresses the child's own brickRoadStatus when the parent workspace chat is accessible —
+            // we still need to propagate the error up so the parent shows the indicator.
+            const attributes = reportAttributes[report.reportID];
+            if (
+                report.chatReportID &&
+                report.reportID !== report.chatReportID &&
+                (attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR)
+            ) {
+                chatReportIDsWithErrors.add(report.chatReportID);
             }
-            // if report does not have error, check if it should show green dot
-            if (brickRoadStatus !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && requiresAttention) {
-                brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        }
+
+        // Apply the error status to the parent chat reports.
+        for (const chatReportID of chatReportIDsWithErrors) {
+            if (!reportAttributes[chatReportID]) {
+                continue;
             }
 
-            acc[report.reportID] = {
-                reportName: report ? getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived) : '',
-                isEmpty: generateIsEmptyReport(report, isReportArchived),
-                brickRoadStatus,
-                requiresAttention,
-                reportErrors,
+            // Clone the entry before mutating — it may be a reference carried over from
+            // currentValue.reports that wasn't recomputed in this incremental run.
+            reportAttributes[chatReportID] = {
+                ...reportAttributes[chatReportID],
+                brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                actionBadge: CONST.REPORT.ACTION_BADGE.FIX,
             };
-
-            return acc;
-        }, currentValue?.reports ?? {});
-        // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
-        if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
-            isFullyComputed = true;
         }
 
         return {
@@ -216,3 +416,5 @@ export default createOnyxDerivedValueConfig({
         };
     },
 });
+
+export {hasPolicyRelevantFieldChanged};

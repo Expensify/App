@@ -1,9 +1,9 @@
 import type {ValueOf} from 'type-fest';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -12,6 +12,33 @@ type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
 /** Substeps to setup a reimbursement bank account */
 type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
+
+/** Model of a single beneficial owner returned by Corpay */
+type CorpayBeneficialOwner = {
+    /** Unique identifier for the owner */
+    uid?: string;
+
+    /** Full name of the owner */
+    fullName?: string;
+
+    /** Residential address of the owner */
+    residentialAddress?: string;
+
+    /** Ownership percentage */
+    ownershipPercentage?: string;
+
+    /** Nationality of the owner */
+    nationality?: string;
+
+    /** Date of birth of the owner */
+    dob?: string;
+
+    /** Proof of beneficial owner document filename */
+    proofOfBeneficialOwner?: string;
+
+    /** Address proof document filename */
+    addressProofForBeneficialOwner?: string;
+};
 
 /** Model of Corpay data */
 type Corpay = {
@@ -65,24 +92,26 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.APPLICANT_TYPE_ID]: string;
     /** Nature of business */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CATEGORY]: string;
-    /**  */
+    /** Business type */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_TYPE_ID]: string;
+    /** Purpose of transaction ID */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PURPOSE_OF_TRANSACTION_ID]: string;
     /** Currency */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.CURRENCY_NEEDED]: string;
-    /**  */
+    /** Trade volume */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.TRADE_VOLUME]: string;
     /** Annual volume */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME]: string;
-    /**  */
+    /** Fund destination countries */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_DESTINATION_COUNTRIES]: string;
-    /**  */
+    /** Fund source countries */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_SOURCE_COUNTRIES]: string;
     /** Is user also an owner */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OWNS_MORE_THAN_25_PERCENT]: boolean;
     /** Are the more owners */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
-    /** Stringified array of owners data */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
+    /** Array of beneficial owners data */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: CorpayBeneficialOwner[];
     /** Signer full name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_FULL_NAME]: string;
     /** Signer DOB */
@@ -91,10 +120,18 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_JOB_TITLE]: string;
     /** Signer email address */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL]: string;
-    /** Second signer email address */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL]: string;
     /** Signer full address */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
+    /** Second signer email address */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL]: string;
+    /** Second signer full name */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_FULL_NAME]?: string;
+    /** Second signer DOB */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_DATE_OF_BIRTH]?: string;
+    /** Second signer job title */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_JOB_TITLE]?: string;
+    /** Second signer full address */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
     /** Checkbox - provided truthful information */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION]: boolean;
     /** Checkbox - agrees to terms and conditions */
@@ -103,12 +140,6 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.CONSENT_TO_PRIVACY_NOTICE]: boolean;
     /** Checkbox - authorized to bind to client to agreement */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT]: boolean;
-    /** Is user also an owner */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OWNS_MORE_THAN_25_PERCENT]: boolean;
-    /** Are the more owners */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
-    /** Stringified array of owners data */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
     /** Indicates that the PDS and FSD document has been downloaded */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.DOWNLOADED_PDS_AND_FSG]?: boolean;
     /** Powerform required for US and CA workspaces */
@@ -143,6 +174,9 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     /** Weather Onfido setup is complete */
     isOnfidoSetupComplete?: boolean;
+
+    /** Confirmation that the user accepted the ACH terms. The form input key is `acceptTermsAndConditions`; the achData field uses the shorter `acceptTerms`. */
+    acceptTerms?: boolean;
 
     /** Last 4 digits of the account number */
     mask?: string;
@@ -186,6 +220,44 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     /** Date the corpay bank account was created */
     created?: string;
+
+    /** Currency of the bank account */
+    currency?: string;
+
+    /** Statuses of additional checks hinting at missing documents user still needs to upload */
+    verifications?: {
+        /** points towards one of external providers */
+        externalApiResponses?: {
+            /** provider name */
+            companyTaxID?: {
+                /** status of check */
+                status: string;
+            };
+            /** provider name */
+            lexisNexisInstantIDResult?: {
+                /** status of check */
+                status: string;
+            };
+            /** provider name */
+            requestorIdentityID?: {
+                /** status of check */
+                status: string;
+                /** result with validation errors */
+                apiResult?: {
+                    /** contains validation qualifiers that provide additional details about the identity verification result */
+                    qualifiers: {
+                        /** array of individual validation checks that were flagged during identity verification */
+                        qualifier: Array<{
+                            /** Unique code of the error */
+                            key: string;
+                            /** Message of the error */
+                            message: string;
+                        }>;
+                    };
+                };
+            };
+        };
+    };
 };
 
 /** The step in an reimbursement account's ach data */

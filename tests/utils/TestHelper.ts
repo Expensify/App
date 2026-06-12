@@ -5,11 +5,13 @@ import Onyx from 'react-native-onyx';
 import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
-import {translateLocal} from '@libs/Localize';
+import {translate} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import * as Session from '@src/libs/actions/Session';
 import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
@@ -24,7 +26,7 @@ type MockFetch = jest.MockedFn<typeof fetch> & {
     fail: () => void;
     succeed: () => void;
     resume: () => Promise<void>;
-    mockAPICommand: <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse) => void;
+    mockAPICommand: <TCommand extends ApiCommand, TKey extends OnyxKey>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<TKey>) => void;
 };
 
 type ConnectionCallback<TKey extends OnyxKey> = NonNullable<ConnectOptions<TKey>['callback']>;
@@ -103,7 +105,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     const originalXhr = HttpUtils.xhr;
 
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        const mockedResponse: OnyxResponse = {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.PERSONAL_DETAILS_LIST> = {
             onyxData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -139,7 +141,9 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     return waitForBatchedUpdates()
         .then(() => {
             HttpUtils.xhr = jest.fn().mockImplementation(() => {
-                const mockedResponse: OnyxResponse = {
+                const mockedResponse: OnyxResponse<
+                    typeof ONYXKEYS.SESSION | typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.BETAS | typeof ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID
+                > = {
                     onyxData: [
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
@@ -183,7 +187,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                 // Return a Promise that resolves with the mocked response
                 return Promise.resolve(mockedResponse);
             });
-            Session.signIn(password);
+            Session.signIn(password, undefined);
             return waitForBatchedUpdates();
         })
         .then(() => {
@@ -194,7 +198,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
 function signOutTestUser() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        const mockedResponse: OnyxResponse = {
+        const mockedResponse: OnyxResponse<never> = {
             jsonCode: 200,
         };
 
@@ -213,10 +217,10 @@ function signOutTestUser() {
  * - fail() - start returning a failure response
  * - success() - go back to returning a success response
  */
-function getGlobalFetchMock(): typeof fetch {
+function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
     let queue: QueueItem[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let responses = new Map<string, (params: any) => OnyxResponse>();
+    let responses = new Map<string, (params: any) => OnyxResponse<any>>();
     let isPaused = false;
     let shouldFail = false;
 
@@ -240,6 +244,7 @@ function getGlobalFetchMock(): typeof fetch {
 
                       return Promise.resolve({jsonCode: 200});
                   },
+                  ...mockResponse,
               };
 
     const mockFetch = jest.fn().mockImplementation((input: RequestInfo, options?: RequestInit) => {
@@ -264,15 +269,22 @@ function getGlobalFetchMock(): typeof fetch {
     mockFetch.pause = () => (isPaused = true);
     mockFetch.resume = () => {
         isPaused = false;
-        queue.forEach(({resolve, input}) => resolve(getResponse(input)));
+        for (const {resolve, input} of queue) {
+            resolve(getResponse(input));
+        }
         return waitForBatchedUpdates();
     };
     mockFetch.fail = () => (shouldFail = true);
     mockFetch.succeed = () => (shouldFail = false);
-    mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse): void => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<any>): void => {
         responses.set(command, responseHandler);
     };
-    return mockFetch as typeof fetch;
+    return mockFetch;
+}
+
+function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
+    return createGlobalFetchMock(mockResponse);
 }
 
 function setupGlobalFetchMock(): MockFetch {
@@ -344,6 +356,16 @@ function assertFormDataMatchesObject(obj: Report, formData?: FormData) {
     }
 }
 
+/**
+ * A local version of translate that uses the current locale from IntlStore
+ * This is useful in tests where we don't have access to the full app context
+ * to provide the locale.
+ */
+function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parameters: TranslationParameters<TPath>) {
+    const currentLocale = IntlStore.getCurrentLocale();
+    return translate(currentLocale, phrase, ...parameters);
+}
+
 function getNavigateToChatHintRegex(): RegExp {
     const hintTextPrefix = translateLocal('accessibilityHints.navigatesToChat');
     return new RegExp(hintTextPrefix, 'i');
@@ -370,11 +392,13 @@ function localeCompare(a: string, b: string): number {
 
 export type {MockFetch, FormData};
 export {
+    translateLocal,
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,
     getFetchMockCalls,
     getGlobalFetchMock,
+    createGlobalFetchMock,
     setPersonalDetails,
     signInWithTestUser,
     signOutTestUser,

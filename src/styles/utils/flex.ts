@@ -97,6 +97,10 @@ export default {
         alignItems: 'center',
     },
 
+    alignContentCenter: {
+        alignContent: 'center',
+    },
+
     alignItemsEnd: {
         alignItems: 'flex-end',
     },
@@ -113,6 +117,10 @@ export default {
         flexWrap: 'wrap',
     },
 
+    flexNoWrap: {
+        flexWrap: 'nowrap',
+    },
+
     flexGrow0: {
         flexGrow: 0,
     },
@@ -127,6 +135,10 @@ export default {
 
     flexGrow4: {
         flexGrow: 4,
+    },
+
+    flexGrow100: {
+        flexGrow: 100,
     },
 
     flexShrink2: {

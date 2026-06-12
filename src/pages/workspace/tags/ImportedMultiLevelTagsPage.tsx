@@ -1,9 +1,9 @@
-import React, {useCallback, useState} from 'react';
-import ConfirmModal from '@components/ConfirmModal';
+import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {importMultiLevelTags} from '@libs/actions/Policy/Tag';
@@ -22,16 +22,28 @@ type ImportedMultiLevelTagsPageProps = PlatformStackScreenProps<SettingsNavigato
 
 function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingTags, setIsImportingTags] = useState(false);
     const policyID = route.params.policyID;
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
     const {setIsClosing} = useCloseImportPage();
-    const importTags = useCallback(() => {
+    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImportingTags(false);
+        Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+    };
+    const importTags = async () => {
         setIsImportingTags(true);
-        importMultiLevelTags(policyID, spreadsheet);
-    }, [spreadsheet, policyID]);
+        const importFinalModal = await importMultiLevelTags(policyID, spreadsheet);
+        const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
+        if (!didShowImportFinalModal) {
+            setIsImportingTags(false);
+            return;
+        }
+        closeImportPageAndModal();
+    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
@@ -42,16 +54,11 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
         return <NotFoundPage />;
     }
 
-    const closeImportPageAndModal = () => {
-        setIsClosing(true);
-        setIsImportingTags(false);
-        Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-    };
-
     return (
         <ScreenWrapper
-            testID={ImportedMultiLevelTagsPage.displayName}
+            testID="ImportedMultiLevelTagsPage"
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.tags.importTags')}
@@ -67,21 +74,8 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
                 shouldShowDropdownMenu={false}
                 customHeaderText={translate('workspace.tags.importMultiLevelTagsSupportingText')}
             />
-
-            <ConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                title={spreadsheet?.importFinalModal?.title ?? ''}
-                prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={closeImportPageAndModal}
-                onCancel={closeImportPageAndModal}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-                shouldHandleNavigationBack
-            />
         </ScreenWrapper>
     );
 }
-
-ImportedMultiLevelTagsPage.displayName = 'ImportedMultiLevelTagsPage';
 
 export default ImportedMultiLevelTagsPage;

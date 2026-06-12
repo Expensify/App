@@ -1,29 +1,32 @@
 import type {ArrayValues} from 'type-fest';
-import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {Reservation, ReservationTimeDetails, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {AirPnr, CarPnr, HotelPnr, Pnr, PnrData, PnrTraveler, RailPnr, TripData} from '@src/types/onyx/TripData';
 import type IconAsset from '@src/types/utils/IconAsset';
+import SafeString from '@src/utils/SafeString';
 import {getMoneyRequestSpendBreakdown} from './ReportUtils';
 
-function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
+type TripReservationIcons = Record<'Plane' | 'PlaneCircleSlash' | 'Bed' | 'BedCircleSlash' | 'CarWithKey' | 'CarCircleSlash' | 'Train' | 'TrainCircleSlash' | 'Luggage', IconAsset>;
+
+function getTripReservationIcon(icons: TripReservationIcons, reservationType?: ReservationType, isCancelled?: boolean): IconAsset {
     switch (reservationType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
-            return Expensicons.Plane;
+            return isCancelled ? icons.PlaneCircleSlash : icons.Plane;
         case CONST.RESERVATION_TYPE.HOTEL:
-            return Expensicons.Bed;
+            return isCancelled ? icons.BedCircleSlash : icons.Bed;
         case CONST.RESERVATION_TYPE.CAR:
-            return Expensicons.CarWithKey;
+            return isCancelled ? icons.CarCircleSlash : icons.CarWithKey;
         case CONST.RESERVATION_TYPE.TRAIN:
-            return Expensicons.Train;
+            return isCancelled ? icons.TrainCircleSlash : icons.Train;
         default:
-            return Expensicons.Luggage;
+            return icons.Luggage;
     }
 }
 
-type ReservationData = {reservation: Reservation; transactionID: string; reportID: string | undefined; reservationIndex: number; sequenceIndex: number};
+type ReservationItem = {reservationIndex: number; reservation: Reservation; isCancelled?: boolean};
+type ReservationData = {reservation: Reservation; transactionID: string; reportID: string | undefined; reservationIndex: number; sequenceIndex: number; isCancelled?: boolean};
 type ReservationPNRData = {
     pnrID: string;
     totalFareAmount: number;
@@ -46,15 +49,15 @@ function getReservationsFromTripTransactions(transactions: Transaction[]): Reser
         .sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
 }
 
-function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
+function getTripEReceiptIcon(icons: Record<'Plane' | 'Bed', IconAsset>, transaction?: Transaction): IconAsset | undefined {
     const reservationType = transaction ? transaction.receipt?.reservationList?.[0]?.type : '';
 
     switch (reservationType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
         case CONST.RESERVATION_TYPE.CAR:
-            return Expensicons.Plane;
+            return icons.Plane;
         case CONST.RESERVATION_TYPE.HOTEL:
-            return Expensicons.Bed;
+            return icons.Bed;
         default:
             return undefined;
     }
@@ -82,7 +85,7 @@ function parseDurationToSeconds(duration: string): number {
 function getSeatByLegAndFlight(travelerInfo: ArrayValues<AirPnr['travelerInfos']>, legIdx: number, flightIdx: number): string | undefined {
     const seats = travelerInfo.booking?.seats?.filter((seat) => seat.legIdx === legIdx && seat.flightIdx === flightIdx);
     if (seats && seats.length > 0) {
-        return seats.join(', ');
+        return seats.map((seat) => SafeString(seat.number)).join(', ');
     }
     return '';
 }
@@ -102,7 +105,7 @@ function getTravelerName(traveler: ArrayValues<PnrData['pnrTravelers']>['persona
         name += ` ${traveler.name.given}`;
     }
 
-    return name.trim();
+    return name?.trim();
 }
 
 function getAddressFromLocation(
@@ -138,8 +141,8 @@ function findTravelerInfo(travelers: PnrTraveler[], userId: string | undefined) 
     return travelers.find((travelerData) => travelerData.userId.id === userId)?.personalInfo;
 }
 
-function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservationIndex: number; reservation: Reservation}> {
-    const reservationList: Array<{reservationIndex: number; reservation: Reservation}> = [];
+function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem[] {
+    const reservationList: ReservationItem[] = [];
 
     if (!pnr.data.airPnr) {
         return [];
@@ -149,13 +152,17 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
     const airlineInfo = pnr.data.additionalMetadata?.airlineInfo ?? [];
     const airports = pnr.data.additionalMetadata?.airportInfo ?? [];
 
-    pnrData.travelerInfos.forEach((travelerInfo) => {
-        travelerInfo.tickets.forEach((ticket) => {
+    for (const travelerInfo of pnrData.travelerInfos) {
+        const ticketSource = travelerInfo.tickets.some((t) => t.flightCoupons.length > 0) ? travelerInfo.tickets : (travelerInfo.lastConfirmedTickets ?? travelerInfo.tickets);
+        for (const ticket of ticketSource) {
             const flightCoupons = ticket.flightCoupons;
-            flightCoupons.forEach((flightDetails, index) => {
+            for (const [index, flightDetails] of flightCoupons.sort((a, b) => a.legIdx - b.legIdx).entries()) {
                 const legIdx = flightDetails.legIdx;
                 const flightIdx = flightDetails.flightIdx;
-                const flightObject = pnrData.legs?.at(legIdx)?.flights.at(flightIdx);
+                const leg = pnrData.legs?.at(legIdx);
+                const flightObject = leg?.flights.at(flightIdx);
+
+                const isFlightCancelled = leg?.legStatus === CONST.LEG_STATUS.CANCELLED || isCancelledPnrStatus(flightObject?.flightStatus ?? '');
 
                 const airlineCode = flightObject?.marketing.airlineCode;
                 const longAirlineName = airlineInfo.find((info) => info.airlineCode === airlineCode)?.airlineName ?? airlineCode;
@@ -217,16 +224,16 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
                     },
                 };
 
-                reservationList.push({reservation: reservationObject, reservationIndex: index});
-            });
-        });
-    });
+                reservationList.push({reservation: reservationObject, reservationIndex: index, isCancelled: isFlightCancelled || undefined});
+            }
+        }
+    }
 
     return reservationList;
 }
 
-function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservationIndex: number; reservation: Reservation}> {
-    const reservationList: Array<{reservationIndex: number; reservation: Reservation}> = [];
+function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem[] {
+    const reservationList: ReservationItem[] = [];
 
     if (!pnr.data.hotelPnr) {
         return [];
@@ -252,14 +259,14 @@ function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserv
                 address: getAddressFromLocation(pnrData.hotelInfo.address),
                 longName: pnrData.hotelInfo.name,
                 shortName: pnrData.hotelInfo.chainCode,
-                cityName: pnrData.hotelInfo.chainName,
+                cityName: pnrData.hotelInfo.address.locality,
             },
             end: {
                 date: pnrData.checkOutDateTime?.iso8601,
                 address: getAddressFromLocation(pnrData.hotelInfo.address),
                 longName: pnrData.hotelInfo.name,
                 shortName: pnrData.hotelInfo.chainCode,
-                cityName: pnrData.hotelInfo.chainName,
+                cityName: pnrData.hotelInfo.address.locality,
             },
             type: CONST.RESERVATION_TYPE.HOTEL,
             company: {longName: pnrData.hotelInfo.chainName},
@@ -279,8 +286,8 @@ function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserv
     return reservationList;
 }
 
-function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservationIndex: number; reservation: Reservation}> {
-    const reservationList: Array<{reservationIndex: number; reservation: Reservation}> = [];
+function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem[] {
+    const reservationList: ReservationItem[] = [];
 
     if (!pnr.data.carPnr) {
         return [];
@@ -305,10 +312,12 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
             start: {
                 date: pnrData.pickupDateTime?.iso8601,
                 location: getAddressFromLocation(pickupLocation, CONST.RESERVATION_TYPE.CAR),
+                cityName: pickupLocation.locality,
             },
             end: {
                 date: pnrData.dropOffDateTime?.iso8601,
                 location: getAddressFromLocation(dropLocation, CONST.RESERVATION_TYPE.CAR),
+                cityName: dropLocation.locality,
             },
             type: CONST.RESERVATION_TYPE.CAR,
             confirmations,
@@ -327,16 +336,19 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
     return reservationList;
 }
 
-function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservationIndex: number; reservation: Reservation}> {
-    const reservationList: Array<{reservationIndex: number; reservation: Reservation}> = [];
+// Drop Trainline URN-style codes so the trip UI doesn't render them as station labels.
+const getRailStationShortName = (code: string | undefined) => (code && !code.startsWith('urn:') ? code : '');
+
+function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem[] {
+    const reservationList: ReservationItem[] = [];
 
     if (!pnr.data.railPnr) {
         return [];
     }
     const pnrData: RailPnr = pnr.data.railPnr;
 
-    pnrData.tickets.forEach((ticket) => {
-        ticket.legs.forEach((legIdx, legIndex) => {
+    for (const ticket of pnrData.tickets) {
+        for (const [legIndex, legIdx] of ticket.legs.entries()) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const leg = pnrData.legInfos.at(legIdx)!;
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -353,13 +365,13 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
                     start: {
                         date: leg.departAt.iso8601,
                         longName: leg.originInfo.name,
-                        shortName: leg.originInfo.code,
+                        shortName: getRailStationShortName(leg.originInfo.code),
                         cityName: leg.originInfo.cityName,
                     },
                     end: {
                         date: leg.arriveAt.iso8601,
                         longName: leg.destinationInfo.name,
-                        shortName: leg.destinationInfo.code,
+                        shortName: getRailStationShortName(leg.destinationInfo.code),
                         cityName: leg.destinationInfo.cityName,
                     },
                     route: {
@@ -384,10 +396,40 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
                     },
                 },
             });
-        });
-    });
+        }
+    }
 
     return reservationList;
+}
+
+function isCancelledPnrStatus(status: string): boolean {
+    return status === CONST.PNR_STATUS.CANCELLED || status === CONST.PNR_STATUS.CANCELLED_STATUS || status === CONST.PNR_STATUS.VOIDED;
+}
+
+function isPnrCancelled(pnr: Pnr): boolean {
+    const {data} = pnr;
+
+    if (data.bookingStatus && isCancelledPnrStatus(data.bookingStatus)) {
+        return true;
+    }
+
+    if (data.hotelPnr) {
+        return isCancelledPnrStatus(data.hotelPnr.pnrStatus);
+    }
+    if (data.carPnr) {
+        return isCancelledPnrStatus(data.carPnr.pnrStatus);
+    }
+    if (data.airPnr) {
+        return data.airPnr.legs.length > 0 && data.airPnr.legs.every((leg) => leg.legStatus === CONST.LEG_STATUS.CANCELLED);
+    }
+    if (data.railPnr) {
+        const {outwardJourney, inwardJourney} = data.railPnr;
+        const isOutwardCancelled = outwardJourney ? isCancelledPnrStatus(outwardJourney.journeyStatus) : true;
+        const isInwardCancelled = inwardJourney ? isCancelledPnrStatus(inwardJourney.journeyStatus) : true;
+        return isOutwardCancelled && isInwardCancelled;
+    }
+
+    return false;
 }
 
 function getReservationsFromSpotnanaPayload(reportID: string, tripData?: TripData): ReservationData[] {
@@ -398,8 +440,9 @@ function getReservationsFromSpotnanaPayload(reportID: string, tripData?: TripDat
     const reservations: ReservationData[] = tripData.pnrs
         .flatMap((pnr) => {
             const travelers = pnr.data.pnrTravelers ?? [];
+            const pnrCancelled = isPnrCancelled(pnr);
 
-            const reservationList: Array<{reservationIndex: number; reservation: Reservation}> = [
+            const reservationList: ReservationItem[] = [
                 ...getAirReservations(pnr, travelers),
                 ...getHotelReservations(pnr, travelers),
                 ...getCarReservations(pnr, travelers),
@@ -412,6 +455,8 @@ function getReservationsFromSpotnanaPayload(reportID: string, tripData?: TripDat
                 transactionID: '0',
                 sequenceIndex: 0,
                 reservationIndex: reservationData.reservationIndex,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- using || intentionally: pnrCancelled is boolean, ?? would not fall through on false
+                isCancelled: pnrCancelled || reservationData.isCancelled || undefined,
             }));
         })
         .map((reservationData, index) => ({...reservationData, sequenceIndex: index}));
@@ -429,13 +474,13 @@ function getReservationsFromTripReport(tripReport?: Report, transactions?: Trans
     return [];
 }
 
-function formatAirportInfo(reservationTimeDetails: ReservationTimeDetails, hideAirportCode = false): string {
-    const longName = reservationTimeDetails?.longName ? `${reservationTimeDetails?.longName} ` : '';
-    let shortName = reservationTimeDetails?.shortName ? `${reservationTimeDetails?.shortName}` : '';
-
-    shortName = longName && shortName ? `(${shortName})` : shortName;
-
-    return !hideAirportCode ? `${longName}${shortName}` : longName;
+function formatTransitLocationLabel(reservationTimeDetails: ReservationTimeDetails, hideShortCode = false): string {
+    const longName = reservationTimeDetails?.longName ?? '';
+    const shortName = reservationTimeDetails?.shortName ?? '';
+    if (hideShortCode || !shortName) {
+        return longName;
+    }
+    return longName ? `${longName} (${shortName})` : `(${shortName})`;
 }
 
 function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?: Transaction[]): ReservationPNRData[] {
@@ -446,7 +491,7 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
 
     const pnrMap = new Map<string, ReservationPNRData>();
 
-    reservations.forEach((reservation) => {
+    for (const reservation of reservations) {
         // eslint-disable-next-line rulesdir/no-default-id-values
         const pnrID = reservation.reservation.reservationID ?? '';
         if (!pnrMap.has(pnrID)) {
@@ -461,7 +506,7 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
         if (reservationData) {
             reservationData.reservations.push(reservation);
         }
-    });
+    }
 
     return Array.from(pnrMap.values()).map((pnrData) => {
         const pnrPayloadData = tripReport?.tripData?.payload?.pnrs?.find((pnr) => pnrData.pnrID === pnr.pnrId);
@@ -487,20 +532,28 @@ function getTripTotal(tripReport: Report): {
     return getMoneyRequestSpendBreakdown(tripReport);
 }
 
-function getReservationDetailsFromSequence(tripReservations: ReservationData[], sequenceIndex: number) {
+function getReservationDetailsFromSequence(icons: TripReservationIcons, tripReservations: ReservationData[], sequenceIndex: number) {
     const reservationDataIndex = tripReservations?.findIndex((reservation) => reservation.sequenceIndex === sequenceIndex);
     const reservationData = tripReservations.at(reservationDataIndex);
     const prevReservationData = Number(reservationData?.reservationIndex) > 0 ? tripReservations?.at(reservationDataIndex - 1) : undefined;
     const reservation = reservationData?.reservation;
     const prevReservation = prevReservationData?.reservation;
     const reservationType = reservation?.type;
-    const reservationIcon = getTripReservationIcon(reservation?.type);
+    const reservationIcon = getTripReservationIcon(icons, reservation?.type, reservationData?.isCancelled);
     return {
         reservation,
         prevReservation,
         reservationType,
         reservationIcon,
+        isCancelled: reservationData?.isCancelled,
     };
+}
+
+function formatCancelledDescription(cancelledLabel: string, description: string, isCancelled?: boolean): string {
+    if (!isCancelled) {
+        return description;
+    }
+    return `${cancelledLabel} ${CONST.DOT_SEPARATOR} ${description}`;
 }
 
 export {
@@ -510,7 +563,10 @@ export {
     getReservationsFromTripReport,
     getTripTotal,
     getReservationDetailsFromSequence,
-    formatAirportInfo,
+    formatTransitLocationLabel,
     getPNRReservationDataFromTripReport,
+    getAirReservations,
+    isPnrCancelled,
+    formatCancelledDescription,
 };
 export type {ReservationData};

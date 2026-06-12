@@ -1,5 +1,5 @@
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {Country} from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type Form from './Form';
 
@@ -67,6 +67,13 @@ const INPUT_IDS = {
         DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
         SECOND_SIGNER_EMAIL: 'secondSignerEmail',
     },
+    KYB_DOCUMENTS: {
+        COMPANY_TAX_ID: 'companyTaxId',
+        NAME_CHANGE_DOCUMENT: 'nameChangeDocument',
+        COMPANY_ADDRESS_VERIFICATION: 'companyAddressVerification',
+        USER_ADDRESS_VERIFICATION: 'userAddressVerification',
+        USER_DOB_VERIFICATION: 'userDOBVerification',
+    },
     AMOUNT1: 'amount1',
     AMOUNT2: 'amount2',
     AMOUNT3: 'amount3',
@@ -123,6 +130,7 @@ const INPUT_IDS = {
             COUNTRY_CODE: 'countryCode',
             TAX_ID_EIN_NUMBER: 'taxIDEINNumber',
             BUSINESS_CATEGORY: 'natureOfBusiness',
+            BUSINESS_TYPE_ID: 'businessTypeId',
             APPLICANT_TYPE_ID: 'applicantTypeId',
             PURPOSE_OF_TRANSACTION_ID: 'purposeOfTransactionID',
             PREFERRED_METHOD: 'preferredMethod',
@@ -146,9 +154,13 @@ const INPUT_IDS = {
             SIGNER_JOB_TITLE: 'signerJobTitle',
             SIGNER_EMAIL: 'signerEmail',
             SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
-            SECOND_SIGNER_EMAIL: 'secondSignerEmail',
             DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
             ACH_AUTHORIZATION_FORM: 'achAuthorizationForm',
+            SECOND_SIGNER_EMAIL: 'secondSignerEmail',
+            SECOND_SIGNER_FULL_NAME: 'secondSignerFullName',
+            SECOND_SIGNER_DATE_OF_BIRTH: 'secondSignerDateOfBirth',
+            SECOND_SIGNER_JOB_TITLE: 'secondSignerJobTitle',
+            SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'secondSignerCompleteResidentialAddress',
         },
     },
 } as const;
@@ -163,11 +175,14 @@ type BeneficialOwnersStepBaseProps = {
 
 // BeneficialOwnerDraftData is saved under dynamic key which consists of prefix, beneficial owner ID and input key
 type BeneficialOwnerDataKey = `beneficialOwner_${string}_${string}`;
-type ReimbursementAccountFormExtraProps = BeneficialOwnersStepExtraProps & {bankAccountID?: number};
+type ReimbursementAccountFormExtraProps = BeneficialOwnersStepExtraProps & {bankAccountID?: number; isComingFromExpensifyCard?: boolean};
 
 type BeneficialOwnersStepExtraProps = {
     [key: BeneficialOwnerDataKey]: string | FileObject[];
     beneficialOwnerKeys?: string[];
+    isUserDirector?: boolean;
+    ownerBeingModifiedID?: string;
+    isEditingCreatedOwner?: boolean;
 };
 
 type BeneficialOwnersStepProps = BeneficialOwnersStepBaseProps & BeneficialOwnersStepExtraProps;
@@ -211,6 +226,14 @@ type ACHContractStepProps = {
     [INPUT_IDS.COMPLETE_VERIFICATION.ACCEPT_TERMS_AND_CONDITIONS]: boolean;
     [INPUT_IDS.COMPLETE_VERIFICATION.CERTIFY_TRUE_INFORMATION]: boolean;
     [INPUT_IDS.COMPLETE_VERIFICATION.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]: boolean;
+};
+
+type KYBDocumentsStepProps = {
+    [INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.NAME_CHANGE_DOCUMENT]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.COMPANY_ADDRESS_VERIFICATION]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION]: FileObject[];
 };
 
 type ReimbursementAccountProps = {
@@ -344,6 +367,9 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Business category */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CATEGORY]: string;
 
+    /** Business type ID */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_TYPE_ID]: string;
+
     /** Applicant type ID */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.APPLICANT_TYPE_ID]: string;
 
@@ -395,11 +421,23 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Signer email */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL]: string;
 
+    /** Signer complete residential address */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
+
     /** Second signer email */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL]: string;
 
-    /** Signer complete residential address */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
+    /** Second signer full name */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_FULL_NAME]: string;
+
+    /** Second signer date of birth */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_DATE_OF_BIRTH]: string;
+
+    /** Second signer job title */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_JOB_TITLE]: string;
+
+    /** Second signer complete residential address */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
 
     /** Provide truthful information */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION]: boolean;
@@ -426,9 +464,10 @@ type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
             CompanyStepProps &
             RequestorStepProps &
             ACHContractStepProps &
+            KYBDocumentsStepProps &
             ReimbursementAccountProps &
             NonUSDReimbursementAccountAdditionalProps
-    >;
+    > & {currency?: string};
 
 export type {
     ReimbursementAccountForm,
@@ -437,7 +476,6 @@ export type {
     CompanyStepProps,
     RequestorStepProps,
     BeneficialOwnersStepProps,
-    SignerInfoStepProps,
     ACHContractStepProps,
     ReimbursementAccountProps,
     InputID,

@@ -1,143 +1,171 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
-import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import Text from '@components/Text';
+import useActivePolicy from '@hooks/useActivePolicy';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openOldDotLink} from '@libs/actions/Link';
-import {createWorkspace, generatePolicyID, updateInterestedFeatures} from '@libs/actions/Policy/Policy';
+import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import {waitForIdle} from '@libs/Network/SequentialQueue';
-import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {closeReactNativeApp} from '@userActions/HybridApp';
-import CONFIG from '@src/CONFIG';
-import CONST, {FEATURE_IDS} from '@src/CONST';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
 
 function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard', 'Luggage', 'Clock']);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
-    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.INTERESTED_FEATURES);
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
-    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
+    const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const {isBetaEnabled} = usePermissions();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const activePolicy = useActivePolicy();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
-    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const {isOffline} = useNetwork();
-    const isLoading = onboarding?.isLoading;
-    const prevIsLoading = usePrevious(isLoading);
-    const [width, setWidth] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
 
     const features: Feature[] = useMemo(() => {
         return [
             {
-                id: FEATURE_IDS.CATEGORIES,
+                id: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
                 title: translate('workspace.moreFeatures.categories.title'),
-                icon: Illustrations.FolderOpen,
+                icon: illustrations.FolderOpen,
                 enabledByDefault: true,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
             },
             {
-                id: FEATURE_IDS.ACCOUNTING,
+                id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
                 title: translate('workspace.moreFeatures.connections.title'),
-                icon: Illustrations.Accounting,
+                icon: illustrations.Accounting,
                 enabledByDefault: !!userReportedIntegration,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
             },
             {
-                id: FEATURE_IDS.COMPANY_CARDS,
+                id: CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
                 title: translate('workspace.moreFeatures.companyCards.title'),
-                icon: Illustrations.CompanyCard,
+                icon: illustrations.CompanyCard,
                 enabledByDefault: true,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
             },
             {
-                id: FEATURE_IDS.WORKFLOWS,
+                id: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
                 title: translate('workspace.moreFeatures.workflows.title'),
-                icon: Illustrations.Workflows,
+                icon: illustrations.Workflows,
                 enabledByDefault: true,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
             },
             {
-                id: FEATURE_IDS.INVOICES,
-                title: translate('workspace.moreFeatures.invoices.title'),
-                icon: Illustrations.InvoiceBlue,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
+                id: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
+                title: translate('workspace.moreFeatures.travel.title'),
+                icon: illustrations.Luggage,
             },
             {
-                id: FEATURE_IDS.RULES,
+                id: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
                 title: translate('workspace.moreFeatures.rules.title'),
-                icon: Illustrations.Rules,
-                apiEndpoint: WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
+                icon: illustrations.Rules,
                 requiresUpdate: true,
             },
             {
-                id: FEATURE_IDS.DISTANCE_RATES,
+                id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
                 title: translate('workspace.moreFeatures.distanceRates.title'),
-                icon: Illustrations.Car,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
+                icon: illustrations.Car,
             },
             {
-                id: FEATURE_IDS.EXPENSIFY_CARD,
+                id: CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED,
                 title: translate('workspace.moreFeatures.expensifyCard.title'),
-                icon: Illustrations.HandCard,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
+                icon: illustrations.HandCard,
             },
             {
-                id: FEATURE_IDS.TAGS,
+                id: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
                 title: translate('workspace.moreFeatures.tags.title'),
-                icon: Illustrations.Tag,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_TAGS,
+                icon: illustrations.Tag,
             },
             {
-                id: FEATURE_IDS.PER_DIEM,
+                id: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
                 title: translate('workspace.moreFeatures.perDiem.title'),
-                icon: Illustrations.PerDiem,
-                apiEndpoint: WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM,
+                icon: illustrations.PerDiem,
                 requiresUpdate: true,
+            },
+            {
+                id: CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
+                title: translate('workspace.moreFeatures.timeTracking.title'),
+                icon: illustrations.Clock,
             },
         ];
-    }, [translate, userReportedIntegration]);
+    }, [
+        illustrations.FolderOpen,
+        illustrations.Accounting,
+        illustrations.CompanyCard,
+        illustrations.Workflows,
+        illustrations.Rules,
+        illustrations.Car,
+        illustrations.HandCard,
+        illustrations.Tag,
+        illustrations.PerDiem,
+        illustrations.Luggage,
+        illustrations.Clock,
+        translate,
+        userReportedIntegration,
+    ]);
 
-    const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => features.filter((feature) => feature.enabledByDefault).map((feature) => feature.id));
+    const [userToggledFeatures, setUserToggledFeatures] = useState<Set<string>>(new Set());
+
+    const selectedFeatures = useMemo(() => {
+        return features
+            .filter((feature) => {
+                if (userToggledFeatures.has(feature.id)) {
+                    return !feature.enabledByDefault;
+                }
+                return feature.enabledByDefault;
+            })
+            .map((feature) => feature.id);
+    }, [features, userToggledFeatures]);
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
@@ -148,98 +176,98 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         setOnboardingPolicyID(paidGroupPolicy.id);
     }, [paidGroupPolicy, onboardingPolicyID]);
 
-    useEffect(() => {
-        if (!!isLoading || !prevIsLoading) {
-            return;
-        }
-
-        if (CONFIG.IS_HYBRID_APP) {
-            closeReactNativeApp({shouldSetNVP: true});
-            setRootStatusBarEnabled(false);
-            return;
-        }
-        // Wait for CompleteGuidedSetup and CreateWorkspace to complete before redirecting to OldDot to prevent showing this onboarding modal again.
-        waitForIdle().then(() => {
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-        });
-    }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
-
-    const handleContinue = useCallback(() => {
+    const handleContinue = useCallback(async () => {
         if (!onboardingPurposeSelected || !onboardingCompanySize) {
             return;
         }
 
-        const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
-        const newUserReportedIntegration = selectedFeatures.some((feature) => feature === 'accounting') ? userReportedIntegration : undefined;
-        const featuresMap = features.map((feature) => ({
-            ...feature,
-            enabled: selectedFeatures.includes(feature.id),
-        }));
+        try {
+            setIsLoading(true);
 
-        // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
-        // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
-        const {adminsChatReportID, policyID, type} = shouldCreateWorkspace
-            ? createWorkspace({
-                  policyOwnerEmail: undefined,
-                  makeMeAdmin: true,
-                  policyName: '',
-                  policyID: generatePolicyID(),
-                  engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                  currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
-                  file: undefined,
-                  shouldAddOnboardingTasks: false,
-                  companySize: onboardingCompanySize,
-                  userReportedIntegration: newUserReportedIntegration,
-                  featuresMap,
-              })
-            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID, type: undefined};
+            const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
+            const newUserReportedIntegration = selectedFeatures.some((feature) => feature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) ? userReportedIntegration : undefined;
+            const featuresMap = features.map((feature) => ({
+                ...feature,
+                enabled: selectedFeatures.includes(feature.id),
+            }));
 
-        if (policyID) {
-            updateInterestedFeatures(featuresMap, policyID, type);
+            const email = currentUserPersonalDetails.email ?? '';
+            // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
+            // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
+            const {adminsChatReportID, policyID} = shouldCreateWorkspace
+                ? createWorkspace({
+                      policyOwnerEmail: undefined,
+                      makeMeAdmin: true,
+                      policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                      policyID: generatePolicyID(),
+                      engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                      currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
+                      file: undefined,
+                      shouldAddOnboardingTasks: false,
+                      companySize: onboardingCompanySize,
+                      userReportedIntegration: newUserReportedIntegration,
+                      featuresMap,
+                      introSelected,
+                      activePolicy,
+                      currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                      currentUserEmailParam: email,
+                      shouldAddGuideWelcomeMessage: false,
+                      betas,
+                      isSelfTourViewed,
+                      hasActiveAdminPolicies,
+                  })
+                : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+
+            if (shouldCreateWorkspace) {
+                setOnboardingAdminsChatReportID(adminsChatReportID);
+                setOnboardingPolicyID(policyID);
+            }
+
+            await completeOnboarding({
+                engagementChoice: onboardingPurposeSelected,
+                onboardingMessage: onboardingMessages[onboardingPurposeSelected],
+                adminsChatReportID,
+                onboardingPolicyID: policyID,
+                companySize: onboardingCompanySize,
+                userReportedIntegration: newUserReportedIntegration,
+                firstName: currentUserPersonalDetails?.firstName,
+                lastName: currentUserPersonalDetails?.lastName,
+                selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
+                shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
+                introSelected,
+                isSelfTourViewed,
+            });
+
+            // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
+            TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    setOnboardingAdminsChatReportID();
+                    setOnboardingPolicyID();
+                },
+                waitForUpcomingTransition: true,
+            });
+
+            // We need to wait the policy is created before navigating out the onboarding flow
+            navigateAfterOnboardingWithMicrotaskQueue(
+                isSmallScreenWidth,
+                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                conciergeReportID,
+                archivedReportsIDSet,
+                policyID,
+                adminsChatReportID,
+                // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
+                // See https://github.com/Expensify/App/issues/57167 for more details
+                (session?.email ?? '').includes('+'),
+            );
+        } catch (error) {
+            Log.warn('[BaseOnboardingInterestedFeatures] Error completing onboarding', {error});
+        } finally {
+            setIsLoading(false);
         }
-
-        if (shouldCreateWorkspace) {
-            setOnboardingAdminsChatReportID(adminsChatReportID);
-            setOnboardingPolicyID(policyID);
-        }
-
-        completeOnboarding({
-            engagementChoice: onboardingPurposeSelected,
-            onboardingMessage: onboardingMessages[onboardingPurposeSelected],
-            adminsChatReportID,
-            onboardingPolicyID: policyID,
-            companySize: onboardingCompanySize,
-            userReportedIntegration: newUserReportedIntegration,
-            firstName: currentUserPersonalDetails?.firstName,
-            lastName: currentUserPersonalDetails?.lastName,
-            selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
-            shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
-        });
-
-        if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
-            // Do not call openOldDotLink here because it will cause a navigation loop. See https://github.com/Expensify/App/issues/61363
-            return;
-        }
-
-        // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
-        InteractionManager.runAfterInteractions(() => {
-            setOnboardingAdminsChatReportID();
-            setOnboardingPolicyID();
-        });
-
-        // We need to wait the policy is created before navigating out the onboarding flow
-        navigateAfterOnboardingWithMicrotaskQueue(
-            isSmallScreenWidth,
-            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-            policyID,
-            adminsChatReportID,
-            // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
-            // See https://github.com/Expensify/App/issues/57167 for more details
-            (session?.email ?? '').includes('+'),
-        );
     }, [
         isBetaEnabled,
         isSmallScreenWidth,
+        archivedReportsIDSet,
         onboardingAdminsChatReportID,
         onboardingCompanySize,
         onboardingMessages,
@@ -253,18 +281,28 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         currentUserPersonalDetails?.firstName,
         currentUserPersonalDetails?.lastName,
         currentUserPersonalDetails?.localCurrencyCode,
+        activePolicy,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
+        introSelected,
+        isSelfTourViewed,
+        conciergeReportID,
+        betas,
+        hasActiveAdminPolicies,
+        lastWorkspaceNumber,
+        translate,
     ]);
 
     // Create items for enabled features
     const enabledFeatures: Feature[] = features
-        .filter((feature) => feature.enabledByDefault)
+        .filter((feature) => !!feature.enabledByDefault || feature.id === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)
         .map((feature) => ({
             ...feature,
         }));
 
     // Create items for features they may be interested in
     const mayBeInterestedFeatures: Feature[] = features
-        .filter((feature) => !feature.enabledByDefault)
+        .filter((feature) => !feature.enabledByDefault && feature.id !== CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)
         .map((feature) => ({
             ...feature,
         }));
@@ -282,15 +320,16 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     ];
 
     const handleFeatureSelect = useCallback((featureId: string) => {
-        setSelectedFeatures((prev) => {
-            if (prev.includes(featureId)) {
-                return prev.filter((id) => id !== featureId);
+        setUserToggledFeatures((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(featureId)) {
+                newSet.delete(featureId);
+            } else {
+                newSet.add(featureId);
             }
-            return [...prev, featureId];
+            return newSet;
         });
     }, []);
-
-    const gap = styles.gap3.gap;
 
     const renderItem = useCallback(
         (item: Feature) => {
@@ -303,8 +342,13 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     }}
                     accessibilityLabel={item.title}
                     accessible={false}
-                    hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
-                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth ? styles.flexBasis100 : {maxWidth: (width - gap) / 2}, isSelected && styles.activeComponentBG]}
+                    hoverStyle={styles.hoveredComponentBG}
+                    style={[
+                        styles.onboardingInterestedFeaturesItem,
+                        // 48.5% handles the gap between columns and keeps items aligned when the scrollbar appears
+                        isSmallScreenWidth ? styles.flexBasis100 : {flexBasis: '48.5%', maxWidth: '48.5%'},
+                    ]}
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                         <Icon
@@ -324,7 +368,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 </PressableWithoutFeedback>
             );
         },
-        [styles, isSmallScreenWidth, selectedFeatures, handleFeatureSelect, width, gap],
+        [styles, isSmallScreenWidth, selectedFeatures, handleFeatureSelect],
     );
 
     const renderSection = useCallback(
@@ -350,21 +394,21 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         >
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={90}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_ACCOUNTING.getRoute())}
+                shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.interestedFeatures.title')}</Text>
+                <Text
+                    style={[styles.textHeadlineH1, styles.mb5]}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate('onboarding.interestedFeatures.title')}
+                </Text>
             </View>
 
-            <ScrollView
-                onLayout={(e) => {
-                    setWidth(e.nativeEvent.layout.width);
-                }}
-                style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
-            >
-                {sections.map(renderSection)}
-            </ScrollView>
+            <ScrollView style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>{sections.map(renderSection)}</ScrollView>
 
             <FixedFooter style={[styles.pt3, styles.ph5]}>
                 <Button
@@ -372,15 +416,14 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     large
                     text={translate('common.continue')}
                     onPress={handleContinue}
-                    isLoading={isLoading}
                     isDisabled={isOffline}
+                    isLoading={isLoading}
                     pressOnEnter
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
                 />
             </FixedFooter>
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingInterestedFeatures.displayName = 'BaseOnboardingInterestedFeatures';
 
 export default BaseOnboardingInterestedFeatures;

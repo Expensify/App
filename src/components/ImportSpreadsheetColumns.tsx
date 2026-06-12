@@ -28,7 +28,7 @@ type ImportSpreadsheetColumnsProps = {
     columnRoles?: ColumnRole[];
 
     // A function to perform the import operation.
-    importFunction: () => void;
+    importFunction: () => void | Promise<void>;
 
     // An optional Errors object containing any errors that may have occurred.
     errors?: Errors | null;
@@ -63,7 +63,7 @@ function ImportSpreadsheetColumns({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const {containsHeader = true} = spreadsheet ?? {};
 
     return (
@@ -80,7 +80,13 @@ function ImportSpreadsheetColumns({
                     </Text>
                     {shouldShowColumnHeader && (
                         <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                            <Text style={[styles.flex1, styles.mr2]}>{translate('spreadsheet.fileContainsHeader')}</Text>
+                            <Text
+                                style={[styles.flex1, styles.mr2]}
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('spreadsheet.fileContainsHeader')}
+                            </Text>
                             <Switch
                                 accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
                                 isOn={containsHeader}
@@ -108,7 +114,6 @@ function ImportSpreadsheetColumns({
                     shouldDisplayErrorAbove
                     errors={errors}
                     errorRowStyles={styles.mv2}
-                    canDismissError={false}
                 >
                     <Button
                         text={translate('common.import')}
@@ -124,7 +129,5 @@ function ImportSpreadsheetColumns({
         </>
     );
 }
-
-ImportSpreadsheetColumns.displayName = 'ImportSpreadsheetColumns';
 
 export default ImportSpreadsheetColumns;

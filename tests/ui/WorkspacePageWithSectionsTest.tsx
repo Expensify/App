@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -6,13 +6,13 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type Navigation from '@libs/Navigation/Navigation';
+import {setHasRadio} from '@libs/NetworkState';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const POLICY_ID = 1;
@@ -60,10 +60,7 @@ const renderWorkspacePageWithSections = (props = {}) => {
 
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <WorkspacePageWithSections
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultProps}
-            >
+            <WorkspacePageWithSections {...defaultProps}>
                 <View />
             </WorkspacePageWithSections>
         </ComposeProviders>,
@@ -72,22 +69,27 @@ const renderWorkspacePageWithSections = (props = {}) => {
 
 describe('WorkspacePageWithSections', () => {
     describe('FullScreenLoadingIndicator behavior', () => {
-        beforeAll(() => {
+        beforeAll(async () => {
             Onyx.init({
                 keys: ONYXKEYS,
             });
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
-            return waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await waitForBatchedUpdatesWithAct();
+            });
         });
 
-        afterEach(() => {
+        afterEach(async () => {
             jest.clearAllMocks();
-            return Onyx.clear();
+            await act(async () => {
+                await Onyx.clear();
+                await waitForBatchedUpdatesWithAct();
+            });
         });
 
         it('should not display FullScreenLoadingIndicator when user is offline', async () => {
             // Given the network state is offline
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+            setHasRadio(false);
 
             // When render the component with loading enabled
             renderWorkspacePageWithSections({
@@ -103,7 +105,7 @@ describe('WorkspacePageWithSections', () => {
 
         it('should display FullScreenLoadingIndicator when user is online and loading', async () => {
             // Given the network state is online
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+            setHasRadio(true);
 
             // When render the component with loading enabled
             renderWorkspacePageWithSections({

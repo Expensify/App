@@ -1,13 +1,13 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
-import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {
     clearGetValidateCodeForAccountMerge,
@@ -28,6 +29,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Account} from '@src/types/onyx';
 
 const getMergeErrorPage = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
     if (err.includes('403')) {
@@ -73,17 +75,19 @@ const getAuthenticationErrorKey = (err: string): TranslationPaths | null => {
     return 'mergeAccountsPage.accountValidate.errors.fallback';
 };
 
+const accountSelector = (account: OnyxEntry<Account>) => ({
+    mergeWithValidateCode: account?.mergeWithValidateCode,
+    getValidateCodeForAccountMerge: account?.getValidateCodeForAccountMerge,
+});
+
 function AccountValidatePage() {
-    const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const navigation = useNavigation();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (data) => ({
-            mergeWithValidateCode: data?.mergeWithValidateCode,
-            getValidateCodeForAccountMerge: data?.getValidateCodeForAccountMerge,
-        }),
-        canBeMissing: true,
+        selector: accountSelector,
     });
+
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -103,27 +107,23 @@ function AccountValidatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    useFocusEffect(
-        useCallback(() => {
-            if (!isAccountMerged || !email) {
-                return;
-            }
-            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, 'success'), {forceReplace: true});
-        }, [isAccountMerged, email]),
-    );
+    useFocusEffect(() => {
+        if (!isAccountMerged || !email) {
+            return;
+        }
+        return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, 'success'), {forceReplace: true});
+    });
 
-    useFocusEffect(
-        useCallback(() => {
-            if (!errorPage || !email) {
-                return;
-            }
-            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorPage), {forceReplace: true});
-        }, [errorPage, email]),
-    );
+    useFocusEffect(() => {
+        if (!errorPage || !email) {
+            return;
+        }
+        return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorPage), {forceReplace: true});
+    });
 
-    useFocusEffect(
-        useCallback(() => {
-            const task = InteractionManager.runAfterInteractions(() => {
+    useFocusEffect(() => {
+        const task = TransitionTracker.runAfterTransitions({
+            callback: () => {
                 if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                     return;
                 }
@@ -131,11 +131,11 @@ function AccountValidatePage() {
                 Navigation.navigate(
                     ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
                 );
-            });
+            },
+        });
 
-            return () => task.cancel();
-        }, [privateSubscription?.type, currentUserPersonalDetails.login]),
-    );
+        return () => task.cancel();
+    });
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('blur', () => {
@@ -153,14 +153,14 @@ function AccountValidatePage() {
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={AccountValidatePage.displayName}
+            testID="AccountValidatePage"
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
                 }}
-                shouldDisplayHelpButton={false}
             />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
@@ -171,14 +171,12 @@ function AccountValidatePage() {
                     descriptionPrimaryStyles={{...styles.mb8, ...styles.textStrong}}
                     descriptionSecondary={
                         <View style={[styles.w100]}>
-                            <Text style={[styles.mb8]}>
-                                {translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData')}
-                                <Text style={styles.textStrong}>{email}</Text>.
-                            </Text>
-                            <Text>
-                                {translate('mergeAccountsPage.accountValidate.enterMagicCode')}
-                                <Text style={styles.textStrong}>{email}</Text>.
-                            </Text>
+                            <View style={[styles.mb8, styles.renderHTML, styles.flexRow]}>
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', email)} />
+                            </View>
+                            <View style={[styles.renderHTML, styles.flexRow]}>
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterMagicCode', email)} />
+                            </View>
                         </View>
                     }
                     descriptionSecondaryStyles={styles.mb8}
@@ -186,21 +184,18 @@ function AccountValidatePage() {
                         mergeWithValidateCodeAction(email, code);
                     }}
                     sendValidateCode={() => {
-                        requestValidationCodeForAccountMerge(email, true);
+                        requestValidationCodeForAccountMerge(email, true, countryCode);
                     }}
                     shouldSkipInitialValidation
                     clearError={() => clearMergeWithValidateCode()}
                     validateError={validateCodeError}
                     hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeResent}
                     submitButtonText={translate('mergeAccountsPage.mergeAccount')}
-                    forwardedRef={validateCodeFormRef}
                     isLoading={mergeWithValidateCode?.isLoading}
                 />
             </ScrollView>
         </ScreenWrapper>
     );
 }
-
-AccountValidatePage.displayName = 'AccountValidatePage';
 
 export default AccountValidatePage;

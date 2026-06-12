@@ -1,7 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import type {Compiler} from 'webpack';
-import {version as APP_VERSION} from '../../package.json';
+import packageJson from '../../package.json' with {type: 'json'};
+
+const APP_VERSION = packageJson.version;
 
 /**
  * Custom webpack plugin that writes the app version (from package.json) and the webpack hash to './version.json'

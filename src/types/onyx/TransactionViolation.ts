@@ -32,6 +32,12 @@ type TransactionViolationData = {
     /** Limit that the transaction violated */
     formattedLimit?: string;
 
+    /** Currency of the transaction */
+    currency?: string;
+
+    /** Limit amount that the transaction violated */
+    amount?: number;
+
     /** Percentage amount of conversion surcharge applied to the transaction */
     surcharge?: number;
 
@@ -99,10 +105,16 @@ type TransactionViolationData = {
     tooltip?: string;
 
     /** What prohibitive expense rule did they break? */
-    prohibitedExpenseRule?: string;
+    prohibitedExpenseRule?: string | string[];
 
     /** Comment that triggered the violation */
     comment?: string;
+
+    /** Card ID associated with the violation (used to determine if it's a personal or company card) */
+    cardID?: number;
+
+    /** List of fields that failed to scan (e.g., ["merchant", "date", "amount"]) */
+    missingFields?: string[];
 };
 
 /** Model of a transaction violation */

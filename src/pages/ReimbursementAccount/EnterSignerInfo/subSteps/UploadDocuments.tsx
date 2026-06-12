@@ -15,7 +15,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/utils/getNeededDocumentsStatusForSignerInfo';
 import WhyLink from '@pages/ReimbursementAccount/WhyLink';
 import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
@@ -23,6 +22,7 @@ import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type UploadDocumentsProps = SubStepProps & {policyID: string};
 
@@ -30,12 +30,13 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT, {canBeMissing: false});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [environmentUrl, setEnvironmentUrl] = useState<string | null>(null);
 
-    const currency = policy?.outputCurrency ?? '';
-    const country = mapCurrencyToCountry(currency);
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
+    const country = mapCurrencyToCountry(currency) ?? reimbursementAccountDraft?.country;
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, country);
     const isPDSandFSGDownloaded = enterSignerInfoFormDraft?.[INPUT_IDS.DOWNLOADED_PDS_AND_FSG] ?? false;
     const [isPDSandFSGDownloadedTouched, setIsPDSandFSGDownloadedTouched] = useState<boolean>(false);
@@ -69,9 +70,9 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
             setIsPDSandFSGDownloadedTouched(true);
-            return getFieldRequiredErrors(values, STEP_FIELDS);
+            return getFieldRequiredErrors(values, STEP_FIELDS, translate);
         },
-        [STEP_FIELDS],
+        [STEP_FIELDS, translate],
     );
 
     const handleSubmit = useEnterSignerInfoStepFormSubmit({
@@ -139,7 +140,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
                         onRemove={(fileName) => {
                             handleRemoveFile(fileName, uploadedIDs, copyOfIDInputID, setUploadedID);
                         }}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={uploadedIDs}
                         inputID={copyOfIDInputID}
                         setError={(error) => {
@@ -167,7 +168,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
                         onRemove={(fileName) => {
                             handleRemoveFile(fileName, uploadedProofsOfAddress, addressProofInputID, setUploadedProofOfAddress);
                         }}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={uploadedProofsOfAddress}
                         inputID={addressProofInputID}
                         setError={(error) => {
@@ -194,7 +195,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
                         onRemove={(fileName) => {
                             handleRemoveFile(fileName, uploadedProofsOfDirectors, directorsProofInputID, setUploadedProofsOfDirectors);
                         }}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={uploadedProofsOfDirectors}
                         inputID={directorsProofInputID}
                         setError={(error) => {
@@ -252,7 +253,5 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
         </FormProvider>
     );
 }
-
-UploadDocuments.displayName = 'UploadDocuments';
 
 export default UploadDocuments;

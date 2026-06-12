@@ -2,9 +2,10 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -14,11 +15,10 @@ import {openSubscriptionPage} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import CardSection from './CardSection/CardSection';
-import ReducedFunctionalityMessage from './ReducedFunctionalityMessage';
 import SubscriptionPlan from './SubscriptionPlan';
 
 type SubscriptionSettingsPageProps = PlatformStackScreenProps<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.ROOT>;
@@ -29,41 +29,53 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
-
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew']);
+    useDocumentTitle(translate('workspace.common.subscription'));
     useEffect(() => {
         openSubscriptionPage();
     }, []);
-    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const shouldShowPage = !!subscriptionPlan || (amountOwed ?? 0) > 0;
 
-    if (!subscriptionPlan && isAppLoading) {
-        return <FullScreenLoadingIndicator />;
+    useEffect(() => {
+        if (shouldShowPage || isAppLoading) {
+            return;
+        }
+        Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
+    }, [isAppLoading, shouldShowPage]);
+
+    if (!shouldShowPage && isAppLoading) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SubscriptionSettingsPage', isAppLoading: !!isAppLoading, shouldShowPage};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
-    if (!subscriptionPlan) {
-        return <NotFoundPage />;
+
+    if (!shouldShowPage) {
+        return null;
     }
 
     return (
         <ScreenWrapper
-            testID={SubscriptionSettingsPage.displayName}
+            testID="SubscriptionSettingsPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
                 onBackButtonPress={() => {
-                    if (Navigation.getShouldPopToSidebar()) {
-                        Navigation.popToSidebar();
+                    if (backTo) {
+                        Navigation.goBack(backTo);
                         return;
                     }
-                    Navigation.goBack(backTo);
+                    Navigation.goBack();
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                icon={Illustrations.CreditCardsNew}
+                shouldDisplayHelpButton
+                icon={illustrations.CreditCardsNew}
                 shouldUseHeadlineHeader
             />
             <ScrollView style={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <ReducedFunctionalityMessage />
                     <CardSection />
                     <SubscriptionPlan />
                 </View>
@@ -71,7 +83,5 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
         </ScreenWrapper>
     );
 }
-
-SubscriptionSettingsPage.displayName = 'SubscriptionSettingsPage';
 
 export default SubscriptionSettingsPage;

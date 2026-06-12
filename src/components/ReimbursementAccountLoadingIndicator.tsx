@@ -21,8 +21,8 @@ function ReimbursementAccountLoadingIndicator({onBackButtonPress}: Reimbursement
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
-            style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}
-            testID={ReimbursementAccountLoadingIndicator.displayName}
+            style={[StyleSheet.absoluteFill, styles.reimbursementAccountFullScreenLoading]}
+            testID="ReimbursementAccountLoadingIndicator"
         >
             <HeaderWithBackButton
                 title={translate('reimbursementAccountLoadingAnimation.oneMoment')}
@@ -45,7 +45,5 @@ function ReimbursementAccountLoadingIndicator({onBackButtonPress}: Reimbursement
         </ScreenWrapper>
     );
 }
-
-ReimbursementAccountLoadingIndicator.displayName = 'ReimbursementAccountLoadingIndicator';
 
 export default ReimbursementAccountLoadingIndicator;

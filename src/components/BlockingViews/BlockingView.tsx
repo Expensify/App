@@ -8,10 +8,12 @@ import type {MergeExclusive} from 'type-fest';
 import Icon from '@components/Icon';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import useAbsentPageSpan from '@libs/telemetry/useAbsentPageSpan';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import BlockingViewSubtitle from './BlockingViewSubtitle';
@@ -26,6 +28,9 @@ type BaseBlockingViewProps = {
 
     /** The style of the subtitle message */
     subtitleStyle?: StyleProp<TextStyle>;
+
+    /** The style of the title message */
+    titleStyles?: StyleProp<TextStyle>;
 
     /** Translation key for the link text displayed below the subtitle */
     linkTranslationKey?: TranslationPaths;
@@ -103,6 +108,7 @@ function BlockingView({
     onLinkPress = () => Navigation.dismissModal(),
     shouldEmbedLinkWithSubtitle = false,
     animationStyles = [],
+    titleStyles = [],
     animationWebStyle = {},
     accessibilityLabel = '',
     CustomSubtitle,
@@ -120,9 +126,12 @@ function BlockingView({
     );
     const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: containerStyleProp});
 
+    useAbsentPageSpan();
+
     return (
-        <View
-            style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}
+        <ScrollView
+            style={[styles.flex1]}
+            contentContainerStyle={[styles.flexGrow1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}
             accessibilityLabel={accessibilityLabel}
             testID={testID}
         >
@@ -145,7 +154,7 @@ function BlockingView({
                 />
             )}
             <View>
-                <Text style={[styles.notFoundTextHeader]}>{title}</Text>
+                <Text style={[styles.notFoundTextHeader, titleStyles]}>{title}</Text>
 
                 {CustomSubtitle}
                 {!CustomSubtitle && (
@@ -169,10 +178,9 @@ function BlockingView({
                     </SubtitleWrapper>
                 )}
             </View>
-        </View>
+        </ScrollView>
     );
 }
 
-BlockingView.displayName = 'BlockingView';
-
+export type {BlockingViewProps};
 export default BlockingView;

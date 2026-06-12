@@ -1,17 +1,19 @@
 import {subYears} from 'date-fns';
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import DatePicker from '@components/DatePicker';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getAgeRequirementError, getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {updateDateOfBirth} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -23,28 +25,32 @@ function DateOfBirthPage() {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
     /**
      * @returns An object containing the errors for each inputID
      */
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM>) => {
-        const requiredFields = ['dob' as const];
-        const errors = getFieldRequiredErrors(values, requiredFields);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM>) => {
+            const requiredFields = ['dob' as const];
+            const errors = getFieldRequiredErrors(values, requiredFields, translate);
 
-        const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
-        const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
-        const dateError = getAgeRequirementError(values.dob ?? '', minimumAge, maximumAge);
+            const minimumAge = CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT;
+            const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
+            const dateError = getAgeRequirementError(translate, values.dob ?? '', minimumAge, maximumAge);
 
-        if (values.dob && dateError) {
-            errors.dob = dateError;
-        }
+            if (values.dob && dateError) {
+                errors.dob = dateError;
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={DateOfBirthPage.displayName}
+            testID="DateOfBirthPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -52,7 +58,12 @@ function DateOfBirthPage() {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 {isLoadingApp ? (
-                    <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={{context: 'DateOfBirthPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
+                        />
+                    </View>
                 ) : (
                     <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}
@@ -69,8 +80,9 @@ function DateOfBirthPage() {
                             label={translate('common.date')}
                             defaultValue={privatePersonalDetails?.dob ?? ''}
                             minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
-                            maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
+                            maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT)}
                             autoFocus
+                            autoComplete="birthdate-full"
                         />
                     </FormProvider>
                 )}
@@ -78,7 +90,5 @@ function DateOfBirthPage() {
         </ScreenWrapper>
     );
 }
-
-DateOfBirthPage.displayName = 'DateOfBirthPage';
 
 export default DateOfBirthPage;

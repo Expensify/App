@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidIndustryCode} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,10 +16,10 @@ import IndustryCodeSelector from './IndustryCode/IndustryCodeSelector';
 const COMPANY_INCORPORATION_CODE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_CODE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_CODE_KEY];
 
-function IncorporationCode({onNext, isEditing}: SubStepProps) {
+function IncorporationCode({onNext, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -54,12 +54,10 @@ function IncorporationCode({onNext, isEditing}: SubStepProps) {
                 InputComponent={IndustryCodeSelector}
                 inputID={COMPANY_INCORPORATION_CODE_KEY}
                 shouldSaveDraft={!isEditing}
-                defaultValue={reimbursementAccount?.achData?.industryCode}
+                defaultValue={isEditing ? reimbursementAccount?.achData?.industryCode : ''}
             />
         </FormProvider>
     );
 }
-
-IncorporationCode.displayName = 'IncorporationCode';
 
 export default IncorporationCode;

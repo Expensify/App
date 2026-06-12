@@ -20,8 +20,8 @@ To choose how data is imported from QuickBooks Online to Expensify:
 - **Chart of accounts**: Automatically imported as categories. This setting cannot be changed.
 - **Classes**: Import as tags to allow expense-level coding.
 - **Customers/Projects**: Import as tags for expense-level coding.
-- **Locations**: Import as tags.
-  - Note: If you import locations, you won’t be able to export as vendor bills or checks unless you upgrade to the **Control** plan.
+- **Locations**: Import as tags or report fields.
+  - Note: If you export using the Vendor bill or Check options, then locations must be imported as report fields, which are only available on the [**Control** plan](/articles/new-expensify/billing-and-subscriptions/Billing-Overview#control-plan). When locations are imported as tags, the Vendor bill and Check export options are unavailable.
 - **Taxes**: Import tax rates and defaults.
 
 ## How to Turn Imported Accounts and Tags Off
@@ -57,6 +57,7 @@ To choose how data is exported from Expensify to QuickBooks Online:
   - Debit card
   - Vendor bill
     - If exporting as vendor bills, select the AP account and optionally a default vendor
+    - Vendor bill is unavailable when locations are imported as tags. To keep it available, import locations as report fields (only available on the **Control** plan)
 
 ---
 
@@ -74,7 +75,8 @@ To manage automation and other connection preferences:
 - **Sync reimbursed reports**:
   - If marked as paid in QuickBooks Online, the report will show as reimbursed in Expensify
   - If reimbursed via ACH in Expensify, the status will sync to paid in QuickBooks
-- **Invoice collection account**: Select where paid invoices are stored
+- **QuickBooks bill payment account**: Select where payments for expense reports are recorded
+- **QuickBooks invoice collections account**: Select where payments for invoices are recorded
 
 ---
 
@@ -99,7 +101,7 @@ No. Only newly approved reports will auto-export. Any old reports must be manual
 
 # Why can't I export reports as vendor bills or checks?
 
-This is likely due to the **Locations** import setting. Locations can only be used as tags. To unlock vendor bill and check exports:
-- Turn off location imports
-- Or upgrade to the **Control** plan
+This is likely due to the **Locations** import setting. Vendor bill and check exports are unavailable when locations are imported as tags. To unlock vendor bill and check exports:
+- Turn off location imports, or
+- Import locations as report fields, which are only available on the **Control** plan
 

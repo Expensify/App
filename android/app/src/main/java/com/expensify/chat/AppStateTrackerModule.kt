@@ -17,7 +17,7 @@ class AppStateTrackerModule(reactContext: ReactApplicationContext) : ReactContex
 
     @ReactMethod
     fun getWasAppRelaunchedFromIcon(promise: Promise) {
-        val activity = currentActivity
+        val activity = reactApplicationContext.getCurrentActivity()
         if (activity is MainActivity) {
             promise.resolve(activity.wasAppRelaunchedFromIcon)
             activity.wasAppRelaunchedFromIcon = false

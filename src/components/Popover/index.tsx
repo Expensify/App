@@ -1,10 +1,11 @@
 import React, {useRef} from 'react';
 import {createPortal} from 'react-dom';
 import Modal from '@components/Modal';
-import {PopoverContext} from '@components/PopoverProvider';
+import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
+import {usePopoverActions, usePopoverState} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanel from '@hooks/useSidePanel';
+import useSidePanelState from '@hooks/useSidePanelState';
 import TooltipRefManager from '@libs/TooltipRefManager';
 import CONST from '@src/CONST';
 import type PopoverProps from './types';
@@ -23,7 +24,7 @@ function Popover(props: PopoverProps) {
         fullscreen,
         onLayout,
         animationOutTiming,
-        animationInTiming = CONST.ANIMATED_TRANSITION,
+        animationInTiming = CONST.MENU_ANIMATION_DURATION,
         disableAnimation = true,
         withoutOverlay = false,
         anchorPosition = {},
@@ -37,8 +38,9 @@ function Popover(props: PopoverProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const withoutOverlayRef = useRef(null);
-    const {close, popover} = React.useContext(PopoverContext);
-    const {isSidePanelTransitionEnded} = useSidePanel();
+    const {popover} = usePopoverState();
+    const {close} = usePopoverActions();
+    const {isSidePanelTransitionEnded} = useSidePanelState();
 
     // This useEffect handles hiding popovers when SidePanel is animating.
     React.useEffect(() => {
@@ -56,6 +58,11 @@ function Popover(props: PopoverProps) {
         }
         const listener = () => {
             if (!isVisible) {
+                return;
+            }
+            // A nested Modal closing itself fires history.back() to drop its guard entry;
+            // that popstate is not a real user navigation, so skip closing.
+            if (isInternalPopstateInProgress()) {
                 return;
             }
             onClose?.();
@@ -77,7 +84,6 @@ function Popover(props: PopoverProps) {
     if (!fullscreen && !shouldUseNarrowLayout) {
         return createPortal(
             <Modal
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 onClose={onCloseWithPopoverContext}
                 type={CONST.MODAL.MODAL_TYPE.POPOVER}
@@ -95,7 +101,6 @@ function Popover(props: PopoverProps) {
     if (withoutOverlay && !shouldUseNarrowLayout) {
         return createPortal(
             <PopoverWithoutOverlay
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 withoutOverlayRef={withoutOverlayRef}
                 animationIn={animationIn}
@@ -107,7 +112,6 @@ function Popover(props: PopoverProps) {
 
     return (
         <Modal
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onClose={onCloseWithPopoverContext}
             shouldHandleNavigationBack={props.shouldHandleNavigationBack}
@@ -122,7 +126,5 @@ function Popover(props: PopoverProps) {
         />
     );
 }
-
-Popover.displayName = 'Popover';
 
 export default Popover;

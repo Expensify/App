@@ -2,16 +2,16 @@ import {useRoute} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createTransactionThreadReport} from '@libs/actions/Report';
-import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -23,21 +23,17 @@ import {
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
-import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import {useReportActionItemActions} from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TransactionPreview from './TransactionPreview';
 
 type MoneyRequestActionProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<OnyxTypes.Report>;
-
     /** All the data of the action */
     action: OnyxTypes.ReportAction;
 
@@ -50,15 +46,6 @@ type MoneyRequestActionProps = {
     /** The ID of the current report */
     reportID: string | undefined;
 
-    /** Is this IOU ACTION the most recent? */
-    isMostRecentIOUReportAction: boolean;
-
-    /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor?: ContextMenuAnchor;
-
-    /** Callback for updating context menu active state, used for showing context menu */
-    checkIfContextMenuActive?: () => void;
-
     /** Whether the IOU is hovered so we can modify its style */
     isHovered?: boolean;
 
@@ -67,33 +54,18 @@ type MoneyRequestActionProps = {
 
     /** Styles to be assigned to Container */
     style?: StyleProp<ViewStyle>;
-
-    /** Whether  context menu should be shown on press */
-    shouldDisplayContextMenu?: boolean;
 };
 
-function MoneyRequestAction({
-    allReports,
-    action,
-    chatReportID,
-    requestReportID,
-    reportID,
-    isMostRecentIOUReportAction,
-    contextMenuAnchor,
-    checkIfContextMenuActive = () => {},
-    isHovered = false,
-    style,
-    isWhisper = false,
-    shouldDisplayContextMenu = true,
-}: MoneyRequestActionProps) {
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`];
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false, canBeMissing: true});
+function MoneyRequestAction({action, chatReportID, requestReportID, reportID, isHovered = false, style, isWhisper = false}: MoneyRequestActionProps) {
+    const {onPreviewPressed} = useReportActionItemActions();
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
@@ -106,39 +78,40 @@ function MoneyRequestAction({
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
 
     const onMoneyRequestPreviewPressed = () => {
+        if (onPreviewPressed && action?.childReportID) {
+            onPreviewPressed(action?.childReportID);
+            return;
+        }
         if (contextMenuRef.current?.isContextMenuOpening) {
             return;
         }
         if (isSplitBillAction) {
-            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.getRoute(action.reportActionID)));
             return;
         }
 
         // In case the childReportID is not present it probably means the transaction thread was not created yet,
         // so we need to send the parentReportActionID and the transactionID to the route so we can call OpenReport correctly
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
+
         if (!action?.childReportID && transactionID && action.reportActionID) {
-            const transactionThreadReport = createTransactionThreadReport(iouReport, action);
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(transactionThreadReport?.reportID, undefined, undefined, Navigation.getActiveRoute()));
+            const transactionThreadReport = createTransactionThreadReport({
+                introSelected,
+                currentUserLogin: currentUserEmail ?? '',
+                currentUserAccountID,
+                betas,
+                iouReport,
+                iouReportAction: action,
+            });
+            Navigation.navigate(getReportRouteForCurrentContext({reportID: transactionThreadReport?.reportID}));
             return;
         }
 
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(getReportRouteForCurrentContext({reportID: action?.childReportID}));
     };
 
-    let shouldShowPendingConversionMessage = false;
     const isDeletedParentAction = isDeletedParentActionReportActionsUtils(action);
     const isReversedTransaction = isReversedTransactionReportActionsUtils(action);
-    if (
-        !isEmptyObject(iouReport) &&
-        !isEmptyObject(reportActions) &&
-        chatReport?.iouReportID &&
-        isMostRecentIOUReportAction &&
-        action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-        isOffline
-    ) {
-        shouldShowPendingConversionMessage = isIOUReportPendingCurrencyConversion(iouReport);
-    }
 
     if (isDeletedParentAction || isReversedTransaction) {
         let message: TranslationPaths;
@@ -156,7 +129,6 @@ function MoneyRequestAction({
 
     return (
         <TransactionPreview
-            allReports={allReports}
             iouReportID={requestReportID}
             chatReportID={chatReportID}
             reportID={reportID}
@@ -164,18 +136,12 @@ function MoneyRequestAction({
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewStandaloneStyle.width}
             isBillSplit={isSplitBillAction}
             isTrackExpense={isTrackExpenseAction}
-            contextMenuAnchor={contextMenuAnchor}
-            checkIfContextMenuActive={checkIfContextMenuActive}
-            shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
             onPreviewPressed={onMoneyRequestPreviewPressed}
             containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle, isReviewDuplicateTransactionPage ? [containerStyles, styles.borderNone] : styles.mt2]}
             isHovered={isHovered}
             isWhisper={isWhisper}
-            shouldDisplayContextMenu={shouldDisplayContextMenu}
         />
     );
 }
-
-MoneyRequestAction.displayName = 'MoneyRequestAction';
 
 export default MoneyRequestAction;

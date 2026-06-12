@@ -48,11 +48,14 @@ function EmojiPickerMenuItem({
             ]}
             accessibilityLabel={emoji}
             role={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.MENU_ITEM}
         >
             <Text style={[themeStyles.emojiText]}>{emoji}</Text>
         </PressableWithoutFeedback>
     );
 }
+
+EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.

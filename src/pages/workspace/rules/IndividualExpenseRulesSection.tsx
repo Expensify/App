@@ -1,23 +1,19 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
-import Switch from '@components/Switch';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openExternalLink} from '@libs/actions/Link';
-import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setPolicyRequireCompanyCardsEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import type {ThemeStyles} from '@styles/index';
-import variables from '@styles/variables';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -27,12 +23,13 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
+    canWriteRules: boolean;
+    withReadOnlyFallback: (disabledAction?: () => void | Promise<void>) => (() => void | Promise<void>) | undefined;
 };
 
 type IndividualExpenseRulesSectionSubtitleProps = {
     policy?: Policy;
     translate: LocaleContextProps['translate'];
-    styles: ThemeStyles;
     environmentURL: string;
 };
 
@@ -43,7 +40,7 @@ type IndividualExpenseRulesMenuItem = {
     pendingAction?: PendingAction;
 };
 
-function IndividualExpenseRulesSectionSubtitle({policy, translate, styles, environmentURL}: IndividualExpenseRulesSectionSubtitleProps) {
+function IndividualExpenseRulesSectionSubtitle({policy, translate, environmentURL}: IndividualExpenseRulesSectionSubtitleProps) {
     const policyID = policy?.id;
 
     const categoriesPageLink = useMemo(() => {
@@ -62,14 +59,11 @@ function IndividualExpenseRulesSectionSubtitle({policy, translate, styles, envir
         return `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
     }, [policy?.areTagsEnabled, policyID, environmentURL]);
 
-    return (
-        <View style={[styles.flexRow, styles.renderHTML, styles.w100, styles.mt2]}>
-            <RenderHTML html={translate('workspace.rules.individualExpenseRules.subtitle', {categoriesPageLink, tagsPageLink})} />
-        </View>
-    );
+    return <SectionSubtitleHTML html={translate('workspace.rules.individualExpenseRules.subtitle', categoriesPageLink, tagsPageLink)} />;
 }
 
-function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSectionProps) {
+function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFallback}: IndividualExpenseRulesSectionProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -77,13 +71,20 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
+    const handleAttendeeTrackingToggle = useCallback(
+        (newValue: boolean) => {
+            setPolicyAttendeeTrackingEnabled(policyID, newValue, policy?.isAttendeeTrackingEnabled);
+        },
+        [policyID, policy?.isAttendeeTrackingEnabled],
+    );
+
     const maxExpenseAmountNoReceiptText = useMemo(() => {
         if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE) {
             return '';
         }
 
         return convertToDisplayString(policy?.maxExpenseAmountNoReceipt, policyCurrency);
-    }, [policy?.maxExpenseAmountNoReceipt, policyCurrency]);
+    }, [convertToDisplayString, policy?.maxExpenseAmountNoReceipt, policyCurrency]);
 
     const maxExpenseAmountText = useMemo(() => {
         if (policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE) {
@@ -91,7 +92,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         }
 
         return convertToDisplayString(policy?.maxExpenseAmount, policyCurrency);
-    }, [policy?.maxExpenseAmount, policyCurrency]);
+    }, [convertToDisplayString, policy?.maxExpenseAmount, policyCurrency]);
 
     const maxExpenseAgeText = useMemo(() => {
         if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE) {
@@ -101,7 +102,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge ?? 0});
     }, [policy?.maxExpenseAge, translate]);
 
-    const reimbursableMode = getCashExpenseReimbursableMode(policyID) ?? CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT;
+    const reimbursableMode = getCashExpenseReimbursableMode(policy) ?? CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT;
     const reimbursableModeText = translate(`workspace.rules.individualExpenseRules.${reimbursableMode}`);
     const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
 
@@ -128,6 +129,14 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.tobacco'));
         }
 
+        if (policy?.prohibitedExpenses?.handwrittenReceipt) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.handwrittenReceipt'));
+        }
+
+        if (policy?.prohibitedExpenses?.giftCard) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.giftCard'));
+        }
+
         // If no expenses are prohibited, return empty string
         if (!prohibitedExpensesList.length) {
             return '';
@@ -136,12 +145,26 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         return prohibitedExpensesList.join(', ');
     }, [policy?.prohibitedExpenses, translate]);
 
+    const maxExpenseAmountNoItemizedReceiptText = useMemo(() => {
+        if (policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoItemizedReceipt === undefined) {
+            return '';
+        }
+
+        return convertToDisplayString(policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency);
+    }, [convertToDisplayString, policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency]);
+
     const individualExpenseRulesItems: IndividualExpenseRulesMenuItem[] = [
         {
             title: maxExpenseAmountNoReceiptText,
             descriptionTranslationKey: 'workspace.rules.individualExpenseRules.receiptRequiredAmount',
             action: () => Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt,
+        },
+        {
+            title: maxExpenseAmountNoItemizedReceiptText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmount',
+            action: () => Navigation.navigate(ROUTES.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt,
         },
         {
             title: maxExpenseAmountText,
@@ -177,10 +200,10 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     });
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
+    const requireCompanyCardsEnabled = policy?.requireCompanyCardsEnabled ?? false;
+    const disableRequireCompanyCardToggle = !policy?.areCompanyCardsEnabled && !policy?.areExpensifyCardsEnabled;
 
-    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
-    // Control policies if the policy does not contain the attribute
-    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? true;
+    const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
     return (
         <Section
@@ -190,7 +213,6 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                 <IndividualExpenseRulesSectionSubtitle
                     policy={policy}
                     translate={translate}
-                    styles={styles}
                     environmentURL={environmentURL}
                 />
             )}
@@ -203,54 +225,64 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                         key={translate(item.descriptionTranslationKey)}
                     >
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon
+                            shouldShowRightIcon={canWriteRules}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
                             title={item.title}
                             description={translate(item.descriptionTranslationKey)}
                             onPress={item.action}
+                            interactive={canWriteRules}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             numberOfLinesTitle={2}
                         />
                     </OfflineWithFeedback>
                 ))}
+                <ToggleSettingOptionRow
+                    title={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    subtitle={translate('workspace.rules.individualExpenseRules.requireCompanyCardDescription')}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    disabled={!canWriteRules || disableRequireCompanyCardToggle}
+                    disabledAction={withReadOnlyFallback()}
+                    showLockIcon={!canWriteRules || disableRequireCompanyCardToggle}
+                    disabledText={translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip')}
+                    wrapperStyle={[styles.mt3]}
+                    titleStyle={styles.pv2}
+                    subtitleStyle={styles.pt1}
+                    isActive={requireCompanyCardsEnabled}
+                    pendingAction={policy?.pendingFields?.requireCompanyCardsEnabled}
+                    onToggle={() => (canWriteRules && policy ? setPolicyRequireCompanyCardsEnabled(policy, !requireCompanyCardsEnabled) : undefined)}
+                />
 
-                <View style={[styles.mt3]}>
-                    <OfflineWithFeedback pendingAction={policy?.pendingFields?.eReceipts}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, {minHeight: variables.h40}]}>
-                            <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.eReceipts')}</Text>
-                            <Switch
-                                isOn={areEReceiptsEnabled}
-                                accessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
-                                onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
-                                disabled={policyCurrency !== CONST.CURRENCY.USD}
-                            />
-                        </View>
-                    </OfflineWithFeedback>
-                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.pt1]}>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.eReceiptsHint')}</Text>{' '}
-                        <TextLink
-                            style={[styles.textLabel, styles.link]}
-                            onPress={() => openExternalLink(CONST.DEEP_DIVE_ERECEIPTS)}
-                        >
-                            {translate('workspace.rules.individualExpenseRules.eReceiptsHintLink')}
-                        </TextLink>
-                        .
-                    </Text>
-                </View>
-                <View style={[styles.mt3]}>
-                    <OfflineWithFeedback pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, {minHeight: variables.h40}]}>
-                            <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.attendeeTracking')}</Text>
-                            <Switch
-                                isOn={isAttendeeTrackingEnabled}
-                                accessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
-                                onToggle={() => setPolicyAttendeeTrackingEnabled(policyID, !isAttendeeTrackingEnabled)}
-                            />
-                        </View>
-                    </OfflineWithFeedback>
-                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.pt1]}>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}</Text>
-                    </Text>
-                </View>
+                <ToggleSettingOptionRow
+                    title={translate('workspace.rules.individualExpenseRules.eReceipts')}
+                    subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
+                    shouldParseSubtitle
+                    wrapperStyle={[styles.mt3]}
+                    shouldPlaceSubtitleBelowSwitch
+                    titleStyle={styles.pv2}
+                    subtitleStyle={styles.pt1}
+                    isActive={areEReceiptsEnabled}
+                    disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
+                    disabledAction={withReadOnlyFallback()}
+                    showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
+                    onToggle={() => (canWriteRules ? setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts) : undefined)}
+                    pendingAction={policy?.pendingFields?.eReceipts}
+                />
+                <ToggleSettingOptionRow
+                    title={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
+                    subtitle={translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
+                    wrapperStyle={[styles.mt3]}
+                    shouldPlaceSubtitleBelowSwitch
+                    titleStyle={styles.pv2}
+                    subtitleStyle={styles.pt1}
+                    isActive={isAttendeeTrackingEnabledForPolicy}
+                    disabled={!canWriteRules}
+                    disabledAction={withReadOnlyFallback()}
+                    showLockIcon={!canWriteRules}
+                    onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
+                    pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
+                />
             </View>
         </Section>
     );

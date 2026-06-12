@@ -40,17 +40,10 @@ type ValidateCodeActionContentProps = {
 
     /** Method to trigger when pressing more options button of the header */
     onThreeDotsButtonPress?: () => void;
+
+    /** Whether the modal is used as a page modal. Used to determine input auto focus timing. */
+    isPageModal?: boolean;
 };
 
-type ValidateCodeActionModalProps = ValidateCodeActionContentProps & {
-    /** Whether the modal is visible */
-    isVisible: boolean;
-
-    /** Whether handle navigation back when modal show. */
-    shouldHandleNavigationBack?: boolean;
-
-    /** Whether disable the animations */
-    disableAnimation?: boolean;
-};
-
-export type {ValidateCodeActionContentProps, ValidateCodeActionModalProps};
+// eslint-disable-next-line import/prefer-default-export
+export type {ValidateCodeActionContentProps};

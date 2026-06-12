@@ -1,22 +1,110 @@
 import {NavigationContainer} from '@react-navigation/native';
-import {render} from '@testing-library/react-native';
+import type * as NativeNavigation from '@react-navigation/native';
+import {act, render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {trackExpense} from '@libs/actions/IOU';
+import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentMethods';
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import OnboardingModalNavigator from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigator';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FundList} from '@src/types/onyx';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import getOnyxValue from '../utils/getOnyxValue';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/GoogleTagManager');
 
 // Mock the Overlay since it doesn't work in tests
 jest.mock('@libs/Navigation/AppNavigator/Navigators/Overlay');
 jest.mock('@src/components/ConfirmedRoute.tsx');
+
+// Mock navigation ref to prevent navigation errors
+jest.mock('@libs/Navigation/navigationRef', () => {
+    const mockState = {
+        routes: [
+            {
+                name: 'Main',
+                state: {
+                    routes: [
+                        {
+                            name: 'Home',
+                            params: {},
+                        },
+                    ],
+                    index: 0,
+                },
+            },
+        ],
+        index: 0,
+    };
+    return {
+        __esModule: true,
+        default: {
+            getRootState: jest.fn(() => mockState),
+            getState: jest.fn(() => mockState),
+            resetRoot: jest.fn(),
+            navigate: jest.fn(),
+            dispatch: jest.fn(),
+            addListener: jest.fn(),
+            // isReady=false prevents dismissModal/dismissModalWithReport from executing
+            // real navigation side effects during GTM-focused tests.
+            isReady: jest.fn(() => false),
+            getCurrentRoute: jest.fn(() => ({name: 'Home'})),
+        },
+    };
+});
+
+// Mock react-navigation/native to prevent navigation errors
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useNavigationState: () => true,
+        useRoute: jest.fn(),
+        useFocusEffect: jest.fn(),
+        useIsFocused: () => true,
+        useNavigation: () => ({
+            navigate: jest.fn(),
+            addListener: jest.fn(),
+        }),
+        createNavigationContainerRef: jest.fn(),
+        createNavigatorFactory: jest.fn(() => jest.fn()),
+    };
+});
+
+// Mock react-navigation/stack to prevent navigation errors
+jest.mock('@react-navigation/stack', () => ({
+    createStackNavigator: jest.fn(() => {
+        const Stack = {
+            Navigator: ({children}: {children: React.ReactNode}) => children,
+            Screen: ({children}: {children: React.ReactNode}) => children,
+        };
+        return Stack;
+    }),
+    CardStyleInterpolators: {
+        forHorizontalIOS: jest.fn(),
+        forVerticalIOS: jest.fn(),
+        forModalPresentationIOS: jest.fn(),
+        forFadeFromBottomAndroid: jest.fn(),
+        forRevealFromBottomAndroid: jest.fn(),
+        forScaleFromCenterAndroid: jest.fn(),
+        forNoAnimation: jest.fn(),
+    },
+}));
+
+// Mock createPlatformStackNavigator
+jest.mock('@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator', () => {
+    return jest.fn(() => {
+        const Stack = {
+            Navigator: ({children}: {children: React.ReactNode}) => children,
+            Screen: ({children}: {children: React.ReactNode}) => children,
+        };
+        return Stack;
+    });
+});
 
 const FUND_LIST: FundList = {
     defaultCard: {
@@ -33,12 +121,13 @@ const FUND_LIST: FundList = {
 
 describe('GoogleTagManagerTest', () => {
     const accountID = 123456;
+    const email = 'test@test.com';
 
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
-                session: {accountID},
+                session: {accountID, email},
             },
         });
     });
@@ -46,43 +135,82 @@ describe('GoogleTagManagerTest', () => {
         jest.clearAllMocks();
     });
 
-    test('sign_up', () => {
+    test('sign_up', async () => {
         // When we render the OnboardingModal a few times
         const {rerender} = render(
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
                 <OnboardingModalNavigator />
             </NavigationContainer>,
         );
         rerender(
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
                 <OnboardingModalNavigator />
             </NavigationContainer>,
         );
         rerender(
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
                 <OnboardingModalNavigator />
             </NavigationContainer>,
         );
 
+        await waitForBatchedUpdatesWithAct();
+
         // Then we publish the sign_up event only once
-        expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toBeCalledWith(CONST.ANALYTICS.EVENT.SIGN_UP, accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.SIGN_UP.NAME, accountID, email);
     });
 
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
-        createWorkspace({});
-        await waitForBatchedUpdates();
-        createWorkspace({});
-        await waitForBatchedUpdates();
-        createWorkspace({});
+        createWorkspace({
+            policyName: '',
+            introSelected: undefined,
+            currentUserAccountIDParam: 123456,
+            activePolicy: undefined,
+            currentUserEmailParam: 'test@test.com',
+            currency: undefined,
+            isSelfTourViewed: false,
+            betas: undefined,
+            hasActiveAdminPolicies: false,
+        });
+        await waitForBatchedUpdatesWithAct();
+        createWorkspace({
+            policyName: '',
+            currentUserAccountIDParam: 123456,
+            activePolicy: undefined,
+            currentUserEmailParam: 'test@test.com',
+            introSelected: undefined,
+            currency: undefined,
+            isSelfTourViewed: false,
+            betas: undefined,
+            hasActiveAdminPolicies: true,
+        });
+        await waitForBatchedUpdatesWithAct();
+        createWorkspace({
+            policyName: '',
+            currentUserAccountIDParam: 123456,
+            activePolicy: undefined,
+            currentUserEmailParam: 'test@test.com',
+            introSelected: undefined,
+            currency: undefined,
+            isSelfTourViewed: false,
+            betas: undefined,
+            hasActiveAdminPolicies: true,
+        });
+        await waitForBatchedUpdatesWithAct();
 
         // Then we publish a workspace_created event only once
-        expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toBeCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, 123456, email);
     });
 
-    test('workspace_created - categorizeTrackedExpense', () => {
+    test('workspace_created - categorizeTrackedExpense', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {accountID, email});
+        });
+
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
         trackExpense({
             report: {reportID: '123'},
             isDraftPolicy: true,
@@ -105,14 +233,24 @@ describe('GoogleTagManagerTest', () => {
                 linkedTrackedExpenseReportAction: {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
                 linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
             },
+            isASAPSubmitBetaEnabled: false,
+            currentUser: {accountID, email: 'test@test.com'},
+            introSelected: undefined,
+            quickAction: undefined,
+            recentWaypoints,
+            betas: [CONST.BETAS.ALL],
+            isSelfTourViewed: false,
+            currentUserLocalCurrency: undefined,
         });
 
+        await waitForBatchedUpdatesWithAct();
+
         // Then we publish a workspace_created event only once
-        expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toBeCalledWith('workspace_created', accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, accountID, email);
     });
 
-    test('paid_adoption - addPaymentCard', () => {
+    test('paid_adoption - addPaymentCard', async () => {
         // When we add a payment card
         addPaymentCard(accountID, {
             expirationDate: '2077-10-30',
@@ -122,44 +260,60 @@ describe('GoogleTagManagerTest', () => {
             securityCode: 'securityCode',
         });
 
+        await waitForBatchedUpdatesWithAct();
+
         // Then we publish a paid_adoption event only once
-        expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toBeCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME, accountID, email);
     });
 
-    test('paid_adoption - addSubscriptionPaymentCard', () => {
-        // When we add a payment card
-        addSubscriptionPaymentCard(accountID, {
-            cardNumber: 'cardNumber',
-            cardYear: 'cardYear',
-            cardMonth: 'cardMonth',
-            cardCVV: 'cardCVV',
-            addressName: 'addressName',
-            addressZip: 'addressZip',
-            currency: 'USD',
-        });
+    test('paid_adoption - addSubscriptionPaymentCard', async () => {
+        // When we add a payment card (with no existing billing card)
+        addSubscriptionPaymentCard(
+            accountID,
+            {
+                cardNumber: 'cardNumber',
+                cardYear: 'cardYear',
+                cardMonth: 'cardMonth',
+                cardCVV: 'cardCVV',
+                addressName: 'addressName',
+                addressZip: 'addressZip',
+                currency: 'USD',
+            },
+            undefined,
+        );
+
+        await waitForBatchedUpdatesWithAct();
 
         // Then we publish a paid_adoption event only once
-        expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toBeCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME, accountID, email);
     });
 
     it('addSubscriptionPaymentCard when changing payment card, will not publish event paid_adoption', async () => {
-        await Onyx.multiSet({
-            [ONYXKEYS.FUND_LIST]: FUND_LIST,
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.FUND_LIST]: FUND_LIST,
+            });
         });
 
-        addSubscriptionPaymentCard(accountID, {
-            cardNumber: 'cardNumber',
-            cardYear: 'cardYear',
-            cardMonth: 'cardMonth',
-            cardCVV: 'cardCVV',
-            addressName: 'addressName',
-            addressZip: 'addressZip',
-            currency: 'USD',
-        });
+        addSubscriptionPaymentCard(
+            accountID,
+            {
+                cardNumber: 'cardNumber',
+                cardYear: 'cardYear',
+                cardMonth: 'cardMonth',
+                cardCVV: 'cardCVV',
+                addressName: 'addressName',
+                addressZip: 'addressZip',
+                currency: 'USD',
+            },
+            FUND_LIST,
+        );
 
-        expect(!!getCardForSubscriptionBilling()).toBe(true);
-        expect(GoogleTagManager.publishEvent).toBeCalledTimes(0);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(!!getCardForSubscriptionBilling(FUND_LIST)).toBe(true);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(0);
     });
 });

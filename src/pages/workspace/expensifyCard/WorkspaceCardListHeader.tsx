@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -11,9 +12,16 @@ import type {ExpensifyCardSettings} from '@src/types/onyx';
 type WorkspaceCardListHeaderProps = {
     /** Card settings */
     cardSettings: ExpensifyCardSettings | undefined;
+
+    /** When set, shows a select-all control aligned with card row checkboxes */
+    bulkSelection?: {
+        onSelectAll: () => void;
+        isSelectAllChecked: boolean;
+        isSelectAllIndeterminate: boolean;
+    };
 };
 
-function WorkspaceCardListHeader({cardSettings}: WorkspaceCardListHeaderProps) {
+function WorkspaceCardListHeader({cardSettings, bulkSelection}: WorkspaceCardListHeaderProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -34,6 +42,16 @@ function WorkspaceCardListHeader({cardSettings}: WorkspaceCardListHeaderProps) {
                 </View>
             )}
             <View style={[styles.flexRow, styles.mh5, styles.gap2, styles.p4, isLessThanMediumScreen ? styles.mt3 : styles.mt5]}>
+                {!!bulkSelection && (
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mr2]}>
+                        <Checkbox
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                            isChecked={bulkSelection.isSelectAllChecked}
+                            isIndeterminate={bulkSelection.isSelectAllIndeterminate}
+                            onPress={bulkSelection.onSelectAll}
+                        />
+                    </View>
+                )}
                 <View style={[styles.flexRow, styles.flex4, styles.gap2, styles.alignItemsCenter]}>
                     <Text
                         numberOfLines={1}
@@ -43,12 +61,22 @@ function WorkspaceCardListHeader({cardSettings}: WorkspaceCardListHeaderProps) {
                     </Text>
                 </View>
                 {!shouldUseNarrowLayout && (
-                    <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
+                    <View style={[styles.flexRow, styles.gap2, styles.flex2, styles.alignItemsCenter, styles.justifyContentStart]}>
                         <Text
                             numberOfLines={1}
                             style={[styles.textMicroSupporting, styles.lh16]}
                         >
                             {translate('common.type')}
+                        </Text>
+                    </View>
+                )}
+                {!shouldUseNarrowLayout && (
+                    <View style={[styles.flexRow, styles.gap2, styles.flex2, styles.alignItemsCenter, styles.justifyContentStart]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textMicroSupporting, styles.lh16]}
+                        >
+                            {translate('workspace.card.issueNewCard.limitType')}
                         </Text>
                     </View>
                 )}
@@ -68,7 +96,7 @@ function WorkspaceCardListHeader({cardSettings}: WorkspaceCardListHeaderProps) {
                         {translate('workspace.expensifyCard.lastFour')}
                     </Text>
                 </View>
-                <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex3 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex3 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd, styles.mr8]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.textMicroSupporting, styles.lh16]}
@@ -80,7 +108,5 @@ function WorkspaceCardListHeader({cardSettings}: WorkspaceCardListHeaderProps) {
         </View>
     );
 }
-
-WorkspaceCardListHeader.displayName = 'WorkspaceCardListHeader';
 
 export default WorkspaceCardListHeader;

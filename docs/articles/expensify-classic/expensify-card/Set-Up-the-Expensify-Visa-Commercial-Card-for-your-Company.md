@@ -1,7 +1,7 @@
 ---
 title: Set Up the Expensify Visa® Commercial Card for Your Company  
 description: Step-by-step guide for admins to set up the Expensify Card for their organization.
-keywords: [Expensify Classic, Expensify Card, qualify, apply]
+keywords: [Expensify Card, qualify, apply]
 ---
 
 If you're an admin looking to roll out the Expensify Visa® Commercial Card for your organization, you're in the right place. This guide will walk you through the steps to qualify, apply for, and issue the Expensify Card to your employees.
@@ -16,9 +16,14 @@ Before you can apply for the Expensify Card, make sure you meet the following pr
 2. **Claim Your Domain**: You must claim your private domain in Expensify.
 3. **US Business Bank Account**: You need to add and verify a US business bank account to your Expensify account.
 
-## 1. Claim Your Domain
+## 1. Claim your domain
 
-To [claim a domain](https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain), you must be a workspace admin and use a company email address matching the domain you want to claim. After setting up your account and workspace, go to **Settings > Domains** to claim your domain.
+To claim a domain, you must be a Workspace Admin and use a company email address that matches the domain you want to claim. After setting up your account and workspace:
+
+1. Hover over **Settings**, then click **Domains**.
+2. Click **New Domain**.
+3. Enter your domain name (e.g., yourcompany.com).
+4. Click **Submit**.
 
 ## 2. Add and Verify Your US Business Bank Account
 

@@ -45,6 +45,19 @@ function isChildOfNode(tnode: TNode, predicate: Predicate): boolean {
 }
 
 /**
+ * Check if a node is a child of a specific tag name by traversing up the parent chain.
+ */
+function isChildOfTagName(tnode: TNode, tagName: string): boolean {
+    if (!tnode.parent) {
+        return false;
+    }
+    if (tnode.parent.tagName === tagName) {
+        return true;
+    }
+    return isChildOfTagName(tnode.parent, tagName);
+}
+
+/**
  * Check if there is an ancestor node with name 'comment'.
  * Finding node with name 'comment' flags that we are rendering a comment.
  */
@@ -57,11 +70,11 @@ function isChildOfComment(tnode: TNode): boolean {
  * Finding a node with the name 'h1' flags that we are rendering inside an h1 element.
  */
 function isChildOfH1(tnode: TNode): boolean {
-    return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && node.domNode.name.toLowerCase() === 'h1');
+    return isChildOfNode(tnode, (node) => node.domNode?.name?.toLowerCase() === 'h1');
 }
 
 function isChildOfTaskTitle(tnode: TNode): boolean {
-    return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && node.domNode.name.toLowerCase() === 'task-title');
+    return isChildOfNode(tnode, (node) => node.domNode?.name?.toLowerCase() === 'task-title');
 }
 
 /**
@@ -76,13 +89,7 @@ function isDeletedNode(tnode: TNode): boolean {
  * @returns Whether the node is a child of RBR
  */
 function isChildOfRBR(tnode: TNode): boolean {
-    if (!tnode.parent) {
-        return false;
-    }
-    if (tnode.parent.tagName === 'rbr') {
-        return true;
-    }
-    return isChildOfRBR(tnode.parent);
+    return isChildOfTagName(tnode, 'rbr');
 }
 
 function getFontSizeOfRBRChild(tnode: TNode): number {
@@ -102,39 +109,32 @@ function getFontSizeOfRBRChild(tnode: TNode): number {
  * @returns Whether the node is a child of muted-text-label
  */
 function isChildOfMutedTextLabel(tnode: TNode): boolean {
-    if (!tnode.parent) {
-        return false;
-    }
-    if (tnode.parent.tagName === 'muted-text-label') {
-        return true;
-    }
-    return isChildOfMutedTextLabel(tnode.parent);
+    return isChildOfTagName(tnode, 'muted-text-label');
+}
+
+function isChildOfLabelText(tnode: TNode): boolean {
+    return isChildOfTagName(tnode, 'label-text');
 }
 
 /**
  * @returns Whether the node is a child of muted-text-xs
  */
 function isChildOfMutedTextXS(tnode: TNode): boolean {
-    if (!tnode.parent) {
-        return false;
-    }
-    if (tnode.parent.tagName === 'muted-text-xs') {
-        return true;
-    }
-    return isChildOfMutedTextXS(tnode.parent);
+    return isChildOfTagName(tnode, 'muted-text-xs');
 }
 
 /**
- * @returns Whether the node is a child of muted-text-label
+ * @returns Whether the node is a child of muted-text-micro
  */
 function isChildOfMutedTextMicro(tnode: TNode): boolean {
-    if (!tnode.parent) {
-        return false;
-    }
-    if (tnode.parent.tagName === 'muted-text-micro') {
-        return true;
-    }
-    return isChildOfMutedTextMicro(tnode.parent);
+    return isChildOfTagName(tnode, 'muted-text-micro');
+}
+
+/**
+ * @returns Whether the node is a child of alert-text
+ */
+function isChildOfAlertText(tnode: TNode): boolean {
+    return isChildOfTagName(tnode, 'alert-text');
 }
 
 export {
@@ -144,9 +144,10 @@ export {
     isDeletedNode,
     isChildOfTaskTitle,
     isChildOfRBR,
-    isCommentTag,
     getFontSizeOfRBRChild,
     isChildOfMutedTextLabel,
+    isChildOfLabelText,
     isChildOfMutedTextXS,
     isChildOfMutedTextMicro,
+    isChildOfAlertText,
 };

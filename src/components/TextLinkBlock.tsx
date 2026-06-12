@@ -56,7 +56,6 @@ function TextLinkBlock({text, style, prefixIcon, ...rest}: TextLinkBlockProps) {
                     {!!prefixIcon && index === 0 && <Text> </Text>}
                     <TextLink
                         style={style}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...rest}
                     >
                         {word}
@@ -66,7 +65,5 @@ function TextLinkBlock({text, style, prefixIcon, ...rest}: TextLinkBlockProps) {
         </PressableWithoutFeedback>
     );
 }
-
-TextLinkBlock.displayName = 'TextLinkBlock';
 
 export default memo(TextLinkBlock);

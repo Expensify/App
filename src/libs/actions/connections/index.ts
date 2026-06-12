@@ -11,14 +11,25 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {syncMergeHR} from './MergeHR';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
 function removePolicyConnection(policy: Policy, connectionName: PolicyConnectionName) {
     const policyID = policy.id;
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS
+            | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION
+            | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION
+            | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION
+            | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION
+            | typeof ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -43,10 +54,28 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
             value: null,
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            value: null,
+        },
     ];
 
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`,
+            value: null,
+        });
+    }
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     const supportedConnections: PolicyConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO];
 
     if (PolicyUtils.isCollectPolicy(policy) && supportedConnections.includes(connectionName)) {
@@ -91,10 +120,7 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
 }
 
 /**
- * This method returns read command and stage in progress for a given accounting integration.
- *
- * @param policyID - ID of the policy for which the sync is needed
- * @param connectionName - Name of the connection, QBO/Xero
+ * This method returns read command and stage in progress for a given policy connection.
  */
 function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
     switch (connectionName) {
@@ -113,16 +139,25 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBD: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.GUSTO: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_GUSTO, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.ZENEFITS: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_ZENEFITS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZENEFITS_SYNC_TITLE};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_TITLE};
+        }
         default:
             return undefined;
     }
 }
 
 /**
- * This method helps in syncing policy to the connected accounting integration.
+ * This method helps in syncing policy to the connected integration.
  *
  * @param policy - Policy for which the sync is needed
- * @param connectionName - Name of the connection, QBO/Xero
+ * @param connectionName - Name of the connection
  * @param forceDataRefresh - If true, it will trigger a full data refresh
  */
 function syncConnection(policy: Policy | undefined, connectionName: PolicyConnectionName | undefined, forceDataRefresh = false) {
@@ -130,12 +165,18 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
         return;
     }
     const policyID = policy.id;
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+        syncMergeHR(policy);
+        return;
+    }
+
     const syncConnectionData = getSyncConnectionParameters(connectionName);
 
     if (!syncConnectionData) {
         return;
     }
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
@@ -147,7 +188,7 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
@@ -179,7 +220,7 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
     if (!policyID) {
         return;
     }
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -197,7 +238,7 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -217,7 +258,7 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -265,12 +306,25 @@ function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: Polic
         return !(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified ?? true);
     }
 
+    // Certinia is considered verified once the Salesforce instance is linked (same signal we persist client-side post-OAuth)
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
+        return !policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config?.credentials?.enterpriseUrl;
+    }
+
     // If the connection has no lastSync property, we'll consider it unverified
     if (isEmptyObject(policy?.connections?.[connectionName]?.lastSync)) {
         return true;
     }
 
     return !(policy?.connections?.[connectionName]?.lastSync?.isConnected ?? true);
+}
+
+/**
+ * Determines whether to use updateNetSuiteTokens (preserves config) or connectPolicyToNetSuite (full init)
+ * based on the connection's authentication and verification state.
+ */
+function shouldUseUpdateNetSuiteTokens(policy: OnyxEntry<Policy>): boolean {
+    return isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE) && !isConnectionUnverified(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 }
 
 function setConnectionError(policyID: string, connectionName: PolicyConnectionName, errorMessage?: string) {
@@ -297,11 +351,17 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.SAGE_INTACCT_SYNC_CHECK_CONNECTION;
             break;
+        case CONST.POLICY.CONNECTIONS.NAME.QBD:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_TITLE;
+            break;
         default:
             stageInProgress = null;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${targetPolicyID}`,
@@ -340,6 +400,8 @@ function isConnectionInProgress(connectionSyncProgress: OnyxEntry<PolicyConnecti
     );
 }
 
+export type {ConnectionNameExceptNetSuite};
+
 export {
     removePolicyConnection,
     updateManyPolicyConnectionConfigs,
@@ -350,4 +412,5 @@ export {
     isConnectionInProgress,
     hasSynchronizationErrorMessage,
     setConnectionError,
+    shouldUseUpdateNetSuiteTokens,
 };

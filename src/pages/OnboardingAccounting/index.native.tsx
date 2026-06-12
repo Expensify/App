@@ -6,12 +6,9 @@ function OnboardingAccounting(props: OnboardingAccountingProps) {
     return (
         <BaseOnboardingAccounting
             shouldUseNativeStyles
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );
 }
-
-OnboardingAccounting.displayName = 'OnboardingAccounting';
 
 export default OnboardingAccounting;

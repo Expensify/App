@@ -59,6 +59,4 @@ function AutoEmailLink({text, style}: AutoEmailLinkProps) {
     );
 }
 
-AutoEmailLink.displayName = 'AutoEmailLink';
-
 export default AutoEmailLink;

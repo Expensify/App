@@ -53,7 +53,6 @@ function Container({
         () =>
             new Keyframe(getModalOutAnimation(animationOut))
                 .duration(animationOutTiming)
-                // eslint-disable-next-line react-compiler/react-compiler
                 .withCallback(() => onCloseCallbackRef.current())
                 // on web the callbacks are not called when animations are disabled with the reduced motion setting on
                 // we enable the animations to make sure they are called
@@ -65,14 +64,11 @@ function Container({
         <Animated.View
             style={[style, type !== CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && type !== CONST.MODAL.MODAL_TYPE.POPOVER && styles.modalAnimatedContainer, animatedStyles, {zIndex: 1}]}
             exiting={Exiting}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             {props.children}
         </Animated.View>
     );
 }
-
-Container.displayName = 'ModalContainer';
 
 export default Container;

@@ -1,35 +1,38 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {canActionTask, canModifyTask, completeTestDriveTask, createTaskAndNavigate, getFinishOnboardingTaskOnyxData} from '@libs/actions/Task';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
+import * as ReportModule from '@libs/actions/Report';
+import {
+    canActionTask,
+    canModifyTask,
+    completeTask,
+    completeTestDriveTask,
+    createTaskAndNavigate,
+    deleteTask,
+    editTask,
+    editTaskAssignee,
+    getFinishOnboardingTaskOnyxData,
+    getNavigationUrlOnTaskDelete,
+} from '@libs/actions/Task';
 import * as API from '@libs/API';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import DateUtils from '@libs/DateUtils';
-import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
-import Parser from '@libs/Parser';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
-import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
-import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+import type {OnyxData} from '@src/types/onyx/Request';
 import {getFakeReport, getFakeReportAction} from '../utils/LHNTestUtils';
 import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock API and Navigation
 jest.mock('@libs/API');
@@ -38,7 +41,6 @@ jest.mock('@libs/Sound');
 jest.mock('@libs/ErrorUtils');
 jest.mock('@libs/actions/Welcome');
 // Keep OnyxDerived real initialization below
-jest.mock('@components/Icon/Expensicons');
 jest.mock('@components/LocaleContextProvider');
 
 // ReportUtils spies used in createTaskAndNavigate tests
@@ -46,14 +48,12 @@ const mockBuildOptimisticTaskReport = jest.fn();
 const mockBuildOptimisticCreatedReportAction = jest.fn();
 const mockBuildOptimisticTaskCommentReportAction = jest.fn();
 const mockGetTaskAssigneeChatOnyxData = jest.fn();
-const mockGetOptimisticDataForParentReportAction = jest.fn();
 const mockIsHiddenForCurrentUser = jest.fn();
 const mockFormatReportLastMessageText = jest.fn();
 jest.spyOn(ReportUtils, 'buildOptimisticTaskReport').mockImplementation(mockBuildOptimisticTaskReport);
 jest.spyOn(ReportUtils, 'buildOptimisticCreatedReportAction').mockImplementation(mockBuildOptimisticCreatedReportAction);
 jest.spyOn(ReportUtils, 'buildOptimisticTaskCommentReportAction').mockImplementation(mockBuildOptimisticTaskCommentReportAction);
 jest.spyOn(ReportUtils, 'getTaskAssigneeChatOnyxData').mockImplementation(mockGetTaskAssigneeChatOnyxData);
-jest.spyOn(ReportUtils, 'getOptimisticDataForParentReportAction').mockImplementation(mockGetOptimisticDataForParentReportAction);
 jest.spyOn(ReportUtils, 'isHiddenForCurrentUser').mockImplementation(mockIsHiddenForCurrentUser);
 jest.spyOn(ReportUtils, 'formatReportLastMessageText').mockImplementation(mockFormatReportLastMessageText);
 
@@ -67,7 +67,7 @@ describe('actions/Task', () => {
             keys: ONYXKEYS,
         });
         initOnyxDerivedValues();
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
     });
 
     describe('canModify and canAction task', () => {
@@ -111,20 +111,22 @@ describe('actions/Task', () => {
             initOnyxDerivedValues();
 
             // Store all the necessary data in Onyx
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportWithNoParent.reportID}`, taskReportWithNoParent);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportParent.reportID}`, taskReportParent);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportCancelled.reportID}`, taskReportCancelled);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportCancelledParent.reportID}`, taskReportCancelledParent);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportArchived.reportID}`, taskReportArchived);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportArchivedParent.reportID}`, taskReportArchivedParent);
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportWithNoParent.reportID}`, taskReportWithNoParent);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportParent.reportID}`, taskReportParent);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportCancelled.reportID}`, taskReportCancelled);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportCancelledParent.reportID}`, taskReportCancelledParent);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportArchived.reportID}`, taskReportArchived);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportArchivedParent.reportID}`, taskReportArchivedParent);
 
-            // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${taskReportArchivedParent.reportID}`, {
-                private_isArchived: new Date().toString(),
+                // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${taskReportArchivedParent.reportID}`, {
+                    private_isArchived: new Date().toString(),
+                });
             });
 
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
         });
 
         describe('canModifyTask', () => {
@@ -149,7 +151,7 @@ describe('actions/Task', () => {
 
         describe('canActionTask', () => {
             it('returns false if there is no logged in user', () => {
-                expect(canActionTask(taskReportCancelled)).toBe(false);
+                expect(canActionTask(taskReportCancelled, undefined)).toBe(false);
             });
 
             it('returns false if parentReport is undefined and taskReport has no parentReportID', () => {
@@ -158,57 +160,78 @@ describe('actions/Task', () => {
                     parentReportID: undefined,
                 };
 
-                expect(canActionTask(task, taskAssigneeAccountID, undefined, false)).toBe(false);
+                expect(canActionTask(task, undefined, taskAssigneeAccountID, undefined, false)).toBe(false);
             });
 
             it('returns false if the report is a cancelled task report', () => {
                 // The accountID doesn't matter here because the code will do an early return for the cancelled report
-                expect(canActionTask(taskReportCancelled, 0)).toBe(false);
+                expect(canActionTask(taskReportCancelled, undefined, 0)).toBe(false);
             });
 
             it('returns false if the report has an archived parent report', () => {
                 // The accountID doesn't matter here because the code will do an early return for the archived report
-                expect(canActionTask(taskReportArchived, 0)).toBe(false);
+                expect(canActionTask(taskReportArchived, undefined, 0)).toBe(false);
             });
 
-            it('returns false if the user modifying the task is not the author', () => {
+            it('returns true if the user is the author (no assignee)', () => {
                 const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
                 const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                expect(canActionTask(taskReport, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
+                expect(canActionTask(taskReport, undefined, managerAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
             });
 
-            it('returns true if the user modifying the task is the author', () => {
+            it('returns true if the user is a participant of the parent report and the task has no assignee', () => {
                 const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
                 const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                expect(canActionTask(taskReport, managerAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
+                expect(canActionTask(taskReport, undefined, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
+            });
+
+            it('returns false if the user is not a participant of the parent report and the task has no assignee', () => {
+                const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
+                const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
+                const nonParticipantAccountID = 999;
+                expect(canActionTask(taskReport, undefined, nonParticipantAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
             });
 
             // Looking up the task assignee is usually based on the report action
             describe('testing with report action', () => {
                 beforeAll(async () => {
                     taskReport.parentReportActionID = 'a1';
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+                    await act(async () => {
+                        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
 
-                    // Given that the task is assigned to a user who is not the author of the task
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`, {
-                        a1: {
-                            ...getFakeReportAction(),
-                            reportID: taskReport.parentReportID,
-                            childManagerAccountID: taskAssigneeAccountID,
-                        },
+                        // Given that the task is assigned to a user who is not the author of the task
+                        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`, {
+                            a1: {
+                                ...getFakeReportAction(),
+                                reportID: taskReport.parentReportID,
+                                childManagerAccountID: taskAssigneeAccountID,
+                            },
+                        });
                     });
+
+                    await waitForBatchedUpdatesWithAct();
                 });
 
                 it('returns false if the logged in user is not the author or the one assigned to the task', () => {
                     const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
                     const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                    expect(canActionTask(taskReport, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
+                    const parentReportAction = {
+                        ...getFakeReportAction(),
+                        reportID: taskReport.parentReportID,
+                        childManagerAccountID: taskAssigneeAccountID,
+                    };
+                    expect(canActionTask(taskReport, parentReportAction, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
                 });
 
                 it('returns true if the logged in user is the one assigned to the task', () => {
                     const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
                     const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                    expect(canActionTask(taskReport, taskAssigneeAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
+                    const parentReportAction = {
+                        ...getFakeReportAction(),
+                        reportID: taskReport.parentReportID,
+                        childManagerAccountID: taskAssigneeAccountID,
+                    };
+                    expect(canActionTask(taskReport, parentReportAction, taskAssigneeAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
                 });
             });
 
@@ -216,19 +239,21 @@ describe('actions/Task', () => {
             describe('testing with report.managerID', () => {
                 beforeAll(async () => {
                     taskReport.managerID = taskAssigneeAccountID;
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+                    await act(async () => {
+                        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+                    });
                 });
 
                 it('returns false if the logged in user is not the author or the one assigned to the task', () => {
                     const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
                     const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                    expect(canActionTask(taskReport, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
+                    expect(canActionTask(taskReport, undefined, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
                 });
 
                 it('returns true if the logged in user is the one assigned to the task', () => {
                     const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
                     const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                    expect(canActionTask(taskReport, taskAssigneeAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
+                    expect(canActionTask(taskReport, undefined, taskAssigneeAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
                 });
             });
         });
@@ -238,71 +263,44 @@ describe('actions/Task', () => {
         const accountID = 2;
         const conciergeChatReport: Report = getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
         const testDriveTaskReport: Report = {...getFakeReport(), ownerAccountID: accountID};
-        const testDriveTaskAction: ReportAction = {
-            ...getFakeReportAction(),
-            childType: CONST.REPORT.TYPE.TASK,
-            childReportName: Parser.replace(translateLocal('onboarding.testDrive.name', {testDriveURL: `${CONST.STAGING_NEW_EXPENSIFY_URL}/${ROUTES.TEST_DRIVE_DEMO_ROOT}`})),
-            childReportID: testDriveTaskReport.reportID,
-        };
-
-        const reportCollectionDataSet: ReportCollectionDataSet = {
-            [`${ONYXKEYS.COLLECTION.REPORT}${testDriveTaskReport.reportID}`]: testDriveTaskReport,
-            [`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport.reportID}`]: conciergeChatReport,
-        };
-
-        const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
-            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReport.reportID}`]: {
-                [testDriveTaskAction.reportActionID]: testDriveTaskAction,
-            },
-        };
-
-        beforeEach(async () => {
-            await Onyx.clear();
-            await Onyx.multiSet({
-                ...reportCollectionDataSet,
-                ...reportActionsCollectionDataSet,
-                [ONYXKEYS.NVP_INTRO_SELECTED]: {
-                    viewTour: testDriveTaskReport.reportID,
-                },
-                [ONYXKEYS.SESSION]: {
-                    accountID,
-                },
-            });
-            await waitForBatchedUpdates();
-        });
-
         it('Completes test drive task', () => {
-            completeTestDriveTask();
-            expect(Object.values(getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR)).length).toBe(0);
+            completeTestDriveTask(testDriveTaskReport, conciergeChatReport, false, accountID, false, undefined, undefined);
+            expect(Object.values(getFinishOnboardingTaskOnyxData(testDriveTaskReport, conciergeChatReport, false, 0, false, undefined, undefined)).length).toBe(0);
         });
     });
 
     describe('getFinishOnboardingTaskOnyxData', () => {
+        const DELEGATE_EMAIL = 'delegate@example.com';
+        const DELEGATE_ACCOUNT_ID = 999;
         const parentReport: Report = getFakeReport();
         const taskReport: Report = {...getFakeReport(), type: CONST.REPORT.TYPE.TASK, ownerAccountID: 1, managerID: 2, parentReportID: parentReport.reportID};
-        const reportCollectionDataSet: ReportCollectionDataSet = {
-            [`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`]: taskReport,
-            [`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`]: parentReport,
-        };
         beforeEach(async () => {
             await Onyx.clear();
-            await Onyx.multiSet({
-                ...reportCollectionDataSet,
-            });
             await Onyx.set(ONYXKEYS.SESSION, {email: 'user1@gmail.com', accountID: 2});
-            await Onyx.set(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM, setupCategories: taskReport.reportID});
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_EMAIL},
+            });
             await waitForBatchedUpdates();
         });
         it('Return not empty object', () => {
-            expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories')).length).toBeGreaterThan(0);
+            expect(Object.values(getFinishOnboardingTaskOnyxData(taskReport, parentReport, false, 2, false, undefined, undefined)).length).toBeGreaterThan(0);
         });
-        it('Return empty object', async () => {
-            const reportNameValuePairs = {
-                private_isArchived: DateUtils.getDBTime(),
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport.reportID}`, reportNameValuePairs);
-            await waitForBatchedUpdates();
-            expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories')).length).toBe(0);
+        it('Return empty object', () => {
+            expect(Object.values(getFinishOnboardingTaskOnyxData(taskReport, parentReport, true, 2, false, undefined, undefined)).length).toBe(0);
+        });
+        it('forwards delegateAccountID when delegateEmail is provided', () => {
+            const onyxData = getFinishOnboardingTaskOnyxData(taskReport, parentReport, false, 2, false, undefined, DELEGATE_EMAIL);
+            const reportActionsData = onyxData.optimisticData?.find((entry) => (entry.key as string).startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
+            const reportActions = reportActionsData?.value as Record<string, ReportAction> | undefined;
+            const completedAction = reportActions ? Object.values(reportActions).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED) : undefined;
+            expect(completedAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+        it('does not set delegateAccountID when delegateEmail is undefined', () => {
+            const onyxData = getFinishOnboardingTaskOnyxData(taskReport, parentReport, false, 2, false, undefined, undefined);
+            const reportActionsData = onyxData.optimisticData?.find((entry) => (entry.key as string).startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
+            const reportActions = reportActionsData?.value as Record<string, ReportAction> | undefined;
+            const completedAction = reportActions ? Object.values(reportActions).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED) : undefined;
+            expect(completedAction?.delegateAccountID).toBeUndefined();
         });
     });
 
@@ -315,6 +313,8 @@ describe('actions/Task', () => {
         const mockPolicyID = 'policy_123';
         const mockCurrentUserAccountID = 123;
         const mockCurrentUserEmail = 'creator@example.com';
+        const mockCurrentUserDisplayName = 'Creator User';
+        const mockCurrentUserAvatar = 'https://example.com/avatar.png';
 
         beforeEach(async () => {
             jest.clearAllMocks();
@@ -323,13 +323,18 @@ describe('actions/Task', () => {
             global.fetch = getGlobalFetchMock();
 
             // Setup ReportUtils mocks
-            mockBuildOptimisticTaskReport.mockReturnValue({
-                reportID: 'task_report_123',
-                reportName: mockTitle,
-                description: mockDescription,
-                managerID: mockAssigneeAccountID,
-                type: CONST.REPORT.TYPE.TASK,
-                parentReportID: mockParentReportID,
+            mockBuildOptimisticTaskReport.mockImplementation((...args: unknown[]) => {
+                const parentChatType = args.at(7);
+
+                return {
+                    reportID: 'task_report_123',
+                    reportName: mockTitle,
+                    description: mockDescription,
+                    managerID: mockAssigneeAccountID,
+                    type: CONST.REPORT.TYPE.TASK,
+                    parentReportID: mockParentReportID,
+                    ...(parentChatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS && {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS}),
+                };
             });
 
             mockBuildOptimisticCreatedReportAction.mockReturnValue({
@@ -364,26 +369,27 @@ describe('actions/Task', () => {
                 },
             });
 
-            mockGetOptimisticDataForParentReportAction.mockReturnValue([]);
             mockIsHiddenForCurrentUser.mockReturnValue(false);
             mockFormatReportLastMessageText.mockReturnValue('Last message text');
 
-            await Onyx.clear();
-            await Onyx.set(ONYXKEYS.SESSION, {
-                email: mockCurrentUserEmail,
-                accountID: mockCurrentUserAccountID,
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockParentReportID}`, {
-                reportID: mockParentReportID,
-                type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [mockCurrentUserAccountID]: {
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {
+                    email: mockCurrentUserEmail,
+                    accountID: mockCurrentUserAccountID,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockParentReportID}`, {
+                    reportID: mockParentReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [mockCurrentUserAccountID]: {
+                            role: CONST.REPORT.ROLE.MEMBER,
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        },
                     },
-                },
+                });
             });
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
         });
 
         it('should create task and navigate successfully with basic parameters', () => {
@@ -401,17 +407,22 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate
-            createTaskAndNavigate(
-                mockParentReportID,
-                mockTitle,
-                mockDescription,
-                mockAssigneeEmail,
-                mockAssigneeAccountID,
-                mockAssigneeChatReport,
-                mockPolicyID,
-                false, // isCreatedUsingMarkdown
-                {}, // quickAction
-            );
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                assigneeChatReport: mockAssigneeChatReport,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
             // Then: Verify API.write called with expected arguments
             const calls = (API.write as jest.Mock).mock.calls;
             expect(calls.length).toBe(1);
@@ -436,7 +447,67 @@ describe('actions/Task', () => {
             );
         });
 
-        it('should handle task creation without assignee chat report', () => {
+        it('should set optimistic task chatType to policyAdmins for tasks created in admins rooms', async () => {
+            // Given a task created in a parent report with policyAdmins chatType
+            createTaskAndNavigate({
+                parentReport: {
+                    reportID: mockParentReportID,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                },
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the optimistic task report should include policyAdmins chatType
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const [, , onyx] = (API.write as jest.Mock).mock.calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            const optimisticTaskReportUpdate = onyx.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}task_report_123`);
+            expect((optimisticTaskReportUpdate?.value as Report | undefined)?.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
+        });
+
+        it('should not set optimistic task chatType for tasks created in policy expense chats', async () => {
+            // Given a task created in a parent report with policyExpenseChat chatType
+            createTaskAndNavigate({
+                parentReport: {
+                    reportID: mockParentReportID,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                },
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the optimistic task report should keep chatType unset
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const [, , onyx] = (API.write as jest.Mock).mock.calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            const optimisticTaskReportUpdate = onyx.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}task_report_123`);
+            expect((optimisticTaskReportUpdate?.value as Report | undefined)?.chatType).toBeUndefined();
+        });
+
+        it('should handle task creation without assignee chat report', async () => {
             // Given: Task creation without assignee chat report
             const mockQuickAction = {
                 action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
@@ -445,17 +516,24 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate without assignee chat report
-            createTaskAndNavigate(
-                mockParentReportID,
-                mockTitle,
-                mockDescription,
-                mockAssigneeEmail,
-                mockAssigneeAccountID,
-                undefined, // assigneeChatReport
-                mockPolicyID,
-                false, // isCreatedUsingMarkdown
-                mockQuickAction,
-            );
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                assigneeChatReport: undefined,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: mockQuickAction,
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            await waitForBatchedUpdatesWithAct();
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).toHaveBeenCalledWith(
@@ -486,7 +564,7 @@ describe('actions/Task', () => {
             );
         });
 
-        it('should handle task creation with markdown', () => {
+        it('should handle task creation with markdown', async () => {
             // Given: Task creation with markdown flag
             const mockAssigneeChatReport = {
                 reportID: 'assignee_chat_456',
@@ -501,17 +579,24 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate with markdown flag
-            createTaskAndNavigate(
-                mockParentReportID,
-                mockTitle,
-                mockDescription,
-                mockAssigneeEmail,
-                mockAssigneeAccountID,
-                mockAssigneeChatReport,
-                mockPolicyID,
-                true, // isCreatedUsingMarkdown
-                {}, // quickAction
-            );
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                assigneeChatReport: mockAssigneeChatReport,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: true,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            await waitForBatchedUpdatesWithAct();
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).toHaveBeenCalledWith('CreateTask', expect.any(Object), expect.any(Object));
@@ -520,7 +605,7 @@ describe('actions/Task', () => {
             expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
         });
 
-        it('should handle task creation with default policy ID', () => {
+        it('should handle task creation with default policy ID', async () => {
             // Given: Task creation with default policy ID
             const mockAssigneeChatReport = {
                 reportID: 'assignee_chat_789',
@@ -535,17 +620,24 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate with default policy ID
-            createTaskAndNavigate(
-                mockParentReportID,
-                mockTitle,
-                mockDescription,
-                mockAssigneeEmail,
-                mockAssigneeAccountID,
-                mockAssigneeChatReport,
-                CONST.POLICY.OWNER_EMAIL_FAKE, // default policy ID
-                false, // isCreatedUsingMarkdown
-                {}, // quickAction
-            );
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                assigneeChatReport: mockAssigneeChatReport,
+                policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            await waitForBatchedUpdatesWithAct();
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).toHaveBeenCalledWith(
@@ -561,7 +653,7 @@ describe('actions/Task', () => {
             );
         });
 
-        it('should handle task creation with assignee as current user', () => {
+        it('should handle task creation with assignee as current user', async () => {
             // Given: Task creation where assignee is the current user
             const mockAssigneeChatReport = {
                 reportID: 'assignee_chat_self',
@@ -576,17 +668,24 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate with assignee as current user
-            createTaskAndNavigate(
-                mockParentReportID,
-                mockTitle,
-                mockDescription,
-                mockCurrentUserEmail,
-                mockCurrentUserAccountID, // assignee is current user
-                mockAssigneeChatReport,
-                mockPolicyID,
-                false, // isCreatedUsingMarkdown
-                {}, // quickAction
-            );
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockCurrentUserEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockCurrentUserAccountID, // assignee is current user
+                assigneeChatReport: mockAssigneeChatReport,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            await waitForBatchedUpdatesWithAct();
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (API.write as jest.Mock).mock.calls;
@@ -612,7 +711,7 @@ describe('actions/Task', () => {
             );
         });
 
-        it('should return early when parentReportID is undefined', () => {
+        it('should return early when parentReportID is undefined', async () => {
             // Given: Undefined parent report ID
             const mockAssigneeChatReport = {
                 reportID: 'assignee_chat_undefined',
@@ -627,23 +726,30 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate with undefined parent report ID
-            createTaskAndNavigate(
-                undefined, // parentReportID is undefined
-                mockTitle,
-                mockDescription,
-                mockAssigneeEmail,
-                mockAssigneeAccountID,
-                mockAssigneeChatReport,
-                mockPolicyID,
-                false, // isCreatedUsingMarkdown
-                {}, // quickAction
-            );
+            createTaskAndNavigate({
+                parentReport: undefined,
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                assigneeChatReport: mockAssigneeChatReport,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            await waitForBatchedUpdatesWithAct();
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).not.toHaveBeenCalled();
         });
 
-        it('should handle task creation with first quick action', () => {
+        it('should handle task creation with first quick action', async () => {
             // Given: Task creation with empty quick action (first quick action)
             const mockAssigneeChatReport = {
                 reportID: 'assignee_chat_first',
@@ -658,17 +764,24 @@ describe('actions/Task', () => {
             };
 
             // When: Call createTaskAndNavigate with empty quick action
-            createTaskAndNavigate(
-                mockParentReportID,
-                mockTitle,
-                mockDescription,
-                mockAssigneeEmail,
-                mockAssigneeAccountID,
-                mockAssigneeChatReport,
-                mockPolicyID,
-                false, // isCreatedUsingMarkdown
-                {}, // quickAction is empty
-            );
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                assigneeChatReport: mockAssigneeChatReport,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined, // quickAction is empty
+            });
+
+            await waitForBatchedUpdatesWithAct();
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).toHaveBeenCalledWith(
@@ -688,6 +801,867 @@ describe('actions/Task', () => {
                     ]),
                 }),
             );
+        });
+
+        it('should forward currentUserAccountID, currentUserEmail, currentUserDisplayName and currentUserAvatar to buildOptimisticCreatedReportAction when all are provided', () => {
+            // Given: All current user identity fields are provided as defined values
+            // When: createTaskAndNavigate is called
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            // Then: buildOptimisticCreatedReportAction receives the exact identity values that were passed in
+            expect(mockBuildOptimisticCreatedReportAction).toHaveBeenCalledWith({
+                emailCreatingAction: mockCurrentUserEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserAvatar: mockCurrentUserAvatar,
+            });
+        });
+
+        it('should forward undefined currentUserDisplayName and currentUserAvatar to buildOptimisticCreatedReportAction without substituting fallbacks', () => {
+            // Given: currentUserDisplayName and currentUserAvatar are explicitly undefined
+            // When: createTaskAndNavigate is called
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: undefined,
+                currentUserAvatar: undefined,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            // Then: buildOptimisticCreatedReportAction is invoked with the same undefined values
+            expect(mockBuildOptimisticCreatedReportAction).toHaveBeenCalledWith({
+                emailCreatingAction: mockCurrentUserEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserDisplayName: undefined,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserAvatar: undefined,
+            });
+        });
+
+        it('should forward an empty currentUserEmail to buildOptimisticCreatedReportAction so emailCreatingAction is also empty', () => {
+            // Given: currentUserEmail is provided as an empty string (caller bypassing missing data)
+            // When: createTaskAndNavigate is called
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: '',
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            // Then: emailCreatingAction is the empty string we provided (no fallback to a session value)
+            expect(mockBuildOptimisticCreatedReportAction).toHaveBeenCalledWith({
+                emailCreatingAction: '',
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserEmail: '',
+                currentUserAvatar: mockCurrentUserAvatar,
+            });
+        });
+
+        it('should use the provided currentUserAccountID as actorAccountID and lastActorAccountID instead of reading from session', async () => {
+            // Given: a currentUserAccountID different from the session account that overrides what session says
+            const overrideUserAccountID = 999;
+
+            // When: createTaskAndNavigate is called with that override
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: overrideUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then: the optimistic parent report update uses the provided account ID, proving the function does not read the session
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const [, , onyx] = (API.write as jest.Mock).mock.calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            const parentReportUpdate = onyx.optimisticData?.find(
+                (update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${mockParentReportID}` && (update.value as Report | undefined)?.lastActorAccountID !== undefined,
+            );
+            expect((parentReportUpdate?.value as Report | undefined)?.lastActorAccountID).toBe(overrideUserAccountID);
+            expect(mockBuildOptimisticCreatedReportAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    currentUserAccountID: overrideUserAccountID,
+                }),
+            );
+        });
+    });
+
+    describe('completeTask', () => {
+        const mockTaskReportID = 'task_report_456';
+        const mockParentReportID = 'parent_report_789';
+        const mockParentReportActionID = 'parent_action_123';
+        const DELEGATE_EMAIL = 'delegate@example.com';
+        const DELEGATE_ACCOUNT_ID = 999;
+        const CURRENT_USER_ACCOUNT_ID = 123;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            writeSpy.mockClear();
+
+            global.fetch = getGlobalFetchMock();
+
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {
+                    email: 'user@example.com',
+                    accountID: CURRENT_USER_ACCOUNT_ID,
+                });
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [DELEGATE_ACCOUNT_ID]: {
+                        accountID: DELEGATE_ACCOUNT_ID,
+                        login: DELEGATE_EMAIL,
+                        displayName: 'Delegate User',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should update childStateNum and childStatusNum to APPROVED when completing a task with parent report action', async () => {
+            // Given: A task report with a parent report and parent report action
+            const taskReport = {
+                reportID: mockTaskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                parentReportID: mockParentReportID,
+                parentReportActionID: mockParentReportActionID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: 123,
+                managerID: 456,
+            };
+
+            const parentReport = {
+                reportID: mockParentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const parentReportAction = {
+                reportActionID: mockParentReportActionID,
+                reportID: mockParentReportID,
+                childReportID: mockTaskReportID,
+                childType: CONST.REPORT.TYPE.TASK,
+                childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+                childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as OnyxEntry<ReportAction>;
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockTaskReportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockParentReportID}`, parentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockParentReportID}`, {
+                    [mockParentReportActionID]: parentReportAction,
+                });
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When: Call completeTask
+            completeTask(taskReport, false, false, parentReportAction, undefined);
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then: Verify API.write was called with correct parameters
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            expect(API.write).toHaveBeenCalledWith(
+                'CompleteTask',
+                expect.objectContaining({
+                    taskReportID: mockTaskReportID,
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.any(Array),
+                    successData: expect.any(Array),
+                    failureData: expect.any(Array),
+                }),
+            );
+
+            // Verify optimisticData contains childStateNum and childStatusNum updates
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            // Find the optimistic update for parent report action
+            const parentReportActionUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockParentReportID}`);
+
+            expect(parentReportActionUpdate).toBeDefined();
+            expect(parentReportActionUpdate?.value).toEqual({
+                [mockParentReportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
+            });
+
+            // Verify failureData contains rollback to OPEN state
+            const failureData = onyxData.failureData ?? [];
+            const parentReportActionFailure = failureData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockParentReportID}`);
+
+            expect(parentReportActionFailure).toBeDefined();
+            expect(parentReportActionFailure?.value).toEqual({
+                [mockParentReportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                },
+            });
+        });
+
+        it('should not update childStateNum and childStatusNum when task has no parent report action', async () => {
+            // Given: A task report without a parent report action
+            const taskReport = {
+                reportID: mockTaskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: 123,
+                managerID: 456,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockTaskReportID}`, taskReport);
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When: Call completeTask
+            completeTask(taskReport, false, false, undefined, undefined);
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then: Verify API.write was called
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            expect(API.write).toHaveBeenCalledWith(
+                'CompleteTask',
+                expect.objectContaining({
+                    taskReportID: mockTaskReportID,
+                }),
+                expect.any(Object),
+            );
+
+            // Verify optimisticData does NOT contain parent report action updates
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            // Should not have any parent report action updates
+            const parentReportActionUpdate = optimisticData.find(
+                (update: {key: string}) => update.key?.includes('reportActions_') && update.key !== `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockTaskReportID}`,
+            );
+
+            expect(parentReportActionUpdate).toBeUndefined();
+        });
+
+        it('should include delegateAccountID in optimistic report action when delegateEmail is provided', () => {
+            const reportID = 'task_report_complete_delegate_1';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            };
+
+            completeTask(taskReport, false, false, undefined, DELEGATE_EMAIL);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('should set delegateAccountID to undefined when delegateEmail is undefined', () => {
+            const reportID = 'task_report_complete_delegate_2';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            };
+
+            completeTask(taskReport, false, false, undefined, undefined);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('getNavigationUrlOnTaskDelete', () => {
+        let doesReportHaveVisibleActionsSpy: jest.SpyInstance;
+        let getMostRecentReportIDSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            doesReportHaveVisibleActionsSpy = jest.spyOn(ReportActionsUtils, 'doesReportHaveVisibleActions');
+            getMostRecentReportIDSpy = jest.spyOn(ReportModule, 'getMostRecentReportID');
+        });
+
+        afterEach(() => {
+            doesReportHaveVisibleActionsSpy.mockRestore();
+            getMostRecentReportIDSpy.mockRestore();
+        });
+
+        it('should return undefined when report is undefined', () => {
+            expect(getNavigationUrlOnTaskDelete(undefined, 'concierge_123')).toBeUndefined();
+        });
+
+        it('should return undefined when report has visible actions (should not delete)', () => {
+            const taskReport = getFakeReport();
+            doesReportHaveVisibleActionsSpy.mockReturnValue(true);
+
+            expect(getNavigationUrlOnTaskDelete(taskReport, 'concierge_123')).toBeUndefined();
+        });
+
+        it('should return parent report route when report has parentReportID and no visible actions', () => {
+            const parentReportID = 'parent_123';
+            const taskReport = {...getFakeReport(), parentReportID};
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+
+            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123');
+            expect(result).toBe(`r/${parentReportID}`);
+        });
+
+        it('should return most recent report route when no parentReportID and getMostRecentReportID returns a value', () => {
+            const taskReport = {...getFakeReport(), parentReportID: undefined};
+            const mostRecentReportID = 'recent_456';
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+            getMostRecentReportIDSpy.mockReturnValue(mostRecentReportID);
+
+            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123');
+            expect(result).toBe(`r/${mostRecentReportID}`);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, 'concierge_123');
+        });
+
+        it('should pass conciergeReportID to getMostRecentReportID as fallback', () => {
+            const taskReport = {...getFakeReport(), parentReportID: undefined};
+            const conciergeReportID = 'concierge_789';
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+            getMostRecentReportIDSpy.mockReturnValue(conciergeReportID);
+
+            const result = getNavigationUrlOnTaskDelete(taskReport, conciergeReportID);
+            expect(result).toBe(`r/${conciergeReportID}`);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
+        });
+
+        it('should return undefined when no parentReportID, no most recent report, and conciergeReportID is undefined', () => {
+            const taskReport = {...getFakeReport(), parentReportID: undefined};
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+            getMostRecentReportIDSpy.mockReturnValue(undefined);
+
+            expect(getNavigationUrlOnTaskDelete(taskReport, undefined)).toBeUndefined();
+        });
+    });
+
+    describe('editTask', () => {
+        const DELEGATE_EMAIL = 'delegate@example.com';
+        const DELEGATE_ACCOUNT_ID = 999;
+        const CURRENT_USER_ACCOUNT_ID = 123;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            writeSpy.mockClear();
+
+            global.fetch = getGlobalFetchMock();
+
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {
+                    email: 'user@example.com',
+                    accountID: CURRENT_USER_ACCOUNT_ID,
+                });
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [DELEGATE_ACCOUNT_ID]: {
+                        accountID: DELEGATE_ACCOUNT_ID,
+                        login: DELEGATE_EMAIL,
+                        displayName: 'Delegate User',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should include delegateAccountID in optimistic report action when delegateEmail is provided', () => {
+            const reportID = 'task_report_edit_1';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Original Task Title',
+            };
+
+            editTask(taskReport, {title: 'Updated Title'}, DELEGATE_EMAIL);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('should set delegateAccountID to undefined when delegateEmail is undefined', () => {
+            const reportID = 'task_report_edit_2';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Original Task Title',
+            };
+
+            editTask(taskReport, {title: 'Updated Title'}, undefined);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('editTaskAssignee', () => {
+        const DELEGATE_EMAIL = 'delegate@example.com';
+        const DELEGATE_ACCOUNT_ID = 999;
+        const CURRENT_USER_ACCOUNT_ID = 123;
+        const ASSIGNEE_ACCOUNT_ID = 456;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            writeSpy.mockClear();
+
+            global.fetch = getGlobalFetchMock();
+
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {
+                    email: 'user@example.com',
+                    accountID: CURRENT_USER_ACCOUNT_ID,
+                });
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [DELEGATE_ACCOUNT_ID]: {
+                        accountID: DELEGATE_ACCOUNT_ID,
+                        login: DELEGATE_EMAIL,
+                        displayName: 'Delegate User',
+                    },
+                    [ASSIGNEE_ACCOUNT_ID]: {
+                        accountID: ASSIGNEE_ACCOUNT_ID,
+                        login: 'assignee@example.com',
+                        displayName: 'Assignee User',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should include delegateAccountID in optimistic report action when delegateEmail is provided', () => {
+            const reportID = 'task_report_assignee_1';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Task with assignee',
+            };
+
+            editTaskAssignee({
+                report: taskReport,
+                parentReport: undefined,
+                sessionAccountID: CURRENT_USER_ACCOUNT_ID,
+                assigneeEmail: 'assignee@example.com',
+                currentUserEmail: 'user@example.com',
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasOutstandingChildTask: false,
+                delegateEmail: DELEGATE_EMAIL,
+                assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
+            });
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('should set delegateAccountID to undefined when delegateEmail is undefined', () => {
+            const reportID = 'task_report_assignee_2';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Task with assignee',
+            };
+
+            editTaskAssignee({
+                report: taskReport,
+                parentReport: undefined,
+                sessionAccountID: CURRENT_USER_ACCOUNT_ID,
+                assigneeEmail: 'assignee@example.com',
+                currentUserEmail: 'user@example.com',
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasOutstandingChildTask: false,
+                delegateEmail: undefined,
+                assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
+            });
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('deleteTask', () => {
+        let doesReportHaveVisibleActionsSpy: jest.SpyInstance;
+        let getMostRecentReportIDSpy: jest.SpyInstance;
+        const mockCurrentUserAccountID = 123;
+        const DELEGATE_EMAIL = 'delegate@example.com';
+        const DELEGATE_ACCOUNT_ID = 999;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            writeSpy.mockClear();
+
+            global.fetch = getGlobalFetchMock();
+
+            doesReportHaveVisibleActionsSpy = jest.spyOn(ReportActionsUtils, 'doesReportHaveVisibleActions');
+            getMostRecentReportIDSpy = jest.spyOn(ReportModule, 'getMostRecentReportID');
+
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {
+                    email: 'user@example.com',
+                    accountID: mockCurrentUserAccountID,
+                });
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [DELEGATE_ACCOUNT_ID]: {
+                        accountID: DELEGATE_ACCOUNT_ID,
+                        login: DELEGATE_EMAIL,
+                        displayName: 'Delegate User',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        afterEach(() => {
+            doesReportHaveVisibleActionsSpy.mockRestore();
+            getMostRecentReportIDSpy.mockRestore();
+        });
+
+        it('should return early when report is undefined', () => {
+            deleteTask(undefined, undefined, false, mockCurrentUserAccountID, false, undefined, 'concierge_123', undefined);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            expect(API.write).not.toHaveBeenCalled();
+        });
+
+        it('should call API.write with CancelTask and pass conciergeReportID through to navigation', async () => {
+            const taskReportID = 'task_report_delete_1';
+            const parentReportID = 'parent_report_delete_1';
+            const parentReportActionID = 'parent_action_delete_1';
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Test Task',
+                parentReportID,
+                parentReportActionID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            const parentReport = {
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const parentReportAction = {
+                reportActionID: parentReportActionID,
+                reportID: parentReportID,
+                childReportID: taskReportID,
+            } as OnyxEntry<ReportAction>;
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            doesReportHaveVisibleActionsSpy.mockReturnValue(true);
+
+            deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, parentReportAction, 'concierge_123', undefined);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            expect(API.write).toHaveBeenCalledWith(
+                'CancelTask',
+                expect.objectContaining({
+                    taskReportID,
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.any(Array),
+                    successData: expect.any(Array),
+                    failureData: expect.any(Array),
+                }),
+            );
+        });
+
+        it('should return navigation URL when task report has no visible actions and has parentReportID', async () => {
+            const taskReportID = 'task_report_delete_2';
+            const parentReportID = 'parent_report_delete_2';
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Test Task To Delete',
+                parentReportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            const parentReport = {
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // No visible actions means the task report should be deleted
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+
+            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123', undefined);
+
+            expect(result).toBe(`r/${parentReportID}`);
+            expect(Navigation.goBack).toHaveBeenCalled();
+        });
+
+        it('should return conciergeReportID-based URL when no parentReportID and no recent report', async () => {
+            const taskReportID = 'task_report_delete_3';
+            const conciergeReportID = 'concierge_456';
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Orphan Task',
+                parentReportID: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+            getMostRecentReportIDSpy.mockReturnValue(conciergeReportID);
+
+            const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, conciergeReportID, undefined);
+
+            expect(result).toBe(`r/${conciergeReportID}`);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
+            expect(Navigation.goBack).toHaveBeenCalled();
+        });
+
+        it('should not return navigation URL when task report has visible actions', async () => {
+            const taskReportID = 'task_report_delete_4';
+            const parentReportID = 'parent_report_delete_4';
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Task With Visible Actions',
+                parentReportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            const parentReport = {
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Has visible actions, so should not navigate away
+            doesReportHaveVisibleActionsSpy.mockReturnValue(true);
+
+            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123', undefined);
+
+            expect(result).toBeUndefined();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+        });
+
+        it('should return undefined when no parentReportID, no recent report, and conciergeReportID is undefined', async () => {
+            const taskReportID = 'task_report_delete_5';
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Orphan Task No Fallback',
+                parentReportID: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+            getMostRecentReportIDSpy.mockReturnValue(undefined);
+
+            const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, undefined, undefined);
+
+            // API.write should still be called
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            expect(API.write).toHaveBeenCalledWith('CancelTask', expect.any(Object), expect.any(Object));
+
+            // But no navigation should happen
+            expect(result).toBeUndefined();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+        });
+
+        it('should include delegateAccountID in optimistic report action when delegateEmail is provided', async () => {
+            const reportID = 'task_report_delete_delegate_1';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Delegate Delete Task',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, taskReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, undefined, DELEGATE_EMAIL);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportActions = reportActionsUpdate?.value as Record<string, ReportAction>;
+            const cancelAction = Object.values(reportActions).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED);
+            expect(cancelAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('should set delegateAccountID to undefined when delegateEmail is undefined', async () => {
+            const reportID = 'task_report_delete_delegate_2';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'No Delegate Delete Task',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, taskReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, undefined, undefined);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportActions = reportActionsUpdate?.value as Record<string, ReportAction>;
+            const cancelAction = Object.values(reportActions).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED);
+            expect(cancelAction?.delegateAccountID).toBeUndefined();
         });
     });
 });

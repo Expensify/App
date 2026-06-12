@@ -2,10 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +18,7 @@ import type {Route} from '@src/ROUTES';
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    onDowngrade: () => void;
+    onDowngrade: () => void | Promise<void>;
     policyID?: string;
     backTo?: Route;
 };
@@ -29,50 +29,62 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
     const {environmentURL} = useEnvironment();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
 
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox']);
+
+    const note = translate('workspace.downgrade.commonFeatures.note');
+    const noteAndMore = translate('workspace.downgrade.commonFeatures.noteAndMore');
+    const pricingPageUrl = CONST.PLAN_TYPES_AND_PRICING_HELP_URL;
+    const benefitsNoteHTML = `<muted-text>${note} <a href="${pricingPageUrl}">${noteAndMore}</a></muted-text>`;
+
     const benefits = [
-        translate('workspace.downgrade.commonFeatures.benefits.benefit1'),
-        translate('workspace.downgrade.commonFeatures.benefits.benefit2'),
-        translate('workspace.downgrade.commonFeatures.benefits.benefit3'),
-        translate('workspace.downgrade.commonFeatures.benefits.benefit4'),
+        {
+            label: translate('workspace.downgrade.commonFeatures.benefits.benefit1Label'),
+            value: translate('workspace.downgrade.commonFeatures.benefits.benefit1'),
+        },
+        {
+            label: translate('workspace.downgrade.commonFeatures.benefits.benefit2Label'),
+            value: translate('workspace.downgrade.commonFeatures.benefits.benefit2'),
+        },
+        {
+            label: translate('workspace.downgrade.commonFeatures.benefits.benefit3Label'),
+            value: translate('workspace.downgrade.commonFeatures.benefits.benefit3'),
+        },
+        {
+            label: translate('workspace.downgrade.commonFeatures.benefits.benefit4Label'),
+            value: translate('workspace.downgrade.commonFeatures.benefits.benefit4'),
+        },
     ];
+    const listItems = benefits.map(({label, value}) => `• <strong>${label}:</strong> ${value}`).join('<br/>');
+    const benefitsListHTML = `<muted-text>${listItems}</muted-text>`;
+
+    const handleLinkPress = () => {
+        openLink(CONST.PLAN_TYPES_AND_PRICING_HELP_URL, environmentURL);
+    };
 
     return (
-        <View style={[styles.m5, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
+        <View style={[styles.m5, styles.highlightBG, styles.br4, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
             <View style={[styles.mb3]}>
                 <Icon
-                    src={Illustrations.Mailbox}
+                    src={illustrations.Mailbox}
                     width={48}
                     height={48}
                 />
             </View>
             <View style={styles.mb5}>
                 <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.downgrade.commonFeatures.title')}</Text>
-                <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate('workspace.downgrade.commonFeatures.note')}</Text>
-                {benefits.map((benefit) => (
-                    <View
-                        key={benefit}
-                        style={[styles.pl2, styles.flexRow]}
-                    >
-                        <Text style={[styles.textNormal, styles.textSupporting, styles.mr1]}>•</Text>
-                        <Text style={[styles.textNormal, styles.textSupporting]}>{benefit}</Text>
-                    </View>
-                ))}
-                <Text style={[styles.textNormal, styles.textSupporting, styles.mt4]}>
-                    {translate('workspace.downgrade.commonFeatures.benefits.note')}{' '}
-                    <TextLink
-                        style={[styles.link]}
-                        onPress={() => openLink(CONST.PLAN_TYPES_AND_PRICING_HELP_URL, environmentURL)}
-                    >
-                        {translate('workspace.downgrade.commonFeatures.benefits.pricingPage')}
-                    </TextLink>
-                    .
+                <View style={[styles.mb4, styles.pb2]}>
+                    <RenderHTML
+                        html={benefitsNoteHTML}
+                        onLinkPress={handleLinkPress}
+                    />
+                </View>
+                <View style={[styles.mb4, styles.pt2, styles.pb2, styles.pl2]}>
+                    <RenderHTML html={benefitsListHTML} />
+                </View>
+                <Text style={[styles.mv4, styles.textBold, styles.textSupporting]}>
+                    {translate('workspace.downgrade.commonFeatures.benefits.important')} {translate('workspace.downgrade.commonFeatures.benefits.confirm')}
                 </Text>
-                {policyID ? (
-                    <Text style={[styles.mv4]}>
-                        <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.downgrade.commonFeatures.benefits.confirm')}</Text>{' '}
-                        <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.downgrade.commonFeatures.benefits.warning')}</Text>
-                    </Text>
-                ) : (
+                {!policyID && (
                     <Text style={[styles.mv4]}>
                         <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.downgrade.commonFeatures.benefits.headsUp')}</Text>{' '}
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.downgrade.commonFeatures.benefits.multiWorkspaceNote')}</Text>{' '}

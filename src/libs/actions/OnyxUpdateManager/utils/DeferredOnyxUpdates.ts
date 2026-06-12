@@ -1,16 +1,16 @@
+import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
+import type {AnyDeferredUpdatesDictionary, DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
-// eslint-disable-next-line import/no-cycle
-import {validateAndApplyDeferredUpdates} from '.';
 
-let missingOnyxUpdatesQueryPromise: Promise<Response | Response[] | void> | undefined;
-let deferredUpdates: DeferredUpdatesDictionary = {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let missingOnyxUpdatesQueryPromise: Promise<Response<any> | Array<Response<any>> | void> | undefined;
+let deferredUpdates: AnyDeferredUpdatesDictionary = {};
 
 /**
  * Returns the promise that fetches the missing onyx updates
@@ -23,7 +23,7 @@ function getMissingOnyxUpdatesQueryPromise() {
 /**
  * Sets the promise that fetches the missing onyx updates
  */
-function setMissingOnyxUpdatesQueryPromise(promise: Promise<Response | Response[] | void>) {
+function setMissingOnyxUpdatesQueryPromise<TKey extends OnyxKey>(promise: Promise<Response<TKey> | Array<Response<TKey>> | void>) {
     missingOnyxUpdatesQueryPromise = promise;
 }
 
@@ -41,7 +41,7 @@ function getUpdates(options?: GetDeferredOnyxUpdatesOptions) {
         return deferredUpdates;
     }
 
-    return Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
+    return Object.entries(deferredUpdates).reduce<AnyDeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
         if (Number(lastUpdateID) > (options.minUpdateID ?? CONST.DEFAULT_NUMBER_ID)) {
             acc[Number(lastUpdateID)] = update;
         }
@@ -57,17 +57,6 @@ function isEmpty() {
     return Object.keys(deferredUpdates).length === 0;
 }
 
-/**
- * Manually processes and applies the updates from the deferred updates queue. (used e.g. for push notifications)
- */
-function process() {
-    if (missingOnyxUpdatesQueryPromise) {
-        missingOnyxUpdatesQueryPromise.finally(() => validateAndApplyDeferredUpdates);
-    }
-
-    missingOnyxUpdatesQueryPromise = validateAndApplyDeferredUpdates();
-}
-
 type EnqueueDeferredOnyxUpdatesOptions = {
     shouldPauseSequentialQueue?: boolean;
 };
@@ -77,7 +66,7 @@ type EnqueueDeferredOnyxUpdatesOptions = {
  * @param updates The updates that should be applied (e.g. updates from push notifications)
  * @param options additional flags to change the behaviour of this function
  */
-function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, options?: EnqueueDeferredOnyxUpdatesOptions) {
+function enqueue<TKey extends OnyxKey>(updates: OnyxUpdatesFromServer<TKey> | DeferredUpdatesDictionary<TKey>, options?: EnqueueDeferredOnyxUpdatesOptions) {
     if (options?.shouldPauseSequentialQueue ?? true) {
         Log.info('[DeferredOnyxUpdates] Pausing SequentialQueue');
         SequentialQueue.pause();
@@ -94,14 +83,14 @@ function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, opt
         deferredUpdates[lastUpdateID] = updates;
     } else {
         // If the "updates" param is an object, we need to insert multiple updates into the deferred updates queue.
-        Object.entries(updates).forEach(([lastUpdateIDString, update]) => {
+        for (const [lastUpdateIDString, update] of Object.entries(updates)) {
             const lastUpdateID = Number(lastUpdateIDString);
             if (deferredUpdates[lastUpdateID]) {
-                return;
+                continue;
             }
 
-            deferredUpdates[lastUpdateID] = update;
-        });
+            deferredUpdates[lastUpdateID] = update as OnyxUpdatesFromServer<TKey>;
+        }
     }
 }
 
@@ -127,4 +116,4 @@ function clear(options?: ClearDeferredOnyxUpdatesOptions) {
     }
 }
 
-export {getMissingOnyxUpdatesQueryPromise, setMissingOnyxUpdatesQueryPromise, getUpdates, isEmpty, process, enqueue, clear};
+export {getMissingOnyxUpdatesQueryPromise, setMissingOnyxUpdatesQueryPromise, getUpdates, isEmpty, enqueue, clear};

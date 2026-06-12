@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
-import ReportActionItem from '@pages/home/report/ReportActionItem';
+import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import Debug from '@userActions/Debug';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -27,6 +27,19 @@ import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
 
 type DebugReportActionCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
+
+function isParsedReportAction(value: unknown): value is ReportAction {
+    return typeof value === 'object' && value !== null && 'reportActionID' in value;
+}
+
+function parseReportActionJSON(draftReportAction: string): ReportAction | null {
+    try {
+        const parsedReportAction: unknown = JSON.parse(draftReportAction.replaceAll('\n', ''));
+        return isParsedReportAction(parsedReportAction) ? parsedReportAction : null;
+    } catch {
+        return null;
+    }
+}
 
 const getInitialReportAction = (reportID: string, session: OnyxEntry<Session>, personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     DebugUtils.stringifyJSON({
@@ -46,26 +59,25 @@ function DebugReportActionCreatePage({
 }: DebugReportActionCreatePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: false});
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
+
+    const reportAction = useMemo(() => parseReportActionJSON(draftReportAction), [draftReportAction]);
+
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
 
     const [error, setError] = useState<string>();
 
     const createReportAction = useCallback(() => {
-        const parsedReportAction = JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction;
+        if (!reportAction) {
+            return;
+        }
         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            [parsedReportAction.reportActionID]: parsedReportAction,
+            [reportAction.reportActionID]: reportAction,
         });
         Navigation.navigate(ROUTES.DEBUG_REPORT_TAB_ACTIONS.getRoute(reportID));
-    }, [draftReportAction, reportID]);
+    }, [reportAction, reportID]);
 
     const editJSON = useCallback(
         (updatedJSON: string) => {
@@ -87,7 +99,7 @@ function DebugReportActionCreatePage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugReportActionCreatePage.displayName}
+            testID="DebugReportActionCreatePage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -112,25 +124,16 @@ function DebugReportActionCreatePage({
                         </View>
                         <View>
                             <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('debug.preview')}</Text>
-                            {!error ? (
+                            {!error && reportAction ? (
                                 <ReportActionItem
-                                    allReports={allReports}
-                                    policies={policies}
-                                    action={JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction}
+                                    action={reportAction}
+                                    transactionThreadReport={transactionThreadReport}
                                     report={{reportID}}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                     shouldDisplayContextMenu={false}
-                                    userWalletTierName={userWalletTierName}
-                                    isUserValidated={isUserValidated}
-                                    personalDetails={personalDetailsList}
-                                    userBillingFundID={userBillingFundID}
-                                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                                 />
                             ) : (
                                 <Text>{translate('debug.nothingToPreview')}</Text>
@@ -149,7 +152,5 @@ function DebugReportActionCreatePage({
         </ScreenWrapper>
     );
 }
-
-DebugReportActionCreatePage.displayName = 'DebugReportActionCreatePage';
 
 export default DebugReportActionCreatePage;

@@ -1,11 +1,48 @@
-import {execSync} from 'child_process';
+import {context} from '@actions/github';
+import {exec as execWithCallback, execSync as originalExecSync} from 'child_process';
+import type {ExecSyncOptionsWithStringEncoding, ExecOptions as ExecWithCallbackOptions} from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import {promisify} from 'util';
+import CONST from '@github/libs/CONST';
+import GitHubUtils from '@github/libs/GithubUtils';
+import {error as logError, warn as logWarn} from './Logger';
+
+type ExecOptions = Omit<ExecWithCallbackOptions, 'encoding'> & {cwd?: ExecWithCallbackOptions['cwd']};
+function exec(command: string, options?: ExecOptions) {
+    const optionsWithEncoding = {
+        encoding: 'utf8',
+        cwd: process.cwd(),
+        ...options,
+    };
+
+    return promisify(execWithCallback)(command, optionsWithEncoding);
+}
+
+type ExecSyncOptions = Omit<ExecSyncOptionsWithStringEncoding, 'encoding' | 'cwd'> & {
+    encoding?: ExecSyncOptionsWithStringEncoding['encoding'];
+    cwd?: ExecSyncOptionsWithStringEncoding['cwd'];
+};
+
+function execSync(command: string, options?: ExecSyncOptions) {
+    const optionsWithEncoding: ExecSyncOptionsWithStringEncoding = {
+        ...options,
+        encoding: 'utf8',
+        cwd: process.cwd(),
+    };
+
+    return originalExecSync(command, optionsWithEncoding);
+}
+
+const IS_CI = process.env.CI === 'true';
+const GITHUB_BASE_REF = process.env.GITHUB_BASE_REF as string | undefined;
 
 /**
  * Represents a single changed line in a git diff.
- * With -U0, only added and removed lines are present (no context).
+ * Only added and removed lines are tracked (context lines are counted separately).
  */
 type DiffLine = {
-    lineNumber: number;
+    number: number;
     type: 'added' | 'removed';
     content: string;
 };
@@ -19,6 +56,7 @@ type DiffHunk = {
     newStart: number;
     newCount: number;
     lines: DiffLine[];
+    contextLineCount: number;
 };
 
 /**
@@ -26,6 +64,8 @@ type DiffHunk = {
  */
 type FileDiff = {
     filePath: string;
+    diffType: 'added' | 'removed' | 'modified' | 'renamed';
+    previousFilePath?: string;
     hunks: DiffHunk[];
     addedLines: Set<number>;
     removedLines: Set<number>;
@@ -40,6 +80,12 @@ type DiffResult = {
     hasChanges: boolean;
 };
 
+type ChangedFile = {
+    filename: string;
+    status: 'added' | 'modified' | 'removed' | 'renamed';
+    previousFilename?: string;
+};
+
 /**
  * Utility class for git operations.
  */
@@ -52,9 +98,7 @@ class Git {
      */
     static isValidRef(ref: string): boolean {
         try {
-            execSync(`git rev-parse --verify "${ref}"`, {
-                encoding: 'utf8',
-                cwd: process.cwd(),
+            execSync(`git rev-parse --verify "${ref}^{object}"`, {
                 stdio: 'pipe', // Suppress output
             });
             return true;
@@ -68,26 +112,49 @@ class Git {
      *
      * @param fromRef - The starting reference (commit, branch, tag, etc.)
      * @param toRef - The ending reference (defaults to working directory if not provided)
-     * @param filePath - Optional specific file path to diff (relative to git repo root)
+     * @param filePaths - Optional specific file path(s) to diff (relative to git repo root)
      * @returns Structured diff result with line numbers and change information
      * @throws Error when git command fails (invalid refs, not a git repo, file not found, etc.)
      */
-    static diff(fromRef: string, toRef?: string, filePath?: string): DiffResult {
-        // Build git diff command (with 0 context lines for easier parsing)
-        let command = `git diff -U0 ${fromRef}`;
+    static diff(fromRef: string, toRef?: string, filePaths?: string | string[], shouldIncludeUntrackedFiles = false): DiffResult {
+        // Build git diff command (with 0 context lines for easier parsing, -M for rename detection)
+        let command = `git diff -U0 -M ${fromRef}`;
         if (toRef) {
             command += ` ${toRef}`;
         }
-        if (filePath) {
-            command += ` -- "${filePath}"`;
+        if (filePaths) {
+            const pathsArray = Array.isArray(filePaths) ? filePaths : [filePaths];
+            const quotedPaths = pathsArray.map((filePath) => `"${filePath}"`).join(' ');
+            command += ` -- ${quotedPaths}`;
         }
 
         // Execute git diff with unified format - let errors bubble up
-        const diffOutput = execSync(command, {
-            encoding: 'utf8',
-            cwd: process.cwd(),
-        });
+        const diffOutput = execSync(command);
 
+        const diffResult = Git.parseDiff(diffOutput);
+
+        // Include untracked files when diffing against working directory
+        if (!toRef && shouldIncludeUntrackedFiles) {
+            const untrackedFiles = Git.getUntrackedFiles(filePaths);
+            const untrackedFileDiffs = Git.createFileDiffsForUntrackedFiles(untrackedFiles);
+
+            // Merge untracked files into the diff result
+            if (untrackedFileDiffs.length > 0) {
+                diffResult.files.push(...untrackedFileDiffs);
+                diffResult.hasChanges = true;
+            }
+        }
+
+        return diffResult;
+    }
+
+    /**
+     * Parse git diff output into structured format.
+     *
+     * @param diffOutput - Raw git diff output string
+     * @returns Structured diff result with line numbers and change information
+     */
+    static parseDiff(diffOutput: string): DiffResult {
         // Parse the diff output inline
         if (!diffOutput.trim()) {
             return {
@@ -100,12 +167,13 @@ class Git {
         const files: FileDiff[] = [];
         let currentFile: FileDiff | null = null;
         let currentHunk: DiffHunk | null = null;
+        let oldFilePath: string | null = null;
+        let renameFromPath: string | null = null;
 
         for (const line of lines) {
             // File header: diff --git a/file b/file
             if (line.startsWith('diff --git')) {
                 if (currentFile) {
-                    // Push the current hunk to the current file before processing the new file
                     if (currentHunk) {
                         currentFile.hunks.push(currentHunk);
                     }
@@ -113,14 +181,56 @@ class Git {
                 }
                 currentFile = null;
                 currentHunk = null;
+                oldFilePath = null;
+                renameFromPath = null;
                 continue;
             }
 
-            // File path: +++ b/file
-            if (line.startsWith('+++ b/')) {
-                const diffFilePath = line.slice(6); // Remove '+++ b/'
+            // Rename detection: "rename from <path>" appears before --- / +++
+            if (line.startsWith('rename from ')) {
+                renameFromPath = line.slice('rename from '.length);
+                continue;
+            }
+
+            if (line.startsWith('rename to ') || line.startsWith('similarity index ')) {
+                continue;
+            }
+
+            // Old file path: --- a/file or --- /dev/null (for new files)
+            if (line.startsWith('--- ')) {
+                oldFilePath = line.slice(4);
+                continue;
+            }
+
+            // New file path: +++ b/file or +++ /dev/null (for removed files)
+            if (line.startsWith('+++ ')) {
+                const newFilePath = line.slice(4);
+
+                let fileDiffType: FileDiff['diffType'] = 'modified';
+                let diffFilePath: string;
+                let previousFilePath: string | undefined;
+
+                const oldPath = oldFilePath ?? '';
+
+                if (oldPath === '/dev/null') {
+                    fileDiffType = 'added';
+                    diffFilePath = newFilePath.startsWith('b/') ? newFilePath.slice(2) : newFilePath;
+                } else if (newFilePath === '/dev/null') {
+                    fileDiffType = 'removed';
+                    diffFilePath = oldPath.startsWith('a/') ? oldPath.slice(2) : oldPath;
+                } else if (renameFromPath) {
+                    fileDiffType = 'renamed';
+                    diffFilePath = newFilePath.startsWith('b/') ? newFilePath.slice(2) : newFilePath;
+                    previousFilePath = renameFromPath;
+                } else {
+                    fileDiffType = 'modified';
+                    diffFilePath = newFilePath.startsWith('b/') ? newFilePath.slice(2) : newFilePath;
+                }
+
                 currentFile = {
                     filePath: diffFilePath,
+                    diffType: fileDiffType,
+                    previousFilePath,
                     hunks: [],
                     addedLines: new Set(),
                     removedLines: new Set(),
@@ -148,6 +258,7 @@ class Git {
                         newStart,
                         newCount,
                         lines: [],
+                        contextLineCount: 0,
                     };
                 }
                 continue;
@@ -163,7 +274,7 @@ class Git {
                     const lineNumber = this.calculateLineNumber(currentHunk, 'added');
 
                     currentHunk.lines.push({
-                        lineNumber,
+                        number: lineNumber,
                         type: 'added',
                         content,
                     });
@@ -172,10 +283,17 @@ class Git {
                     const lineNumber = this.calculateLineNumber(currentHunk, 'removed');
 
                     currentHunk.lines.push({
-                        lineNumber,
+                        number: lineNumber,
                         type: 'removed',
                         content,
                     });
+                } else if (firstChar === ' ') {
+                    // Context line - count it so calculateLineNumber accounts for position advancement
+                    currentHunk.contextLineCount++;
+                    continue;
+                } else if (firstChar === '\\') {
+                    // "No newline at end of file" marker - skip it (metadata, not content)
+                    continue;
                 } else {
                     throw new Error(`Unknown line type! First character of line is ${firstChar}`);
                 }
@@ -205,7 +323,7 @@ class Git {
                 for (let j = 0; j < modifiedCount; j++) {
                     const addedLine = addedLines.at(j);
                     if (addedLine) {
-                        file.modifiedLines.add(addedLine.lineNumber);
+                        file.modifiedLines.add(addedLine.number);
                     }
                 }
 
@@ -213,7 +331,7 @@ class Git {
                 for (let j = modifiedCount; j < addedCount; j++) {
                     const addedLine = addedLines.at(j);
                     if (addedLine) {
-                        file.addedLines.add(addedLine.lineNumber);
+                        file.addedLines.add(addedLine.number);
                     }
                 }
 
@@ -221,7 +339,7 @@ class Git {
                 for (let j = modifiedCount; j < removedCount; j++) {
                     const removedLine = removedLines.at(j);
                     if (removedLine) {
-                        file.removedLines.add(removedLine.lineNumber);
+                        file.removedLines.add(removedLine.number);
                     }
                 }
             }
@@ -242,9 +360,9 @@ class Git {
 
         switch (lineType) {
             case 'added':
-                return hunk.newStart + addedCount;
+                return hunk.newStart + hunk.contextLineCount + addedCount;
             case 'removed':
-                return hunk.oldStart + removedCount;
+                return hunk.oldStart + hunk.contextLineCount + removedCount;
             default:
                 throw new Error(`Unknown line type: ${String(lineType)}`);
         }
@@ -255,12 +373,263 @@ class Git {
      */
     static show(ref: string, filePath: string): string {
         try {
-            return execSync(`git show ${ref}:${filePath}`, {encoding: 'utf8'});
+            return execSync(`git show ${ref}:${filePath}`);
         } catch (error) {
             throw new Error(`Failed to get file content from git: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
+
+    /**
+     * Abbreviated hash for HEAD in the current working directory.
+     *
+     * @returns Short commit hash, or `unknown` when not a git repo or git fails.
+     */
+    static getHeadShort(): string {
+        try {
+            return execSync('git rev-parse --short HEAD').trim();
+        } catch {
+            return 'unknown';
+        }
+    }
+
+    /**
+     * Ensure a git reference is available locally, fetching it if necessary.
+     *
+     * @param ref - The git reference to ensure is available (commit hash, branch, tag, etc.)
+     * @param remote - The remote to fetch from (defaults to 'origin')
+     * @throws Error when the reference cannot be fetched or is invalid
+     */
+    static async ensureRef(ref: string, remote = 'origin'): Promise<void> {
+        if (this.isValidRef(ref)) {
+            return; // Reference is already available locally
+        }
+
+        try {
+            console.log(`🔄 Fetching missing ref: ${ref}`);
+            await exec(`git fetch ${remote} ${ref} --no-tags --depth=1 --quiet`);
+
+            // Verify the ref is now available
+            if (!this.isValidRef(ref)) {
+                throw new Error(`Reference ${ref} is still not valid after fetching from remote ${remote}`);
+            }
+        } catch (error) {
+            throw new Error(`Failed to fetch git reference ${ref}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+
+    static async getMainBranchCommitHash(remote?: string): Promise<string> {
+        const baseRefName = GITHUB_BASE_REF ?? 'main';
+
+        // Fetch the main branch from the specified remote (or locally) to ensure it's available
+        if (IS_CI || remote) {
+            await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1`);
+        }
+
+        // In CI, use a simpler approach - just use the remote main branch directly
+        // This avoids issues with shallow clones and merge-base calculations
+        if (IS_CI) {
+            const mainBaseRef = remote ? `${remote}/${baseRefName}` : `origin/${baseRefName}`;
+
+            try {
+                const {stdout: revParseOutput} = await exec(`git rev-parse ${mainBaseRef}`);
+                const mergeBaseHash = revParseOutput.trim();
+
+                // Validate the output is a proper SHA hash
+                if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
+                    throw new Error(`git rev-parse returned unexpected output: ${mergeBaseHash}`);
+                }
+
+                return mergeBaseHash;
+            } catch (error) {
+                logError(`Failed to get commit hash for ${mainBaseRef}:`, error);
+                throw new Error(`Could not get commit hash for ${mainBaseRef}`);
+            }
+        }
+
+        const mainBaseRef = remote ? `${remote}/${baseRefName}` : baseRefName;
+
+        // For local development, try to find the actual merge base
+        let mergeBaseHash: string;
+        try {
+            const {stdout: mergeBaseOutput} = await exec(`git merge-base ${mainBaseRef} HEAD`);
+            mergeBaseHash = mergeBaseOutput.trim();
+        } catch {
+            logWarn(`Warning: Could not find merge base between ${mainBaseRef} and HEAD.`);
+
+            // If merge-base fails locally, fall back to using the remote main branch
+            try {
+                const {stdout: revParseOutput} = await exec(`git rev-parse ${mainBaseRef}`);
+                mergeBaseHash = revParseOutput.trim();
+            } catch (fallbackError) {
+                logError(`Failed to find merge base with ${mainBaseRef}:`, fallbackError);
+                throw new Error(`Could not determine merge base with ${mainBaseRef}`);
+            }
+        }
+
+        // Validate the output is a proper SHA hash
+        if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
+            throw new Error(`git merge-base returned unexpected output: ${mergeBaseHash}`);
+        }
+
+        return mergeBaseHash;
+    }
+
+    /**
+     * Check if there are any uncommitted changes (both staged and unstaged).
+     *
+     * @returns true if there are uncommitted changes, false otherwise
+     */
+    static async hasUncommittedChanges(): Promise<boolean> {
+        try {
+            const {stdout} = await exec('git status --porcelain');
+            const status = stdout.trim();
+            return status.length > 0;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /**
+     * Get changed files with their status (added, modified, removed, renamed).
+     * In CI, uses the GitHub API with pagination for accuracy.
+     * Locally, uses git diff against the provided ref.
+     */
+    static async getChangedFilesWithStatus(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<ChangedFile[]> {
+        if (IS_CI) {
+            const files = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listFiles, {
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                pull_number: context.payload.pull_request?.number ?? 0,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                per_page: 100,
+            });
+
+            return files.map((file) => ({
+                filename: file.filename,
+                status: file.status as 'added' | 'modified' | 'removed' | 'renamed',
+                previousFilename: file.previous_filename,
+            }));
+        }
+
+        const diffResult = this.diff(fromRef, toRef, undefined, shouldIncludeUntrackedFiles);
+        return diffResult.files.map((file) => ({
+            filename: file.filePath,
+            status: file.diffType,
+            previousFilename: file.previousFilePath,
+        }));
+    }
+
+    static async getChangedFileNames(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<string[]> {
+        const files = await this.getChangedFilesWithStatus(fromRef, toRef, shouldIncludeUntrackedFiles);
+        return files.map((file) => file.filename);
+    }
+
+    /**
+     * Get list of untracked files from git.
+     *
+     * @param filePaths - Optional specific file path(s) to filter by (relative to git repo root)
+     * @returns Array of untracked file paths
+     */
+    static getUntrackedFiles(filePaths?: string | string[]): string[] {
+        try {
+            // Get all untracked files
+            const untrackedOutput = execSync('git ls-files --others --exclude-standard', {
+                stdio: 'pipe',
+            });
+
+            if (!untrackedOutput.trim()) {
+                return [];
+            }
+
+            let untrackedFiles = untrackedOutput
+                .trim()
+                .split('\n')
+                .filter((file) => file.length > 0);
+
+            // Filter by filePaths if provided
+            if (filePaths) {
+                const pathsArray = Array.isArray(filePaths) ? filePaths : [filePaths];
+                const normalizedPaths = pathsArray.map((p) => path.normalize(p));
+                untrackedFiles = untrackedFiles.filter((file) => {
+                    const normalizedFile = path.normalize(file);
+                    return normalizedPaths.some((p) => normalizedFile === p || normalizedFile.startsWith(p + path.sep));
+                });
+            }
+
+            return untrackedFiles;
+        } catch (error) {
+            // If command fails, return empty array (e.g., not a git repo)
+            return [];
+        }
+    }
+
+    /**
+     * Create FileDiff entries for untracked files by reading their content and treating all lines as added.
+     *
+     * @param untrackedFiles - Array of untracked file paths (relative to git repo root)
+     * @returns Array of FileDiff entries for untracked files
+     */
+    private static createFileDiffsForUntrackedFiles(untrackedFiles: string[]): FileDiff[] {
+        const fileDiffs: FileDiff[] = [];
+
+        for (const filePath of untrackedFiles) {
+            const absolutePath = path.join(process.cwd(), filePath);
+
+            // Check if file exists and is readable
+            if (!fs.existsSync(absolutePath) || !fs.statSync(absolutePath).isFile()) {
+                continue;
+            }
+
+            let fileContent: string;
+            try {
+                fileContent = fs.readFileSync(absolutePath, 'utf8');
+            } catch (error) {
+                // Skip files that can't be read
+                continue;
+            }
+
+            // Split content into lines
+            const lines = fileContent.split('\n');
+            const addedLines = new Set<number>();
+
+            // Create a single hunk with all lines as added
+            const diffLines: DiffLine[] = [];
+            for (let i = 0; i < lines.length; i++) {
+                const lineNumber = i + 1;
+                addedLines.add(lineNumber);
+                diffLines.push({
+                    number: lineNumber,
+                    type: 'added',
+                    content: lines.at(i) ?? '',
+                });
+            }
+
+            // Create a single hunk for the entire file
+            const hunk: DiffHunk = {
+                oldStart: 0,
+                oldCount: 0,
+                newStart: 1,
+                newCount: lines.length,
+                lines: diffLines,
+                contextLineCount: 0,
+            };
+
+            const fileDiff: FileDiff = {
+                filePath,
+                diffType: 'added',
+                hunks: [hunk],
+                addedLines,
+                removedLines: new Set(),
+                modifiedLines: new Set(),
+            };
+
+            fileDiffs.push(fileDiff);
+        }
+
+        return fileDiffs;
+    }
 }
 
 export default Git;
-export type {DiffResult, FileDiff, DiffHunk, DiffLine};
+export type {DiffResult, FileDiff, DiffHunk, DiffLine, ChangedFile};

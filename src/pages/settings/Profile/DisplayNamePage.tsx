@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
 import {updateDisplayName as updateDisplayNamePersonalDetails} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -27,15 +28,20 @@ type DisplayNamePageProps = WithCurrentUserPersonalDetailsProps;
 /**
  * Submit form to update user's first and last name (and display name)
  */
-const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => {
-    updateDisplayNamePersonalDetails(values.firstName.trim(), values.lastName.trim(), formatPhoneNumber);
+const updateDisplayName = (
+    values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserAccountID: number,
+    currentUserEmail: string,
+) => {
+    updateDisplayNamePersonalDetails(values.firstName.trim(), values.lastName.trim(), formatPhoneNumber, currentUserAccountID, currentUserEmail);
     Navigation.goBack();
 };
 
 function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const currentUserDetails = currentUserPersonalDetails ?? {};
 
@@ -46,7 +52,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
         if (!isValidDisplayName(values.firstName)) {
             addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}));
+            addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
         } else if (values.firstName.length === 0) {
             addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
         }
@@ -58,7 +64,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
         if (!isValidDisplayName(values.lastName)) {
             addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}));
+            addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
         }
         if (doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
@@ -69,20 +75,25 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={DisplayNamePage.displayName}
+            testID="DisplayNamePage"
         >
             <HeaderWithBackButton
                 title={translate('displayNamePage.headerTitle')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingApp ? (
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'DisplayNamePage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
+                    />
+                </View>
             ) : (
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                     validate={validate}
-                    onSubmit={(values) => updateDisplayName(values, formatPhoneNumber)}
+                    onSubmit={(values) => updateDisplayName(values, formatPhoneNumber, currentUserDetails?.accountID, currentUserDetails?.email ?? '')}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur
@@ -100,6 +111,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             defaultValue={currentUserDetails.firstName ?? ''}
                             spellCheck={false}
                             autoCapitalize="words"
+                            autoComplete="given-name"
                         />
                     </View>
                     <View>
@@ -113,6 +125,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             defaultValue={currentUserDetails.lastName ?? ''}
                             spellCheck={false}
                             autoCapitalize="words"
+                            autoComplete="family-name"
                         />
                     </View>
                 </FormProvider>
@@ -120,7 +133,5 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
         </ScreenWrapper>
     );
 }
-
-DisplayNamePage.displayName = 'DisplayNamePage';
 
 export default withCurrentUserPersonalDetails(DisplayNamePage);

@@ -21,11 +21,9 @@ function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
         <BaseOnboardingPurpose
             shouldUseNativeStyles
             shouldEnableMaxHeight={false}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );
 }
 
-OnboardingPurpose.displayName = 'OnboardingPurpose';
 export default OnboardingPurpose;

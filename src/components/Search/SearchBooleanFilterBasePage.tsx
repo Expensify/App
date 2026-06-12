@@ -5,8 +5,8 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,7 +36,7 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
     const {translate} = useLocalize();
 
     const booleanValues = Object.values(CONST.SEARCH.BOOLEAN);
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     const [selectedItem, setSelectedItem] = useState(() => {
         return booleanValues.find((value) => searchAdvancedFiltersForm?.[booleanKey] === value) ?? null;
@@ -67,7 +67,7 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
 
     return (
         <ScreenWrapper
-            testID={SearchBooleanFilterBasePage.displayName}
+            testID="SearchBooleanFilterBasePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -82,7 +82,7 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
             <View style={[styles.flex1]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect
-                    sections={[{data: items}]}
+                    data={items}
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateFilter}
                 />
@@ -96,7 +96,5 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
         </ScreenWrapper>
     );
 }
-
-SearchBooleanFilterBasePage.displayName = 'SearchBooleanFilterBasePage';
 
 export default SearchBooleanFilterBasePage;

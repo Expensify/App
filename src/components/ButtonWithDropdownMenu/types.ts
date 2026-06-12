@@ -6,12 +6,13 @@ import type CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
 type RoomMemberBulkActionType = DeepValueOf<typeof CONST.REPORT.ROOM_MEMBERS_BULK_ACTION_TYPES>;
+
+type DomainMemberBulkActionType = DeepValueOf<typeof CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES>;
 
 type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
 
@@ -21,7 +22,7 @@ type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
 type OnboardingHelpType = DeepValueOf<typeof CONST.ONBOARDING_HELP>;
 
-type DropdownOption<TValueType> = {
+type DropdownOption<TValueType> = WithSentryLabel & {
     value: TValueType;
     text: string;
     icon?: IconAsset;
@@ -30,12 +31,12 @@ type DropdownOption<TValueType> = {
     iconHeight?: number;
     iconDescription?: string;
     additionalIconStyles?: StyleProp<ViewStyle>;
-    onSelected?: () => void;
+    onSelected?: () => void | Promise<void>;
     disabled?: boolean;
     iconFill?: string;
     interactive?: boolean;
     numberOfLinesTitle?: number;
-    titleStyle?: ViewStyle;
+    titleStyle?: StyleProp<TextStyle>;
     shouldCloseModalOnSelect?: boolean;
     description?: string;
     descriptionTextStyle?: StyleProp<TextStyle>;
@@ -49,9 +50,18 @@ type DropdownOption<TValueType> = {
     shouldShow?: boolean;
     /** Whether to show a loading spinner for this option */
     shouldShowLoadingSpinnerIcon?: boolean;
+    /** Whether to render a divider before this option */
+    addSeparatorBefore?: boolean;
+    /** The type of brick road indicator to show */
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    /** Whether selecting this option should bypass the delete confirmation modal */
+    shouldSkipDeleteModal?: boolean;
+
+    /** Whether to ignore compact popover menu styling for this item */
+    shouldIgnoreCompactStyle?: boolean;
 };
 
-type ButtonWithDropdownMenuProps<TValueType> = {
+type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** The custom text to display on the main button instead of selected option */
     customText?: string;
 
@@ -79,8 +89,14 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** The size of button size */
     buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
+    /** Render button in extra-small size */
+    extraSmall?: boolean;
+
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
+
+    /** Whether the button should stay visually normal even when disabled. */
+    shouldStayNormalOnDisable?: boolean;
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
@@ -119,8 +135,8 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Decides which index in menuItems should be selected */
     defaultSelectedIndex?: number;
 
-    /** Whether selected items should be marked as selected */
-    shouldShowSelectedItemCheck?: boolean;
+    /** Whether to show a radio button on each item to indicate which one is currently selected */
+    shouldShowRadioButton?: boolean;
 
     /** Used to locate the component in the tests */
     testID?: string;
@@ -149,6 +165,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Whether to display the option icon when only one option is available */
     shouldUseOptionIcon?: boolean;
 
+    /** The type of brick road indicator to show */
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+
     /** Reference to the outer element */
     ref?: React.Ref<ButtonWithDropdownMenuRef>;
 };
@@ -158,8 +177,8 @@ type ButtonWithDropdownMenuRef = {
 };
 
 export type {
-    PaymentType,
     WorkspaceMemberBulkActionType,
+    DomainMemberBulkActionType,
     RoomMemberBulkActionType,
     WorkspaceDistanceRatesBulkActionType,
     DropdownOption,

@@ -1,4 +1,6 @@
+import toSortedPolyfill from 'array.prototype.tosorted';
 import {I18nManager} from 'react-native';
+import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
 import {setDeviceID} from '@userActions/Device';
@@ -9,8 +11,12 @@ import addUtilsToWindow from './addUtilsToWindow';
 import platformSetup from './platformSetup';
 import telemetry from './telemetry';
 
+const enableDevTools = Config?.USE_REDUX_DEVTOOLS ? Config.USE_REDUX_DEVTOOLS === 'true' : true;
+
 export default function () {
     telemetry();
+
+    toSortedPolyfill.shim();
 
     /*
      * Initialize the Onyx store when the app loads for the first time.
@@ -27,9 +33,7 @@ export default function () {
      */
     Onyx.init({
         keys: ONYXKEYS,
-
-        // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
-        maxCachedKeysCount: 50000,
+        enableDevTools,
         evictableKeys: [
             ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             ONYXKEYS.COLLECTION.SNAPSHOT,
@@ -41,21 +45,47 @@ export default function () {
             // Clear any loading and error messages so they do not appear on app startup
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
-            [ONYXKEYS.NETWORK]: CONST.DEFAULT_NETWORK_DATA,
-            [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
-            [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
+            [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.MODAL]: {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,
             },
+            // Ensure the Supportal permission modal doesn't persist across reloads
+            [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
+            [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
+        snapshotMergeKeys: ['pendingAction', 'pendingFields'],
+        ramOnlyKeys: [
+            ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
+            ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE,
+            ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
+            ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
+            ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
+            ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE,
+            ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,
+            ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
+            ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
+            ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
+            ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
+            ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN,
+            ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
+            ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
+            ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
+        ],
     });
+
+    // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
+    // handlers are registered before any push arrives, including Android headless/background wake-ups.
+    import('@libs/Notification/PushNotification/subscribeToPushNotifications');
 
     initOnyxDerivedValues();
 
     setDeviceID();
 
+    // Preload all icons early in app initialization
+    // This runs outside React lifecycle for optimal performance
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
     I18nManager.forceRTL(false);

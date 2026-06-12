@@ -1,11 +1,76 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
-import Log from '@libs/Log';
+import type {OnyxEntry} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
+import {isLockedToNewApp, shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
+import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {HybridApp} from '@src/types/onyx';
+import type {Session, TryNewDot} from '@src/types/onyx';
 import type HybridAppSettings from './types';
+
+let currentTryNewDot: OnyxEntry<TryNewDot>;
+let currentSessionAccountID: Session['accountID'];
+let isLoadingApp = true;
+let isLoadingTryNewDot = true;
+let hasReceivedTryNewDotUpdate = false;
+
+function getSessionAccountID(session: OnyxEntry<Session>): Session['accountID'] {
+    return session?.accountID;
+}
+
+function updateTryNewDotLoadingState(isTryNewDotUpdate = false, isInitialTryNewDotUpdate = false) {
+    if (currentTryNewDot !== undefined) {
+        isLoadingTryNewDot = false;
+        return;
+    }
+
+    if (isTryNewDotUpdate && !isInitialTryNewDotUpdate && isLoadingTryNewDot === false) {
+        isLoadingTryNewDot = true;
+        return;
+    }
+
+    isLoadingTryNewDot = isLoadingApp !== false;
+}
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_TRY_NEW_DOT,
+    callback: (tryNewDot) => {
+        const isInitialTryNewDotUpdate = !hasReceivedTryNewDotUpdate;
+        hasReceivedTryNewDotUpdate = true;
+        currentTryNewDot = tryNewDot;
+        updateTryNewDotLoadingState(true, isInitialTryNewDotUpdate);
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (loadingApp) => {
+        isLoadingApp = loadingApp ?? true;
+        updateTryNewDotLoadingState();
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        const nextSessionAccountID = getSessionAccountID(session);
+        if (nextSessionAccountID === currentSessionAccountID) {
+            return;
+        }
+
+        const isInitialSessionLoad = currentSessionAccountID === undefined;
+        currentSessionAccountID = nextSessionAccountID;
+
+        if (isInitialSessionLoad) {
+            return;
+        }
+
+        currentTryNewDot = undefined;
+        hasReceivedTryNewDotUpdate = false;
+        isLoadingTryNewDot = nextSessionAccountID !== undefined || isLoadingApp !== false;
+    },
+});
 
 /*
  * Parses initial settings passed from OldDot app
@@ -24,11 +89,31 @@ function getHybridAppSettings(): Promise<HybridAppSettings | null> {
     });
 }
 
-function closeReactNativeApp({shouldSetNVP}: {shouldSetNVP: boolean}) {
+type CloseReactNativeAppParams = {
+    shouldSetNVP: boolean;
+    isTrackingGPS: boolean;
+    shouldIgnoreTryNewDotLoading?: boolean;
+};
+
+function closeReactNativeApp({shouldSetNVP, isTrackingGPS, shouldIgnoreTryNewDotLoading = false}: CloseReactNativeAppParams) {
+    if (isLockedToNewApp(currentTryNewDot)) {
+        return;
+    }
+
+    if (isTrackingGPS) {
+        setIsGPSInProgressModalOpen(true);
+        return;
+    }
+
+    if (!shouldIgnoreTryNewDotLoading && shouldBlockOldAppExit(currentTryNewDot, isLoadingTryNewDot, shouldSetNVP)) {
+        return;
+    }
+
     Navigation.clearPreloadedRoutes();
     if (CONFIG.IS_HYBRID_APP) {
         Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true});
     }
+
     // eslint-disable-next-line no-restricted-properties
     HybridAppModule.closeReactNativeApp({shouldSetNVP});
 }
@@ -52,14 +137,6 @@ function setUseNewDotSignInPage(useNewDotSignInPage: boolean) {
     return Onyx.merge(ONYXKEYS.HYBRID_APP, {useNewDotSignInPage});
 }
 
-function setClosingReactNativeApp(closingReactNativeApp: boolean) {
-    // This value is only relevant for HybridApp, so we can skip it in other environments.
-    if (!CONFIG.IS_HYBRID_APP) {
-        return;
-    }
-    Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp});
-}
-
 /*
  * Starts HybridApp sign-in flow from the beginning.
  */
@@ -75,42 +152,4 @@ function resetSignInFlow() {
     });
 }
 
-/*
- * Updates Onyx state after start of React Native runtime based on initial `useNewDotSignInPage` value
- */
-function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) {
-    if (hybridApp?.useNewDotSignInPage) {
-        return Onyx.merge(ONYXKEYS.HYBRID_APP, {
-            ...hybridApp,
-            readyToShowAuthScreens: !(hybridApp?.useNewDotSignInPage ?? false),
-        });
-    }
-
-    // When we transition with useNewDotSignInPage === false, it means that we're already authenticated on NewDot side.
-    return Onyx.merge(ONYXKEYS.HYBRID_APP, {
-        ...hybridApp,
-        readyToShowAuthScreens: true,
-    });
-}
-
-function migrateHybridAppToNewPartnerName() {
-    if (!CONFIG.IS_HYBRID_APP) {
-        return;
-    }
-
-    Log.info('[HybridApp] Migrating to new partner name');
-    Onyx.merge(ONYXKEYS.HYBRID_APP, {
-        shouldUseNewPartnerName: true,
-    });
-}
-
-export {
-    getHybridAppSettings,
-    setReadyToShowAuthScreens,
-    resetSignInFlow,
-    prepareHybridAppAfterTransitionToNewDot,
-    setUseNewDotSignInPage,
-    setClosingReactNativeApp,
-    closeReactNativeApp,
-    migrateHybridAppToNewPartnerName,
-};
+export {getHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, setUseNewDotSignInPage, closeReactNativeApp};

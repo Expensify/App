@@ -7,13 +7,13 @@ import type DeepRecord from '@src/types/utils/DeepRecord';
 
 const flattenActionNamesValues = (actionNames: DeepRecord<string, ReportActionName>): ReportActionName[] => {
     let result: ReportActionName[] = [];
-    Object.values(actionNames).forEach((value) => {
+    for (const value of Object.values(actionNames)) {
         if (typeof value === 'object') {
             result = result.concat(flattenActionNamesValues(value));
         } else {
             result.push(value);
         }
-    });
+    }
     return result;
 };
 
@@ -31,6 +31,7 @@ const deprecatedReportActions: ReportActionName[] = [
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.DONATION,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
 ] as const;
 
 export default function createRandomReportAction(index: number): ReportAction {

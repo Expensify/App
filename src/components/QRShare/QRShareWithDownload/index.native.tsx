@@ -11,13 +11,13 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
-    const qrCodeScreenshotRef = useRef<ViewShot>(null);
+    const qrCodeScreenshotRef = useRef<React.ComponentRef<typeof ViewShot>>(null);
 
     useImperativeHandle(
         ref,
         () => ({
             download: () =>
-                qrCodeScreenshotRef.current?.capture?.().then((uri) => fileDownload(uri, getQrCodeFileName(props.title ?? 'QRCode'), translate('fileDownload.success.qrMessage'))),
+                qrCodeScreenshotRef.current?.capture?.().then((uri) => fileDownload(translate, uri, getQrCodeFileName(props.title ?? 'QRCode'), translate('fileDownload.success.qrMessage'))),
         }),
         [props.title, translate],
     );
@@ -25,14 +25,11 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
     return (
         <ViewShot ref={qrCodeScreenshotRef}>
             <QRShare
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 logo={isOffline ? undefined : props.logo}
             />
         </ViewShot>
     );
 }
-
-QRShareWithDownload.displayName = 'QRShareWithDownload';
 
 export default QRShareWithDownload;

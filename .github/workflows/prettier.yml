@@ -15,20 +15,17 @@ jobs:
   prettier:
     name: Prettier check
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
-        with:
-          IS_DESKTOP_BUILD: true
 
       - name: Verify there's no Prettier diff
         run: |
-          npm run prettier -- --log-level silent
+          npm run prettier -- --log-level error
           if ! git diff --name-only --exit-code; then
             # shellcheck disable=SC2016
             echo 'Error: Prettier diff detected! Please run `npm run prettier` and commit the changes.'

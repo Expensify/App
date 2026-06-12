@@ -98,6 +98,9 @@ type ConfirmModalProps = {
     /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
 
+    /** Whether to fit the image to the container */
+    shouldFitImageToContainer?: boolean;
+
     /**
      * Whether the modal should enable the new focus manager.
      * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
@@ -110,13 +113,22 @@ type ConfirmModalProps = {
     /** Whether the confirm button is loading */
     isConfirmLoading?: boolean;
 
+    /** Whether to show a loading indicator next to the title */
+    isTitleLoading?: boolean;
+
     /** Whether to handle navigation back when modal show. */
     shouldHandleNavigationBack?: boolean;
 
     /** Whether to ignore the back handler during transition */
     shouldIgnoreBackHandlerDuringTransition?: boolean;
+
+    /** Merged into the modal container after default confirm styles (e.g. `width` overrides `variables.sideBarWidth` on wide screens). */
+    innerContainerStyle?: ViewStyle;
 };
 
+/**
+ * @deprecated Use @hooks/useConfirmModal instead. This leverages the global modal system in @components/Modal/Global instead, which prevents consumers from having to manage modal state and keeps the JSX tree lean.
+ */
 function ConfirmModal({
     confirmText = '',
     cancelText = '',
@@ -140,6 +152,7 @@ function ConfirmModal({
     onConfirm,
     image,
     imageStyles,
+    shouldFitImageToContainer = false,
     iconWidth,
     iconHeight,
     iconFill,
@@ -150,8 +163,10 @@ function ConfirmModal({
     shouldEnableNewFocusManagement,
     restoreFocusType,
     isConfirmLoading,
+    isTitleLoading,
     shouldHandleNavigationBack,
     shouldIgnoreBackHandlerDuringTransition,
+    innerContainerStyle,
 }: ConfirmModalProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -174,7 +189,7 @@ function ConfirmModal({
             shouldSetModalVisibility={shouldSetModalVisibility}
             onModalHide={onModalHide}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-            innerContainerStyle={styles.pv0}
+            innerContainerStyle={innerContainerStyle ? {...styles.pv0, ...innerContainerStyle} : styles.pv0}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
@@ -210,12 +225,13 @@ function ConfirmModal({
                 shouldReverseStackedButtons={shouldReverseStackedButtons}
                 image={image}
                 imageStyles={imageStyles}
+                shouldFitImageToContainer={shouldFitImageToContainer}
                 isConfirmLoading={isConfirmLoading}
+                isTitleLoading={isTitleLoading}
             />
         </Modal>
     );
 }
 
-ConfirmModal.displayName = 'ConfirmModal';
-
 export default ConfirmModal;
+export type {ConfirmModalProps};

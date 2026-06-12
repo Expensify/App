@@ -1,0 +1,21 @@
+name: Format CodeCov Comment
+
+on:
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  format-codecov-comment:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    if: github.event.issue.pull_request && github.event.comment.user.login == 'codecov[bot]'
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1 
+      - name: Format CodeCov Comment
+        uses: ./.github/actions/javascript/formatCodeCovComment
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

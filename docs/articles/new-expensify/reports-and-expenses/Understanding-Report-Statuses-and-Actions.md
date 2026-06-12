@@ -1,7 +1,7 @@
 ---
 title: Understanding Report Statuses and Actions
 description: Learn what each report status in Expensify means, what actions are available at each stage, and how to manage reports effectively.
-keywords: [New Expensify, report statuses, report actions, reimbursements, report approval, move report, delete report, submit report, approve report, invoice actions, IOU actions, export report, view report, decline, report progress, approve expense, pay invoice, what does submitted mean, locked report, report status meaning]
+keywords: [New Expensify, report statuses, report actions, reimbursements, report approval, move report, delete report, submit report, approve report, invoice actions, IOU actions, export report, view report, reject, report progress, approve expense, pay invoice, what does submitted mean, locked report, report status meaning]
 ---
 
 Understand what each report status means, what actions are available, and how to manage reports, invoices, and IOUs in New Expensify.
@@ -12,12 +12,12 @@ Understand what each report status means, what actions are available, and how to
 
 Each report status reflects a different stage in the reporting workflow:
 
-- **Open**: The report is a draft. You can still add or remove expenses.
+- **Draft**: The report is a draft. You can still add or remove expenses.
 - **Submitted**: The report is awaiting approval from another person.
-- **Processing**: The report is in progress—under review, held, or partially completed.
-- **Approved**: The report is approved and ready for payment or export. This is the final status for reports containing only non-reimbursable (e.g. company card) expenses.
-- **Reimbursed**: The report has been paid. All actions are complete.
-- **Closed**: The report is locked. No further edits or deletions can be made. This is the final status for non-approvable reports.
+- **Outstanding**: The report is in progress—under review, held, or partially completed.
+- **Approved**: The report is approved and ready for payment or export.
+- **Paid**: The report has been paid. All actions are complete.
+- **Done**: The report is locked. No further edits or deletions can be made. This is the final status for non-approvable reports.
 
 ---
 
@@ -33,11 +33,15 @@ The grey **More** button is always visible in the report header. Tap it to acces
 
 - Hold / Unhold
 - Unapprove
+- **Received payment**
+- Duplicate report
 - Download as CSV
+- Print
 - Change Workspace
-- View Details
+- Change approver
+- View details
 - Delete
-- Decline
+- Reject
 
 ---
 
@@ -47,11 +51,13 @@ Depending on the report status and your role, the primary action button may say:
 
 - **Submit**: The report is ready to submit.
 - **Review**: The report contains holds, violations, or duplicate warnings.
-  - A red dot means something needs attention.
+  - A **Fix** badge means something needs attention.
 - **Approve**: The report is ready for approval.
 - **Pay**: The report has been approved and is ready for reimbursement.
 - **Export**: Send the approved report to your accounting system.
 - **View**: No further action is required; you have view-only access.
+
+**Note:** If your workspace does not use an approval workflow, you'll see **Mark as done** instead of **Submit** and **Approve**. 
 
 ---
 
@@ -60,8 +66,8 @@ Depending on the report status and your role, the primary action button may say:
 ## Held Expenses  
 If you're an Approver who placed a hold, you'll see a green **Remove hold** button. Other users will see a grey **Review** button.
 
-## Decline Expenses  
-If you're an Approver reviewing an expense that shouldn't have been submitted, you can **Decline** it back to the submitter with a reason. The decline reason will be added to the report. The expense can later be marked as resolved and resubmitted for approval.
+## Reject Expenses  
+If you're an Approver reviewing an expense that shouldn't have been submitted, you can **Reject** it back to the submitter with a reason. The rejection reason will be added to the report. The expense can later be marked as resolved and resubmitted for approval.
 
 ## Duplicate Expenses
 - Submitters: See **Review Duplicates** if duplicates are suspected.
@@ -74,14 +80,14 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 
 # Moving Expenses or Reports
 
-- **To move a single expense**: Open the expense, then update the **Report** field to select another Open report.
+- **To move a single expense**: Open the expense, then update the **Report** field to select another Draft report.
 - **To move a report to another workspace**: Tap **More > Change Workspace**.
 
 ---
 
 # Deleting a Report
 
-- **To delete a report**: Go to an **Open** report and tap **More > Delete**.
+- **To delete a report**: Go to a **Draft** report and tap **More > Delete**.
   - If the report contains only one expense, that expense will also be deleted.
   - If the report contains multiple expenses, they will become **Unreported** and available to add to a new report.
 
@@ -90,15 +96,15 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 # Actions for Invoices and IOUs
 
 ## Invoices - As the Receiver
-- Use **Pay** to reimburse.
-- Tap **More** for options like **Download** and **View Details**.
+- Select the three dots **(⋮)** for options like **Download**, **Print**, and **View Details**.
+- Tap **More** for options like **Download**, **Print**, and **View Details**.
 
 ## Invoices - As the Sender
 - Choose **Export** or **Mark as exported**.
 - **Delete** and **Change Workspace** are not available.
 
 ## IOUs - As the Receiver
-- You can **Pay**, **Decline**, **Change Workspace**, or **Download**.
+- You can **Pay**, **Reject**, **Change Workspace**, or **Download**.
 
 ## IOUs - As the Sender
 - **Change Workspace** converts the IOU into a regular expense report on the selected workspace.
@@ -111,8 +117,10 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 If no green button appears, it means no immediate action is required. Tap the **More** button to find available options.
 
 ## Can I delete reports?  
-Yes—if the report is **Open** or **Processing**. **Closed** reports cannot be deleted.
+Yes—if the report is a **Draft** or is **Outstanding**. **Done** or **Paid** reports cannot be deleted.
 
 ## Can I view report details?  
 Yes. Tap the report title or select **View Details** from the **More** menu.
 
+## An employee sent an IOU before our company had a company workspace. How do we report their expenses on the workspace instead?
+The employee can move their IOU to the company workspace by selecting **More** > **Change Workspace**. This will convert the IOU into a regular expense report on the selected workspace.

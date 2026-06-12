@@ -1,20 +1,25 @@
-import type {VideoReadyForDisplayEvent} from 'expo-av';
 import type {ImageContentFit} from 'expo-image';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Image, InteractionManager, View} from 'react-native';
+import type {SourceLoadEventPayload} from 'expo-video';
+import React, {useEffect, useRef, useState} from 'react';
+import {Image, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {MergeExclusive} from 'type-fest';
 import useKeyboardState from '@hooks/useKeyboardState';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import Accessibility from '@libs/Accessibility';
+import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import variables from '@styles/variables';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -40,13 +45,6 @@ import VideoPlayer from './VideoPlayer';
 const VIDEO_ASPECT_RATIO = 1280 / 960;
 
 const MODAL_PADDING = variables.spacing2;
-
-type VideoLoadedEventType = {
-    srcElement: {
-        videoWidth: number;
-        videoHeight: number;
-    };
-};
 
 type VideoStatus = 'video' | 'animation';
 
@@ -134,6 +132,12 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether to call onHelp when modal is hidden completely */
     shouldCallOnHelpWhenModalHidden?: boolean;
+
+    /** Sentry label for the help/skip button */
+    helpSentryLabel?: string;
+
+    /** Sentry label for the confirm/submit button */
+    confirmSentryLabel?: string;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -163,6 +167,8 @@ type FeatureTrainingModalSVGProps = {
 
 // This page requires either an icon or a video/animation, but not both
 type FeatureTrainingModalProps = BaseFeatureTrainingModalProps & MergeExclusive<FeatureTrainingModalVideoProps, FeatureTrainingModalSVGProps>;
+
+const LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO = 0.7;
 
 function FeatureTrainingModal({
     animation,
@@ -195,16 +201,21 @@ function FeatureTrainingModal({
     shouldRenderHTMLDescription = false,
     shouldCloseOnConfirm = true,
     avoidKeyboard = false,
-    shouldUseScrollView = false,
+    shouldUseScrollView: shouldUseScrollViewProp = false,
     shouldShowConfirmationLoader = false,
     canConfirmWhileOffline = true,
     shouldGoBack = true,
     shouldCallOnHelpWhenModalHidden = false,
+    helpSentryLabel,
+    confirmSentryLabel,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
+    const illustrations = useMemoizedLazyIllustrations(['Hands']);
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {windowHeight, windowWidth} = useWindowDimensions();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
@@ -213,20 +224,29 @@ function FeatureTrainingModal({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const hasHelpButtonBeenPressed = useRef(false);
+    const pendingCloseRef = useRef(false);
     const scrollViewRef = useRef<RNScrollView>(null);
     const [containerHeight, setContainerHeight] = useState(0);
     const [contentHeight, setContentHeight] = useState(0);
     const insets = useSafeAreaInsets();
     const {isKeyboardActive} = useKeyboardState();
+    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
+
+    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
 
     useEffect(() => {
-        InteractionManager.runAfterInteractions(() => {
-            if (!isModalDisabled) {
-                setIsModalVisible(false);
-                return;
-            }
-            setIsModalVisible(true);
+        // Transition tracker is used directly as we defer the opening of the modal until other animations are finished,
+        // for which there is no higher-level API.
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (!isModalDisabled) {
+                    setIsModalVisible(false);
+                    return;
+                }
+                setIsModalVisible(true);
+            },
         });
+        return () => handle.cancel();
     }, [isModalDisabled]);
 
     useEffect(() => {
@@ -242,25 +262,23 @@ function FeatureTrainingModal({
         }
     }, [isOffline, isVideoStatusLocked]);
 
-    const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
-        if (!event) {
+    const setAspectRatio = (event: SourceLoadEventPayload) => {
+        const track = event.availableVideoTracks.at(0);
+
+        if (!track) {
             return;
         }
 
-        if ('naturalSize' in event) {
-            setIllustrationAspectRatio(event.naturalSize.width / event.naturalSize.height);
-        } else {
-            setIllustrationAspectRatio(event.srcElement.videoWidth / event.srcElement.videoHeight);
-        }
+        setIllustrationAspectRatio(track.size.width / track.size.height);
     };
 
-    const renderIllustration = useCallback(() => {
+    const renderIllustration = () => {
         const aspectRatio = illustrationAspectRatio || VIDEO_ASPECT_RATIO;
 
         return (
             <View
                 style={[
-                    styles.w100,
+                    isInLandscapeMode ? styles.h100 : styles.w100,
                     // Prevent layout jumps by reserving height
                     // for the video until it loads. Also, when
                     // videoStatus === 'animation' it will
@@ -280,6 +298,7 @@ function FeatureTrainingModal({
                         />
                     ) : (
                         <Image
+                            accessibilityIgnoresInvertColors
                             source={image as ImageSourcePropType}
                             resizeMode={contentFitImage as ImageResizeMode}
                             style={styles.featureTrainingModalImage}
@@ -291,7 +310,7 @@ function FeatureTrainingModal({
                         <VideoPlayer
                             url={videoURL}
                             videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
-                            onVideoLoaded={setAspectRatio}
+                            onSourceLoaded={setAspectRatio}
                             controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE}
                             shouldUseControlsBottomMargin={false}
                             shouldPlay
@@ -301,42 +320,43 @@ function FeatureTrainingModal({
                 )}
                 {((!videoURL && !image) || (!!videoURL && videoStatus === 'animation')) && (
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, !!videoURL && {aspectRatio}, animationStyle]}>
-                        <Lottie
-                            source={animation ?? LottieAnimations.Hands}
-                            style={styles.h100}
-                            webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
-                            autoPlay
-                            loop
-                        />
+                        {isReduceMotionEnabled && (animation ?? LottieAnimations.Hands) === LottieAnimations.Hands ? (
+                            <ImageSVG
+                                src={illustrations.Hands}
+                                style={styles.h100}
+                            />
+                        ) : (
+                            <Lottie
+                                source={animation ?? LottieAnimations.Hands}
+                                style={styles.h100}
+                                webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
+                                autoPlay
+                                loop
+                            />
+                        )}
                     </View>
                 )}
             </View>
         );
-    }, [
-        illustrationAspectRatio,
-        styles.w100,
-        styles.featureTrainingModalImage,
-        styles.onboardingVideoPlayer,
-        styles.flex1,
-        styles.alignItemsCenter,
-        styles.justifyContentCenter,
-        styles.h100,
-        illustrationInnerContainerStyle,
-        videoURL,
-        image,
-        shouldRenderSVG,
-        contentFitImage,
-        imageWidth,
-        imageHeight,
-        videoStatus,
-        animationStyle,
-        animation,
-        shouldUseNarrowLayout,
-    ]);
+    };
 
-    const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
+    const toggleWillShowAgain = () => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain);
 
-    const closeModal = useCallback(() => {
+    const pendingCloseModalAction = () => {
+        Log.hmmm(`[FeatureTrainingModal] Modal hidden - shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
+        if (shouldGoBack) {
+            Log.hmmm('[FeatureTrainingModal] Navigating back');
+            Navigation.goBack();
+        }
+        if (onClose) {
+            Log.hmmm('[FeatureTrainingModal] Calling onClose callback');
+            onClose();
+        } else {
+            Log.hmmm('[FeatureTrainingModal] No onClose callback provided');
+        }
+    };
+
+    const closeModal = () => {
         Log.hmmm(`[FeatureTrainingModal] closeModal called - willShowAgain: ${willShowAgain}, shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
 
         if (!willShowAgain) {
@@ -345,26 +365,11 @@ function FeatureTrainingModal({
         }
 
         Log.hmmm('[FeatureTrainingModal] Setting modal invisible');
+        pendingCloseRef.current = true;
         setIsModalVisible(false);
+    };
 
-        InteractionManager.runAfterInteractions(() => {
-            Log.hmmm(`[FeatureTrainingModal] Running after interactions - shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
-
-            if (shouldGoBack) {
-                Log.hmmm('[FeatureTrainingModal] Navigating back');
-                Navigation.goBack();
-            }
-
-            if (onClose) {
-                Log.hmmm('[FeatureTrainingModal] Calling onClose callback');
-                onClose();
-            } else {
-                Log.hmmm('[FeatureTrainingModal] No onClose callback provided');
-            }
-        });
-    }, [onClose, shouldGoBack, willShowAgain]);
-
-    const closeAndConfirmModal = useCallback(() => {
+    const closeAndConfirmModal = () => {
         Log.hmmm(`[FeatureTrainingModal] Button pressed - shouldCloseOnConfirm: ${shouldCloseOnConfirm}, hasOnConfirm: ${!!onConfirm}, willShowAgain: ${willShowAgain}`);
 
         if (shouldCloseOnConfirm) {
@@ -378,7 +383,7 @@ function FeatureTrainingModal({
         } else {
             Log.hmmm('[FeatureTrainingModal] No onConfirm callback provided');
         }
-    }, [shouldCloseOnConfirm, onConfirm, closeModal, willShowAgain]);
+    };
 
     // Scrolls modal to the bottom when keyboard appears so the action buttons are visible.
     useEffect(() => {
@@ -390,10 +395,7 @@ function FeatureTrainingModal({
 
     const Wrapper = shouldUseScrollView ? ScrollView : View;
 
-    const wrapperStyles = useMemo(
-        () => (shouldUseScrollView ? StyleUtils.getScrollableFeatureTrainingModalStyles(insets, isKeyboardActive) : {}),
-        [shouldUseScrollView, StyleUtils, insets, isKeyboardActive],
-    );
+    const wrapperStyles = shouldUseScrollView ? StyleUtils.getScrollableFeatureTrainingModalStyles(insets, isKeyboardActive) : {};
 
     return (
         <Modal
@@ -416,16 +418,25 @@ function FeatureTrainingModal({
                 ...modalInnerContainerStyle,
             }}
             onModalHide={() => {
+                if (pendingCloseRef.current) {
+                    pendingCloseRef.current = false;
+                    pendingCloseModalAction();
+                }
                 if (!shouldCallOnHelpWhenModalHidden || !hasHelpButtonBeenPressed.current) {
                     return;
                 }
                 onHelp();
             }}
             shouldDisableBottomSafeAreaPadding={shouldUseScrollView}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
         >
             <Wrapper
                 scrollsToTop={false}
-                style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), wrapperStyles.style]}
+                style={[
+                    onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
+                    wrapperStyles.style,
+                    isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
+                ]}
                 contentContainerStyle={wrapperStyles.containerStyle}
                 keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
                 ref={shouldUseScrollView ? scrollViewRef : undefined}
@@ -435,7 +446,13 @@ function FeatureTrainingModal({
                 // eslint-disable-next-line react/forbid-component-props
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
+                <View
+                    style={[
+                        onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING},
+                        illustrationOuterContainerStyle,
+                        isInLandscapeMode ? [{maxHeight: windowHeight * LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO}, styles.alignSelfCenter] : undefined,
+                    ]}
+                >
                     {renderIllustration()}
                 </View>
                 <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
@@ -480,6 +497,7 @@ function FeatureTrainingModal({
                                 onHelp();
                             }}
                             text={helpText}
+                            sentryLabel={helpSentryLabel}
                         />
                     )}
                     <FormAlertWithSubmitButton
@@ -487,6 +505,7 @@ function FeatureTrainingModal({
                         isLoading={shouldShowConfirmationLoader}
                         buttonText={confirmText}
                         enabledWhenOffline={canConfirmWhileOffline}
+                        sentryLabel={confirmSentryLabel}
                     />
                     {!canConfirmWhileOffline && <OfflineIndicator />}
                 </View>

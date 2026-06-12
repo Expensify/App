@@ -1,20 +1,26 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useContext} from 'react';
+import React, {useMemo, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
+import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
-import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,15 +32,20 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
-import {getFullSizeAvatar, getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
-import {clearAvatarErrors, deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
+import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import {useIsAgentAccount} from '@libs/SessionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
+import {clearAgentAvatarUpdateError} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import AgentAIPromptSection from './AgentAIPromptSection';
 
 function ProfilePage() {
     const theme = useTheme();
@@ -44,129 +55,156 @@ function ProfilePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const scrollViewRef = useRef<RNScrollView>(null);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    useDocumentTitle(translate('common.profile'));
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
     };
+    const logins = useMemo(() => getContactMethodsOptions(translate, loginList, session?.email), [loginList, session?.email, translate]);
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isAgentAccount = useIsAgentAccount();
+    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
+    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
+    const {asset: Profile} = useMemoizedLazyAsset(() => loadIllustration('Profile' as IllustrationName));
+    const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
-    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, session?.email);
+    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
 
-    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const publicOptions = [
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const publicOptions: Array<{
+        description: string;
+        title: string;
+        pageRoute?: Route;
+        brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+        testID?: string;
+        sentryLabel?: string;
+    }> = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: currentUserPersonalDetails?.displayName ?? '',
+            title: formatPhoneNumber(getDisplayNameOrDefault(currentUserPersonalDetails)),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
         },
         {
-            description: translate('contacts.contactMethod'),
-            title: formatPhoneNumber(currentUserPersonalDetails?.login ?? ''),
-            pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
-            brickRoadIndicator: contactMethodBrickRoadIndicator,
+            description: translate('contacts.contactMethods'),
+            title: logins
+                .map((login) => login?.menuItemTitle)
+                .filter(Boolean)
+                .join(', '),
+            pageRoute: isAgentAccount ? undefined : ROUTES.SETTINGS_CONTACT_METHODS.route,
+            brickRoadIndicator: isAgentAccount ? undefined : contactMethodBrickRoadIndicator,
+            testID: isAgentAccount ? undefined : 'contact-method-menu-item',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHODS,
         },
         {
             description: translate('statusPage.status'),
             title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
             brickRoadIndicator: isEmptyObject(vacationDelegate?.errors) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.STATUS,
         },
-        {
-            description: translate('pronounsPage.pronouns'),
-            title: getPronouns(),
-            pageRoute: ROUTES.SETTINGS_PRONOUNS,
-        },
-        {
-            description: translate('timezonePage.timezone'),
-            title: currentUserPersonalDetails?.timezone?.selected ?? '',
-            pageRoute: ROUTES.SETTINGS_TIMEZONE,
-        },
+        ...(!isAgentAccount
+            ? [
+                  {
+                      description: translate('pronounsPage.pronouns'),
+                      title: getPronouns(),
+                      pageRoute: ROUTES.SETTINGS_PRONOUNS as Route,
+                      testID: 'pronouns-menu-item',
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PRONOUNS,
+                  },
+                  {
+                      description: translate('timezonePage.timezone'),
+                      title: currentUserPersonalDetails?.timezone?.selected ?? '',
+                      pageRoute: ROUTES.SETTINGS_TIMEZONE as Route,
+                      testID: 'timezone-menu-item',
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.TIMEZONE,
+                  },
+              ]
+            : []),
     ];
+
+    const navigateToPrivateDetails = (fieldToFocus?: string) => {
+        if (isActingAsDelegate) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(fieldToFocus));
+    };
 
     const privateOptions = [
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_LEGAL_NAME);
-            },
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.LEGAL_NAME,
+            action: () => navigateToPrivateDetails(INPUT_IDS.LEGAL_FIRST_NAME),
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH);
-            },
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DATE_OF_BIRTH,
+            action: () => navigateToPrivateDetails(INPUT_IDS.DATE_OF_BIRTH),
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_PHONE_NUMBER);
-            },
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PHONE_NUMBER,
+            action: () => navigateToPrivateDetails(INPUT_IDS.PHONE_NUMBER),
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             description: translate('privatePersonalDetails.address'),
             title: getFormattedAddress(privateDetails),
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
-            },
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
+            action: () => navigateToPrivateDetails(INPUT_IDS.ADDRESS_LINE_1),
         },
     ];
+
+    const privateSectionReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'ProfilePage.privateSection',
+        isLoadingApp: !!isLoadingApp,
+    };
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={ProfilePage.displayName}
+            testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('common.profile')}
                 onBackButtonPress={() => {
-                    if (Navigation.getShouldPopToSidebar()) {
-                        Navigation.popToSidebar();
+                    if (route.params?.backTo) {
+                        Navigation.goBack(route.params?.backTo);
                         return;
                     }
-                    Navigation.goBack(route.params?.backTo);
+                    Navigation.goBack();
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                icon={Illustrations.Profile}
+                shouldDisplayHelpButton
+                icon={Profile}
                 shouldUseHeadlineHeader
             />
             <ScrollView
+                ref={scrollViewRef}
                 style={styles.pt3}
                 contentContainerStyle={safeAreaPaddingBottomStyle}
                 scrollEnabled={scrollEnabled}
+                keyboardShouldPersistTaps="handled"
             >
                 <MenuItemGroup>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -180,89 +218,111 @@ function ProfilePage() {
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
-                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.X_LARGE} />
+                                    <AvatarSkeleton
+                                        size={CONST.AVATAR_SIZE.X_LARGE}
+                                        reasonAttributes={{
+                                            context: 'ProfilePage',
+                                            isPersonalDetailsEmpty: isEmptyObject(currentUserPersonalDetails),
+                                            isAccountIDInvalid: accountID === -1,
+                                            hasNoAvatarURL: !avatarURL,
+                                        }}
+                                    />
                                 ) : (
-                                    <MenuItemGroup shouldUseSingleExecution={false}>
-                                        <AvatarWithImagePicker
-                                            isUsingDefaultAvatar={isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
-                                            source={avatarURL}
-                                            avatarID={accountID}
-                                            onImageSelected={(file) => {
-                                                updateAvatar(file, {avatar: currentUserPersonalDetails?.avatar, avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail});
-                                            }}
-                                            onImageRemoved={() => {
-                                                deleteAvatar({avatar: currentUserPersonalDetails?.avatar, fallbackIcon: currentUserPersonalDetails?.fallbackIcon});
-                                            }}
-                                            size={CONST.AVATAR_SIZE.X_LARGE}
-                                            avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
-                                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                            errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                                            errorRowStyles={styles.mt6}
-                                            onErrorClose={clearAvatarErrors}
-                                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
-                                            previewSource={getFullSizeAvatar(avatarURL, accountID)}
-                                            originalFileName={currentUserPersonalDetails.originalFileName}
-                                            headerTitle={translate('profilePage.profileAvatar')}
-                                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                                            editIconStyle={styles.profilePageAvatar}
-                                        />
-                                    </MenuItemGroup>
+                                    <OfflineWithFeedback
+                                        errors={isAgentAccount ? agentPrompt?.avatarErrors : undefined}
+                                        errorRowStyles={[styles.mh5, styles.mt5]}
+                                        onClose={() => clearAgentAvatarUpdateError(accountID)}
+                                    >
+                                        <MenuItemGroup shouldUseSingleExecution={false}>
+                                            <AvatarButtonWithIcon
+                                                text={translate('avatarWithImagePicker.editImage')}
+                                                source={avatarURL}
+                                                avatarID={accountID}
+                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
+                                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                                avatarStyle={avatarStyle}
+                                                pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                                fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                                editIconStyle={styles.profilePageAvatar}
+                                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR}
+                                            />
+                                        </MenuItemGroup>
+                                    </OfflineWithFeedback>
                                 )}
                             </View>
-                            {publicOptions.map((detail, index) => (
-                                <MenuItemWithTopDescription
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`${detail.title}_${index}`}
-                                    shouldShowRightIcon
-                                    title={detail.title}
-                                    description={detail.description}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={() => Navigation.navigate(detail.pageRoute)}
-                                    brickRoadIndicator={detail.brickRoadIndicator}
-                                />
-                            ))}
+                            {publicOptions.map((detail, index) => {
+                                const {pageRoute} = detail;
+                                return (
+                                    <MenuItemWithTopDescription
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        key={`${detail.title}_${index}`}
+                                        interactive={!!pageRoute}
+                                        shouldShowRightIcon={!!pageRoute}
+                                        title={detail.title}
+                                        description={detail.description}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        onPress={pageRoute ? () => Navigation.navigate(pageRoute) : undefined}
+                                        brickRoadIndicator={detail.brickRoadIndicator}
+                                        pressableTestID={detail?.testID}
+                                        sentryLabel={detail.sentryLabel}
+                                    />
+                                );
+                            })}
                             <Button
                                 accessibilityLabel={translate('common.shareCode')}
                                 text={translate('common.share')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                                icon={Expensicons.QrCode}
+                                icon={icons.QrCode}
                                 style={[styles.alignSelfStart, styles.mt6]}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.SHARE_CODE}
                             />
                         </Section>
-                        <Section
-                            title={translate('profilePage.privateSection.title')}
-                            subtitle={translate('profilePage.privateSection.subtitle')}
-                            isCentralPane
-                            subtitleMuted
-                            childrenStyles={styles.pt3}
-                            titleStyles={styles.accountSettingsSectionTitle}
-                        >
-                            {isLoadingApp ? (
-                                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
-                            ) : (
-                                <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
-                                    {privateOptions.map((detail, index) => (
-                                        <MenuItemWithTopDescription
-                                            // eslint-disable-next-line react/no-array-index-key
-                                            key={`${detail.title}_${index}`}
-                                            shouldShowRightIcon
-                                            title={detail.title}
-                                            description={detail.description}
-                                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            onPress={detail.action}
-                                            brickRoadIndicator={detail.brickRoadIndicator}
+                        {!isAgentAccount && (
+                            <Section
+                                title={translate('profilePage.privateSection.title')}
+                                subtitle={translate('profilePage.privateSection.subtitle')}
+                                isCentralPane
+                                subtitleMuted
+                                childrenStyles={styles.pt3}
+                                titleStyles={styles.accountSettingsSectionTitle}
+                            >
+                                {isLoadingApp ? (
+                                    <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
+                                        <ActivityIndicator
+                                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                            reasonAttributes={privateSectionReasonAttributes}
                                         />
-                                    ))}
-                                </MenuItemGroup>
-                            )}
-                        </Section>
+                                    </View>
+                                ) : (
+                                    <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
+                                        {privateOptions.map((detail, index) => (
+                                            <MenuItemWithTopDescription
+                                                // eslint-disable-next-line react/no-array-index-key
+                                                key={`${detail.title}_${index}`}
+                                                shouldShowRightIcon
+                                                title={detail.title}
+                                                description={detail.description}
+                                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                                                onPress={detail.action}
+                                                brickRoadIndicator={detail.brickRoadIndicator}
+                                                sentryLabel={detail.sentryLabel}
+                                            />
+                                        ))}
+                                    </MenuItemGroup>
+                                )}
+                            </Section>
+                        )}
+                        {isAgentAccount && (
+                            <AgentAIPromptSection
+                                accountID={accountID}
+                                parentScrollViewRef={scrollViewRef}
+                            />
+                        )}
                     </View>
                 </MenuItemGroup>
             </ScrollView>
         </ScreenWrapper>
     );
 }
-
-ProfilePage.displayName = 'ProfilePage';
 
 export default ProfilePage;

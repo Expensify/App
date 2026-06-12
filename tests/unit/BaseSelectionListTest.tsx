@@ -1,35 +1,94 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import {useState} from 'react';
-import {SectionList} from 'react-native';
+import React, {useState} from 'react';
+import type ReactNative from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem, SelectionListProps} from '@components/SelectionList/types';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import type Navigation from '@libs/Navigation/Navigation';
+import type * as NavigationFocusReturnModule from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 
-type BaseSelectionListSections<TItem extends ListItem> = {
-    sections: SelectionListProps<TItem>['sections'];
+// Captures scrollToIndex calls so tests can assert on scroll behaviour
+const mockScrollToIndex = jest.fn();
+
+// Mock FlashList
+jest.mock('@shopify/flash-list', () => {
+    const ReactLocal = jest.requireActual<typeof React>('react');
+    const RN = jest.requireActual<typeof ReactNative>('react-native');
+
+    const FlashList = ReactLocal.forwardRef<
+        {scrollToIndex: (params: {index: number}) => void},
+        Omit<React.ComponentProps<typeof RN.ScrollView>, 'children'> & {
+            data?: unknown[];
+            renderItem?: (info: {item: unknown; index: number; target: string}) => React.ReactNode;
+            keyExtractor?: (item: unknown, index: number) => string;
+            ListHeaderComponent?: React.ReactNode;
+            ListFooterComponent?: React.ReactNode;
+            getItemType?: unknown;
+            extraData?: unknown;
+            initialScrollIndex?: number;
+            onEndReached?: unknown;
+            onEndReachedThreshold?: unknown;
+            ListFooterComponentStyle?: unknown;
+        }
+    >(
+        (
+            {
+                data,
+                renderItem,
+                keyExtractor,
+                ListHeaderComponent,
+                ListFooterComponent,
+                getItemType: _getItemType,
+                extraData: _extraData,
+                initialScrollIndex: _initialScrollIndex,
+                onEndReached: _onEndReached,
+                onEndReachedThreshold: _onEndReachedThreshold,
+                ListFooterComponentStyle: _ListFooterComponentStyle,
+                ...scrollViewProps
+            },
+            ref,
+        ) => {
+            ReactLocal.useImperativeHandle(ref, () => ({scrollToIndex: mockScrollToIndex}));
+
+            return ReactLocal.createElement(
+                RN.ScrollView,
+                scrollViewProps,
+                ListHeaderComponent ?? null,
+                ...(data ?? []).map((item, index) =>
+                    ReactLocal.createElement(ReactLocal.Fragment, {key: keyExtractor?.(item, index) ?? String(index)}, renderItem?.({item, index, target: 'Cell'})),
+                ),
+                ListFooterComponent ?? null,
+            );
+        },
+    );
+
+    return {FlashList};
+});
+
+type BaseSelectionListTestProps<TItem extends ListItem> = {
+    data: TItem[];
     canSelectMultiple?: boolean;
-    initialNumToRender?: number;
     searchText?: string;
     setSearchText?: (searchText: string) => void;
+    isDisabled?: boolean;
 };
 
-const mockSections = Array.from({length: 10}, (_, index) => ({
+const mockItems = Array.from({length: 10}, (_, index) => ({
     text: `Item ${index}`,
     keyForList: `${index}`,
     isSelected: index === 1,
 }));
 
-const largeMockSections = Array.from({length: 100}, (_, index) => ({
+const largeMockItems = Array.from({length: 100}, (_, index) => ({
     text: `Item ${index}`,
     keyForList: `${index}`,
     isSelected: index === 1,
 }));
 
-const largeMockSectionsWithSelectedItemFromSecondPage = Array.from({length: 100}, (_, index) => ({
+const largeMockItemsWithSelectedFromSecondPage = Array.from({length: 100}, (_, index) => ({
     text: `Item ${index}`,
     keyForList: `${index}`,
     isSelected: index === 70,
@@ -52,25 +111,42 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
+jest.mock('@hooks/useKeyboardShortcut', () => jest.fn());
+
+const mockIsFocusRestoreInProgress = jest.fn<boolean, []>(() => false);
+jest.mock('@libs/NavigationFocusReturn', () => ({
+    ...jest.requireActual<typeof NavigationFocusReturnModule>('@libs/NavigationFocusReturn'),
+    isFocusRestoreInProgress: () => mockIsFocusRestoreInProgress(),
+}));
+
 describe('BaseSelectionList', () => {
     const onSelectRowMock = jest.fn();
 
-    function BaseListItemRenderer<TItem extends ListItem>(props: BaseSelectionListSections<TItem>) {
-        const {sections, canSelectMultiple, initialNumToRender, setSearchText, searchText} = props;
-        const focusedKey = sections[0].data.find((item) => item.isSelected)?.keyForList;
+    beforeEach(() => {
+        onSelectRowMock.mockClear();
+        mockScrollToIndex.mockClear();
+        mockIsFocusRestoreInProgress.mockReturnValue(false);
+    });
+
+    function SelectionListRenderer<TItem extends ListItem>(props: BaseSelectionListTestProps<TItem>) {
+        const {data, canSelectMultiple, setSearchText, searchText, isDisabled} = props;
+        const focusedKey = data.find((item) => item.isSelected)?.keyForList;
         return (
             <OnyxListItemProvider>
                 <BaseSelectionList
-                    sections={sections}
-                    textInputLabel="common.search"
-                    ListItem={RadioListItem}
+                    data={data}
+                    textInputOptions={{
+                        label: 'common.search',
+                        onChangeText: setSearchText,
+                        value: searchText,
+                    }}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={onSelectRowMock}
                     shouldSingleExecuteRowSelect
+                    shouldShowTextInput={!!setSearchText}
                     canSelectMultiple={canSelectMultiple}
-                    initiallyFocusedOptionKey={focusedKey}
-                    initialNumToRender={initialNumToRender}
-                    onChangeText={setSearchText}
-                    textInputValue={searchText}
+                    initiallyFocusedItemKey={focusedKey}
+                    isDisabled={isDisabled}
                 />
             </OnyxListItemProvider>
         );
@@ -78,194 +154,215 @@ describe('BaseSelectionList', () => {
 
     it('should not trigger item press if screen is not focused', () => {
         (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(false);
-        render(<BaseListItemRenderer sections={[{data: mockSections}]} />);
+        render(<SelectionListRenderer data={mockItems} />);
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
         expect(onSelectRowMock).toHaveBeenCalledTimes(0);
     });
 
     it('should handle item press correctly', () => {
         (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
-        render(<BaseListItemRenderer sections={[{data: mockSections}]} />);
+        render(<SelectionListRenderer data={mockItems} />);
 
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
-        expect(onSelectRowMock).toHaveBeenCalledWith({
-            ...mockSections.at(1),
-            shouldAnimateInHighlight: false,
-        });
+        expect(onSelectRowMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                ...mockItems.at(1),
+            }),
+        );
     });
 
-    it('should update focused item when sections are updated from BE', () => {
+    it('should update selected item on rerender', () => {
         (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
-        const updatedMockSections = mockSections.map((section) => ({
-            ...section,
-            isSelected: section.keyForList === '2',
+        const updatedMockItems = mockItems.map((item) => ({
+            ...item,
+            isSelected: item.keyForList === '2',
         }));
-        const {rerender} = render(<BaseListItemRenderer sections={[{data: mockSections}]} />);
+        const {rerender} = render(<SelectionListRenderer data={mockItems} />);
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toBeSelected();
-        rerender(<BaseListItemRenderer sections={[{data: updatedMockSections}]} />);
+        rerender(<SelectionListRenderer data={updatedMockItems} />);
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}2`)).toBeSelected();
     });
 
-    it('should scroll to top when selecting a multi option list', () => {
-        const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
+    it('should render all items', () => {
         render(
-            <BaseListItemRenderer
-                sections={[{data: []}, {data: mockSections}]}
-                canSelectMultiple
-            />,
-        );
-        fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`));
-        expect(spy).toHaveBeenCalledWith(expect.objectContaining({itemIndex: 0}));
-    });
-
-    it('should show only elements from first page when items exceed page limit', () => {
-        render(
-            <BaseListItemRenderer
-                sections={[{data: largeMockSections}]}
+            <SelectionListRenderer
+                data={largeMockItems}
                 canSelectMultiple={false}
-                initialNumToRender={60}
             />,
         );
 
-        // Should render first page (items 0-49, so 50 items total)
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}49`)).toBeTruthy();
-
-        // Should NOT render items from second page
-        expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}50`)).toBeFalsy();
-        expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeFalsy();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
     });
 
     it('should render all items when they fit within initial render limit', () => {
         render(
-            <BaseListItemRenderer
-                sections={[{data: mockSections}]}
+            <SelectionListRenderer
+                data={mockItems}
                 canSelectMultiple={false}
-                initialNumToRender={60}
             />,
         );
 
-        // Should render all 10 items since they fit within the initialNumToRender limit
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}9`)).toBeTruthy();
     });
 
-    it('should load more items when scrolled to end', () => {
-        render(
-            <BaseListItemRenderer
-                sections={[{data: largeMockSections}]}
+    it('does not lose items when only selection changes', () => {
+        const {rerender} = render(
+            <SelectionListRenderer
+                data={largeMockItems}
                 canSelectMultiple={false}
-                initialNumToRender={50}
             />,
         );
 
-        // Should initially show first page items (0-48, 49 items total)
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}48`)).toBeTruthy();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
 
-        // Items beyond first page should not be initially visible
-        expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}49`)).toBeFalsy();
+        rerender(
+            <SelectionListRenderer
+                data={largeMockItems.map((item, index) => ({...item, isSelected: index === 3}))}
+                canSelectMultiple={false}
+            />,
+        );
 
-        // Note: Scroll-based loading in test environment might not work as expected
-        // This test verifies the initial state - actual scroll behavior would need integration testing
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`)).toBeSelected();
     });
 
-    it('should search for first item then scroll back to preselected item when search is cleared', () => {
+    it('should still render items when text input changes', () => {
+        const {rerender} = render(
+            <SelectionListRenderer
+                data={largeMockItems}
+                canSelectMultiple={false}
+            />,
+        );
+
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
+
+        rerender(
+            <SelectionListRenderer
+                data={largeMockItems.map((item, index) => ({...item, isSelected: index === 3}))}
+                canSelectMultiple={false}
+                searchText="Item"
+            />,
+        );
+
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`)).toBeTruthy();
+    });
+
+    it('should search for an item then scroll back to preselected item when search is cleared', () => {
         function SearchableListWrapper() {
             const [searchText, setSearchText] = useState('');
 
-            // Filter sections based on search text
-            const filteredSections = searchText
-                ? largeMockSectionsWithSelectedItemFromSecondPage.filter((item) => item.text.toLowerCase().includes(searchText.toLowerCase()))
-                : largeMockSectionsWithSelectedItemFromSecondPage;
+            const filteredItems = searchText
+                ? largeMockItemsWithSelectedFromSecondPage.filter((item) => item.text.toLowerCase().includes(searchText.toLowerCase()))
+                : largeMockItemsWithSelectedFromSecondPage;
 
             return (
-                <BaseListItemRenderer
-                    sections={[{data: filteredSections}]}
+                <SelectionListRenderer
+                    data={filteredItems}
                     searchText={searchText}
                     setSearchText={setSearchText}
                     canSelectMultiple={false}
-                    initialNumToRender={110}
                 />
             );
         }
 
         render(<SearchableListWrapper />);
 
-        // Initially should show item 70 as selected and visible
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeSelected();
 
-        // Search for "Item 0"
         fireEvent.changeText(screen.getByTestId('selection-list-text-input'), 'Item 0');
 
-        // Should show only the first item (Item 0) in search results
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeFalsy();
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toBeFalsy();
 
-        // Clear the search text
         fireEvent.changeText(screen.getByTestId('selection-list-text-input'), '');
 
-        // Should show the preselected item 70
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeSelected();
     });
 
-    it('does not reset page when only selectedOptions changes', () => {
-        const {rerender} = render(
-            <BaseListItemRenderer
-                sections={[{data: largeMockSections}]}
+    it('should render the selection-list testID', () => {
+        render(
+            <SelectionListRenderer
+                data={mockItems}
                 canSelectMultiple={false}
-                initialNumToRender={50}
             />,
         );
 
-        // Should show first page items
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}48`)).toBeTruthy();
-
-        // Rerender with only selection change
-        rerender(
-            <BaseListItemRenderer
-                sections={[{data: largeMockSections.map((item, index) => ({...item, isSelected: index === 3}))}]}
-                canSelectMultiple={false}
-                initialNumToRender={50}
-            />,
-        );
-
-        // Should still show the same items (no pagination reset)
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}48`)).toBeTruthy();
-        // Item 3 should now be selected
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`)).toBeSelected();
+        expect(screen.getByTestId('selection-list')).toBeTruthy();
     });
 
-    it('should reset current page when text input changes', () => {
-        const {rerender} = render(
-            <BaseListItemRenderer
-                sections={[{data: largeMockSections}]}
+    it('should mark all items as not selected when none are selected', () => {
+        const noSelectionItems = mockItems.map((item) => ({...item, isSelected: false}));
+
+        render(
+            <SelectionListRenderer
+                data={noSelectionItems}
                 canSelectMultiple={false}
-                initialNumToRender={50}
             />,
         );
 
-        // Should show first page items initially
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}48`)).toBeTruthy();
+        for (const item of noSelectionItems) {
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`)).not.toBeSelected();
+        }
+    });
 
-        // Rerender with search text - should still show items (filtered or not)
-        rerender(
-            <BaseListItemRenderer
-                sections={[{data: largeMockSections.map((item, index) => ({...item, isSelected: index === 3}))}]}
+    it('should render empty list without crashing when data is empty', () => {
+        render(
+            <SelectionListRenderer
+                data={[]}
                 canSelectMultiple={false}
-                searchText="Item"
-                initialNumToRender={50}
             />,
         );
 
-        // Search functionality should work - items should still be visible
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`)).toBeTruthy();
+        expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeNull();
+    });
+
+    it('suppresses the scroll on a focus-return restore but still syncs the cursor (no scroll-jump, no stale focusedIndex)', () => {
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        mockIsFocusRestoreInProgress.mockReturnValue(true);
+        render(<SelectionListRenderer data={mockItems} />);
+        mockScrollToIndex.mockClear();
+
+        const row = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}5`);
+        fireEvent(row, 'focus', {nativeEvent: {sourceCapabilities: null}});
+
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
+
+        // Cursor still moved: a later non-restore focus on another row scrolls, so focusedIndex wasn't left stale.
+        mockIsFocusRestoreInProgress.mockReturnValue(false);
+        const otherRow = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}7`);
+        fireEvent(otherRow, 'focus', {nativeEvent: {sourceCapabilities: {firesTouchEvents: false}}});
+        expect(mockScrollToIndex).toHaveBeenCalledWith(expect.objectContaining({index: 7}));
+    });
+
+    it('still syncs the cursor on genuine keyboard Tab focus (no sourceCapabilities, restore NOT in progress) — regression guard for Codex P2', () => {
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        mockIsFocusRestoreInProgress.mockReturnValue(false);
+        render(<SelectionListRenderer data={mockItems} />);
+        mockScrollToIndex.mockClear();
+
+        const row = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}5`);
+        fireEvent(row, 'focus', {nativeEvent: {sourceCapabilities: null}});
+
+        expect(mockScrollToIndex).toHaveBeenCalledWith(expect.objectContaining({index: 5}));
+    });
+
+    it('still scrolls to a row on genuine pointer focus (sourceCapabilities present)', () => {
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        mockIsFocusRestoreInProgress.mockReturnValue(false);
+        render(<SelectionListRenderer data={mockItems} />);
+        mockScrollToIndex.mockClear();
+
+        const row = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}5`);
+        fireEvent(row, 'focus', {nativeEvent: {sourceCapabilities: {firesTouchEvents: false}}});
+
+        expect(mockScrollToIndex).toHaveBeenCalledWith(expect.objectContaining({index: 5}));
     });
 });

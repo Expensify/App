@@ -8,9 +8,12 @@ import ScrollView from './ScrollView';
 type FormScrollViewProps = ScrollViewProps & {
     /** Form elements */
     children: React.ReactNode;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<RNScrollView>;
 };
 
-function FormScrollView({children, ...rest}: FormScrollViewProps, ref: ForwardedRef<RNScrollView>) {
+function FormScrollView({children, ref, ...rest}: FormScrollViewProps) {
     const styles = useThemeStyles();
     return (
         <ScrollView
@@ -18,7 +21,6 @@ function FormScrollView({children, ...rest}: FormScrollViewProps, ref: Forwarded
             ref={ref}
             contentContainerStyle={styles.flexGrow1}
             keyboardShouldPersistTaps="handled"
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
             {children}
@@ -26,6 +28,4 @@ function FormScrollView({children, ...rest}: FormScrollViewProps, ref: Forwarded
     );
 }
 
-FormScrollView.displayName = 'FormScrollView';
-
-export default React.forwardRef(FormScrollView);
+export default FormScrollView;

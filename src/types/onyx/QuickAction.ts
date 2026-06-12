@@ -17,6 +17,9 @@ type QuickAction = {
 
     /** True if it is the first quick action we store for this user */
     isFirstQuickAction?: boolean;
+
+    /** ID of the per diem policy for track per diem quick actions */
+    perDiemPolicyID?: string;
 };
 
 export default QuickAction;

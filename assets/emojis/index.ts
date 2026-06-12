@@ -6,26 +6,29 @@ type EmojiTable = Record<string, Emoji>;
 
 type LocaleEmojis = Partial<Record<FullySupportedLocale, EmojisList>>;
 
-const emojiNameTable = emojis.reduce<EmojiTable>((prev, cur) => {
-    const newValue = prev;
-    if (!('header' in cur) && cur.name) {
-        newValue[cur.name] = cur;
-    }
-    return newValue;
-}, {});
+const emojiNameTable: EmojiTable = {};
+const emojiCodeTableWithSkinTones: EmojiTable = {};
+const emojiHexcodeTable: EmojiTable = {};
 
-const emojiCodeTableWithSkinTones = emojis.reduce<EmojiTable>((prev, cur) => {
-    const newValue = prev;
-    if (!('header' in cur)) {
-        newValue[cur.code] = cur;
+for (const emoji of emojis) {
+    if ('header' in emoji) {
+        continue;
     }
-    if ('types' in cur && cur.types) {
-        cur.types.forEach((type) => {
-            newValue[type] = cur;
-        });
+    if (emoji.name) {
+        emojiNameTable[emoji.name] = emoji;
     }
-    return newValue;
-}, {});
+    emojiCodeTableWithSkinTones[emoji.code] = emoji;
+    if (emoji.types) {
+        for (const type of emoji.types) {
+            emojiCodeTableWithSkinTones[type] = emoji;
+        }
+    }
+    if (emoji.hexcode) {
+        emojiHexcodeTable[emoji.hexcode] = emoji;
+    }
+}
+
+const findEmojiByHexCode = (hexcode: string): Emoji | undefined => emojiHexcodeTable[hexcode];
 
 const localeEmojis: LocaleEmojis = {
     en: undefined,
@@ -44,5 +47,5 @@ const importEmojiLocale = (locale: FullySupportedLocale) => {
 };
 
 export default emojis;
-export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis, importEmojiLocale};
+export {emojiNameTable, emojiCodeTableWithSkinTones, emojiHexcodeTable, findEmojiByHexCode, localeEmojis, importEmojiLocale};
 export {skinTones, categoryFrequentlyUsed} from './common';

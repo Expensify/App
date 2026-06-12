@@ -1,4 +1,4 @@
-import type {GetBrowser, IsChromeIOS, IsMobile, IsMobileChrome, IsMobileIOS, IsMobileSafari, IsMobileWebKit, IsModernSafari, IsSafari, OpenRouteInDesktopApp} from './types';
+import type {GetBrowser, IsMobile, IsMobileChrome, IsMobileIOS, IsMobileSafari, IsMobileSafariOnIos26, IsMobileWebKit, IsSafari} from './types';
 
 const getBrowser: GetBrowser = () => '';
 
@@ -12,12 +12,8 @@ const isMobileChrome: IsMobileChrome = () => false;
 
 const isMobileWebKit: IsMobileWebKit = () => false;
 
-const isChromeIOS: IsChromeIOS = () => false;
-
 const isSafari: IsSafari = () => false;
 
-const isModernSafari: IsModernSafari = () => false;
+const isMobileSafariOnIos26: IsMobileSafariOnIos26 = () => false;
 
-const openRouteInDesktopApp: OpenRouteInDesktopApp = () => {};
-
-export {getBrowser, isMobile, isMobileIOS, isMobileSafari, isMobileWebKit, isSafari, isModernSafari, isMobileChrome, isChromeIOS, openRouteInDesktopApp};
+export {getBrowser, isMobile, isMobileIOS, isMobileSafari, isMobileWebKit, isSafari, isMobileSafariOnIos26, isMobileChrome};

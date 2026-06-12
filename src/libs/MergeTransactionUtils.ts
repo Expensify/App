@@ -1,26 +1,53 @@
+import {deepEqual} from 'fast-equals';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
+import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {MergeTransaction, Transaction} from '@src/types/onyx';
-import type {Receipt} from '@src/types/onyx/Transaction';
-import {convertToDisplayString} from './CurrencyUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
+import SafeString from '@src/utils/SafeString';
+import {getDecodedLeafCategoryName} from './CategoryUtils';
+import {convertToBackendAmount} from './CurrencyUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
+import {constructReceiptSourceFromFilename} from './ReceiptUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
-import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
+import {getReportName} from './ReportNameUtils';
+import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {getCurrency, getReimbursable, isCardTransaction, isMerchantMissing} from './TransactionUtils';
-
-const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
+import {
+    calculateTaxAmount,
+    getAmount,
+    getAttendeesListDisplayString,
+    getCurrency,
+    getReimbursable,
+    getTaxName,
+    getWaypoints,
+    hasValidModifiedAmount,
+    isDistanceRequest,
+    isExpenseSplit,
+    isFetchingWaypointsFromServer,
+    isFromCreditCardImport,
+    isMerchantMissing,
+    isOdometerDistanceRequest,
+    isPerDiemRequest,
+    isScanning,
+    isTimeRequest,
+    isTransactionPendingDelete,
+} from './TransactionUtils';
 
 // Define the specific merge fields we want to handle
-const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable', 'reportID'] as const;
+const MERGE_FIELDS = ['amount', 'merchant', 'created', 'category', 'tag', 'description', 'taxValue', 'reimbursable', 'billable', 'attendees', 'reportID'] as const;
+// Some fields are dependant on others. We need to automatically derive the correct field values depending on user selection.
+const DERIVED_MERGE_FIELDS = [...MERGE_FIELDS, 'taxCode', 'taxAmount'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
+    transactionDetails: TransactionDetails;
     displayValue: string;
     isSelected: boolean;
 };
@@ -31,9 +58,11 @@ type MergeFieldData = {
     options: MergeFieldOption[];
 };
 
+/** Type for merge transaction values that can be null to clear existing values in Onyx */
+type MergeTransactionUpdateValues = Partial<Record<keyof MergeTransaction, MergeTransaction[keyof MergeTransaction] | null>>;
+
 const MERGE_FIELD_TRANSLATION_KEYS = {
     amount: 'iou.amount',
-    currency: 'iou.currency',
     merchant: 'common.merchant',
     category: 'common.category',
     tag: 'common.tag',
@@ -41,12 +70,17 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
     reimbursable: 'common.reimbursable',
     billable: 'common.billable',
     created: 'common.date',
+    attendees: 'iou.attendees',
     reportID: 'common.report',
+    taxValue: 'iou.taxRate',
 } as const;
 
-// Get the filename from the receipt
-function getReceiptFileName(receipt?: Receipt) {
-    return receipt?.source?.split('/')?.pop();
+function getMergeFieldErrorText(translate: LocaleContextProps['translate'], mergeField: MergeFieldData) {
+    if (mergeField.field === 'attendees') {
+        return translate('transactionMerge.detailsPage.pleaseSelectAttendees');
+    }
+
+    return translate('transactionMerge.detailsPage.pleaseSelectError', {field: mergeField.label.toLowerCase()});
 }
 
 /**
@@ -57,7 +91,7 @@ function getReceiptFileName(receipt?: Receipt) {
  */
 function fillMissingReceiptSource(transaction: Transaction) {
     // If receipt.source already exists, no need to modify
-    if (!transaction.receipt || !!transaction.receipt?.source || !transaction.filename) {
+    if (!transaction.receipt || !!transaction.receipt.source || !transaction.receipt.filename) {
         return transaction;
     }
 
@@ -65,7 +99,7 @@ function fillMissingReceiptSource(transaction: Transaction) {
         ...transaction,
         receipt: {
             ...transaction.receipt,
-            source: `${RECEIPT_SOURCE_URL}${transaction.filename}`,
+            source: constructReceiptSourceFromFilename(transaction.receipt.filename),
         },
     };
 }
@@ -79,44 +113,19 @@ const getTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<MergeTra
 };
 
 /**
- * Get the source transaction from a merge transaction
- * @param mergeTransaction - The merge transaction to get the source transaction from
- * @returns The source transaction or null if it doesn't exist
- */
-const getSourceTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<MergeTransaction>) => {
-    if (!mergeTransaction?.sourceTransactionID) {
-        return undefined;
-    }
-
-    return getTransactionFromMergeTransaction(mergeTransaction, mergeTransaction.sourceTransactionID);
-};
-
-/**
- * Get the target transaction from a merge transaction
- * @param mergeTransaction - The merge transaction to get the target transaction from
- * @returns The target transaction or null if it doesn't exist
- */
-const getTargetTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<MergeTransaction>) => {
-    if (!mergeTransaction?.targetTransactionID) {
-        return undefined;
-    }
-
-    return getTransactionFromMergeTransaction(mergeTransaction, mergeTransaction.targetTransactionID);
-};
-
-/**
  * Check if the user should navigate to the receipt review page
  * @param transactions - array of target and source transactions
  * @returns True if both transactions have a receipt
  */
 function shouldNavigateToReceiptReview(transactions: Array<OnyxEntry<Transaction>>): boolean {
-    return transactions.every((transaction) => transaction?.receipt?.receiptID);
+    // Distance request's amount/currency/receipt depend on merchant selection
+    return transactions.every((transaction) => !isDistanceRequest(transaction) && transaction?.receipt?.receiptID);
 }
 
-// Check if whether merge value is truly "empty" (null, undefined, or empty string)
+// Check if whether merge value is truly "empty" (null, undefined, empty string, or empty array)
 // For boolean fields, false is a valid value, not an empty value
 function isEmptyMergeValue(value: unknown) {
-    return value === null || value === undefined || value === '';
+    return value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0);
 }
 
 /**
@@ -143,8 +152,11 @@ function getMergeFieldValue(transactionDetails: TransactionDetails | undefined, 
     if (field === 'merchant' && isMerchantMissing(transaction)) {
         return '';
     }
+    if (field === 'taxValue') {
+        return transaction.taxValue;
+    }
 
-    return transactionDetails[field] ?? '';
+    return transactionDetails[field];
 }
 
 /**
@@ -156,25 +168,66 @@ function getMergeFieldTranslationKey(field: MergeFieldKey) {
     return MERGE_FIELD_TRANSLATION_KEYS[field];
 }
 
+function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
+    const excludeFields: MergeFieldKey[] = [];
+
+    // Distance request's amount/currency/receipt depend on merchant selection
+    // Distance request's tax depends on distance rate
+    if (isDistanceRequest(targetTransaction)) {
+        excludeFields.push('amount', 'taxValue');
+    }
+
+    return MERGE_FIELDS.filter((field) => !excludeFields.includes(field));
+}
+
+function getTransactionsAndReportsFromSearch(
+    searchResults: SearchResults,
+    transactionIDs: string[],
+): {
+    transactions: Transaction[];
+    reports: Report[];
+    policies: Policy[];
+} {
+    const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`];
+    const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(1)}`];
+    const policyID1 = searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`]?.policyID;
+    const policyID2 = searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]?.policyID;
+
+    return {
+        transactions: [transaction1, transaction2].filter((transaction) => !!transaction),
+        reports: [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]].filter(
+            (report) => !!report,
+        ),
+        policies: [searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${policyID1}`], searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${policyID2}`]].filter((policy) => !!policy),
+    };
+}
+
 /**
  * Get mergeableData data if one is missing, and conflict fields that need to be resolved by the user
  * @param targetTransaction - The target transaction
  * @param sourceTransaction - The source transaction
+ * @param localeCompare - The localize compare function
+ * @param searchReports - The search reports to use for report name lookup
+ * @param targetTransactionPolicy - The policy of the target transaction
+ * @param sourceTransactionPolicy - The policy of the source transaction
  * @returns mergeableData and conflictFields
  */
-function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>) {
+function getMergeableDataAndConflictFields(
+    targetTransaction: OnyxEntry<Transaction>,
+    sourceTransaction: OnyxEntry<Transaction>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    searchReports: Array<OnyxEntry<Report>> = [],
+    targetTransactionPolicy?: OnyxEntry<Policy>,
+    sourceTransactionPolicy?: OnyxEntry<Policy>,
+) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
 
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const sourceTransactionDetails = getTransactionDetails(sourceTransaction);
 
-    MERGE_FIELDS.forEach((field) => {
-        // Currency field is handled by the amount field
-        if (field === 'currency') {
-            return;
-        }
-
+    for (const field of getMergeFields(targetTransaction)) {
         const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, field);
         const sourceValue = getMergeFieldValue(sourceTransactionDetails, sourceTransaction, field);
 
@@ -182,59 +235,92 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         const isSourceValueEmpty = isEmptyMergeValue(sourceValue);
 
         if (field === 'amount') {
-            // If target transaction is a card transaction, always preserve the target transaction's amount and currency
+            // If target transaction is a card or split expense, always preserve the target transaction's amount and currency
+            // Card takes precedence over split expense
             // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
-            if (isCardTransaction(targetTransaction)) {
+            const isTargetExpenseSplit = isExpenseSplit(targetTransaction);
+            if (isFromCreditCardImport(targetTransaction) || isTargetExpenseSplit) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
-                return;
+                if (isTargetExpenseSplit) {
+                    mergeableData.originalTransactionID = targetTransaction?.comment?.originalTransactionID;
+                }
+                continue;
             }
 
             // When one of the selected expenses has a $0 amount, we should automatically select the non-zero amount.
             if (targetValue === 0 || sourceValue === 0) {
                 mergeableData[field] = sourceValue === 0 ? targetValue : sourceValue;
                 mergeableData.currency = sourceValue === 0 ? getCurrency(targetTransaction) : getCurrency(sourceTransaction);
-                return;
+                continue;
             }
 
             // Check for currency differences when values equal
             if (targetValue === sourceValue && getCurrency(targetTransaction) !== getCurrency(sourceTransaction)) {
                 conflictFields.push(field);
-                return;
+                continue;
             }
 
             // When the values are the same and the currencies are the same, we should merge the values
             if (targetValue === sourceValue && getCurrency(targetTransaction) === getCurrency(sourceTransaction)) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
-                return;
+                continue;
             }
         }
 
         // We allow user to select unreported report
         if (field === 'reportID') {
             if (targetValue === sourceValue) {
-                mergeableData[field] = targetValue;
+                const updatedValues = getMergeFieldUpdatedValues({transaction: targetTransaction, field, fieldValue: SafeString(targetValue), getCurrencyDecimals, searchReports});
+                Object.assign(mergeableData, updatedValues);
             } else {
                 conflictFields.push(field);
             }
-            return;
+            continue;
         }
 
         // Use the reimbursable flag coming from card transactions automatically
         // See https://github.com/Expensify/App/issues/69598
-        if (field === 'reimbursable' && isCardTransaction(targetTransaction)) {
+        if (field === 'reimbursable' && isFromCreditCardImport(targetTransaction)) {
             mergeableData[field] = targetValue;
-            return;
+            continue;
+        }
+
+        if (field === 'attendees') {
+            const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? [])
+                .filter((login): login is string => !!login)
+                .sort(localeCompare);
+            const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? [])
+                .filter((login): login is string => !!login)
+                .sort(localeCompare);
+
+            if (deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
+                mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
+            } else {
+                conflictFields.push(field);
+            }
+            continue;
         }
 
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
-            mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
+            const selectedTransaction = isTargetValueEmpty ? sourceTransaction : targetTransaction;
+            const selectedFieldValue = isTargetValueEmpty ? sourceValue : targetValue;
+            const selectedPolicy = isTargetValueEmpty ? sourceTransactionPolicy : targetTransactionPolicy;
+            const updatedValues = getMergeFieldUpdatedValues({
+                transaction: selectedTransaction,
+                field,
+                fieldValue: selectedFieldValue as MergeTransaction[typeof field],
+                getCurrencyDecimals,
+                mergeTransaction: mergeableData as MergeTransaction,
+                searchReports,
+                policy: selectedPolicy,
+            });
+            Object.assign(mergeableData, updatedValues);
         } else {
             conflictFields.push(field);
         }
-    });
-
+    }
     return {mergeableData, conflictFields};
 }
 
@@ -261,6 +347,9 @@ function getReportIDForExpense(transaction: OnyxEntry<Transaction>) {
  * @returns The report ID for the transaction thread
  */
 function getTransactionThreadReportID(transaction: OnyxEntry<Transaction>) {
+    if (transaction?.transactionThreadReportID) {
+        return transaction.transactionThreadReportID;
+    }
     const iouActionOfTargetTransaction = getIOUActionForReportID(getReportIDForExpense(transaction), transaction?.transactionID);
     return iouActionOfTargetTransaction?.childReportID;
 }
@@ -288,49 +377,143 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         comment: {
             ...targetTransaction.comment,
             comment: mergeTransaction.description,
+            customUnit: mergeTransaction.customUnit,
+            waypoints: mergeTransaction.waypoints,
+            attendees: mergeTransaction.attendees,
+            ...(mergeTransaction.odometerStart !== undefined && {odometerStart: mergeTransaction.odometerStart}),
+            ...(mergeTransaction.odometerEnd !== undefined && {odometerEnd: mergeTransaction.odometerEnd}),
+            ...(mergeTransaction.odometerStartImage !== undefined && {odometerStartImage: mergeTransaction.odometerStartImage}),
+            ...(mergeTransaction.odometerEndImage !== undefined && {odometerEndImage: mergeTransaction.odometerEndImage}),
         },
         reimbursable: mergeTransaction.reimbursable,
         billable: mergeTransaction.billable,
-        filename: getReceiptFileName(mergeTransaction.receipt),
         receipt: mergeTransaction.receipt,
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
+        reportName: mergeTransaction.reportName,
+        routes: mergeTransaction.routes,
+        taxValue: mergeTransaction.taxValue,
+        taxAmount: mergeTransaction.taxAmount,
+        taxCode: mergeTransaction.taxCode,
+        taxName: mergeTransaction.taxName,
+        ...(mergeTransaction.iouRequestType && {iouRequestType: mergeTransaction.iouRequestType}),
     };
 }
 
 /**
- * Determines the correct target and source transaction IDs for merging based on transaction types.
- *
- * Rules:
- * - If one transaction is a card transaction, it becomes the target (card transactions take priority)
- * - If both are cash transactions, the first parameter becomes the target
- * - Users can only merge two cash expenses or one cash/one card expense
- * - Users cannot merge two card expenses
- *
- * @param targetTransaction - The first transaction in the merge operation
- * @param sourceTransaction - The second transaction in the merge operation
- * @returns An object containing the determined targetTransactionID and sourceTransactionID
+ * Determines whether two transactions can be merged together.
  */
-function selectTargetAndSourceTransactionsForMerge(originalTargetTransaction: OnyxEntry<Transaction>, originalSourceTransaction: OnyxEntry<Transaction>) {
-    if (isCardTransaction(originalSourceTransaction)) {
-        return {targetTransaction: originalSourceTransaction, sourceTransaction: originalTargetTransaction};
+function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, transaction2: OnyxEntry<Transaction>) {
+    // Both transactions are required
+    if (!transaction1 || !transaction2) {
+        return false;
     }
 
-    return {targetTransaction: originalTargetTransaction, sourceTransaction: originalSourceTransaction};
+    // Do not allow merging transactions that are pending delete
+    if (isTransactionPendingDelete(transaction1) || isTransactionPendingDelete(transaction2)) {
+        return false;
+    }
+
+    if (isScanning(transaction1) || isScanning(transaction2)) {
+        return false;
+    }
+
+    if (isFetchingWaypointsFromServer(transaction1) || isFetchingWaypointsFromServer(transaction2)) {
+        return false;
+    }
+
+    // Do not allow merging two card transactions
+    if (isFromCreditCardImport(transaction1) && isFromCreditCardImport(transaction2)) {
+        return false;
+    }
+
+    // Do not allow merging two split expenses
+    if (isExpenseSplit(transaction1) && isExpenseSplit(transaction2)) {
+        return false;
+    }
+
+    // Do not allow merging two $0 transactions
+    if (getAmount(transaction1, false, false) === 0 && getAmount(transaction2, false, false) === 0) {
+        return false;
+    }
+
+    // Do not allow merging a per diem and a card transaction
+    if ((isPerDiemRequest(transaction1) && isFromCreditCardImport(transaction2)) || (isPerDiemRequest(transaction2) && isFromCreditCardImport(transaction1))) {
+        return false;
+    }
+
+    if (isIOUReport(transaction1?.reportID) || isIOUReport(transaction2?.reportID)) {
+        return false;
+    }
+
+    if (isDistanceRequest(transaction1) !== isDistanceRequest(transaction2)) {
+        return false;
+    }
+
+    if (isTimeRequest(transaction1) !== isTimeRequest(transaction2)) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Determines the correct target and source transactions for merging based on transaction types.
+ *
+ * Rules:
+ * - The target transaction (transaction to keep) is selected based on the following priority: card transaction > split expense > cash transaction
+ * - Users cannot merge two card expenses
+ * - Users cannot merge two split expenses
+ * - Users can merge any other combinations
+ *
+ * @param targetTransaction - The transaction where the merge action is started from
+ * @param sourceTransaction - The selected transaction to be merged with the target transaction
+ * @param targetTransactionPolicy - The policy of the target transaction
+ * @param sourceTransactionPolicy - The policy of the source transaction
+ * @returns An object containing the determined targetTransaction and sourceTransaction, targetTransactionPolicy and sourceTransactionPolicy
+ */
+function selectTargetAndSourceTransactionsForMerge(
+    targetTransaction: OnyxEntry<Transaction>,
+    sourceTransaction: OnyxEntry<Transaction>,
+    targetTransactionPolicy?: Policy,
+    sourceTransactionPolicy?: Policy,
+) {
+    // If target transaction is a card or split expense, always preserve the target transaction
+    // Card takes precedence over split expense
+    if (isFromCreditCardImport(sourceTransaction) || (isExpenseSplit(sourceTransaction) && !isFromCreditCardImport(targetTransaction))) {
+        return {
+            targetTransaction: sourceTransaction,
+            sourceTransaction: targetTransaction,
+            targetTransactionPolicy: sourceTransactionPolicy,
+            sourceTransactionPolicy: targetTransactionPolicy,
+        };
+    }
+
+    return {targetTransaction, sourceTransaction, targetTransactionPolicy, sourceTransactionPolicy};
 }
 
 /**
  * Get display value for merge transaction field
  * @param field - The merge field key to get display value for
  * @param transaction - The transaction to get the field value from
+ * @param policy - The policy that the transaction belongs to
  * @param translate - The translation function
  * @returns The formatted display string for the field value
  */
-function getDisplayValue(field: MergeFieldKey, transaction: Transaction, translate: LocaleContextProps['translate']): string {
-    const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
+function getDisplayValue(
+    field: MergeFieldKey,
+    transaction: Transaction,
+    transactionDetails: TransactionDetails | undefined,
+    policy: Policy | undefined,
+    translate: LocaleContextProps['translate'],
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    localeCompare: LocaleContextProps['localeCompare'],
+    reports?: Array<OnyxEntry<Report>>,
+): string {
+    const fieldValue = getMergeFieldValue(transactionDetails, transaction, field);
 
-    if (isEmptyMergeValue(fieldValue)) {
+    if (isEmptyMergeValue(fieldValue) || fieldValue === undefined) {
         return '';
     }
     if (typeof fieldValue === 'boolean') {
@@ -340,15 +523,35 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
         return convertToDisplayString(Number(fieldValue), getCurrency(transaction));
     }
     if (field === 'description') {
-        return StringUtils.lineBreaksToSpaces(Parser.htmlToText(fieldValue.toString()));
+        return StringUtils.lineBreaksToSpaces(Parser.htmlToText(SafeString(fieldValue)));
     }
     if (field === 'tag') {
-        return getCommaSeparatedTagNameWithSanitizedColons(fieldValue.toString());
+        return getCommaSeparatedTagNameWithSanitizedColons(SafeString(fieldValue));
     }
     if (field === 'reportID') {
-        return fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID ? translate('common.none') : getReportName(getReportOrDraftReport(fieldValue.toString()));
+        if (fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return translate('common.none');
+        }
+
+        if (transaction?.reportName === '') {
+            return translate('common.none');
+        }
+
+        return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue), reports));
     }
-    return String(fieldValue);
+    if (field === 'attendees') {
+        return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue, localeCompare) : '';
+    }
+
+    if (field === 'taxValue') {
+        return getTaxName(policy, transaction) ?? transaction.taxValue ?? '';
+    }
+
+    if (field === 'category') {
+        return getDecodedLeafCategoryName(SafeString(fieldValue));
+    }
+
+    return SafeString(fieldValue);
 }
 /**
  * Build merge fields data array from conflict fields for UI display
@@ -359,14 +562,37 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
  * @param translate - The translation function
  * @returns Array of merge field data for UI rendering
  */
-function buildMergeFieldsData(
-    conflictFields: MergeFieldKey[],
-    targetTransaction: Transaction | undefined,
-    sourceTransaction: Transaction | undefined,
-    mergeTransaction: MergeTransaction | null | undefined,
-    translate: LocaleContextProps['translate'],
-): MergeFieldData[] {
-    if (!targetTransaction || !sourceTransaction) {
+function buildMergeFieldsData({
+    conflictFields,
+    targetTransaction,
+    sourceTransaction,
+    targetReportOwnerAsAttendee,
+    sourceReportOwnerAsAttendee,
+    mergeTransaction,
+    targetTransactionPolicy,
+    sourceTransactionPolicy,
+    translate,
+    convertToDisplayString,
+    localeCompare,
+    reports,
+}: {
+    conflictFields: MergeFieldKey[];
+    targetTransaction: Transaction | undefined;
+    sourceTransaction: Transaction | undefined;
+    targetReportOwnerAsAttendee: Attendee | undefined;
+    sourceReportOwnerAsAttendee: Attendee | undefined;
+    mergeTransaction: MergeTransaction | null | undefined;
+    targetTransactionPolicy: Policy | undefined;
+    sourceTransactionPolicy: Policy | undefined;
+    translate: LocaleContextProps['translate'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    localeCompare: LocaleContextProps['localeCompare'];
+    reports: Array<OnyxEntry<Report>>;
+}): MergeFieldData[] {
+    const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, undefined, undefined, targetReportOwnerAsAttendee);
+    const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, undefined, undefined, sourceReportOwnerAsAttendee);
+
+    if (!targetTransaction || !sourceTransaction || !targetTransactionDetails || !sourceTransactionDetails) {
         return [];
     }
 
@@ -378,12 +604,14 @@ function buildMergeFieldsData(
         const options: MergeFieldOption[] = [
             {
                 transaction: targetTransaction,
-                displayValue: getDisplayValue(field, targetTransaction, translate),
+                transactionDetails: targetTransactionDetails,
+                displayValue: getDisplayValue(field, targetTransaction, targetTransactionDetails, targetTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
                 isSelected: selectedTransactionId === targetTransaction.transactionID,
             },
             {
                 transaction: sourceTransaction,
-                displayValue: getDisplayValue(field, sourceTransaction, translate),
+                transactionDetails: sourceTransactionDetails,
+                displayValue: getDisplayValue(field, sourceTransaction, sourceTransactionDetails, sourceTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
                 isSelected: selectedTransactionId === sourceTransaction.transactionID,
             },
         ];
@@ -396,9 +624,97 @@ function buildMergeFieldsData(
     });
 }
 
+type GetMergeFieldUpdatedValuesParams<K extends MergeFieldKey> = {
+    transaction: OnyxEntry<Transaction>;
+    field: K;
+    fieldValue: MergeTransaction[K];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    mergeTransaction?: OnyxEntry<MergeTransaction>;
+    searchReports?: Array<OnyxEntry<Report>>;
+    policy?: OnyxEntry<Policy>;
+};
+
+/**
+ * Build updated values for merge transaction field selection
+ * Handles special cases like currency for amount field, report name, tax value and additional fields for distance requests
+ */
+function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
+    transaction,
+    field,
+    fieldValue,
+    getCurrencyDecimals,
+    mergeTransaction,
+    searchReports,
+    policy,
+}: GetMergeFieldUpdatedValuesParams<K>): MergeTransactionUpdateValues {
+    const updatedValues: MergeTransactionUpdateValues = {
+        [field]: fieldValue,
+    };
+
+    if (field === 'amount') {
+        updatedValues.currency = getCurrency(transaction);
+        const amount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
+        if (mergeTransaction?.taxValue && amount) {
+            updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(mergeTransaction?.taxValue, amount, getCurrencyDecimals(getCurrency(transaction))));
+        }
+    }
+
+    if (field === 'reportID') {
+        const reportName = transaction?.reportName?.length ? transaction?.reportName : getReportName(getReportOrDraftReport(getReportIDForExpense(transaction), searchReports));
+        updatedValues.reportName = reportName.length ? reportName : null;
+    }
+
+    if (field === 'merchant' && isDistanceRequest(transaction)) {
+        const transactionDetails = getTransactionDetails(transaction);
+        updatedValues.amount = getMergeFieldValue(transactionDetails, transaction, 'amount') as number;
+        updatedValues.currency = getCurrency(transaction);
+        updatedValues.customUnit = transaction?.comment?.customUnit;
+        updatedValues.iouRequestType = transaction?.iouRequestType;
+        // For manual distance requests, set waypoints/routes and receipt to null to clear any existing values
+        updatedValues.receipt = transaction?.receipt ?? null;
+        updatedValues.waypoints = getWaypoints(transaction) ?? null;
+        updatedValues.routes = transaction?.routes ?? null;
+        // Distance expense tax rate is fixed to the distance rate, so just carry it over
+        updatedValues.taxValue = transaction?.taxValue;
+        updatedValues.taxCode = transaction?.taxCode;
+        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue;
+        updatedValues.taxAmount = transaction?.taxAmount;
+        // Don't erase this prop
+        // The selected rate might not have tax tracking
+        // The backend needs it to remove tax from the transaction
+        updatedValues.taxPolicyID = policy?.id;
+
+        // Copy odometer readings from the selected transaction for odometer distance requests
+        if (isOdometerDistanceRequest(transaction)) {
+            updatedValues.odometerStart = transaction?.comment?.odometerStart;
+            updatedValues.odometerEnd = transaction?.comment?.odometerEnd;
+            updatedValues.odometerStartImage = transaction?.comment?.odometerStartImage;
+            updatedValues.odometerEndImage = transaction?.comment?.odometerEndImage;
+        }
+    }
+
+    if (field === 'taxValue') {
+        updatedValues.taxCode = transaction?.taxCode;
+        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue ?? '';
+        updatedValues.taxPolicyID = policy?.id;
+        if (mergeTransaction?.amount) {
+            updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(transaction?.taxValue, mergeTransaction.amount, getCurrencyDecimals(getCurrency(transaction))));
+        }
+    }
+
+    return updatedValues;
+}
+
+function getRateFromMerchant(merchant: string | undefined): string {
+    if (!merchant) {
+        return '';
+    }
+
+    return merchant.split(CONST.DISTANCE_MERCHANT_SEPARATOR).at(-1)?.trim() ?? '';
+}
+
 export {
-    getSourceTransactionFromMergeTransaction,
-    getTargetTransactionFromMergeTransaction,
+    getTransactionFromMergeTransaction,
     shouldNavigateToReceiptReview,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
@@ -408,10 +724,15 @@ export {
     isEmptyMergeValue,
     fillMissingReceiptSource,
     getTransactionThreadReportID,
-    getReceiptFileName,
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,
+    getMergeFieldUpdatedValues,
+    getMergeFieldErrorText,
+    areTransactionsEligibleForMerge,
+    DERIVED_MERGE_FIELDS,
+    getRateFromMerchant,
+    getTransactionsAndReportsFromSearch,
 };
 
-export type {MergeFieldKey, MergeFieldData};
+export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};

@@ -1,7 +1,9 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
-import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextStyle, ViewStyle} from 'react-native';
-import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import type {BlurEvent, KeyboardTypeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useLocalize from '@hooks/useLocalize';
+import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
@@ -9,19 +11,12 @@ import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
-type MoneyRequestAmountInputRef = {
-    changeSelection: (newSelection: Selection) => void;
-    changeAmount: (newAmount: string) => void;
-    getAmount: () => string;
-    getSelection: () => Selection;
-};
-
 type MoneyRequestAmountInputProps = {
     /** IOU amount saved in Onyx */
     amount?: number;
 
     /** A callback to format the amount number */
-    onFormatAmount?: (amount: number, currency?: string) => string;
+    onFormatAmount: (amount: number, currency?: string) => string;
 
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
@@ -82,11 +77,32 @@ type MoneyRequestAmountInputProps = {
     /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
     shouldApplyPaddingToContainer?: boolean;
 
+    /** Whether the amount is negative */
+    isNegative?: boolean;
+
+    /** Function to toggle the amount to negative */
+    toggleNegative?: () => void;
+
+    /** Function to clear the negative amount */
+    clearNegative?: () => void;
+
+    /** Whether to allow flipping amount (shows flip button and enables toggle mechanism) */
+    allowFlippingAmount?: boolean;
+
+    /** Whether to allow direct negative input (for split amounts where value is already negative) */
+    allowNegativeInput?: boolean;
+
+    /** Style for the negative symbol */
+    negativeSymbolStyle?: StyleProp<TextStyle>;
+
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
 
     /** Whether to show the big number pad */
     shouldShowBigNumberPad?: boolean;
+
+    /** Whether to use dynamic font size for the amount input */
+    shouldUseDynamicFontSize?: boolean;
 
     /** Error to display at the bottom of the form */
     errorText?: string;
@@ -104,16 +120,24 @@ type MoneyRequestAmountInputProps = {
      */
     shouldWrapInputInContainer?: boolean;
 
+    /** Style applied to the outer ScrollView inside NumberWithSymbolForm */
+    scrollViewStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * Whether to refocus the input when clicking on the ScrollView empty space.
+     * Prevents focus loss when clicking empty space left of the right-aligned input.
+     */
+    shouldRefocusOnScrollViewClick?: boolean;
+
+    /** Whether the input is disabled or not */
+    disabled?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
-} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
 
-type Selection = {
-    start: number;
-    end: number;
-};
-
-const defaultOnFormatAmount = (amount: number, currency?: string) => convertToFrontendAmountAsString(amount, currency ?? CONST.CURRENCY.USD);
+    /** Determines which keyboard to open */
+    keyboardType?: KeyboardTypeOptions;
+} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur' | 'symbolTextStyle'>;
 
 /**
  * Specialized money amount input with currency and money amount formatting.
@@ -128,7 +152,7 @@ function MoneyRequestAmountInput({
     hideCurrencySymbol = false,
     moneyRequestAmountInputRef,
     disableKeyboard = true,
-    onFormatAmount = defaultOnFormatAmount,
+    onFormatAmount,
     formatAmountOnBlur,
     maxLength,
     hideFocusedState = true,
@@ -143,9 +167,21 @@ function MoneyRequestAmountInput({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
+    scrollViewStyle,
+    shouldRefocusOnScrollViewClick = false,
+    isNegative = false,
+    allowFlippingAmount = false,
+    allowNegativeInput = false,
+    negativeSymbolStyle,
+    toggleNegative,
+    clearNegative,
     ref,
+    disabled,
+    shouldUseDynamicFontSize = false,
     ...props
 }: MoneyRequestAmountInputProps) {
+    const {preferredLocale, translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const decimals = getCurrencyDecimals(currency);
@@ -162,7 +198,7 @@ function MoneyRequestAmountInput({
         }
 
         // we want to re-initialize the state only when the amount changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amount, shouldKeepUserInput]);
 
     const formatAmount = useCallback(() => {
@@ -176,7 +212,7 @@ function MoneyRequestAmountInput({
         numberFormRef.current?.updateNumber(formattedAmount);
     }, [amount, currency, onFormatAmount, formatAmountOnBlur, maxLength]);
 
-    const inputOnBlur = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const inputOnBlur = (e: BlurEvent) => {
         props.onBlur?.(e);
         formatAmount();
     };
@@ -195,22 +231,24 @@ function MoneyRequestAmountInput({
                     // eslint-disable-next-line no-param-reassign
                     ref.current = newRef;
                 }
-                // eslint-disable-next-line react-compiler/react-compiler
                 textInput.current = newRef;
             }}
+            disabled={disabled}
             numberFormRef={(newRef) => {
                 if (typeof moneyRequestAmountInputRef === 'function') {
                     moneyRequestAmountInputRef(newRef);
                 } else if (moneyRequestAmountInputRef && 'current' in moneyRequestAmountInputRef) {
-                    // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
+                    // eslint-disable-next-line no-param-reassign
                     moneyRequestAmountInputRef.current = newRef;
                 }
                 numberFormRef.current = newRef;
             }}
-            symbol={getLocalizedCurrencySymbol(currency) ?? ''}
+            symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
+            currency={currency}
             hideSymbol={hideCurrencySymbol}
             isSymbolPressable={isCurrencyPressable}
+            symbolTextStyle={props.symbolTextStyle}
             shouldShowBigNumberPad={shouldShowBigNumberPad}
             style={inputStyle}
             autoGrow={autoGrow}
@@ -220,22 +258,31 @@ function MoneyRequestAmountInput({
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
             shouldWrapInputInContainer={shouldWrapInputInContainer}
+            scrollViewStyle={scrollViewStyle}
+            shouldRefocusOnScrollViewClick={shouldRefocusOnScrollViewClick}
             containerStyle={props.containerStyle}
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             contentWidth={contentWidth}
+            isNegative={isNegative}
+            negativeSymbolStyle={negativeSymbolStyle}
             testID={testID}
             errorText={props.errorText}
             footer={props.footer}
             autoGrowExtraSpace={autoGrowExtraSpace}
             submitBehavior={submitBehavior}
+            allowFlippingAmount={allowFlippingAmount}
+            allowNegativeInput={allowNegativeInput}
+            toggleNegative={toggleNegative}
+            clearNegative={clearNegative}
             onFocus={props.onFocus}
+            accessibilityLabel={`${translate('iou.amount')} (${currency})`}
+            keyboardType={props.keyboardType}
+            shouldUseDynamicFontSize={shouldUseDynamicFontSize}
         />
     );
 }
 
-MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
-
 export default MoneyRequestAmountInput;
-export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};
+export type {MoneyRequestAmountInputProps};

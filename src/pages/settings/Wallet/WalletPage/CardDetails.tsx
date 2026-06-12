@@ -5,12 +5,12 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
+import type {CardLimitType} from '@src/types/onyx/Card';
 
 const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
     addresses: [
@@ -34,17 +34,23 @@ type CardDetailsProps = {
     /** 3 digit code */
     cvv?: string;
 
-    /** Domain name */
-    domain: string;
+    /** Callback to navigate to update address page */
+    onUpdateAddressPress?: () => void;
+
+    /** Card limit type */
+    limitType?: CardLimitType;
+
+    /** Hint text for the card */
+    cardHintText?: string;
 };
 
-function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsProps) {
+function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress, cardHintText, limitType}: CardDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     return (
-        <View fsClass={CONST.FULLSTORY.CLASS.MASK}>
+        <View>
             {pan?.length > 0 && (
                 <MenuItemWithTopDescription
                     description={translate('cardPage.cardDetails.cardNumber')}
@@ -52,6 +58,15 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     interactive={false}
                     copyValue={pan}
                     copyable
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                />
+            )}
+            {!!limitType && (
+                <MenuItemWithTopDescription
+                    description={translate('workspace.card.issueNewCard.limitType')}
+                    title={translate(getTranslationKeyForLimitType(limitType))}
+                    interactive={false}
+                    hintText={cardHintText}
                 />
             )}
             {expiration?.length > 0 && (
@@ -60,6 +75,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     title={expiration}
                     interactive={false}
                     copyable
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             )}
             {cvv?.length > 0 && (
@@ -68,6 +84,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     title={cvv}
                     interactive={false}
                     copyable
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             )}
             {pan?.length > 0 && (
@@ -78,10 +95,11 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                         title={getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
                         interactive={false}
                         copyable
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <TextLink
                         style={[styles.link, styles.mh5, styles.mb3]}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain))}
+                        onPress={() => onUpdateAddressPress?.()}
                     >
                         {translate('cardPage.cardDetails.updateAddress')}
                     </TextLink>
@@ -90,7 +108,5 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
         </View>
     );
 }
-
-CardDetails.displayName = 'CardDetails';
 
 export default CardDetails;

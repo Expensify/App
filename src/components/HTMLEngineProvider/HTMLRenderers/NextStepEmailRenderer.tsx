@@ -16,6 +16,4 @@ function NextStepEmailRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) 
     );
 }
 
-NextStepEmailRenderer.displayName = 'NextStepEmailRenderer';
-
 export default NextStepEmailRenderer;

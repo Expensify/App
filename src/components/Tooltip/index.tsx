@@ -7,16 +7,7 @@ function Tooltip({shouldRender = true, children, ...props}: TooltipExtendedProps
         return children;
     }
 
-    return (
-        <BaseTooltip
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        >
-            {children}
-        </BaseTooltip>
-    );
+    return <BaseTooltip {...props}>{children}</BaseTooltip>;
 }
-
-Tooltip.displayName = 'Tooltip';
 
 export default Tooltip;

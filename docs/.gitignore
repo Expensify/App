@@ -4,3 +4,4 @@ _site
 .jekyll-metadata
 vendor
 _data/routes.yml
+assets/js/allowedExternalUrls.json

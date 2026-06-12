@@ -1,55 +1,41 @@
 import lodashDropRightWhile from 'lodash/dropRightWhile';
-import lodashMapKeys from 'lodash/mapKeys';
-import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDefaultApprover} from '@libs/PolicyUtils';
-import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees} from '@libs/WorkflowUtils';
+import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees, getOverLimitForwardsToDisplayName, mergeWorkflowMembersWithAvailableMembers} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {completeTask} from './Task';
 
-let currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
-Onyx.connect({
-    key: ONYXKEYS.APPROVAL_WORKFLOW,
-    callback: (approvalWorkflow) => {
-        currentApprovalWorkflow = approvalWorkflow;
-    },
-});
+type CreateApprovalWorkflowParams = {
+    approvalWorkflow: ApprovalWorkflow;
+    policy: OnyxEntry<Policy>;
+    addExpenseApprovalsTaskReport: OnyxEntry<Report>;
+};
 
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
+type SetApprovalWorkflowApproverParams = {
+    approver: Approver;
+    approverIndex: number;
+    currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
+    policy: OnyxEntry<Policy>;
+    personalDetailsByEmail: OnyxEntry<PersonalDetailsList>;
+};
 
-let authToken: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        authToken = value?.authToken;
-    },
-});
+type ClearApprovalWorkflowApproverParams = {
+    approverIndex: number;
+    currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
+};
 
-let personalDetailsByEmail: PersonalDetailsList = {};
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (personalDetails) => {
-        personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
-    },
-});
-
-function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-
-    if (!authToken || !policy) {
+function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTaskReport}: CreateApprovalWorkflowParams) {
+    if (!policy) {
         return;
     }
 
@@ -62,7 +48,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.APPROVAL_WORKFLOW,
@@ -70,7 +56,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: updatedEmployees,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -78,10 +64,10 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: previousEmployeeList,
                 approvalMode: previousApprovalMode,
@@ -89,24 +75,30 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
-                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null}])),
+                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null, pendingFields: null}])),
             },
         },
     ];
 
-    const parameters: CreateWorkspaceApprovalParams = {policyID, authToken, employees: JSON.stringify(Object.values(updatedEmployees))};
+    const parameters: CreateWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
+
+    if (
+        addExpenseApprovalsTaskReport &&
+        (addExpenseApprovalsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || addExpenseApprovalsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)
+    ) {
+        // delegateEmail: will be threaded in PR 16; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+        completeTask(addExpenseApprovalsTaskReport, false, false, undefined, undefined, undefined, false);
+    }
 }
 
-function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[]) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-
-    if (!authToken || !policy) {
+function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[], policy: OnyxEntry<Policy>) {
+    if (!policy) {
         return;
     }
 
@@ -119,14 +111,51 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         type: CONST.APPROVAL_WORKFLOW.TYPE.UPDATE,
         membersToRemove,
         approversToRemove,
+        defaultApprover: newDefaultApprover ?? previousDefaultApprover ?? '',
     });
+
+    // Force the new default approver's `submitsTo` to themselves whenever the default
+    // approver changes. `convertApprovalWorkflowToPolicyEmployees` only rewrites `submitsTo`
+    // for emails present in `approvalWorkflow.members`, so a newly-promoted approver who
+    // wasn't already a member (e.g., an agent the backend's `shareWithEmployees` just added
+    // with `submitsTo = previous default approver`) keeps that stale value and shows up as
+    // their own orphan submission group on the workflows page. This backstop guarantees the
+    // new default approver self-submits regardless of the caller's `members` snapshot.
+    if (newDefaultApprover && newDefaultApprover !== previousDefaultApprover) {
+        const existing = updatedEmployees[newDefaultApprover] ?? previousEmployeeList[newDefaultApprover];
+        if (existing && existing.submitsTo !== newDefaultApprover) {
+            const previousPendingAction = previousEmployeeList[newDefaultApprover]?.pendingAction;
+            updatedEmployees[newDefaultApprover] = {
+                ...existing,
+                email: newDefaultApprover,
+                submitsTo: newDefaultApprover,
+                pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                pendingFields: {
+                    ...existing.pendingFields,
+                    submitsTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            };
+        }
+    }
 
     // If there are no changes to the employees list, we can exit early
     if (isEmptyObject(updatedEmployees) && !newDefaultApprover) {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    // Determine if approvalMode should change based on updated employee state
+    // Deep merge at the employee level to preserve fields not included in updatedEmployees (e.g., overLimitForwardsTo)
+    const mergedEmployeeList = Object.fromEntries(Object.keys({...previousEmployeeList, ...updatedEmployees}).map((key) => [key, {...previousEmployeeList[key], ...updatedEmployees[key]}]));
+    const effectiveDefaultApprover = newDefaultApprover ?? previousDefaultApprover ?? '';
+    const hasMultipleWorkflows = Object.values(mergedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== effectiveDefaultApprover);
+    const defaultApproverEmployee = mergedEmployeeList[effectiveDefaultApprover];
+    const hasForwardsToChain = !!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo;
+    const shouldKeepAdvancedMode = hasMultipleWorkflows || hasForwardsToChain;
+    const previousApprovalMode = policy.approvalMode;
+
+    const updatedApprovalMode = shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.APPROVAL_WORKFLOW,
@@ -134,30 +163,32 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: updatedEmployees,
+                approvalMode: updatedApprovalMode,
                 ...(newDefaultApprover ? {approver: newDefaultApprover} : {}),
             },
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: previousEmployeeList,
+                approvalMode: previousApprovalMode,
                 pendingFields: {employeeList: null},
                 ...(newDefaultApprover ? {approver: previousDefaultApprover} : {}),
             },
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null, pendingFields: null}])),
             },
@@ -165,30 +196,32 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     ];
 
     const parameters: UpdateWorkspaceApprovalParams = {
-        policyID,
-        authToken,
+        policyID: policy.id,
         employees: JSON.stringify(Object.values(updatedEmployees)),
         defaultApprover: newDefaultApprover,
     };
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
-function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-
-    if (!authToken || !policy) {
+function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
+    if (!policy) {
         return;
     }
 
     const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}]));
     const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.REMOVE});
-    const updatedEmployeeList = {...previousEmployeeList, ...updatedEmployees};
+    // Deep merge at the employee level to preserve fields not included in updatedEmployees (e.g., overLimitForwardsTo)
+    const mergedEmployeeList = Object.fromEntries(Object.keys({...previousEmployeeList, ...updatedEmployees}).map((key) => [key, {...previousEmployeeList[key], ...updatedEmployees[key]}]));
 
     const defaultApprover = getDefaultApprover(policy);
     // If there is more than one workflow, we need to keep the advanced approval mode (first workflow is the default)
-    const hasMoreThanOneWorkflow = Object.values(updatedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== defaultApprover);
+    const hasMoreThanOneWorkflow = Object.values(mergedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== defaultApprover);
+    // The default workflow can still have a forwardsTo chain (multi-level approvers), which also requires advanced mode
+    const defaultApproverEmployee = mergedEmployeeList[defaultApprover];
+    const hasForwardsToChain = !!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo;
+    const shouldKeepAdvancedMode = hasMoreThanOneWorkflow || hasForwardsToChain;
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.APPROVAL_WORKFLOW,
@@ -196,18 +229,18 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: updatedEmployees,
-                approvalMode: hasMoreThanOneWorkflow ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC,
+                approvalMode: shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC,
             },
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: previousEmployeeList,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -215,17 +248,17 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null}])),
             },
         },
     ];
 
-    const parameters: RemoveWorkspaceApprovalParams = {policyID, authToken, employees: JSON.stringify(Object.values(updatedEmployees))};
+    const parameters: RemoveWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
@@ -238,22 +271,34 @@ function setApprovalWorkflowMembers(members: Member[]) {
  * Set the approver at the specified index in the approval workflow that is currently edited
  * @param approver - The new approver to set
  * @param approverIndex - The index of the approver to set
- * @param policyID - The ID of the policy
+ * @param policy - The policy to set the approver for
  */
-function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, policyID: string) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-
-    if (!currentApprovalWorkflow || !policy?.employeeList) {
+function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWorkflow, policy, personalDetailsByEmail}: SetApprovalWorkflowApproverParams) {
+    if (!currentApprovalWorkflow || !policy?.employeeList || !personalDetailsByEmail) {
         return;
     }
 
     const approvers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
-    approvers[approverIndex] = approver;
+    const overLimitForwardsToDisplayName = getOverLimitForwardsToDisplayName(approver.overLimitForwardsTo, personalDetailsByEmail);
+    approvers[approverIndex] = {...approver, overLimitForwardsToDisplayName};
 
     // Check if the approver forwards to other approvers and add them to the list
     if (policy.employeeList[approver.email]?.forwardsTo) {
         const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
+
         approvers.splice(approverIndex, approvers.length, ...additionalApprovers);
+
+        // Preserve the new approvalLimit and overLimitForwardsTo values that were passed in,
+        // since calculateApprovers reads from stale policy data
+        const existingApprover = approvers.at(approverIndex);
+        if (existingApprover) {
+            approvers[approverIndex] = {
+                ...existingApprover,
+                approvalLimit: approver.approvalLimit,
+                overLimitForwardsTo: approver.overLimitForwardsTo,
+                overLimitForwardsToDisplayName,
+            };
+        }
     }
 
     // Always clear the additional approver error when an approver is added
@@ -282,7 +327,7 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
 }
 
 /** Clear one approver at the specified index in the approval workflow that is currently edited */
-function clearApprovalWorkflowApprover(approverIndex: number) {
+function clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow}: ClearApprovalWorkflowApproverParams) {
     if (!currentApprovalWorkflow) {
         return;
     }
@@ -298,8 +343,36 @@ function clearApprovalWorkflowApprovers() {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: []});
 }
 
+/** Set whether the user is in the initial creation flow */
+function setApprovalWorkflowIsInitialFlow(isInitialFlow: boolean) {
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {isInitialFlow});
+}
+
 function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>) {
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+}
+
+type SelectApprovalWorkflowForEditParams = {
+    workflow: ApprovalWorkflow;
+    /** Members not already in this workflow — used to populate the picker. */
+    defaultWorkflowMembers: Member[];
+    /** Approver emails already taken by other workflows. */
+    usedApproverEmails: string[];
+    /** Override for the approvers list (the Edit page uses this to seed an optimistic agent). */
+    approvers?: Approver[];
+};
+
+/** Commits a workflow to onyx in EDIT mode so any sub-page can be entered directly, skipping the Edit RHP. */
+function selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers, usedApproverEmails, approvers}: SelectApprovalWorkflowForEditParams) {
+    setApprovalWorkflow({
+        ...workflow,
+        approvers: approvers ?? workflow.approvers,
+        availableMembers: mergeWorkflowMembersWithAvailableMembers(workflow.members, defaultWorkflowMembers),
+        usedApproverEmails,
+        action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+        errors: null,
+        originalApprovers: workflow.approvers,
+    });
 }
 
 function clearApprovalWorkflow() {
@@ -316,7 +389,7 @@ type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {
 function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): approvalWorkflow is ApprovalWorkflowOnyxValidated {
     const errors: Record<string, TranslationPaths> = {};
 
-    approvalWorkflow.approvers.forEach((approver, approverIndex) => {
+    for (const [approverIndex, approver] of approvalWorkflow.approvers.entries()) {
         if (!approver) {
             errors[`approver-${approverIndex}`] = 'common.error.fieldRequired';
         }
@@ -324,7 +397,17 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
         if (approver?.isCircularReference) {
             errors[`approver-${approverIndex}`] = 'workflowsPage.approverCircularReference';
         }
-    });
+
+        // Validate that if overLimitForwardsTo is set, approvalLimit must also be set
+        if (approver?.overLimitForwardsTo && (!approver?.approvalLimit || approver.approvalLimit <= 0)) {
+            errors[`approver-${approverIndex}`] = 'workflowsApprovalLimitPage.enterAmountError';
+        }
+
+        // Validate that if approvalLimit is set, overLimitForwardsTo must also be set
+        if (approver?.approvalLimit && approver.approvalLimit > 0 && !approver?.overLimitForwardsTo) {
+            errors[`approver-${approverIndex}`] = 'workflowsApprovalLimitPage.enterApproverError';
+        }
+    }
 
     if (!approvalWorkflow.members.length && !approvalWorkflow.isDefault) {
         errors.members = 'common.error.fieldRequired';
@@ -345,8 +428,10 @@ export {
     setApprovalWorkflowMembers,
     setApprovalWorkflowApprover,
     setApprovalWorkflow,
+    selectApprovalWorkflowForEdit,
     clearApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
     validateApprovalWorkflow,
+    setApprovalWorkflowIsInitialFlow,
 };

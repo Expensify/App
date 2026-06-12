@@ -1,21 +1,20 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getXeroBankAccounts, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {updateXeroSyncInvoiceCollectionsAccountID} from '@userActions/connections/Xero';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearXeroErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -23,8 +22,8 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
-
+    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {config} = policy?.connections?.xero ?? {};
     const {invoiceCollectionsAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
     const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroBankAccounts(policy ?? undefined, invoiceCollectionsAccountID), [invoiceCollectionsAccountID, policy]);
@@ -51,7 +50,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.xero.noAccountsFound')}
@@ -59,7 +58,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [translate, styles.pb10, illustrations.Telescope],
     );
 
     return (
@@ -67,9 +66,8 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={XeroInvoiceAccountSelectorPage.displayName}
-            sections={xeroSelectorOptions.length ? [{data: xeroSelectorOptions}] : []}
-            listItem={RadioListItem}
+            displayName="XeroInvoiceAccountSelectorPage"
+            data={xeroSelectorOptions}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             shouldBeBlocked={!syncReimbursedReports}
             onSelectRow={updateAccount}
@@ -79,13 +77,11 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             title="workspace.xero.advancedConfig.xeroInvoiceCollectionAccount"
             listEmptyContent={listEmptyContent}
             pendingAction={settingsPendingAction([CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID)}
+            errors={getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID)}
+            onClose={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID)}
         />
     );
 }
-
-XeroInvoiceAccountSelectorPage.displayName = 'XeroInvoiceAccountSelectorPage';
 
 export default withPolicyConnections(XeroInvoiceAccountSelectorPage);

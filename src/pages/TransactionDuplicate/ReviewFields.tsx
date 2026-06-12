@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,9 +31,12 @@ type ReviewFieldsProps<K extends keyof ReviewDuplicates> = {
 
     /* Callback to what should happen after selecting row */
     onSelectRow: (item: FieldItemType<K>) => void;
+
+    /* Currently selected value */
+    selectedValue?: ReviewDuplicates[K];
 };
 
-function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, options, index, onSelectRow}: ReviewFieldsProps<K>) {
+function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, options, index, onSelectRow, selectedValue}: ReviewFieldsProps<K>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -46,14 +49,15 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
         return falsyCount <= 1;
     });
 
-    const sections = useMemo(
+    const optionRows = useMemo(
         () =>
-            filteredOptions?.map((option) => ({
+            filteredOptions?.map((option, idx) => ({
                 text: option.text,
-                keyForList: option.text,
+                keyForList: `${option.text}-${idx}`,
                 value: option.value,
+                isSelected: option.value === selectedValue,
             })),
-        [filteredOptions],
+        [filteredOptions, selectedValue],
     );
 
     return (
@@ -66,6 +70,7 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
                     <InteractiveStepSubHeader
                         stepNames={stepNames}
                         startStepIndex={index}
+                        currentStepAccessibilityDescription={label}
                     />
                 </View>
             )}
@@ -78,15 +83,15 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
                 {label}
             </Text>
             <SelectionList
-                sections={[{data: sections ?? []}]}
-                ListItem={RadioListItem}
+                data={optionRows ?? []}
+                ListItem={SingleSelectListItem}
                 onSelectRow={onSelectRow}
+                shouldSingleExecuteRowSelect
+                initiallyFocusedItemKey={optionRows?.find((option) => option.isSelected)?.keyForList}
             />
         </View>
     );
 }
-
-ReviewFields.displayName = 'ReviewFields';
 
 export default ReviewFields;
 export type {FieldItemType};

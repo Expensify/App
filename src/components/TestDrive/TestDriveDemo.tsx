@@ -1,17 +1,25 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {InteractionManager} from 'react-native';
+import {delegateEmailSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import EmbeddedDemo from '@components/EmbeddedDemo';
 import Modal from '@components/Modal';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import {shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openReport} from '@libs/actions/Report';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import {setSelfTourViewed} from '@libs/actions/Welcome';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isAdminRoom} from '@libs/ReportUtils';
 import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
@@ -23,35 +31,92 @@ function TestDriveDemo() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isVisible, setIsVisible] = useState(false);
     const styles = useThemeStyles();
-    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
-    const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const {
+        taskReport: viewTourTaskReport,
+        taskParentReport: viewTourTaskParentReport,
+        isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
+        hasOutstandingChildTask,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const {testDrive} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isCurrentUserPolicyAdmin = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserPersonalDetails.login)),
+    const parentReportAction = useParentReportAction(viewTourTaskReport);
+    const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
+
+    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
     });
+    const hasCalledOpenReportRef = useRef(false);
 
     useEffect(() => {
-        InteractionManager.runAfterInteractions(() => {
-            setIsVisible(true);
-            completeTestDriveTask();
-        });
+        if (hasSeenTour) {
+            return;
+        }
+        if (!viewTourTaskReport) {
+            // Fallback for accounts with no viewTour task — otherwise selfTourViewed never gets set.
+            setSelfTourViewed();
+            if (conciergeReportID && !hasCalledOpenReportRef.current) {
+                hasCalledOpenReportRef.current = true;
+                openReport({reportID: conciergeReportID, introSelected, betas});
+            }
+            return;
+        }
+        if (viewTourTaskReport.stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
+            return;
+        }
 
-        // This should fire only during mount.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        completeTestDriveTask(
+            viewTourTaskReport,
+            viewTourTaskParentReport,
+            isViewTourTaskParentReportArchived,
+            currentUserPersonalDetails.accountID,
+            hasOutstandingChildTask,
+            parentReportAction,
+            delegateEmail,
+            false,
+        );
+    }, [
+        hasSeenTour,
+        viewTourTaskReport,
+        viewTourTaskParentReport,
+        isViewTourTaskParentReportArchived,
+        currentUserPersonalDetails.accountID,
+        hasOutstandingChildTask,
+        parentReportAction,
+        delegateEmail,
+        conciergeReportID,
+        introSelected,
+        betas,
+    ]);
+
+    useEffect(() => {
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => setIsVisible(true),
+            waitForUpcomingTransition: true,
+        });
+        return () => handle.cancel();
     }, []);
 
     const closeModal = useCallback(() => {
         setIsVisible(false);
-        InteractionManager.runAfterInteractions(() => {
-            Navigation.goBack();
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                Navigation.goBack();
 
-            if (isAdminRoom(onboardingReport)) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingReport?.reportID));
-            }
+                if (shouldOpenRHPVariant()) {
+                    Log.hmmm('[AdminTestDriveModal] User was redirected to Workspace Editor, skipping navigation to admin room');
+                    return;
+                }
+                if (isAdminRoom(onboardingReport)) {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingReport?.reportID));
+                }
+            },
+            waitForUpcomingTransition: true,
         });
     }, [onboardingReport]);
 
@@ -70,6 +135,7 @@ function TestDriveDemo() {
                         <EmbeddedDemo
                             url={getTestDriveURL(shouldUseNarrowLayout, introSelected, isCurrentUserPolicyAdmin)}
                             iframeTitle={testDrive.EMBEDDED_DEMO_IFRAME_TITLE}
+                            iframeProps={{sandbox: CONST.STORYLANE.IFRAME_SANDBOX}}
                         />
                     </FullPageOfflineBlockingView>
                 </Modal>
@@ -77,7 +143,5 @@ function TestDriveDemo() {
         </SafeAreaConsumer>
     );
 }
-
-TestDriveDemo.displayName = 'TestDriveDemo';
 
 export default TestDriveDemo;

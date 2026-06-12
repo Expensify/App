@@ -30,11 +30,12 @@ To comply with financial regulations, the following documents are needed:
 
 # Step 1: Set Your Workspace Currency and Enable Payments
 
-1. From the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Overview**.
-2. Under **Default currency**, choose **EUR €**.
-3. Return to the left-hand menu and select **Workflows > Make or Track Payments**.
-4. Click **Connect bank account**, then confirm your **currency and country** (choose a supported European country – EUR €).
-5. Click **Confirm** to proceed.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
+2. Under **Default currency**, select **EUR €**.
+3. From the Workspace settings menu, select **Workflows** > **Add Bank Account**
+   - **Note:** To add a bank account, **Payments** must be enabled.
+4. Confirm the bank account currency (EUR €) and country.
+5. Click **Confirm**.
 
 ---
 
@@ -58,10 +59,12 @@ To comply with financial regulations, the following documents are needed:
 5. **Add Director Information** Expensify must verify that the signer is a Director or Senior Officer.
    - If **you are** a Director/Senior Officer:
      - Provide your full legal name, address, and ID.
-     - Upload proof of address and a valid form of identification (PDF, PNG, or JPEG only).
+     - Upload proof of address and a valid form of identification (PDF, PNG, or JPEG only, 2 MB max per file).
    - If **you are not** a Director/Senior Officer:
      - Enter details for someone who is.
      - They must also provide ID and proof of address.
+
+**Note:** The designated Director or Senior Officer will also see a **Signer info needed** task in the **Time sensitive** section of their **Home** page. They can select **Begin** to enter their information directly from there.
 
 Once you agree to the terms, Expensify’s Compliance Team will review your submission. If any additional documentation is needed, our support team will message you.
 
@@ -69,7 +72,7 @@ Once you agree to the terms, Expensify’s Compliance Team will review your subm
 
 * Government-issued photo ID
 * Utility bill or bank statement (for proof of address)
-* File types: PDF, PNG, JPEG
+* File types: PDF, PNG, JPEG (each file must be 2 MB or less)
 
 ---
 
@@ -97,7 +100,7 @@ Once you agree to the terms, Expensify’s Compliance Team will review your subm
 ⏳**Timeline:** After submitting all required documentation, your account can be approved within 2–6 weeks. Once verified, you can start reimbursing within 2 business days.
 
 To begin reimbursing:
-1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Payments**.
 2. Set the **verified EUR bank account** as the default reimbursement method.
 3. Ask employees to add their personal deposit account.
 
@@ -112,4 +115,3 @@ An employee can add their deposit accounts by doing the following:
 1. Navigate to **Account > Wallet**.
 2. Click **Add deposit-only bank account** and input their bank account details.
 
-</div>

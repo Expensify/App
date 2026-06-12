@@ -1,24 +1,44 @@
-type SplitTransactionSplitsParam = Array<{
+import type {Comment, WaypointCollection} from '@src/types/onyx/Transaction';
+
+type SplitTransactionSplitParam = {
+    transactionID: string;
     amount: number;
     category?: string;
     tag?: string;
     created: string;
     merchant?: string;
-    comment?: {
-        comment?: string;
-    };
-    nameValuePairs?: {
-        comment?: string;
-    };
+    comment?: Comment;
     splitReportActionID?: string;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
-}>;
+    modifiedExpenseReportActionID?: string;
+    reimbursable?: boolean;
+    billable?: boolean;
+    reportID?: string;
+    quantity?: number;
+    customUnitRateID?: string;
+    odometerStart?: number;
+    odometerEnd?: number;
+    waypoints?: WaypointCollection;
+    holdReportActionID?: string;
+    holdReportActionCommentID?: string;
+    /**
+     * Maps the original comment reportActionID to the optimistic copied comment reportActionID.
+     * Shape: {[originalReportActionID]: optimisticReportActionID}
+     */
+    copiedComments?: Record<string, string>;
+};
+
+type SplitTransactionSplitsParam = SplitTransactionSplitParam[];
 
 type SplitTransactionParams = {
     transactionID: string;
-    isReverseSplitOperation: boolean;
-    [key: string]: string | boolean;
+    [key: string]: string | number | boolean;
 };
 
-export type {SplitTransactionParams, SplitTransactionSplitsParam};
+type RevertSplitTransactionParams = Omit<SplitTransactionSplitParam, 'comment' | 'holdReportActionID' | 'holdReportActionCommentID' | 'copiedComments'> & {
+    comment?: string;
+    copiedComments?: string;
+};
+
+export type {SplitTransactionParams, SplitTransactionSplitsParam, RevertSplitTransactionParams};

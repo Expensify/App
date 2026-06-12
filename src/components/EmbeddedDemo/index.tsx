@@ -10,12 +10,9 @@ function EmbeddedDemo({url, iframeTitle, iframeProps}: EmbeddedDemoProps) {
             title={iframeTitle}
             src={url}
             style={styles.embeddedDemoIframe}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...iframeProps}
         />
     );
 }
-
-EmbeddedDemo.displayName = 'EmbeddedDemo';
 
 export default EmbeddedDemo;

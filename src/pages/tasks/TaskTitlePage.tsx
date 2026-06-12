@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -11,32 +11,33 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommentLength, getParsedComment, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
-import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
+import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import variables from '@styles/variables';
 import {canModifyTask, editTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/EditTaskForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskTitlePageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
 function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps) {
-    const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.TITLE>>();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TASK_TITLE.path);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const validate = useCallback(
         ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
@@ -48,7 +49,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
             if (!parsedTitle) {
                 addErrorMessage(errors, INPUT_IDS.TITLE, translate('newTaskPage.pleaseEnterTaskName'));
             } else if (parsedTitleLength > CONST.TASK_TITLE_CHARACTER_LIMIT) {
-                addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: parsedTitleLength, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', parsedTitleLength, CONST.TASK_TITLE_CHARACTER_LIMIT));
             }
 
             return errors;
@@ -56,22 +57,19 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         [translate],
     );
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-            if (values.title !== Parser.htmlToMarkdown(report?.reportName ?? '') && !isEmptyObject(report)) {
-                // Set the title of the report in the store and then call EditTask API
-                // to update the title of the report on the server
-                editTask(report, {title: values.title});
-            }
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
+        if (values.title !== Parser.htmlToMarkdown(report?.reportName ?? '') && !isEmptyObject(report)) {
+            // Set the title of the report in the store and then call EditTask API
+            // to update the title of the report on the server
+            editTask(report, {title: values.title}, delegateEmail);
+        }
 
-            Navigation.dismissModalWithReport({reportID: report?.reportID});
-        },
-        [report],
-    );
+        Navigation.goBack(backPath);
+    };
 
     if (!isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModalWithReport({reportID: report?.reportID});
+            Navigation.goBack(backPath);
         });
     }
 
@@ -88,13 +86,13 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                 inputRef?.current?.focus();
             }}
             shouldEnableMaxHeight
-            testID={TaskTitlePage.displayName}
+            testID="TaskTitlePage"
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                     <HeaderWithBackButton
                         title={translate('task.task')}
-                        onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                        onBackButtonPress={() => Navigation.goBack(backPath)}
                     />
                     <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}
@@ -135,8 +133,6 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         </ScreenWrapper>
     );
 }
-
-TaskTitlePage.displayName = 'TaskTitlePage';
 
 const ComponentWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(TaskTitlePage);
 

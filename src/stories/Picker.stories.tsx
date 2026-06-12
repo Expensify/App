@@ -1,4 +1,4 @@
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React, {useState} from 'react';
 import Picker from '@components/Picker';
 import type {BasePickerProps} from '@components/Picker/types';
@@ -23,7 +23,6 @@ function Template(props: TemplateProps) {
         <Picker
             value={value}
             onInputChange={(e) => setValue(e)}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

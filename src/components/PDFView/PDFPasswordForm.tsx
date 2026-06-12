@@ -150,6 +150,4 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
     );
 }
 
-PDFPasswordForm.displayName = 'PDFPasswordForm';
-
 export default PDFPasswordForm;

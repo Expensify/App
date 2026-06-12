@@ -30,6 +30,5 @@ declare module 'react-native-key-command' {
     declare function unregisterKeyCommands(): void;
     declare function eventEmitter(): void;
 
-    // eslint-disable-next-line import/prefer-default-export
     export {constants, addListener, registerKeyCommands, unregisterKeyCommands, eventEmitter};
 }

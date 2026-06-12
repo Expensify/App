@@ -1,6 +1,18 @@
 # Directory Structure and File Naming Philosophy
 Learn how files are organized in the project.
 
+## General Philosophy
+This is how things should be organized from a conceptual level:
+
+- Start by page (`src/page/whatever`) which correlates to a good name indicating what the page is (eg: `report`, `account`, `workspace`,) ideally and if the route is not a short form one (eg: `/r/`, `/a/`), it should also match the route
+  - Pieces of the page should be put into sub-folders of the page
+  - Anything that is built ONLY for this page should go in the page directory (hooks and components included)
+  - Any component that is general enough to be reused elsewhere should go in `src/components`
+  - If multiple files are needed for a component, put them in their own folder (eg. `src/components/button`)
+    - Any hook that is general enough to be reused elsewhere should go in `src/hooks`
+- All non-UI files should go in `src/libs`
+  - All action files should go in `src/libs/actions`
+
 ### RULES
 #### - Directory names MUST be camel-case
 #### - Directory names SHOULD be plural

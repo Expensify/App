@@ -46,6 +46,4 @@ function BlockingViewSubtitle({
     );
 }
 
-BlockingViewSubtitle.displayName = 'BlockingViewSubtitle';
-
 export default BlockingViewSubtitle;

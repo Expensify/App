@@ -5,11 +5,10 @@ import ROUTES from '@src/ROUTES';
 function VerifyAccountPage() {
     return (
         <VerifyAccountPageBase
-            navigateBackTo={ROUTES.SETTINGS_SECURITY}
+            navigateBackTo={ROUTES.SETTINGS_COPILOT}
             navigateForwardTo={ROUTES.SETTINGS_ADD_DELEGATE}
         />
     );
 }
-VerifyAccountPage.displayName = 'VerifyAccountPage';
 
 export default VerifyAccountPage;

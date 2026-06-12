@@ -1,4 +1,4 @@
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React, {useState} from 'react';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
@@ -17,7 +17,6 @@ const story: Meta<typeof TextInput> = {
 };
 
 function Template(props: BaseTextInputProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <TextInput {...props} />;
 }
 
@@ -85,10 +84,9 @@ function HintAndErrorInput(props: BaseTextInputProps) {
     const [error, setError] = useState('');
     return (
         <TextInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onChangeText={(value) => {
-                if (value && value.toLowerCase() === 'oops!') {
+                if (value?.toLowerCase() === 'oops!') {
                     setError("Oops! Looks like there's an error");
                     return;
                 }
@@ -114,7 +112,6 @@ function AutoGrowSupportInput(props: BaseTextInputProps) {
 
     return (
         <TextInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onChangeText={setValue}
             value={value}

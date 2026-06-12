@@ -9,20 +9,20 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
-import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
-import {formatAirportInfo, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
+import {formatCancelledDescription, formatTransitLocationLabel, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
@@ -35,24 +35,37 @@ type ReservationViewProps = {
     sequenceIndex: number;
     shouldShowArrowIcon?: boolean;
     shouldCenterIcon?: boolean;
+    isCancelled?: boolean;
 };
 
-function ReservationView({reservation, transactionID, tripRoomReportID, sequenceIndex, shouldShowArrowIcon = true, shouldCenterIcon = false}: ReservationViewProps) {
+function ReservationView({reservation, transactionID, tripRoomReportID, sequenceIndex, shouldShowArrowIcon = true, shouldCenterIcon = false, isCancelled}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'ArrowRightLong',
+        'Plane',
+        'PlaneCircleSlash',
+        'Bed',
+        'BedCircleSlash',
+        'CarWithKey',
+        'CarCircleSlash',
+        'Train',
+        'TrainCircleSlash',
+        'Luggage',
+    ]);
 
-    const reservationIcon = getTripReservationIcon(reservation.type);
+    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type, isCancelled);
 
     const getFormattedDate = () => {
         switch (reservation.type) {
             case CONST.RESERVATION_TYPE.FLIGHT:
-                return DateUtils.getFormattedTransportDate(new Date(reservation.start.date));
+                return DateUtils.getFormattedTransportDate(translate, new Date(reservation.start.date));
             case CONST.RESERVATION_TYPE.HOTEL:
             case CONST.RESERVATION_TYPE.CAR:
-                return DateUtils.getFormattedReservationRangeDate(new Date(reservation.start.date), new Date(reservation.end.date));
+                return DateUtils.getFormattedReservationRangeDate(translate, new Date(reservation.start.date), new Date(reservation.end.date));
             default:
                 return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date));
         }
@@ -80,6 +93,8 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
         return StringUtils.removeDoubleQuotes(reservation.start.address) ?? reservation.start.location;
     }, [reservation]);
 
+    const titleTextStyle = isCancelled ? [styles.textStrong, styles.textSupporting] : styles.textStrong;
+
     const titleComponent = () => {
         if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT || reservation.type === CONST.RESERVATION_TYPE.TRAIN) {
             return (
@@ -87,18 +102,18 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                         {shouldShowArrowIcon ? (
                             <>
-                                <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.start)}</Text>
+                                <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatTransitLocationLabel(reservation.start)}</Text>
                                 <Icon
-                                    src={Expensicons.ArrowRightLong}
+                                    src={expensifyIcons.ArrowRightLong}
                                     width={variables.iconSizeSmall}
                                     height={variables.iconSizeSmall}
                                     fill={theme.icon}
                                 />
-                                <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.end)}</Text>
+                                <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatTransitLocationLabel(reservation.end)}</Text>
                             </>
                         ) : (
-                            <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>
-                                {formatAirportInfo(reservation.start)} {translate('common.to').toLowerCase()} {formatAirportInfo(reservation.end)}
+                            <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>
+                                {formatTransitLocationLabel(reservation.start)} {translate('common.to').toLowerCase()} {formatTransitLocationLabel(reservation.end)}
                             </Text>
                         )}
                     </View>
@@ -111,7 +126,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             <View style={styles.gap1}>
                 <Text
                     numberOfLines={1}
-                    style={[styles.textStrong, styles.lh20]}
+                    style={[titleTextStyle, styles.lh20]}
                 >
                     {reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : Str.recapitalize(reservation.start.longName ?? '')}
                 </Text>
@@ -127,11 +142,14 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
         );
     };
 
+    const descriptionWithStatus = formatCancelledDescription(translate('iou.canceled'), formattedDate, isCancelled);
+
     return (
         <MenuItemWithTopDescription
-            description={formattedDate}
+            description={descriptionWithStatus}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={titleComponent()}
+            accessibilityLabel={isCancelled ? descriptionWithStatus : undefined}
             titleContainerStyle={[styles.justifyContentStart, styles.gap1]}
             secondaryIcon={reservationIcon}
             isSecondaryIconHoverable
@@ -169,6 +187,7 @@ type TripDetailsViewProps = {
 function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransactions}: TripDetailsViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const getTripDescription = useCallback(
@@ -176,7 +195,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
             const trips = `${reservations.length} ${reservations.length === 1 ? translate('travel.trip') : translate('travel.trips')}`;
             return `${convertToDisplayString(amount, currency)} • ${trips.toLowerCase()}`;
         },
-        [translate],
+        [convertToDisplayString, translate],
     );
 
     const getTripTitle = useCallback(
@@ -194,11 +213,11 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
 
             switch (firstReservation?.type) {
                 case CONST.RESERVATION_TYPE.FLIGHT: {
-                    const destinationReservation = reservations.filter((reservation) => reservation.reservation.legId === firstReservation.legId).at(-1);
+                    const destinationReservation = reservations.findLast((reservation) => reservation.reservation.legId === firstReservation.legId);
                     if (!destinationReservation) {
                         return '';
                     }
-                    return `${translate('travel.flightTo')} ${formatAirportInfo(destinationReservation.reservation.end, true)}`;
+                    return `${translate('travel.flightTo')} ${formatTransitLocationLabel(destinationReservation.reservation.end, true)}`;
                 }
                 case CONST.RESERVATION_TYPE.TRAIN:
                     if (reservations.length === 2 && firstReservation.start.shortName === lastReservation.end.shortName) {
@@ -255,7 +274,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                         subtitleTextStyles={[styles.textLabelSupporting, styles.textLineHeightNormal]}
                         subtitleMuted
                     >
-                        {reservations.map(({reservation, transactionID, sequenceIndex}) => {
+                        {reservations.map(({reservation, transactionID, sequenceIndex, isCancelled}) => {
                             return (
                                 <OfflineWithFeedback key={`${pnrID}-${sequenceIndex}`}>
                                     <ReservationView
@@ -265,6 +284,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                                         sequenceIndex={sequenceIndex}
                                         shouldShowArrowIcon={false}
                                         shouldCenterIcon
+                                        isCancelled={isCancelled}
                                     />
                                 </OfflineWithFeedback>
                             );
@@ -279,8 +299,6 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
         </View>
     );
 }
-
-TripDetailsView.displayName = 'TripDetailsView';
 
 export default TripDetailsView;
 export {ReservationView};

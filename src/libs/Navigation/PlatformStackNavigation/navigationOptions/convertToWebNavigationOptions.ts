@@ -10,7 +10,6 @@ function convertToWebNavigationOptions(screenOptions: ScreenOptionsOrCallback<Pl
     }
 
     if (isRouteBasedScreenOptions(screenOptions)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (props: PlatformStackScreenProps<ParamListBase, string>) => {
             const routeBasedScreenOptions = screenOptions(props);
             return {...buildPlatformSpecificNavigationOptions(routeBasedScreenOptions), ...routeBasedScreenOptions.web};

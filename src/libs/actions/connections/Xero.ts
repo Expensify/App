@@ -131,7 +131,7 @@ function prepareXeroOptimisticData<TSettingName extends keyof Connections['xero'
     settingValue: Partial<Connections['xero']['config'][TSettingName]>,
     oldSettingValue?: Partial<Connections['xero']['config'][TSettingName]> | null,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -149,7 +149,7 @@ function prepareXeroOptimisticData<TSettingName extends keyof Connections['xero'
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -167,7 +167,7 @@ function prepareXeroOptimisticData<TSettingName extends keyof Connections['xero'
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -193,7 +193,7 @@ function prepareXeroExportOptimisticData<TSettingName extends keyof Connections[
     settingValue: Partial<Connections['xero']['config']['export'][TSettingName]>,
     oldSettingValue?: Partial<Connections['xero']['config']['export'][TSettingName]> | null,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -213,7 +213,7 @@ function prepareXeroExportOptimisticData<TSettingName extends keyof Connections[
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -233,7 +233,7 @@ function prepareXeroExportOptimisticData<TSettingName extends keyof Connections[
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -259,7 +259,7 @@ function prepareXeroSyncOptimisticData<TSettingName extends keyof Connections['x
     settingValue: Partial<Connections['xero']['config']['sync'][TSettingName]>,
     oldSettingValue?: Partial<Connections['xero']['config']['sync'][TSettingName]> | null,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -279,7 +279,7 @@ function prepareXeroSyncOptimisticData<TSettingName extends keyof Connections['x
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -299,7 +299,7 @@ function prepareXeroSyncOptimisticData<TSettingName extends keyof Connections['x
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -451,7 +451,7 @@ function updateXeroExportExporter(
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
-        settingValue: exporter,
+        settingValue: exporter ?? '',
         idempotencyKey: String(CONST.XERO_CONFIG.EXPORTER),
     };
 
@@ -495,6 +495,16 @@ function updateXeroExportNonReimbursableAccount(
     );
 
     API.write(WRITE_COMMANDS.UPDATE_XERO_EXPORT_NON_REIMBURSABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
+}
+
+function updateXeroTravelInvoicingPayableAccount(policyID: string, settingValue: string, oldSettingValue?: string) {
+    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, settingValue, oldSettingValue);
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue,
+        idempotencyKey: String(CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
 function updateXeroSyncInvoiceCollectionsAccountID(
@@ -588,6 +598,7 @@ export {
     updateXeroExportExporter,
     updateXeroExportBillDate,
     updateXeroExportNonReimbursableAccount,
+    updateXeroTravelInvoicingPayableAccount,
     updateXeroSyncInvoiceCollectionsAccountID,
     updateXeroSyncSyncReimbursedReports,
     updateXeroSyncReimbursementAccountID,

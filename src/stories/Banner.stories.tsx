@@ -1,4 +1,4 @@
-import type {StoryFn} from '@storybook/react';
+import type {StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
 import type {BannerProps} from '@components/Banner';
 import Banner from '@components/Banner';
@@ -16,7 +16,6 @@ const story = {
 };
 
 function Template(props: BannerProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <Banner {...props} />;
 }
 

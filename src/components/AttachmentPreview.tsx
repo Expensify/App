@@ -1,14 +1,17 @@
 import {Str} from 'expensify-common';
-import {ResizeMode, Video} from 'expo-av';
-import React, {useMemo, useState} from 'react';
+import {useEvent} from 'expo';
+import type {SourceLoadEventPayload, VideoThumbnail} from 'expo-video';
+import {useVideoPlayer} from 'expo-video';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, getFileName} from '@libs/fileDownload/FileUtils';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import {checkIsFileImage} from './Attachments/AttachmentView';
 import DefaultAttachmentView from './Attachments/AttachmentView/DefaultAttachmentView';
 import Icon from './Icon';
-import {Play} from './Icon/Expensicons';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import {PressableWithFeedback} from './Pressable';
@@ -29,6 +32,7 @@ type AttachmentPreviewProps = {
 
 function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: AttachmentPreviewProps) {
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Play']);
 
     const fillStyle = aspectRatio < 1 ? styles.h100 : styles.w100;
     const [isEncryptedPDF, setIsEncryptedPDF] = useState(false);
@@ -37,7 +41,22 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
         return cleanFileName(rawFileName);
     }, [source]);
 
-    if (typeof source === 'string' && Str.isVideo(source)) {
+    const isVideo = typeof source === 'string' && Str.isVideo(source);
+    const isFileImage = checkIsFileImage(source, fileName);
+
+    const [thumbnail, setThumbnail] = useState<VideoThumbnail | null>(null);
+    const videoPlayer = useVideoPlayer(isVideo ? source : null);
+
+    const {videoSource} = useEvent(videoPlayer, 'sourceLoad', {videoSource: null} as SourceLoadEventPayload);
+
+    useEffect(() => {
+        if (!videoSource) {
+            return;
+        }
+        videoPlayer.generateThumbnailsAsync([1]).then((thumbnails) => setThumbnail(thumbnails.at(0) ?? null));
+    }, [videoPlayer, videoSource]);
+
+    if (isVideo) {
         return (
             <PressableWithFeedback
                 accessibilityRole="button"
@@ -45,22 +64,20 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 onPress={onPress}
                 accessible
                 accessibilityLabel="Attachment Thumbnail"
+                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_PREVIEW.VIDEO_THUMBNAIL}
             >
-                <Video
-                    style={[styles.w100, styles.h100]}
-                    source={{
-                        uri: source,
-                    }}
-                    shouldPlay={false}
-                    useNativeControls={false}
-                    resizeMode={ResizeMode.CONTAIN}
-                    isLooping={false}
-                    onError={onLoadError}
-                />
+                {!!thumbnail && (
+                    /* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */
+                    <Image
+                        source={thumbnail}
+                        style={[fillStyle, {aspectRatio}]}
+                        resizeMode="cover"
+                    />
+                )}
                 <View style={[styles.h100, styles.w100, styles.pAbsolute, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <View style={styles.videoThumbnailPlayButton}>
                         <Icon
-                            src={Play}
+                            src={icons.Play}
                             fill="white"
                             width={variables.iconSizeXLarge}
                             height={variables.iconSizeXLarge}
@@ -70,7 +87,6 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
             </PressableWithFeedback>
         );
     }
-    const isFileImage = checkIsFileImage(source, fileName);
 
     if (isFileImage) {
         return (
@@ -80,8 +96,10 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 onPress={onPress}
                 accessible
                 accessibilityLabel="Image Thumbnail"
+                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_PREVIEW.IMAGE_THUMBNAIL}
             >
                 <View style={[fillStyle, styles.br4, styles.overflowHidden, {aspectRatio}]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                     <Image
                         source={{uri: source}}
                         style={[[styles.w100, styles.h100], styles.overflowHidden]}
@@ -99,6 +117,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 onPress={onPress}
                 accessible
                 accessibilityLabel="PDF Thumbnail"
+                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_PREVIEW.PDF_THUMBNAIL}
             >
                 <PDFThumbnail
                     fitPolicy={1}
@@ -113,7 +132,5 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
 
     return <DefaultAttachmentView fileName={fileName} />;
 }
-
-AttachmentPreview.displayName = 'AttachmentPreview';
 
 export default AttachmentPreview;

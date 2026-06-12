@@ -1,4 +1,4 @@
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {ReportActionItemImagesProps} from '@components/ReportActionItem/ReportActionItemImages';
@@ -24,7 +24,6 @@ function Template(props: ReportActionItemImagesProps) {
         >
             {({hovered}) => (
                 <ReportActionItemImages
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     isHovered={hovered}
                 />

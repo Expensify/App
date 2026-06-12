@@ -6,12 +6,9 @@ function OnboardingPrivateDomain(props: OnboardingPrivateDomainProps) {
     return (
         <BaseOnboardingPrivateDomain
             shouldUseNativeStyles
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );
 }
-
-OnboardingPrivateDomain.displayName = 'OnboardingPrivateDomain';
 
 export default OnboardingPrivateDomain;

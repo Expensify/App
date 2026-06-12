@@ -18,12 +18,11 @@ export default function <TProps>(WrappedComponent: ComponentType<TProps>): React
             });
 
             return unsubscribeTransitionEnd;
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 didScreenTransitionEnd={didScreenTransitionEnd}
             />

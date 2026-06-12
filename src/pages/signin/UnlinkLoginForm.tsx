@@ -1,5 +1,4 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -10,6 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getErrorsWithTranslationData} from '@libs/ErrorUtils';
+import {normalizeLogin} from '@libs/LoginUtils';
 import {requestUnlinkValidationLink} from '@userActions/Session';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import CONST from '@src/CONST';
@@ -20,31 +20,21 @@ function UnlinkLoginForm() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
 
     const unlinkMessage =
         account?.message === 'unlinkLoginForm.linkSent' || account?.message === 'unlinkLoginForm.successfullyUnlinkedLogin' ? translate(account?.message) : account?.message;
-    const primaryLogin = useMemo(() => {
-        if (!account?.primaryLogin) {
-            return '';
-        }
-        return Str.isSMSLogin(account.primaryLogin) ? Str.removeSMSDomain(account.primaryLogin) : account.primaryLogin;
-    }, [account?.primaryLogin]);
-    const secondaryLogin = useMemo(() => {
-        if (!credentials?.login) {
-            return '';
-        }
-        return Str.isSMSLogin(credentials.login) ? Str.removeSMSDomain(credentials.login) : credentials.login;
-    }, [credentials?.login]);
+    const primaryLogin = normalizeLogin(account?.primaryLogin);
+    const secondaryLogin = normalizeLogin(credentials?.login);
 
     return (
         <>
             <View style={[styles.mt5]}>
-                <Text>{translate('unlinkLoginForm.toValidateLogin', {primaryLogin, secondaryLogin})}</Text>
+                <Text>{translate('unlinkLoginForm.toValidateLogin', primaryLogin, secondaryLogin)}</Text>
             </View>
             <View style={[styles.mv5]}>
-                <Text>{translate('unlinkLoginForm.noLongerHaveAccess', {primaryLogin})}</Text>
+                <Text>{translate('unlinkLoginForm.noLongerHaveAccess', primaryLogin)}</Text>
             </View>
             {!!unlinkMessage && (
                 // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
@@ -66,6 +56,7 @@ function UnlinkLoginForm() {
                 <PressableWithFeedback
                     accessibilityLabel={translate('common.back')}
                     onPress={() => redirectToSignIn()}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.GO_BACK}
                 >
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>
@@ -75,12 +66,11 @@ function UnlinkLoginForm() {
                     isLoading={account?.isLoading && account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
                     onPress={() => requestUnlinkValidationLink()}
                     isDisabled={!!isOffline || !!account?.message}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.UNLINK}
                 />
             </View>
         </>
     );
 }
-
-UnlinkLoginForm.displayName = 'UnlinkLoginForm';
 
 export default UnlinkLoginForm;

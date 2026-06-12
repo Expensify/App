@@ -23,7 +23,7 @@ type RejectReasonFormViewProps = {
     validate: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => Partial<Record<'comment', string | undefined>>;
 
     /** Link to previous page */
-    backTo: Route;
+    backTo?: Route;
 };
 
 function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormViewProps) {
@@ -35,7 +35,7 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={RejectReasonFormView.displayName}
+            testID="RejectReasonFormView"
         >
             <HeaderWithBackButton
                 title={translate('iou.reject.reasonPageTitle')}
@@ -70,7 +70,5 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
         </ScreenWrapper>
     );
 }
-
-RejectReasonFormView.displayName = 'RejectReasonFormView';
 
 export default RejectReasonFormView;

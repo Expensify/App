@@ -13,12 +13,10 @@ type NetSuiteMenuWithTopDescriptionFormProps = MenuItemProps & {
 function NetSuiteMenuWithTopDescriptionForm({value, valueRenderer, ...props}: NetSuiteMenuWithTopDescriptionFormProps) {
     return (
         <MenuItemWithTopDescription
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             title={valueRenderer ? valueRenderer(value) : value}
         />
     );
 }
 
-NetSuiteMenuWithTopDescriptionForm.displayName = 'NetSuiteMenuWithTopDescriptionForm';
 export default NetSuiteMenuWithTopDescriptionForm;

@@ -8,13 +8,10 @@ function OnboardingPersonalDetails({...rest}: OnboardingPersonalDetailsProps) {
         <OnboardingWrapper>
             <BaseOnboardingPersonalDetails
                 shouldUseNativeStyles={false}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
         </OnboardingWrapper>
     );
 }
-
-OnboardingPersonalDetails.displayName = 'OnboardingPurpose';
 
 export default OnboardingPersonalDetails;

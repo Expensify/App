@@ -1,20 +1,25 @@
-import {deepEqual} from 'fast-equals';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import {setInboxTab} from '@libs/actions/User';
 import Log from '@libs/Log';
-import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
-import useCurrentReportID from './useCurrentReportID';
+import {useCurrentReportIDState} from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useDeepCompareRef from './useDeepCompareRef';
 import useLocalize from './useLocalize';
+import useMappedPolicies from './useMappedPolicies';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
+import useReportAttributes from './useReportAttributes';
 import useResponsiveLayout from './useResponsiveLayout';
+
+const componentsUsingHook = new Map<string, {renderDuration: number}>();
 
 type PartialPolicyForSidebar = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
 
@@ -23,31 +28,50 @@ type SidebarOrderedReportsContextProviderProps = {
     currentReportIDForTests?: string;
 };
 
-type SidebarOrderedReportsContextValue = {
-    orderedReports: OnyxTypes.Report[];
+type SidebarOrderedReportsStateContextValue = {
+    /** The reports rendered in the LHN for the active Inbox tab (a filtered subset of orderedReportIDs). */
+    filteredReports: OnyxTypes.Report[];
+    /** All ordered LHN report IDs, unfiltered by the active Inbox tab. Used for total counts (e.g. focus-mode switch) and brick road. */
     orderedReportIDs: string[];
     currentReportID: string | undefined;
-    policyMemberAccountIDs: number[];
+    chatTabBrickRoad: BrickRoad;
+    activeTab: ValueOf<typeof CONST.INBOX_TAB>;
+    inboxTabCounts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>;
 };
 
-type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean}>;
+type SidebarOrderedReportsActionsContextValue = {
+    clearLHNCache: () => void;
+    setActiveTab: (tab: ValueOf<typeof CONST.INBOX_TAB>) => void;
+    setStickyReportID: (reportID: string) => void;
+};
 
-const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextValue>({
-    orderedReports: [],
+type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean; isUnreadReport?: boolean}>;
+
+const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsStateContextValue>({
+    filteredReports: [],
     orderedReportIDs: [],
     currentReportID: '',
-    policyMemberAccountIDs: [],
+    chatTabBrickRoad: undefined,
+    activeTab: CONST.INBOX_TAB.ALL,
+    inboxTabCounts: {
+        [CONST.INBOX_TAB.TODO]: 0,
+        [CONST.INBOX_TAB.UNREAD]: 0,
+    },
 });
 
-const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
+const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
+    clearLHNCache: () => {},
+    setActiveTab: () => {},
+    setStickyReportID: () => {},
+});
+
+const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
     (policy && {
         type: policy.type,
         name: policy.name,
         avatarURL: policy.avatarURL,
         employeeList: policy.employeeList,
     }) as PartialPolicyForSidebar;
-
-const policiesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => mapOnyxCollectionItems(policies, policySelector);
 
 function SidebarOrderedReportsContextProvider({
     children,
@@ -62,66 +86,98 @@ function SidebarOrderedReportsContextProvider({
     currentReportIDForTests,
 }: SidebarOrderedReportsContextProviderProps) {
     const {localeCompare} = useLocalize();
-    const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
-    const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [policies, {sourceValue: policiesUpdates}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
-    const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+    const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [inboxTab = CONST.INBOX_TAB.ALL] = useOnyx(ONYXKEYS.NVP_INBOX_TAB);
+    const activeTab = inboxTab ?? CONST.INBOX_TAB.ALL;
+    const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [, {sourceValue: policiesUpdates}] = useMappedPolicies(policyMapper);
+    const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
-
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {accountID} = useCurrentUserPersonalDetails();
-    const currentReportIDValue = useCurrentReportID();
-    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
+    const {isOffline} = useNetwork();
+    const {accountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
+    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
 
-    const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
+    // we need to force reportsToDisplayInLHN to re-compute when we clear currentReportsToDisplay, but the way it currently works relies on not having currentReportsToDisplay as a memo dependency, so we just need something we can change to trigger it
+    // I don't like it either, but clearing the cache is only a hack for the debug modal and I will endeavor to make it better as I work to improve the cache correctness of the LHN more broadly
+    const [clearCacheDummyCounter, setClearCacheDummyCounter] = useState(0);
+
     const prevBetas = usePrevious(betas);
     const prevPriorityMode = usePrevious(priorityMode);
+    const prevIsOffline = usePrevious(isOffline);
+
+    const perfRef = useRef<{hookDuration: number}>({
+        hookDuration: 0,
+    });
+    const hookStartTime = useRef<number>(performance.now());
 
     /**
      * Find the reports that need to be updated in the LHN
      */
     const getUpdatedReports = useCallback(() => {
-        let reportsToUpdate: string[] = [];
+        const reportsToUpdate = new Set<string>();
 
-        if (betas !== prevBetas || priorityMode !== prevPriorityMode) {
-            reportsToUpdate = Object.keys(chatReports ?? {});
-        } else if (reportUpdates) {
-            reportsToUpdate = Object.keys(reportUpdates ?? {});
-        } else if (reportNameValuePairsUpdates) {
-            reportsToUpdate = Object.keys(reportNameValuePairsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT));
-        } else if (transactionsUpdates) {
-            reportsToUpdate = Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-        } else if (transactionViolationsUpdates) {
-            reportsToUpdate = Object.keys(transactionViolationsUpdates ?? {})
-                .map((key) => key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION))
-                .map((key) => `${ONYXKEYS.COLLECTION.REPORT}${transactions?.[key]?.reportID}`);
-        } else if (reportsDraftsUpdates) {
-            reportsToUpdate = Object.keys(reportsDraftsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ONYXKEYS.COLLECTION.REPORT));
-        } else if (policiesUpdates) {
-            const updatedPolicies = Object.keys(policiesUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
-            reportsToUpdate = Object.entries(chatReports ?? {})
+        if (betas !== prevBetas || priorityMode !== prevPriorityMode || isOffline !== prevIsOffline) {
+            for (const key of Object.keys(chatReports ?? {})) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (reportUpdates) {
+            for (const key of Object.keys(reportUpdates ?? {})) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (reportNameValuePairsUpdates) {
+            for (const key of Object.keys(reportNameValuePairsUpdates ?? {}).map((reportKey) => reportKey.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT))) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (transactionsUpdates) {
+            for (const key of Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`)) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (transactionViolationsUpdates) {
+            for (const key of Object.keys(transactionViolationsUpdates ?? {})
+                .map((violationKey) => violationKey.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION))
+                .map((transactionKey) => `${ONYXKEYS.COLLECTION.REPORT}${transactions?.[transactionKey]?.reportID}`)) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (reportsDraftsUpdates) {
+            for (const key of Object.keys(reportsDraftsUpdates).map((draftKey) => draftKey.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ONYXKEYS.COLLECTION.REPORT))) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (policiesUpdates) {
+            const updatedPolicies = new Set(Object.keys(policiesUpdates).map((policyKey) => policyKey.replace(ONYXKEYS.COLLECTION.POLICY, '')));
+            for (const key of Object.entries(chatReports ?? {})
                 .filter(([, value]) => {
                     if (!value?.policyID) {
                         return;
                     }
 
-                    return updatedPolicies.includes(value.policyID);
+                    return updatedPolicies.has(value.policyID);
                 })
-                .map(([key]) => key);
+                .map(([reportKey]) => reportKey)) {
+                reportsToUpdate.add(key);
+            }
         }
 
         // Make sure the previous and current reports are always included in the updates when we switch reports.
         if (prevDerivedCurrentReportID !== derivedCurrentReportID) {
-            reportsToUpdate.push(`${ONYXKEYS.COLLECTION.REPORT}${prevDerivedCurrentReportID}`, `${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`);
+            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${prevDerivedCurrentReportID}`);
+            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`);
         }
 
-        return reportsToUpdate;
+        return Array.from(reportsToUpdate);
     }, [
         reportUpdates,
         reportNameValuePairsUpdates,
@@ -135,61 +191,136 @@ function SidebarOrderedReportsContextProvider({
         priorityMode,
         prevBetas,
         prevPriorityMode,
+        isOffline,
+        prevIsOffline,
         prevDerivedCurrentReportID,
         derivedCurrentReportID,
     ]);
 
     const reportsToDisplayInLHN = useMemo(() => {
         const updatedReports = getUpdatedReports();
-        const shouldDoIncrementalUpdate = updatedReports.length > 0 && Object.keys(currentReportsToDisplay).length > 0;
+        const hasCachedReports = Object.keys(currentReportsToDisplay).length > 0;
 
+        // When reportAttributes changes (e.g. on startup hydration) but no report-specific keys were
+        // updated, getUpdatedReports() returns []. Rather than falling through to a full scan of all
+        // reports, recheck only the already-displayed reports with the new reportAttributes.
+        const effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
+        const shouldDoIncrementalUpdate = effectiveUpdatedReports.length > 0 && hasCachedReports;
         let reportsToDisplay = {};
-
         if (shouldDoIncrementalUpdate) {
-            reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN(
-                currentReportsToDisplay,
-                chatReports,
-                updatedReports,
-                derivedCurrentReportID,
-                priorityMode === CONST.PRIORITY_MODE.GSD,
+            reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
+                displayedReports: currentReportsToDisplay,
+                reports: chatReports,
+                updatedReportsKeys: effectiveUpdatedReports,
+                currentReportId: derivedCurrentReportID,
+                isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
                 betas,
-                policies,
                 transactionViolations,
                 reportNameValuePairs,
                 reportAttributes,
-            );
+                draftComments: reportsDrafts,
+                transactions,
+                isOffline,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
+            });
         } else {
-            reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN(
-                derivedCurrentReportID,
-                chatReports,
+            Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
+            reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
+                currentReportId: derivedCurrentReportID,
+                reports: chatReports,
                 betas,
-                policies,
                 priorityMode,
+                draftComments: reportsDrafts,
                 transactionViolations,
+                transactions,
+                isOffline,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
                 reportNameValuePairs,
                 reportAttributes,
-            );
+            });
         }
+
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        getUpdatedReports,
+        chatReports,
+        derivedCurrentReportID,
+        priorityMode,
+        betas,
+        transactionViolations,
+        reportNameValuePairs,
+        reportAttributes,
+        reportsDrafts,
+        isOffline,
+        clearCacheDummyCounter,
+        currentUserLogin,
+        accountID,
+    ]);
 
-    const deepComparedReportsToDisplayInLHN = useDeepCompareRef(reportsToDisplayInLHN);
+    // Derive a stable boolean map indicating which reports have drafts.
+    const hasDraftByReportIDRef = useRef<Record<string, boolean>>({});
+    const hasDraftByReportID = useMemo(() => {
+        const result: Record<string, boolean> = {};
+        if (reportsDrafts) {
+            for (const [key, value] of Object.entries(reportsDrafts)) {
+                if (value) {
+                    result[key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, '')] = true;
+                }
+            }
+        }
+        const prev = hasDraftByReportIDRef.current;
+        const prevKeys = Object.keys(prev);
+        const newKeys = Object.keys(result);
+        if (prevKeys.length === newKeys.length && newKeys.every((k) => k in prev)) {
+            return prev;
+        }
+        hasDraftByReportIDRef.current = result;
+        return result;
+    }, [reportsDrafts]);
 
     useEffect(() => {
         setCurrentReportsToDisplay(reportsToDisplayInLHN);
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, reportNameValuePairs, reportAttributes),
+        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, reportAttributes),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [reportsToDisplayInLHN, localeCompare],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [reportsToDisplayInLHN, localeCompare, hasDraftByReportID, reportAttributes],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
-    // Get the actual reports based on the ordered IDs
+
+    // When a report is opened from the To-do/Unread tab (see setStickyReportID), we remember it so it
+    // stays visible after viewing it removes it from the tab (e.g. it gets read). It's only set on a
+    // non-All tab, so opening a chat from the All tab never makes it appear under Unread/To-do.
+    const [stickyReport, setStickyReport] = useState<{reportID: string; tab: ValueOf<typeof CONST.INBOX_TAB>} | undefined>(undefined);
+
+    // The reports for the active tab, plus the sticky report opened from it (kept visible even after it's read).
+    const stickyReportID = stickyReport?.reportID;
+    const stickyReportTab = stickyReport?.tab;
+    const filteredReportIDs = useMemo(() => {
+        const baseFilteredReportIDs = SidebarUtils.filterReportsForInboxTab(orderedReportIDs, reportsToDisplayInLHN, activeTab);
+        if (activeTab === CONST.INBOX_TAB.ALL || !stickyReportID || stickyReportTab !== activeTab || baseFilteredReportIDs.includes(stickyReportID)) {
+            return baseFilteredReportIDs;
+        }
+        if (!orderedReportIDs.includes(stickyReportID)) {
+            // While opening the report, reading it can briefly drop it from the LHN set entirely (before
+            // navigation marks it as the focused report). Keep it at the top so the list doesn't flash empty.
+            return [stickyReportID, ...baseFilteredReportIDs];
+        }
+        const baseSet = new Set(baseFilteredReportIDs);
+        return orderedReportIDs.filter((reportID) => baseSet.has(reportID) || reportID === stickyReportID);
+    }, [orderedReportIDs, reportsToDisplayInLHN, activeTab, stickyReportTab, stickyReportID]);
+
+    // The count shown in each tab's badge, derived from the full "All" set (not the currently filtered view).
+    const inboxTabCounts = useMemo(() => SidebarUtils.getInboxTabCounts(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
+
+    // Get the actual reports based on the filtered IDs
     const getOrderedReports = useCallback(
         (reportIDs: string[]): OnyxTypes.Report[] => {
             if (!chatReports) {
@@ -200,9 +331,34 @@ function SidebarOrderedReportsContextProvider({
         [chatReports],
     );
 
-    const orderedReports = useMemo(() => getOrderedReports(orderedReportIDs), [getOrderedReports, orderedReportIDs]);
+    const filteredReports = useMemo(() => getOrderedReports(filteredReportIDs), [getOrderedReports, filteredReportIDs]);
 
-    const contextValue: SidebarOrderedReportsContextValue = useMemo(() => {
+    const clearLHNCache = useCallback(() => {
+        Log.info('[useSidebarOrderedReports] Clearing sidebar cache manually via debug modal');
+        setCurrentReportsToDisplay({});
+        setClearCacheDummyCounter((current) => current + 1);
+    }, []);
+
+    const setActiveTab = useCallback((tab: ValueOf<typeof CONST.INBOX_TAB>) => {
+        setInboxTab(tab);
+
+        // The sticky report is scoped to the tab it was opened from, so reset it when switching tabs.
+        setStickyReport(undefined);
+    }, []);
+
+    // Called when a report is opened from the LHN. On the To-do/Unread tabs we remember it so it stays
+    // visible after viewing it removes it from the tab. On the All tab we keep nothing sticky.
+    const setStickyReportID = useCallback(
+        (reportID: string) => {
+            if (activeTab === CONST.INBOX_TAB.ALL) {
+                return;
+            }
+            setStickyReport({reportID, tab: activeTab});
+        },
+        [activeTab],
+    );
+
+    const stateValue: SidebarOrderedReportsStateContextValue = useMemo(() => {
         // We need to make sure the current report is in the list of reports, but we do not want
         // to have to re-generate the list every time the currentReportID changes. To do that
         // we first generate the list as if there was no current report, then we check if
@@ -210,114 +366,116 @@ function SidebarOrderedReportsContextProvider({
         // case we re-generate the list a 2nd time with the current report included.
 
         // We also execute the following logic if `shouldUseNarrowLayout` is false because this is
-        // requirement for web and desktop. Consider a case, where we have report with expenses and we click on
-        // any expense, a new LHN item is added in the list and is visible on web and desktop. But on mobile, we
+        // requirement for web. Consider a case, where we have report with expenses and we click on
+        // any expense, a new LHN item is added in the list and is visible on web. But on mobile, we
         // just navigate to the screen with expense details, so there seems no point to execute this logic on mobile.
+        // Only the "All" tab force-regenerates to surface the current report. On the To-do/Unread tabs the
+        // sticky-aware filteredReportIDs already keeps the opened report visible, and re-filtering here
+        // (without the sticky report) would briefly empty the list while opening it.
         if (
-            (!shouldUseNarrowLayout || orderedReportIDs.length === 0) &&
+            activeTab === CONST.INBOX_TAB.ALL &&
+            (!shouldUseNarrowLayout || filteredReportIDs.length === 0) &&
             derivedCurrentReportID &&
             derivedCurrentReportID !== '-1' &&
-            orderedReportIDs.indexOf(derivedCurrentReportID) === -1
+            filteredReportIDs.indexOf(derivedCurrentReportID) === -1
         ) {
             const updatedReportIDs = getOrderedReportIDs();
-            const updatedReports = getOrderedReports(updatedReportIDs);
+            const updatedFilteredIDs = SidebarUtils.filterReportsForInboxTab(updatedReportIDs, reportsToDisplayInLHN, activeTab);
+            const updatedReports = getOrderedReports(updatedFilteredIDs);
             return {
-                orderedReports: updatedReports,
+                filteredReports: updatedReports,
                 orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
-                policyMemberAccountIDs,
+                chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, reportAttributes),
+                activeTab,
+                inboxTabCounts,
             };
         }
 
         return {
-            orderedReports,
+            filteredReports,
             orderedReportIDs,
             currentReportID: derivedCurrentReportID,
-            policyMemberAccountIDs,
+            chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, reportAttributes),
+            activeTab,
+            inboxTabCounts,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
-
-    const currentDeps = {
-        priorityMode,
-        chatReports,
-        policies,
-        transactions,
-        transactionViolations,
-        reportNameValuePairs,
-        betas,
-        reportAttributes,
-        currentReportsToDisplay,
-        shouldUseNarrowLayout,
-        accountID,
-        currentReportIDValue,
-        derivedCurrentReportID,
-        prevDerivedCurrentReportID,
-        policyMemberAccountIDs,
-        prevBetas,
-        prevPriorityMode,
-        reportsToDisplayInLHN,
+    }, [
+        getOrderedReportIDs,
         orderedReportIDs,
-        orderedReports,
-    };
-    const prevContextValue = usePrevious(contextValue);
-    const previousDeps = usePrevious(currentDeps);
-    const firstRender = useRef(true);
+        filteredReportIDs,
+        derivedCurrentReportID,
+        shouldUseNarrowLayout,
+        getOrderedReports,
+        filteredReports,
+        reportAttributes,
+        activeTab,
+        inboxTabCounts,
+        reportsToDisplayInLHN,
+    ]);
+
+    const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache, setActiveTab, setStickyReportID}), [clearLHNCache, setActiveTab, setStickyReportID]);
 
     useEffect(() => {
-        // Cases below ensure we only log when the edge case (empty -> non-empty or non-empty -> empty) happens.
-        // This is done to avoid excessive logging when the orderedReports array is updated, but does not impact LHN.
+        const hookExecutionDuration = performance.now() - hookStartTime.current;
+        perfRef.current.hookDuration = hookExecutionDuration;
+    }, [stateValue]);
 
-        // Case 1: orderedReports goes from empty to non-empty
-        if (contextValue.orderedReports.length > 0 && prevContextValue?.orderedReports.length === 0) {
-            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from empty to non-empty', currentDeps, previousDeps);
+    return (
+        <SidebarOrderedReportsStateContext.Provider value={stateValue}>
+            <SidebarOrderedReportsActionsContext.Provider value={actionsValue}>{children}</SidebarOrderedReportsActionsContext.Provider>
+        </SidebarOrderedReportsStateContext.Provider>
+    );
+}
+
+function useSidebarOrderedReportsState(componentName?: string) {
+    useSidebarOrderedReportsPerformance(componentName);
+    return useContext(SidebarOrderedReportsStateContext);
+}
+
+function useSidebarOrderedReportsActions() {
+    return useContext(SidebarOrderedReportsActionsContext);
+}
+
+function useSidebarOrderedReports(componentName?: string) {
+    const state = useSidebarOrderedReportsState(componentName);
+    const actions = useSidebarOrderedReportsActions();
+    return {...state, ...actions};
+}
+
+function useSidebarOrderedReportsPerformance(componentName?: string) {
+    const renderStartTime = useRef<number>(0);
+
+    useEffect(() => {
+        if (!componentName) {
+            return;
         }
-        // Case 2: orderedReports goes from non-empty to empty
-        if (contextValue.orderedReports.length === 0 && prevContextValue?.orderedReports.length > 0) {
-            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from non-empty to empty', currentDeps, previousDeps);
+
+        componentsUsingHook.set(componentName, {renderDuration: 0});
+
+        return () => {
+            componentsUsingHook.delete(componentName);
+        };
+    }, [componentName]);
+
+    useEffect(() => {
+        if (!componentName) {
+            return;
         }
 
-        // Case 3: orderedReports are empty from the beginning
-        if (firstRender.current && contextValue.orderedReports.length === 0) {
-            logChangedDeps('[useSidebarOrderedReports] Ordered reports initialized empty', currentDeps, previousDeps);
-        }
+        renderStartTime.current = performance.now();
 
-        firstRender.current = false;
-    });
-
-    return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
+        return () => {
+            const renderDuration = performance.now() - renderStartTime.current;
+            const currentData = componentsUsingHook.get(componentName);
+            if (currentData) {
+                componentsUsingHook.set(componentName, {
+                    renderDuration,
+                });
+            }
+        };
+    }, [componentName]);
 }
 
-function useSidebarOrderedReports() {
-    return useContext(SidebarOrderedReportsContext);
-}
-
-export {SidebarOrderedReportsContext, SidebarOrderedReportsContextProvider, useSidebarOrderedReports};
-export type {PartialPolicyForSidebar, ReportsToDisplayInLHN};
-
-function getChangedKeys<T extends Record<string, unknown>>(deps: T, prevDeps: T) {
-    const depsKeys = Object.keys(deps);
-
-    return depsKeys.filter((depKey) => !deepEqual(deps[depKey], prevDeps[depKey]));
-}
-
-function logChangedDeps<T extends Record<string, unknown>>(msg: string, deps: T, prevDeps: T) {
-    const startTime = performance.now();
-    const changedDeps = getChangedKeys(deps, prevDeps);
-    const parsedDeps = parseDepsForLogging(deps);
-    const processingDuration = performance.now() - startTime;
-    Log.info(msg, false, {
-        deps: parsedDeps,
-        changedDeps,
-        processingDuration,
-    });
-}
-
-/**
- * @param deps - The dependencies to parse.
- * @returns A simplified object with light-weight values.
- */
-function parseDepsForLogging<T extends Record<string, unknown>>(deps: T) {
-    // If object or array, return the keys' length
-    // If primitive, return the value
-    return Object.fromEntries(Object.entries(deps).map(([key, value]) => [key, typeof value === 'object' && value !== null ? Object.keys(value).length : value]));
-}
+export {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
+export type {ReportsToDisplayInLHN};

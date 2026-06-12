@@ -1,3 +1,5 @@
+import type {Receipt} from '@src/types/onyx/Transaction';
+
 type CreateDistanceRequestParams = {
     transactionID: string;
     chatReportID: string;
@@ -10,7 +12,9 @@ type CreateDistanceRequestParams = {
     iouReportID?: string;
     createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
+    amount?: number;
     category?: string;
+    receipt?: Receipt;
     tag?: string;
     taxCode?: string;
     taxAmount?: number;
@@ -24,6 +28,14 @@ type CreateDistanceRequestParams = {
     description?: string;
     attendees?: string;
     distance?: number;
+    odometerStart?: number;
+    odometerEnd?: number;
+    gpsCoordinates?: string;
+    distanceRequestType?: string;
+    customUnitPolicyID?: string;
+
+    /** When true, the backend defers auto-submit so batch expense creation (e.g. duplicate report) can finish before the report is submitted */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 export default CreateDistanceRequestParams;

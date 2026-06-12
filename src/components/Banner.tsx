@@ -1,6 +1,7 @@
 import React, {memo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -11,7 +12,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -53,17 +53,21 @@ type BannerProps = {
 
     /** Callback called when pressing the button */
     onButtonPress?: () => void;
+
+    /** Custom action content rendered in the right side of the banner. Overrides the configured `shouldShowButton` when provided. */
+    children?: React.ReactNode;
 };
 
 function Banner({
     text,
     content,
-    icon = Expensicons.Exclamation,
+    icon,
     onClose,
     onPress,
     onButtonPress,
     containerStyles,
     textStyles,
+    children,
     shouldRenderHTML = false,
     shouldShowIcon = false,
     shouldShowCloseButton = false,
@@ -73,6 +77,9 @@ function Banner({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Close']);
+
+    const displayIcon = icon ?? expensifyIcons.Exclamation;
 
     return (
         <Hoverable>
@@ -92,10 +99,10 @@ function Banner({
                         ]}
                     >
                         <View style={[styles.flexRow, styles.flex1, styles.mw100, styles.alignItemsCenter]}>
-                            {shouldShowIcon && !!icon && (
+                            {shouldShowIcon && !!displayIcon && (
                                 <View style={[styles.mr3]}>
                                     <Icon
-                                        src={icon}
+                                        src={displayIcon}
                                         fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))}
                                     />
                                 </View>
@@ -115,23 +122,25 @@ function Banner({
                                     </Text>
                                 ))}
                         </View>
-                        {shouldShowButton && (
-                            <Button
-                                success
-                                style={[styles.pr3]}
-                                text={translate('common.chatNow')}
-                                onPress={onButtonPress}
-                            />
-                        )}
+                        {children ??
+                            (shouldShowButton && (
+                                <Button
+                                    success
+                                    style={[styles.ph3]}
+                                    text={translate('common.chatNow')}
+                                    onPress={onButtonPress}
+                                />
+                            ))}
                         {shouldShowCloseButton && !!onClose && (
                             <Tooltip text={translate('common.close')}>
                                 <PressableWithFeedback
                                     onPress={onClose}
                                     role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={translate('common.close')}
+                                    accessibilityLabel={text ? `${translate('common.close')}, ${text}` : translate('common.close')}
+                                    sentryLabel="Banner-Close"
                                 >
                                     <Icon
-                                        src={Expensicons.Close}
+                                        src={expensifyIcons.Close}
                                         fill={theme.icon}
                                     />
                                 </PressableWithFeedback>
@@ -143,8 +152,6 @@ function Banner({
         </Hoverable>
     );
 }
-
-Banner.displayName = 'Banner';
 
 export default memo(Banner);
 

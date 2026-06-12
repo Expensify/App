@@ -7,11 +7,14 @@ import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountI
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
+import type {PaymentActionParams} from '@components/SettlementButton/types';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString, convertToFrontendAmountAsInteger, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
+import {isTaxAmountInvalid} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
@@ -22,7 +25,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
 
-type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldShowBigNumberPad'> & {
+type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldShowBigNumberPad' | 'onFormatAmount'> & {
     /** Calculated tax amount based on selected tax rate */
     taxAmount?: number;
 
@@ -47,13 +50,32 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
 
+    /** Whether to allow flipping the amount */
+    allowFlippingAmount?: boolean;
+
     /** The chatReportID of the request */
     chatReportID?: string;
+
+    /** Whether this is a P2P (1:1) request */
+    isP2P?: boolean;
 };
 
-const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
-const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
-    isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
+const nonZeroExpenses = new Set<ValueOf<typeof CONST.IOU.TYPE>>([CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.INVOICE, CONST.IOU.TYPE.SPLIT]);
+const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>, isP2P: boolean) => {
+    if (!amount.length || parseFloat(amount) < 0) {
+        return true;
+    }
+
+    if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && parseFloat(amount) < 0.01 && isP2P) {
+        return true;
+    }
+
+    if (parseFloat(amount) < 0.01 && nonZeroExpenses.has(iouType)) {
+        return true;
+    }
+
+    return false;
+};
 
 /**
  * Wrapper around MoneyRequestAmountInput with money request flow-specific logics.
@@ -73,58 +95,98 @@ function MoneyRequestAmountForm({
     shouldKeepUserInput = false,
     chatReportID,
     hideCurrencySymbol = false,
+    allowFlippingAmount = false,
+    isP2P = false,
     ref,
 }: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
+
+    const [isNegative, setIsNegative] = useState(false);
 
     const [formError, setFormError] = useState<string>('');
 
     const formattedTaxAmount = convertToDisplayString(Math.abs(taxAmount), currency);
 
-    const initializeAmount = useCallback(
-        (newAmount: number) => {
-            const frontendAmount = newAmount ? convertToFrontendAmountAsString(newAmount, currency) : '';
-            moneyRequestAmountInputRef.current?.updateNumber(frontendAmount);
+    const absoluteAmount = Math.abs(amount);
+
+    const onFormatAmount = useCallback(
+        (amountAsInt: number, currencyParam?: string) => {
+            const decimals = getCurrencyDecimals(currencyParam);
+            return convertToFrontendAmountAsString(amountAsInt, decimals);
         },
-        [currency],
+        [getCurrencyDecimals],
     );
 
-    useEffect(() => {
-        if (!currency || typeof amount !== 'number') {
+    const initializeAmount = useCallback(
+        (newAmount: number) => {
+            const frontendAmount = newAmount ? onFormatAmount(newAmount, currency) : '';
+            moneyRequestAmountInputRef.current?.updateNumber(frontendAmount);
+        },
+        [currency, onFormatAmount],
+    );
+
+    const toggleNegative = useCallback(() => {
+        setIsNegative(!isNegative);
+    }, [isNegative]);
+
+    const clearNegative = useCallback(() => {
+        setIsNegative(false);
+    }, []);
+
+    const initializeIsNegative = useCallback((currentAmount: number) => {
+        if (currentAmount >= 0) {
+            setIsNegative(false);
             return;
         }
-        initializeAmount(amount);
+        setIsNegative(true);
+    }, []);
+
+    useEffect(() => {
+        initializeIsNegative(amount);
+    }, [amount, initializeIsNegative]);
+
+    useEffect(() => {
+        if (!currency || typeof absoluteAmount !== 'number') {
+            return;
+        }
+
+        initializeAmount(absoluteAmount);
+        initializeIsNegative(amount);
+
         // we want to re-initialize the state only when the selected tab
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTab]);
 
     /**
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(
-        (iouPaymentType?: PaymentMethodType | undefined) => {
-            const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
+        ({paymentType: iouPaymentType}: PaymentActionParams = {}) => {
+            const isTaxAmountForm = Navigation.getActiveRouteWithoutParams().includes('taxAmount');
 
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
-            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
+            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isP2P))) {
                 setFormError(translate('iou.error.invalidAmount'));
                 return;
             }
 
-            if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm, currency)) {
-                setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
+            if (isTaxAmountForm && isTaxAmountInvalid(currentAmount, taxAmount, getCurrencyDecimals(currency))) {
+                setFormError(translate('iou.error.invalidTaxAmount', formattedTaxAmount));
                 return;
             }
 
-            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
+            const newAmount = isNegative ? `-${currentAmount}` : currentAmount;
+
+            onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
+        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P, getCurrencyDecimals],
     );
 
     const buttonText: string = useMemo(() => {
@@ -150,7 +212,7 @@ function MoneyRequestAmountForm({
                     <SettlementButton
                         pressOnEnter
                         onPress={submitAndNavigateToNextPage}
-                        enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                         addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                         currency={currency ?? CONST.CURRENCY.USD}
                         policyID={policyID}
@@ -167,6 +229,7 @@ function MoneyRequestAmountForm({
                         shouldShowPersonalBankAccountOption
                         enterKeyEventListenerPriority={1}
                         chatReportID={chatReportID}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_PAY_BUTTON}
                     />
                 ) : (
                     <Button
@@ -180,6 +243,7 @@ function MoneyRequestAmountForm({
                         onPress={() => submitAndNavigateToNextPage()}
                         text={buttonText}
                         testID="next-button"
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_NEXT_BUTTON}
                     />
                 )}
             </View>
@@ -208,8 +272,10 @@ function MoneyRequestAmountForm({
                 autoGrowExtraSpace={variables.w80}
                 hideCurrencySymbol={hideCurrencySymbol}
                 currency={currency}
+                shouldUseDynamicFontSize
                 isCurrencyPressable={isCurrencyPressable}
                 onCurrencyButtonPress={onCurrencyButtonPress}
+                onFormatAmount={onFormatAmount}
                 onAmountChange={() => {
                     if (!formError) {
                         return;
@@ -232,6 +298,10 @@ function MoneyRequestAmountForm({
                 containerStyle={styles.iouAmountTextInputContainer}
                 touchableInputWrapperStyle={styles.heightUndefined}
                 testID="moneyRequestAmountInput"
+                isNegative={isNegative}
+                allowFlippingAmount={allowFlippingAmount}
+                toggleNegative={toggleNegative}
+                clearNegative={clearNegative}
                 errorText={formError}
                 footer={footer}
             />
@@ -239,7 +309,5 @@ function MoneyRequestAmountForm({
     );
 }
 
-MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
-
 export default MoneyRequestAmountForm;
-export type {CurrentMoney, MoneyRequestAmountFormProps};
+export type {CurrentMoney};

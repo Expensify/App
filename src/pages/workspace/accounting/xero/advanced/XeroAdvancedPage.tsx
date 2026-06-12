@@ -8,8 +8,10 @@ import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentXeroOrganizationName, settingsPendingAction} from '@libs/PolicyUtils';
+import TravelInvoicingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelInvoicingContinuousReconciliationSection';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -17,7 +19,7 @@ import {updateXeroSyncSyncReimbursedReports} from '@userActions/connections/Xero
 import {clearXeroErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -51,7 +53,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={XeroAdvancedPage.displayName}
+            displayName="XeroAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             headerSubtitle={currentXeroOrganizationName}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -66,7 +68,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     description={translate('workspace.accounting.autoSync')}
                     shouldShowRightIcon
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID))}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path))}
                     brickRoadIndicator={
                         areSettingsInErrorFields([CONST.XERO_CONFIG.AUTO_SYNC, CONST.XERO_CONFIG.ACCOUNTING_METHOD], xeroConfig?.errorFields)
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
@@ -92,6 +94,12 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 pendingAction={settingsPendingAction([CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS], pendingFields)}
                 errors={getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}
                 onCloseError={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}
+            />
+            <TravelInvoicingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+                isAutoSyncEnabled={!!xeroConfig?.autoSync?.enabled}
+                toggleWrapperStyle={styles.mv3}
             />
             <Accordion
                 isExpanded={isAccordionExpanded}
@@ -127,7 +135,5 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
         </ConnectionLayout>
     );
 }
-
-XeroAdvancedPage.displayName = 'XeroAdvancedPage';
 
 export default withPolicyConnections(XeroAdvancedPage);

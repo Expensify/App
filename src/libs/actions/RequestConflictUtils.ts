@@ -1,14 +1,14 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
-import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
+import type {DetachReceiptParams, OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {ConflictActionData} from '@src/types/onyx/Request';
+import type {AnyRequest, ConflictActionData} from '@src/types/onyx/Request';
 
-type RequestMatcher = (request: OnyxRequest) => boolean;
+type AnyRequestMatcher = (request: AnyRequest) => boolean;
 
 const addNewMessage = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 
@@ -26,6 +26,7 @@ const enablePolicyFeatureCommand = [
     WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
     WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
     WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
+    WRITE_COMMANDS.ENABLE_POLICY_HR,
     WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS,
     WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
     WRITE_COMMANDS.ENABLE_POLICY_TAGS,
@@ -34,12 +35,14 @@ const enablePolicyFeatureCommand = [
     WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
     WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
     WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
+    WRITE_COMMANDS.ENABLE_POLICY_TRAVEL,
+    WRITE_COMMANDS.ENABLE_POLICY_TIME_TRACKING,
 ] as const;
 
 type EnablePolicyFeatureCommand = TupleToUnion<typeof enablePolicyFeatureCommand>;
 
 function createUpdateCommentMatcher(reportActionID: string) {
-    return function (request: OnyxRequest) {
+    return function (request: AnyRequest) {
         return request.command === WRITE_COMMANDS.UPDATE_COMMENT && request.data?.reportActionID === reportActionID;
     };
 }
@@ -51,7 +54,7 @@ function createUpdateCommentMatcher(reportActionID: string) {
  * - If no match is found, it suggests adding the request to the list, indicating a 'push' action.
  * - If a match is found, it suggests updating the existing entry, indicating a 'replace' action at the found index.
  */
-function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], requestMatcher: RequestMatcher): ConflictActionData {
+function resolveDuplicationConflictAction(persistedRequests: AnyRequest[], requestMatcher: AnyRequestMatcher): ConflictActionData {
     const index = persistedRequests.findIndex(requestMatcher);
     if (index === -1) {
         return {
@@ -69,12 +72,29 @@ function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], requ
     };
 }
 
-function resolveOpenReportDuplicationConflictAction(persistedRequests: OnyxRequest[], parameters: OpenReportParams): ConflictActionData {
+function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: OpenReportParams): ConflictActionData {
     for (let index = 0; index < persistedRequests.length; index++) {
         const request = persistedRequests.at(index);
-        if (request && request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === parameters.reportID && request.data?.emailList === parameters.emailList) {
+        if (request?.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === parameters.reportID && request.data?.emailList === parameters.emailList) {
             // If the previous request had guided setup data, we can safely ignore the new request
             if (request.data.guidedSetupData) {
+                return {
+                    conflictAction: {
+                        type: 'noAction',
+                    },
+                };
+            }
+
+            // The queued request carries the participants needed to create the optimistic chat on the
+            // server (e.g. from navigateToAndOpenReportWithAccountIDs). A follow-up OpenReport fired by
+            // ReportFetchHandler when the screen mounts has no participants. Replacing would drop the
+            // accountIDList, leaving the server with no way to resolve the optimistic reportID — Auth
+            // returns NIL reportSummary and PHP throws "Report not found" (da7984df).
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const queuedHasParticipants = !!(request.data?.emailList || request.data?.accountIDList);
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const newHasParticipants = !!(parameters.emailList || parameters.accountIDList);
+            if (queuedHasParticipants && !newHasParticipants) {
                 return {
                     conflictAction: {
                         type: 'noAction',
@@ -100,22 +120,22 @@ function resolveOpenReportDuplicationConflictAction(persistedRequests: OnyxReque
     };
 }
 
-function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], reportActionID: string, originalReportID: string): ConflictActionData {
+function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, reportActionID: string, originalReportID: string): ConflictActionData {
     const commentIndicesToDelete: number[] = [];
     const commentCouldBeThread: Record<string, number> = {};
     let addCommentFound = false;
-    persistedRequests.forEach((request, index) => {
+    for (const [index, request] of persistedRequests.entries()) {
         // If the request will open a Thread, we should not delete the comment and we should send all the requests
         if (request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.parentReportActionID === reportActionID && reportActionID in commentCouldBeThread) {
             const indexToRemove = commentCouldBeThread[reportActionID];
             commentIndicesToDelete.splice(indexToRemove, 1);
             // The new message performs some changes in Onyx, we want to keep those changes.
             addCommentFound = false;
-            return;
+            continue;
         }
 
         if (!commentsToBeDeleted.has(request.command) || request.data?.reportActionID !== reportActionID) {
-            return;
+            continue;
         }
 
         // If we find a new message, we probably want to remove it and not perform any request given that the server
@@ -125,7 +145,7 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
             commentCouldBeThread[reportActionID] = commentIndicesToDelete.length;
         }
         commentIndicesToDelete.push(index);
-    });
+    }
 
     if (commentIndicesToDelete.length === 0) {
         return {
@@ -137,7 +157,7 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
 
     if (addCommentFound) {
         // The new message performs some changes in Onyx, so we need to rollback those changes.
-        const rollbackData: OnyxUpdate[] = [
+        const rollbackData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
@@ -158,14 +178,19 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
     };
 }
 
-function resolveEditCommentWithNewAddCommentRequest(persistedRequests: OnyxRequest[], parameters: UpdateCommentParams, reportActionID: string, addCommentIndex: number): ConflictActionData {
+function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
+    persistedRequests: Array<OnyxRequest<TKey>>,
+    parameters: UpdateCommentParams,
+    reportActionID: string,
+    addCommentIndex: number,
+): ConflictActionData {
     const indicesToDelete: number[] = [];
-    persistedRequests.forEach((request, index) => {
+    for (const [index, request] of persistedRequests.entries()) {
         if (request.command !== WRITE_COMMANDS.UPDATE_COMMENT || request.data?.reportActionID !== reportActionID) {
-            return;
+            continue;
         }
         indicesToDelete.push(index);
-    });
+    }
 
     const currentAddComment = persistedRequests.at(addCommentIndex);
     let nextAction = null;
@@ -194,9 +219,9 @@ function resolveEditCommentWithNewAddCommentRequest(persistedRequests: OnyxReque
     } as ConflictActionData;
 }
 
-function resolveEnableFeatureConflicts(
+function resolveEnableFeatureConflicts<TKey extends OnyxKey>(
     command: EnablePolicyFeatureCommand,
-    persistedRequests: OnyxRequest[],
+    persistedRequests: Array<OnyxRequest<TKey>>,
     parameters: ApiRequestCommandParameters[EnablePolicyFeatureCommand],
 ): ConflictActionData {
     const deleteRequestIndex = persistedRequests.findIndex(
@@ -220,6 +245,38 @@ function resolveEnableFeatureConflicts(
     };
 }
 
+function resolveDetachReceiptConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: DetachReceiptParams): ConflictActionData {
+    const indicesToDelete: number[] = [];
+    for (const [index, request] of persistedRequests.entries()) {
+        if (request.command !== WRITE_COMMANDS.REPLACE_RECEIPT || request.data?.transactionID !== parameters.transactionID) {
+            continue;
+        }
+        indicesToDelete.push(index);
+    }
+
+    // In the case the transaction doesn't have the receipt, remove all the replace receipt requests will make the detach receipt request invalid
+    // So we should keep the last replace receipt request to ensure the detach receipt request is always valid
+    if (indicesToDelete.length >= 1) {
+        indicesToDelete.pop();
+    }
+
+    if (indicesToDelete.length === 0) {
+        return {
+            conflictAction: {
+                type: 'push',
+            },
+        };
+    }
+
+    return {
+        conflictAction: {
+            type: 'delete',
+            indices: indicesToDelete,
+            pushNewRequest: true,
+        },
+    };
+}
+
 export {
     resolveDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
@@ -228,6 +285,7 @@ export {
     createUpdateCommentMatcher,
     resolveEnableFeatureConflicts,
     enablePolicyFeatureCommand,
+    resolveDetachReceiptConflicts,
 };
 
-export type {EnablePolicyFeatureCommand, RequestMatcher};
+export type {EnablePolicyFeatureCommand, AnyRequestMatcher};

@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import {getFieldRequiredErrors, isValidDisplayName} from '@libs/ValidationUtils';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
@@ -25,13 +27,14 @@ function KnowATeacherPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
-        const phoneLogin = getPhoneLogin(values.partnerUserID);
+        const phoneLogin = getPhoneLogin(values.partnerUserID, countryCode);
         const validateIfNumber = validateNumber(phoneLogin);
         const contactMethod = (validateIfNumber || values.partnerUserID).trim().toLowerCase();
         const firstName = values.firstName.trim();
@@ -39,7 +42,7 @@ function KnowATeacherPage() {
 
         const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
         const publicRoomReportID = isProduction ? CONST.TEACHERS_UNITE.PROD_PUBLIC_ROOM_ID : CONST.TEACHERS_UNITE.TEST_PUBLIC_ROOM_ID;
-        TeachersUnite.referTeachersUniteVolunteer(contactMethod, firstName, lastName, policyID, publicRoomReportID);
+        TeachersUnite.referTeachersUniteVolunteer(contactMethod, firstName, lastName, policyID, publicRoomReportID, currentUserAccountID);
     };
 
     /**
@@ -47,33 +50,19 @@ function KnowATeacherPage() {
      */
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.FIRST_NAME, INPUT_IDS.LAST_NAME]);
-            const phoneLogin = getPhoneLogin(values.partnerUserID);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.FIRST_NAME, INPUT_IDS.LAST_NAME], translate);
+            const phoneLogin = getPhoneLogin(values.partnerUserID, countryCode);
             const validateIfNumber = validateNumber(phoneLogin);
 
             if (!isValidDisplayName(values.firstName)) {
                 addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
             } else if (values.firstName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(
-                    errors,
-                    'firstName',
-                    translate('common.error.characterLimitExceedCounter', {
-                        length: values.firstName.length,
-                        limit: CONST.NAME.MAX_LENGTH,
-                    }),
-                );
+                addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.NAME.MAX_LENGTH));
             }
             if (!isValidDisplayName(values.lastName)) {
                 addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
             } else if (values.lastName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(
-                    errors,
-                    'lastName',
-                    translate('common.error.characterLimitExceedCounter', {
-                        length: values.lastName.length,
-                        limit: CONST.NAME.MAX_LENGTH,
-                    }),
-                );
+                addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.NAME.MAX_LENGTH));
             }
             if (!values.partnerUserID) {
                 addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterPhoneEmail'));
@@ -87,13 +76,13 @@ function KnowATeacherPage() {
 
             return errors;
         },
-        [loginList, translate],
+        [countryCode, loginList, translate],
     );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={KnowATeacherPage.displayName}
+            testID="KnowATeacherPage"
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iKnowATeacher')}
@@ -117,6 +106,7 @@ function KnowATeacherPage() {
                         accessibilityLabel={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
+                        autoComplete="given-name"
                     />
                 </View>
                 <View style={styles.mv4}>
@@ -128,6 +118,7 @@ function KnowATeacherPage() {
                         accessibilityLabel={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
+                        autoComplete="family-name"
                     />
                 </View>
                 <View>
@@ -146,7 +137,5 @@ function KnowATeacherPage() {
         </ScreenWrapper>
     );
 }
-
-KnowATeacherPage.displayName = 'KnowATeacherPage';
 
 export default KnowATeacherPage;

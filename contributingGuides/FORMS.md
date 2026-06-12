@@ -19,6 +19,25 @@ Any form input needs to be wrapped in [InputWrapper](https://github.com/Expensif
 />
 ```
 
+### Checkbox Inputs
+
+When using `CheckboxWithLabel` in a form, it should be wrapped with `InputWrapper` just like other form inputs. The `CheckboxWithLabel` component automatically handles controlled/uncontrolled behavior when used with `FormProvider`:
+
+- When used within a `FormProvider`, the `value` prop is automatically provided by `InputWrapper`, making the checkbox a controlled component
+- The checkbox will always synchronize with the form's state, ensuring the visual state matches the actual form value
+- This prevents issues where the checkbox state could diverge from the form state during validation or state updates
+
+```jsx
+<InputWrapper
+    InputComponent={CheckboxWithLabel}
+    inputID={INPUT_IDS.ACCEPT_TERMS}
+    label="I accept the Terms of Service"
+/>
+```
+
+> [!NOTE]
+> The `CheckboxWithLabel` component prioritizes the `value` prop (provided by `FormProvider`) over internal state when the `value` prop is defined. This ensures proper synchronization between the checkbox's visual state and the form's actual state, preventing scenarios where a checkbox might appear unchecked even though the form state indicates it should be checked.
+
 ### Labels, Placeholders, & Hints
 
 Labels are required for each input and should clearly mark the field. Optional text may appear below a field when a hint, suggestion, or context feels necessary. If validation fails on such a field, its error should clearly explain why without relying on the hint. Inline errors should always replace the microcopy hints. Placeholders should not be used as it’s customary for labels to appear inside form fields and animate them above the field when focused.
@@ -161,7 +180,7 @@ For a working example, check [Form story](https://github.com/Expensify/App/blob/
 
 ### Character Limits
 
-If a field has a character limit, we should give that field a max limit. This is done by passing the character limit validation in the validate function.
+If a field has a character limit, we should give that field a max limit. This is done by passing the character limit validation in the validate function. Our general guidelines for character limits are 100 characters for titles/names and 500 characters for supporting/description messages. If a field has a specific need for a different limit, that is fine. Otherwise, please follow the guidelines for consistency.
 
 Here's an example for a form that has one input `name`, and has character limit of 100:
 
@@ -169,7 +188,7 @@ Here's an example for a form that has one input `name`, and has character limit 
 function validate(values) {
     const errors = {};
     if (values.name.length > 100) {
-        ErrorUtils.addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: values.name.length, limit: 100}));
+        ErrorUtils.addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', values.name.length, 100));
     }
     return errors;
 }
@@ -328,6 +347,43 @@ In order for Form to track the nested values properly, each field must have a un
 To generate these unique keys, use `Str.guid()`.
 
 An example of this can be seen in the [ACHContractStep](https://github.com/Expensify/App/blob/f2973f88cfc0d36c0dbe285201d3ed5e12f29d87/src/pages/ReimbursementAccount/ACHContractStep.js), where each key is stored in an array in state, and IdentityForms are dynamically rendered based on which keys are present in the array.
+
+### Keyboard Dismissal on Submit
+
+By default, `FormProvider` waits for the keyboard to fully dismiss before calling `onSubmit`. This is controlled by the `keyboardSubmitBehavior` prop (defaults to `'dismiss-then-submit'`).
+
+On some platforms, this default behavior causes visual glitches when the form's `onSubmit` triggers navigation (e.g. `Navigation.goBack()`), because `KeyboardAvoidingView` removes its keyboard offset before the screen finishes unmounting — making the submit button appear to float briefly.
+
+The prop accepts three values:
+
+| Value | Behavior | Best for |
+|---|---|---|
+| `'dismiss-then-submit'` | Waits for keyboard to fully dismiss, then calls `onSubmit` | Forms that stay on-screen after submission |
+| `'submit-and-dismiss'` | Calls `onSubmit` immediately via `dismissKeyboardAndExecute` | iOS native / web forms that navigate on submit |
+| `'submit-only'` | Calls `onSubmit` immediately, no keyboard dismissal | Android native forms that navigate on submit (navigation handles keyboard cleanup) |
+
+Since the correct value is platform-specific, use a platform-specific constant file to export the appropriate value:
+
+```
+myFeature/keyboardSubmitBehavior/
+├── index.ts           → 'submit-and-dismiss'  (web + iOS native)
+└── index.android.ts   → 'submit-only'          (Android native)
+```
+
+```jsx
+import KEYBOARD_SUBMIT_BEHAVIOR from './keyboardSubmitBehavior';
+
+<FormProvider
+    formID="myForm"
+    onSubmit={onSubmit}
+    keyboardSubmitBehavior={KEYBOARD_SUBMIT_BEHAVIOR}
+>
+    {/* form inputs */}
+</FormProvider>
+```
+
+> [!NOTE]
+> Only override `keyboardSubmitBehavior` on screens where `onSubmit` triggers navigation. For forms that stay on-screen after submission, keep the default (`'dismiss-then-submit'`) to avoid layout jumps.
 
 ### Safe Area Padding
 

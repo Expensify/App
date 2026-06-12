@@ -5,6 +5,7 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
@@ -24,6 +25,9 @@ type FeatureListProps = {
     /** The text to display in the subtitle of the section */
     subtitle?: string;
 
+    /** The component to display custom subtitle */
+    renderSubtitle?: () => ReactNode;
+
     /** Text of the call to action button */
     ctaText?: string;
 
@@ -37,7 +41,7 @@ type FeatureListProps = {
     menuItems: FeatureListItem[];
 
     /** The illustration to display in the header. Can be an image or a JSON object representing a Lottie animation. */
-    illustration: DotLottieAnimation | IconAsset;
+    illustration: DotLottieAnimation | IconAsset | undefined;
 
     /** The style passed to the illustration */
     illustrationStyle?: StyleProp<ViewStyle>;
@@ -59,6 +63,12 @@ type FeatureListProps = {
 
     /** Whether the button should be disabled */
     isButtonDisabled?: boolean;
+
+    /** Additional styles to apply to the CTA button inner container */
+    buttonInnerStyles?: StyleProp<ViewStyle>;
+
+    /** Additional styles to apply to the CTA button on hover */
+    buttonHoverStyles?: StyleProp<ViewStyle>;
 };
 
 function FeatureList({
@@ -76,6 +86,9 @@ function FeatureList({
     contentPaddingOnLargeScreens,
     footer,
     isButtonDisabled = false,
+    buttonInnerStyles,
+    buttonHoverStyles,
+    renderSubtitle,
 }: FeatureListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -92,6 +105,7 @@ function FeatureList({
             titleStyles={titleStyles}
             illustrationContainerStyle={illustrationContainerStyle}
             contentPaddingOnLargeScreens={contentPaddingOnLargeScreens}
+            renderSubtitle={renderSubtitle}
         >
             <View style={styles.flex1}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
@@ -120,9 +134,12 @@ function FeatureList({
                         onPress={onCtaPress}
                         accessibilityLabel={ctaAccessibilityLabel}
                         style={styles.w100}
+                        innerStyles={buttonInnerStyles}
+                        hoverStyles={buttonHoverStyles}
                         success
                         isDisabled={isButtonDisabled}
                         large
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.FEATURE_LIST.CTA_BUTTON}
                     />
                 )}
                 {!!footer && footer}
@@ -130,8 +147,6 @@ function FeatureList({
         </Section>
     );
 }
-
-FeatureList.displayName = 'FeatureList';
 
 export default FeatureList;
 export type {FeatureListItem};

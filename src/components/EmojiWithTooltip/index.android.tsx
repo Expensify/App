@@ -10,6 +10,4 @@ function EmojiWithTooltip({emojiCode, style = {}}: EmojiWithTooltipProps) {
     return <Text style={[style, isCustomEmoji && styles.customEmojiFont]}>{emojiCode}</Text>;
 }
 
-EmojiWithTooltip.displayName = 'EmojiWithTooltip';
-
 export default EmojiWithTooltip;

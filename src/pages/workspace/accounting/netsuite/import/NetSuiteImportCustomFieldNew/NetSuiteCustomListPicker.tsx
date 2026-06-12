@@ -1,67 +1,42 @@
-import React, {useState} from 'react';
+import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
-import NetSuiteCustomListSelectorModal from './NetSuiteCustomListSelectorModal';
+import ROUTES from '@src/ROUTES';
 
 type NetSuiteCustomListPickerProps = {
     /** Current value of the selected item */
     value?: string;
 
-    /** Current connected policy */
-    policy?: Policy;
-
-    /** Callback when the list item is selected */
-    onInputChange?: (value: string, key?: string) => void;
-
-    /** Id of the internalID input to be updated on input change */
-    internalIDInputID?: string;
+    /** Policy ID from the parent route's URL params (preferred over policy?.id because it is set before the Onyx policy record hydrates) */
+    policyID?: string;
 
     /** Form Error description */
     errorText?: string;
+
+    /** Whether the parent step is in edit mode, so the selector returns to the correct step on back */
+    isEditing?: boolean;
 };
 
-function NetSuiteCustomListPicker({value, policy, internalIDInputID, errorText, onInputChange = () => {}}: NetSuiteCustomListPickerProps) {
+function NetSuiteCustomListPicker({value, policyID, errorText, isEditing}: NetSuiteCustomListPickerProps) {
     const {translate} = useLocalize();
-    const [isPickerVisible, setIsPickerVisible] = useState(false);
-
-    const hidePickerModal = () => {
-        setIsPickerVisible(false);
-    };
-
-    const updateInput = (item: CustomListSelectorType) => {
-        onInputChange?.(item.value);
-        if (internalIDInputID) {
-            onInputChange(item.id, internalIDInputID);
-        }
-        hidePickerModal();
-    };
 
     return (
-        <>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                title={value}
-                description={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}
-                onPress={() => setIsPickerVisible(true)}
-                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={errorText}
-            />
-            <NetSuiteCustomListSelectorModal
-                isVisible={isPickerVisible}
-                currentCustomListValue={value ?? ''}
-                onCustomListSelected={updateInput}
-                onClose={hidePickerModal}
-                label={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}
-                policy={policy}
-                onBackdropPress={Navigation.dismissModal}
-            />
-        </>
+        <MenuItemWithTopDescription
+            shouldShowRightIcon
+            title={value}
+            description={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}
+            onPress={() => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR.getRoute(policyID, isEditing ? 'edit' : undefined));
+            }}
+            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+            errorText={errorText}
+        />
     );
 }
 
-NetSuiteCustomListPicker.displayName = 'NetSuiteCustomListPicker';
 export default NetSuiteCustomListPicker;

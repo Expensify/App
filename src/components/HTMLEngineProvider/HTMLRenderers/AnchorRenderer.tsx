@@ -7,6 +7,7 @@ import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -55,7 +56,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
-        // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
 
         // Define link style based on context
         let linkStyle: StyleProp<TextStyle> = styles.link;
@@ -68,6 +68,10 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                     fontSize: HTMLEngineUtils.getFontSizeOfRBRChild(tnode),
                 },
             ];
+        }
+
+        if (HTMLEngineUtils.isChildOfLabelText(tnode)) {
+            linkStyle = [styles.textLabel, styles.textLineHeightNormal, styles.link];
         }
 
         // Special handling for links in label font to maintain consistent font size
@@ -85,6 +89,10 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             linkStyle = [styles.textMicroSupporting, styles.link];
         }
 
+        if (HTMLEngineUtils.isChildOfAlertText(tnode)) {
+            linkStyle = [styles.formError, styles.mb0, styles.link];
+        }
+
         if (tnode.classes.includes('no-style-link')) {
             // If the link has a class of a no-style-link, we don't apply any styles
             linkStyle = {...(style as TextStyle)};
@@ -94,13 +102,13 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         }
 
         return (
-            <Text
+            <TextLink
                 style={linkStyle}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
-                suppressHighlighting
+                suppressDefaultStyle
             >
                 <TNodeChildrenRenderer tnode={tnode} />
-            </Text>
+            </TextLink>
         );
     }
 
@@ -122,7 +130,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             // a new window. On Desktop this means that we will
             // skip the default Save As... download prompt
             // and defer to whatever browser the user has.
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
+
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
             style={[
@@ -139,7 +147,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={onLinkPress}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...bind}
             linkHasImage={linkHasImage}
         >
@@ -174,7 +181,5 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         </AnchorForCommentsOnly>
     );
 }
-
-AnchorRenderer.displayName = 'AnchorRenderer';
 
 export default AnchorRenderer;

@@ -1,178 +1,195 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {StyleSheet, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import type {ButtonSizeValue} from '@styles/utils/types';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import {getButtonRole} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
-type ButtonProps = Partial<ChildrenProps> & {
-    /** Should the press event bubble across multiple instances when Enter key triggers it. */
-    allowBubble?: boolean;
+type ButtonProps = Partial<ChildrenProps> &
+    WithSentryLabel & {
+        /** Should the press event bubble across multiple instances when Enter key triggers it. */
+        allowBubble?: boolean;
 
-    /** The icon asset to display to the right of the text */
-    iconRight?: IconAsset;
+        /** The icon asset to display to the right of the text */
+        iconRight?: IconAsset;
 
-    /** The fill color to pass into the icon. */
-    iconFill?: string;
+        /** The fill color to pass into the iconRight. */
+        iconRightFill?: string;
 
-    /** The fill color to pass into the icon when the button is hovered. */
-    iconHoverFill?: string;
+        /** The fill color to pass into the iconRight when the button is hovered. */
+        iconRightHoverFill?: string;
 
-    /** Any additional styles to pass to the left icon container. */
-    iconStyles?: StyleProp<ViewStyle>;
+        /** The icon asset to display to the left of the text */
+        icon?: IconAsset | null;
 
-    /** Any additional styles to pass to the right icon container. */
-    iconRightStyles?: StyleProp<ViewStyle>;
+        /** Accessibility label applied to the left icon. When set, the icon is exposed to assistive tech with this label. */
+        iconAccessibilityLabel?: string;
 
-    /** Any additional styles to pass to the icon wrapper container. */
-    iconWrapperStyles?: StyleProp<ViewStyle>;
+        /** The fill color to pass into the icon. */
+        iconFill?: string;
 
-    /** Small sized button */
-    small?: boolean;
+        /** The fill color to pass into the icon when the button is hovered. */
+        iconHoverFill?: string;
 
-    /** Large sized button */
-    large?: boolean;
+        /** Any additional styles to pass to the left icon container. */
+        iconStyles?: StyleProp<ViewStyle>;
 
-    /** Medium sized button */
-    medium?: boolean;
+        /** Any additional styles to pass to the right icon container. */
+        iconRightStyles?: StyleProp<ViewStyle>;
 
-    /** Indicates whether the button should be disabled and in the loading state */
-    isLoading?: boolean;
+        /** Any additional styles to pass to the icon wrapper container. */
+        iconWrapperStyles?: StyleProp<ViewStyle>;
 
-    /** Indicates whether the button should be disabled */
-    isDisabled?: boolean;
+        /** Extra-small sized button */
+        extraSmall?: boolean;
 
-    /** Invoked on mount and layout changes */
-    onLayout?: (event: LayoutChangeEvent) => void;
+        /** Small sized button */
+        small?: boolean;
 
-    /** A function that is called when the button is clicked on */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+        /** Large sized button */
+        large?: boolean;
 
-    /** A function that is called when the button is long pressed */
-    onLongPress?: (event?: GestureResponderEvent) => void;
+        /** Medium sized button */
+        medium?: boolean;
 
-    /** A function that is called when the button is pressed */
-    onPressIn?: (event: GestureResponderEvent) => void;
+        /** Indicates whether the button should be disabled and in the loading state */
+        isLoading?: boolean;
 
-    /** A function that is called when the button is released */
-    onPressOut?: (event: GestureResponderEvent) => void;
+        /** Indicates whether the button should be disabled */
+        isDisabled?: boolean;
 
-    /** Callback that is called when mousedown is triggered. */
-    onMouseDown?: (e: React.MouseEvent<Element, MouseEvent>) => void;
+        /** Invoked on mount and layout changes */
+        onLayout?: (event: LayoutChangeEvent) => void;
 
-    /** Call the onPress function when Enter key is pressed */
-    pressOnEnter?: boolean;
+        /** A function that is called when the button is clicked on */
+        onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
-    /** The priority to assign the enter key event listener. 0 is the highest priority. */
-    enterKeyEventListenerPriority?: number;
+        /** A function that is called when the button is long pressed */
+        onLongPress?: (event?: GestureResponderEvent) => void;
 
-    /** Additional styles to add after local styles. Applied to Pressable portion of button */
-    style?: StyleProp<ViewStyle>;
+        /** A function that is called when the button is pressed */
+        onPressIn?: (event: GestureResponderEvent) => void;
 
-    /** Additional styles to add to the component when it's disabled */
-    disabledStyle?: StyleProp<ViewStyle>;
+        /** A function that is called when the button is released */
+        onPressOut?: (event: GestureResponderEvent) => void;
 
-    /** Additional button styles. Specific to the OpacityView of the button */
-    innerStyles?: StyleProp<ViewStyle>;
+        /** Callback that is called when mousedown is triggered. */
+        onMouseDown?: (e: React.MouseEvent<Element, MouseEvent>) => void;
 
-    /** Additional text styles */
-    textStyles?: StyleProp<TextStyle>;
+        /** Call the onPress function when Enter key is pressed */
+        pressOnEnter?: boolean;
 
-    /** Additional text styles when the button is hovered */
-    textHoverStyles?: StyleProp<TextStyle>;
+        /** The priority to assign the enter key event listener. 0 is the highest priority. */
+        enterKeyEventListenerPriority?: number;
 
-    /** Whether we should use the default hover style */
-    shouldUseDefaultHover?: boolean;
+        /** Additional styles to add after local styles. Applied to Pressable portion of button */
+        style?: StyleProp<ViewStyle>;
 
-    /** Additional hover styles */
-    hoverStyles?: StyleProp<ViewStyle>;
+        /** Additional styles to add to the component when it's disabled */
+        disabledStyle?: StyleProp<ViewStyle>;
 
-    /** Whether we should use the success theme color */
-    success?: boolean;
+        /** Additional button styles. Specific to the OpacityView of the button */
+        innerStyles?: StyleProp<ViewStyle>;
 
-    /** Whether we should use the danger theme color */
-    danger?: boolean;
+        /** Additional text styles */
+        textStyles?: StyleProp<TextStyle>;
 
-    /** Whether we should display the button as a link */
-    link?: boolean;
+        /** Additional text styles when the button is hovered */
+        textHoverStyles?: StyleProp<TextStyle>;
 
-    /** Should we remove the right border radius top + bottom? */
-    shouldRemoveRightBorderRadius?: boolean;
+        /** The number of lines to display for the primary text */
+        primaryTextNumberOfLines?: number;
 
-    /** Should we remove the left border radius top + bottom? */
-    shouldRemoveLeftBorderRadius?: boolean;
+        /** Whether we should use the default hover style */
+        shouldUseDefaultHover?: boolean;
 
-    /** Should enable the haptic feedback? */
-    shouldEnableHapticFeedback?: boolean;
+        /** Additional hover styles */
+        hoverStyles?: StyleProp<ViewStyle>;
 
-    /** Should disable the long press? */
-    isLongPressDisabled?: boolean;
+        /** Whether we should use the success theme color */
+        success?: boolean;
 
-    /** Id to use for this button */
-    id?: string;
+        /** Whether we should use the danger theme color */
+        danger?: boolean;
 
-    /** Accessibility label for the component */
-    accessibilityLabel?: string;
+        /** Whether we should display the button as a link */
+        link?: boolean;
 
-    /** The icon asset to display to the left of the text */
-    icon?: IconAsset | null;
+        /** Should we remove the right border radius top + bottom? */
+        shouldRemoveRightBorderRadius?: boolean;
 
-    /** The text for the button label */
-    text?: string;
+        /** Should we remove the left border radius top + bottom? */
+        shouldRemoveLeftBorderRadius?: boolean;
 
-    /** Boolean whether to display the right icon */
-    shouldShowRightIcon?: boolean;
+        /** Should enable the haptic feedback? */
+        shouldEnableHapticFeedback?: boolean;
 
-    /** Whether the button should use split style or not */
-    isSplitButton?: boolean;
+        /** Should disable the long press? */
+        isLongPressDisabled?: boolean;
 
-    /** Whether button's content should be centered */
-    isContentCentered?: boolean;
+        /** Id to use for this button */
+        id?: string;
 
-    /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
-    isPressOnEnterActive?: boolean;
+        /** Accessibility label for the component */
+        accessibilityLabel?: string;
 
-    /** The testID of the button. Used to locate this view in end-to-end tests. */
-    testID?: string;
+        /** Accessibility state to pass to the pressable */
+        accessibilityState?: AccessibilityState;
 
-    /** Whether is a nested button inside other button, since nesting buttons isn't valid html */
-    isNested?: boolean;
+        /** The text for the button label */
+        text?: string;
 
-    /** The text displays under the first line */
-    secondLineText?: string;
+        /** Boolean whether to display the right icon */
+        shouldShowRightIcon?: boolean;
 
-    /**
-     * Whether the button should have a background layer in the color of theme.appBG.
-     * This is needed for buttons that allow content to display under them.
-     */
-    shouldBlendOpacity?: boolean;
+        /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
+        isPressOnEnterActive?: boolean;
 
-    /**
-     * Reference to the outer element.
-     */
-    ref?: ForwardedRef<View>;
+        /** The testID of the button. Used to locate this view in end-to-end tests. */
+        testID?: string;
 
-    /**
-     * Whether the button should stay visually normal even when disabled.
-     */
-    shouldStayNormalOnDisable?: boolean;
-};
+        /** Whether is a nested button inside other button, since nesting buttons isn't valid html */
+        isNested?: boolean;
+
+        /** The text displays under the first line */
+        secondLineText?: string;
+
+        /**
+         * Whether the button should have a background layer in the color of theme.appBG.
+         * This is needed for buttons that allow content to display under them.
+         */
+        shouldBlendOpacity?: boolean;
+
+        /**
+         * Reference to the outer element.
+         */
+        ref?: ForwardedRef<View>;
+
+        /**
+         * Whether the button should stay visually normal even when disabled.
+         */
+        shouldStayNormalOnDisable?: boolean;
+    };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
 
@@ -209,7 +226,7 @@ function KeyboardShortcutComponent({
             priority: enterKeyEventListenerPriority,
             shouldPreventDefault: false,
         }),
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [shouldDisableEnterShortcut, isFocused],
     );
 
@@ -218,23 +235,25 @@ function KeyboardShortcutComponent({
     return null;
 }
 
-KeyboardShortcutComponent.displayName = 'KeyboardShortcutComponent';
-
 function Button({
     allowBubble = false,
 
-    iconRight = Expensicons.ArrowRight,
+    iconRight,
+    iconRightFill,
+    iconRightHoverFill,
+    icon = null,
+    iconAccessibilityLabel,
     iconFill,
     iconHoverFill,
-    icon = null,
     iconStyles = [],
     iconRightStyles = [],
     iconWrapperStyles = [],
     text = '',
 
+    extraSmall = false,
     small = false,
     large = false,
-    medium = !small && !large,
+    medium = !extraSmall && !small && !large,
 
     isLoading = false,
     isDisabled = false,
@@ -254,6 +273,7 @@ function Button({
     innerStyles = [],
     textStyles = [],
     textHoverStyles = [],
+    primaryTextNumberOfLines = 1,
 
     shouldUseDefaultHover = true,
     hoverStyles = undefined,
@@ -269,21 +289,26 @@ function Button({
     id = '',
     testID = undefined,
     accessibilityLabel = '',
-    isSplitButton = false,
     link = false,
-    isContentCentered = false,
     isPressOnEnterActive,
     isNested = false,
     secondLineText = '',
     shouldBlendOpacity = false,
     shouldStayNormalOnDisable = false,
+    accessibilityState,
+    sentryLabel,
     ref,
     ...rest
 }: ButtonProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
+
+    const buttonLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'Button',
+    };
 
     const renderContent = () => {
         if ('children' in rest) {
@@ -292,11 +317,13 @@ function Button({
 
         const primaryText = (
             <Text
-                numberOfLines={1}
+                numberOfLines={primaryTextNumberOfLines}
                 style={[
+                    primaryTextNumberOfLines !== 1 && styles.breakAll,
                     isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
+                    extraSmall && styles.buttonExtraSmallText,
                     small && styles.buttonSmallText,
                     medium && styles.buttonMediumText,
                     large && styles.buttonLargeText,
@@ -318,7 +345,7 @@ function Button({
         );
 
         const textComponent = secondLineText ? (
-            <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1]}>
+            <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
                 {primaryText}
                 <Text
                     style={[
@@ -330,6 +357,7 @@ function Button({
                         styles.textWhite,
                         styles.textBold,
                     ]}
+                    numberOfLines={1}
                 >
                     {secondLineText}
                 </Text>
@@ -338,22 +366,28 @@ function Button({
             primaryText
         );
 
-        const defaultFill = success || danger ? theme.textLight : theme.icon;
+        let defaultFill = theme.buttonIcon;
+        if (danger) {
+            defaultFill = theme.buttonDangerText;
+        } else if (success) {
+            defaultFill = theme.textLight;
+        }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
-                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
+                <View style={[styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {!!icon && (
-                            <View style={[styles.mr2, !text && styles.mr0, iconStyles]}>
+                            <View style={[extraSmall || small ? styles.mr1 : styles.mr2, !text && styles.mr0, iconStyles, isLoading && styles.opacity0]}>
                                 <Icon
                                     src={icon}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
+                                    extraSmall={extraSmall}
                                     small={small}
                                     medium={medium}
                                     large={large}
                                     isButtonIcon
+                                    accessibilityLabel={iconAccessibilityLabel}
                                 />
                             </View>
                         )}
@@ -361,25 +395,15 @@ function Button({
                     </View>
                     {shouldShowRightIcon && (
                         <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
-                            {!isSplitButton ? (
-                                <Icon
-                                    src={iconRight}
-                                    fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
-                                    small={small}
-                                    medium={medium}
-                                    large={large}
-                                    isButtonIcon
-                                />
-                            ) : (
-                                <Icon
-                                    src={iconRight}
-                                    fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
-                                    small={small}
-                                    medium={medium}
-                                    large={large}
-                                    isButtonIcon
-                                />
-                            )}
+                            <Icon
+                                src={iconRight ?? icons.ArrowRight}
+                                fill={isHovered ? (iconRightHoverFill ?? iconHoverFill ?? defaultFill) : (iconRightFill ?? iconFill ?? defaultFill)}
+                                extraSmall={extraSmall}
+                                small={small}
+                                medium={medium}
+                                large={large}
+                                isButtonIcon
+                            />
                         </View>
                     )}
                 </View>
@@ -389,10 +413,21 @@ function Button({
         return textComponent;
     };
 
+    let buttonSize: ButtonSizeValue;
+    if (extraSmall) {
+        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL;
+    } else if (small) {
+        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.SMALL;
+    } else if (medium) {
+        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM;
+    } else {
+        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.LARGE;
+    }
+
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.button,
-            StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
+            StyleUtils.getButtonStyleWithIcon(styles, buttonSize, !!icon, !!(text?.length > 0), shouldShowRightIcon),
             success ? styles.buttonSuccess : undefined,
             danger ? styles.buttonDanger : undefined,
             isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
@@ -409,13 +444,11 @@ function Button({
             icon,
             innerStyles,
             isDisabled,
-            large,
+            buttonSize,
             link,
-            medium,
             shouldRemoveLeftBorderRadius,
             shouldRemoveRightBorderRadius,
             shouldShowRightIcon,
-            small,
             styles,
             success,
             text,
@@ -440,6 +473,13 @@ function Button({
             opacity,
         };
     }, [buttonStyles, shouldBlendOpacity]);
+
+    let loadingIndicatorColor = theme.text;
+    if (danger) {
+        loadingIndicatorColor = theme.buttonDangerText;
+    } else if (success) {
+        loadingIndicatorColor = theme.textLight;
+    }
 
     return (
         <>
@@ -512,25 +552,27 @@ function Button({
                 id={id}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
+                accessibilityState={accessibilityState}
                 role={getButtonRole(isNested)}
                 hoverDimmingValue={1}
                 onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}
                 onHoverOut={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(false) : undefined}
+                sentryLabel={sentryLabel}
             >
                 {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 {renderContent()}
                 {isLoading && (
                     <ActivityIndicator
-                        color={success || danger ? theme.textLight : theme.text}
+                        color={loadingIndicatorColor}
                         style={[styles.pAbsolute, styles.l0, styles.r0]}
+                        size={extraSmall ? 12 : undefined}
+                        reasonAttributes={buttonLoadingReasonAttributes}
                     />
                 )}
             </PressableWithFeedback>
         </>
     );
 }
-
-Button.displayName = 'Button';
 
 export default withNavigationFallback(Button);
 

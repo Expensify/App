@@ -6,7 +6,7 @@ import type {ColorScheme, StatusBarStyle} from '..';
 type Color = string;
 
 type ThemePreference = ValueOf<typeof CONST.THEME>;
-type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.SYSTEM>;
+type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.SYSTEM | typeof CONST.THEME.SYSTEM_CONTRAST>;
 
 type ThemeColors = {
     // Figma keys
@@ -37,6 +37,7 @@ type ThemeColors = {
     buttonHoveredBG: Color;
     buttonPressedBG: Color;
     buttonSuccessText: Color;
+    buttonDangerText: Color;
     danger: Color;
     dangerHover: Color;
     dangerPressed: Color;
@@ -47,6 +48,7 @@ type ThemeColors = {
     transparent: Color;
     signInPage: Color;
     darkSupportingText: Color;
+    receiptPlaceholderPlus: Color;
 
     // Additional keys
     overlay: Color;
@@ -88,8 +90,15 @@ type ThemeColors = {
     fallbackIconColor: Color;
     reactionActiveBackground: Color;
     reactionActiveText: Color;
+    badgeDefaultBG: Color;
+    badgeSuccessBG: Color;
+    badgeDangerBG: Color;
+    badgeSuccessText: Color;
+    badgeDangerText: Color;
     badgeAdHoc: Color;
     badgeAdHocHover: Color;
+    bordersBold: Color;
+    buttonIcon: Color;
     mentionText: Color;
     mentionBG: Color;
     ourMentionText: Color;
@@ -99,6 +108,8 @@ type ThemeColors = {
     tooltipSupportingText: Color;
     tooltipPrimaryText: Color;
     trialBannerBackgroundColor: Color;
+    widgetIconBG: Color;
+    widgetIconFill: Color;
     skeletonLHNIn: Color;
     skeletonLHNOut: Color;
     QRLogo: Color;
@@ -107,10 +118,15 @@ type ThemeColors = {
     white: Color;
     videoPlayerBG: Color;
     transparentWhite: Color;
-    emptyFolderBG: Color;
-    travelBG: Color;
-    todoBG: Color;
     trialTimer: Color;
+
+    reportStatusBadge: Record<
+        'draft' | 'outstanding' | 'paid' | 'approved' | 'closed' | 'deleted' | 'unreported',
+        {
+            backgroundColor: Color;
+            textColor: Color;
+        }
+    >;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 

@@ -21,6 +21,14 @@ Aim for the shortest possible URL that is also still human readable.
 Exceptions:
 - When abbreviated paths are used in specific instances like `r/` (for reports) and `a/` (for accounts) for strategic purposes
 
+### - SHOULD use human readable names before using IDs
+Example:
+1. `domain/expensify.com/settings` - It's better to use the domain name "expensify.com" rather than an ID because it is readable, won't ever change, and is not a privacy or security concern
+
+Exceptions:
+- When there would be PII (personally identifiable information) that would leak in the URL like email addresses, use an ID instead
+- When the name can be updated but the path remains the same (eg. a workspace name), use an ID instead
+
 ### - MUST use kebab-case for all parts of a URL (eg. words separated by hyphens)
 ### - MUST use all lower case words
 ### - MUST be defined in `ROUTES.ts`

@@ -1,34 +1,16 @@
-import type {OnboardingAccounting} from '@src/CONST';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {OnboardingCompanySize} from './actions/Welcome/OnboardingFlow';
-import getPlatform from './getPlatform';
-
-const supportedIntegrationsInNewDot = ['quickbooksOnline', 'quickbooksDesktop', 'xero', 'netsuite', 'intacct', 'other'] as OnboardingAccounting[];
+import type {OnboardingPurpose} from '@src/types/onyx';
 
 /**
- * Determines if the user should be redirected to old dot based on company size and platform
- * @param companySize - The company size from onboarding
- * @param userReportedIntegration - The user reported integration
- * @returns boolean - True if user should be redirected to old dot
+ * Returns true when the onboarding choice is one of the "track" variants
+ * (TRACK_BUSINESS/TRACK_WORKSPACE, TRACK_PERSONAL, or the legacy PERSONAL_SPEND).
+ * Note: TRACK_BUSINESS and TRACK_WORKSPACE share the same value ('newDotTrackWorkspace'),
+ * so checking TRACK_BUSINESS covers both.
+ * Extracted here so that adding a new track-type choice only requires one edit.
  */
-function shouldOnboardingRedirectToOldDot(companySize: OnboardingCompanySize | undefined, userReportedIntegration: OnboardingAccounting | undefined): boolean {
-    // Desktop users should never be redirected to old dot
-    if (getPlatform() === CONST.PLATFORM.DESKTOP) {
-        return false;
-    }
-
-    // Check if the integration is supported in NewDot
-    const isSupportedIntegration = (!!userReportedIntegration && supportedIntegrationsInNewDot.includes(userReportedIntegration)) || userReportedIntegration === undefined;
-
-    // Don't redirect if integration is supported and company size is MICRO or SMALL
-    const isMicroOrSmallCompany = companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO || companySize === CONST.ONBOARDING_COMPANY_SIZE.SMALL;
-    if (isSupportedIntegration && isMicroOrSmallCompany) {
-        return false;
-    }
-
-    // Redirect to old dot in all other cases (unsupported integration or larger company size)
-    return true;
+function isTrackOnboardingChoice(choice: OnyxEntry<OnboardingPurpose>): choice is OnboardingPurpose {
+    return choice === CONST.ONBOARDING_CHOICES.TRACK_BUSINESS || choice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL || choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {shouldOnboardingRedirectToOldDot};
+export default isTrackOnboardingChoice;

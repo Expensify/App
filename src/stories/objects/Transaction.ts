@@ -1,4 +1,4 @@
-import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
+import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -15,13 +15,12 @@ const transaction: Transaction & {mcc: string; modifiedMCC: string} = {
     },
     created: '2025-02-18',
     currency: 'PLN',
-    filename: '',
     hasEReceipt: false,
     inserted: '2025-02-18 14:23:29',
     managedCard: false,
     mcc: '',
     merchant: "Mario's",
-    modifiedAmount: 0,
+    modifiedAmount: '',
     modifiedCreated: '',
     modifiedCurrency: '',
     modifiedMCC: '',
@@ -55,5 +54,5 @@ const transactionWithOptionalSearchFields: TransactionWithOptionalSearchFields =
     action: CONST.SEARCH.ACTION_TYPES.VIEW,
 };
 
-export default transaction;
+// eslint-disable-next-line import/prefer-default-export
 export {transactionWithOptionalSearchFields};

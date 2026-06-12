@@ -23,14 +23,11 @@ function PressableWithoutFocus({children, onPress, onLongPress, ...rest}: Pressa
             onPress={pressAndBlur}
             onLongPress={onLongPress}
             ref={ref}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
             {children}
         </GenericPressable>
     );
 }
-
-PressableWithoutFocus.displayName = 'PressableWithoutFocus';
 
 export default PressableWithoutFocus;

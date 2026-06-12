@@ -1,26 +1,31 @@
 import debounce from 'lodash/debounce';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import AppStateMonitor from '@libs/AppStateMonitor';
 import memoize from '@libs/memoize';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {Report, ReportActions, ReportNameValuePairs, Session} from '@src/types/onyx';
 import updateUnread from './updateUnread';
 
 let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
+let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
+let currentUserLogin = '';
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value: Session | undefined) => {
+        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        currentUserLogin = value?.email ?? '';
     },
 });
 
 let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {};
-Onyx.connect({
+// This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -29,7 +34,8 @@ Onyx.connect({
 });
 
 let allReportActions: OnyxCollection<ReportActions> = {};
-Onyx.connect({
+// This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -37,7 +43,16 @@ Onyx.connect({
     },
 });
 
-function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string | undefined) {
+let allDraftComments: OnyxCollection<string> = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allDraftComments = value;
+    },
+});
+
+function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string | undefined, draftComment: string | undefined) {
     return Object.values(reports ?? {}).filter((report) => {
         const notificationPreference = ReportUtils.getReportNotificationPreference(report);
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
@@ -56,6 +71,9 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
                 isInFocusMode: false,
                 excludeEmptyChats: false,
                 isReportArchived,
+                draftComment,
+                currentUserLogin,
+                currentUserAccountID,
             }) &&
             /**
              * Chats with hidden preference remain invisible in the LHN and are not considered "unread."
@@ -71,19 +89,39 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
     });
 }
 
-const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator, {maxArgs: 1});
+const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator, {maxArgs: 3});
 
+/**
+ * Debouncing is used here to limit the frequency of updates to the unread indicator.
+ * This ensures that rapid changes in the underlying data (e.g., multiple Onyx updates in quick succession)
+ * do not trigger excessive computations or updates, improving performance and avoiding unnecessary overhead.
+ */
 const triggerUnreadUpdate = debounce(() => {
     const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() : undefined;
-
+    const draftComment = allDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${currentReportID}`];
     // We want to keep notification count consistent with what can be accessed from the LHN list
-    const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(allReports, currentReportID);
+    const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(allReports, currentReportID, draftComment);
 
     updateUnread(unreadReports.length);
 }, CONST.TIMING.UNREAD_UPDATE_DEBOUNCE_TIME);
+
+// This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+        triggerUnreadUpdate();
+    },
+});
 
 navigationRef?.addListener?.('state', () => {
     triggerUnreadUpdate();
 });
 
-export {triggerUnreadUpdate, getUnreadReportsForUnreadIndicator};
+// Listen for app state changes to update unread count when app becomes active
+AppStateMonitor.addBecameActiveListener(() => {
+    triggerUnreadUpdate();
+});
+
+export default {getUnreadReportsForUnreadIndicator};

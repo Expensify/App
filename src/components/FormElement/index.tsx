@@ -17,7 +17,6 @@ const preventFormDefault = (event: SubmitEvent) => {
 
 function FormElement({ref, ...props}: FormElementProps) {
     const formRef = useRef<HTMLFormElement & View>(null);
-    // eslint-disable-next-line react-compiler/react-compiler
     const mergedRef = mergeRefs(formRef, ref);
 
     useEffect(() => {
@@ -44,13 +43,10 @@ function FormElement({ref, ...props}: FormElementProps) {
         <View
             role={ACCESSIBILITY_ROLE_FORM}
             ref={mergedRef}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );
 }
-
-FormElement.displayName = 'FormElement';
 
 export default FormElement;
 

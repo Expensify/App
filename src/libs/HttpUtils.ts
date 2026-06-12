@@ -1,3 +1,4 @@
+import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import alert from '@components/Alert';
@@ -10,7 +11,9 @@ import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
+import {setLoadTestParameters} from './Network/LoadTestState';
 import prepareRequestPayload from './prepareRequestPayload';
+import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -18,6 +21,7 @@ let shouldForceOffline = false;
 const ABORT_COMMANDS = {
     All: 'All',
     [READ_COMMANDS.SEARCH_FOR_REPORTS]: READ_COMMANDS.SEARCH_FOR_REPORTS,
+    [READ_COMMANDS.SEARCH_FOR_USERS]: READ_COMMANDS.SEARCH_FOR_USERS,
 } as const;
 
 type AbortCommand = keyof typeof ABORT_COMMANDS;
@@ -38,11 +42,18 @@ Onyx.connectWithoutView({
 const abortControllerMap = new Map<AbortCommand, AbortController>();
 abortControllerMap.set(ABORT_COMMANDS.All, new AbortController());
 abortControllerMap.set(ABORT_COMMANDS.SearchForReports, new AbortController());
+abortControllerMap.set(ABORT_COMMANDS.SearchForUsers, new AbortController());
 
 /**
  * The API commands that require the skew calculation
  */
-const addSkewList: string[] = [WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP];
+const addSkewList = new Set<string>([WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP]);
+
+/**
+ * Per-command server response messages we recognize as the PHP-wrapped "AlreadyCreated" error.
+ * Add new variants here as we discover them for other non-idempotent commands.
+ */
+const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION]);
 
 /**
  * Regex to get API command from the command
@@ -53,8 +64,16 @@ const APICommandRegex = /\/api\/([^&?]+)\??.*/;
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
  */
-function processHTTPRequest(url: string, method: RequestType = 'get', body: FormData | null = null, abortSignal: AbortSignal | undefined = undefined): Promise<Response> {
+function processHTTPRequest<TKey extends OnyxKey>(
+    url: string,
+    method: RequestType = 'get',
+    body: FormData | null = null,
+    abortSignal: AbortSignal | undefined = undefined,
+): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
+
+    const command = url.match(APICommandRegex)?.[1];
+
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: abortSignal,
@@ -67,9 +86,13 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
         credentials: 'omit',
     })
         .then((response) => {
+            if (response.headers) {
+                setLoadTestParameters(response.headers.get('X-Load-Test'));
+            }
+
             // We are calculating the skew to minimize the delay when posting the messages
-            const match = url.match(APICommandRegex)?.[1];
-            if (match && addSkewList.includes(match) && response.headers) {
+
+            if (command && addSkewList.has(command) && response.headers) {
                 const dateHeaderValue = response.headers.get('Date');
                 const serverTime = dateHeaderValue ? new Date(dateHeaderValue).valueOf() : new Date().valueOf();
                 const endTime = new Date().valueOf();
@@ -116,7 +139,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                 });
             }
 
-            return response.json() as Promise<Response>;
+            return response.json() as Promise<Response<TKey>>;
         })
         .then((response) => {
             // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists
@@ -125,6 +148,16 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                     message: CONST.ERROR.DUPLICATE_RECORD,
                     status: CONST.JSON_CODE.BAD_REQUEST.toString(),
                     title: CONST.ERROR_TITLE.DUPLICATE_RECORD,
+                    requestID: response.requestID,
+                });
+            }
+
+            // Per-command messages indicating the resource already exists on the server (e.g. retry after a successful first attempt).
+            if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.message && ALREADY_CREATED_MESSAGES.has(response.message)) {
+                throw new HttpsError({
+                    message: CONST.ERROR.ALREADY_CREATED,
+                    status: CONST.JSON_CODE.EXP_ERROR.toString(),
+                    title: response.message,
                 });
             }
 
@@ -134,6 +167,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                     message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                     status: CONST.JSON_CODE.EXP_ERROR.toString(),
                     title: CONST.ERROR_TITLE.SOCKET,
+                    requestID: response.requestID,
                 });
             }
 
@@ -148,8 +182,9 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                 // Trigger a modal and disable the app as the user needs to upgrade to the latest minimum version to continue
                 alertUser();
             }
-            return response as Promise<Response>;
-        });
+            return response;
+        })
+        .finally(() => markAppStartupNetworkRequestEnd(command));
 }
 
 /**
@@ -159,7 +194,13 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
  * @param type HTTP request type (get/post)
  * @param shouldUseSecure should we use the secure server
  */
-function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false, initiatedOffline = false): Promise<Response> {
+function xhr<TKey extends OnyxKey>(
+    command: string,
+    data: Record<string, unknown>,
+    type: RequestType = CONST.NETWORK.METHOD.POST,
+    shouldUseSecure = false,
+    initiatedOffline = false,
+): Promise<Response<TKey>> {
     return prepareRequestPayload(command, data, initiatedOffline).then((formData) => {
         const url = getCommandURL({shouldUseSecure, command});
         const abortSignalController = data.canCancel ? (abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All)) : undefined;

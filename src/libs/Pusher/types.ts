@@ -3,7 +3,7 @@ import type PusherClass from 'pusher-js/with-encryption';
 import type {Channel, ChannelAuthorizerGenerator} from 'pusher-js/with-encryption';
 import type {LiteralUnion, ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {OnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
+import type {AnyOnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type TYPE from './EventType';
 
@@ -33,15 +33,58 @@ type PingPongEvent = Record<string, string | number> & {
     pingTimestamp: number;
 };
 
+type ConciergeReasoningEvent = {
+    reasoning: string;
+    agentZeroRequestID: string;
+    loopCount: number;
+    /**
+     * Persona accountID the reasoning should be attributed to — Concierge for Concierge runs,
+     * the custom agent's accountID for agent runs. Optional for backward compatibility; absent
+     * payloads default to Concierge.
+     */
+    actorAccountID?: number;
+};
+
+type ConciergeDraftEvent = {
+    reportID: string;
+    reportActionID: string;
+    streamSessionID: string;
+    sequence: number;
+    status: 'started' | 'updated' | 'completed' | 'failed' | 'cleared';
+    created: string;
+    bodyMarkdown?: string;
+    finalRenderedHTML?: string;
+    startedAt?: string;
+    terminalReason?: string;
+    updatedAt?: string;
+    /**
+     * Persona accountID the streamed draft should be attributed to — Concierge for Concierge
+     * runs, the custom agent's accountID for agent runs. Optional for backward compatibility;
+     * absent payloads default to Concierge.
+     */
+    actorAccountID?: number;
+};
+
+type ConciergeDraftEventsEvent = {
+    events: ConciergeDraftEvent[];
+};
+
 type PusherEventMap = {
     [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
     [TYPE.PONG]: PingPongEvent;
+    [TYPE.CONCIERGE_REASONING]: ConciergeReasoningEvent;
+    [TYPE.CONCIERGE_DRAFT_EVENTS]: ConciergeDraftEventsEvent;
+    [TYPE.CONCIERGE_DRAFT_STARTED]: ConciergeDraftEvent;
+    [TYPE.CONCIERGE_DRAFT_UPDATED]: ConciergeDraftEvent;
+    [TYPE.CONCIERGE_DRAFT_COMPLETED]: ConciergeDraftEvent;
+    [TYPE.CONCIERGE_DRAFT_FAILED]: ConciergeDraftEvent;
+    [TYPE.CONCIERGE_DRAFT_CLEARED]: ConciergeDraftEvent;
 };
 
 type EventData<EventName extends string> = {chunk?: string; id?: string; index?: number; final?: boolean} & (EventName extends keyof PusherEventMap
     ? PusherEventMap[EventName]
-    : OnyxUpdatesFromServer);
+    : AnyOnyxUpdatesFromServer);
 
 type EventCallbackError = {type?: ValueOf<typeof CONST.ERROR>; data: {code?: number; message?: string}};
 
@@ -61,6 +104,10 @@ type PusherEventName = LiteralUnion<DeepValueOf<typeof TYPE>, string>;
 
 type PusherSubscriptionErrorData = {type?: string; error?: string; status?: string};
 
+type PusherSubscription = Promise<void> & {
+    unsubscribe: () => void;
+};
+
 type PusherModule = {
     init: (args: Args) => Promise<void>;
     subscribe: <EventName extends PusherEventName>(
@@ -68,7 +115,7 @@ type PusherModule = {
         eventName?: EventName,
         eventCallback?: (data: EventData<EventName>) => void,
         onResubscribe?: () => void,
-    ) => Promise<void>;
+    ) => PusherSubscription;
     unsubscribe: (channelName: string, eventName?: PusherEventName) => void;
     getChannel: (channelName: string) => Channel | PusherChannel | undefined;
     isSubscribed: (channelName: string) => boolean;
@@ -91,11 +138,14 @@ export type {
     UserIsTypingEvent,
     UserIsLeavingRoomEvent,
     PingPongEvent,
+    ConciergeDraftEvent,
+    ConciergeDraftEventsEvent,
     EventData,
     EventCallbackError,
     ChunkedDataEvents,
     SocketEventCallback,
     PusherWithAuthParams,
     PusherEventName,
+    PusherSubscription,
     PusherSubscriptionErrorData,
 };

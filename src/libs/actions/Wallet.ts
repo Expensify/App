@@ -23,21 +23,21 @@ type WalletQuestionAnswer = {
  *   identity check. Note: This happens in Web-Secure when we call Activate_Wallet during the OnfidoStep.
  */
 function openOnfidoFlow() {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_WALLET_ONFIDO>> = [
         {
             // Use Onyx.set() since we are resetting the Onfido flow completely.
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.WALLET_ONFIDO,
+            key: ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
             value: {
                 isLoading: true,
             },
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_WALLET_ONFIDO>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_ONFIDO,
+            key: ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
             value: {
                 isLoading: false,
             },
@@ -62,7 +62,7 @@ function setKYCWallSource(source?: ValueOf<typeof CONST.KYC_WALL_SOURCE>, chatRe
  * Validates a user's provided details against a series of checks
  */
 function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletParams) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS | typeof ONYXKEYS.WALLET_ADDITIONAL_DETAILS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
@@ -72,9 +72,17 @@ function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletPa
                 errorFields: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            value: {
+                errorCode: null,
+                errors: null,
+            },
+        },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
@@ -97,10 +105,10 @@ function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletPa
  * API request to fetch the userWallet after we call VerifyIdentity
  */
 function verifyIdentity(parameters: VerifyIdentityParams) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_WALLET_ONFIDO | typeof ONYXKEYS.USER_WALLET>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_ONFIDO,
+            key: ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
             value: {
                 isLoading: true,
                 errors: null,
@@ -116,10 +124,10 @@ function verifyIdentity(parameters: VerifyIdentityParams) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_WALLET_ONFIDO>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_ONFIDO,
+            key: ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
             value: {
                 isLoading: false,
                 errors: null,
@@ -127,10 +135,10 @@ function verifyIdentity(parameters: VerifyIdentityParams) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_WALLET_ONFIDO>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_ONFIDO,
+            key: ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
             value: {
                 isLoading: false,
                 hasAcceptedPrivacyPolicy: false,
@@ -150,7 +158,7 @@ function verifyIdentity(parameters: VerifyIdentityParams) {
  * @param parameters.chatReportID When accepting the terms of wallet to pay an IOU, indicates the parent chat ID of the IOU
  */
 function acceptWalletTerms(parameters: AcceptWalletTermsParams) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TERMS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_TERMS,
@@ -160,7 +168,7 @@ function acceptWalletTerms(parameters: AcceptWalletTermsParams) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TERMS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_TERMS,
@@ -171,13 +179,14 @@ function acceptWalletTerms(parameters: AcceptWalletTermsParams) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.WALLET_TERMS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
             value: {
                 isPendingOnfidoResult: null,
                 shouldShowFailedKYC: true,
+                hasFailedOnfido: true,
             },
         },
         {
@@ -205,7 +214,27 @@ function openInitialSettingsPage() {
  * Fetches data when the user opens the EnablePaymentsPage
  */
 function openEnablePaymentsPage() {
-    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, null);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, null, {optimisticData, finallyData});
 }
 
 function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP> | null) {
@@ -215,7 +244,7 @@ function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP> | null
 function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: string) {
     const idologyAnswers = JSON.stringify(answers);
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
@@ -225,7 +254,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
@@ -250,14 +279,15 @@ function resetWalletAdditionalDetailsDraft() {
     Onyx.set(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, null);
 }
 
-function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[]): Promise<IOSEncryptPayload> {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-api-in-views
+function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[], cardID: number): Promise<IOSEncryptPayload> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
         platform: 'ios',
         appVersion: pkg.version,
         certificates: JSON.stringify({certificates}),
         nonce,
         nonceSignature,
+        cardID,
     })
         .then((response) => {
             const data = response as unknown as IOSEncryptPayload;

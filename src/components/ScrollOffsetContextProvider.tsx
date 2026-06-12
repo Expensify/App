@@ -60,22 +60,26 @@ function getKey(route: PlatformStackRouteProp<ParamListBase> | NavigationPartial
 }
 
 function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProps) {
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [inboxTab] = useOnyx(ONYXKEYS.NVP_INBOX_TAB);
     const scrollOffsetsRef = useRef<Record<string, number>>({});
     const previousPriorityMode = usePrevious(priorityMode);
+    const previousInboxTab = usePrevious(inboxTab);
 
     useEffect(() => {
-        if (previousPriorityMode === null || previousPriorityMode === priorityMode) {
+        const priorityModeChanged = previousPriorityMode !== null && previousPriorityMode !== priorityMode;
+        const inboxTabChanged = previousInboxTab !== null && previousInboxTab !== inboxTab;
+        if (!priorityModeChanged && !inboxTabChanged) {
             return;
         }
 
-        // If the priority mode changes, we need to clear the scroll offsets for the home and search screens because it affects the size of the elements and scroll positions wouldn't be correct.
+        // If the priority mode or inbox tab changes, we need to clear the scroll offsets for the home and search screens because it affects the size of the elements and scroll positions wouldn't be correct.
         for (const key of Object.keys(scrollOffsetsRef.current)) {
-            if (key.includes(SCREENS.HOME) || key.includes(SCREENS.SEARCH.ROOT)) {
+            if (key.includes(SCREENS.INBOX) || key.includes(SCREENS.SEARCH.ROOT)) {
                 delete scrollOffsetsRef.current[key];
             }
         }
-    }, [priorityMode, previousPriorityMode]);
+    }, [priorityMode, previousPriorityMode, inboxTab, previousInboxTab]);
 
     const saveScrollOffset: ScrollOffsetContextValue['saveScrollOffset'] = useCallback((route, scrollOffset) => {
         scrollOffsetsRef.current[getKey(route)] = scrollOffset;
@@ -89,25 +93,26 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
     }, []);
 
     const cleanScrollOffsets = useCallback((keys: string[], shouldDelete: (key: string) => boolean) => {
-        keys.forEach((key) => {
+        for (const key of keys) {
             if (!shouldDelete(key)) {
-                return;
+                continue;
             }
 
             delete scrollOffsetsRef.current[key];
-        });
+        }
     }, []);
 
     const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback(
         (state) => {
             const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
-            const existingScreenKeys = sidebarRoutes.map(getKey);
+            const existingScreenKeys = new Set(sidebarRoutes.map(getKey));
 
             const focusedRoute = findFocusedRoute(state);
             const routeName = focusedRoute?.name;
 
             const isSearchScreen = routeName === SCREENS.SEARCH.ROOT;
-            const isSearchMoneyRequestReport = routeName === SCREENS.SEARCH.MONEY_REQUEST_REPORT || routeName === SCREENS.SEARCH.REPORT_RHP;
+            const isSearchMoneyRequestReport =
+                routeName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT || routeName === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || routeName === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
 
             const scrollOffsetKeys = Object.keys(scrollOffsetsRef.current);
 
@@ -116,7 +121,7 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
                 cleanScrollOffsets(scrollOffsetKeys, (key) => key.startsWith(SCREENS.SEARCH.ROOT) && key !== currentKey && !isSearchMoneyRequestReport);
                 return;
             }
-            cleanScrollOffsets(scrollOffsetKeys, (key) => !existingScreenKeys.includes(key));
+            cleanScrollOffsets(scrollOffsetKeys, (key) => !existingScreenKeys.has(key));
         },
         [cleanScrollOffsets],
     );

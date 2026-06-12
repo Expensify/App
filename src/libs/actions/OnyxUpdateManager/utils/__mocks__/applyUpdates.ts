@@ -1,15 +1,15 @@
-import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
+import type {AnyDeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
 import * as OnyxUpdates from '@userActions/OnyxUpdates';
 import createProxyForObject from '@src/utils/createProxyForObject';
 
 jest.mock('@userActions/OnyxUpdates');
 
 type ApplyUpdatesMockValues = {
-    beforeApplyUpdates: ((updates: DeferredUpdatesDictionary) => Promise<void>) | undefined;
+    beforeApplyUpdates: ((updates: AnyDeferredUpdatesDictionary) => Promise<void>) | undefined;
 };
 
 type ApplyUpdatesMock = {
-    applyUpdates: jest.Mock<Promise<[]>, [updates: DeferredUpdatesDictionary]>;
+    applyUpdates: jest.Mock<Promise<[]>, [updates: AnyDeferredUpdatesDictionary]>;
     mockValues: ApplyUpdatesMockValues;
 };
 
@@ -18,14 +18,14 @@ const mockValues: ApplyUpdatesMockValues = {
 };
 const mockValuesProxy = createProxyForObject(mockValues);
 
-const applyUpdates = jest.fn((updates: DeferredUpdatesDictionary) => {
+const applyUpdates = jest.fn((updates: AnyDeferredUpdatesDictionary) => {
     const createChain = () => {
         let chain = Promise.resolve();
-        Object.values(updates).forEach((update) => {
+        for (const update of Object.values(updates)) {
             chain = chain.then(() => {
                 return OnyxUpdates.apply(update).then(() => undefined);
             });
-        });
+        }
 
         return chain;
     };

@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
+import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -11,20 +12,24 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from '@libs/ReportUtils';
+import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
+import {getReportAction, isReportActionVisible} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import StatusBadge from './StatusBadge';
 import Text from './Text';
 import TextLink from './TextLink';
 
 type ParentNavigationSubtitleProps = {
     parentNavigationSubtitleData: ParentNavigationSummaryParams;
+
+    /** Current Report ID (to check hasParentAccess) */
+    reportID?: string;
 
     /** parent Report ID */
     parentReportID?: string;
@@ -40,15 +45,48 @@ type ParentNavigationSubtitleProps = {
 
     /** The status text of the expense report */
     statusText?: string;
+
+    /** The style of the text */
+    textStyles?: StyleProp<TextStyle>;
+
+    /** The background color for the status text */
+    statusTextBackgroundColor?: ColorValue;
+
+    /** The text color for the status text */
+    statusTextColor?: ColorValue;
+
+    /** The style of the status text container */
+    statusTextContainerStyles?: StyleProp<ViewStyle>;
+
+    /** The number of lines for the subtitle */
+    subtitleNumberOfLines?: number;
+
+    /** AccountID of the human agent assisting Concierge, gates the "- assisted by [...]" suffix */
+    humanAgentAccountID?: number;
+
+    /** Display name of the human agent; falls back to a generic label when missing */
+    humanAgentName?: string;
+
+    /** Whether to show the "from" prefix */
+    shouldShowFromPrefix?: boolean;
 };
 
 function ParentNavigationSubtitle({
     parentNavigationSubtitleData,
+    reportID = '',
     parentReportActionID,
     parentReportID = '',
     pressableStyles,
     openParentReportInCurrentTab = false,
     statusText,
+    textStyles,
+    statusTextBackgroundColor,
+    statusTextColor,
+    statusTextContainerStyles,
+    subtitleNumberOfLines = 1,
+    humanAgentAccountID,
+    humanAgentName,
+    shouldShowFromPrefix = true,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -61,11 +99,35 @@ function ParentNavigationSubtitle({
 
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: false});
+    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const isReportInRHP = currentRoute.name === SCREENS.SEARCH.REPORT_RHP;
-    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
+    const isReportInRHP = currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const hasAccessToParentReport = currentReport?.hasParentAccess !== false;
+    const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
+        // Find the tab navigator, which wraps all full-screen navigators
+        const tabNavigatorRoute = state?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        const tabState = tabNavigatorRoute?.state;
+
+        // Get the active (focused) tab from the tab navigator as the current full-screen route
+        // and fall back to the previous root-level full-screen lookup for states without tab nesting.
+        const fullScreenRoute = tabState ? tabState.routes?.[tabState.index ?? 0] : state?.routes?.findLast((route) => isFullScreenName(route.name));
+
+        // Find the outermost navigator that currently has an active screen stack
+        const lastNavigatorWithRoutes = state?.routes ? state.routes.findLast((route) => route.state?.routes && route.state.routes.length > 0) : undefined;
+
+        // If the tab navigator is focused, resolve to the active tab's navigator so that
+        // focusedNavigatorState reflects the split navigator's screen stack (not the tab list).
+        // If RHP is focused, use the RHP route directly so RHP-specific checks work correctly.
+        const focusedNavigator = lastNavigatorWithRoutes?.name === NAVIGATORS.TAB_NAVIGATOR ? fullScreenRoute : lastNavigatorWithRoutes;
+
+        return {
+            currentFullScreenRoute: fullScreenRoute,
+            currentFocusedNavigator: focusedNavigator,
+        };
+    });
 
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
     if (!reportName) {
@@ -74,18 +136,24 @@ function ParentNavigationSubtitle({
 
     const onPress = () => {
         const parentAction = getReportAction(parentReportID, parentReportActionID);
-        const isVisibleAction = shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID, canUserPerformWriteAction);
+        const isVisibleAction = isReportActionVisible(parentAction, parentReportID, canUserPerformWriteAction, visibleReportActionsData);
+
+        const focusedNavigatorState = currentFocusedNavigator?.state;
+        const currentReportIndex = focusedNavigatorState?.index;
 
         if (openParentReportInCurrentTab && isReportInRHP) {
             // If the report is displayed in RHP in Reports tab, we want to stay in the current tab after opening the parent report
-            if (currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-                const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
-                if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
-                    const moneyRequestReportID = (lastRoute?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT])?.reportID;
-                    // If the parent report is already displayed underneath RHP, simply dismiss the modal
-                    if (moneyRequestReportID === parentReportID) {
-                        Navigation.dismissModal();
-                        return;
+            if (currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && isMoneyRequestReport(report)) {
+                // Dismiss wide RHP and go back to already opened super wide RHP if the parent report is already opened there
+                if (currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && currentReportIndex && currentReportIndex > 0) {
+                    const previousRoute = focusedNavigatorState.routes[currentReportIndex - 1];
+
+                    if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
+                        const moneyRequestReportID = (previousRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT])?.reportID;
+                        if (moneyRequestReportID === parentReportID) {
+                            Navigation.goBack();
+                            return;
+                        }
                     }
                 }
 
@@ -93,9 +161,80 @@ function ParentNavigationSubtitle({
                 return;
             }
 
+            if (Navigation.getTopmostSuperWideRHPReportID() === parentReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                Navigation.dismissToSuperWideRHP();
+                return;
+            }
+
             // If the parent report is already displayed underneath RHP, simply dismiss the modal
-            if (Navigation.getTopmostReportId() === parentReportID) {
+            if (Navigation.getTopmostReportId() === parentReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                 Navigation.dismissModal();
+                return;
+            }
+        }
+
+        // When viewing a money request in the search navigator, open the parent report in a right-hand pane (RHP)
+        // to preserve the search context instead of navigating away.
+        if (openParentReportInCurrentTab && currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            const lastRoute = currentFocusedNavigator?.state?.routes.at(-1);
+            if (lastRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID}));
+                return;
+            }
+
+            // Specific case: when opening expense report from search report (chat RHP),
+            // avoid stacking RHPs by going back to the search report if it's already there
+            const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
+
+            if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && previousRoute.params && 'reportID' in previousRoute.params) {
+                const reportIDFromParams = previousRoute.params.reportID;
+
+                if (reportIDFromParams === parentReportID) {
+                    Navigation.goBack();
+                    return;
+                }
+            }
+
+            // When the parent report is already the topmost route in the tab underneath the RHP,
+            // update its reportActionID and dismiss the modal instead of pushing a new instance
+            // on top of the tab navigator.
+            if (currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                const fullScreenState = currentFullScreenRoute.state;
+                const topRoute = fullScreenState?.routes?.[fullScreenState.index ?? 0];
+                const topRouteReportID = topRoute?.params && 'reportID' in topRoute.params ? String(topRoute.params.reportID) : undefined;
+
+                if (topRouteReportID === parentReportID && topRoute?.key && fullScreenState?.key) {
+                    if (isVisibleAction && parentReportActionID) {
+                        Navigation.setParams({reportActionID: parentReportActionID}, topRoute.key, fullScreenState.key);
+                    }
+                    Navigation.dismissModal();
+                    return;
+                }
+            }
+
+            // Stay in the Search tab when the parent link is tapped from a SEARCH_REPORT RHP
+            // and the parent isn't already in the stack — otherwise the REPORT_WITH_ID fallback
+            // would yank the user to Inbox.
+            if (isReportInRHP) {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: isVisibleAction ? parentReportActionID : undefined}));
+                return;
+            }
+        }
+
+        // If the parent report is already the previous screen in the main stack, go back to it
+        // and update its params instead of pushing a new instance. Without this check, repeatedly
+        // tapping the subtitle link builds up a [DM, Expense, DM, Expense, …] stack that traps
+        // the user after an expense is deleted.
+        if ((currentReportIndex ?? 0) > 0 && focusedNavigatorState?.key && currentFocusedNavigator?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+            const prevRoute = focusedNavigatorState.routes[(currentReportIndex ?? 0) - 1];
+            const prevRouteReportID = prevRoute?.params && 'reportID' in prevRoute.params ? String(prevRoute.params.reportID) : undefined;
+
+            if (prevRouteReportID === parentReportID && prevRoute?.key) {
+                if (isVisibleAction && parentReportActionID) {
+                    // Set params on the background screen first so it is already correct when revealed.
+                    Navigation.setParams({reportActionID: parentReportActionID}, prevRoute.key, focusedNavigatorState.key);
+                }
+                Navigation.goBack();
                 return;
             }
         }
@@ -108,31 +247,56 @@ function ParentNavigationSubtitle({
     };
 
     return (
-        <Text
-            style={[styles.optionAlternateText, styles.textLabelSupporting]}
-            numberOfLines={1}
-        >
-            {!!statusText && <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${statusText} ${CONST.DOT_SEPARATOR} `}</Text>}
-            {!!reportName && (
-                <>
-                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>
-                    <TextLink
-                        onMouseEnter={onMouseEnter}
-                        onMouseLeave={onMouseLeave}
-                        onPress={onPress}
-                        accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
-                        style={[pressableStyles, styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link]}
-                    >
-                        {reportName}
-                    </TextLink>
-                </>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
+            {!!statusText && (
+                <StatusBadge
+                    text={statusText}
+                    backgroundColor={statusTextBackgroundColor}
+                    textColor={statusTextColor}
+                    badgeStyles={[styles.mr1, statusTextContainerStyles]}
+                />
             )}
-            {!!workspaceName && workspaceName !== reportName && (
-                <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
-            )}
-        </Text>
+            <Text
+                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flexShrink1, styles.mnw0, textStyles]}
+                numberOfLines={subtitleNumberOfLines}
+            >
+                {!!reportName && (
+                    <>
+                        {shouldShowFromPrefix && <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>}
+                        {hasAccessToParentReport ? (
+                            <TextLink
+                                testID="parent-navigation-subtitle-link"
+                                onMouseEnter={onMouseEnter}
+                                onMouseLeave={onMouseLeave}
+                                onPress={onPress}
+                                accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
+                                style={[
+                                    pressableStyles,
+                                    styles.optionAlternateText,
+                                    styles.textLabelSupporting,
+                                    textStyles,
+                                    hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link,
+                                ]}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            >
+                                {reportName}
+                            </TextLink>
+                        ) : (
+                            <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{reportName}</Text>
+                        )}
+                    </>
+                )}
+                {!!humanAgentAccountID && (
+                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>
+                        {` - ${translate('reportAction.assistedBy', humanAgentName ?? translate('reportAction.humanSupportAgent'))}`}
+                    </Text>
+                )}
+                {!!workspaceName && workspaceName !== reportName && (
+                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
+                )}
+            </Text>
+        </View>
     );
 }
 
-ParentNavigationSubtitle.displayName = 'ParentNavigationSubtitle';
 export default ParentNavigationSubtitle;

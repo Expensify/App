@@ -1,17 +1,28 @@
 import {useNavigation} from '@react-navigation/native';
-import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {updateChatPriorityMode} from '@libs/actions/User';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import FocusModeNotification from './FocusModeNotification';
+import RenderHTML from './RenderHTML';
+
+const isInFocusModeSelector = (priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>) => priorityMode === CONST.PRIORITY_MODE.GSD;
 
 /**
  * This component is used to automatically switch a user into #focus mode when they exceed a certain number of reports.
@@ -25,35 +36,52 @@ import FocusModeNotification from './FocusModeNotification';
  *
  */
 export default function PriorityModeController() {
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
-    const [isInFocusMode, isInFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: (priorityMode) => priorityMode === CONST.PRIORITY_MODE.GSD, canBeMissing: true});
-    const [hasTriedFocusMode, hasTriedFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const {orderedReportIDs} = useSidebarOrderedReportsState();
+    const lhnReportCount = orderedReportIDs.length;
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [isInFocusMode, isInFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: isInFocusModeSelector});
+    const [hasTriedFocusMode, hasTriedFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE);
     const currentRouteName = useCurrentRouteName();
-    const [shouldShowModal, setShouldShowModal] = useState(false);
-    const closeModal = useCallback(() => setShouldShowModal(false), []);
-    const validReportCount = useMemo(() => {
-        let count = 0;
-        Object.values(allReports ?? {}).forEach((report) => {
-            if (!isValidReport(report) || !isReportParticipant(accountID ?? CONST.DEFAULT_NUMBER_ID, report)) {
-                return;
-            }
-
-            count++;
-        });
-        return count;
-    }, [accountID, allReports]);
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['ThreeLeggedLaptopWoman']);
+    const {environmentURL} = useEnvironment();
+    const {translate} = useLocalize();
+    const {showConfirmModal, closeModal} = useConfirmModal();
+    const isModalShown = useRef(false);
 
     // We set this when we have finally auto-switched the user of #focus mode to prevent duplication.
     const hasSwitched = useRef(false);
+    const priorityModePageUrl = `${environmentURL}/settings/preferences/priority-mode`;
+
+    const handleShowModal = useCallback(() => {
+        if (isModalShown.current) {
+            return;
+        }
+
+        isModalShown.current = true;
+        showConfirmModal({
+            title: translate('focusModeUpdateModal.title'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            prompt: (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML html={translate('focusModeUpdateModal.prompt', priorityModePageUrl)} />
+                </View>
+            ),
+            image: illustrations.ThreeLeggedLaptopWoman,
+            imageStyles: StyleUtils.getBackgroundColorStyle(colors.pink800),
+            titleStyles: [styles.textHeadline, styles.mbn3],
+        }).then(() => {
+            isModalShown.current = false;
+        });
+    }, [StyleUtils, illustrations.ThreeLeggedLaptopWoman, priorityModePageUrl, showConfirmModal, styles, translate]);
 
     // Listen for state changes and trigger the #focus mode when appropriate
     useEffect(() => {
         // Wait for Onyx state to fully load
         if (
             isLoadingReportData !== false ||
-            !accountID ||
             isLoadingOnyxValue(isInFocusModeMetadata, hasTriedFocusModeMetadata) ||
             typeof isInFocusMode !== 'boolean' ||
             typeof hasTriedFocusMode !== 'boolean'
@@ -61,30 +89,39 @@ export default function PriorityModeController() {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (hasSwitched.current || isInFocusMode || hasTriedFocusMode) {
             return;
         }
 
-        if (validReportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_UPDATE) {
-            Log.info('[PriorityModeController] Not switching user to focus mode as they do not have enough reports', false, {validReportCount});
+        if (lhnReportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_UPDATE) {
+            Log.info('[PriorityModeController] Not switching user to focus mode as they do not have enough reports', false, {lhnReportCount});
             return;
         }
 
         // We wait for the user to navigate back to the home screen before triggering this switch
         const isNarrowLayout = getIsNarrowLayout();
-        if ((isNarrowLayout && currentRouteName !== SCREENS.HOME) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT)) {
-            Log.info("[PriorityModeController] Not switching user to focus mode as they aren't on the home screen", false, {validReportCount, currentRouteName});
+        if ((isNarrowLayout && currentRouteName !== SCREENS.INBOX) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT)) {
+            Log.info("[PriorityModeController] Not switching user to focus mode as they aren't on the home screen", false, {lhnReportCount, currentRouteName});
             return;
         }
 
-        Log.info('[PriorityModeController] Switching user to focus mode', false, {validReportCount, hasTriedFocusMode, isInFocusMode, currentRouteName});
+        Log.info('[PriorityModeController] Switching user to focus mode', false, {lhnReportCount, hasTriedFocusMode, isInFocusMode, currentRouteName});
         updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, true);
-        setShouldShowModal(true);
+        requestAnimationFrame(handleShowModal);
         hasSwitched.current = true;
-    }, [accountID, currentRouteName, hasTriedFocusMode, hasTriedFocusModeMetadata, isInFocusMode, isInFocusModeMetadata, isLoadingReportData, validReportCount]);
+    }, [currentRouteName, handleShowModal, hasTriedFocusMode, hasTriedFocusModeMetadata, isInFocusMode, isInFocusModeMetadata, isLoadingReportData, lhnReportCount]);
 
-    return shouldShowModal ? <FocusModeNotification onClose={closeModal} /> : null;
+    useEffect(() => {
+        if (!isModalShown.current || currentRouteName !== SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE) {
+            return;
+        }
+
+        // Hide focus modal when settings button is pressed from the prompt.
+        closeModal();
+        isModalShown.current = false;
+    }, [closeModal, currentRouteName]);
+
+    return null;
 }
 
 /**

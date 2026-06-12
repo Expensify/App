@@ -1,17 +1,22 @@
 import React from 'react';
-import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Animated from 'react-native-reanimated';
+import type {AnimatedStyle} from 'react-native-reanimated';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
-import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import SignInButton from '@pages/home/sidebar/SignInButton';
+import SignInButton from '@pages/inbox/sidebar/SignInButton';
 import {isAnonymousUser as isAnonymousUserUtil} from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 
@@ -22,16 +27,20 @@ type TopBarProps = {
     shouldShowLoadingBar?: boolean;
     cancelSearch?: () => void;
     children?: React.ReactNode;
+    breadcrumbAnimatedStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 };
 
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
-function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = true, cancelSearch, shouldShowLoadingBar = false, children}: TopBarProps) {
+function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children, breadcrumbAnimatedStyle}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector, canBeMissing: true});
-    const shouldShowLoadingBarForReports = useLoadingBarVisibility();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isAnonymousUser = isAnonymousUserUtil(session);
+
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const {wideRHPRouteKeys} = useWideRHPState();
+    const isWideRHPVisible = !!wideRHPRouteKeys.length;
 
     const displaySignIn = isAnonymousUser;
     const displaySearch = !isAnonymousUser && shouldDisplaySearch;
@@ -41,16 +50,18 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
             <View
                 style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ml5, styles.mr3, styles.headerBarHeight]}
                 dataSet={{dragArea: true}}
+                onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.pr2]}>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                    <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, breadcrumbAnimatedStyle]}>
                         <Text
                             numberOfLines={1}
                             style={[styles.flexShrink1, styles.topBarLabel]}
+                            accessibilityRole={CONST.ROLE.HEADER}
                         >
                             {breadcrumbLabel}
                         </Text>
-                    </View>
+                    </Animated.View>
                 </View>
                 {children}
                 {displaySignIn && <SignInButton />}
@@ -58,6 +69,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('common.cancel')}
                         style={styles.textBlue}
+                        sentryLabel={CONST.SENTRY_LABEL.TOP_BAR.CANCEL_BUTTON}
                         onPress={() => {
                             cancelSearch();
                         }}
@@ -65,14 +77,14 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
-                {shouldDisplayHelpButton && <HelpButton />}
                 {displaySearch && <SearchButton />}
+                {shouldDisplayHelpButton && <SidePanelButton />}
             </View>
-            <LoadingBar shouldShow={shouldShowLoadingBarForReports || shouldShowLoadingBar} />
+            <LoadingBar shouldShow={!isWideRHPVisible && !!shouldShowLoadingBar} />
         </View>
     );
 }
 
-TopBar.displayName = 'TopBar';
+export type {TopBarProps};
 
 export default TopBar;

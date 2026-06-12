@@ -4,6 +4,8 @@ import type Form from './Form';
 const INPUT_IDS = {
     NAME: 'name',
     CURRENCY: 'currency',
+    PLAN_TYPE: 'planType',
+    OWNER: 'owner',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -13,6 +15,8 @@ type WorkspaceConfirmationForm = Form<
     {
         [INPUT_IDS.NAME]: string;
         [INPUT_IDS.CURRENCY]: string;
+        [INPUT_IDS.PLAN_TYPE]: string;
+        [INPUT_IDS.OWNER]: string;
     }
 >;
 

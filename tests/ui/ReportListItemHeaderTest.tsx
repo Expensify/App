@@ -1,42 +1,66 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {SearchContext} from '@components/Search/SearchContext';
-import ReportListItemHeader from '@components/SelectionList/Search/ReportListItemHeader';
-import type {TransactionReportGroupListItemType} from '@components/SelectionList/types';
+import ReportListItemHeader from '@components/Search/SearchList/ListItem/ReportListItemHeader';
+import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
+import type {PersonalDetails} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import MockSearchContextProvider from '../utils/MockSearchContextProvider';
+import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@components/AvatarWithDisplayName.tsx');
 
-// Mock search context
-const mockSearchContext = {
+jest.mock('@hooks/usePaymentContext', () => {
+    const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../utils/mockUsePaymentContext');
+    return mockUsePaymentContext;
+});
+
+// Mock search context with all required SearchContextStateValue and SearchContextActionsValue fields
+const mockSearchStateContext = {
     currentSearchHash: 12345,
-    selectedReports: {},
+    selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
-    isOnSearch: false,
     shouldTurnOffSelectionMode: false,
-    setSelectedReports: jest.fn(),
+    currentSearchKey: undefined,
+    currentSearchQueryJSON: undefined,
+    currentSearchResults: undefined,
+    currentSelectedTransactionReportID: undefined,
+    shouldShowFiltersBarLoading: false,
+    shouldUseLiveData: false,
+    currentSimilarSearchHash: -1,
+    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
+    lastSearchType: undefined,
+    areAllMatchingItemsSelected: false,
+    shouldResetSearchQuery: false,
+    sortedReportIDs: [],
+    hasSelectedTransactions: false,
+} satisfies SearchStateContextValue;
+
+const mockSearchActionsContext = {
     clearSelectedTransactions: jest.fn(),
     setLastSearchType: jest.fn(),
-    setCurrentSearchHashAndKey: jest.fn(),
+    setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    setSelectedReports: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
-    shouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
-};
+    setShouldResetSearchQuery: jest.fn(),
+    removeTransaction: jest.fn(),
+    setSortedReportIDs: jest.fn(),
+} satisfies SearchActionsContextValue;
 
-const mockPersonalDetails: Record<string, SearchPersonalDetails> = {
+const mockPersonalDetails: Record<string, PersonalDetails> = {
     john: {
         accountID: 1,
         displayName: 'John Doe',
@@ -95,8 +119,10 @@ const createReportListItem = (
 const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemType) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            {/* @ts-expect-error - Disable TypeScript errors to simplify the test */}
-            <SearchContext.Provider value={mockSearchContext}>
+            <MockSearchContextProvider
+                state={mockSearchStateContext}
+                actions={mockSearchActionsContext}
+            >
                 <ReportListItemHeader
                     report={reportItem}
                     onSelectRow={jest.fn()}
@@ -104,7 +130,7 @@ const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemTy
                     isDisabled={false}
                     canSelectMultiple={false}
                 />
-            </SearchContext.Provider>
+            </MockSearchContextProvider>
         </ComposeProviders>,
     );
 };
@@ -118,99 +144,103 @@ describe('ReportListItemHeader', () => {
     );
 
     afterEach(async () => {
-        await Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
+        });
         jest.clearAllMocks();
     });
 
     describe('UserInfoCellsWithArrow', () => {
         describe('when report type is IOU', () => {
-            it('should display both submitter and recipient if both are present', async () => {
+            it('should display only submitter without recipient on narrow layout', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.IOU, 'john', 'jane');
                 renderReportListItemHeader(reportItem);
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
                 expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.getByText('Jane Smith')).toBeOnTheScreen();
+                expect(screen.queryByText('Jane Smith')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
-            it('should not display submitter and recipient if only submitter is present', async () => {
+            it('should not display submitter if recipient is missing', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.IOU, 'john', undefined);
                 renderReportListItemHeader(reportItem);
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
                 expect(screen.queryByText('John Doe')).not.toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
-            it('should display submitter and receiver, even if submitter and recipient are the same', async () => {
+            it('should display only submitter even if submitter and recipient are the same', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.IOU, 'john', 'john');
                 renderReportListItemHeader(reportItem);
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
-                expect(screen.getAllByText('John Doe')).toHaveLength(2);
-                expect(screen.getByTestId('ArrowRightLong Icon')).toBeOnTheScreen();
+                expect(screen.getAllByText('John Doe')).toHaveLength(1);
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
             it('should not render anything if neither submitter nor recipient is present', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.IOU, undefined, undefined);
                 renderReportListItemHeader(reportItem);
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
-            it('should only display submitter if recipient is invalid', async () => {
+            it('should display only submitter if recipient is invalid', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.IOU, 'john', 'fake');
                 renderReportListItemHeader(reportItem);
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
                 expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
         });
 
         describe('when report type is EXPENSE', () => {
-            it('should display both submitter and recipient if they are different', async () => {
+            it('should display only submitter without recipient on narrow layout', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'jane');
                 renderReportListItemHeader(reportItem);
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
                 expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.getByText('Jane Smith')).toBeOnTheScreen();
+                expect(screen.queryByText('Jane Smith')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
             it('should display submitter if only submitter is present', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', undefined);
                 renderReportListItemHeader(reportItem);
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
                 expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
-            it('should display submitter and receiver, even if submitter and recipient are the same', async () => {
+            it('should display only submitter even if submitter and recipient are the same', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'john');
                 renderReportListItemHeader(reportItem);
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
-                expect(screen.getAllByText('John Doe')).toHaveLength(2);
-                expect(screen.getByTestId('ArrowRightLong Icon')).toBeOnTheScreen();
+                expect(screen.getAllByText('John Doe')).toHaveLength(1);
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
             it('should not render anything if no participants are present', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, undefined, undefined);
                 renderReportListItemHeader(reportItem);
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
-            it('should only display submitter if recipient is invalid', async () => {
+            it('should display only submitter if recipient is invalid', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'fake');
                 renderReportListItemHeader(reportItem);
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
                 expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
         });
     });

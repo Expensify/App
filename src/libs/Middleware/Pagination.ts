@@ -1,16 +1,21 @@
 import fastMerge from 'expensify-common/dist/fastMerge';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ApiCommand} from '@libs/API/types';
 import Log from '@libs/Log';
-import PaginationUtils from '@libs/PaginationUtils';
+import {mergeAndSortContinuousPages, mergePagesByIDOverlap} from '@libs/PaginationUtils';
 import CONST from '@src/CONST';
 import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
-import type {PaginatedRequest} from '@src/types/onyx/Request';
+import type Pages from '@src/types/onyx/Pages';
+import type {AnyOnyxUpdate, PaginatedRequest} from '@src/types/onyx/Request';
 import type Middleware from './types';
 
 type PagedResource<TResourceKey extends OnyxCollectionKey> = OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never;
+
+// Simplified type for paginated resource collections to avoid complex union type errors
+type PaginatedResourceCollection = Record<string, unknown>;
 
 type PaginationCommonConfig<TResourceKey extends OnyxCollectionKey = OnyxCollectionKey, TPageKey extends OnyxPagesKey = OnyxPagesKey> = {
     resourceCollectionKey: TResourceKey;
@@ -47,14 +52,14 @@ function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageK
     paginationConfigs.set(initialCommand, {...config, type: 'initial'} as unknown as PaginationConfigMapValue);
     paginationConfigs.set(previousCommand, {...config, type: 'previous'} as unknown as PaginationConfigMapValue);
     paginationConfigs.set(nextCommand, {...config, type: 'next'} as unknown as PaginationConfigMapValue);
-    Onyx.connect<OnyxCollectionKey>({
+    Onyx.connectWithoutView<OnyxCollectionKey>({
         key: config.resourceCollectionKey,
         waitForCollectionCallback: true,
         callback: (data) => {
             resources.set(config.resourceCollectionKey, data);
         },
     });
-    Onyx.connect<OnyxPagesKey>({
+    Onyx.connectWithoutView<OnyxPagesKey>({
         key: config.pageCollectionKey,
         waitForCollectionCallback: true,
         callback: (data) => {
@@ -63,7 +68,7 @@ function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageK
     });
 }
 
-function isPaginatedRequest(request: Request | PaginatedRequest): request is PaginatedRequest {
+function isPaginatedRequest<TKey extends OnyxKey>(request: Request<TKey> | PaginatedRequest<TKey>): request is PaginatedRequest<TKey> {
     return 'isPaginated' in request && request.isPaginated;
 }
 
@@ -95,7 +100,8 @@ const Pagination: Middleware = (requestResponse, request) => {
         const pageKey = `${pageCollectionKey}${resourceID}` as const;
 
         // Create a new page based on the response
-        const pageItems = (response.onyxData.find((data) => data.key === resourceKey)?.value ?? {}) as OnyxValues[typeof resourceCollectionKey];
+        const pageData = response.onyxData.find((data) => data.key === resourceKey) as {value?: PaginatedResourceCollection} | undefined;
+        const pageItems: PaginatedResourceCollection = pageData?.value ?? {};
         const sortedPageItems = sortItems(pageItems, resourceID);
         if (sortedPageItems.length === 0) {
             // Must have at least 1 action to create a page.
@@ -105,7 +111,8 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const newPage = sortedPageItems.map((item) => getItemID(item));
 
-        if (response.hasNewerActions === false || (type === 'initial' && !cursorID)) {
+        const shouldMarkNoNewerActions = response.hasNewerActions === false || response.hasNewerActions === null || (type === 'initial' && !cursorID && response.hasNewerActions !== true);
+        if (shouldMarkNoNewerActions) {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
         if (response.hasOlderActions === false || response.hasOlderActions === null) {
@@ -113,19 +120,51 @@ const Pagination: Middleware = (requestResponse, request) => {
         }
 
         const resourceCollections = resources.get(resourceCollectionKey) ?? {};
-        const existingItems = resourceCollections[resourceKey] ?? {};
+        const existingItems = (resourceCollections[resourceKey] ?? {}) as PaginatedResourceCollection;
         const allItems = fastMerge(existingItems, pageItems, true);
         const sortedAllItems = sortItems(allItems, resourceID);
 
         const pagesCollections = pages.get(pageCollectionKey) ?? {};
-        const existingPages = pagesCollections[pageKey] ?? [];
-        const mergedPages = PaginationUtils.mergeAndSortContinuousPages(sortedAllItems, [...existingPages, newPage], getItemID);
+        const existingPages: Pages = pagesCollections[pageKey] ?? [];
 
-        response.onyxData.push({
+        const isMiddleInitialSlice = type === 'initial' && !cursorID && response.hasNewerActions === true && response.hasOlderActions === true;
+
+        // Only strip PAGINATION_START_ID from cached pages when the server explicitly confirms newer actions exist.
+        // Some commands (e.g. GetOlderActions) don't return hasNewerActions at all — in that case, preserve the existing boundary.
+        const shouldStripStartMarker = response.hasNewerActions === true;
+        const sanitizedExistingPages = shouldStripStartMarker ? existingPages.map((page) => page.filter((id) => id !== CONST.PAGINATION_START_ID)) : existingPages;
+
+        const mergedPages: Pages = isMiddleInitialSlice
+            ? mergePagesByIDOverlap(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID)
+            : mergeAndSortContinuousPages(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID);
+
+        (response.onyxData as AnyOnyxUpdate[]).push({
             key: pageKey,
             onyxMethod: Onyx.METHOD.SET,
             value: mergedPages,
         });
+
+        // Store cursor IDs scoped to pagination direction so backfill (getOlderActions)
+        // doesn't overwrite the forward cursor used by auto-pagination.
+        if (resourceCollectionKey === ONYXKEYS.COLLECTION.REPORT_ACTIONS) {
+            const newestFetchedID = newPage.find((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID);
+            const oldestFetchedID = newPage.findLast((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID);
+            const isOlderDirection = type === 'previous';
+            const value: Record<string, string> = {};
+            if (newestFetchedID && !isOlderDirection) {
+                value.newestFetchedReportActionID = newestFetchedID;
+            }
+            if (oldestFetchedID && isOlderDirection) {
+                value.oldestFetchedReportActionID = oldestFetchedID;
+            }
+            if (Object.keys(value).length > 0) {
+                (response.onyxData as AnyOnyxUpdate[]).push({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${resourceID}`,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    value,
+                });
+            }
+        }
 
         return Promise.resolve(response);
     });

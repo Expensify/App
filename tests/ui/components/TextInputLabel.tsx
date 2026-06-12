@@ -5,12 +5,7 @@ import type TextInputLabelProps from '@components/TextInput/TextInputLabel/types
 
 describe('TextInputLabel', () => {
     const renderLabel = (props: TextInputLabelProps) => {
-        return render(
-            <TextInputLabel
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />,
-        );
+        return render(<TextInputLabel {...props} />);
     };
 
     const labelTranslateY = useSharedValue(0);
@@ -26,7 +21,7 @@ describe('TextInputLabel', () => {
             labelScale,
         });
         // Find the Animated.Text component by its text content
-        const labelElement = screen.getByText(longLabel);
+        const labelElement = screen.getByText(longLabel, {includeHiddenElements: true});
         // Verify the component renders the correct text
         expect(labelElement).toBeTruthy();
         // Verify the props for shortening behavior
@@ -44,7 +39,7 @@ describe('TextInputLabel', () => {
             labelScale,
         });
         // Find the Animated.Text component by its text content
-        const labelElement = screen.getByText(label);
+        const labelElement = screen.getByText(label, {includeHiddenElements: true});
         // Verify the component renders the correct text
         expect(labelElement).toBeTruthy();
         // Verify that numberOfLines and ellipsizeMode are undefined

@@ -112,6 +112,7 @@ const reportChatDM = {
     chatType: undefined,
     reportID: 'CHAT_REPORT_DM',
     policyID: personalPolicy.id,
+    type: CONST.REPORT.TYPE.CHAT,
 };
 
 const reportPreviewAction = {
@@ -156,6 +157,8 @@ const iouDMReport = {
     chatReportID: reportChatDM.reportID,
     parentReportActionID: reportPreviewDMAction.reportActionID,
     policyID: personalPolicy.id,
+    type: CONST.REPORT.TYPE.IOU,
+    chatType: undefined,
 };
 
 const iouDMSingleExpenseReport = {
@@ -273,7 +276,6 @@ const onyxState = {
 function renderAvatar(props: Parameters<typeof ReportActionAvatars>[0]) {
     return render(
         <OnyxListItemProvider>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <ReportActionAvatars {...props} />
         </OnyxListItemProvider>,
     );

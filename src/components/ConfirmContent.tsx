@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -9,10 +10,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
-import {Close} from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
@@ -97,11 +98,17 @@ type ConfirmContentProps = {
     /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
 
+    /** Whether to fit the image to the container */
+    shouldFitImageToContainer?: boolean;
+
     /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Whether the confirm button is loading */
     isConfirmLoading?: boolean;
+
+    /** Whether to show a loading indicator next to the title */
+    isTitleLoading?: boolean;
 };
 
 function ConfirmContent({
@@ -129,15 +136,18 @@ function ConfirmContent({
     shouldShowDismissIcon = false,
     image,
     imageStyles,
+    shouldFitImageToContainer = false,
     titleContainerStyles,
     shouldReverseStackedButtons = false,
     isVisible,
     isConfirmLoading,
+    isTitleLoading = false,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
     const isCentered = shouldCenterContent;
 
@@ -146,10 +156,11 @@ function ConfirmContent({
             {!!image && (
                 <View style={imageStyles}>
                     <ImageSVG
-                        contentFit="contain"
+                        contentFit={shouldFitImageToContainer ? 'cover' : 'contain'}
                         src={image}
                         height={CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
-                        width={CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                        width={shouldFitImageToContainer ? '100%' : CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                        preserveAspectRatio={shouldFitImageToContainer ? 'xMidYMid slice' : undefined}
                         style={styles.alignSelfCenter}
                     />
                 </View>
@@ -163,10 +174,11 @@ function ConfirmContent({
                                 onPress={onCancel}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
+                                sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.DISMISS_BUTTON}
                             >
                                 <Icon
                                     fill={theme.icon}
-                                    src={Close}
+                                    src={icons.Close}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
@@ -184,11 +196,17 @@ function ConfirmContent({
                             />
                         </View>
                     )}
-                    <View style={[styles.flexRow, isCentered ? {} : styles.mb4, titleContainerStyles]}>
+                    <View style={[styles.flexRow, isTitleLoading ? styles.justifyContentBetween : {}, styles.alignItemsCenter, isCentered ? {} : styles.mb4, titleContainerStyles]}>
                         <Header
                             title={title}
                             textStyles={titleStyles}
                         />
+                        {isTitleLoading && (
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                                reasonAttributes={{context: 'ConfirmContent-titleLoading'}}
+                            />
+                        )}
                     </View>
                     {typeof prompt === 'string' ? <Text style={[promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt}
                 </View>
@@ -204,7 +222,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={success}
+                            success={shouldShowCancelButton && !danger ? success : false}
                             danger={danger}
                             style={shouldReverseStackedButtons ? styles.mt3 : styles.mt4}
                             onPress={onConfirm}
@@ -235,7 +253,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={success}
+                            success={shouldShowCancelButton && !danger ? success : false}
                             danger={danger}
                             style={[styles.flex1]}
                             onPress={onConfirm}
@@ -251,7 +269,5 @@ function ConfirmContent({
         </>
     );
 }
-
-ConfirmContent.displayName = 'ConfirmContent';
 
 export default ConfirmContent;

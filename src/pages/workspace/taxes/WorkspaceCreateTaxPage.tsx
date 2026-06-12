@@ -1,6 +1,5 @@
-import React, {useCallback} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import AmountPicker from '@components/AmountPicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -10,20 +9,22 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {createPolicyTax, getNextTaxCode, getTaxValueWithPercentage, validateTaxName, validateTaxValue} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
+import {isExistingTaxName} from '@libs/ValidationUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import type {TaxRate} from '@src/types/onyx';
+import TaxValuePicker from './TaxValuePicker';
 
 type WorkspaceCreateTaxPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CREATE>;
 
@@ -36,31 +37,42 @@ function WorkspaceCreateTaxPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const submitForm = useCallback(
-        ({value, ...values}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
-            const taxRate = {
-                ...values,
-                value: getTaxValueWithPercentage(value),
-                code: getNextTaxCode(values[INPUT_IDS.NAME], policy?.taxRates?.taxes),
-            } satisfies TaxRate;
-            createPolicyTax(policyID, taxRate);
-            Navigation.goBack();
-        },
-        [policy?.taxRates?.taxes, policyID],
-    );
+    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM), []);
 
-    const validateForm = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM> => {
-            if (!policy) {
-                return {};
+    const validateTaxNameCustom = (inputID: string) => {
+        return (values: Record<string, string>) => {
+            const errors: Record<string, string> = {};
+            const name = values[inputID];
+
+            if (name && policy?.taxRates?.taxes && isExistingTaxName(name, policy.taxRates.taxes)) {
+                errors[inputID] = translate('workspace.taxes.error.taxRateAlreadyExists');
             }
-            return {
-                ...validateTaxName(policy, values),
-                ...validateTaxValue(values),
-            };
-        },
-        [policy],
-    );
+
+            return errors;
+        };
+    };
+
+    const customValidateForName = validateTaxNameCustom(INPUT_IDS.NAME);
+
+    const submitForm = ({value, ...values}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
+        const taxRate = {
+            ...values,
+            value: getTaxValueWithPercentage(value),
+            code: getNextTaxCode(values[INPUT_IDS.NAME], policy?.taxRates?.taxes),
+        } satisfies TaxRate;
+        createPolicyTax(policyID, taxRate);
+        Navigation.goBack();
+    };
+
+    const validateForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM> => {
+        if (!policy) {
+            return {};
+        }
+        return {
+            ...validateTaxName(policy, values, translate),
+            ...validateTaxValue(values, translate),
+        };
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -69,7 +81,7 @@ function WorkspaceCreateTaxPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceCreateTaxPage.displayName}
+                testID="WorkspaceCreateTaxPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
             >
@@ -88,6 +100,7 @@ function WorkspaceCreateTaxPage({
                             enabledWhenOffline
                             shouldValidateOnBlur={false}
                             addBottomSafeAreaPadding
+                            shouldUseStrictHtmlTagValidation
                         >
                             <View style={styles.mhn5}>
                                 <InputWrapper
@@ -101,23 +114,14 @@ function WorkspaceCreateTaxPage({
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
                                     required
+                                    customValidate={customValidateForName}
+                                    shouldUseStrictHtmlTagValidation
                                 />
                                 <InputWrapper
-                                    InputComponent={AmountPicker}
+                                    InputComponent={TaxValuePicker}
                                     inputID={INPUT_IDS.VALUE}
-                                    title={(v) => (v ? getTaxValueWithPercentage(v) : '')}
-                                    description={translate('workspace.taxes.value')}
+                                    policyID={policyID}
                                     rightLabel={translate('common.required')}
-                                    decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
-                                    maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
-                                    isSymbolPressable={false}
-                                    symbol="%"
-                                    symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
-                                    autoGrowExtraSpace={variables.w80}
-                                    autoGrowMarginSide="left"
-                                    style={[styles.iouAmountTextInput, styles.textAlignRight]}
-                                    containerStyle={styles.iouAmountTextInputContainer}
-                                    touchableInputWrapperStyle={styles.heightUndefined}
                                 />
                             </View>
                         </FormProvider>
@@ -127,7 +131,5 @@ function WorkspaceCreateTaxPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCreateTaxPage.displayName = 'WorkspaceCreateTaxPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceCreateTaxPage);

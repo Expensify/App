@@ -1,0 +1,65 @@
+import useOnyx from '@hooks/useOnyx';
+import {isCard, isCardPendingActivate, isCardPendingIssue, isCardPendingReplace, isCardWithCustomZeroLimit, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
+import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Card} from '@src/types/onyx';
+
+function useTimeSensitiveCards() {
+    const [cards] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+
+    const cardsNeedingShippingAddress: Card[] = [];
+    const cardsNeedingActivation: Card[] = [];
+    const cardsWithFraud: Card[] = [];
+
+    for (const card of Object.values(cards ?? {})) {
+        if (!isCard(card) || !isExpensifyCard(card) || !CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state)) {
+            continue;
+        }
+
+        const fraudAlertReportID = card.nameValuePairs?.possibleFraud?.fraudAlertReportID;
+        const reportActions = fraudAlertReportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fraudAlertReportID}`] : undefined;
+        const hasUnresolvedFraudAction = !!fraudAlertReportID && !!getUnresolvedCardFraudAlertAction(String(fraudAlertReportID), reportActions);
+
+        if (isCardWithPotentialFraud(card) && !!fraudAlertReportID && hasUnresolvedFraudAction) {
+            cardsWithFraud.push(card);
+        }
+
+        if (isCardWithCustomZeroLimit(card)) {
+            continue;
+        }
+
+        if (isCardPendingReplace(card)) {
+            continue;
+        }
+
+        const isPhysicalCard = !card.nameValuePairs?.isVirtual;
+        if (!isPhysicalCard) {
+            continue;
+        }
+
+        if (isCardPendingIssue(card)) {
+            cardsNeedingShippingAddress.push(card);
+        }
+
+        if (isCardPendingActivate(card)) {
+            cardsNeedingActivation.push(card);
+        }
+    }
+
+    const shouldShowAddShippingAddress = cardsNeedingShippingAddress.length > 0;
+    const shouldShowActivateCard = cardsNeedingActivation.length > 0;
+    const shouldShowReviewCardFraud = cardsWithFraud.length > 0;
+
+    return {
+        shouldShowAddShippingAddress,
+        shouldShowActivateCard,
+        shouldShowReviewCardFraud,
+        cardsNeedingShippingAddress,
+        cardsNeedingActivation,
+        cardsWithFraud,
+    };
+}
+
+export default useTimeSensitiveCards;

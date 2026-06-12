@@ -5,7 +5,7 @@ title: "[Performance] "
 labels: Engineering, Daily
 ---
 
-If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/main/contributingGuides/CONTRIBUTING.md) for onboarding and email contributors@expensify.com to request to join our Slack channel!
+If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/main/contributingGuides/CONTRIBUTING.md) for onboarding. To join our Slack channel, fill out [this form](https://forms.gle/Q7hnhUJPnQCK7Fe56).
 ___
 
 ## What performance issue do we need to solve?
@@ -32,7 +32,6 @@ Select the officially supported platforms where the issue was reproduced:
 - [ ] iOS: mWeb Chrome
 - [ ] Windows: Chrome
 - [ ] MacOS: Chrome / Safari
-- [ ] MacOS: Desktop
 
 <details>
   <summary>Platforms Tested:</summary>
@@ -45,7 +44,6 @@ On which of our officially supported platforms was this issue tested:
 - [ ] iOS: mWeb Chrome
 - [ ] Windows: Chrome
 - [ ] MacOS: Chrome / Safari
-- [ ] MacOS: Desktop
 
 </details>
 

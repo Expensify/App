@@ -26,8 +26,8 @@ type GestureHandlerProps = {
     swipeDirection?: SwipeDirection | SwipeDirection[];
 };
 
-type AnimationIn = 'fadeIn' | 'slideInUp' | 'slideInRight';
-type AnimationOut = 'fadeOut' | 'slideOutDown' | 'slideOutRight';
+type AnimationIn = 'fadeIn' | 'slideInUp' | 'slideInRight' | 'slideAndFadeInRight';
+type AnimationOut = 'fadeOut' | 'slideOutDown' | 'slideOutRight' | 'slideAndFadeOutRight';
 
 type ReanimatedModalProps = ViewProps &
     GestureProps &
@@ -136,6 +136,17 @@ type ReanimatedModalProps = ViewProps &
 
         /** Whether to use a custom backdrop for the modal? (This prevents focus issues on desktop) */
         initialFocus?: FocusTrapOptions['initialFocus'];
+
+        /**
+         * Whether the modal should enable the new focus manager.
+         * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
+         * */
+        shouldEnableNewFocusManagement?: boolean;
+
+        /**
+         * Whether the focus of the previous element before showing the modal should be returned when the modal closes.
+         */
+        shouldReturnFocus?: boolean;
 
         /** Whether to ignore the back handler during transition */
         shouldIgnoreBackHandlerDuringTransition?: boolean;

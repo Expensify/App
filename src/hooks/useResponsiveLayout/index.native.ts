@@ -2,6 +2,7 @@ import {NavigationContainerRefContext, NavigationContext} from '@react-navigatio
 import {useContext, useMemo} from 'react';
 import ModalContext from '@components/Modal/ModalContext';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -24,6 +25,7 @@ import type ResponsiveLayoutResult from './types';
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {windowWidth, windowHeight} = useWindowDimensions();
+    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
     const isExtraSmallScreenHeight = windowHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
     const isSmallScreenWidth = true;
@@ -33,8 +35,8 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
     const isSmallScreen = true;
 
-    // we need to always take screen width into consideration, no matter the platform.
-    const onboardingIsMediumOrLargerScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint;
+    // we need to always take screen width into consideration, no matter the platform (with exception of landscape mode).
+    const onboardingIsMediumOrLargerScreenWidth = !isInLandscapeMode && windowWidth > variables.mobileResponsiveWidthBreakpoint;
 
     // Note: activeModalType refers to our react-native-reanimated component wrapper, not react-navigation's modal stack navigators.
     // This means it will only be defined if the component calling this hook is a child of a modal component. See BaseModal for the provider.
@@ -71,5 +73,6 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         isLargeScreenWidth,
         isSmallScreen,
         isExtraLargeScreenWidth,
+        isInLandscapeMode,
     };
 }

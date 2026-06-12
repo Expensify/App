@@ -1,12 +1,14 @@
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useState} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitiallyFocusedKey from '@hooks/useInitiallyFocusedKey';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -15,6 +17,7 @@ import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -31,23 +34,25 @@ function SearchFiltersWorkspacePage() {
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const [policies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [policies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-
     const [selectedOptions, setSelectedOptions] = useState<string[]>(() => (searchAdvancedFiltersForm?.policyID ? Array.from(searchAdvancedFiltersForm?.policyID) : []));
 
-    const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
+    const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin,
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: selectedOptions,
         searchTerm: debouncedSearchTerm,
         localeCompare,
+        shouldSortSelectedToTop: false,
     });
+
+    const initiallyFocusedKey = useInitiallyFocusedKey(() => data.find((item) => item.isSelected)?.keyForList);
 
     const selectWorkspace = useCallback(
         (option: WorkspaceListItem) => {
@@ -75,9 +80,19 @@ function SearchFiltersWorkspacePage() {
         setSelectedOptions([]);
     }, []);
 
+    const textInputOptions = useMemo(
+        () => ({
+            label: shouldShowSearchInput ? translate('common.search') : undefined,
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
+        }),
+        [searchTerm, setSearchTerm, shouldShowNoResultsFoundMessage, shouldShowSearchInput, translate],
+    );
+
     return (
         <ScreenWrapper
-            testID={SearchFiltersWorkspacePage.displayName}
+            testID="SearchFiltersWorkspacePage"
             includeSafeAreaPaddingBottom
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
@@ -92,19 +107,23 @@ function SearchFiltersWorkspacePage() {
                         }}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={{context: 'SearchFiltersWorkspacePage', shouldShowLoadingIndicator}}
+                            />
+                        </View>
                     ) : (
                         <SelectionList<WorkspaceListItem>
+                            data={data}
                             ListItem={UserListItem}
-                            sections={sections}
-                            canSelectMultiple
-                            shouldUseDefaultRightHandSideCheckmark
-                            textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
-                            textInputValue={searchTerm}
-                            onChangeText={setSearchTerm}
+                            initiallyFocusedItemKey={initiallyFocusedKey}
                             onSelectRow={selectWorkspace}
-                            headerMessage={shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : ''}
-                            showLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !didScreenTransitionEnd}
+                            textInputOptions={textInputOptions}
+                            canSelectMultiple
+                            shouldUpdateFocusedIndex
+                            shouldShowLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !didScreenTransitionEnd}
+                            disableMaintainingScrollPosition
                             footerContent={
                                 <SearchFilterPageFooterButtons
                                     applyChanges={applyChanges}
@@ -118,7 +137,5 @@ function SearchFiltersWorkspacePage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersWorkspacePage.displayName = 'SearchFiltersWorkspacePage';
 
 export default SearchFiltersWorkspacePage;

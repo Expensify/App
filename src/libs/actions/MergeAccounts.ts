@@ -1,12 +1,19 @@
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetValidateCodeForAccountMergeParams, MergeWithValidateCodeParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {appendCountryCode} from '@libs/LoginUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function requestValidationCodeForAccountMerge(email: string, validateCodeResent = false) {
-    const optimisticData: OnyxUpdate[] = [
+function requestValidationCodeForAccountMerge(email: string, validateCodeResent = false, countryCode: number = CONST.DEFAULT_COUNTRY_CODE) {
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(email), countryCode));
+    const normalizedEmail = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : email.toLowerCase();
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -21,7 +28,7 @@ function requestValidationCodeForAccountMerge(email: string, validateCodeResent 
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -36,7 +43,7 @@ function requestValidationCodeForAccountMerge(email: string, validateCodeResent 
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -51,7 +58,7 @@ function requestValidationCodeForAccountMerge(email: string, validateCodeResent 
     ];
 
     const parameters: GetValidateCodeForAccountMergeParams = {
-        email,
+        email: normalizedEmail,
     };
 
     API.write(WRITE_COMMANDS.GET_VALIDATE_CODE_FOR_ACCOUNT_MERGE, parameters, {optimisticData, successData, failureData});
@@ -69,7 +76,7 @@ function clearGetValidateCodeForAccountMerge() {
 }
 
 function mergeWithValidateCode(email: string, validateCode: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -83,7 +90,7 @@ function mergeWithValidateCode(email: string, validateCode: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -97,7 +104,7 @@ function mergeWithValidateCode(email: string, validateCode: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,

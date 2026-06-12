@@ -1,30 +1,38 @@
-import React, {useCallback, useMemo} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useHandleBackButton from '@hooks/useHandleBackButton';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import useSubStep from '@hooks/useSubStep';
+import useSubPage from '@hooks/useSubPage';
+import {clearCorpayBankAccountFields} from '@libs/actions/BankAccounts';
 import {clearDraftValues} from '@libs/actions/FormActions';
+import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {InternationalBankAccountForm} from '@src/types/form';
 import type {BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import AccountHolderInformation from './substeps/AccountHolderInformation';
-import AccountType from './substeps/AccountType';
-import BankAccountDetails from './substeps/BankAccountDetails';
-import BankInformation from './substeps/BankInformation';
-import Confirmation from './substeps/Confirmation';
-import CountrySelection from './substeps/CountrySelection';
-import Success from './substeps/Success';
-import type CustomSubStepProps from './types';
+import AccountHolderInformation from './subPages/AccountHolderInformation';
+import AccountType from './subPages/AccountType';
+import BankAccountDetails from './subPages/BankAccountDetails';
+import BankInformation from './subPages/BankInformation';
+import Confirmation from './subPages/Confirmation';
+import CountrySelection from './subPages/CountrySelection';
+import Success from './subPages/Success';
+import type CustomSubPageProps from './types';
 import {getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, testValidation} from './utils';
 
 type InternationalDepositAccountContentProps = {
@@ -34,45 +42,65 @@ type InternationalDepositAccountContentProps = {
     draftValues: OnyxEntry<InternationalBankAccountForm>;
     country: OnyxEntry<string>;
     isAccountLoading: boolean;
+    backTo?: Route;
 };
 
-const formSteps = [CountrySelection, BankAccountDetails, AccountType, BankInformation, AccountHolderInformation, Confirmation, Success];
+const pages = [
+    {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.COUNTRY, component: CountrySelection},
+    {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS, component: BankAccountDetails},
+    {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE, component: AccountType},
+    {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION, component: BankInformation},
+    {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS, component: AccountHolderInformation},
+    {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.CONFIRM, component: Confirmation},
+    {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.SUCCESS, component: Success},
+];
 
-function getSkippedSteps(skipAccountTypeStep: boolean, skipAccountHolderInformationStep: boolean) {
+function getSkippedPages(skipAccountTypeStep: boolean, skipAccountHolderInformationStep: boolean) {
     const skippedSteps = [];
     if (skipAccountTypeStep) {
-        skippedSteps.push(CONST.CORPAY_FIELDS.INDEXES.MAPPING.ACCOUNT_TYPE);
+        skippedSteps.push(CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE);
     }
     if (skipAccountHolderInformationStep) {
-        skippedSteps.push(CONST.CORPAY_FIELDS.INDEXES.MAPPING.ACCOUNT_HOLDER_INFORMATION);
+        skippedSteps.push(CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS);
     }
     return skippedSteps;
 }
 
-function InternationalDepositAccountContent({privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, isAccountLoading}: InternationalDepositAccountContentProps) {
+function InternationalDepositAccountContent({
+    privatePersonalDetails,
+    corpayFields,
+    bankAccountList,
+    draftValues,
+    country,
+    isAccountLoading,
+    backTo,
+}: InternationalDepositAccountContentProps) {
     const {translate} = useLocalize();
 
-    const fieldsMap = useMemo(() => getFieldsMap(corpayFields), [corpayFields]);
+    const fieldsMap = getFieldsMap(corpayFields);
 
-    const values = useMemo(
-        () => getSubstepValues(privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, fieldsMap),
-        [privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, fieldsMap],
-    );
+    const values = getSubstepValues(privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, fieldsMap);
 
-    const initialAccountHolderDetailsValues = useMemo(() => getInitialPersonalDetailsValues(privatePersonalDetails), [privatePersonalDetails]);
+    const initialAccountHolderDetailsValues = getInitialPersonalDetailsValues(privatePersonalDetails);
 
-    const startFrom = useMemo(() => getInitialSubstep(values, fieldsMap), [fieldsMap, values]);
+    const startFrom = getInitialSubstep(values, fieldsMap);
 
-    const skipAccountTypeStep = isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE]);
+    const skipAccountTypeStep = isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE]);
 
-    const skipAccountHolderInformationStep = testValidation(initialAccountHolderDetailsValues, fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]);
+    const skipAccountHolderInformationStep = testValidation(initialAccountHolderDetailsValues, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]);
 
-    const skippedSteps = getSkippedSteps(skipAccountTypeStep, skipAccountHolderInformationStep);
+    const skippedPages = getSkippedPages(skipAccountTypeStep, skipAccountHolderInformationStep);
 
-    const topmostFullScreenRoute = useRootNavigationState((state) => state.routes.findLast((route) => isFullScreenName(route.name)));
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT>>();
+    const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((r) => isFullScreenName(r.name)));
+    const activeTab = getActiveTabName(topmostFullScreenRoute);
 
-    const goBack = useCallback(() => {
-        switch (topmostFullScreenRoute?.name) {
+    const goBack = (shouldIgnoreBackToParam = false) => {
+        if (backTo && !shouldIgnoreBackToParam) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        switch (activeTab) {
             case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
                 Navigation.goBack(ROUTES.SETTINGS_WALLET);
                 break;
@@ -83,83 +111,82 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
                 Navigation.goBack();
                 break;
         }
-    }, [topmostFullScreenRoute?.name]);
+    };
 
-    const handleFinishStep = useCallback(() => {
+    const handleFinishStep = () => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-        goBack();
-    }, [goBack]);
+        clearCorpayBankAccountFields();
+        goBack(backTo?.includes(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE));
+    };
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        nextScreen,
-        prevScreen,
-        screenIndex,
-        moveTo,
-        resetScreenIndex,
-    } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep, skipSteps: skippedSteps});
+    const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomSubPageProps>({
+        pages,
+        startFrom,
+        onFinished: handleFinishStep,
+        skipPages: skippedPages,
+        buildRoute: (pageName, action) => ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(route.params?.backTo, pageName, action),
+    });
+
+    const goBackToConfirmStep = () => {
+        Navigation.goBack(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(route.params?.backTo, CONST.CORPAY_FIELDS.PAGE_NAME.CONFIRM, undefined));
+    };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            resetScreenIndex(CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION);
+            goBackToConfirmStep();
             return true;
         }
 
         // Clicking back on the first screen should dismiss the modal
-        if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR) {
+        if (pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR) {
             clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+            clearCorpayBankAccountFields();
             goBack();
             return true;
         }
 
-        // Clicking back on the success screen should dismiss the modal
-        if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS) {
-            clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-            goBack();
-            return true;
-        }
-        prevScreen();
+        prevPage();
         return true;
     };
 
-    useHandleBackButton(handleBackButtonPress);
+    useAndroidBackButtonHandler(handleBackButtonPress);
 
-    const handleNextScreen = useCallback(() => {
+    const handleNextScreen = () => {
         if (isEditing) {
-            resetScreenIndex(CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION);
+            goBackToConfirmStep();
             return;
         }
-        nextScreen();
-    }, [resetScreenIndex, isEditing, nextScreen]);
-
-    if (isAccountLoading) {
-        return <FullScreenLoadingIndicator />;
-    }
+        nextPage();
+    };
 
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={InternationalDepositAccountContent.displayName}
-            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+            testID="InternationalDepositAccountContent"
+            shouldShowOfflineIndicatorInWideScreen={pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
-            <HeaderWithBackButton
-                title={translate('bankAccount.addBankAccount')}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            <SubStep
-                isEditing={isEditing}
-                onNext={handleNextScreen}
-                onMove={moveTo}
-                screenIndex={screenIndex}
-                resetScreenIndex={resetScreenIndex}
-                formValues={values}
-                fieldsMap={fieldsMap}
-            />
+            {isRedirecting || isAccountLoading ? (
+                <FullScreenLoadingIndicator
+                    reasonAttributes={{context: 'InternationalDepositAccountContent', isRedirecting: !!isRedirecting, isAccountLoading} satisfies SkeletonSpanReasonAttributes}
+                />
+            ) : (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('bankAccount.addBankAccount')}
+                        shouldShowBackButton={pageIndex !== CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS}
+                        onBackButtonPress={handleBackButtonPress}
+                    />
+                    <CurrentPage
+                        isEditing={isEditing}
+                        onNext={handleNextScreen}
+                        onMove={moveTo}
+                        formValues={values}
+                        fieldsMap={fieldsMap}
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 }
-
-InternationalDepositAccountContent.displayName = 'InternationalDepositAccountContent';
 
 export default InternationalDepositAccountContent;

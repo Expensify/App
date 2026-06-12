@@ -1,22 +1,32 @@
 import type {ParamListBase} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import HeaderGap from '@components/HeaderGap';
-import {useSearchContext} from '@components/Search/SearchContext';
+import Animated from 'react-native-reanimated';
+import SidebarLeftIcon from '@assets/images/sidebar-left.svg';
+import SidebarRightIcon from '@assets/images/sidebar-right.svg';
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
+import {PressableWithoutFeedback} from '@components/Pressable';
+import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext} from '@components/Search/SearchContext';
+import Tooltip from '@components/Tooltip';
+import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import SearchTypeMenu from '@pages/Search/SearchTypeMenu';
+import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import NavigationTabBar from './NavigationTabBar';
-import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
+import {
+    useSearchSidebarCollapse,
+    useSearchSidebarCollapseFadeStyle,
+    useSearchSidebarLayoutWidthStyle,
+    useSearchSidebarToggleButtonStyle,
+    useSearchSidebarVisualWidthStyle,
+} from './SearchSidebarCollapseStore';
 import TopBar from './TopBar';
 
 type SearchSidebarProps = {
@@ -26,55 +36,91 @@ type SearchSidebarProps = {
 function SearchSidebar({state}: SearchSidebarProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {isOffline} = useNetwork();
+    const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
+    const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
+    const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
+    const toggleButtonAnimatedStyle = useSearchSidebarToggleButtonStyle();
 
     const route = state.routes.at(-1);
-    const params = route?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT] | undefined;
-    const {lastSearchType, setLastSearchType} = useSearchContext();
+    const {lastSearchType, currentSearchResults} = useSearchResultsContext();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {setLastSearchType} = useSearchResultsActions();
 
-    const queryJSON = useMemo(() => {
-        if (params?.q) {
-            return buildSearchQueryJSON(params.q);
-        }
-        return undefined;
-    }, [params?.q]);
-
-    const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {
-        canBeMissing: true,
-        selector: (snapshot) => snapshot?.search,
-    });
+    const searchType = currentSearchResults?.search?.type;
+    const isSearchLoading = currentSearchResults?.search?.isLoading;
 
     useEffect(() => {
-        if (!currentSearchResults?.type) {
+        if (!searchType) {
             return;
         }
 
-        setLastSearchType(currentSearchResults.type);
-    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
+        setLastSearchType(searchType);
+    }, [lastSearchType, setLastSearchType, searchType]);
 
-    const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !!currentSearchResults?.isLoading;
+    useEffect(() => {
+        if (shouldUseNarrowLayout) {
+            endPeek();
+        }
+
+        return endPeek;
+    }, [endPeek, shouldUseNarrowLayout]);
+
+    const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
     if (shouldUseNarrowLayout) {
         return null;
     }
 
+    const toggleButtonLabel = translate(isCollapsed ? 'reportActionCompose.expand' : 'reportActionCompose.collapse');
+    const toggleButton = (
+        <Tooltip text={toggleButtonLabel}>
+            <Animated.View style={toggleButtonAnimatedStyle}>
+                <PressableWithoutFeedback
+                    accessibilityLabel={toggleButtonLabel}
+                    onPress={toggleSidebar}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SIDEBAR_TOGGLE}
+                    style={[styles.p2, styles.br2]}
+                >
+                    <Icon
+                        src={isCollapsed ? SidebarRightIcon : SidebarLeftIcon}
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
+                        fill={theme.icon}
+                    />
+                </PressableWithoutFeedback>
+            </Animated.View>
+        </Tooltip>
+    );
+
     return (
-        <View style={styles.searchSidebar}>
-            <View style={styles.flex1}>
-                <HeaderGap />
-                <TopBar
-                    shouldShowLoadingBar={shouldShowLoadingState}
-                    breadcrumbLabel={translate('common.reports')}
-                    shouldDisplaySearch={false}
-                    shouldDisplayHelpButton={false}
-                />
-                <SearchTypeMenu queryJSON={queryJSON} />
-            </View>
-            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
-        </View>
+        <Animated.View style={layoutSpacerStyle}>
+            <Hoverable onHoverOut={endPeek}>
+                <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
+                    <View style={styles.flex1}>
+                        <TopBar
+                            shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
+                            breadcrumbLabel={translate('common.spend')}
+                            breadcrumbAnimatedStyle={breadcrumbAnimatedStyle}
+                            shouldDisplaySearch={false}
+                            shouldDisplayHelpButton={false}
+                        >
+                            {toggleButton}
+                        </TopBar>
+                        <Hoverable onHoverIn={startPeek}>
+                            <View style={styles.flex1}>
+                                <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
+                            </View>
+                        </Hoverable>
+                    </View>
+                </Animated.View>
+            </Hoverable>
+        </Animated.View>
     );
 }
-SearchSidebar.displayName = 'SearchSidebar';
+
 export default SearchSidebar;

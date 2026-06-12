@@ -14,14 +14,11 @@ function AnchorForCommentsOnly({onPress, href = '', ...props}: AnchorForComments
 
     return (
         <BaseAnchorForCommentsOnly
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             href={href}
             onPress={onLinkPress}
         />
     );
 }
-
-AnchorForCommentsOnly.displayName = 'AnchorForCommentsOnly';
 
 export default AnchorForCommentsOnly;

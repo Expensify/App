@@ -1,8 +1,11 @@
-import React, {forwardRef} from 'react';
+import type {ForwardedRef} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import CollapsibleHeaderOnKeyboard from './CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import InteractiveStepSubHeader from './InteractiveStepSubHeader';
 import ScreenWrapper from './ScreenWrapper';
@@ -35,6 +38,9 @@ type InteractiveStepWrapperProps = {
     // Should show offline indicator
     shouldShowOfflineIndicator?: boolean;
 
+    // Should show offline indicator in wide screen
+    shouldShowOfflineIndicatorInWideScreen?: boolean;
+
     // Should enable picker avoiding
     shouldEnablePickerAvoiding?: boolean;
 
@@ -53,26 +59,36 @@ type InteractiveStepWrapperProps = {
      * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
      */
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
+
+    /**
+     * Callback to be called when the screen entry transition ends.
+     */
+    onEntryTransitionEnd?: () => void;
+
+    // Reference to the outer element
+    ref?: ForwardedRef<View>;
 };
 
-function InteractiveStepWrapper(
-    {
-        children,
-        wrapperID,
-        handleBackButtonPress,
-        headerTitle,
-        headerSubtitle,
-        startStepIndex,
-        stepNames,
-        shouldEnableMaxHeight,
-        shouldShowOfflineIndicator,
-        shouldEnablePickerAvoiding = false,
-        offlineIndicatorStyle,
-        shouldKeyboardOffsetBottomSafeAreaPadding,
-        enableEdgeToEdgeBottomSafeAreaPadding,
-    }: InteractiveStepWrapperProps,
-    ref: React.ForwardedRef<View>,
-) {
+const INPUT_HEADER_HEIGHT = variables.lineHeightXXLarge;
+
+function InteractiveStepWrapper({
+    children,
+    wrapperID,
+    handleBackButtonPress,
+    headerTitle,
+    headerSubtitle,
+    startStepIndex,
+    stepNames,
+    shouldEnableMaxHeight,
+    shouldShowOfflineIndicator,
+    shouldShowOfflineIndicatorInWideScreen,
+    shouldEnablePickerAvoiding = false,
+    offlineIndicatorStyle,
+    shouldKeyboardOffsetBottomSafeAreaPadding,
+    enableEdgeToEdgeBottomSafeAreaPadding,
+    onEntryTransitionEnd,
+    ref,
+}: InteractiveStepWrapperProps) {
     const styles = useThemeStyles();
 
     return (
@@ -84,27 +100,31 @@ function InteractiveStepWrapper(
             shouldEnablePickerAvoiding={shouldEnablePickerAvoiding}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
             offlineIndicatorStyle={offlineIndicatorStyle}
             shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
+            onEntryTransitionEnd={onEntryTransitionEnd}
         >
-            <HeaderWithBackButton
-                title={headerTitle}
-                subtitle={headerSubtitle}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            {!!stepNames && (
-                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                    <InteractiveStepSubHeader
-                        startStepIndex={startStepIndex}
-                        stepNames={stepNames}
-                    />
-                </View>
-            )}
+            <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={INPUT_HEADER_HEIGHT}>
+                <HeaderWithBackButton
+                    title={headerTitle}
+                    subtitle={headerSubtitle}
+                    onBackButtonPress={handleBackButtonPress}
+                />
+                {!!stepNames && (
+                    <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                        <InteractiveStepSubHeader
+                            startStepIndex={startStepIndex}
+                            stepNames={stepNames}
+                            currentStepAccessibilityDescription={headerTitle}
+                        />
+                    </View>
+                )}
+            </CollapsibleHeaderOnKeyboard>
+
             {children}
         </ScreenWrapper>
     );
 }
 
-InteractiveStepWrapper.displayName = 'InteractiveStepWrapper';
-
-export default forwardRef(InteractiveStepWrapper);
+export default InteractiveStepWrapper;

@@ -27,7 +27,7 @@ const normalizeReportID = (reportID: ProtectedCurrentRouteReportID) => {
 };
 
 type SearchRoute = Omit<Route<string>, 'key'> | undefined;
-type RouteWithReportIDInParams<T> = T & {params: ReportDetailsNavigatorParamList[typeof SCREENS.REPORT_DETAILS.ROOT]};
+type RouteWithReportIDInParams<T> = T & {params: ReportDetailsNavigatorParamList[typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]};
 
 const getCurrentRouteReportID: (url: string) => string | ProtectedCurrentRouteReportID = (url): string | typeof NO_REPORT_ID_IN_PARAMS | typeof NO_REPORT_ID => {
     const route = Navigation.getActiveRouteWithoutParams() as ActiveRoute;
@@ -47,7 +47,13 @@ const getCurrentRouteReportID: (url: string) => string | ProtectedCurrentRouteRe
     return isFocusedRouteAChatThread ? firstReportThatHasURLInAttachments : focusedRouteReportID;
 };
 
-const screensWithReportID = [SCREENS.SEARCH.REPORT_RHP, SCREENS.REPORT, SCREENS.SEARCH.MONEY_REQUEST_REPORT, SCREENS.ATTACHMENTS];
+const screensWithReportID = [
+    SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+    SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+    SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+    SCREENS.REPORT,
+    SCREENS.REPORT_ATTACHMENTS,
+];
 
 function hasReportIdInRouteParams(route: SearchRoute): route is RouteWithReportIDInParams<SearchRoute> {
     return !!route && !!route.params && !!screensWithReportID.find((screen) => screen === route.name) && 'reportID' in route.params;

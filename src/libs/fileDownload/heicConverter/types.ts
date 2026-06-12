@@ -1,4 +1,4 @@
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type HeicConverterCallbacks = {
     onSuccess?: (convertedFile: FileObject) => void;
@@ -9,4 +9,5 @@ type HeicConverterCallbacks = {
 
 type HeicConverterFunction = (file: FileObject, callbacks?: HeicConverterCallbacks) => void;
 
-export type {HeicConverterCallbacks, HeicConverterFunction};
+// eslint-disable-next-line import/prefer-default-export
+export type {HeicConverterFunction};

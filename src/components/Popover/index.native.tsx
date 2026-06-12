@@ -12,7 +12,6 @@ function Popover({animationIn, animationOut, popoverAnchorPosition, disableAnima
         <Modal
             type={fromSidebarMediumScreen ? CONST.MODAL.MODAL_TYPE.POPOVER : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             popoverAnchorPosition={fromSidebarMediumScreen ? anchorPosition : undefined}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsWithoutAnimation}
             // Mobile will always has fullscreen menu
             fullscreen
@@ -21,7 +20,5 @@ function Popover({animationIn, animationOut, popoverAnchorPosition, disableAnima
         />
     );
 }
-
-Popover.displayName = 'Popover';
 
 export default Popover;

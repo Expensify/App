@@ -3,10 +3,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import searchOptions from '@libs/searchOptions';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
@@ -44,6 +46,8 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
     const {translate} = useLocalize();
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const initialSelectedValue = useInitialSelection(selectedOption || undefined, {isVisible});
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const options = useMemo(
         () =>
@@ -57,6 +61,8 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         [optionsList, selectedOption],
     );
 
+    const orderedOptions = moveInitialSelectionToTop(options, initialSelectedValues);
+
     const handleSelectRow = (option: ListItemType) => {
         onOptionChange(option.value);
         onClose();
@@ -67,8 +73,17 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         setSearchValue('');
     };
 
-    const searchResults = searchOptions(debouncedSearchValue, options);
-    const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
+    const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? options : orderedOptions);
+
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+            label: searchInputTitle,
+            value: searchValue,
+            onChangeText: setSearchValue,
+        }),
+        [debouncedSearchValue, searchInputTitle, searchResults.length, searchValue, setSearchValue, translate],
+    );
 
     return (
         <Modal
@@ -82,29 +97,26 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
             <ScreenWrapper
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={PushRowModal.displayName}
+                testID="PushRowModal"
             >
                 <HeaderWithBackButton
                     title={headerTitle}
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    headerMessage={headerMessage}
-                    textInputLabel={searchInputTitle}
-                    textInputValue={searchValue}
-                    onChangeText={setSearchValue}
+                    data={searchResults}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={handleSelectRow}
-                    sections={[{data: searchResults}]}
-                    initiallyFocusedOptionKey={selectedOption}
-                    showScrollIndicator
+                    textInputOptions={textInputOptions}
+                    searchValueForFocusSync={debouncedSearchValue}
+                    initiallyFocusedItemKey={initialSelectedValue}
+                    disableMaintainingScrollPosition
                     shouldShowTooltips={false}
-                    ListItem={RadioListItem}
+                    showScrollIndicator
                 />
             </ScreenWrapper>
         </Modal>
     );
 }
-
-PushRowModal.displayName = 'PushRowModal';
 
 export default PushRowModal;

@@ -1,19 +1,20 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {IOUAction, IOUType} from '@src/CONST';
+import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
-import type {SearchPolicy} from '@src/types/onyx/SearchResults';
-import type {IOURequestType} from './actions/IOU';
+import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import SafeString from '@src/utils/SafeString';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
-import Performance from './Performance';
-import {isPaidGroupPolicy} from './PolicyUtils';
-import {getReportTransactions} from './ReportUtils';
-import {getCurrency, getTagArrayFromName} from './TransactionUtils';
+import {isGroupPolicy} from './PolicyUtils';
+import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
+import {generateReportID, getChatByParticipants, isProcessingReport, isReportOutstanding, isSelfDM} from './ReportUtils';
+import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
+import {getTagArrayFromName, hasRoute, isDistanceRequest} from './TransactionUtils';
 
-function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
+function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction, backToReport?: string): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
         Navigation.goBack();
         return;
@@ -21,25 +22,33 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
     // If the participants were automatically added to the transaction, then the user needs taken back to the starting step
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.DISTANCE:
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport), {compareParams: false});
             break;
         case CONST.IOU.REQUEST_TYPE.DISTANCE_MAP:
-            Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
+            Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport), {compareParams: false});
             break;
         case CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL:
-            Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
+            Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport), {compareParams: false});
+            break;
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_GPS:
+            Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport), {compareParams: false});
+            break;
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER:
+            Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport), {compareParams: false});
             break;
         case CONST.IOU.REQUEST_TYPE.SCAN:
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport), {compareParams: false});
+            break;
+        case CONST.IOU.REQUEST_TYPE.TIME:
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_TIME.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport), {compareParams: false});
             break;
         default:
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport), {compareParams: false});
             break;
     }
 }
 
 function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
-    Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
@@ -53,19 +62,33 @@ function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, tran
 }
 
 /**
- * Calculates the amount per user given a list of participants
+ * Calculates the amount per split.
  *
- * @param numberOfParticipants - Number of participants in the chat. It should not include the current user.
+ * @param numberOfSplits - Number of splits EXCLUDING the remainder holder ("default user").
  * @param total - IOU total amount in backend format (cents, no matter the currency)
- * @param currency - This is used to know how many decimal places are valid to use when splitting the total
- * @param isDefaultUser - Whether we are calculating the amount for the current user
+ * @param currency - Used to know how many decimal places are valid when splitting the total
+ * @param isDefaultUser - Whether we are calculating the amount for the remainder holder
+ * @param useFloorToLastRounding - `false` (default, legacy behavior) or `true` to floor all and put full remainder on the default user
  */
-function calculateAmount(numberOfParticipants: number, total: number, currency: string, isDefaultUser = false): number {
+function calculateAmount(numberOfSplits: number, total: number, currency: string, isDefaultUser = false, useFloorToLastRounding = false): number {
     // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
     // has to be capped to 2 decimal places
     const currencyUnit = Math.min(100, getCurrencyUnit(currency));
     const totalInCurrencySubunit = (total / 100) * currencyUnit;
-    const totalParticipants = numberOfParticipants + 1;
+    const totalParticipants = numberOfSplits + 1;
+
+    // New optional mode
+    if (useFloorToLastRounding) {
+        // For positive totals, floor for everyone and add the full remainder to the default user
+        // For negative totals, do the inverse of above and round up using Math.ceil to calculate the base share
+        const baseShareSubunit = totalInCurrencySubunit >= 0 ? Math.floor(totalInCurrencySubunit / totalParticipants) : Math.ceil(totalInCurrencySubunit / totalParticipants);
+        const remainderSubunit = totalInCurrencySubunit - baseShareSubunit * totalParticipants;
+
+        const subunitAmount = baseShareSubunit + (isDefaultUser ? remainderSubunit : 0);
+        return Math.round((subunitAmount * 100) / currencyUnit);
+    }
+
+    // Legacy behavior (backwards compatible): round equally and adjust default user by +/- difference
     const amountPerPerson = Math.round(totalInCurrencySubunit / totalParticipants);
     let finalAmount = amountPerPerson;
     if (isDefaultUser) {
@@ -74,6 +97,103 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
         finalAmount = totalInCurrencySubunit !== sumAmount ? amountPerPerson + difference : amountPerPerson;
     }
     return Math.round((finalAmount * 100) / currencyUnit);
+}
+
+/**
+ * Calculate a split amount in backend cents from a percentage of the original amount.
+ * - Supports negative percentages (for cases where someone owes money back to the group)
+ * - Preserves decimal precision in percentage (supports 0.1 precision)
+ * - Handles all sign combinations: positive/negative amounts with positive/negative percentages
+ */
+function calculateSplitAmountFromPercentage(totalInCents: number, percentage: number): number {
+    // Calculate directly without clamping to support negative percentages
+    // This naturally handles all sign combinations:
+    // - Positive total × Positive % = Positive split (normal expense share)
+    // - Positive total × Negative % = Negative split (person owes money back)
+    // - Negative total × Positive % = Negative split (person gets refund share)
+    // - Negative total × Negative % = Positive split (person owes money on a refund)
+    const amount = Math.round((totalInCents * percentage) / 100);
+    // Return 0 for zero amounts to avoid -0
+    if (amount === 0) {
+        return 0;
+    }
+    return amount;
+}
+
+/**
+ * Given a list of split amounts (in backend cents) and the original total amount, calculate display percentages
+ * for each split so that:
+ * - Each row is a percentage of the original total with one decimal place (0.1 precision)
+ * - Equal amounts ALWAYS have equal percentages
+ * - The remainder needed to reach 100% goes to the last item (which should be the largest)
+ * - When the sum of split amounts does not match the original total (over/under splits), percentages still reflect
+ *   each amount as a percentage of the original total and may sum to something other than 100
+ * - Preserves the sign of amounts (negative amounts result in negative percentages)
+ */
+function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInCents: number): number[] {
+    const totalAbs = Math.abs(totalInCents);
+
+    if (totalAbs <= 0 || amountsInCents.length === 0) {
+        return amountsInCents.map(() => 0);
+    }
+
+    // Helper functions for decimal precision
+    const roundToOneDecimal = (value: number): number => Math.round(value * 10) / 10;
+    const floorToOneDecimal = (value: number): number => Math.floor(value * 10) / 10;
+
+    // Calculate percentages based on the relationship between amount sign and total sign
+    // When they match (both positive or both negative), show positive percentage
+    // When they differ, show negative percentage
+    const percentages = amountsInCents.map((amount) => {
+        if (totalAbs === 0) {
+            return 0;
+        }
+        let percentage = (amount / totalAbs) * 100;
+        // Flip sign if original total is negative (so user sees intuitive percentages)
+
+        if (totalInCents < 0) {
+            percentage = -percentage;
+        }
+
+        // For negative percentages, floor towards zero (Math.ceil for negative numbers)
+        return percentage < 0 ? Math.ceil(percentage * 10) / 10 : floorToOneDecimal(percentage);
+    });
+
+    // For remainder calculation, we need to work with absolute values to ensure equal amounts get equal percentages
+    const amountsAbs = amountsInCents.map((amount) => Math.abs(amount ?? 0));
+    const amountsTotal = amountsAbs.reduce((sum, curr) => sum + curr, 0);
+
+    // If the split amounts don't add up to the original total, return percentages as-is
+    // (the sum may not be 100, but that's expected when there's a validation error)
+    if (amountsTotal !== totalAbs) {
+        return percentages;
+    }
+
+    // Calculate remainder based on absolute sum and add it to the LAST item with MAXIMUM absolute amount
+    const sumOfAbsPercentages = roundToOneDecimal(percentages.map(Math.abs).reduce((sum, current) => sum + current, 0));
+    const remainder = roundToOneDecimal(100 - sumOfAbsPercentages);
+
+    if (remainder <= 0) {
+        return percentages;
+    }
+
+    // Add remainder to the last item with the MAXIMUM absolute amount
+    // This ensures 0-amount splits stay at 0%
+    const maxAmount = Math.max(...amountsAbs);
+    let lastMaxIndex = amountsAbs.length - 1; // fallback to last
+    for (let i = 0; i < amountsAbs.length; i += 1) {
+        if (amountsAbs.at(i) === maxAmount) {
+            lastMaxIndex = i;
+        }
+    }
+
+    const adjustedPercentages = [...percentages];
+    const currentPercentage = adjustedPercentages.at(lastMaxIndex) ?? 0;
+
+    // Add remainder with the same sign as the current percentage
+    adjustedPercentages[lastMaxIndex] = roundToOneDecimal(currentPercentage + (currentPercentage < 0 ? -remainder : remainder));
+
+    return adjustedPercentages;
 }
 
 /**
@@ -93,6 +213,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     isDeleting = false,
     isUpdating = false,
     isOnHold = false,
+    unHeldAmount = amount,
 ): TReport {
     // For the update case, we have calculated the diff amount in the calculateDiffAmount function so there is no need to compare currencies here
     if ((currency !== iouReport?.currency && !isUpdating) || !iouReport) {
@@ -109,12 +230,12 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += isDeleting ? -amount : amount;
         if (!isOnHold) {
-            iouReportUpdate.unheldTotal += isDeleting ? -amount : amount;
+            iouReportUpdate.unheldTotal += isDeleting ? -unHeldAmount : unHeldAmount;
         }
     } else {
         iouReportUpdate.total += isDeleting ? amount : -amount;
         if (!isOnHold) {
-            iouReportUpdate.unheldTotal += isDeleting ? amount : -amount;
+            iouReportUpdate.unheldTotal += isDeleting ? unHeldAmount : -unHeldAmount;
         }
     }
 
@@ -127,16 +248,6 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     }
 
     return iouReportUpdate;
-}
-
-/**
- * Returns whether or not an IOU report contains expenses in a different currency
- * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
- */
-function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
-    const reportTransactions = getReportTransactions(iouReport.reportID);
-    const pendingRequestsInDifferentCurrency = reportTransactions.filter((transaction) => transaction.pendingAction && getCurrency(transaction) !== iouReport.currency);
-    return pendingRequestsInDifferentCurrency.length > 0;
 }
 
 /**
@@ -172,8 +283,15 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
         return tag;
     }
 
-    const tagArray = getTagArrayFromName(transactionTags);
+    const tagArray = transactionTags ? getTagArrayFromName(transactionTags) : [];
     tagArray[tagIndex] = tag;
+
+    // Fill any sparse slots created when tagIndex > tagArray.length
+    for (let i = 0; i < tagArray.length; i++) {
+        if (tagArray.at(i) === undefined) {
+            tagArray[i] = '';
+        }
+    }
 
     while (tagArray.length > 0 && !tagArray.at(-1)) {
         tagArray.pop();
@@ -190,17 +308,15 @@ function isMovingTransactionFromTrackExpense(action?: IOUAction) {
     return false;
 }
 
-function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy: OnyxInputOrEntry<Policy> | SearchPolicy, isPerDiemRequest: boolean, isManualDistanceRequest: boolean) {
+function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy: OnyxInputOrEntry<Policy>, isPerDiemRequest: boolean) {
     // Determine when to show the receipt empty state:
-    // - Show for submit or track expense types
+    // - Show for pay, submit or track expense types
     // - Hide for per diem requests
     // - Hide when submitting a track expense to a non-paid group policy (personal users)
-    // - Hide for manual distance requests because attaching a receipt before creating the expense will trigger Smartscan but distance request amount depends on the distance traveled and mileage rate
     return (
-        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) &&
+        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.CREATE) &&
         !isPerDiemRequest &&
-        (!isMovingTransactionFromTrackExpense(action) || isPaidGroupPolicy(policy)) &&
-        !isManualDistanceRequest
+        (!isMovingTransactionFromTrackExpense(action) || isGroupPolicy(policy))
     );
 }
 
@@ -216,7 +332,7 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
         email: currentUser?.login ?? '',
         login: currentUser?.login ?? '',
         displayName: currentUser.displayName ?? '',
-        avatarUrl: currentUser.avatar?.toString() ?? '',
+        avatarUrl: SafeString(currentUser.avatar),
         accountID: currentUser.accountID,
         text: currentUser.login,
         selected: true,
@@ -226,10 +342,191 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
     return [initialAttendee];
 }
 
+function navigateToConfirmationPage(
+    iouType: IOUType,
+    transactionID: string,
+    reportID: string,
+    backToReport: string | undefined,
+    shouldNavigateToSubmit = false,
+    reportIDParam: string | undefined = undefined,
+    fromManualDistanceRequest = false,
+) {
+    endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+    startSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT, {
+        name: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
+        op: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
+        parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION) ?? getSpan(CONST.TELEMETRY.SPAN_ODOMETER_TO_CONFIRMATION),
+    });
+    switch (iouType) {
+        case CONST.IOU.TYPE.REQUEST:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
+            break;
+        case CONST.IOU.TYPE.CREATE:
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    reportIDParam || reportID,
+                    backToReport,
+                ),
+            );
+            break;
+        case CONST.IOU.TYPE.SEND:
+            if (fromManualDistanceRequest) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
+            } else {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+            }
+            break;
+        default:
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    shouldNavigateToSubmit ? CONST.IOU.TYPE.SUBMIT : iouType,
+                    transactionID,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    reportIDParam || reportID,
+                    backToReport,
+                ),
+            );
+    }
+}
+
+/**
+ * Get the existing transaction ID from a linked tracked expense report action.
+ * This is used when moving a transaction from track expense to submit.
+ */
+function getExistingTransactionID(linkedTrackedExpenseReportAction: ReportAction | undefined): string | undefined {
+    if (!linkedTrackedExpenseReportAction || !isMoneyRequestAction(linkedTrackedExpenseReportAction)) {
+        return undefined;
+    }
+    return getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID;
+}
+
+function calculateDefaultReimbursable({
+    iouType,
+    policy,
+    policyForMovingExpenses,
+    participant,
+    transactionReportID,
+}: {
+    iouType: ValueOf<typeof CONST.IOU.TYPE>;
+    policy?: OnyxEntry<Policy>;
+    policyForMovingExpenses?: OnyxEntry<Policy>;
+    participant?: Participant;
+    transactionReportID?: string;
+}): boolean {
+    const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const isUnreported = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
+    const reportPolicy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : policy;
+    return (isPolicyExpenseChat && isGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
+}
+
+function getInitialPerDiemTargetReport(
+    report: OnyxEntry<Report>,
+    selfDMReport: OnyxEntry<Report>,
+    iouType: IOUType,
+    defaultExpensePolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
+    personalPolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
+    isFromGlobalCreate: boolean,
+): {targetReport: OnyxEntry<Report>; targetIouType: IOUType; transactionReportID: string | undefined} {
+    let targetReport = report;
+    let targetIouType = iouType;
+
+    if (isFromGlobalCreate) {
+        const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+        if (!shouldAutoReport) {
+            targetReport = selfDMReport;
+        }
+    }
+
+    if (targetIouType === CONST.IOU.TYPE.TRACK) {
+        targetReport = selfDMReport;
+    }
+
+    const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
+    if (transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        targetIouType = CONST.IOU.TYPE.TRACK;
+    }
+
+    return {targetReport, targetIouType, transactionReportID};
+}
+
+/**
+ * Resolves the chat report ID for navigation, generating an optimistic ID if no existing chat is found.
+ */
+function resolveOptimisticChatReportID(participantAccountIDs: number[], existingReport?: OnyxInputOrEntry<Report>) {
+    const existingChat = existingReport?.reportID ? existingReport : getChatByParticipants(participantAccountIDs);
+    const optimisticChatReportID = existingChat?.reportID ? undefined : generateReportID();
+    const chatReportID = existingChat?.reportID ?? optimisticChatReportID;
+    return {optimisticChatReportID, chatReportID};
+}
+
+/**
+ * Whether the participant picker for this transaction should be restricted to workspaces only.
+ * A negative amount (or a distance request with zero quantity) implies money is owed *to* the
+ * current user, so only a workspace can be the counterparty — not an individual user.
+ * Scan requests are excluded because the amount isn't known until after SmartScan completes.
+ */
+function getIsWorkspacesOnlyForTransaction(transaction: OnyxEntry<Transaction>, iouRequestType: IOURequestType): boolean {
+    if (isDistanceRequest(transaction)) {
+        if (!hasRoute(transaction, true)) {
+            return false;
+        }
+        return transaction?.comment?.customUnit?.quantity === 0;
+    }
+
+    if (iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+        return false;
+    }
+
+    return transaction?.amount !== undefined && transaction?.amount !== null && transaction?.amount < 0;
+}
+
+/** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
+function resolveReportForMoneyRequest({
+    transaction,
+    transactionReport,
+    routeReport,
+    policy,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    transactionReport: OnyxEntry<Report>;
+    routeReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+}): OnyxEntry<Report> {
+    if (transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        return undefined;
+    }
+    const canUseTransactionReport = !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, undefined, false);
+    const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !routeReport);
+    if (shouldUseTransactionReport) {
+        return transactionReport;
+    }
+    const isTransactionReportDifferentFromRoute = !!transaction?.reportID && !!routeReport?.reportID && transaction.reportID !== routeReport.reportID;
+    if (isTransactionReportDifferentFromRoute) {
+        return undefined;
+    }
+    return routeReport;
+}
+
+/**
+ * Check whether a money-request participant represents a P2P chat (i.e. another user, not a
+ * policy-expense chat and not a self DM).
+ */
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean; isSelfDM?: boolean} | undefined): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat && !participant.isSelfDM);
+}
+
 export {
     calculateAmount,
+    calculateSplitAmountFromPercentage,
+    calculateSplitPercentagesFromAmounts,
+    getExistingTransactionID,
     insertTagIntoTransactionTagsString,
-    isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,
     shouldUseTransactionDraft,
     isValidMoneyRequestType,
@@ -238,4 +535,11 @@ export {
     formatCurrentUserToAttendee,
     navigateToParticipantPage,
     shouldShowReceiptEmptyState,
+    navigateToConfirmationPage,
+    calculateDefaultReimbursable,
+    getInitialPerDiemTargetReport,
+    getIsWorkspacesOnlyForTransaction,
+    isParticipantP2P,
+    resolveOptimisticChatReportID,
+    resolveReportForMoneyRequest,
 };

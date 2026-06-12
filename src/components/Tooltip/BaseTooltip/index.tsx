@@ -98,7 +98,6 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, .
     }
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <GenericTooltip {...props}>
             {({isVisible, showTooltip, hideTooltip, updateTargetBounds}) =>
                 // Checks if valid element so we can wrap the BoundsObserver around it
@@ -131,7 +130,5 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, .
         </GenericTooltip>
     );
 }
-
-Tooltip.displayName = 'Tooltip';
 
 export default memo(Tooltip);

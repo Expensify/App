@@ -1,19 +1,9 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
-import SelectionList from '@components/SelectionList';
-import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
-import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-
-type MultiSelectItem<T> = {
-    text: string;
-    value: T;
-};
+import React, {useState} from 'react';
+import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
+import MultiSelect from '@components/Search/FilterComponents/MultiSelect';
+import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
+import CONST from '@src/CONST';
+import BasePopup from './BasePopup';
 
 type MultiSelectPopupProps<T> = {
     /** The label to show when in an overlay on mobile */
@@ -30,82 +20,51 @@ type MultiSelectPopupProps<T> = {
 
     /** Function to call when changes are applied */
     onChange: (item: Array<MultiSelectItem<T>>) => void;
+
+    /** Whether the search input should be displayed. */
+    isSearchable?: boolean;
+
+    /** Search input placeholder. Defaults to 'common.search' when not provided. */
+    searchPlaceholder?: string;
+
+    /** Whether the data for the popover is loading */
+    loading?: boolean;
 };
 
-function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, onChange}: MultiSelectPopupProps<T>) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {windowHeight} = useWindowDimensions();
+function MultiSelectPopup<T extends string>({label, loading, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder}: MultiSelectPopupProps<T>) {
     const [selectedItems, setSelectedItems] = useState(value);
 
-    const listData: ListItem[] = useMemo(() => {
-        return items.map((item) => ({
-            text: item.text,
-            keyForList: item.value,
-            isSelected: !!selectedItems.find((i) => i.value === item.value),
-        }));
-    }, [items, selectedItems]);
-
-    const updateSelectedItems = useCallback(
-        (item: ListItem) => {
-            if (item.isSelected) {
-                setSelectedItems(selectedItems.filter((i) => i.value !== item.keyForList));
-                return;
-            }
-
-            const newItem = items.find((i) => i.value === item.keyForList);
-
-            if (newItem) {
-                setSelectedItems([...selectedItems, newItem]);
-            }
-        },
-        [items, selectedItems],
-    );
-
-    const applyChanges = useCallback(() => {
+    const applyChanges = () => {
         onChange(selectedItems);
         closeOverlay();
-    }, [closeOverlay, onChange, selectedItems]);
+    };
 
-    const resetChanges = useCallback(() => {
+    const resetChanges = () => {
         onChange([]);
         closeOverlay();
-    }, [closeOverlay, onChange]);
+    };
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
-            {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
-
-            <View style={[styles.getSelectionListPopoverHeight(items.length, windowHeight, false)]}>
-                <SelectionList
-                    shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
-                    ListItem={MultiSelectListItem}
-                    onSelectRow={updateSelectedItems}
+        <BasePopup
+            label={label}
+            onReset={resetChanges}
+            onApply={applyChanges}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_MULTI_SELECT}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_MULTI_SELECT}
+        >
+            <ListFilterHeightContextProvider>
+                <MultiSelect
+                    loading={loading}
+                    value={value}
+                    items={items}
+                    isSearchable={isSearchable}
+                    searchPlaceholder={searchPlaceholder}
+                    onChange={setSelectedItems}
                 />
-            </View>
-
-            <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
-                <Button
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                />
-                <Button
-                    success
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.apply')}
-                    onPress={applyChanges}
-                />
-            </View>
-        </View>
+            </ListFilterHeightContextProvider>
+        </BasePopup>
     );
 }
 
-MultiSelectPopup.displayName = 'MultiSelectPopup';
 export type {MultiSelectItem};
 export default MultiSelectPopup;

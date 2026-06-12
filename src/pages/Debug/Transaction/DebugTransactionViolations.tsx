@@ -49,6 +49,4 @@ function DebugTransactionViolations({transactionID}: DebugTransactionViolationsP
     );
 }
 
-DebugTransactionViolations.displayName = 'DebugTransactionViolations';
-
 export default DebugTransactionViolations;

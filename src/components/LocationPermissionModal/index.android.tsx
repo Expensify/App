@@ -2,11 +2,12 @@ import React, {useEffect, useState} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
-import type {LocationPermissionModalProps} from './types';
+import type LocationPermissionModalProps from './types';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
@@ -15,6 +16,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
 
     useEffect(() => {
         if (!startPermissionFlow) {
@@ -30,11 +32,10 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             setShowModal(true);
             setHasError(status === RESULTS.BLOCKED);
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
     }, [startPermissionFlow]);
 
     const handledBlockedPermission = (cb: () => void) => () => {
-        setIsLoading(true);
         if (hasError && Linking.openSettings) {
             Linking.openSettings();
             setShowModal(false);
@@ -42,6 +43,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             resetPermissionFlow();
             return;
         }
+        setIsLoading(true);
         cb();
     };
 
@@ -54,7 +56,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                     setHasError(true);
                     return;
                 } else {
-                    onDeny();
+                    onDeny(false);
                 }
                 setShowModal(false);
                 setHasError(false);
@@ -65,7 +67,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     });
 
     const skipLocationPermission = () => {
-        onDeny();
+        onDeny(true);
         setShowModal(false);
         setHasError(false);
     };
@@ -88,7 +90,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             title={translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle')}
             titleContainerStyles={[styles.mt2, styles.mb0]}
             titleStyles={[styles.textHeadline]}
-            iconSource={Illustrations.ReceiptLocationMarker}
+            iconSource={ReceiptLocationMarker}
             iconFill={false}
             iconWidth={140}
             iconHeight={120}
@@ -98,7 +100,5 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         />
     );
 }
-
-LocationPermissionModal.displayName = 'LocationPermissionModal';
 
 export default LocationPermissionModal;

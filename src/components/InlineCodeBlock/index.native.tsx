@@ -23,15 +23,10 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
     const data = getCurrentData(defaultRendererProps);
 
     return (
-        <TDefaultRenderer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...defaultRendererProps}
-        >
+        <TDefaultRenderer {...defaultRendererProps}>
             <Text style={[boxModelStyle, textStyle]}>{data}</Text>
         </TDefaultRenderer>
     );
 }
-
-InlineCodeBlock.displayName = 'InlineCodeBlock';
 
 export default InlineCodeBlock;
