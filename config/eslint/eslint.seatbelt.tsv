@@ -279,7 +279,7 @@
 "../../src/components/MoneyRequestReportView/MoneyRequestReportActionsList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestReportView/MoneyRequestReportActionsList.tsx"	"react-hooks/refs"	3
 "../../src/components/MoneyRequestReportView/MoneyRequestReportActionsList.tsx"	"react-hooks/set-state-in-effect"	3
-"../../src/components/MoneyRequestReportView/MoneyRequestReportTransactionList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/components/MoneyRequestReportView/MoneyRequestReportTransactionList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/MoneyRequestReportView/MoneyRequestViewReportFields.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MultiGestureCanvas/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
