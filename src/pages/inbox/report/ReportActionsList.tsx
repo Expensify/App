@@ -67,6 +67,7 @@ import ReportActionIndexContext from './ReportActionIndexContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ReportActionsListPaddingView from './ReportActionsListPaddingView';
+import shouldFollowActionBadgeTarget from './shouldFollowActionBadgeTarget';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useReportActionsNewActionLiveTail from './useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
@@ -487,13 +488,8 @@ function ReportActionsList({
     const prevActionTargetReportActionID = usePrevious(actionTargetReportActionID);
     const prevActionBadge = usePrevious(reportAttributes?.actionBadge);
     useEffect(() => {
-        if (isProduction || !actionTargetReportActionID || !prevActionTargetReportActionID || actionTargetReportActionID === prevActionTargetReportActionID || actionBadgeTargetIndex < 0) {
-            return;
-        }
-        // Only scroll downward to a newer preview (a lower index in the inverted list), which is what happens once the
-        // previously targeted (older) preview is resolved. Skip when the target moved to an older preview (e.g. while paginating).
-        const prevActionTargetIndex = renderedVisibleReportActions.findIndex((action) => action.reportActionID === prevActionTargetReportActionID);
-        if (prevActionTargetIndex < 0 || actionBadgeTargetIndex >= prevActionTargetIndex) {
+        const prevActionBadgeTargetIndex = renderedVisibleReportActions.findIndex((action) => action.reportActionID === prevActionTargetReportActionID);
+        if (!shouldFollowActionBadgeTarget({isProduction, actionTargetReportActionID, prevActionTargetReportActionID, actionBadgeTargetIndex, prevActionBadgeTargetIndex})) {
             return;
         }
         // Only the submit/approve/pay buttons play a success animation (hide delay -> button exit -> height collapse) on the
