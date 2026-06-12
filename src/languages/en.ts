@@ -7437,6 +7437,9 @@ const translations = {
                 currencyMismatchTitle: 'Currency mismatch',
                 currencyMismatchPrompt: 'To set a max amount, select cards that settle in the same currency.',
                 reviewSelectedCards: 'Review selected cards',
+                allCurrencies: 'All currencies',
+                permittedCurrenciesSubtitle: 'Choose to allow all or specific currencies',
+                settlementCurrencyPermittedSubtitle: 'The card settlement currency is always permitted',
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} more` : summary),
                 summaryMerchants: ({
                     merchants,

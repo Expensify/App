@@ -125,7 +125,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                 isFocused={false}
                 showTooltip={false}
                 keyForList="select-all"
-                item={{keyForList: 'select-all', text: 'All currencies', isSelected: areAllCurrenciesSelected}}
+                item={{keyForList: 'select-all', text: translate('workspace.rules.spendRules.allCurrencies'), isSelected: areAllCurrenciesSelected}}
                 onSelectRow={toggleSelectAll}
             />
             <View style={[styles.borderBottom, styles.mh5, styles.mv2]} />
@@ -141,7 +141,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                         style={[styles.textLabel, styles.textSupporting]}
                         numberOfLines={1}
                     >
-                        The card settlement currency is always permitted
+                        {translate('workspace.rules.spendRules.settlementCurrencyPermittedSubtitle')}
                     </Text>
                 </View>
                 <Icon
@@ -165,7 +165,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                 onBackButtonPress={goBack}
             />
 
-            <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pb4]}>Choose to allow all or specific currencies.</Text>
+            <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pb4]}>{translate('workspace.rules.spendRules.permittedCurrenciesSubtitle')}</Text>
 
             <SelectionList
                 canSelectMultiple
