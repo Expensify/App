@@ -6,6 +6,9 @@ import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTM
 import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import DateUtils from '@libs/DateUtils';
+import CONST from '@src/CONST';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
@@ -21,6 +24,8 @@ type VictoryChartCartesianProps = {
  */
 function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianProps) {
     const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const timezone = DateUtils.getCurrentTimezone(currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE).selected;
     const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
 
     return (
@@ -39,8 +44,9 @@ function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianPr
                     <VictoryChartRenderArgsProvider value={renderArgs}>
                         {labelItems.map((labelItem) => (
                             <VictoryChartLabel
-                                key={`label-${labelItem.x}-${labelItem.y}`}
+                                key={`label-${labelItem.x}-${labelItem.y}-${timezone}`}
                                 {...labelItem}
+                                timezone={timezone}
                             />
                         ))}
                         {legendItems.map((legendItem) => (
