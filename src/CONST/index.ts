@@ -2438,6 +2438,9 @@ const CONST = {
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
     },
+    HTTP_HEADER_NAMES: {
+        AUTH_TOKEN: 'authToken',
+    },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
         THROTTLED: 'throttled',
