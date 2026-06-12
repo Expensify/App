@@ -11,10 +11,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isMobile} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -36,6 +39,8 @@ function EditAIRulePage({
 }: EditAIRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
@@ -105,6 +110,7 @@ function EditAIRulePage({
                 testID="EditAIRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
+                shouldEnableMaxHeight={shouldUseScrollableLayout}
             >
                 <HeaderWithBackButton title={translate('workspace.rules.aiRules.editRuleTitle')} />
                 <FormProvider
@@ -114,8 +120,8 @@ function EditAIRulePage({
                     onSubmit={saveRule}
                     submitButtonText={translate('common.save')}
                     style={[styles.flex1, styles.ph5]}
-                    shouldUseScrollView={false}
-                    submitFlexEnabled={false}
+                    shouldUseScrollView={shouldUseScrollableLayout}
+                    submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     shouldValidateOnChange
@@ -137,20 +143,22 @@ function EditAIRulePage({
                             <Text style={[styles.textHeadlineH2]}>{translate('workspace.rules.aiRules.describeRuleTitle')}</Text>
                             <Text style={[styles.textSupporting]}>{translate('workspace.rules.aiRules.describeRuleSubtitle')}</Text>
                         </View>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.PROMPT}
-                            label={translate('workspace.rules.aiRules.describeRuleTitle')}
-                            accessibilityLabel={translate('workspace.rules.aiRules.describeRuleTitle')}
-                            role={CONST.ROLE.PRESENTATION}
-                            onKeyPress={handleKeyPress}
-                            defaultValue={aiRule.prompt}
-                            multiline
-                            containerStyles={[styles.flex1]}
-                            touchableInputWrapperStyle={[styles.flex1]}
-                            textInputContainerStyles={[styles.flex1]}
-                            inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
-                        />
+                        <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.PROMPT}
+                                label={translate('workspace.rules.aiRules.describeRuleTitle')}
+                                accessibilityLabel={translate('workspace.rules.aiRules.describeRuleTitle')}
+                                role={CONST.ROLE.PRESENTATION}
+                                onKeyPress={handleKeyPress}
+                                defaultValue={aiRule.prompt}
+                                multiline
+                                containerStyles={[styles.flex1]}
+                                touchableInputWrapperStyle={[styles.flex1]}
+                                textInputContainerStyles={[styles.flex1]}
+                                inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                            />
+                        </View>
                         <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.aiRules.disclaimer')}</Text>
                     </View>
                 </FormProvider>

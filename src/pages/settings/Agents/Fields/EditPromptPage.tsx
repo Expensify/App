@@ -7,11 +7,14 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {updateAgentPrompt} from '@libs/actions/Agent';
+import {isMobile} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -25,6 +28,8 @@ type EditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, 
 function EditPromptPage({route}: EditPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
     const accountID = route.params.accountID;
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
 
@@ -65,6 +70,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
             testID={EditPromptPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight={shouldUseScrollableLayout}
         >
             <HeaderWithBackButton
                 title={translate('editAgentPromptPage.title')}
@@ -76,15 +82,15 @@ function EditPromptPage({route}: EditPromptPageProps) {
                 onSubmit={handleSubmit}
                 submitButtonText={translate('common.save')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={false}
-                submitFlexEnabled={false}
+                shouldUseScrollView={shouldUseScrollableLayout}
+                submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 shouldValidateOnChange
                 shouldValidateOnBlur
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
-                <View style={[styles.flex1]}>
+                <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.PROMPT}
