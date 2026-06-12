@@ -176,10 +176,7 @@ function SearchAutocompleteList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
 
-    const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({
-        isSearching: !!autocompleteQueryValue.trim(),
-        betas: betas ?? [],
-    });
+    const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({enabled: true, isSearching: !!autocompleteQueryValue.trim(), betas: betas ?? []});
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 

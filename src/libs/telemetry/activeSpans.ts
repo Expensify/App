@@ -59,10 +59,6 @@ function endSpan(spanId: string) {
     const now = performance.now();
     const durationMs = Math.round(now - startTimeForLog);
     console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: now, attributes: Sentry.spanToJSON(span).data});
-    if (spanId.startsWith(CONST.TELEMETRY.SPAN_SEND_MESSAGE)) {
-        // eslint-disable-next-line no-console
-        console.info(`[PERF][${CONST.TELEMETRY.SPAN_SEND_MESSAGE}] ${durationMs}ms`);
-    }
     span.setStatus({code: SPAN_STATUS_OK});
 
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);

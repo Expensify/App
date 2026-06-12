@@ -21,10 +21,6 @@ function useIsFocusedUntilTransitionEnd(): boolean {
             return;
         }
 
-        // Flip "transitioned out" only after this screen's own closing transition finishes. The global
-        // transition tracker was racy — it could resolve before the animation ended and unmount content
-        // mid-transition (a visible blink). A screen's own `transitionEnd` event fires only once its
-        // animation truly completes.
         const unsubscribe = navigation.addListener('transitionEnd', () => setDidTransitionOut(true));
         return unsubscribe;
     }, [isFocused, navigation]);
