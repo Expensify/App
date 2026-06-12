@@ -309,7 +309,8 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
 }
 
 function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
-    const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
+    let currentState = state;
+    let fullScreenRoute = currentState.routes.find((route) => isFullScreenName(route.name));
 
     // RN's getStateFromPath emits only the tab matched by the path, so the TAB_NAVIGATOR strip may be sparse.
     // Rebuild the full strip around the active tab — consumers (e.g. REPLACE_FULLSCREEN_UNDER_RHP) expect every tab to be present.
@@ -318,9 +319,11 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
         if (tabState?.routes && tabState.routes.length < TAB_SCREENS.length) {
             const activeTabRoute = tabState.routes.at(tabState.index ?? tabState.routes.length - 1);
             if (activeTabRoute) {
+                const sparseTabRoute = fullScreenRoute;
                 const fullStripTabRoute = getTabNavigatorState(activeTabRoute as NavigationPartialRoute);
-                const normalizedRoutes = state.routes.map((r) => (r === fullScreenRoute ? {...r, state: fullStripTabRoute.state} : r)) as NavigationPartialRoute[];
-                return getAdaptedState({...state, routes: normalizedRoutes} as PartialState<NavigationState<RootNavigatorParamList>>);
+                const normalizedRoutes = currentState.routes.map((r) => (r === sparseTabRoute ? {...r, state: fullStripTabRoute.state} : r));
+                currentState = {...currentState, routes: normalizedRoutes};
+                fullScreenRoute = currentState.routes.find((route) => isFullScreenName(route.name));
             }
         }
     }
@@ -339,7 +342,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
                 const updatedTabRoutes = (tabState?.routes ?? []).map((r) => (r.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? updatedWsNavRoute : r)) as NavigationPartialRoute[];
                 const updatedTabState = {...tabState, routes: updatedTabRoutes};
                 const updatedFullScreenRoute = {...fullScreenRoute, state: updatedTabState};
-                const updatedRoutes = state.routes.map((r) => (r.name === NAVIGATORS.TAB_NAVIGATOR ? updatedFullScreenRoute : r)) as NavigationPartialRoute[];
+                const updatedRoutes = currentState.routes.map((r) => (r.name === NAVIGATORS.TAB_NAVIGATOR ? updatedFullScreenRoute : r)) as NavigationPartialRoute[];
                 return getRoutesWithIndex(updatedRoutes);
             }
         }
@@ -347,11 +350,10 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 
     // If there is no full screen route in the root, we want to add it.
     if (!fullScreenRoute) {
-        const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
+        const focusedRoute = findFocusedRouteWithOnyxTabGuard(currentState);
 
-        let currentState = state;
         if (focusedRoute?.path && isDynamicRouteScreen(focusedRoute.name as Screen)) {
-            currentState = getDynamicRouteAdaptedState(state, focusedRoute.path) as PartialState<NavigationState<RootNavigatorParamList>>;
+            currentState = getDynamicRouteAdaptedState(currentState, focusedRoute.path) as PartialState<NavigationState<RootNavigatorParamList>>;
 
             // getDynamicRouteAdaptedState may have already resolved the full screen route.
             // In that case, skip the default full screen route injection below - the state is already complete.
@@ -402,7 +404,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
         return getRoutesWithIndex([defaultFullScreenRoute, ...currentState.routes]);
     }
 
-    return state;
+    return currentState;
 }
 
 /**

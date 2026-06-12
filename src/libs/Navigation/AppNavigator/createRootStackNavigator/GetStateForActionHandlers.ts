@@ -389,9 +389,9 @@ function handleReplaceFullscreenUnderRHP(
         // The parent route only carries a nested state hint when the navigator was rehydrated from
         // a path (e.g. page reload). A TAB_NAVIGATOR mounted without one (e.g. right after sign-in)
         // initializes itself, leaving route.state undefined here — fall back to the full strip.
-        let existingTabState = existingTabRoute.state as NavigationState | undefined;
+        let existingTabState = existingTabRoute.state as PartialState<NavigationState> | undefined;
         if (!existingTabState?.routes?.length) {
-            existingTabState = buildTabNavigatorNestedState({name: focusedTargetTab.name}) as unknown as NavigationState;
+            existingTabState = buildTabNavigatorNestedState({name: focusedTargetTab.name});
         }
         const targetTabIndex = existingTabState.routes.findIndex((r) => r.name === focusedTargetTab.name);
         if (targetTabIndex < 0) {
@@ -409,7 +409,7 @@ function handleReplaceFullscreenUnderRHP(
             // fall back to the split navigator's default sidebar route so there is still
             // something to pop back to.
             let mergedNestedState = focusedTargetTab.state;
-            const existingNestedRoutes = (r.state as PartialState<NavigationState> | undefined)?.routes;
+            const existingNestedRoutes = r.state?.routes;
             const newNestedRoutes = focusedTargetTab.state?.routes;
             const existingFirstRoute = existingNestedRoutes?.at(0);
             const newFirstRoute = newNestedRoutes?.at(0);
