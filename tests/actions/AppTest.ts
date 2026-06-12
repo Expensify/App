@@ -67,7 +67,7 @@ describe('actions/App', () => {
     });
 
     test('trigger full reconnect', async () => {
-        const reconnectApp = jest.spyOn(App, 'reconnectApp');
+        const triggerFullReconnect = jest.spyOn(App, 'triggerFullReconnect');
 
         // When OpenApp runs
         App.openApp();
@@ -78,16 +78,17 @@ describe('actions/App', () => {
         expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeTruthy();
 
         // And when a new reconnectAppIfFullReconnectBefore is received
-        Onyx.set(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, DateUtils.getDBTime());
+        const fullReconnectBefore = DateUtils.getDBTime();
+        Onyx.set(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, fullReconnectBefore);
         await waitForBatchedUpdates();
 
-        // Then ReconnectApp should get called with no updateIDFrom to perform a full reconnect
-        expect(reconnectApp).toHaveBeenCalledTimes(1);
-        expect(reconnectApp).toHaveBeenCalledWith();
+        // Then a full reconnect should be triggered for the received NVP demand
+        expect(triggerFullReconnect).toHaveBeenCalledTimes(1);
+        expect(triggerFullReconnect).toHaveBeenCalledWith(fullReconnectBefore);
     });
 
     test("don't trigger full reconnect", async () => {
-        const reconnectApp = jest.spyOn(App, 'reconnectApp');
+        const triggerFullReconnect = jest.spyOn(App, 'triggerFullReconnect');
 
         // When OpenApp runs
         App.openApp();
@@ -103,8 +104,8 @@ describe('actions/App', () => {
         Onyx.set(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, DateUtils.getDBTime(yesterday.toISOString()));
         await waitForBatchedUpdates();
 
-        // Then ReconnectApp should NOT get called
-        expect(reconnectApp).toHaveBeenCalledTimes(0);
+        // Then a full reconnect should NOT be triggered
+        expect(triggerFullReconnect).toHaveBeenCalledTimes(0);
     });
 
     test('clearOnyxAndResetApp preserves rolled-back ongoing requests across reset', async () => {

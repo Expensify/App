@@ -541,7 +541,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  * demand, optimistically seeding the LAST_FULL_RECONNECT_TIME receipt first so the NVP
  * re-delivered by the response cannot re-arm the trigger. The seed write re-enters
  * subscribeToFullReconnect's callback, but with the receipt at max(now, NVP) the trigger
- * comparison fails in every clock regime, so the re-entrancy is a no-op by construction.
+ * comparison fails in every clock regime, so the re-entrant call is a no-op by construction.
  * See getFullReconnectSeedTime for the clock-skew rationale.
  */
 function triggerFullReconnect(fullReconnectBefore: string) {
