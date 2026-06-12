@@ -83,7 +83,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                                     showReadOnlyModal();
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.RULES_AI_NEW.getRoute(policyID));
+                                Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID));
                             }}
                             ctaSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.CTA}
                             onDismiss={() => dismissProductTraining(CONST.AGENTS_RULES_BANNER, true)}
