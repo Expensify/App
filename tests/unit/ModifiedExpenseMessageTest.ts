@@ -2170,6 +2170,9 @@ describe('ModifiedExpenseMessage', () => {
                 isPolicyExpenseChatEnabled: true,
                 connections: {
                     quickbooksOnline: {
+                        config: {
+                            nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+                        },
                         data: {
                             vendors: [
                                 {id: 'v-acme', name: 'Acme', currency: 'USD', email: ''},
