@@ -178,13 +178,24 @@ function IOURequestStepDestination({
         // When the rates are not available for the policy, the transaction does not have valid customUnitID and moneyRequestCategory
         // So, we set these in the transaction when the rates are fetched in fetchPerDiemRates
         const perDiemUnit = getPerDiemCustomUnit(policy);
-        if (!perDiemUnit || transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID || !!transaction?.category) {
+        // Wait until the draft transaction has actually become a per diem request before writing per diem defaults.
+        // On the start page, switching tabs to per diem re-initializes the draft transaction via initMoneyRequest's
+        // Onyx.set. If this effect merges customUnitID/category while the draft is still the previous (e.g. manual)
+        // transaction, those merges are queued against the stale value and clobber the per diem Onyx.set, wiping
+        // comment.customUnit.attributes.dates (the start/end date-time). Gating on the per diem request type lets the
+        // effect re-run after the transaction settles so the merges land on top of the per diem draft instead.
+        if (
+            transaction?.iouRequestType !== CONST.IOU.REQUEST_TYPE.PER_DIEM ||
+            !perDiemUnit ||
+            transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID ||
+            !!transaction?.category
+        ) {
             return;
         }
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
         setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactionID, policy?.customUnits]);
+    }, [transactionID, policy?.customUnits, transaction?.iouRequestType]);
 
     const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
 

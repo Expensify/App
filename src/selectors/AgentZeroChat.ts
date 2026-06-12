@@ -1,26 +1,31 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {AgentPrompt} from '@src/types/onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ConciergePendingFollowupList, PersonalDetailsList} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 
 const getReportParticipantAccountIDs = (report: OnyxEntry<Report>): number[] => (report?.participants ? Object.keys(report.participants).map(Number) : []);
 
 /**
- * Reduces the SHARED_NVP_AGENT_PROMPT collection to a `Record<accountID, true>` so callers
- * can do O(1) lookups without re-rendering on every prompt-content edit.
+ * Returns the first participant accountID flagged as a custom agent (`isCustomAgent` on its
+ * personalDetails entry, stamped server-side in `Account::formatNewDotPersonalDetails`), or
+ * `undefined` when no participant is an agent.
+ *
+ * Parameterized so the closure captures only the report's small `participantAccountIDs` array —
+ * the selector iterates those (small N) against `personalDetailsList`, not the full list. Output
+ * is a primitive `number | undefined`, so `deepEqual` short-circuits cheaply and re-renders fire
+ * only when an agent participant's flag flips.
  */
-const getAgentAccountIDFlags = (agentPrompts: OnyxCollection<AgentPrompt>): Record<number, true> => {
-    if (!agentPrompts) {
-        return {};
-    }
-    const flags: Record<number, true> = {};
-    for (const key of Object.keys(agentPrompts)) {
-        const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
-        if (!Number.isNaN(accountID)) {
-            flags[accountID] = true;
+const getCustomAgentParticipantAccountID =
+    (participantAccountIDs: number[] | undefined) =>
+    (personalDetails: OnyxEntry<PersonalDetailsList>): number | undefined => {
+        if (!participantAccountIDs?.length || !personalDetails) {
+            return undefined;
         }
-    }
-    return flags;
-};
+        return participantAccountIDs.find((accountID) => !!personalDetails[accountID]?.isCustomAgent);
+    };
 
-export {getReportParticipantAccountIDs, getAgentAccountIDFlags};
+const hasPendingFollowupListSkeletonSelector =
+    (reportActionID: string) =>
+    (pending: OnyxEntry<ConciergePendingFollowupList>): boolean =>
+        !pending?.hidden && pending?.reportActionID === reportActionID;
+
+export {getReportParticipantAccountIDs, getCustomAgentParticipantAccountID, hasPendingFollowupListSkeletonSelector};

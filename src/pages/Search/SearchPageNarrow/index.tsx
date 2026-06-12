@@ -17,6 +17,7 @@ import {useSearchResultsContext, useSearchSelectionActions} from '@components/Se
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPageHeaderNarrow';
+import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
@@ -398,7 +399,7 @@ function SearchPageNarrow({
                                             }}
                                         />
                                     ) : (
-                                        <Search
+                                        <SearchWithNavigationDeferredMount
                                             searchResults={searchResults}
                                             queryJSON={queryJSON}
                                             key={queryJSON.hash}

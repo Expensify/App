@@ -41,15 +41,41 @@ import type {
     CompanyFeeds,
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
+import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import DateUtils from './DateUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
+
+/**
+ * Returns the artwork colors (background fill + WCAG-compliant overlay text) for a given feed.
+ * Uses prefix-matching to handle feed names that include a suffix (e.g. "vcf123").
+ */
+function getCardFeedColors(cardFeed: string | undefined): {background: string; text: string} {
+    if (!cardFeed) {
+        return GENERIC_CARD_COLORS;
+    }
+    const feedKey = Object.keys(CARD_FEED_COLORS)
+        .sort((a, b) => b.length - a.length)
+        .find((key) => cardFeed.startsWith(key));
+    return feedKey !== undefined ? CARD_FEED_COLORS[feedKey] : GENERIC_CARD_COLORS;
+}
+
+/** Returns the background hex color for the card image shown for a given feed. */
+function getCardFeedBackgroundColor(cardFeed: string | undefined): string {
+    return getCardFeedColors(cardFeed).background;
+}
+
+/** Returns the WCAG-compliant overlay text color for a given feed's card artwork. */
+function getCardFeedTextColor(cardFeed: string | undefined): string {
+    return getCardFeedColors(cardFeed).text;
+}
 
 const COMPANY_CARD_FEED_ICON_NAMES = [
     'VisaCompanyCardDetailLarge',
@@ -1390,6 +1416,23 @@ function getPreferredPolicyFromExpensifyCardSettings(settings: ExpensifyCardSett
     return undefined;
 }
 
+/** Resolves domainName from the settings root or any nested program block that defines it. */
+function getDomainNameFromExpensifyCardSettings(settings: ExpensifyCardSettings | OnyxEntry<ExpensifyCardSettings>): string | undefined {
+    if (!settings) {
+        return undefined;
+    }
+    if (settings.domainName) {
+        return settings.domainName;
+    }
+    for (const key of NESTED_EXPENSIFY_CARD_PROGRAM_KEYS) {
+        const nestedDomainName = getNestedExpensifyCardProgramSettings(settings, key)?.domainName;
+        if (nestedDomainName) {
+            return nestedDomainName;
+        }
+    }
+    return undefined;
+}
+
 function isCardPendingIssue(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
@@ -1533,8 +1576,6 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
         return false;
     }
 
-    const isDirectFeedType = isDirectFeed(feedName);
-
     return Object.entries(workspaceCardFeeds).some(([key, workspaceCards]) => {
         if (!workspaceCards) {
             return false;
@@ -1555,15 +1596,17 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
             return false;
         }
 
-        // For direct feeds (Plaid/OAuth): check across ALL workspaces that share the same feed name,
-        // because the same Plaid card should not be assignable to multiple workspaces.
-        // For commercial feeds: restrict to the current domain only, because different domains
-        // can legitimately have cards with the same masked display name (e.g., "VISA - 1234").
-        if (isDirectFeedType) {
-            if (feedName && feedBankName !== feedName) {
-                return false;
-            }
-        } else if (feedDomainID !== domainOrWorkspaceAccountID) {
+        // Only flag a card already assigned within the CURRENT workspace/domain (and feed).
+        // Direct feeds (Plaid/OAuth) must NOT be matched across other workspaces: the only
+        // identifier the client has for them is the masked display name (getFilteredCardList
+        // sets cardID = cardName, which CardSelectionStep stores into encryptedCardNumber),
+        // e.g. "CREDIT CARD...6607", which is not unique across accounts. Genuine cross-account
+        // duplicates are rejected server-side by ASSIGN_COMPANY_CARD — the same path Expensify
+        // Classic uses, which is why the identical assignment succeeds there.
+        if (feedDomainID !== domainOrWorkspaceAccountID) {
+            return false;
+        }
+        if (feedName && feedBankName !== feedName) {
             return false;
         }
 
@@ -1673,7 +1716,14 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
 
     const activeCards = filterAllInactiveCards(cardList);
     const activeExpensifyCards = Object.values(activeCards).filter(
-        (card) => isExpensifyCard(card) && !isExpiredCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && !isTravelCard(card) && !isCardWithCustomZeroLimit(card),
+        (card) =>
+            isExpensifyCard(card) &&
+            !isExpiredCard(card) &&
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
+            !isTravelCard(card) &&
+            !isCardWithCustomZeroLimit(card) &&
+            !isCardPendingIssue(card) &&
+            !isCardPendingActivate(card),
     );
 
     const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
@@ -1696,6 +1746,39 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
         seenDomains.add(card.domainName);
         return true;
     });
+}
+
+/**
+ * Active, non-Expensify, non-cash cards (employer feed or personal Plaid) that are not flagged
+ * as broken at the card- or feed-level, sorted by cardID ascending.
+ *
+ * No `domainName` dedupe: third-party cards don't share the Expensify "one domain ⇒ one
+ * physical+virtual pair" invariant, so deduping would silently collapse distinct cards.
+ *
+ * `cardFeedErrors` maps are `Record<string, Card>` (presence = broken), so filter with
+ * truthy/falsy — `=== true` would always be false and let broken cards through.
+ */
+function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedErrors: Pick<CardFeedErrors, 'cardsWithBrokenFeedConnection' | 'personalCardsWithBrokenConnection'>): Card[] {
+    if (!cardList) {
+        return [];
+    }
+
+    const {cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection} = cardFeedErrors;
+    const cards = Object.values(cardList).filter(
+        (card) =>
+            CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
+            !isExpensifyCard(card) &&
+            (!!card.domainName || isPersonalCard(card)) &&
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
+            !isCardConnectionBroken(card) &&
+            !cardsWithBrokenFeedConnection[card.cardID] &&
+            !personalCardsWithBrokenConnection[card.cardID],
+    );
+
+    // Stable sort by `getAssignedCardSortKey` (constant `2` for all non-Expensify cards),
+    // so the result preserves the cardID-ascending order produced by `Object.values` over
+    // integer-indexed keys.
+    return lodashSortBy(cards, getAssignedCardSortKey);
 }
 
 function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
@@ -1809,6 +1892,8 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
 
 export {
     getAssignedCardSortKey,
+    getCardFeedBackgroundColor,
+    getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
     isUkEuExpensifyCard,
@@ -1873,6 +1958,7 @@ export {
     getCardProgramKey,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
+    getDomainNameFromExpensifyCardSettings,
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     filterInactiveCards,
@@ -1880,6 +1966,7 @@ export {
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
+    isCardPendingReplace,
     isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,
     isExpensifyCardPendingAction,
@@ -1912,6 +1999,7 @@ export {
     isCardInactive,
     isCardWithPotentialFraud,
     getDisplayableExpensifyCards,
+    getDisplayableThirdPartyCards,
     isExpiredCard,
     getCardCurrency,
     getSelectedCardsSharedCurrency,

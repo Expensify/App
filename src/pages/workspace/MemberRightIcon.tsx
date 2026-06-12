@@ -26,6 +26,8 @@ export default function MemberRightIcon({role, owner, login, badgeStyles}: Membe
         badgeText = 'common.admin';
     } else if (role === CONST.POLICY.ROLE.AUDITOR) {
         badgeText = 'common.auditor';
+    } else if (role === CONST.POLICY.ROLE.EDITOR) {
+        badgeText = 'common.editor';
     }
     if (badgeText) {
         return (

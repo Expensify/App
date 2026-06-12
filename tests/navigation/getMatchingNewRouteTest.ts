@@ -39,6 +39,30 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/123/description')).toBe('/r/123/description');
     });
 
+    it('redirects old room members path to report details dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/members')).toBe('/r/123/details/members');
+    });
+
+    it('preserves query params when redirecting old room members path', () => {
+        expect(getMatchingNewRoute('/r/123/members?backTo=/home')).toBe('/r/123/details/members?backTo=/home');
+    });
+
+    it('redirects old room member details path to report details dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/members/456')).toBe('/r/123/details/members/room-member-details/456');
+    });
+
+    it('preserves query params when redirecting old room member details path', () => {
+        expect(getMatchingNewRoute('/r/123/members/456?backTo=/home')).toBe('/r/123/details/members/room-member-details/456?backTo=/home');
+    });
+
+    it('redirects old room invite path to report details dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/invite')).toBe('/r/123/details/room-invite');
+    });
+
+    it('preserves query params when redirecting old room invite path', () => {
+        expect(getMatchingNewRoute('/r/123/invite?backTo=/home')).toBe('/r/123/details/room-invite?backTo=/home');
+    });
+
     it('redirects old task assignee path', () => {
         expect(getMatchingNewRoute('/r/123/assignee')).toBe('/r/123/assignee');
     });
@@ -109,6 +133,15 @@ describe('getBestMatchingPath', () => {
 
     it('redirects old flag comment path to report-based dynamic route', () => {
         expect(getMatchingNewRoute('/flag/123/456')).toBe('/r/123/flag/123/456');
+    });
+
+    it('redirects old report Share Code paths to the new dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/details/shareCode')).toBe('/r/123/share-code');
+        expect(getMatchingNewRoute('/e/123/details/shareCode')).toBe('/e/123/share-code');
+    });
+
+    it('redirects legacy standalone referral routes to a dynamic route with a home base', () => {
+        expect(getMatchingNewRoute('/referral/shareCode')).toBe('/home/referral/shareCode');
     });
 
     it('redirects old travel upgrade path to dynamic route', () => {

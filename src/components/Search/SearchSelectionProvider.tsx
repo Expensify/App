@@ -44,35 +44,23 @@ function deriveSelectedReports(
                 }
                 return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
             })
-            .map(
-                ({
-                    reportID,
-                    action = CONST.SEARCH.ACTION_TYPES.VIEW,
-                    total = CONST.DEFAULT_NUMBER_ID,
-                    policyID,
-                    allActions = [action],
-                    currency,
-                    chatReportID,
-                    managerID,
-                    ownerAccountID,
-                    parentReportActionID,
-                    parentReportID,
-                    type,
-                }) => ({
-                    reportID,
-                    action,
-                    total,
-                    policyID,
-                    allActions,
-                    currency,
-                    chatReportID,
-                    managerID,
-                    ownerAccountID,
-                    parentReportActionID,
-                    parentReportID,
-                    type,
-                }),
-            );
+            .map((item) => ({
+                reportID: item.reportID,
+                action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                total: item.total ?? CONST.DEFAULT_NUMBER_ID,
+                policyID: item.policyID,
+                canPay: item.canPay,
+                canApprove: item.canApprove,
+                canSubmit: item.canSubmit,
+                canChangeApprover: item.canChangeApprover,
+                currency: item.currency,
+                chatReportID: item.chatReportID,
+                managerID: item.managerID,
+                ownerAccountID: item.ownerAccountID,
+                parentReportActionID: item.parentReportActionID,
+                parentReportID: item.parentReportID,
+                type: item.type,
+            }));
     }
     if (data.length && data.every(isTransactionListItemType)) {
         return data
@@ -86,7 +74,10 @@ function deriveSelectedReports(
                     action,
                     total,
                     policyID: item.policyID,
-                    allActions: item.allActions ?? [action],
+                    canPay: item.canPay,
+                    canApprove: item.canApprove,
+                    canSubmit: item.canSubmit,
+                    canChangeApprover: item.canChangeApprover,
                     currency: item.currency,
                     chatReportID: item.report?.chatReportID,
                     managerID: item.report?.managerID,
@@ -105,7 +96,6 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
 
     const areTransactionsEmpty = useRef(true);
     const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
-    const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
     const [selectionState, setSelectionState] = useState<SelectionState>(defaultSelectionState);
 
     const currentSearchHashRef = useRef(currentSearchHash);
@@ -194,7 +184,6 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             };
         });
 
-        setShouldShowSelectAllMatchingItems(false);
         selectAllMatchingItems(false);
     };
 
@@ -234,7 +223,6 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const selectionValue: SearchSelectionContextValue = {
         ...selectionState,
         hasSelectedTransactions,
-        shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
     };
 
@@ -244,7 +232,6 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         setCurrentSelectedTransactionReportID,
         clearSelectedTransactions,
         removeTransaction,
-        setShouldShowSelectAllMatchingItems,
         selectAllMatchingItems,
     };
 
@@ -281,4 +268,26 @@ function useSyncSelectedReports(data: TransactionListItemType[] | TransactionGro
     }, [selectedTransactions, setSelectedReports]);
 }
 
-export {SearchSelectionProvider, useSyncSelectedReports};
+/**
+ * Narrow per-row selection read. Replaces `joinedItem.isSelected` consumption inside rows so the
+ * screen-level `applySelectionToItem` no longer needs to mint new item objects on selection change.
+ */
+function useRowSelection(keyForList: string | undefined): {isSelected: boolean} {
+    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    if (!keyForList) {
+        return {isSelected: false};
+    }
+    return {isSelected: areAllMatchingItemsSelected || !!selectedTransactions[keyForList]?.isSelected};
+}
+
+/**
+ * Aggregate selection count for the top bar. `total`/`isAllSelected`/`isIndeterminate` belong to
+ * the SearchList header migration and land with that consumer (see PRD `useSelectionCounts`).
+ */
+function useSelectionCounts(): {selected: number} {
+    const {selectedTransactions} = useSearchSelectionContext();
+    const selected = Object.values(selectedTransactions).filter((value) => value?.isSelected).length;
+    return {selected};
+}
+
+export {SearchSelectionProvider, useSyncSelectedReports, useRowSelection, useSelectionCounts};

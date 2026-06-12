@@ -17,10 +17,11 @@ import type {SearchColumnType} from '@components/Search/types';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCategoryGLCode} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
@@ -28,6 +29,7 @@ import {
     getAmount,
     getConvertedAmount,
     getCurrency,
+    getMCCForDisplay,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
     getReimbursable,
@@ -39,7 +41,6 @@ import {
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import CategoryCell from './DataCells/CategoryCell';
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
@@ -58,6 +59,7 @@ function TransactionItemRowWide({
     transactionItem,
     report,
     policy,
+    policyCategories,
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
@@ -76,6 +78,8 @@ function TransactionItemRowWide({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
+    shouldStopRadioButtonMouseDownPropagation = false,
+    radioButtonContainerStyle,
     shouldShowErrors = true,
     isDisabled = false,
     violations,
@@ -109,6 +113,7 @@ function TransactionItemRowWide({
     totalPerAttendee,
     transactionThreadReportID,
     createdAt,
+    isMarkAsDone,
 }: TransactionItemRowWideProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -116,9 +121,9 @@ function TransactionItemRowWide({
     const theme = useTheme();
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const reportPolicyID = report?.policyID ?? transactionItem.report?.policyID;
-    const effectivePolicyID = isExpenseUnreported(transactionItem) ? activePolicyID : reportPolicyID;
+    const effectivePolicyID = isExpenseUnreported(transactionItem) ? policyForMovingExpensesID : reportPolicyID;
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -259,6 +264,15 @@ function TransactionItemRowWide({
                         />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)]}
+                    >
+                        <TextCell text={getCategoryGLCode(policyCategories, transactionItem.category)} />
+                    </View>
+                );
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
                 return (
                     <View
@@ -295,6 +309,7 @@ function TransactionItemRowWide({
                                 hash={transactionItem?.hash}
                                 amount={report?.total}
                                 shouldDisablePointerEvents={isDisabled}
+                                isMarkAsDone={isMarkAsDone}
                             />
                         )}
                     </View>
@@ -478,6 +493,24 @@ function TransactionItemRowWide({
                         <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_CODE)]}
+                    >
+                        <TextCell text={isTimeRequest(transactionItem) ? '' : (transactionItem.taxCode ?? '')} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.MCC:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MCC)]}
+                    >
+                        <TextCell text={getMCCForDisplay(transactionItem.mcc)} />
+                    </View>
+                );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
                 return (
                     <View
@@ -623,12 +656,13 @@ function TransactionItemRowWide({
                     )}
                     {columns?.map(renderColumn)}
                     {shouldShowRadioButton && (
-                        <View style={[styles.ml1, styles.justifyContentCenter]}>
+                        <View style={[styles.ml1, styles.justifyContentCenter, radioButtonContainerStyle]}>
                             <RadioButton
                                 isChecked={isSelected}
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
+                                shouldStopMouseDownPropagation={shouldStopRadioButtonMouseDownPropagation}
                             />
                         </View>
                     )}
