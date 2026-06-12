@@ -60,7 +60,7 @@ Get real-time alerts for purchases and declines by enabling push notifications.
 4. Toggle notifications **On**.
 5. Customize your alert style based on your preferences.
 
-[Learn hpw to set up Expensify Card notifications](/articles/new-expensify/expensify-card/Expensify-Card-Notifications).
+[Learn how to set up Expensify Card notifications](/articles/new-expensify/expensify-card/Expensify-Card-Notifications).
 
 ---
 
@@ -145,7 +145,7 @@ Common reasons for Expensify card declines include:
 - **Incorrect details**: Double-check the CVC, ZIP code, and expiration date.
 - **Suspicious activity**: You may need to manually approve flagged transactions from your Home page.
 - **Restricted country**: Transactions are blocked in specific regions due to US sanctions.
-- **Spend Rule restriction**: Your workspace admin may have set a Spend Rule on your card that blocks certain merchants, spend categories, or amounts. When a Spend Rule declines a transaction, you'll receive a notification from Concierge in your workspace chat explaining the reason. [Learn about Expensify Card Spend Rules](https://help.expensify.com/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
+- **Spend Rule restriction**: Your workspace admin may have set a Spend Rule on your card that blocks certain merchants, spend categories, or amounts. When a Spend Rule declines a transaction, you'll receive a notification from Concierge in your workspace chat explaining the reason. [Learn about Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 
 ## How do I deactivate my card and request a replacement?
 
