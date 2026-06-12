@@ -7553,10 +7553,12 @@ ${amount} para ${merchant} - ${date}`,
                 }),
                 phraseVerb: {added: 'añadido', removed: 'eliminado', changed: 'cambió', set: 'establecer', applied: 'aplicado'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} comercio «${value}»` : `comercio «${value}»`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `«${value}»`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} del comerciante de '${oldValue}' a '${newValue}'` : `comercio de '${oldValue}' a '${newValue}'`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `Categoría de gasto ${adjective} «${value}»` : `categoría de gasto «${value}»`,
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `«${value}»`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `Categoría de gasto ${adjective} de '${oldValue}' a '${newValue}'` : `categoría de gasto de '${oldValue}' a '${newValue}'`,
                 bodyMaxAmount: 'importe máximo',
