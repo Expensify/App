@@ -327,7 +327,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
     // 2. Synced missingAttendees violation computed at render time (for stale data)
     // We're using || instead of ?? because the variables are boolean
     const hasLiveTransactions = liveReportTransactions.length > 0;
-    const hasAnyVisibleViolations = (hasLiveTransactions ? liveHasVisibleViolations : !!reportItem.hasVisibleViolations) || hasSyncedMissingAttendeesViolation;
+    const hasVisibleReportViolations = hasLiveTransactions ? liveHasVisibleViolations : !!reportItem.hasVisibleViolations;
+    const hasAnyVisibleViolations = hasVisibleReportViolations || hasSyncedMissingAttendeesViolation;
 
     const getDescription = useMemo(() => {
         if (reportItem?.isRejectedReport) {
