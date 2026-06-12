@@ -227,6 +227,8 @@ describe('MoneyRequestReportPreview', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockDeferredValueOverride = undefined;
+        mockOnHoldMenuOpenHolder.current = undefined;
+        mockHoldMenuPropsHolder.current = undefined;
         setReportPreviewData();
         return act(async () => {
             await Onyx.clear();
@@ -256,9 +258,6 @@ describe('MoneyRequestReportPreview', () => {
     });
 
     it('forwards the selected bank account to the hold menu when paying a held expense from the preview', async () => {
-        mockOnHoldMenuOpenHolder.current = undefined;
-        mockHoldMenuPropsHolder.current = undefined;
-
         renderPage({});
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
