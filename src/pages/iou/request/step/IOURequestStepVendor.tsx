@@ -1,20 +1,24 @@
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getMatchingVendors, hasVendorFeature} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -48,6 +52,8 @@ function IOURequestStepVendor({
         iouType,
         isPerDiemRequest: isPerDiemRequest(transaction),
     });
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const delegateAccountID = useDelegateAccountID();
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
 
@@ -57,31 +63,31 @@ function IOURequestStepVendor({
     const vendors = useMemo(() => getMatchingVendors(policy), [policy]);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
 
-    const data: VendorListItem[] = useMemo(() => {
-        const trimmed = searchValue.trim().toLowerCase();
-        const vendorRows = vendors
-            .filter((vendor) => !trimmed || vendor.name.toLowerCase().includes(trimmed))
-            .map((vendor) => ({
-                value: vendor.id,
-                text: vendor.name,
-                keyForList: vendor.id,
-                isSelected: vendor.id === currentVendorID,
-                searchText: vendor.name,
-            }));
+    const trimmedSearch = searchValue.trim().toLowerCase();
+    const vendorRows: VendorListItem[] = vendors
+        .filter((vendor) => !trimmedSearch || vendor.name.toLowerCase().includes(trimmedSearch))
+        .map((vendor) => ({
+            value: vendor.id,
+            text: vendor.name,
+            keyForList: vendor.id,
+            isSelected: vendor.id === currentVendorID,
+            searchText: vendor.name,
+        }));
 
-        // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed-from-QBO) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
-        if (!currentVendorID || trimmed) {
-            return vendorRows;
-        }
-        const clearRow: VendorListItem = {
-            value: '',
-            text: translate('common.none'),
-            keyForList: 'clear-vendor',
-            isSelected: false,
-            searchText: '',
-        };
-        return [clearRow, ...vendorRows];
-    }, [vendors, currentVendorID, searchValue, translate]);
+    // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed-from-QBO) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
+    const data: VendorListItem[] =
+        !currentVendorID || trimmedSearch
+            ? vendorRows
+            : [
+                  {
+                      value: '',
+                      text: translate('common.none'),
+                      keyForList: 'clear-vendor',
+                      isSelected: false,
+                      searchText: '',
+                  },
+                  ...vendorRows,
+              ];
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable || isReimbursable || isInvoice;
 
@@ -91,27 +97,32 @@ function IOURequestStepVendor({
 
     const selectVendor = (item: VendorListItem) => {
         if (item.value !== currentVendorID) {
-            updateMoneyRequestVendor(transactionID, item.value, transaction);
+            updateMoneyRequestVendor({
+                transactionID,
+                vendorID: item.value,
+                transaction,
+                transactionThreadReport: report,
+                parentReport,
+                policy,
+                delegateAccountID,
+            });
         }
         navigateBack();
     };
 
     const headerMessage = searchValue && data.length === 0 ? translate('common.noResultsFound') : '';
 
-    const listEmptyContent = useMemo(
-        () =>
-            vendors.length === 0 ? (
-                <BlockingView
-                    icon={illustrations.Telescope}
-                    iconWidth={variables.emptyListIconWidth}
-                    iconHeight={variables.emptyListIconHeight}
-                    title={translate('workspace.qbo.noAccountsFound')}
-                    subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
-                    containerStyle={styles.pb10}
-                />
-            ) : null,
-        [vendors.length, illustrations.Telescope, translate, styles.pb10],
-    );
+    const listEmptyContent =
+        vendors.length === 0 ? (
+            <BlockingView
+                icon={illustrations.Telescope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.qbo.noAccountsFound')}
+                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                containerStyle={styles.pb10}
+            />
+        ) : null;
 
     return (
         <StepScreenWrapper
@@ -140,7 +151,5 @@ function IOURequestStepVendor({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepVendor.displayName = 'IOURequestStepVendor';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepVendor));

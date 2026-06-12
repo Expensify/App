@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import DelegatorList from '@components/DelegatorList';
@@ -91,32 +90,8 @@ function StatusPage() {
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
-    const navigateBackToPreviousScreenTask = useRef<{
-        then: (
-            onfulfilled?: () => typeof InteractionManager.runAfterInteractions,
-            onrejected?: () => typeof InteractionManager.runAfterInteractions,
-        ) => Promise<typeof InteractionManager.runAfterInteractions>;
-        done: (...args: Array<typeof InteractionManager.runAfterInteractions>) => typeof InteractionManager.runAfterInteractions;
-        cancel: () => void;
-    } | null>(null);
-
-    useEffect(
-        () => () => {
-            if (!navigateBackToPreviousScreenTask.current) {
-                return;
-            }
-
-            navigateBackToPreviousScreenTask.current.cancel();
-        },
-        [],
-    );
-
-    const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
-            if (navigateBackToPreviousScreenTask.current) {
-                return;
-            }
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
             const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
@@ -129,18 +104,12 @@ function StatusPage() {
                 emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
-            navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
-                clearDraftCustomStatus();
-                navigateBackToPreviousScreen();
-            });
+            Navigation.goBack(undefined, {afterTransition: () => clearDraftCustomStatus()});
         },
-        [currentUserClearAfter, draftClearAfter, isValidClearAfterDate, navigateBackToPreviousScreen, currentUserPersonalDetails.accountID],
+        [currentUserClearAfter, draftClearAfter, isValidClearAfterDate, currentUserPersonalDetails.accountID],
     );
 
     const clearStatus = () => {
-        if (navigateBackToPreviousScreenTask.current) {
-            return;
-        }
         clearCustomStatus(currentUserPersonalDetails.accountID);
         updateDraftCustomStatus({
             text: '',
@@ -148,10 +117,7 @@ function StatusPage() {
             clearAfter: DateUtils.getEndOfToday(),
         });
         formRef.current?.resetForm({[INPUT_IDS.EMOJI_CODE]: ''});
-
-        navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
-            navigateBackToPreviousScreen();
-        });
+        Navigation.goBack();
     };
 
     useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR), [isValidClearAfterDate]);
@@ -209,7 +175,7 @@ function StatusPage() {
         >
             <HeaderWithBackButton
                 title={translate('statusPage.status')}
-                onBackButtonPress={navigateBackToPreviousScreen}
+                onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM}

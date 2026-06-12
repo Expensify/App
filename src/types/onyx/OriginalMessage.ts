@@ -7,7 +7,7 @@ import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
-import type {Reservation} from './Transaction';
+import type {Reservation, TransactionCommentVendor} from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
 
 /** Types of join workspace resolutions */
@@ -606,11 +606,17 @@ type OriginalMessagePolicyChangeLog = {
     /** Previous end date of the custom unit rate (yyyy-MM-dd) */
     oldEndDate?: string;
 
-    /** Tax percentage of the new tax rate linked to distance rate */
+    /** Tax percentage of the new tax rate linked to distance rate or category */
     newTaxPercentage?: string;
 
-    /** Tax percentage of the old tax rate linked to distance rate */
+    /** Tax percentage of the old tax rate linked to distance rate or category */
     oldTaxPercentage?: string;
+
+    /** Name of the new tax rate (without percentage) for category default tax rate */
+    newTaxName?: string;
+
+    /** Name of the old tax rate (without percentage) for category default tax rate */
+    oldTaxName?: string;
 
     /** Added/Updated tag name */
     tagName?: string;
@@ -951,6 +957,12 @@ type OriginalMessageModifiedExpense = {
 
     /** Old expense reimbursable */
     oldReimbursable?: string;
+
+    /** Edited accounting-system vendor on the transaction's comment NVP. `null` means the vendor was cleared. */
+    vendor?: TransactionCommentVendor | null;
+
+    /** Previous accounting-system vendor on the transaction's comment NVP. `null` means there was no prior vendor. */
+    oldVendor?: TransactionCommentVendor | null;
 
     /** Collection of accountIDs of users mentioned in expense report */
     whisperedTo?: number[];

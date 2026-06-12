@@ -40,6 +40,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -108,7 +109,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '多选',
         saveChanges: '保存更改',
         submit: '提交',
+        markAsDone: '标记为完成',
         submitted: '已提交',
+        markedAsDoneStatus: '已标记为完成',
         rotate: '旋转',
         zoom: '缩放',
         password: '密码',
@@ -293,7 +296,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: '描述',
         title: '标题',
         assignee: '受托人',
-        createdBy: '创建者',
         with: '与',
         shareCode: '共享代码',
         share: '分享',
@@ -356,6 +358,10 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: '使用以下方式查找聊天',
             subtitleText2: '上方的按钮，或使用以下内容创建',
             subtitleText3: '下方按钮。',
+            noUnreadChats: '没有未读聊天',
+            noTodos: '没有待办事项',
+            caughtUp: '你已经全部处理完了。干得好！',
+            seeAllChats: '查看所有聊天',
         },
         businessName: '公司名称',
         clear: '清除',
@@ -832,6 +838,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `此聊天对象为 ${users}。`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `这是 <strong>${submitterDisplayName}</strong> 向 <strong>${workspaceName}</strong> 提交报销的地方。只需使用“+”按钮即可。`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: '在这里跟踪你的报销费用',
         beginningOfChatHistorySelfDM: '这是你的个人空间。可在此记录笔记、任务、草稿和提醒事项。',
         beginningOfChatHistorySystemDM: '欢迎！让我们帮你完成设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
@@ -929,7 +936,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
-            validateAccount: {title: '验证您的账户以继续使用 Expensify', subtitle: '账户', cta: '验证'},
+            validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
                 workspaceTitle: '您的企业银行账户已被锁定',
@@ -984,6 +991,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: '全部完成',
                 f1FlagsDescription: '你已完成所有未完成的待办事项。',
             },
+            reviewExpenses: ({count}: {count: number}) => `审核 ${count} ${count === 1 ? '费用' : '费用'}`,
         },
         upcomingTravel: '即将出行',
         upcomingTravelSection: {
@@ -1307,6 +1315,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `发送 ${amount} 发票`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `用于 ${comment}` : ''}`,
         submitted: (memo?: string) => `已提交${memo ? `，备注为 ${memo}` : ''}`,
+        markedAsDone: (memo) => `标记为已完成${memo ? `，说明：${memo}` : ''}`,
         automaticallySubmitted: `通过<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">延迟提交</a>提交`,
         queuedToSubmitViaDEW: '已排队，待通过自定义审批流程提交',
         queuedToApproveViaDEW: '已排队，等待通过自定义审批流程批准',
@@ -1329,7 +1338,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approvedMessage: `已批准`,
         unapproved: `未批准`,
         automaticallyForwarded: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
-        forwarded: `已批准`,
+        forwarded: (memo?: string) => `已批准${memo ? `，备注为 ${memo}` : ''}`,
         rejectedThisReport: '已拒绝',
         waitingOnBankAccount: (submitterDisplayName: string) => `已开始付款，但正在等待${submitterDisplayName}添加银行账户。`,
         adminCanceledRequest: '已取消付款',
@@ -1516,6 +1525,9 @@ const translations: TranslationDeepObject<typeof en> = {
         removed: '已移除',
         transactionPending: '交易处理中。',
         chooseARate: '选择工作区每英里或每公里的报销费率',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} 至 ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `有效期自 ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `有效期至 ${endDate}`,
         unapprove: '取消批准',
         unapproveReport: '取消批准报销单',
         headsUp: '注意！',
@@ -1736,6 +1748,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待<strong>${actor}</strong>提交报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员提交报销。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `正在等待<strong>你</strong>标记为完成。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `正在等待<strong>${actor}</strong>标记为完成。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `正在等待管理员标记为完成。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2523,13 +2550,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `来自${members}的报销，审批人是${approvers}`,
         addApprovalButton: '添加审批工作流',
         editWorkflowAction: '编辑',
-        addAgentAction: '添加代理',
         findWorkflow: '查找工作流',
         addApprovalTip: '除非存在更具体的工作流程，否则此默认工作流程适用于所有成员。',
         approver: '审批人',
         addApprovalsDescription: '在付款前需要额外审批。',
-        automateApprovalsWithAgentsTitle: '使用代理自动化审批',
-        automateApprovalsWithAgentsSubtitle: '在下方添加代理到工作流程中以自动化审批。',
         makeOrTrackPaymentsTitle: '付款',
         makeOrTrackPaymentsDescription: '为在 Expensify 中进行的付款添加授权付款人，或跟踪在其他地方进行的付款。',
         customApprovalWorkflowEnabled:
@@ -2817,6 +2841,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: '欢迎使用 #focus 模式！',
+        prompt: (priorityModePageUrl: string) => `通过只查看未读聊天或需要你关注的聊天，随时掌握最新进展。别担心，你可以随时在<a href="${priorityModePageUrl}">设置</a>中更改此项。`,
+    },
+    inboxTabs: {all: '全部', todo: '待办事项', unread: '未读'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `在 ${policyName} 中`,
         generatingPDF: '生成 PDF',
@@ -3373,10 +3402,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     yearPickerPage: {
         year: '年份',
         selectYear: '请选择年份',
-    },
-    focusModeUpdateModal: {
-        title: '欢迎进入 #focus 模式！',
-        prompt: (priorityModePageUrl: string) => `通过仅查看未读聊天或需要你关注的聊天来随时掌握进展。别担心，你可以随时在<a href="${priorityModePageUrl}">设置</a>中更改此项。`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: '找不到您要查找的聊天。',
@@ -4223,7 +4248,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             customFieldHint: '为该成员的所有支出添加适用的自定义编码。',
             reports: '报表',
             reportFields: '报表字段',
-            invoiceFields: '发票字段',
             reportTitle: '报表标题',
             reportField: '报表字段',
             taxes: '税费',
@@ -4790,6 +4814,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         certinia: {
             title: 'Certinia',
+            titleFFA: 'Certinia (FFA)',
             autoSyncDescription: 'Expensify 将每天自动与 Certinia 同步。',
             syncReimbursedReportsDescription: '启用此选项后，每当在 FFA 中支付应付发票时，关联的 Expensify 报告将自动标记为已报销。',
             exportDescription: '配置 Expensify 数据导出到 Certinia 的方式。',
@@ -5838,29 +5863,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             reportFieldInitialValueRequiredError: '请选择报表字段的初始值',
             genericFailureMessage: '更新报表字段时出错。请重试。',
         },
-        invoiceFields: {
-            subtitle: '当你想添加更多信息时，发票字段会很有帮助。',
-            importedFromAccountingSoftware: '以下发票字段是从你的',
-            disableInvoiceFields: '禁用发票字段',
-            disableInvoiceFieldsConfirmation: '确定吗？发票字段将在发票中被禁用。',
-            delete: '删除发票字段',
-            deleteConfirmation: '确定要删除此发票字段吗？',
-            findInvoiceField: '查找发票字段',
-            nameInputSubtitle: '为发票字段选择一个名称。',
-            typeInputSubtitle: '选择要使用的发票字段类型。',
-            initialValueInputSubtitle: '输入要在发票字段中显示的起始值。',
-            listValuesInputSubtitle: '这些值将显示在你的发票字段下拉菜单中。成员可以选择已启用的值。',
-            listInputSubtitle: '这些值将显示在你的发票字段列表中。成员可以选择已启用的值。',
-            emptyInvoiceFieldsValues: {
-                title: '还没有列表值',
-                subtitle: '添加要显示在发票上的自定义值。',
-            },
-            existingInvoiceFieldNameError: '已存在同名发票字段',
-            invoiceFieldNameRequiredError: '请输入发票字段名称',
-            invoiceFieldTypeRequiredError: '请选择发票字段类型',
-            invoiceFieldInitialValueRequiredError: '请选择发票字段的初始值',
-            addField: '添加字段',
-        },
         tags: {
             tagName: '标签名称',
             requiresTag: '成员必须为所有报销添加标签',
@@ -6261,6 +6263,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `确定要连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '此会计集成'} 吗？这将删除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
+            reconnect: '重新连接',
             updateCredentials: '更新凭证',
             claimOffer: {
                 badgeText: '优惠可用！',
@@ -6522,6 +6525,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             }),
             enableRate: '启用费率',
             status: '状态',
+            statusActive: '活跃',
+            statusFuture: '未来',
+            statusExpired: '已过期',
+            statusInactive: '未启用',
             unit: '单位',
             taxFeatureNotEnabledMessage: '<muted-text>必须在工作区中启用税费才能使用此功能。前往<a href="#">更多功能</a>进行更改。</muted-text>',
             deleteDistanceRate: '删除距离费率',
@@ -6639,12 +6646,6 @@ ${reportName}
                 description: `报表字段可用于指定报表级别的头部信息，与适用于各单笔报销项目的标签不同。这些详情可以包括特定项目名称、出差信息、地点等。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>报表字段仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
-            },
-            invoiceFields: {
-                title: '发票字段',
-                description: `发票字段可用于在发票上包含额外的发票级别详情。`,
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>发票字段仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
@@ -7159,6 +7160,7 @@ ${reportName}
                 deleteRuleConfirmation: '确定要删除此规则吗？',
                 describeRuleTitle: '描述你的规则',
                 describeRuleSubtitle: '描述你的规则，我们会由 Concierge 为你创建',
+                disclaimer: 'AI 智能体可能会犯错。',
             },
         },
         planTypePage: {
@@ -7812,21 +7814,18 @@ ${reportName}
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `来自 ${cards} 的 ${content}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `将“${categoryName}”类别的默认税率更改为“${newTax}”（之前为“${oldTax}”）`,
         addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `已添加“${rateName}”汇率，数值为 ${rateValue}`,
         addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `已添加“${rateName}”费率 ${rateValue}，自 ${startDate} 起生效`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `已添加“${rateName}”费率 ${rateValue}，有效期至 ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `已添加“${rateName}”费率 ${rateValue}，有效期为 ${startDate} - ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `将“${rateName}”费率的开始日期更新为 ${newDate}（之前为 ${oldDate}）` : `将“${rateName}”费率的开始日期设置为 ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `已将“${rateName}”费率的结束日期更新为 ${newDate}（之前为 ${oldDate}）` : `将“${rateName}”费率的结束日期设置为 ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `已将“${rateName}”费率的起止日期更新为 ${newStartDate} - ${newEndDate}（此前为 ${oldStartDate} - ${oldEndDate}）`
-                : `将“${rateName}”费率的开始和结束日期设为 ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `已从“${rateName}”费率中移除开始日期（原为 ${oldDate}）`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `已从“${rateName}”费率中移除结束日期（之前为 ${oldDate}）`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) => `已将距离费率“${rateName}”更新为适用于 ${newDateRange}（此前为 ${oldDateRange}）`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `自 ${date} 起`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `直到 ${date}`,
+        customUnitRateDateRangeAllDates: () => `适用于所有日期`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -9121,6 +9120,10 @@ ${reportName}
             作为副驾驶，你无权访问此页面。抱歉！
         `),
         notAllowedMessage: (accountOwnerEmail: string) => `作为${accountOwnerEmail}的<a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">副驾驶</a>，你没有权限执行此操作。抱歉！`,
+        removeCopilotAccess: '移除我的副驾驶访问权限',
+        removeCopilotAccessTitle: '移除副驾驶访问权限？',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) => `您确定要移除对${delegatorName}的 Expensify 账户的副驾驶访问权限吗？此操作无法撤销。`,
+        removeCopilotAccessConfirm: '移除访问权限',
         copilotAccess: 'Copilot 访问',
     },
     debug: {
