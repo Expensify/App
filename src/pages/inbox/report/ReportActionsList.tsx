@@ -216,6 +216,7 @@ function ReportActionsList({
 
     const stableReportSelector = useCallback((reportEntry: OnyxEntry<OnyxTypes.Report>) => getStableReportSelector(reportEntry), []);
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {selector: stableReportSelector});
+    const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: stableReportSelector});
 
     const backTo = route?.params?.backTo as string;
     const linkedReportActionID = route?.params?.reportActionID;
@@ -554,6 +555,7 @@ function ReportActionsList({
                         parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                         report={reportStable}
                         transactionThreadReport={transactionThreadReport}
+                        chatReport={chatReportStable}
                         linkedReportActionID={linkedReportActionID}
                         displayAsGroup={
                             !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, safeIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
@@ -592,6 +594,7 @@ function ReportActionsList({
             isHarvestCreatedExpenseReportAction,
             renderedVisibleReportActions,
             reportStable,
+            chatReportStable,
             shouldHideThreadDividerLine,
             shouldUseThreadDividerLine,
             showHiddenHistory,
