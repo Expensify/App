@@ -1,5 +1,5 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useMemo} from 'react';
+import React from 'react';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
@@ -63,17 +63,12 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
         return matchingItems.length > 0;
     };
 
-    const hasCustomRules = useMemo(() => rulesData.some((rule) => !rule.isDefault), [rulesData]);
-    const firstCustomRuleIndex = useMemo(() => rulesData.findIndex((rule) => !rule.isDefault), [rulesData]);
-
     const renderItem = ({item, index}: ListRenderItemInfo<SpendRuleTableItem>) => (
         <WorkspaceSpendRulesTableRow
             key={item.ruleID}
             item={item}
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
-            hasCustomRules={hasCustomRules}
-            isFirstCustomRule={index === firstCustomRuleIndex}
         />
     );
 

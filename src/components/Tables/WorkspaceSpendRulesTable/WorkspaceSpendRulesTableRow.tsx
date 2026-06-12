@@ -4,6 +4,7 @@ import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import type {TableData} from '@components/Table';
+import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -30,15 +31,14 @@ type WorkspaceSpendRulesTableRowProps = {
     item: SpendRuleTableItem;
     rowIndex: number;
     shouldUseNarrowTableLayout: boolean;
-    hasCustomRules: boolean;
-    isFirstCustomRule: boolean;
 };
 
-function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout, hasCustomRules, isFirstCustomRule}: WorkspaceSpendRulesTableRowProps) {
+function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: WorkspaceSpendRulesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lock']);
+    const {processedData} = useTableContext<SpendRuleTableItem>();
 
     const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -49,7 +49,9 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
 
     const accessibilityLabel = `${item.actionLabel}. ${item.cardSummary}. ${item.ruleSummary}`;
 
-    const showSectionHeader = (!!item.isDefault && hasCustomRules) || isFirstCustomRule;
+    const prevItem = processedData.at(rowIndex - 1) as SpendRuleTableItem | undefined;
+    const hasMultipleTypes = processedData.length > 1 && processedData.some((r) => (r as SpendRuleTableItem).isDefault !== (processedData.at(0) as SpendRuleTableItem).isDefault);
+    const showSectionHeader = hasMultipleTypes && (rowIndex === 0 || !!prevItem?.isDefault !== !!item.isDefault);
 
     const lockIcon = item.isDefault ? (
         <Icon
@@ -63,7 +65,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
     return (
         <>
             {!!showSectionHeader && (
-                <View style={[styles.mh5, styles.pv2, styles.ph3, rowIndex !== 0 && styles.mt3]}>
+                <View style={[styles.mh5, styles.pv2, styles.ph3, styles.highlightBG, rowIndex === 0 ? styles.borderBottom : styles.borderTop]}>
                     <TextWithTooltip
                         text={item.isDefault ? 'Default' : 'Custom rules'}
                         style={[styles.textMicroSupporting]}
