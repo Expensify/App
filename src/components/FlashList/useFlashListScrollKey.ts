@@ -1,6 +1,5 @@
 import type {FlashListProps} from '@shopify/flash-list';
-import {useEffect, useRef, useState} from 'react';
-import useReportScrollManager from '@hooks/useReportScrollManager';
+import {useEffect, useState} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 /** Minimum possible height of a single list item. Used to overestimate how many items are needed to fill half of the viewport below the target item. */
@@ -32,13 +31,7 @@ export default function useFlashListScrollKey<T>({data, keyExtractor, initialScr
     // Whether this mount started as a deep-link. A key that appears later (e.g. marking a message
     // unread) must not engage the initial-scroll machinery, which only works around the first layout.
     const [isLinkingFlow] = useState(!!initialScrollKey);
-    const reportScrollManager = useReportScrollManager();
     const {windowHeight} = useWindowDimensions();
-    const hasAppliedCenteringCorrection = useRef(false);
-    // Swallows onStartReached calls induced by the corrective centering scroll, which can land the
-    // viewport inside the onStartReached threshold zone and would fire a spurious newer-page load.
-    // Scroll-triggered calls outside that brief window are unaffected.
-    const isSuppressingOnStartReached = useRef(false);
 
     // Two-frame handoff for deep-link:
     // RAF 1: switch from sliced data to the full array — FlashList's default MVCP pins the
@@ -65,40 +58,11 @@ export default function useFlashListScrollKey<T>({data, keyExtractor, initialScr
         });
     }, [isInitialRender, initialScrollKey]);
 
-    // Once the sliced→full data handoff has settled, apply a final corrective scroll. The
-    // initialScrollIndex pass centers the target using partially estimated layouts; by now the
-    // items around it are measured, so scrollToIndex with viewPosition lands exactly.
-    useEffect(() => {
-        if (!hasLinkingSettled || !initialScrollKey || hasAppliedCenteringCorrection.current) {
-            return;
-        }
-        hasAppliedCenteringCorrection.current = true;
-        const targetIndex = data.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey);
-        if (targetIndex <= 0) {
-            return;
-        }
-        isSuppressingOnStartReached.current = true;
-        reportScrollManager.ref?.current?.scrollToIndex({index: targetIndex, viewPosition: CENTER_VIEW_POSITION, animated: false});
-        // Lift the suppression once the corrective scroll has been committed.
-        requestAnimationFrame(() => {
-            isSuppressingOnStartReached.current = false;
-        });
-    }, [hasLinkingSettled, initialScrollKey, data, keyExtractor, reportScrollManager]);
-
     const maintainVisibleContentPosition: FlashListProps<T>['maintainVisibleContentPosition'] = {disabled: !shouldMaintainVisibleContentPosition && hasLinkingSettled};
-
-    // Checks the suppression flag at call time, so only calls landing inside the corrective-scroll
-    // window are swallowed.
-    const onStartReachedGated: FlashListProps<T>['onStartReached'] = () => {
-        if (isSuppressingOnStartReached.current) {
-            return;
-        }
-        onStartReached?.();
-    };
 
     const targetIndex = isLinkingFlow && initialScrollKey ? data.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey) : -1;
     if (targetIndex <= 0) {
-        return {displayedData: data, onStartReached: onStartReachedGated, maintainVisibleContentPosition, initialScrollIndex: undefined, initialScrollIndexParams: undefined};
+        return {displayedData: data, onStartReached, maintainVisibleContentPosition, initialScrollIndex: undefined, initialScrollIndexParams: undefined};
     }
 
     // Keep targeting the item for the whole linking flow: FlashList re-applies the initial scroll
@@ -108,7 +72,7 @@ export default function useFlashListScrollKey<T>({data, keyExtractor, initialScr
     const initialScrollIndexParams = {viewPosition: CENTER_VIEW_POSITION};
 
     if (!isInitialRender) {
-        return {displayedData: data, onStartReached: onStartReachedGated, maintainVisibleContentPosition, initialScrollIndex: targetIndex, initialScrollIndexParams};
+        return {displayedData: data, onStartReached, maintainVisibleContentPosition, initialScrollIndex: targetIndex, initialScrollIndexParams};
     }
 
     // On the first render, slice the data so that the target item is rendered together with enough
