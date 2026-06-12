@@ -357,12 +357,8 @@ export {
     animatedSuperWideRHPWidth,
     animatedWideRHPWidth,
     expandedRHPProgress,
-    modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
     secondOverlayWideRHPProgress,
-    secondOverlayRHPOnWideRHPProgress,
-    secondOverlayRHPOnSuperWideRHPProgress,
-    thirdOverlayProgress,
     useWideRHPState,
     useWideRHPActions,
 };
