@@ -40,6 +40,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -108,7 +109,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Selezione multipla',
         saveChanges: 'Salva modifiche',
         submit: 'Invia',
+        markAsDone: 'Segna come completata',
         submitted: 'Inviato',
+        markedAsDoneStatus: 'Contrassegnato come completato',
         rotate: 'Ruota',
         zoom: 'Zoom',
         password: 'Password',
@@ -293,7 +296,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Descrizione',
         title: 'Titolo',
         assignee: 'Assegnatario',
-        createdBy: 'Creato da',
         with: 'con',
         shareCode: 'Condividi codice',
         share: 'Condividi',
@@ -314,6 +316,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: 'Esercente',
         change: 'Modifica',
         category: 'Categoria',
+        vendor: 'Fornitore',
         report: 'Report',
         billable: 'Fatturabile',
         nonBillable: 'Non fatturabile',
@@ -356,6 +359,10 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Trova una chat usando la',
             subtitleText2: 'pulsante sopra oppure crea qualcosa utilizzando il',
             subtitleText3: 'pulsante qui sotto.',
+            noUnreadChats: 'Nessuna chat non letta',
+            noTodos: 'Nessuna attività da fare',
+            caughtUp: 'Hai gestito tutto. Ben fatto!',
+            seeAllChats: 'Vedi tutte le chat',
         },
         businessName: 'Nome azienda',
         clear: 'Pulisci',
@@ -854,6 +861,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Questa chat è con ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `Qui è dove <strong>${submitterDisplayName}</strong> invierà le spese a <strong>${workspaceName}</strong>. Usa semplicemente il pulsante +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Qui è dove terrai traccia delle spese',
         beginningOfChatHistorySelfDM: 'Questo è il tuo spazio personale. Usalo per note, attività, bozze e promemoria.',
         beginningOfChatHistorySystemDM: 'Benvenuto/a! Procediamo con la configurazione.',
         chatWithAccountManager: 'Chatta qui con il tuo account manager',
@@ -1014,6 +1022,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Tutto a posto',
                 f1FlagsDescription: 'Hai completato tutte le attività in sospeso.',
             },
+            reviewExpenses: ({count}: {count: number}) => `Esamina ${count} ${count === 1 ? 'spesa' : 'spese'}`,
         },
         upcomingTravel: 'Prossimi viaggi',
         upcomingTravelSection: {
@@ -1349,6 +1358,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `Invia fattura da ${amount}`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `per ${comment}` : ''}`,
         submitted: (memo?: string) => `inviato${memo ? `, con nota: ${memo}` : ''}`,
+        markedAsDone: (memo) => `contrassegnata come completata${memo ? `, dicendo ${memo}` : ''}`,
         automaticallySubmitted: `inviato tramite <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">invio posticipato</a>`,
         queuedToSubmitViaDEW: 'in coda per l’invio tramite flusso di approvazione personalizzato',
         queuedToApproveViaDEW: 'in coda per l’approvazione tramite flusso di approvazione personalizzato',
@@ -1564,6 +1574,9 @@ const translations: TranslationDeepObject<typeof en> = {
         removed: 'rimosso',
         transactionPending: 'Transazione in sospeso.',
         chooseARate: 'Seleziona una tariffa di rimborso per miglio o chilometro per lo spazio di lavoro',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} al ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Valido dal ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Valido fino al ${endDate}`,
         unapprove: 'Revoca approvazione',
         unapproveReport: 'Annulla approvazione rapporto',
         headsUp: 'Attenzione!',
@@ -1664,6 +1677,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: "Correggi l'errore di tariffa e riprova.",
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Spiega<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge ha associato questa spesa al fornitore <strong>${vendorName}</strong>`,
         duplicateNonDefaultWorkspacePerDiemError: 'Non puoi duplicare le spese di diaria tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse tra gli spazi di lavoro.',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'ha contrassegnato la spesa come "rimborsabile"' : 'ha contrassegnato la spesa come "non rimborsabile"'),
@@ -1790,6 +1804,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `In attesa che <strong>${actor}</strong> invii le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `In attesa che un amministratore invii le spese.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `In attesa che <strong>tu</strong> lo segni come completato.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `In attesa che <strong>${actor}</strong> lo segni come completato.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `In attesa che un amministratore lo segni come completato.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2595,13 +2624,10 @@ ${amount} per ${merchant} - ${date}`,
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `spese di ${members} e l'approvatore è ${approvers}`,
         addApprovalButton: 'Aggiungi flusso di approvazione',
         editWorkflowAction: 'Modifica',
-        addAgentAction: 'Aggiungi agente',
         findWorkflow: 'Cerca flusso di lavoro',
         addApprovalTip: 'Questo flusso di lavoro predefinito si applica a tutti i membri, a meno che non esista un flusso di lavoro più specifico.',
         approver: 'Approvante',
         addApprovalsDescription: 'Richiedi un’approvazione aggiuntiva prima di autorizzare un pagamento.',
-        automateApprovalsWithAgentsTitle: 'Automatizza le approvazioni con gli agenti',
-        automateApprovalsWithAgentsSubtitle: 'Aggiungi l’agente qui sotto al workflow per automatizzare le approvazioni.',
         makeOrTrackPaymentsTitle: 'Pagamenti',
         makeOrTrackPaymentsDescription: 'Aggiungi un pagatore autorizzato per i pagamenti effettuati in Expensify o tieni traccia dei pagamenti effettuati altrove.',
         customApprovalWorkflowEnabled:
@@ -2897,6 +2923,12 @@ ${amount} per ${merchant} - ${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: 'Benvenuto nella modalità #focus!',
+        prompt: (priorityModePageUrl: string) =>
+            `Tieniti al passo vedendo solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi cambiare questa impostazione in qualsiasi momento nelle <a href="${priorityModePageUrl}">impostazioni</a>.`,
+    },
+    inboxTabs: {all: 'Tutti', todo: 'Attività da fare', unread: 'Non letti'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'Genera PDF',
@@ -3459,11 +3491,6 @@ ${amount} per ${merchant} - ${date}`,
     yearPickerPage: {
         year: 'Anno',
         selectYear: 'Seleziona un anno',
-    },
-    focusModeUpdateModal: {
-        title: 'Benvenuto/a nella modalità #focus!',
-        prompt: (priorityModePageUrl: string) =>
-            `Resta sempre aggiornato vedendo solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi modificare questa impostazione in qualsiasi momento nelle <a href="${priorityModePageUrl}">impostazioni</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'La chat che stai cercando non può essere trovata.',
@@ -4326,7 +4353,6 @@ ${amount} per ${merchant} - ${date}`,
             customFieldHint: 'Aggiungi una codifica personalizzata che si applichi a tutte le spese di questo membro.',
             reports: 'Report',
             reportFields: 'Campi del report',
-            invoiceFields: 'Campi fattura',
             reportTitle: 'Titolo del report',
             reportField: 'Campo report',
             taxes: 'Tasse',
@@ -6015,29 +6041,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             reportFieldInitialValueRequiredError: 'Scegli un valore iniziale per il campo del resoconto',
             genericFailureMessage: 'Si è verificato un errore durante l’aggiornamento del campo del report. Riprova.',
         },
-        invoiceFields: {
-            subtitle: 'I campi della fattura possono essere utili quando vuoi includere informazioni aggiuntive.',
-            importedFromAccountingSoftware: 'I campi della fattura riportati di seguito sono importati dal tuo',
-            disableInvoiceFields: 'Disattiva i campi della fattura',
-            disableInvoiceFieldsConfirmation: 'Sei sicuro? I campi della fattura verranno disattivati nelle fatture.',
-            delete: 'Elimina campo della fattura',
-            deleteConfirmation: 'Sei sicuro di voler eliminare questo campo della fattura?',
-            findInvoiceField: 'Trova campo della fattura',
-            nameInputSubtitle: 'Scegli un nome per il campo della fattura.',
-            typeInputSubtitle: 'Scegli il tipo di campo della fattura da utilizzare.',
-            initialValueInputSubtitle: 'Inserisci un valore iniziale da mostrare nel campo della fattura.',
-            listValuesInputSubtitle: 'Questi valori appariranno nel menu a discesa del campo della fattura. I valori abilitati possono essere selezionati dai membri.',
-            listInputSubtitle: 'Questi valori appariranno nell’elenco del campo della fattura. I valori abilitati possono essere selezionati dai membri.',
-            emptyInvoiceFieldsValues: {
-                title: 'Nessun valore elenco ancora',
-                subtitle: 'Aggiungi valori personalizzati da mostrare sulle fatture.',
-            },
-            existingInvoiceFieldNameError: 'Esiste già un campo della fattura con questo nome',
-            invoiceFieldNameRequiredError: 'Inserisci un nome per il campo della fattura',
-            invoiceFieldTypeRequiredError: 'Scegli un tipo di campo della fattura',
-            invoiceFieldInitialValueRequiredError: 'Scegli un valore iniziale per il campo della fattura',
-            addField: 'Aggiungi campo',
-        },
         tags: {
             tagName: 'Nome tag',
             requiresTag: 'I membri devono etichettare tutte le spese',
@@ -6710,6 +6713,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             }),
             enableRate: 'Abilita tariffa',
             status: 'Stato',
+            statusActive: 'Attivo',
+            statusFuture: 'Futuro',
+            statusExpired: 'Scaduto',
+            statusInactive: 'Inattivo',
             unit: 'Unit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Per usare questa funzione devi abilitare le imposte nello spazio di lavoro. Vai su <a href="#">Altre funzionalità</a> per effettuare questa modifica.</muted-text>',
@@ -6835,12 +6842,6 @@ Vuoi davvero esportarli di nuovo?`,
                 description: `I campi del report ti permettono di specificare dettagli a livello di intestazione, distinti dai tag che si riferiscono alle spese delle singole voci. Questi dettagli possono includere nomi di progetti specifici, informazioni sui viaggi di lavoro, località e altro ancora.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>I campi del report sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
-            },
-            invoiceFields: {
-                title: 'Campi fattura',
-                description: `I campi fattura ti consentono di includere dettagli aggiuntivi a livello di fattura.`,
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>I campi fattura sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
@@ -7375,6 +7376,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
                 describeRuleTitle: 'Descrivi la tua regola',
                 describeRuleSubtitle: 'Descrivi la tua regola e Concierge la creerà',
+                disclaimer: 'Gli agenti IA possono commettere errori.',
             },
         },
         planTypePage: {
@@ -8060,25 +8062,19 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} da ${cards}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `ha cambiato l’aliquota fiscale predefinita della categoria "${categoryName}" in "${newTax}" (in precedenza "${oldTax}")`,
         addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `ha aggiunto la tariffa "${rateName}" di ${rateValue}`,
         addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `ha aggiunto l’aliquota "${rateName}" di ${rateValue}, valida dal ${startDate}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `ha aggiunto la tariffa "${rateName}" di ${rateValue}, valida fino al ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `ha aggiunto la tariffa "${rateName}" di ${rateValue}, valida dal ${startDate} al ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate
-                ? `aggiornata la data di inizio della tariffa "${rateName}" a ${newDate} (in precedenza ${oldDate})`
-                : `imposta la data di inizio della tariffa "${rateName}" su ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate
-                ? `ha aggiornato la data di fine della tariffa "${rateName}" a ${newDate} (in precedenza ${oldDate})`
-                : `imposta la data di fine della tariffa "${rateName}" al ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `ha aggiornato la data di inizio e fine della tariffa "${rateName}" in ${newStartDate} - ${newEndDate} (in precedenza ${oldStartDate} - ${oldEndDate})`
-                : `imposta data di inizio e fine della tariffa "${rateName}" su ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `rimossa la data di inizio dalla tariffa "${rateName}" (in precedenza ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `data di fine rimossa dalla tariffa "${rateName}" (precedentemente ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `ha aggiornato la tariffa chilometrica "${rateName}" per applicarla a ${newDateRange} (in precedenza ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `dal ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `fino al ${date}`,
+        customUnitRateDateRangeAllDates: () => `per tutte le date`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -9417,6 +9413,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Come <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copilota</a> per ${accountOwnerEmail}, non hai l'autorizzazione per eseguire questa azione. Spiacenti!`,
+        removeCopilotAccess: 'Rimuovi il mio accesso copilota',
+        removeCopilotAccessTitle: "Rimuovere l'accesso copilota?",
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `Sei sicuro di voler rimuovere il tuo accesso copilota all'account Expensify di ${delegatorName}? Questa azione non può essere annullata.`,
+        removeCopilotAccessConfirm: 'Rimuovi accesso',
         copilotAccess: 'Accesso a Copilot',
     },
     debug: {
