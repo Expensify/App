@@ -21,15 +21,18 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteExpensifyCardRule, setExpensifyCardRule} from '@libs/actions/Card';
+import Tab from '@libs/actions/Tab';
 import {clearDraftSpendRule, setDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 import SpendRuleRestrictionTypeToggle from '@src/components/SpendRules/SpendRuleRestrictionTypeToggle';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -174,7 +177,12 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         clearError();
         setExpensifyCardRule(domainAccountID, isEditing ? currentRuleID : rand64(), spendRuleForm, existingRule);
         clearDraftSpendRule();
-        navigation.goBack();
+        if (isEditing) {
+            navigation.goBack();
+        } else {
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, 'cardRestrictions');
+            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
+        }
     };
 
     const handleDeleteRule = () => {
@@ -246,6 +254,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 numberOfLinesTitle={2}
                                 titleStyle={styles.flex1}
                                 icon={icons.CreditCardHourglass}
+                                iconWidth={variables.iconSizeNormal}
+                                iconHeight={variables.iconSizeNormal}
+                                shouldIconUseAutoWidthStyle
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                             />
                             <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
@@ -258,6 +269,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 title={selectedCurrency ?? ''}
                                 titleStyle={styles.flex1}
                                 icon={icons.Coins}
+                                iconWidth={variables.iconSizeNormal}
+                                iconHeight={variables.iconSizeNormal}
+                                shouldIconUseAutoWidthStyle
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                             />
                             <MenuItemWithTopDescription
@@ -279,6 +293,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 title={maxAmountMenuTitle ? translate('workspace.rules.spendRules.maxAmountAbove', {amount: maxAmountMenuTitle}) : ''}
                                 titleStyle={styles.flex1}
                                 icon={icons.CoinsButton}
+                                iconWidth={variables.iconSizeNormal}
+                                iconHeight={variables.iconSizeNormal}
+                                shouldIconUseAutoWidthStyle
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                             />
                             <View style={[styles.ph5, styles.pv3]}>
@@ -318,6 +335,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                         numberOfLinesTitle={2}
                                         titleStyle={styles.flex1}
                                         icon={icons.Building}
+                                        iconWidth={variables.iconSizeNormal}
+                                        iconHeight={variables.iconSizeNormal}
+                                        shouldIconUseAutoWidthStyle
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     />
                                     <MenuItemWithTopDescription
@@ -336,6 +356,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                         numberOfLinesTitle={2}
                                         titleStyle={styles.flex1}
                                         icon={icons.Building}
+                                        iconWidth={variables.iconSizeNormal}
+                                        iconHeight={variables.iconSizeNormal}
+                                        shouldIconUseAutoWidthStyle
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     />
                                 </>

@@ -24,6 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/Rules';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
+import Tab from '@libs/actions/Tab';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -246,7 +247,12 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             return;
         }
         setPolicyCodingRule(policyID, form, policy, ruleID, shouldUpdateMatchingTransactions);
-        Navigation.goBack();
+        if (isEditing) {
+            Navigation.goBack();
+        } else {
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, 'expenseDefaults');
+            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
+        }
     };
 
     const handleSubmit = () => {
