@@ -100,7 +100,7 @@ import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import {convertAttendeesToArray} from './AttendeeUtils';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
-import {getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
+import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
@@ -600,6 +600,7 @@ type GetSectionsParams = {
     isOffline?: boolean;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
     cardList?: OnyxEntry<OnyxTypes.CardList>;
+    nonPersonalAndWorkspaceCardList?: OnyxEntry<OnyxTypes.CardList>;
     customCardNames?: Record<number, string>;
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
     conciergeReportID: string | undefined;
@@ -3189,6 +3190,7 @@ function getCardSections(
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
     customCardNames?: Record<number, string>,
     cardList?: OnyxEntry<OnyxTypes.CardList>,
+    nonPersonalAndWorkspaceCardList?: OnyxEntry<OnyxTypes.CardList>,
 ): [TransactionCardGroupListItemType[], number, boolean] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
     const cardDescriptionByCardID = new Map<number, string>();
@@ -3225,6 +3227,11 @@ function getCardSections(
                 formattedCardName = formattedCardNameWithDotAndLastFour(formattedCardName, cardGroup.lastFourPAN);
             }
 
+            const card = cardList?.[cardGroup.cardID];
+            // A workspace/company card from a card feed can also lack a `fundID`, so `isPersonalCard` alone would misclassify it.
+            // The non-personal card list keeps every company/workspace-feed card while filtering personal cards out, so presence
+            // there means the card is definitively NOT personal.
+            const isPersonal = !!card && isPersonalCard(card) && !nonPersonalAndWorkspaceCardList?.[cardGroup.cardID];
             cardSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.CARD,
                 transactions: [],
@@ -3232,18 +3239,20 @@ function getCardSections(
                 ...personalDetails,
                 ...cardGroup,
                 formattedCardName,
-                formattedFeedName: getFeedNameForDisplay(
-                    translate,
-                    cardGroup.bank as OnyxTypes.CompanyCardFeed,
-                    cardFeeds,
-                    cardList?.[cardGroup.cardID]?.fundID
-                        ? cardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardList[cardGroup.cardID].fundID}`]?.settings?.companyCardNicknames?.[
-                              cardGroup.bank as OnyxTypes.CompanyCardFeed
-                          ]
-                        : undefined,
-                    true,
-                    cardGroup?.feedCountry,
-                ),
+                formattedFeedName: isPersonal
+                    ? translate('cardTransactions.personalCard')
+                    : getFeedNameForDisplay(
+                          translate,
+                          cardGroup.bank as OnyxTypes.CompanyCardFeed,
+                          cardFeeds,
+                          card?.fundID
+                              ? cardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`]?.settings?.companyCardNicknames?.[
+                                    cardGroup.bank as OnyxTypes.CompanyCardFeed
+                                ]
+                              : undefined,
+                          true,
+                          cardGroup?.feedCountry,
+                      ),
                 keyForList: key,
             };
         }
@@ -3580,6 +3589,7 @@ function getSections({
     isOffline,
     cardFeeds,
     cardList,
+    nonPersonalAndWorkspaceCardList,
     customCardNames,
     visibleReportActionsData,
     conciergeReportID,
@@ -3621,7 +3631,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames, cardList);
+                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames, cardList, nonPersonalAndWorkspaceCardList);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CATEGORY:
