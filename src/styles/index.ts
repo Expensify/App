@@ -2786,6 +2786,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: 'transparent',
         },
 
+        confirmModalPromptScrollable: {
+            maxHeight: 300,
+        },
+
         modalBackdrop: {
             position: 'absolute',
             top: 0,

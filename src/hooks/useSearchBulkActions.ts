@@ -1340,6 +1340,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             }),
                             confirmText: translate('workspace.exportAgainModal.confirmText'),
                             cancelText: translate('workspace.exportAgainModal.cancelText'),
+                            shouldEnablePromptScroll: true,
                         }).then((result) => {
                             if (result.action !== ModalActions.CONFIRM) {
                                 return;

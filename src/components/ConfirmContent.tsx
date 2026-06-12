@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -109,6 +109,9 @@ type ConfirmContentProps = {
 
     /** Whether to show a loading indicator next to the title */
     isTitleLoading?: boolean;
+
+    /** Whether the prompt should be scrollable when it is taller than the screen (e.g. a long list of items) */
+    shouldEnablePromptScroll?: boolean;
 };
 
 function ConfirmContent({
@@ -142,6 +145,7 @@ function ConfirmContent({
     isVisible,
     isConfirmLoading,
     isTitleLoading = false,
+    shouldEnablePromptScroll = false,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -150,6 +154,8 @@ function ConfirmContent({
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
     const isCentered = shouldCenterContent;
+
+    const promptContent = typeof prompt === 'string' ? <Text style={[promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt;
 
     return (
         <>
@@ -208,7 +214,7 @@ function ConfirmContent({
                             />
                         )}
                     </View>
-                    {typeof prompt === 'string' ? <Text style={[promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt}
+                    {shouldEnablePromptScroll ? <ScrollView style={styles.confirmModalPromptScrollable}>{promptContent}</ScrollView> : promptContent}
                 </View>
 
                 {shouldStackButtons ? (

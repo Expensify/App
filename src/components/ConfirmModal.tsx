@@ -124,6 +124,9 @@ type ConfirmModalProps = {
 
     /** Merged into the modal container after default confirm styles (e.g. `width` overrides `variables.sideBarWidth` on wide screens). */
     innerContainerStyle?: ViewStyle;
+
+    /** Whether the prompt should be scrollable when it is taller than the screen (e.g. a long list of items) */
+    shouldEnablePromptScroll?: boolean;
 };
 
 /**
@@ -167,6 +170,7 @@ function ConfirmModal({
     shouldHandleNavigationBack,
     shouldIgnoreBackHandlerDuringTransition,
     innerContainerStyle,
+    shouldEnablePromptScroll = false,
 }: ConfirmModalProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -228,6 +232,7 @@ function ConfirmModal({
                 shouldFitImageToContainer={shouldFitImageToContainer}
                 isConfirmLoading={isConfirmLoading}
                 isTitleLoading={isTitleLoading}
+                shouldEnablePromptScroll={shouldEnablePromptScroll}
             />
         </Modal>
     );
