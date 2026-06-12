@@ -9,6 +9,7 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
+    isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
@@ -124,7 +125,7 @@ function isSubmitAction(
         return false;
     }
 
-    if (!isPaidGroupPolicy(policy)) {
+    if (!isGroupPolicy(policy)) {
         return false;
     }
 
@@ -465,7 +466,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     } = params;
 
     // The expense report of personal policy shouldn't have any action
-    if (isExpenseReportUtils(report) && !isPaidGroupPolicy(policy)) {
+    if (isExpenseReportUtils(report) && !isGroupPolicy(policy)) {
         return '';
     }
 

@@ -113,8 +113,9 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
                     : undefined,
             chatReportID: status === CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS ? undefined : '123',
         },
-        [ONYXKEYS.LOGIN_LIST]: {
-            [userID]: {
+        [ONYXKEYS.LOGINS]: {
+            [`1_${userID}`]: {
+                partnerID: 1,
                 partnerName: 'John Doe',
                 partnerUserID: userID,
                 validatedDate: status !== CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO ? new Date().toISOString() : undefined,
@@ -128,7 +129,8 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
                         : undefined,
             },
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            'otheruser@expensify.com': {
+            '1_otheruser@expensify.com': {
+                partnerID: 1,
                 partnerName: 'Other User',
                 partnerUserID: status === CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO ? 'different@expensify.com' : 'otheruser@expensify.com',
                 validatedDate: status === CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO ? undefined : new Date().toISOString(),
@@ -211,7 +213,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
                     [ONYXKEYS.USER_WALLET]: {},
                     [ONYXKEYS.WALLET_TERMS]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
                     [ONYXKEYS.CARD_LIST]: {},
@@ -250,7 +252,7 @@ describe('useAccountTabIndicatorStatus', () => {
                         },
                         chatReportID: '123',
                     },
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
                     [ONYXKEYS.CARD_LIST]: {},
@@ -290,7 +292,7 @@ describe('useAccountTabIndicatorStatus', () => {
                         },
                     },
                     [ONYXKEYS.WALLET_TERMS]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
                     [ONYXKEYS.CARD_LIST]: {},
@@ -330,9 +332,10 @@ describe('useAccountTabIndicatorStatus', () => {
                         },
                     },
                     [ONYXKEYS.WALLET_TERMS]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {
+                    [ONYXKEYS.LOGINS]: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        'johndoe12@expensify.com': {
+                        '1_johndoe12@expensify.com': {
+                            partnerID: 1,
                             partnerName: 'John Doe',
                             partnerUserID: 'johndoe12@expensify.com',
                             validatedDate: undefined, // This would trigger info status
@@ -371,7 +374,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: null,
                     [ONYXKEYS.USER_WALLET]: null,
                     [ONYXKEYS.WALLET_TERMS]: null,
-                    [ONYXKEYS.LOGIN_LIST]: null,
+                    [ONYXKEYS.LOGINS]: null,
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: null,
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: null,
                     [ONYXKEYS.CARD_LIST]: null,
