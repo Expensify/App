@@ -115,8 +115,8 @@ function ThumbnailImage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const [failedLoadKey, setFailedLoadKey] = useState<{url: string | ImageSourcePropType; isOffline: boolean} | null>(null);
-    const failedToLoad = failedLoadKey !== null && failedLoadKey.url === previewSourceURL && failedLoadKey.isOffline === isOffline;
+    const [failedLoadKey, setFailedLoadKey] = useState<string | ImageSourcePropType | null>(null);
+    const failedToLoad = failedLoadKey !== null && failedLoadKey === previewSourceURL;
 
     const cachedDimensions = shouldDynamicallyResize && typeof previewSourceURL === 'string' ? thumbnailDimensionsCache.get(previewSourceURL) : null;
     const [imageDimensions, setImageDimensions] = useState({width: cachedDimensions?.width ?? imageWidth, height: cachedDimensions?.height ?? imageHeight});
@@ -166,7 +166,7 @@ function ThumbnailImage({
                         onMeasure?.();
                     }}
                     onLoadFailure={() => {
-                        setFailedLoadKey({url: previewSourceURL, isOffline});
+                        setFailedLoadKey(previewSourceURL);
                         onLoadFailure?.();
                     }}
                     isAuthTokenRequired={isAuthTokenRequired}
