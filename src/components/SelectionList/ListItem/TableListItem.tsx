@@ -80,6 +80,7 @@ function TableListItem<TItem extends ListItem>({
                 {!item.shouldHideAlternateText && !!item.alternateText && (
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
+                        alwaysShowTooltip
                         text={item.alternateText}
                         style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                     />

@@ -16,6 +16,9 @@ type TextWithTooltipProps = ForwardedFSClassProps & {
 
     /** TestID of the Text component */
     testID?: string;
+
+    /** If true, the tooltip will always be shown on hover, regardless of text truncation */
+    alwaysShowTooltip?: boolean;
 };
 
 export default TextWithTooltipProps;

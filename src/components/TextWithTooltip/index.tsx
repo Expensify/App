@@ -7,12 +7,15 @@ type LayoutChangeEvent = {
     target: HTMLElement;
 };
 
-function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines = 1, forwardedFSClass}: TextWithTooltipProps) {
+function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines = 1, forwardedFSClass, alwaysShowTooltip = false}: TextWithTooltipProps) {
     const [showTooltip, setShowTooltip] = useState(false);
+
+    // When alwaysShowTooltip is true, the tooltip is shown on hover regardless of text truncation
+    const isTooltipVisible = alwaysShowTooltip ? shouldShowTooltip : showTooltip;
 
     return (
         <Tooltip
-            shouldRender={showTooltip}
+            shouldRender={isTooltipVisible}
             text={text}
         >
             <Text
