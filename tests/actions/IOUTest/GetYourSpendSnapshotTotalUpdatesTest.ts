@@ -201,4 +201,33 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
             }),
         );
     });
+
+    it('does not include snapshot total updates for a currency-only change', async () => {
+        const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
+        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(10000, CONST.CURRENCY.USD));
+        await waitForBatchedUpdates();
+
+        const {onyxData} = getUpdateMoneyRequestParams({
+            transactionID: TRANSACTION_ID,
+            transactionThreadReport,
+            transactionChanges: {currency: CONST.CURRENCY.EUR},
+            policy: paidPolicy,
+            policyTagList: {},
+            reportPolicyTags: {},
+            policyCategories: {},
+            iouReport: expenseReport,
+            currentUserAccountIDParam: ACCOUNT_ID,
+            currentUserEmailParam: 'user@test.com',
+            isASAPSubmitBetaEnabled: false,
+            iouReportNextStep: undefined,
+            delegateAccountID: undefined,
+        });
+
+        const snapshotOptimisticUpdate = onyxData.optimisticData?.find((update) => update.key === snapshotKey);
+        expect(snapshotOptimisticUpdate).toBeUndefined();
+    });
 });
