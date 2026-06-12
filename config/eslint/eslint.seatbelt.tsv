@@ -1882,7 +1882,7 @@
 "../../tests/unit/ReportNameUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	23
 "../../tests/unit/ReportPrimaryActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	168
 "../../tests/unit/ReportPrimaryActionUtilsTest.ts"	"no-restricted-imports"	1
-"../../tests/unit/ReportSecondaryActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	466
+"../../tests/unit/ReportSecondaryActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	472
 "../../tests/unit/ReportSecondaryActionUtilsTest.ts"	"no-restricted-imports"	2
 "../../tests/unit/ReportSubmitUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ReportTitleUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
