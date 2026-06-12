@@ -4557,6 +4557,53 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getReimbursedMessage', () => {
+        const buildReimbursedAction = (originalMessage: Record<string, unknown>): ReportAction =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '',
+                originalMessage,
+                message: [],
+            }) as ReportAction;
+
+        it('shows the funding bank account from the masked accountNumber when debitBankAccountLast4 is absent', () => {
+            // Given a reimbursed action carrying the raw masked accountNumber, as delivered by real-time Pusher updates
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                accountNumber: 'XXXXXX4321',
+                creditBankAccountLast4: '5678',
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, 1);
+
+            // Then the message shows the last 4 digits of the account that funded the payment
+            const expected = `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '4321')}${translateLocal('iou.reimbursedWithACH', {
+                creditBankAccount: '5678',
+                expectedDate: undefined,
+            })}`;
+            expect(result).toBe(expected);
+        });
+
+        it('prefers debitBankAccountLast4 over accountNumber when both are present', () => {
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                debitBankAccountLast4: '9999',
+                accountNumber: 'XXXXXX4321',
+                creditBankAccountLast4: '5678',
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, 1);
+
+            expect(result).toBe(
+                `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '9999')}${translateLocal('iou.reimbursedWithACH', {
+                    creditBankAccount: '5678',
+                    expectedDate: undefined,
+                })}`,
+            );
+        });
+    });
+
     describe('getAutoReimbursementMessage', () => {
         it('should return set message when setting limit for the first time from zero', () => {
             const action = {

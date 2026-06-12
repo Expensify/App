@@ -520,6 +520,22 @@ describe('ReportUtils', () => {
 
             expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, undefined, iouReport)).toBe(paidSystemMessage);
         });
+
+        it('should show the bank account from the action accountNumber instead of the policy default', async () => {
+            // Given a policy whose default reimbursement account ends in 0000
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+
+            // When the pay action carries the masked accountNumber of the bank account actually used
+            const actionWithAccountNumber = {
+                ...reportAction,
+                originalMessage: {...reportAction.originalMessage, accountNumber: 'XXXXXX4321'},
+            };
+            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321');
+
+            // Then the message shows the last 4 digits of that account, not the policy default
+            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, undefined, iouReport)).toBe(paidSystemMessage);
+        });
     });
 
     describe('getTaskAssigneeChatOnyxData', () => {
@@ -14416,6 +14432,60 @@ describe('ReportUtils', () => {
                 reportAttributes,
             });
             expect(result).toBe('Computed Report Name');
+        });
+
+        describe('settled report paid with a business bank account', () => {
+            const settledPolicyID = '445';
+            const settledPolicy = {
+                ...createRandomPolicy(Number(settledPolicyID), CONST.POLICY.TYPE.TEAM),
+                id: settledPolicyID,
+                achAccount: {
+                    accountNumber: 'XXXXXXXXXXXX0000',
+                },
+            };
+            const settledReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: settledPolicyID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            };
+            const payOriginalMessage = {
+                IOUReportID: settledReport.reportID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const payReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: payOriginalMessage,
+            };
+
+            beforeEach(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${settledPolicyID}`, settledPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
+            });
+
+            it('shows the bank account from the action accountNumber instead of the policy default', () => {
+                // Given a pay action that carries the masked accountNumber of the bank account actually used
+                const actionWithAccountNumber: ReportAction = {
+                    ...payReportAction,
+                    originalMessage: {...payOriginalMessage, accountNumber: 'XXXXXX4321'},
+                };
+
+                const result = getReportPreviewMessage({reportOrID: settledReport, iouReportAction: actionWithAccountNumber, originalReportAction: actionWithAccountNumber});
+
+                // Then the preview shows the last 4 digits of that account, not the policy default
+                expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321'));
+            });
+
+            it('falls back to the policy default bank account when the action has no accountNumber', () => {
+                const result = getReportPreviewMessage({reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction});
+
+                expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
+            });
         });
     });
 
