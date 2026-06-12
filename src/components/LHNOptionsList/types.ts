@@ -16,8 +16,8 @@ type CustomLHNOptionsListProps = {
     /** Extra styles for the section list container */
     contentContainerStyles?: StyleProp<ViewStyle>;
 
-    /** List of reports */
-    data: Report[];
+    /** List of report IDs to display, ordered for the LHN */
+    data: string[];
 
     /** Callback to fire when a row is selected */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
@@ -99,6 +99,6 @@ type OptionRowLHNProps = {
     isMarkAsDone?: boolean;
 };
 
-type RenderItemProps = {item: Report; index: number};
+type RenderItemProps = {item: string; index: number};
 
 export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, RenderItemProps};

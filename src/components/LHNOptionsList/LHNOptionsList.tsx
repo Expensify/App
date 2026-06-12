@@ -15,20 +15,19 @@ import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 import LHNTooltipContextProvider from './LHNTooltipContextProvider';
 import OptionRowLHNData from './OptionRowLHN';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
 import type {LHNOptionsListProps, RenderItemProps} from './types';
 
-const keyExtractor = (item: Report) => `report_${item.reportID}`;
+const keyExtractor = (item: string) => `report_${item}`;
 const platform = getPlatform();
 const isWeb = platform === CONST.PLATFORM.WEB;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
-    const flashListRef = useRef<FlashListRef<Report>>(null);
+    const flashListRef = useRef<FlashListRef<string>>(null);
     const route = useRoute();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const reportAttributes = useReportAttributes();
@@ -57,29 +56,29 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
      * Function which renders a row in the list
      */
     const renderItem = useCallback(
-        ({item, index}: RenderItemProps): ReactElement | null => {
-            if (!item) {
+        ({item: reportID, index}: RenderItemProps): ReactElement | null => {
+            if (!reportID) {
                 return null;
             }
-            const reportID = item.reportID;
+            const fullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const itemReportAttributes = reportAttributes?.[reportID];
-            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
+            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${fullReport?.parentReportID}`];
             const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
 
             let invoiceReceiverPolicyID = '-1';
-            if (item.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
-                invoiceReceiverPolicyID = item.invoiceReceiver.policyID;
+            if (fullReport?.invoiceReceiver && 'policyID' in fullReport.invoiceReceiver) {
+                invoiceReceiverPolicyID = fullReport.invoiceReceiver.policyID;
             }
             if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
                 invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
             }
             const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
-            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
+            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${fullReport?.policyID}`];
 
             return (
                 <OptionRowLHNData
                     reportID={reportID}
-                    fullReport={item}
+                    fullReport={fullReport}
                     reportAttributes={itemReportAttributes}
                     reportAttributesDerived={reportAttributes}
                     oneTransactionThreadReport={itemOneTransactionThreadReport}

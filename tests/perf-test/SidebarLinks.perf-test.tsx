@@ -1,7 +1,9 @@
+import type * as reactNavigationNativeImport from '@react-navigation/native';
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import {setHasRadio} from '@libs/NetworkState';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -31,7 +33,14 @@ jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     isReady: () => true,
 }));
 
-jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
+    useNavigationState: () => undefined,
+    useIsFocused: () => true,
+    useRoute: () => ({name: 'Home'}),
+    useNavigation: () => undefined,
+    useFocusEffect: () => undefined,
+}));
 
 const getMockedReportsMap = (length = 100) => {
     const mockReports = Object.fromEntries(
@@ -56,6 +65,8 @@ describe('SidebarLinks', () => {
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+
+        initOnyxDerivedValues();
     });
 
     beforeEach(() => {

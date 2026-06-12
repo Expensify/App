@@ -3821,6 +3821,9 @@ const CONST = {
 
     LOCALES,
 
+    // Shared Intl.Collator options for locale-aware sorting of display names.
+    COLLATOR_OPTIONS: {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'} as Intl.CollatorOptions,
+
     PRONOUNS_LIST: [
         'coCos',
         'eEyEmEir',

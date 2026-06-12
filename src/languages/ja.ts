@@ -2118,8 +2118,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidFile: '無効なファイル',
             invalidFileDescription: 'インポートしようとしているファイルが無効です。もう一度お試しください。',
             invalidateWithDelay: '遅延して無効化',
-            leftHandNavCache: '左側ナビキャッシュ',
-            clearleftHandNavCache: 'クリア',
             softKillTheApp: 'アプリをソフトキルする',
             kill: '終了',
             sentryDebug: 'Sentry デバッグ',

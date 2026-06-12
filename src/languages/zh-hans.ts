@@ -2078,8 +2078,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidFile: '文件无效',
             invalidFileDescription: '您尝试导入的文件无效。请重试。',
             invalidateWithDelay: '延迟失效',
-            leftHandNavCache: '左侧导航缓存',
-            clearleftHandNavCache: '清除',
             softKillTheApp: '软关闭应用程序',
             kill: '终止',
             sentryDebug: 'Sentry 调试',

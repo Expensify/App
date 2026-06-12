@@ -4134,6 +4134,42 @@ describe('SidebarUtils', () => {
                 expect(result).not.toBe(displayedReports);
                 expect(result['0']).toBeUndefined();
             });
+
+            it('includes a report that is otherwise hidden only when it is the focused report', () => {
+                // A report with no participants is hidden for the current user. With no pin/draft/error/attention,
+                // the only thing that can surface it is the focus override (currentReportId === reportID).
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}7`;
+                const report: Report = {
+                    ...createRandomReport(7, undefined),
+                    reportID: '7',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    isPinned: false,
+                    isOwnPolicyExpenseChat: false,
+                };
+                const reports: OnyxCollection<Report> = {[reportKey]: report};
+
+                const baseParams = {
+                    displayedReports: {},
+                    reports,
+                    updatedReportsKeys: [reportKey],
+                    isInFocusMode: false,
+                    betas: [],
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    draftComments: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                };
+
+                const resultWithoutFocus = SidebarUtils.updateReportsToDisplayInLHN({...baseParams, currentReportId: undefined});
+                expect(resultWithoutFocus[reportKey]).toBeUndefined();
+
+                const resultWithFocus = SidebarUtils.updateReportsToDisplayInLHN({...baseParams, currentReportId: '7'});
+                expect(resultWithFocus[reportKey]).toBeDefined();
+            });
         });
 
         describe('getReportsToDisplayInLHN', () => {

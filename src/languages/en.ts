@@ -2223,8 +2223,6 @@ const translations = {
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
             invalidateWithDelay: 'Invalidate with delay',
-            leftHandNavCache: 'Left Hand Nav cache',
-            clearleftHandNavCache: 'Clear',
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
             sentryDebug: 'Sentry debug',

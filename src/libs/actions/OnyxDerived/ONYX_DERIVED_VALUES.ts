@@ -7,6 +7,7 @@ import outstandingReportsByPolicyIDConfig from './configs/outstandingReportsByPo
 import personalAndWorkspaceCardListConfig from './configs/personalAndWorkspaceCardList';
 import reportAttributesConfig from './configs/reportAttributes';
 import reportTransactionsAndViolationsConfig from './configs/reportTransactionsAndViolations';
+import sidebarOrderedReportsConfig from './configs/sidebarOrderedReports';
 import sortedReportActionsConfig from './configs/sortedReportActions';
 import todosConfig from './configs/todos';
 import visibleReportActionsConfig from './configs/visibleReportActions';
@@ -27,6 +28,7 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.TODOS]: todosConfig,
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: sortedReportActionsConfig,
     [ONYXKEYS.DERIVED.OPEN_AND_SUBMITTED_REPORTS_BY_POLICY_ID]: openAndSubmittedReportsByPolicyIDConfig,
+    [ONYXKEYS.DERIVED.RAM_ONLY_SIDEBAR_ORDERED_REPORTS]: sidebarOrderedReportsConfig,
 } as const satisfies {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [Key in ValueOf<typeof ONYXKEYS.DERIVED>]: OnyxDerivedValueConfig<Key, any>;
