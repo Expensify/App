@@ -67,7 +67,7 @@ To turn off Travel:
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your workspace name to access the settings for that workspace.
-3. In the left menu, click **More features**.
+3. In the left menu, click **More Features**.
 4. Press the locked **Travel** toggle, then click **Go to Travel settings**.
 5. In the **Travel Invoicing** section, switch the toggle off.
 6. Return to **More features** and toggle off **Travel**.
