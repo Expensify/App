@@ -7333,7 +7333,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Zablokowane' : 'Dozwolone'} ${shownCount > 1 ? 'kategorie' : 'kategoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} więcej` : ''}`,
-                restrictMerchants: 'Ograniczaj sprzedawców',
+                restrictMerchants: 'Ogranicz sprzedawców',
                 merchantTypes: 'Typy sprzedawców',
                 allowedMerchants: 'Dozwoleni sprzedawcy',
                 allowedMerchantTypes: 'Dozwolone typy sprzedawców',
@@ -7341,6 +7341,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 blockedMerchantTypes: 'Zablokowane typy sprzedawców',
                 currencies: 'Waluty',
                 permittedCurrencies: 'Dozwolone waluty',
+                allCurrencies: 'Wszystkie waluty',
+                permittedCurrenciesSubtitle: 'Wybierz, czy zezwolić na wszystkie waluty, czy tylko na wybrane',
+                settlementCurrencyPermittedSubtitle: 'Waluta rozliczenia karty jest zawsze dozwolona',
             },
             aiRules: {
                 title: 'Zasady AI',
