@@ -1366,11 +1366,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: {
                             path: ROUTES.RULES_MERCHANT_EDIT.route,
                         },
-                        [SCREENS.WORKSPACE.RULES_AI_NEW]: {
-                            path: ROUTES.RULES_AI_NEW.route,
+                        [SCREENS.WORKSPACE.RULES_AGENT_NEW]: {
+                            path: ROUTES.RULES_AGENT_NEW.route,
                         },
-                        [SCREENS.WORKSPACE.RULES_AI_EDIT]: {
-                            path: ROUTES.RULES_AI_EDIT.route,
+                        [SCREENS.WORKSPACE.RULES_AGENT_EDIT]: {
+                            path: ROUTES.RULES_AGENT_EDIT.route,
                         },
                         [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_IMPORT.route,

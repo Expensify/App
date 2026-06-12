@@ -45,6 +45,16 @@ type WorkspaceMembersRoleData = {
     role: ValueOf<typeof CONST.POLICY.ROLE>;
 };
 
+function hasPolicyAdminsRoomsAccess(role: string | undefined): boolean {
+    return (
+        role === CONST.POLICY.ROLE.ADMIN ||
+        role === CONST.POLICY.ROLE.CARD_ADMIN ||
+        role === CONST.POLICY.ROLE.PEOPLE_ADMIN ||
+        role === CONST.POLICY.ROLE.PAYMENTS_ADMIN ||
+        role === CONST.POLICY.ROLE.EDITOR
+    );
+}
+
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -349,7 +359,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
         selectedMemberEmails
             .filter((login) => {
                 const role = login ? policy?.employeeList?.[login]?.role : '';
-                return role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR;
+                return hasPolicyAdminsRoomsAccess(role);
             })
             .map((login) => policyMemberEmailsToAccountIDs[login]),
     );
@@ -643,7 +653,7 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
     if (adminRoom) {
         const failureDataParticipants: Record<number, Participant | null> = {...adminRoom.participants};
         const optimisticParticipants: Record<number, Participant | null> = {};
-        if (newRole === CONST.POLICY.ROLE.ADMIN || newRole === CONST.POLICY.ROLE.AUDITOR) {
+        if (hasPolicyAdminsRoomsAccess(newRole)) {
             for (const accountID of selectedMemberAccountIDs) {
                 if (adminRoom?.participants?.[accountID]) {
                     continue;
@@ -819,10 +829,7 @@ function buildAddMembersToWorkspaceOnyxData(
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
-    // Admins and auditors are always in the #admins room. Editors (Submit workspaces) join it too for
-    // visibility into configuration changes.
-    const shouldAddToAdminsRoom = effectiveRole === CONST.POLICY.ROLE.ADMIN || effectiveRole === CONST.POLICY.ROLE.AUDITOR || effectiveRole === CONST.POLICY.ROLE.EDITOR;
-    const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, shouldAddToAdminsRoom ? accountIDs : []);
+    const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, hasPolicyAdminsRoomsAccess(effectiveRole) ? accountIDs : []);
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUser.accountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 

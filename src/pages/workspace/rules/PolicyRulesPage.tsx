@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
-import AIRulesSection from './AIRulesSection';
+import AgentRulesSection from './AgentRulesSection';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 import MerchantRulesSection from './MerchantRulesSection';
 import PolicyRulesPageRevamp from './PolicyRulesPageRevamp';
@@ -89,7 +89,7 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
                                     showReadOnlyModal();
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.RULES_AI_NEW.getRoute(policyID));
+                                Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID));
                             }}
                             ctaSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.CTA}
                             onDismiss={() => dismissProductTraining(CONST.AGENTS_RULES_BANNER, true)}
@@ -115,7 +115,7 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
                         />
                     )}
                     {isCustomAgentBetaEnabled && (
-                        <AIRulesSection
+                        <AgentRulesSection
                             policyID={policyID}
                             canWriteRules={canWriteRules}
                             showReadOnlyModal={showReadOnlyModal}

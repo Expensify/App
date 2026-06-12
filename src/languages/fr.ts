@@ -2261,11 +2261,14 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: 'Signaler une activité suspecte',
         lockAccount: 'Verrouiller le compte',
+        lockMyAccount: 'Verrouiller mon compte',
         unlockAccount: 'Déverrouiller le compte',
-        compromisedDescription:
-            'Vous remarquez quelque chose d’inhabituel sur votre compte ? Le signaler bloquera immédiatement votre compte, empêchera les nouvelles transactions avec la Carte Expensify et interdira toute modification du compte.',
-        domainAdminsDescription:
-            "Pour les administrateurs de domaine : cela met également en pause toute l'activité de Carte Expensify et toutes les actions d'administration sur l’ensemble de votre (vos) domaine(s).",
+        findYourSituation: 'La plupart des problèmes ne nécessitent pas de verrouiller votre compte ! Trouvez votre situation ci-dessous :',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Carte perdue ou frais inconnus</a> : Annulez votre carte et contactez Concierge pour contester les transactions inconnues.',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Accès non autorisé au compte</a> : Verrouillez votre compte ci-dessous. Cela bloque les nouvelles transactions Carte Expensify, les commandes de carte et les modifications de compte. Si vous êtes administrateur de domaine, cela met également en pause toute l’activité de carte au niveau du domaine et les actions des administrateurs.',
+        securityTeamFollowUp: 'Notre équipe de sécurité effectuera un suivi depuis <a href="mailto:risk@expensify.com">risk@expensify.com</a> après le verrouillage.',
         areYouSure: 'Voulez-vous vraiment verrouiller votre compte Expensify ?',
         onceLocked: 'Une fois verrouillé, votre compte sera restreint en attendant une demande de déverrouillage et un contrôle de sécurité',
         unlockTitle: 'Nous avons bien reçu votre demande',
@@ -4175,28 +4178,31 @@ ${amount} pour ${merchant} - ${date}`,
         verificationFailed: 'La vérification a échoué, nous aurons donc besoin de documents supplémentaires pour te vérifier ainsi que ton entreprise',
         taxIDVerification: 'Vérification de l’identifiant fiscal',
         taxIDVerificationDescription: dedent(`
-        Veuillez téléverser l’un des fichiers suivants :
-        • Lettre d’attribution TIN/EIN de l’IRS
-        • Confirmation de demande TIN/EIN de l’IRS (indique généralement « Congratulations! The EIN has been successfully assigned »)
-        • Lettre d’exonération fiscale de l’IRS indiquant le nom de l’entreprise et l’EIN`),
+            Veuillez téléverser l’un des fichiers suivants :
+            • Lettre d’attribution TIN/EIN de l’IRS
+            • Confirmation de demande TIN/EIN de l’IRS (indique généralement « Congratulations! The EIN has been successfully assigned »)
+            • Lettre d’exonération fiscale de l’IRS indiquant le nom de l’entreprise et l’EIN
+        `),
         nameChangeDocument: 'Document de changement de nom',
         nameChangeDocumentDescription:
             'Si le nom de ton entreprise a changé depuis la demande du TIN/EIN, ce document est nécessaire pour vérifier le numéro d’identification fiscale fourni',
         companyAddressVerification: 'Vérification de l’adresse de l’entreprise',
         companyAddressVerificationDescription: dedent(`
-        Veuillez téléverser l’un des fichiers suivants :
-        • Facture récente de services publics indiquant le nom et l’adresse de l’entreprise
-        • Relevé bancaire indiquant le nom et l’adresse de l’entreprise
-        • Contrat de location en cours incluant la page de signature avec le nom et l’adresse actuelle de l’entreprise
-        • Attestation d’assurance indiquant le nom et l’adresse de l’entreprise
-        • Document d’attribution TIN indiquant le nom et l’adresse de l’entreprise`),
+            Veuillez téléverser l’un des fichiers suivants :
+            • Facture récente de services publics indiquant le nom et l’adresse de l’entreprise
+            • Relevé bancaire indiquant le nom et l’adresse de l’entreprise
+            • Contrat de location en cours incluant la page de signature avec le nom et l’adresse actuelle de l’entreprise
+            • Attestation d’assurance indiquant le nom et l’adresse de l’entreprise
+            • Document d’attribution TIN indiquant le nom et l’adresse de l’entreprise
+        `),
         userAddressVerification: 'Vérification de l’adresse',
         userAddressVerificationDescription: dedent(`
-        Veuillez téléverser l’un des fichiers suivants :
-        • Carte d’inscription électorale
-        • Permis de conduire
-        • Relevé bancaire
-        • Facture de services publics`),
+            Veuillez téléverser l’un des fichiers suivants :
+            • Carte d’inscription électorale
+            • Permis de conduire
+            • Relevé bancaire
+            • Facture de services publics
+        `),
         userDOBVerification: 'Vérification de la date de naissance',
         userDOBVerificationDescription: 'Veuillez téléverser une pièce d’identité délivrée aux États-Unis',
         finishViaChat: 'Finaliser via le chat',
@@ -4461,7 +4467,7 @@ ${amount} pour ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrateur';
+                        return 'Administrateur d’espace de travail';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditeur';
                     case CONST.POLICY.ROLE.EDITOR:
@@ -4469,7 +4475,7 @@ ${amount} pour ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrateur de carte';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administration des personnes';
+                        return 'Admin personnes';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrateur des paiements';
                     case CONST.POLICY.ROLE.USER:
@@ -6298,8 +6304,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 other: 'Créer des membres',
             }),
             makeAdmin: () => ({
-                one: 'Nommer administrateur',
-                other: 'Nommer des administrateurs',
+                one: 'Nommer administrateur de l’espace de travail',
+                other: 'Nommer des administrateurs de l’espace de travail',
             }),
             makeAuditor: () => ({
                 one: 'Nommer auditeur',
@@ -6328,12 +6334,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} a une note de frais en cours de traitement sur laquelle il doit agir. Veuillez lui demander d’effectuer l’action requise avant de le retirer de l’espace de travail.`,
             allMembers: 'Tous les membres',
-            admins: 'Administrateurs',
+            admins: 'Administrateurs de l’espace de travail',
             approvers: 'Approbateurs',
             auditors: 'Auditeurs',
             emptyRoleFilter: {title: 'Aucun membre ne correspond à ce filtre', subtitle: 'Invitez un membre ou modifiez le filtre ci-dessus.'},
             configureHRSync: (providerName: string) => `Configurer la synchronisation ${providerName}.`,
             syncWithHR: (providerName: string) => `Synchroniser avec ${providerName}`,
+            makeCardAdmin: () => ({one: 'Nommer administrateur de carte', other: 'Nommer des administrateurs de carte'}),
+            cardAdmins: 'Administrateurs de cartes',
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -6986,12 +6994,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les taux de distance sont disponibles avec l’abonnement Collect, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
-            auditor: {
-                title: 'Auditeur',
-                description: 'Les auditeurs obtiennent un accès en lecture seule à toutes les notes de frais pour une visibilité complète et le suivi de la conformité.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Les auditeurs ne sont disponibles que dans l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
-            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Niveaux d’approbation multiples',
                 description:
@@ -7091,6 +7093,12 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     'Créez, envoyez et suivez des factures professionnelles, le tout dans Expensify. Soyez payé plus rapidement grâce aux paiements intégrés et à la visibilité en temps réel.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La facturation est disponible avec les offres Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            controlPolicyRoles: {
+                title: 'Contrôler les rôles de politique',
+                description: 'Utilisez des rôles spécialisés comme Auditeur et Administrateur de cartes pour donner aux membres accès uniquement à ce dont ils ont besoin.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les rôles spécialisés dans l’espace de travail sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
         },
         downgrade: {
@@ -7407,11 +7415,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
             },
-            aiRules: {
-                title: 'Règles IA',
+            agentRules: {
+                title: 'Règles Agent',
                 subtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin',
-                addRule: 'Ajouter une règle IA',
-                findRule: 'Rechercher une règle d’IA',
+                addRule: 'Ajouter une règle Agent',
+                findRule: 'Rechercher une règle Agent',
                 addRuleTitle: 'Ajouter une règle',
                 editRuleTitle: 'Modifier la règle',
                 deleteRule: 'Supprimer la règle',
@@ -8560,8 +8568,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     `La connexion ${feedName} est interrompue. Pour rétablir l’importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connexion Plaid à votre compte bancaire professionnel est rompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> afin de pouvoir continuer à utiliser vos Cartes Expensify.`,
-                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} a rejoint via le lien d’invitation de l’espace de travail` : `a ajouté ${email} en tant que ${role === 'member' ? 'a' : 'un'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
+                    const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'un' : 'a';
+                    return didJoinPolicy ? `${email} a rejoint via le lien d’invitation de l’espace de travail` : `a ajouté ${email} en tant que ${article} ${translatedRole}`;
+                },
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `a mis à jour le rôle de ${email} en ${newRole} (précédemment ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
@@ -9567,6 +9578,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
         hasFilterNegation: '<tooltip>Recherchez les dépenses sans reçus à l’aide de <strong>-has:receipt</strong>.</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>Nous avons mis à jour le taux en fonction de votre date de voyage.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Ignorer les modifications ?',
