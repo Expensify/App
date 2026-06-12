@@ -7347,8 +7347,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 spendCategory: 'Catégorie de dépense',
                 maxAmount: 'Montant maximal',
                 maxAmountHelp: 'Toute transaction supérieure à ce montant sera refusée, indépendamment des restrictions liées au commerçant et à la catégorie de dépense.',
-                maxAmountCurrencyMismatchTitle: 'Incompatibilité de devise',
-                maxAmountCurrencyMismatchPrompt: 'Pour définir un montant maximal, sélectionnez des cartes qui sont réglées dans la même devise.',
+                maxAmountCurrencyMismatchTitle: 'Incohérence de devise',
+                maxAmountCurrencyMismatchPrompt: 'Pour définir un montant maximal, sélectionnez des cartes qui se règlent dans la même devise.',
                 reviewSelectedCards: 'Examiner les cartes sélectionnées',
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} de plus` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Appliquez au moins une règle de dépense à une carte',
@@ -7411,7 +7411,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
-                restrictMerchants: 'Restreindre les commerçants',
+                restrictMerchants: 'Restreindre les marchands',
                 merchantTypes: 'Types de marchands',
                 allowedMerchants: 'Commerçants autorisés',
                 allowedMerchantTypes: 'Types de marchands autorisés',
@@ -7422,6 +7422,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 allCurrencies: 'Toutes les devises',
                 permittedCurrenciesSubtitle: 'Choisissez d’autoriser toutes les devises ou seulement certaines',
                 settlementCurrencyPermittedSubtitle: 'La devise de règlement de la carte est toujours autorisée',
+                currenciesCurrencyMismatchTitle: 'Incohérence de devise',
+                currenciesCurrencyMismatchPrompt: 'Pour définir des devises préférées, sélectionnez les cartes qui sont réglées dans la même devise.',
             },
             aiRules: {
                 title: 'Règles IA',
