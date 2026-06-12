@@ -45,7 +45,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
@@ -195,7 +195,7 @@ function SubmitDetailsPage({
     }, [defaultBillable]);
 
     useEffect(() => {
-        const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        const defaultReimbursable = (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
     }, [policy, isPolicyExpenseChat, isCreatingTrackExpense]);
 
@@ -265,6 +265,7 @@ function SubmitDetailsPage({
                 draftTransactionIDs,
                 isSelfTourViewed,
                 optimisticTransactionID,
+                currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;

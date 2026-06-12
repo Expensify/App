@@ -46,7 +46,6 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
-import type DeferredAgentWorkflowSave from './DeferredAgentWorkflowSave';
 import type {
     CardFeedErrorsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
@@ -143,7 +142,7 @@ import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportLastVisitTimes from './ReportLastVisitTimes';
-import type {GroupedTransactions, ReportLayoutGroupBy} from './ReportLayout';
+import type {GroupedTransactions, ReportLayoutGroupBy, ReportLayoutOption, ReportLayoutSelection} from './ReportLayout';
 import type ReportLoadingState from './ReportLoadingState';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
@@ -314,6 +313,8 @@ export type {
     ReportPaginationState,
     ReportViolationName,
     ReportLayoutGroupBy,
+    ReportLayoutOption,
+    ReportLayoutSelection,
     GroupedTransactions,
     AnyRequest,
     Request,
@@ -364,7 +365,6 @@ export type {
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflowOnyx,
-    DeferredAgentWorkflowSave,
     CardFeeds,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,

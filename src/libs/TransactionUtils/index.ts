@@ -179,7 +179,7 @@ function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
 }
 
-function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'>>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
 }
 
@@ -960,7 +960,7 @@ function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, date
 /**
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
-function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
+function getCurrency(transaction: OnyxInputOrEntry<Pick<Transaction, 'modifiedCurrency' | 'currency'>>): string {
     const currency = transaction?.modifiedCurrency ?? '';
     if (currency) {
         return currency;
@@ -1275,7 +1275,7 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
  * Return the tag from the transaction. When the tagIndex is passed, return the tag based on the index.
  * This "tag" field has no "modified" complement.
  */
-function getTag(transaction: OnyxInputOrEntry<Transaction>, tagIndex?: number): string {
+function getTag(transaction: OnyxInputOrEntry<Pick<Transaction, 'tag'>>, tagIndex?: number): string {
     if (tagIndex !== undefined) {
         const tagsArray = getTagArrayFromName(transaction?.tag ?? '');
         return tagsArray.at(tagIndex) ?? '';
@@ -1284,7 +1284,7 @@ function getTag(transaction: OnyxInputOrEntry<Transaction>, tagIndex?: number): 
     return transaction?.tag ?? '';
 }
 
-function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
+function getTagForDisplay(transaction: OnyxEntry<Pick<Transaction, 'tag'>>, tagIndex?: number): string {
     return getCommaSeparatedTagNameWithSanitizedColons(getTag(transaction, tagIndex));
 }
 
@@ -1311,7 +1311,7 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
 /**
  * Determine whether a transaction is made with a centrally managed card (Expensify or Company Card).
  */
-function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'managedCard'>>): boolean {
     return !!transaction?.managedCard;
 }
 
