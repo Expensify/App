@@ -4,7 +4,7 @@ import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 
 /**
- * Only UI-chrome colors are remapped. Data-visualization colors (series /
+ * Only the chart background colors are remapped. Data-visualization colors (series /
  * slice fills, legend symbols) are intentionally excluded so they remain
  * consistent across themes.
  */
