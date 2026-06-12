@@ -19,6 +19,7 @@ import type {Beta, IntroSelected, Transaction} from '@src/types/onyx';
 import dismissModalAndOpenReportInInboxTab from './dismissModalAndOpenReportInInboxTab';
 import isReportTopmostSplitNavigator from './isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
+import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 
 let currentUserEmail = '';
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
@@ -79,6 +80,12 @@ type ShowExpenseAddedGrowlParams = {
     iouReportID?: string;
     transactionID?: string;
     transactionThreadReportID?: string;
+
+    /**
+     * Whether the growl was shown in the Inbox context. When omitted (dismiss-first orchestrator
+     * paths that don't know where the user lands), the context is resolved at "View" press time.
+     */
+    isInbox?: boolean;
 };
 
 /**
@@ -90,7 +97,7 @@ type ShowExpenseAddedGrowlParams = {
  * to land, then build the thread + show the growl. A safety timeout falls back to a growl
  * without the "View" link if the iouAction never appears.
  */
-function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID}: ShowExpenseAddedGrowlParams) {
+function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInbox}: ShowExpenseAddedGrowlParams) {
     if (!transactionID) {
         return;
     }
@@ -125,9 +132,36 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
         }
         const resolvedThreadReportID = threadReportID;
         const navigateToExpenseRHP = () => {
-            const targetRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: resolvedThreadReportID});
-            setActiveTransactionIDs([transactionID]).then(() => {
-                Navigation.navigate(targetRoute);
+            const backTo = Navigation.getActiveRoute();
+            // The explicit flag wins (set when the growl's origin context is known). Otherwise
+            // (dismiss-first orchestrator paths) resolve the context at press time.
+            const openOnInbox = isInbox ?? (isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute());
+
+            if (!openOnInbox) {
+                // Spend context: open the transaction thread RHP within Search (the report is shown
+                // underneath via the Wide RHP machinery).
+                setActiveTransactionIDs([transactionID]).then(() => {
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: resolvedThreadReportID, backTo}));
+                });
+                return;
+            }
+
+            // Inbox + narrow layout: super wide RHP is unavailable, so open the transaction thread
+            // as a full report view (matches MoneyRequestReportPreview's narrow-screen behavior).
+            if (getIsNarrowLayout()) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(resolvedThreadReportID, undefined, undefined, backTo));
+                return;
+            }
+
+            // Inbox + wide layout: open the expense report in a super wide RHP underneath, then
+            // stack the transaction thread RHP on top of it.
+            if (iouReportID) {
+                Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
+            }
+            setNavigationActionToMicrotaskQueue(() => {
+                setActiveTransactionIDs([transactionID]).then(() => {
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: resolvedThreadReportID, backTo: Navigation.getActiveRoute()}));
+                });
             });
         };
         Growl.success('Expense added', 6000, {label: 'View', onPress: navigateToExpenseRHP});
@@ -217,7 +251,7 @@ function navigateAfterExpenseCreate({
         if (shouldAddPendingNewTransactionIDs) {
             addPendingNewTransactionIDs(activeReportID, transactionID);
         }
-        showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID});
+        showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInbox: true});
         return;
     }
 
@@ -272,7 +306,7 @@ function navigateAfterExpenseCreate({
         Navigation.isNavigationReady().then(navigateToSearch);
     }
 
-    showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID});
+    showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInbox: false});
 }
 
 export default navigateAfterExpenseCreate;
