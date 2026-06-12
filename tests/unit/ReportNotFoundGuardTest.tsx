@@ -50,7 +50,6 @@ describe('ReportNotFoundGuard', () => {
         await Onyx.multiSet({
             [ONYXKEYS.IS_LOADING_APP]: false,
             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-            [ONYXKEYS.NETWORK]: {isOffline: false},
         });
         await waitForBatchedUpdates();
     });
