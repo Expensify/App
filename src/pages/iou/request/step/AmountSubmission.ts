@@ -145,6 +145,12 @@ Onyx.connectWithoutView({
     callback: (value) => (betas = value),
 });
 
+let betaConfiguration: OnyxEntry<OnyxTypes.BetaConfiguration>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETA_CONFIGURATION,
+    callback: (value) => (betaConfiguration = value),
+});
+
 let amountOwed: OnyxEntry<number>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
@@ -290,7 +296,7 @@ function submitAmount({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas, betaConfiguration);
 
     const navigateToNextPage = () => {
         const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(amount));
@@ -524,10 +530,7 @@ function submitAmount({
 
                 // Preserve user's participant selection to avoid forcing them back to default workspace.
                 const iouReportID = transaction?.reportID;
-                const transactionAssociatedReport =
-                    transaction?.reportID && allReports
-                        ? (allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? allReportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${transaction.reportID}`])
-                        : undefined;
+                const transactionAssociatedReport = getReportOrReportDraftForAmount(transaction?.reportID);
                 const selectedReport = iouReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReport : transactionAssociatedReport;
                 const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
                 const chatReportID = selectedReport?.chatReportID ?? selectedReport?.reportID;
