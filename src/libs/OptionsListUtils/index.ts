@@ -21,6 +21,7 @@ import MaxHeap from '@libs/MaxHeap';
 import MinHeap from '@libs/MinHeap';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
@@ -173,6 +174,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
+    IntroSelected,
     Login,
     OnyxInputOrEntry,
     PersonalDetails,
@@ -285,6 +287,13 @@ let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
+});
+
+let introSelected: OnyxEntry<IntroSelected>;
+// eslint-disable-next-line rulesdir/no-onyx-connect -- OptionsListUtils is a pure utility consumed outside of React components, so it can't use hooks to read this value
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => (introSelected = value),
 });
 
 /**
@@ -479,6 +488,7 @@ function getAlternateText(
             policyTags,
             conciergeReportID,
             sortedActions,
+            isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
         });
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -1176,12 +1186,14 @@ function createOption({
             translate: translateFn,
             report,
             lastActorDetails,
+            policy,
             isReportArchived: result.private_isArchived,
             visibleReportActionsDataParam: visibleReportActionsData,
             reportAttributesDerived,
             policyTags,
             conciergeReportID,
             sortedActions,
+            isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
