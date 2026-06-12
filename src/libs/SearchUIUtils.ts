@@ -6130,6 +6130,9 @@ function filterValidHasValues(hasValues: HasFilterValues | undefined, type: Sear
     }
 
     const validHasOptions = getHasOptions(translate, type);
+    if (!validHasOptions || !hasValues) {
+      return undefined;
+    }
     const validHasValues = new Set(validHasOptions.map((option) => option.value));
     const filteredHasValues = hasValues.filter((hasValue) => validHasValues.has(hasValue));
 
