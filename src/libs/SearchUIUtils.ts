@@ -17,6 +17,8 @@ import TransactionGroupListItem from '@components/Search/SearchList/ListItem/Tra
 import TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
 import type {
     ExpenseReportListItemType,
+    GroupChildrenContainerItemType,
+    GroupHeaderItemType,
     ReportActionListItemType,
     SearchListItem,
     TaskListItemType,
@@ -34,6 +36,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
+import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import type {
     GroupedItem,
     QueryFilters,
@@ -6218,6 +6221,24 @@ function hasFlexColumn(columns?: SearchColumnType[]): boolean {
     return !!columns?.some((col) => FLEX_COLUMNS.has(col));
 }
 
+function splitGroupsIntoPairs(data: SearchListItem[]): {splitData: SearchListItem[]; stickyHeaderIndices: number[]} {
+    const splitData: SearchListItem[] = [];
+    const stickyHeaderIndices: number[] = [];
+
+    for (const item of data) {
+        if ('transactions' in item) {
+            const key = item.keyForList ?? '';
+            stickyHeaderIndices.push(splitData.length);
+            splitData.push({...item, listItemType: GROUP_ITEM_TYPES.GROUP_HEADER, keyForList: `header_${key}`} as GroupHeaderItemType);
+            splitData.push({...item, listItemType: GROUP_ITEM_TYPES.CHILDREN_CONTAINER, keyForList: `children_${key}`} as GroupChildrenContainerItemType);
+        } else {
+            splitData.push(item);
+        }
+    }
+
+    return {splitData, stickyHeaderIndices};
+}
+
 export {
     getSearchBulkEditPolicyID,
     getSuggestedSearches,
@@ -6303,6 +6324,7 @@ export {
     isPolicyEligibleForSpendOverTime,
     hasFlexColumn,
     isTransactionSearchType,
+    splitGroupsIntoPairs,
     SKIPPED_SEARCH_FILTERS,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet, GroupBySection, SearchFilter};
