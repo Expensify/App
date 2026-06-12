@@ -2,7 +2,7 @@ import type {ImageContentFit} from 'expo-image';
 import type {SourceLoadEventPayload} from 'expo-video';
 import React, {useEffect, useRef, useState} from 'react';
 import {Image, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
+// eslint-disable-next-line no-restricted-imports -- type-only import from react-native
 import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {MergeExclusive} from 'type-fest';
@@ -327,7 +327,7 @@ function FeatureTrainingContent({
             ref={shouldUseScrollView ? scrollViewRef : undefined}
             onLayout={shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined}
             onContentSizeChange={shouldUseScrollView ? (_w: number, h: number) => setContentHeight(h) : undefined}
-            // eslint-disable-next-line react/forbid-component-props
+            // eslint-disable-next-line react/forbid-component-props -- fsClass is required for FullStory session masking
             fsClass={CONST.FULLSTORY.CLASS.UNMASK}
         >
             <View

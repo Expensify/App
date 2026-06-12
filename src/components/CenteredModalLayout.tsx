@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import FocusTrapForScreen from './FocusTrap/FocusTrapForScreen';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
