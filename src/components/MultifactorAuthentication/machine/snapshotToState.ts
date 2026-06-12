@@ -18,11 +18,10 @@ function getModalPhase(snapshot: MfaSnapshot): MfaModalPhase {
 /**
  * Maps the machine snapshot to the state shape consumers read. The modal lifecycle is derived from
  * the chart, not stored: `modalPhase` mirrors the top-level state and drives the navigator's mount,
- * teardown animation, and unmount; `isModalOpen` is the legacy boolean view of it.
+ * teardown animation, and unmount.
  */
 function snapshotToState(snapshot: MfaSnapshot): MfaState {
-    const modalPhase = getModalPhase(snapshot);
-    return {...snapshot.context, modalPhase, isModalOpen: modalPhase === 'open'};
+    return {...snapshot.context, modalPhase: getModalPhase(snapshot)};
 }
 
 export default snapshotToState;

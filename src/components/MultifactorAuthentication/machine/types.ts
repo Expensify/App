@@ -3,7 +3,6 @@ import type {
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioConfig,
 } from '@components/MultifactorAuthentication/config/types';
-import type {MultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/state';
 
 type ScenarioPayload = MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
 
@@ -12,13 +11,6 @@ type ScenarioPayload = MultifactorAuthenticationScenarioAdditionalParams<Multifa
  * `open` -> 'open', `closing` -> 'closing', `idle` -> 'closed'.
  */
 type MfaModalPhase = 'open' | 'closing' | 'closed';
-
-/**
- * Machine context: the legacy {@link MultifactorAuthenticationState} minus `isModalOpen`, which is a
- * derivative of the chart rather than stored data. `snapshotToState` maps the snapshot back to the
- * legacy shape plus `modalPhase`, so consumers keep reading `state.X` unchanged.
- */
-type MfaMachineContext = Omit<MultifactorAuthenticationState, 'isModalOpen'>;
 
 /**
  * Events accepted by the machine. So far only the three that drive the
@@ -33,4 +25,4 @@ type MfaEvent =
     | {type: 'CLOSE_MODAL'}
     | {type: 'MODAL_CLOSED'};
 
-export type {MfaMachineContext, MfaEvent, MfaModalPhase};
+export type {MfaEvent, MfaModalPhase};

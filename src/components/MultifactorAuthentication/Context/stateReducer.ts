@@ -63,7 +63,6 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             const scenario = getScenarioConfig(action.payload.scenario);
             return {
                 ...DEFAULT_STATE,
-                isModalOpen: true,
                 scenarioName: action.payload.scenario,
                 scenario,
                 payload: action.payload.payload,
@@ -74,15 +73,14 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             // flow ever completing (e.g. cancel() short-circuits to CLOSE_MODAL when offline), so
             // SET_FLOW_COMPLETE's clear path doesn't run and the cancel-confirm dialog would
             // otherwise linger over the closing navigator.
-            return {...state, isModalOpen: false, isCancelConfirmVisible: false};
+            return {...state, isCancelConfirmVisible: false};
         case 'RESET':
             return DEFAULT_STATE;
         case 'REREGISTER':
-            // Re-registration restarts the flow in-place: keep the modal mounted so the navigator does not
-            // play the close animation (which would unmount mid-flow and strand the user via RESET).
+            // Re-registration restarts the flow in-place, keeping the current scenario so the
+            // navigator does not unmount mid-flow.
             return {
                 ...DEFAULT_STATE,
-                isModalOpen: true,
                 scenarioName: state.scenarioName,
                 scenario: state.scenario,
                 payload: state.payload,

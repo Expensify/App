@@ -1,13 +1,13 @@
 import {assign, setup} from 'xstate';
 import {DEFAULT_STATE} from '@components/MultifactorAuthentication/Context/state';
+import type {MultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/state';
 import {navigate as mfaNavigate, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
-import type {MfaEvent, MfaMachineContext} from './types';
+import type {MfaEvent} from './types';
 
-const {isModalOpen, ...machineDefaults} = DEFAULT_STATE;
-const DEFAULT_CONTEXT: MfaMachineContext = machineDefaults;
+const DEFAULT_CONTEXT: MultifactorAuthenticationState = DEFAULT_STATE;
 
 /**
  * MFA state machine. The top level models the modal lifecycle (`idle` -> `open` -> `closing`); the
@@ -23,7 +23,7 @@ const mfaMachine = setup({
     // at runtime and only carry types); there is no assertion-free way to express it.
     /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
     types: {
-        context: {} as MfaMachineContext,
+        context: {} as MultifactorAuthenticationState,
         events: {} as MfaEvent,
     },
     /* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
