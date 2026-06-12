@@ -35,7 +35,8 @@
 ### [@react-navigation+core+7.16.1+003+propagate-beforeremove-on-nested-reset.patch](@react-navigation+core+7.16.1+003+propagate-beforeremove-on-nested-reset.patch)
 
 - Reason: Browser back on web dispatches a root-targeted `RESET` that keeps route keys and only changes nested state, silently bypassing `usePreventRemove`/`beforeRemove` and losing unsaved data. The patch propagates the check into nested navigators; remove it once a react-navigation release containing the fix is adopted.
-- Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/9031
+- Upstream PR: https://github.com/react-navigation/react-navigation/pull/13153
+- Upstream issue: https://github.com/react-navigation/react-navigation/issues/9031
 - E/App issue: [#84246](https://github.com/Expensify/App/issues/84246)
 - PR Introducing Patch: [#93268](https://github.com/Expensify/App/pull/93268)
 - PR Updating Patch: N/A

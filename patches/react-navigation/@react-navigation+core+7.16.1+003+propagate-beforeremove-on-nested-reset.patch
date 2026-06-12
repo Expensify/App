@@ -1,20 +1,68 @@
+diff --git a/node_modules/@react-navigation/core/lib/module/useOnAction.js b/node_modules/@react-navigation/core/lib/module/useOnAction.js
+index 7589ba4..85360da 100644
+--- a/node_modules/@react-navigation/core/lib/module/useOnAction.js
++++ b/node_modules/@react-navigation/core/lib/module/useOnAction.js
+@@ -3,7 +3,7 @@
+ import * as React from 'react';
+ import { DeprecatedNavigationInChildContext } from "./DeprecatedNavigationInChildContext.js";
+ import { NavigationBuilderContext } from "./NavigationBuilderContext.js";
+-import { shouldPreventRemove, useOnPreventRemove } from "./useOnPreventRemove.js";
++import { getRoutesToCompare, shouldPreventRemove, useOnPreventRemove } from "./useOnPreventRemove.js";
+ /**
+  * Hook to handle actions for a navigator, including state updates and bubbling.
+  *
+@@ -52,7 +52,7 @@ export function useOnAction({
+       if (result !== null) {
+         onDispatchAction(action, state === result);
+         if (state !== result) {
+-          const isPrevented = shouldPreventRemove(emitter, beforeRemoveListeners, state.routes, result.routes, action);
++          const isPrevented = shouldPreventRemove(emitter, beforeRemoveListeners, state.routes, getRoutesToCompare(result, routerConfigOptionsRef.current.routeNames), action);
+           if (isPrevented) {
+             return true;
+           }
+@@ -92,7 +92,8 @@ export function useOnAction({
+   useOnPreventRemove({
+     getState,
+     emitter,
+-    beforeRemoveListeners
++    beforeRemoveListeners,
++    routerConfigOptionsRef
+   });
+   React.useEffect(() => addListenerParent?.('action', onAction), [addListenerParent, onAction]);
+   return onAction;
 diff --git a/node_modules/@react-navigation/core/lib/module/useOnPreventRemove.js b/node_modules/@react-navigation/core/lib/module/useOnPreventRemove.js
-index 5f6044e..d7be05c 100644
+index 5f6044e..c9629b0 100644
 --- a/node_modules/@react-navigation/core/lib/module/useOnPreventRemove.js
 +++ b/node_modules/@react-navigation/core/lib/module/useOnPreventRemove.js
-@@ -5,10 +5,7 @@ import { NavigationBuilderContext } from "./NavigationBuilderContext.js";
+@@ -4,11 +4,23 @@ import * as React from 'react';
+ import { NavigationBuilderContext } from "./NavigationBuilderContext.js";
  import { NavigationRouteContext } from "./NavigationProvider.js";
  const VISITED_ROUTE_KEYS = Symbol('VISITED_ROUTE_KEYS');
- export const shouldPreventRemove = (emitter, beforeRemoveListeners, currentRoutes, nextRoutes, action) => {
+-export const shouldPreventRemove = (emitter, beforeRemoveListeners, currentRoutes, nextRoutes, action) => {
 -  const nextRouteKeys = nextRoutes.map(route => route.key);
--
+ 
 -  // Call these in reverse order so last screens handle the event first
 -  const removedRoutes = currentRoutes.filter(route => !nextRouteKeys.includes(route.key)).reverse();
++/**
++ * Returns the next state's routes for diffing against the current routes by key; no next state
++ * means the route itself was removed. A stale state isn't rehydrated yet — dropping unknown names
++ * mirrors rehydration's effect on keys, and keyless routes can never match a current route anyway.
++ */
++export const getRoutesToCompare = (nextState, routeNames) => {
++  if (nextState == null) {
++    return [];
++  }
++  if (nextState.stale === false) {
++    return nextState.routes;
++  }
++  return nextState.routes.filter(route => routeNames.includes(route.name));
++};
++export const shouldPreventRemove = (emitter, beforeRemoveListeners, currentRoutes, nextRoutes, action) => {
 +  const nextRoutesByKey = new Map(nextRoutes.map(route => [route.key, route]));
    const visitedRouteKeys =
    // @ts-expect-error: add this property to mark that we've already emitted this action
    action[VISITED_ROUTE_KEYS] ?? new Set();
-@@ -16,28 +13,40 @@ export const shouldPreventRemove = (emitter, beforeRemoveListeners, currentRoute
+@@ -16,28 +28,39 @@ export const shouldPreventRemove = (emitter, beforeRemoveListeners, currentRoute
      ...action,
      [VISITED_ROUTE_KEYS]: visitedRouteKeys
    };
@@ -23,6 +71,14 @@ index 5f6044e..d7be05c 100644
 -      // Skip if we've already emitted this action for this screen
 -      continue;
 -    }
++  // Call these in reverse order so last screens handle the event first
++  for (const route of [...currentRoutes].reverse()) {
++    const nextRoute = nextRoutesByKey.get(route.key);
++    if (nextRoute === undefined) {
++      if (visitedRouteKeys.has(route.key)) {
++        // Skip if we've already emitted this action for this screen
++        continue;
++      }
  
 -    // First, we need to check if any child screens want to prevent it
 -    const isPrevented = beforeRemoveListeners[route.key]?.(beforeRemoveAction);
@@ -40,15 +96,6 @@ index 5f6044e..d7be05c 100644
 -    });
 -    if (event.defaultPrevented) {
 -      return true;
-+  // Call these in reverse order so last screens handle the event first
-+  for (const route of [...currentRoutes].reverse()) {
-+    const nextRoute = nextRoutesByKey.get(route.key);
-+    if (nextRoute === undefined) {
-+      if (visitedRouteKeys.has(route.key)) {
-+        // Skip if we've already emitted this action for this screen
-+        continue;
-+      }
-+
 +      // The route is removed
 +      // First, we need to check if any child screens want to prevent it
 +      const isPrevented = beforeRemoveListeners[route.key]?.(beforeRemoveAction);
@@ -67,8 +114,8 @@ index 5f6044e..d7be05c 100644
 +      if (event.defaultPrevented) {
 +        return true;
 +      }
-+    } else if (action.type === 'RESET' && nextRoute.state !== route.state) {
-+      // A `RESET` can remove screens in nested navigators only, so propagate the check down when the route's nested state changed
++    } else if (nextRoute.state !== route.state) {
++      // The route is kept but its nested state changed, so propagate the check into the nested navigator
 +      const isPrevented = beforeRemoveListeners[route.key]?.(beforeRemoveAction, nextRoute.state);
 +      if (isPrevented) {
 +        return true;
@@ -76,7 +123,17 @@ index 5f6044e..d7be05c 100644
      }
    }
    return false;
-@@ -54,9 +63,11 @@ export function useOnPreventRemove({
+@@ -45,7 +68,8 @@ export const shouldPreventRemove = (emitter, beforeRemoveListeners, currentRoute
+ export function useOnPreventRemove({
+   getState,
+   emitter,
+-  beforeRemoveListeners
++  beforeRemoveListeners,
++  routerConfigOptionsRef
+ }) {
+   const {
+     addKeyedListener
+@@ -54,11 +78,11 @@ export function useOnPreventRemove({
    const routeKey = route?.key;
    React.useEffect(() => {
      if (routeKey) {
@@ -84,9 +141,11 @@ index 5f6044e..d7be05c 100644
 +      return addKeyedListener?.('beforeRemove', routeKey, (action, nextState) => {
          const state = getState();
 -        return shouldPreventRemove(emitter, beforeRemoveListeners, state.routes, [], action);
-+
-+        // No next state means the route itself was removed, so all of its current routes count as removed
-+        return shouldPreventRemove(emitter, beforeRemoveListeners, state.routes, nextState?.routes ?? [], action);
++        return shouldPreventRemove(emitter, beforeRemoveListeners, state.routes, getRoutesToCompare(nextState, routerConfigOptionsRef.current.routeNames), action);
        });
      }
-   }, [addKeyedListener, beforeRemoveListeners, emitter, getState, routeKey]);
+-  }, [addKeyedListener, beforeRemoveListeners, emitter, getState, routeKey]);
++  }, [addKeyedListener, beforeRemoveListeners, emitter, getState, routeKey, routerConfigOptionsRef]);
+ }
+ //# sourceMappingURL=useOnPreventRemove.js.map
+\ No newline at end of file
