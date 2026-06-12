@@ -29,7 +29,9 @@ function SearchActionsBarWide({queryJSON, searchResults, handleSearch, onSort}: 
         <View style={[styles.searchActionsBarContainer, styles.gap2, styles.mt3]}>
             {hasSelectedItems ? (
                 <View style={styles.searchBulkActionsButton}>
-                    <SearchBulkActionsButton queryJSON={queryJSON} />
+                    <SearchScopeProvider>
+                        <SearchBulkActionsButton queryJSON={queryJSON} />
+                    </SearchScopeProvider>
                 </View>
             ) : (
                 <>
