@@ -1099,6 +1099,22 @@ const translations = {
                 f1FlagsDescription: "You've finished all outstanding to-dos.",
             },
         },
+        recentlyAddedSection: {
+            title: 'Recently added',
+            viewAll: 'View all expenses',
+            emptyStateMessages: {
+                emptyStateExpensesTitle: 'No recent expenses',
+                emptyStateExpensesDescription: 'Create one or drag a receipt here.',
+                receiptFairyTitle: 'Nothing here yet',
+                receiptFairyDescription: 'Add an expense and it will show up here.',
+                moneyReceiptsTitle: 'No expenses yet',
+                moneyReceiptsDescription: 'Snap a receipt or drag one in to get started.',
+                envelopeReceiptTitle: 'All clear',
+                envelopeReceiptDescription: 'New expenses will appear here as you add them.',
+                receiptWranglerTitle: 'Nothing to show',
+                receiptWranglerDescription: 'Create an expense or drop a receipt to begin.',
+            },
+        },
         gettingStartedSection: {
             title: 'Getting started',
             createWorkspace: 'Create a workspace',
