@@ -168,7 +168,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const cardsMenuTitle = getCardsMenuTitle(cardIDs);
     const categoriesMenuTitle = getCategoryMenuTitle(categories);
     const merchantsMenuTitle = getMerchantMenuTitle(merchantNames);
-    const currenciesMenuTitle = currencies.length > 0 ? currencies.join(', ') : undefined;
+    const currenciesMenuTitle = currencies.length > 0 ? currencies.join(', ') : 'All currencies';
 
     const hasSelectedCards = !!cardIDs?.length;
     const hasMaxAmount = maxAmount.trim() !== '';

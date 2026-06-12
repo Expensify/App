@@ -33,23 +33,42 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Lock']);
-    const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(currencies);
 
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
     const currencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
+    const validCurrencyOptions = currencyOptions.filter((option) => option.value !== settlementCurrency);
 
-    const currencyItems: CurrencyListItem[] = currencyOptions
-        .filter((currencyDetails) => currencyDetails.value !== settlementCurrency)
-        .map((currencyDetails) => ({
-            keyForList: currencyDetails.value,
-            text: currencyDetails.text,
-            value: currencyDetails.value,
-            isSelected: selectedCurrencies.includes(currencyDetails.value),
-        }));
+    const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(() => {
+        if (currencies.length > 0) {
+            return currencies.filter((currency) => currency !== settlementCurrency);
+        }
 
-    const areAllCurrenciesSelected = currencyItems.every((option) => option.isSelected);
-    const settlementCurrencyLabel = currencyOptions.find((option) => option.value === settlementCurrency)?.text ?? settlementCurrency;
+        return validCurrencyOptions.map((option) => option.value);
+    });
+
+    let areAllCurrenciesSelected = true;
+    let settlementCurrencyLabel = settlementCurrency;
+    const currencyItems: CurrencyListItem[] = [];
+
+    for (const currencyOption of validCurrencyOptions) {
+        const isSelected = selectedCurrencies.includes(currencyOption.value);
+
+        currencyItems.push({
+            keyForList: currencyOption.value,
+            text: currencyOption.text,
+            value: currencyOption.value,
+            isSelected: selectedCurrencies.includes(currencyOption.value),
+        });
+
+        if (!isSelected) {
+            areAllCurrenciesSelected = false;
+        }
+
+        if (currencyOption.value === settlementCurrency) {
+            settlementCurrencyLabel = currencyOption.text;
+        }
+    }
 
     const filterCurrency = (item: CurrencyListItem, searchInput: string) => {
         return (item.text ?? '').toLowerCase().includes(searchInput.toLowerCase());
@@ -91,7 +110,12 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
     };
 
     const handleSave = () => {
-        onCurrenciesChange([...selectedCurrencies, settlementCurrency]);
+        if (selectedCurrencies.length === currencyOptions.length - 1) {
+            onCurrenciesChange([]);
+        } else {
+            onCurrenciesChange([...selectedCurrencies, settlementCurrency]);
+        }
+
         goBack();
     };
 
