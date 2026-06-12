@@ -31,7 +31,7 @@ function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect, label, sho
 
     return (
         <>
-            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, !!icon && styles.alignItemsCenter]}>
                 {!!icon && (
                     <Icon
                         src={icon}

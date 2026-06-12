@@ -10,7 +10,7 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
     return (
         <MerchantRulePageBase
             policyID={route.params.policyID}
-            titleKey="workspace.rules.merchantRules.expenseDefaultsTitle"
+            titleKey="workspace.rules.merchantRules.addRuleTitle"
             testID="AddMerchantRulePage"
         />
     );

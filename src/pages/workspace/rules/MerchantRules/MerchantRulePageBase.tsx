@@ -247,11 +247,11 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             return;
         }
         setPolicyCodingRule(policyID, form, policy, ruleID, shouldUpdateMatchingTransactions);
-        if (isEditing) {
-            Navigation.goBack();
-        } else {
+        if (!isEditing && isRulesRevampEnabled) {
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
             Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
+        } else {
+            Navigation.goBack();
         }
     };
 
@@ -469,7 +469,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton title={translate(titleKey)} />
+                <HeaderWithBackButton title={translate(isRulesRevampEnabled ? 'workspace.rules.merchantRules.expenseDefaultsTitle' : titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     {isRulesRevampEnabled
                         ? sections.map((section, sectionIndex) => (

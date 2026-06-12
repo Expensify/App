@@ -10,7 +10,7 @@ function AddSpendRulePage({route}: AddSpendRulePageProps) {
     return (
         <SpendRulePageBase
             policyID={route.params.policyID}
-            titleKey="workspace.rules.spendRules.restrictCardSpendTitle"
+            titleKey="workspace.rules.merchantRules.addRuleTitle"
             testID="AddSpendRulePage"
         />
     );

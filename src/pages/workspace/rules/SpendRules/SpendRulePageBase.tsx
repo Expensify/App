@@ -177,11 +177,11 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         clearError();
         setExpensifyCardRule(domainAccountID, isEditing ? currentRuleID : rand64(), spendRuleForm, existingRule);
         clearDraftSpendRule();
-        if (isEditing) {
-            navigation.goBack();
-        } else {
+        if (!isEditing && isRulesRevampEnabled) {
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.CARD_RESTRICTIONS);
             Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
+        } else {
+            navigation.goBack();
         }
     };
 
@@ -230,7 +230,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton title={translate(titleKey)} />
+                <HeaderWithBackButton title={translate(isRulesRevampEnabled ? 'workspace.rules.spendRules.restrictCardSpendTitle' : titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     {isRulesRevampEnabled ? (
                         <>
