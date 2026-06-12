@@ -13,6 +13,7 @@ export default function SpendRuleCurrencyEditPage({route}: SpendRuleCurrencyEdit
     const policyID = route.params.policyID;
     const [issueNewCardForm] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
+    const currency = issueNewCardForm?.data.currency ?? '';
     const currencies = issueNewCardForm?.data.spendRuleValue?.currencies ?? [];
 
     const handleCurrenciesChange = (newCurrencies: string[]) => {
@@ -22,6 +23,7 @@ export default function SpendRuleCurrencyEditPage({route}: SpendRuleCurrencyEdit
     return (
         <SpendRulesCurrencyBase
             currencies={currencies}
+            settlementCurrency={currency}
             onCurrenciesChange={handleCurrenciesChange}
         />
     );

@@ -15,6 +15,7 @@ import {getCurrencyOptions} from '@libs/SearchUIUtils';
 
 type SpendRulesCurrencyBaseProps = {
     currencies: string[];
+    settlementCurrency: string;
     onCurrenciesChange: (currencies: string[]) => void;
 };
 
@@ -22,7 +23,7 @@ type CurrencyListItem = ListItem & {
     value: string;
 };
 
-export default function SpendRulesCurrencyBase({currencies, onCurrenciesChange}: SpendRulesCurrencyBaseProps) {
+export default function SpendRulesCurrencyBase({currencies, settlementCurrency, onCurrenciesChange}: SpendRulesCurrencyBaseProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(currencies);
