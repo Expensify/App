@@ -24,7 +24,12 @@ function resolveCategoryIndex(categories: string[] | undefined, dataLabel: strin
     }
 
     for (let index = 0; index < categories.length; index++) {
-        const truncatedPrefix = stripTruncationSuffix(categories[index]);
+        const category = categories.at(index);
+        if (!category) {
+            continue;
+        }
+
+        const truncatedPrefix = stripTruncationSuffix(category);
         if (truncatedPrefix && dataLabel.startsWith(truncatedPrefix)) {
             return index;
         }
