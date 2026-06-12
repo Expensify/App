@@ -50,6 +50,7 @@ import {
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
+import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
@@ -586,11 +587,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 optimisticChatReportID,
             });
             const targetReportID = backToReport ?? activeReportID;
-            // The 1→2 transaction transition causes MoneyRequestReportActionsList to fresh-mount, breaking diff-based new transaction detection.
-            // Register pending IDs so the fallback path highlights the new expense.
-            // And when  backToReport exists it means we are creating the expense from chat not the expense report so we don't need to add pending transactions.
-            const isOneToTwoTransition =
-                !backToReport && isMoneyRequestReport && reportTransactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === 1;
+            // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
+            const isOneToTwoTransition = !backToReport && isOneToTwoTransactionTransition(isMoneyRequestReport, reportTransactions);
 
             if (result && targetReportID) {
                 navigateAfterExpenseCreate({

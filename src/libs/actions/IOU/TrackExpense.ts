@@ -106,7 +106,7 @@ import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransa
 import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, RequestMoneyInformation} from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
-import {addPendingNewTransactionIDs} from './PendingNewTransactions';
+import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import type {ReplaceReceipt} from './Receipt';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 import type {StartSplitBilActionParams} from './Split';
@@ -1880,9 +1880,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         }
     }
 
-    // The 1→2 transaction transition causes MoneyRequestReportActionsList to fresh-mount, breaking diff-based new transaction detection.
-    // Register pending IDs so the fallback path highlights the new expense.
-    if (isMoneyRequestReport && getReportTransactions(moneyRequestReportID).filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === 1) {
+    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
         addPendingNewTransactionIDs(activeReportID, transaction.transactionID);
     }
 

@@ -78,6 +78,7 @@ import {
 } from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, OneOnOneIOUReport} from './MoneyRequestBuilder';
 import {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 
@@ -2176,10 +2177,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     };
 
-    // The 1→2 transaction transition causes MoneyRequestReportActionsList to fresh-mount, breaking diff-based new transaction detection.
-    // Register pending IDs so the fallback path highlights the new expense.
-    const isOneToTwoTransition =
-        isMoneyRequestReport && getReportTransactions(moneyRequestReportID).filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === 1;
+    const isOneToTwoTransition = isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID));
 
     deferOrExecuteWrite(apiWrite, {
         shouldDeferForSearch: shouldDeferForSearch || !!(shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
