@@ -7375,6 +7375,10 @@ const translations = {
                 duplicateRulePrompt: (merchantName: string) => `Your existing rule for "${merchantName}" will take priority over this one. Save anyway?`,
                 saveAnyway: 'Save anyway',
                 applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
+                expenseDefaultsTitle: 'Expense defaults',
+                expenseDefaultsSubtitle: 'Update fields without submitter doing anything',
+                ifAnyExpenseMatches: 'If any expense matches:',
+                thenApplyFollowingDefaults: 'Then apply the following defaults:',
             },
             newRule: {
                 title: 'New rule',

@@ -13,9 +13,11 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,6 +34,7 @@ import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,6 +43,7 @@ import type {MerchantRuleForm} from '@src/types/form';
 import type {PolicyTagLists} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type MerchantRulePageBaseProps = {
     policyID: string;
@@ -55,6 +59,7 @@ type SectionItemType = {
     title?: string;
     onPress: () => void;
     shouldRenderAsHTML?: boolean;
+    icon?: IconAsset;
 };
 
 type SectionType = {
@@ -100,6 +105,9 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const [isDeleting, setIsDeleting] = useState(false);
     const isEditing = !!ruleID;
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Folder', 'Pencil', 'InvoiceGeneric', 'Tag']);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -307,6 +315,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     required: true,
                     title: form?.merchantToMatch,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID)),
+                    icon: icons.Basket,
                 },
             ],
         },
@@ -325,6 +334,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                           description: translate('common.category'),
                           title: categoryDisplayName,
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID, ruleID)),
+                          icon: icons.Folder,
                       }
                     : undefined,
                 ...(hasTags()
@@ -337,6 +347,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                   description: name,
                                   title: formTag ? getCleanedTagName(formTag) : undefined,
                                   onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID, ruleID, orderWeight)),
+                                  icon: icons.Tag,
                               };
                           })
                     : []),
@@ -346,6 +357,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                           description: translate('common.tax'),
                           title: taxDisplayName(),
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID)),
+                          icon: icons.InvoiceGeneric,
                       }
                     : undefined,
                 {
@@ -354,6 +366,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     title: form?.comment ? Parser.replace(form.comment) : undefined,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_DESCRIPTION.getRoute(policyID, ruleID)),
                     shouldRenderAsHTML: true,
+                    icon: icons.Pencil,
                 },
                 {
                     key: 'reimbursable',
@@ -451,28 +464,67 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             >
                 <HeaderWithBackButton title={translate(titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    {sections.map((section) => (
-                        <View key={section.titleTranslationKey}>
-                            <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
-                            {section.items
-                                .filter((item): item is SectionItemType => !!item)
-                                .map((item) => (
-                                    <MenuItemWithTopDescription
-                                        key={item.key}
-                                        description={item.description}
-                                        errorText={canWriteRules && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
-                                        onPress={canWriteRules ? item.onPress : undefined}
-                                        rightLabel={canWriteRules && item.required ? translate('common.required') : undefined}
-                                        shouldShowRightIcon={canWriteRules}
-                                        interactive={canWriteRules}
-                                        title={item.title}
-                                        titleStyle={styles.flex1}
-                                        shouldRenderAsHTML={item.shouldRenderAsHTML}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                                    />
-                                ))}
-                        </View>
-                    ))}
+                    {isRulesRevampEnabled
+                        ? sections.map((section, sectionIndex) => (
+                              <View key={section.titleTranslationKey}>
+                                  {sectionIndex === 0 ? (
+                                      <View style={[styles.ph5, styles.pv3, styles.gap6]}>
+                                          <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.merchantRules.expenseDefaultsSubtitle')}</Text>
+                                          <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
+                                      </View>
+                                  ) : (
+                                      <>
+                                          <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
+                                          <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>
+                                              {translate('workspace.rules.merchantRules.thenApplyFollowingDefaults')}
+                                          </Text>
+                                      </>
+                                  )}
+                                  {section.items
+                                      .filter((item): item is SectionItemType => !!item)
+                                      .map((item) => (
+                                          <MenuItemWithTopDescription
+                                              key={item.key}
+                                              description={item.description}
+                                              errorText={canWriteRules && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
+                                              onPress={canWriteRules ? item.onPress : undefined}
+                                              rightLabel={canWriteRules && item.required ? translate('common.required') : undefined}
+                                              shouldShowRightIcon={canWriteRules}
+                                              interactive={canWriteRules}
+                                              title={item.title}
+                                              titleStyle={styles.flex1}
+                                              shouldRenderAsHTML={item.shouldRenderAsHTML}
+                                              icon={item.icon}
+                                              iconWidth={variables.iconSizeNormal}
+                                              iconHeight={variables.iconSizeNormal}
+                                              shouldIconUseAutoWidthStyle
+                                              sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                          />
+                                      ))}
+                              </View>
+                          ))
+                        : sections.map((section) => (
+                              <View key={section.titleTranslationKey}>
+                                  <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
+                                  {section.items
+                                      .filter((item): item is SectionItemType => !!item)
+                                      .map((item) => (
+                                          <MenuItemWithTopDescription
+                                              key={item.key}
+                                              description={item.description}
+                                              errorText={canWriteRules && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
+                                              onPress={canWriteRules ? item.onPress : undefined}
+                                              rightLabel={canWriteRules && item.required ? translate('common.required') : undefined}
+                                              shouldShowRightIcon={canWriteRules}
+                                              interactive={canWriteRules}
+                                              title={item.title}
+                                              titleStyle={styles.flex1}
+                                              shouldRenderAsHTML={item.shouldRenderAsHTML}
+                                              sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                          />
+                                      ))}
+                              </View>
+                          ))}
                     {isInLandscapeMode && footer}
                 </ScrollView>
                 {!isInLandscapeMode && footer}

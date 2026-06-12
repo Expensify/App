@@ -11,7 +11,7 @@ function EditMerchantRulePage({route}: EditMerchantRulePageProps) {
         <MerchantRulePageBase
             policyID={route.params.policyID}
             ruleID={route.params.ruleID}
-            titleKey="workspace.rules.merchantRules.editRuleTitle"
+            titleKey="workspace.rules.merchantRules.expenseDefaultsTitle"
             testID="EditMerchantRulePage"
         />
     );
