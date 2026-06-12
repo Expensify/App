@@ -57,7 +57,10 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
     }, [isLoadingIssueCardForm, issueCardForm?.data, policyID]);
 
     // We only allow cards that share the same currency to be on a spend rule
-    const availableCardRules = cardRules.filter((cardRule) => cardRule.currencyCode === issueCardForm?.data?.currency);
+    const availableCardRules = cardRules.filter(
+        (cardRule) => cardRule.currencyCode === issueCardForm?.data?.currency && cardRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
+
     const cardRuleListItems: SpendRuleListItemType[] = availableCardRules.map((cardRule) => ({
         keyForList: cardRule.ruleID,
         action: cardRule.action,
@@ -105,13 +108,15 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
         />
     );
 
-    const isLoadedAndEmpty = !isLoadingCardRules && !cardRules.length;
-    const isLoadedWithContent = !isLoadingCardRules && cardRules.length > 0;
+    const isLoadedAndEmpty = !isLoadingCardRules && !availableCardRules.length;
+    const isLoadedWithContent = !isLoadingCardRules && availableCardRules.length > 0;
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="SpendRuleSelectionPage"
