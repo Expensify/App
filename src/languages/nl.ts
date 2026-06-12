@@ -109,7 +109,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Meerdere selecteren',
         saveChanges: 'Wijzigingen opslaan',
         submit: 'Verzenden',
+        markAsDone: 'Markeren als voltooid',
         submitted: 'Ingediend',
+        markedAsDoneStatus: 'Als voltooid gemarkeerd',
         rotate: 'Draaien',
         zoom: 'Zoom',
         password: 'Wachtwoord',
@@ -294,7 +296,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Beschrijving',
         title: 'Titel',
         assignee: 'Toegewezene',
-        createdBy: 'Gemaakt door',
         with: 'met',
         shareCode: 'Code delen',
         share: 'Delen',
@@ -854,6 +855,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Deze chat is met ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `Dit is waar <strong>${submitterDisplayName}</strong> declaraties indient bij <strong>${workspaceName}</strong>. Gebruik gewoon de +-knop.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Hier houd je je uitgaven bij',
         beginningOfChatHistorySelfDM: 'Dit is je persoonlijke ruimte. Gebruik het voor notities, taken, concepten en herinneringen.',
         beginningOfChatHistorySystemDM: 'Welkom! Laten we je instellen.',
         chatWithAccountManager: 'Chat hier met je accountmanager',
@@ -1349,6 +1351,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `Verzend factuur van ${amount}`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         submitted: (memo?: string) => `ingediend${memo ? `, met de omschrijving ${memo}` : ''}`,
+        markedAsDone: (memo) => `gemarkeerd als voltooid${memo ? `, met als omschrijving ${memo}` : ''}`,
         automaticallySubmitted: `ingediend via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">uitgestelde indieningen</a>`,
         queuedToSubmitViaDEW: 'in wachtrij om via aangepast goedkeuringsproces in te dienen',
         queuedToApproveViaDEW: 'in de wachtrij gezet voor goedkeuring via aangepaste goedkeuringsworkflow',
@@ -1562,6 +1565,9 @@ const translations: TranslationDeepObject<typeof en> = {
         removed: 'verwijderd',
         transactionPending: 'Transactie in behandeling.',
         chooseARate: 'Selecteer een workspace-vergoeding per mijl of kilometer',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} tot ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Geldig vanaf ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Geldig tot ${endDate}`,
         unapprove: 'Intrekken goedkeuring',
         unapproveReport: 'Goedkeuring rapport intrekken',
         headsUp: 'Let op!',
@@ -1788,6 +1794,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Wachten tot <strong>${actor}</strong> de onkosten indient.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Wachten tot een beheerder de onkosten indient.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Er wordt gewacht tot <strong>jij</strong> dit als voltooid markeert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot <strong>${actor}</strong> dit als voltooid markeert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot een beheerder dit als voltooid markeert.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2595,13 +2616,10 @@ ${amount} voor ${merchant} - ${date}`,
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `de uitgaven van ${members}, en de goedkeurder is ${approvers}`,
         addApprovalButton: 'Goedkeuringsworkflow toevoegen',
         editWorkflowAction: 'Bewerken',
-        addAgentAction: 'Agent toevoegen',
         findWorkflow: 'Workflow zoeken',
         addApprovalTip: 'Deze standaardworkflow is van toepassing op alle leden, tenzij er een specifiekere workflow bestaat.',
         approver: 'Fiatteur',
         addApprovalsDescription: 'Extra goedkeuring vereisen voordat je een betaling autoriseert.',
-        automateApprovalsWithAgentsTitle: 'Automatiseer goedkeuringen met agents',
-        automateApprovalsWithAgentsSubtitle: 'Voeg hieronder een agent toe aan de workflow om goedkeuringen te automatiseren.',
         makeOrTrackPaymentsTitle: 'Betalingen',
         makeOrTrackPaymentsDescription: 'Voeg een gemachtigde betaler toe voor betalingen die in Expensify worden gedaan of volg betalingen die elders zijn gedaan.',
         customApprovalWorkflowEnabled:
@@ -6668,6 +6686,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             }),
             enableRate: 'Tarief inschakelen',
             status: 'Status',
+            statusActive: 'Actief',
+            statusFuture: 'Toekomstig',
+            statusExpired: 'Verlopen',
+            statusInactive: 'Inactief',
             unit: 'Eenheid',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Belastingen moeten in de workspace zijn ingeschakeld om deze functie te gebruiken. Ga naar <a href="#">Meer functies</a> om dat te wijzigen.</muted-text>',
@@ -7322,6 +7344,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
                 describeRuleTitle: 'Beschrijf je regel',
                 describeRuleSubtitle: 'Beschrijf je regel en Concierge maakt hem voor je',
+                disclaimer: 'AI-agents kunnen fouten maken.',
             },
         },
         planTypePage: {
@@ -8000,21 +8023,19 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} van ${cards}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `heeft het standaardbelastingtarief van de categorie "${categoryName}" gewijzigd naar "${newTax}" (voorheen "${oldTax}")`,
         addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `heeft tarief „${rateName}” van ${rateValue} toegevoegd`,
         addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `tarief "${rateName}" van ${rateValue} toegevoegd, geldig vanaf ${startDate}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `heeft tarief „${rateName}” van ${rateValue} toegevoegd, geldig tot ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `heeft tarief "${rateName}" van ${rateValue} toegevoegd, geldig van ${startDate} - ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `startdatum van tarief "${rateName}" bijgewerkt naar ${newDate} (voorheen ${oldDate})` : `startdatum van tarief "${rateName}" instellen op ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `einddatum van tarief "${rateName}" bijgewerkt naar ${newDate} (voorheen ${oldDate})` : `einddatum van tarief "${rateName}" instellen op ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `start- en einddatum van tarief "${rateName}" bijgewerkt naar ${newStartDate} - ${newEndDate} (voorheen ${oldStartDate} - ${oldEndDate})`
-                : `start- en einddatum van tarief "${rateName}" ingesteld op ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `startdatum verwijderd van tarief "${rateName}" (voorheen ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `einddatum verwijderd van tarief "${rateName}" (voorheen ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `heeft het kilometertarief "${rateName}" bijgewerkt zodat het geldt van ${newDateRange} (voorheen ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `vanaf ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `tot ${date}`,
+        customUnitRateDateRangeAllDates: () => `voor alle data`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

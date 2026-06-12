@@ -109,7 +109,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '複数選択',
         saveChanges: '変更を保存',
         submit: '送信',
+        markAsDone: '完了にする',
         submitted: '送信済み',
+        markedAsDoneStatus: '完了済み',
         rotate: '回転',
         zoom: 'ズーム',
         password: 'パスワード',
@@ -294,7 +296,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: '説明',
         title: 'タイトル',
         assignee: '担当者',
-        createdBy: '作成者',
         with: '〜で',
         shareCode: 'コードを共有',
         share: '共有',
@@ -845,6 +846,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `このチャットの相手は${users}です。`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `ここは<strong>${submitterDisplayName}</strong>さんが<strong>${workspaceName}</strong>に経費精算を提出する場所です。+ボタンを押すだけでOKです。`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'ここは経費を管理する場所です',
         beginningOfChatHistorySelfDM: 'ここはあなたの個人スペースです。メモ、タスク、下書き、リマインダーに活用してください。',
         beginningOfChatHistorySystemDM: 'ようこそ！設定を始めましょう。',
         chatWithAccountManager: 'ここでアカウントマネージャーとチャットする',
@@ -1337,6 +1339,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `${amount} の請求書を送信`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `${comment}用` : ''}`,
         submitted: (memo?: string) => `送信済み${memo ? `、メモ: ${memo}` : ''}`,
+        markedAsDone: (memo) => `完了としてマークしました${memo ? `（メモ：${memo}）` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出の延期</a> 経由で提出されました`,
         queuedToSubmitViaDEW: 'カスタム承認ワークフローで提出待ち',
         queuedToApproveViaDEW: 'カスタム承認ワークフローで承認待ちに設定されました',
@@ -1550,6 +1553,9 @@ const translations: TranslationDeepObject<typeof en> = {
         removed: '削除済み',
         transactionPending: '取引は保留中です。',
         chooseARate: 'ワークスペースの払い戻しレートをマイルまたはキロメートルごとに選択してください',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate}から${endDate}まで有効`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `${startDate}から有効`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `${endDate}まで有効`,
         unapprove: '承認を取り消す',
         unapproveReport: 'レポートの承認を取り消す',
         headsUp: 'ご注意ください！',
@@ -1776,6 +1782,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `<strong>${actor}</strong> が経費を提出するのを待機しています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `管理者が経費を送信するのを待っています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `<strong>あなた</strong>が完了にするのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>が完了にするのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が完了にするのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2575,13 +2596,10 @@ ${date} の ${merchant} への ${amount}`,
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `${members} の経費で、承認者は ${approvers} です`,
         addApprovalButton: '承認ワークフローを追加',
         editWorkflowAction: '編集',
-        addAgentAction: 'エージェントを追加',
         findWorkflow: 'ワークフローを検索',
         addApprovalTip: 'より詳細なワークフローが存在する場合を除き、このデフォルトのワークフローがすべてのメンバーに適用されます。',
         approver: '承認者',
         addApprovalsDescription: '支払いを承認する前に、追加の承認を必須にする。',
-        automateApprovalsWithAgentsTitle: '代理を使って承認を自動化する',
-        automateApprovalsWithAgentsSubtitle: '承認を自動化するには、以下のエージェントをワークフローに追加してください。',
         makeOrTrackPaymentsTitle: '支払',
         makeOrTrackPaymentsDescription: 'Expensifyでの支払いに対する承認済み支払者を追加するか、他の場所で行われた支払いを記録します。',
         customApprovalWorkflowEnabled:
@@ -6618,6 +6636,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             }),
             enableRate: 'レートを有効にする',
             status: 'ステータス',
+            statusActive: 'アクティブ',
+            statusFuture: '将来',
+            statusExpired: '期限切れ',
+            statusInactive: '無効',
             unit: '単位',
             taxFeatureNotEnabledMessage:
                 '<muted-text>この機能を利用するには、ワークスペースで税金設定を有効にする必要があります。設定を変更するには、<a href="#">その他の機能</a>に移動してください。</muted-text>',
@@ -7266,6 +7288,7 @@ ${reportName}
                 deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
                 describeRuleTitle: 'ルールの内容を記入してください',
                 describeRuleSubtitle: 'ルールの内容を入力すると、Concierge が自動作成します',
+                disclaimer: 'AI エージェントは間違える場合があります。',
             },
         },
         planTypePage: {
@@ -7937,21 +7960,19 @@ ${reportName}
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${cards} からの ${content}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `「${categoryName}」カテゴリのデフォルト税率を「${newTax}」に変更しました（以前は「${oldTax}」）`,
         addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `「${rateName}」レート（${rateValue}）を追加しました`,
         addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `${startDate}から有効な「${rateName}」レート（${rateValue}）を追加しました`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `「${rateName}」レート（${rateValue}）を${endDate}まで有効として追加しました`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `「${rateName}」レート（${rateValue}）を追加しました。有効期間：${startDate}〜${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `「${rateName}」レートの開始日を${newDate}に更新しました（以前は${oldDate}）` : `「${rateName}」レートの開始日を${newDate}に設定する`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `「${rateName}」レートの終了日を${newDate}（以前は${oldDate}）に更新しました` : `「${rateName}」レートの終了日を${newDate}に設定します`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `「${rateName}」レートの開始日と終了日を${newStartDate}〜${newEndDate}に更新しました（以前は${oldStartDate}〜${oldEndDate}）`
-                : `「${rateName}」レートの開始日と終了日を${newStartDate}〜${newEndDate}に設定しました`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `「${rateName}」レートの開始日を削除しました（以前の開始日：${oldDate}）`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `「${rateName}」レートの終了日を削除しました（以前は ${oldDate}）`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `距離レート「${rateName}」を更新し、${newDateRange} に適用しました（以前は ${oldDateRange}）`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `${date} から`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `${date}まで`,
+        customUnitRateDateRangeAllDates: () => `すべての日付に対して`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',

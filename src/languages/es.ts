@@ -63,7 +63,9 @@ const translations: TranslationDeepObject<typeof en> = {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
+        markAsDone: 'Marcar como listo',
         submitted: 'Enviado',
+        markedAsDoneStatus: 'Marcado como listo',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
@@ -249,7 +251,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Descripción',
         title: 'Título',
         assignee: 'Asignado a',
-        createdBy: 'Creado por',
         with: 'con',
         shareCode: 'Compartir código',
         share: 'Compartir',
@@ -802,6 +803,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users) => `Este chat es con ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName, submitterDisplayName) =>
             `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Aquí es donde harás seguimiento de los gastos',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
@@ -1313,6 +1315,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount) => `Enviar factura de ${amount}`,
         expenseAmount: (formattedAmount, comment) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: (memo) => `enviado${memo ? `, dijo ${memo}` : ''}`,
+        markedAsDone: (memo) => `marcado como listo${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
         failedToAutoSubmitViaDEW: (reason: string) => `no ha podido enviar este informe mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>. ${reason}`,
@@ -1532,6 +1535,9 @@ const translations: TranslationDeepObject<typeof en> = {
         removed: 'eliminó',
         transactionPending: 'Transacción pendiente.',
         chooseARate: 'Selecciona una tasa de reembolso por milla o kilómetro para el espacio de trabajo',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} a ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Válido desde ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Válido hasta ${endDate}`,
         unapprove: 'Desaprobar',
         unapproveReport: 'Anular la aprobación del informe',
         headsUp: 'Atención!',
@@ -1739,6 +1745,17 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que <strong>${actor}</strong> envíe los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Esperando a que un administrador envíe los gastos.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (actor, actorType, _eta, _etaType) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> lo marques como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> lo marque como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador lo marque como listo.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_actor, _actorType, _eta, _etaType) => `¡No se requiere ninguna acción adicional!`,
@@ -2476,13 +2493,10 @@ ${amount} para ${merchant} - ${date}`,
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `gastos de ${members}, y el aprobador es ${approvers}`,
         addApprovalButton: 'Añadir flujo de aprobación',
         editWorkflowAction: 'Editar',
-        addAgentAction: 'Añadir agente',
         findWorkflow: 'Buscar flujo de trabajo',
         addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
-        automateApprovalsWithAgentsTitle: 'Automatiza las aprobaciones con agentes',
-        automateApprovalsWithAgentsSubtitle: 'Añade el agente de abajo al flujo de trabajo para automatizar las aprobaciones.',
         configureViaHR: ({provider}: {provider: string}) => `Configurar mediante ${provider}.`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Las aprobaciones se gestionan mediante tu integración de ${provider}. Para actualizar tu flujo de aprobación, ve a la configuración de conexión de ${provider}.`,
@@ -6626,6 +6640,10 @@ ${amount} para ${merchant} - ${date}`,
             }),
             enableRate: 'Activar tasa',
             status: 'Estado',
+            statusActive: 'Activo',
+            statusFuture: 'Futuro',
+            statusExpired: 'Expirado',
+            statusInactive: 'Inactivo',
             unit: 'Unidad',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a <a href="#">Más funcionalidades</a> para hacer ese cambio.</muted-text>',
@@ -7263,6 +7281,7 @@ ${amount} para ${merchant} - ${date}`,
                 editRuleTitle: 'Editar regla',
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',
+                disclaimer: 'Los agentes de IA pueden cometer errores.',
             },
         },
         emptyDomain: {
@@ -7751,6 +7770,8 @@ ${amount} para ${merchant} - ${date}`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
             `cambió el umbral de autopago de informes aprobados a "${newLimit}" (previamente "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'eliminó el umbral de autopago de informes aprobados',
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `cambió la tasa de impuesto predeterminada de la categoría "${categoryName}" a "${newTax}" (previamente "${oldTax}")`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `cambió la categoría de gasto predeterminada para "${mccGroupName}" a "${newCategory}" (previamente "${oldCategory}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
@@ -7845,18 +7866,12 @@ ${amount} para ${merchant} - ${date}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `añadió la tasa "${rateName}" de ${rateValue}, válida hasta ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `añadió la tasa "${rateName}" de ${rateValue}, válida del ${startDate} al ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `actualizó la fecha de inicio de la tasa "${rateName}" a ${newDate} (previamente ${oldDate})` : `establecer la fecha de inicio de la tasa "${rateName}" a ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate
-                ? `actualizó la fecha de finalización de la tasa "${rateName}" a ${newDate} (previamente ${oldDate})`
-                : `establecer la fecha de finalización de la tasa "${rateName}" en ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `actualizó la fecha de inicio y fin de la tasa "${rateName}" a ${newStartDate} - ${newEndDate} (previamente ${oldStartDate} - ${oldEndDate})`
-                : `establece la fecha de inicio y fin de la tasa "${rateName}" a ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `se eliminó la fecha de inicio de la tasa "${rateName}" (previamente ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `eliminó la fecha de finalización de la tasa «${rateName}» (previamente ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `actualizó la tasa de distancia «${rateName}» para aplicar ${newDateRange} (previamente ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `desde ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `hasta ${date}`,
+        customUnitRateDateRangeAllDates: () => `para todas las fechas`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
