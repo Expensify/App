@@ -47,7 +47,7 @@ Examples:
 
 After Concierge answers, it may suggest a few follow-up questions to help you dig deeper.
 
-Concierge currently answers direct lookup questions about your expense data. If a question is too complex to answer this way, Concierge will let you know and point you to the Search page so you can explore it yourself. [Learn how to use search operators to filter and analyze spend](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
+Concierge currently answers direct lookup questions about your expense data. If a question is too complex to answer this way, Concierge will let you know and point you to the **Search** page so you can explore it yourself. [Learn how to use search operators to filter and analyze spend](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
 
 ---
 
@@ -57,7 +57,9 @@ When Concierge analyzes spend proactively, it sends a message to the #admins roo
 
 Insights are shared periodically and may vary in timing, format, and level of detail.
 
-You can ask Concierge your own expense questions in the #admins room for a workspace, or in your Concierge chat. In the #admins room, answers are scoped to that workspace. In your Concierge chat, questions can span all of the workspaces you have access to (for example, "Which workspace spent the most last month?" or "Show all my Travel expenses across all workspaces").
+You can ask Concierge your own expense questions in the #admins room for a workspace, or in your Concierge chat. 
+ - In the #admins room, answers are scoped to that workspace.
+ - In your Concierge chat, questions can span all of the workspaces you have access to.
 
 [Learn how to find the #admins room for a workspace](/articles/new-expensify/chat/Expensify-Chat-Rooms-for-Admins). 
 
@@ -94,7 +96,7 @@ Concierge looks for meaningful changes or trends in your workspace—like shifts
 
 ## What kinds of questions can I ask Concierge about my expenses?
 
-You can ask direct lookup questions about your expense data, such as who spent what, spend by category, merchant, employee, or tag, comparisons across time periods, and the status of expenses or reports. If a question is too complex to answer directly, Concierge will point you to the Search page.
+You can ask direct lookup questions about your expense data, such as who spent what, spend by category, merchant, employee, or tag, comparisons across time periods, and the status of expenses or reports. If a question is too complex to answer directly, Concierge will point you to the **Search** page.
 
 ## Where can I ask Concierge about my expenses?
 
