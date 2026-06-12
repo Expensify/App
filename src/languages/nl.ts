@@ -7360,6 +7360,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 describeRuleTitle: 'Beschrijf je regel',
                 describeRuleSubtitle: 'Beschrijf je regel en Concierge maakt hem voor je',
                 disclaimer: 'AI-agents kunnen fouten maken.',
+                agentCreatedTitle: 'RuleBot is toegevoegd aan je werkruimte',
+                agentCreatedDescription:
+                    'Om je agentregels af te dwingen, hebben we een agent voor je gemaakt en deze als beheerder aan je werkruimte toegevoegd.\n\nBewerk de gegevens van je agent in Account > Agents.',
             },
         },
         planTypePage: {

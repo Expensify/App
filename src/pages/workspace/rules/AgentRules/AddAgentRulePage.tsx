@@ -1,6 +1,7 @@
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -10,6 +11,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -21,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentRuleForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AddAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_NEW>;
 type AddAgentRuleFormID = typeof ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM;
@@ -34,7 +37,9 @@ function AddAgentRulePage({
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const policy = usePolicy(policyID);
     const formRef = useRef<FormRef>(null);
+    const [isAgentCreatedModalVisible, setIsAgentCreatedModalVisible] = useState(false);
 
     const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in e)) {
@@ -54,7 +59,19 @@ function AddAgentRulePage({
     };
 
     const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
+        // When the workspace has no agent rules yet, the backend creates the "RuleBot" agent and adds it as
+        // an admin. Surface a one-time modal explaining this side effect before navigating back.
+        const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
         addPolicyAgentRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
+        if (isFirstRule) {
+            setIsAgentCreatedModalVisible(true);
+            return;
+        }
+        Navigation.goBack();
+    };
+
+    const closeAgentCreatedModal = () => {
+        setIsAgentCreatedModalVisible(false);
         Navigation.goBack();
     };
 
@@ -107,6 +124,16 @@ function AddAgentRulePage({
                         <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
                     </View>
                 </FormProvider>
+                <ConfirmModal
+                    title={translate('workspace.rules.agentRules.agentCreatedTitle')}
+                    prompt={translate('workspace.rules.agentRules.agentCreatedDescription')}
+                    isVisible={isAgentCreatedModalVisible}
+                    onConfirm={closeAgentCreatedModal}
+                    onCancel={closeAgentCreatedModal}
+                    onBackdropPress={closeAgentCreatedModal}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

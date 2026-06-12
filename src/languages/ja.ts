@@ -7303,6 +7303,9 @@ ${reportName}
                 describeRuleTitle: 'ルールの内容を記入してください',
                 describeRuleSubtitle: 'ルールの内容を入力すると、Concierge が自動作成します',
                 disclaimer: 'AI エージェントは間違える場合があります。',
+                agentCreatedTitle: 'RuleBot がワークスペースに追加されました',
+                agentCreatedDescription:
+                    'エージェント ルールを適用するために、エージェントを作成し、ワークスペースの管理者として追加しました。\n\nエージェントの詳細は「アカウント」>「エージェント」で編集できます。',
             },
         },
         planTypePage: {

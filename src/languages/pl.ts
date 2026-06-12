@@ -7353,6 +7353,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 describeRuleTitle: 'Opisz swoją regułę',
                 describeRuleSubtitle: 'Opisz swoją regułę, a Concierge ją utworzy',
                 disclaimer: 'Agenci AI mogą popełniać błędy.',
+                agentCreatedTitle: 'RuleBot został dodany do Twojego obszaru roboczego',
+                agentCreatedDescription:
+                    'Aby egzekwować Twoje reguły agenta, utworzyliśmy dla Ciebie agenta i dodaliśmy go jako administratora do Twojego obszaru roboczego.\n\nEdytuj dane swojego agenta w sekcji Konto > Agenci.',
             },
         },
         planTypePage: {

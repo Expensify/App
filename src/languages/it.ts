@@ -7385,6 +7385,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 describeRuleTitle: 'Descrivi la tua regola',
                 describeRuleSubtitle: 'Descrivi la tua regola e Concierge la creerà',
                 disclaimer: 'Gli agenti IA possono commettere errori.',
+                agentCreatedTitle: 'RuleBot è stato aggiunto al tuo spazio di lavoro',
+                agentCreatedDescription:
+                    'Per applicare le tue regole dell’agente, abbiamo creato un agente per te e lo abbiamo aggiunto come amministratore del tuo spazio di lavoro.\n\nModifica i dettagli del tuo agente in Account > Agenti.',
             },
         },
         planTypePage: {

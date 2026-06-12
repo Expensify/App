@@ -7359,6 +7359,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 describeRuleTitle: 'Descreva sua regra',
                 describeRuleSubtitle: 'Descreva sua regra e a Concierge vai criá-la',
                 disclaimer: 'Os agentes de IA podem cometer erros.',
+                agentCreatedTitle: 'O RuleBot foi adicionado ao seu espaço de trabalho',
+                agentCreatedDescription:
+                    'Para aplicar suas regras de agente, criamos um agente para você e o adicionamos como administrador do seu espaço de trabalho.\n\nEdite os detalhes do seu agente em Conta > Agentes.',
             },
         },
         planTypePage: {
