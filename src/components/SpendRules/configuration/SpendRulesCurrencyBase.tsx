@@ -55,10 +55,10 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
         const isSelected = selectedCurrencies.includes(currencyOption.value);
 
         currencyItems.push({
+            isSelected,
             keyForList: currencyOption.value,
             text: currencyOption.text,
             value: currencyOption.value,
-            isSelected: selectedCurrencies.includes(currencyOption.value),
         });
 
         if (!isSelected) {

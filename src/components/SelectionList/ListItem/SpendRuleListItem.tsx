@@ -5,7 +5,6 @@ import Checkbox from '@components/Checkbox';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SpendRuleListItemProps, SpendRuleListItemType} from './types';
 
@@ -14,7 +13,6 @@ function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: SpendRul
     const {getMinimumWidth} = useStyleUtils();
 
     const cardRule = item as unknown as SpendRuleListItemType;
-    const isBlockingRule = cardRule.action === CONST.SPEND_RULES.ACTION.BLOCK;
 
     const rightHandSideComponent = () => (
         <Checkbox
@@ -52,8 +50,8 @@ function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: SpendRul
                         <Badge
                             isCondensed
                             text={part.badgeLabel}
-                            error={!part.isNeutral && isBlockingRule}
-                            success={!part.isNeutral && !isBlockingRule}
+                            error={part.variant === 'error'}
+                            success={part.variant === 'success'}
                             badgeStyles={[styles.ml0, styles.justifyContentCenter, getMinimumWidth(40)]}
                         />
                         <Text

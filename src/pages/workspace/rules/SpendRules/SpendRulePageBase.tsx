@@ -1,6 +1,6 @@
 import type {NavigationProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -77,7 +77,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const isNewRule = currentRuleID === ROUTES.NEW;
     const isEditingRule = currentRuleID !== ROUTES.NEW;
     const existingRule = isEditingRule ? expensifyCardSettings?.cardRules?.[currentRuleID] : undefined;
-    const existingFormValues = getSpendRuleFormValuesFromCardRule(existingRule);
+    const existingFormValues = useMemo(() => getSpendRuleFormValuesFromCardRule(existingRule), [existingRule]);
 
     const [isErrorVisible, setIsErrorVisible] = useState(false);
     const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => {
