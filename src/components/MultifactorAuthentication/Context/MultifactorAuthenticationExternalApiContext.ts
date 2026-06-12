@@ -11,10 +11,6 @@ type MultifactorAuthenticationExternalApi = {
     executeScenario: <T extends MultifactorAuthenticationScenario>(scenario: T, params?: MultifactorAuthenticationScenarioParams<T>) => Promise<void>;
 };
 
-/**
- * Runtime-leaf module: react must stay the only runtime import (type imports are erased), so any
- * component can consume the hook without re-entering the Provider -> config import graph.
- */
 const MultifactorAuthenticationExternalApiContext = createContext<MultifactorAuthenticationExternalApi | undefined>(undefined);
 
 function useMultifactorAuthentication(): MultifactorAuthenticationExternalApi {

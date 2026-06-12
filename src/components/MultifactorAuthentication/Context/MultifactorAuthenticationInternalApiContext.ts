@@ -30,12 +30,6 @@ type MultifactorAuthenticationInternalApi = {
     confirmCancel: () => void;
 };
 
-/**
- * Runtime-leaf module: react must stay the only runtime import (type imports are erased).
- * Components reachable from the scenario configs (e.g. OutcomeScreenBase) consume the hook from
- * here; importing it from the Provider module would re-enter the Provider -> config import graph
- * and close an import cycle (config/scenarios -> screens -> Context -> config).
- */
 const MultifactorAuthenticationInternalApiContext = createContext<MultifactorAuthenticationInternalApi | undefined>(undefined);
 
 function useMultifactorAuthenticationInternal(): MultifactorAuthenticationInternalApi {
