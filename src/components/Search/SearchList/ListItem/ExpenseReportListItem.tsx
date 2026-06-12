@@ -20,7 +20,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -31,13 +30,13 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
-import {getSearchReportAvatarProps, hasVisibleViolations} from '@libs/SearchUIUtils';
+import {hasVisibleViolations} from '@libs/SearchUIUtils';
 import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
-import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
@@ -79,7 +78,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const areAllReportTransactionsSelected =
         transactionsWithoutPendingDelete.length > 0 && transactionsWithoutPendingDelete.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
     const isSelected = liveRowSelected || areAllReportTransactionsSelected;
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
@@ -172,13 +171,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
 
-    // Recompute the avatar and violations badge from live policy at the row, replacing the screen-level
-    // `policies` merge that getSections previously did. Policy comes from the live `policyForViolations`
+    // Recompute the violations badge from live data at the row, replacing the screen-level
+    // violations merge that getSections previously did. Policy comes from the live `policyForViolations`
     // (parentPolicy ?? snapshot); violations + transactions come from the report's live Onyx data.
-    const isReportArchived = useReportIsArchived(reportItem.reportID);
-    const snapshotPersonalDetails = (searchData?.personalDetailsList ?? {}) as PersonalDetailsList;
-    const liveAvatarProps = getSearchReportAvatarProps(reportForViolations, formatPhoneNumber, snapshotPersonalDetails, policyForViolations, isReportArchived);
-    const liveReportItemWithAvatar = {...liveReportItem, ...liveAvatarProps};
     const liveHasVisibleViolations = hasVisibleViolations(
         reportForViolations,
         reportViolations,
@@ -316,11 +311,13 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const shouldShowViolationDescription = isOpenExpenseReport(reportItem) || isProcessingReport(reportItem);
 
     // Show violation description if either:
-    // 1. Pre-computed hasVisibleViolations from search data, OR
+    // 1. Visible violations recomputed from the report's live transactions, falling back to the
+    //    snapshot's pre-computed value when the report has no live transactions yet (the snapshot
+    //    stays the resilience layer until live data arrives), OR
     // 2. Synced missingAttendees violation computed at render time (for stale data)
     // We're using || instead of ?? because the variables are boolean
-     
-    const hasAnyVisibleViolations = liveHasVisibleViolations || hasSyncedMissingAttendeesViolation;
+    const hasLiveTransactions = liveReportTransactions.length > 0;
+    const hasAnyVisibleViolations = (hasLiveTransactions ? liveHasVisibleViolations : !!reportItem.hasVisibleViolations) || hasSyncedMissingAttendeesViolation;
 
     const getDescription = useMemo(() => {
         if (reportItem?.isRejectedReport) {
@@ -404,7 +401,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 <View style={[styles.flex1]}>
                     {!isLargeScreenWidth && (
                         <UserInfoAndActionButtonRow
-                            item={liveReportItemWithAvatar}
+                            item={liveReportItem}
                             shouldShowUserInfo={!!reportItem?.from}
                             stateNum={reportItem.stateNum}
                             statusNum={reportItem.statusNum}
