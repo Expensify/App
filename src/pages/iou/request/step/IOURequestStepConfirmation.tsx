@@ -578,7 +578,10 @@ function IOURequestStepConfirmation({
 
         if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
-            if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
+            // Also check for manually assigned participants (transaction.participants.length > 0) to avoid forcing navigation to Participants page
+            // when the user has already selected a participant.
+            const hasManualParticipants = (transaction?.participants?.length ?? 0) > 0;
+            if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true' && !hasManualParticipants) {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, transaction?.reportID || reportID, undefined, action), {
                     compareParams: false,
