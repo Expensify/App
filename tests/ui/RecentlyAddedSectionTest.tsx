@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment -- useRecentlyAddedData and RecentlyAddedSection are not implemented yet; until then the mocked module resolves as untyped */
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- jest factory mocks use CommonJS require() which returns untyped modules */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -19,6 +19,12 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
+
+jest.mock('@hooks/usePopoverPosition', () =>
+    jest.fn(() => ({
+        calculatePopoverPosition: jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0})),
+    })),
+);
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -48,13 +54,23 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 
 jest.mock('react-native-reanimated', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return require('react-native-reanimated/mock');
 });
 
 jest.mock('@pages/home/RecentlyAddedSection/useRecentlyAddedData', () => ({
     useRecentlyAddedData: jest.fn(),
 }));
+
+// The real MenuItem's pressable doesn't dispatch onPress in this test harness, so mock it (as the repo's
+// PopoverMenu/YourSpendSection tests do) to a plain pressable that the overflow menu items can trigger.
+jest.mock('@components/MenuItem', () => {
+    const ReactModule = require('react');
+    const {Text: RNText} = require('react-native');
+    function MockMenuItem(props: {title?: string; pressableTestID?: string; onPress?: () => void}) {
+        return ReactModule.createElement(RNText, {testID: props.pressableTestID, onPress: props.onPress}, props.title);
+    }
+    return MockMenuItem;
+});
 
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
@@ -150,14 +166,13 @@ describe('RecentlyAddedSection', () => {
             expect(screen.queryByTestId('recentlyAddedRow-t1')).not.toBeOnTheScreen();
         });
 
-        it('renders empty-state copy from the recentlyAddedSection.emptyStateMessages namespace', async () => {
+        it('renders empty-state copy from the recentlyAddedSection namespace', async () => {
             mockUseRecentlyAddedData.mockReturnValue({transactions: []});
 
             renderRecentlyAddedSection();
             await waitForBatchedUpdatesWithAct();
 
-            // translate is mocked to echo keys, so the rotating empty-state copy surfaces as its translation key.
-            expect(screen.getByText(/^homePage\.recentlyAddedSection\.emptyStateMessages\./)).toBeOnTheScreen();
+            expect(screen.getByText('homePage.recentlyAddedSection.emptyStateMessage')).toBeOnTheScreen();
         });
 
         it('does not render the overflow menu in the empty state', async () => {

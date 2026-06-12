@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument -- useRecentlyAddedData is not implemented yet; until then its return type resolves as untyped */
 /**
  * Behavior asserted for the Recently added data hook:
  *   - returns the current user's expenses, most recent first
