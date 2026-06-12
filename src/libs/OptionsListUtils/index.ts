@@ -1765,12 +1765,25 @@ function createOptionFromReport(
     config?: PreviewConfig,
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
+    isTrackIntentUser?: boolean,
 ) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
     return {
         item: report,
-        ...createOption({accountIDs, personalDetails, report, privateIsArchived, policy, config, reportAttributesDerived, policyTags, visibleReportActionsData, sortedActions}),
+        ...createOption({
+            accountIDs,
+            personalDetails,
+            report,
+            privateIsArchived,
+            policy,
+            config,
+            reportAttributesDerived,
+            policyTags,
+            visibleReportActionsData,
+            sortedActions,
+            isTrackIntentUser,
+        }),
     };
 }
 
