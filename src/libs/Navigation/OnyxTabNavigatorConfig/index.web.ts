@@ -1,4 +1,4 @@
-import type {TabRouterOptions} from '@react-navigation/routers';
+import type {TabRouterOptions} from '@react-navigation/native';
 
 const defaultScreenOptions = {
     animation: 'none',
