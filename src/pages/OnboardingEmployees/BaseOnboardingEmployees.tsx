@@ -47,8 +47,16 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             hasAccessibleDomainPolicies: account?.hasAccessibleDomainPolicies,
             purposeSelected: purposeSelected ?? undefined,
             isMergeAccountStepSkipped: onboardingValues?.isMergeAccountStepSkipped,
+            isAccountValidated: !!account?.validated,
         }),
-        [account?.hasAccessibleDomainPolicies, account?.isFromPublicDomain, onboardingValues?.isMergeAccountStepSkipped, onboardingValues?.signupQualifier, purposeSelected],
+        [
+            account?.hasAccessibleDomainPolicies,
+            account?.isFromPublicDomain,
+            account?.validated,
+            onboardingValues?.isMergeAccountStepSkipped,
+            onboardingValues?.signupQualifier,
+            purposeSelected,
+        ],
     );
 
     const handleBackButtonPress = useCallback(() => {
