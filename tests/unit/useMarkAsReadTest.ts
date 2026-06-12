@@ -11,12 +11,14 @@ const REPORT_ID = '1';
 let mockIsUnread = true;
 let mockIsVisible = true;
 let mockIsFocused = true;
+let mockHasFocus = true;
 let mockReferrer: string | undefined;
 
 jest.mock('@libs/Visibility', () => ({
     __esModule: true,
     default: {
         isVisible: () => mockIsVisible,
+        hasFocus: () => mockHasFocus,
         onVisibilityChange: () => () => {},
     },
 }));
@@ -78,6 +80,7 @@ describe('useMarkAsRead', () => {
         mockIsUnread = true;
         mockIsVisible = true;
         mockIsFocused = true;
+        mockHasFocus = true;
         mockReferrer = undefined;
     });
 
@@ -108,5 +111,32 @@ describe('useMarkAsRead', () => {
 
         expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false);
         expect(NavigationMock.setParams).toHaveBeenCalledWith({referrer: undefined});
+    });
+
+    it('does not mark the report as read when a new message arrives and the OS window does not have focus', () => {
+        mockIsUnread = false;
+        mockHasFocus = false;
+
+        let reportToUse: OnyxTypes.Report = REPORT;
+
+        const {rerender} = renderHook(() =>
+            useMarkAsRead({
+                reportID: REPORT_ID,
+                report: reportToUse as OnyxEntry<OnyxTypes.Report>,
+                transactionThreadReport: undefined,
+                sortedVisibleReportActions: [],
+                isScrolledToEnd: true,
+                hasNewerActions: false,
+            }),
+        );
+
+        readNewestAction.mockClear();
+
+        // Simulate new message arriving while window is visible but not OS-focused
+        mockIsUnread = true;
+        reportToUse = {...REPORT, lastVisibleActionCreated: '2023-01-01 12:00:00.000'};
+        rerender();
+
+        expect(readNewestAction).not.toHaveBeenCalled();
     });
 });

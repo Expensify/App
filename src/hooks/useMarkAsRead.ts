@@ -54,6 +54,20 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         return unsubscribe;
     }, []);
 
+    const [hasFocus, setHasFocus] = useState(Visibility.hasFocus);
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        const updateFocus = () => setHasFocus(Visibility.hasFocus());
+        window.addEventListener('focus', updateFocus);
+        window.addEventListener('blur', updateFocus);
+        return () => {
+            window.removeEventListener('focus', updateFocus);
+            window.removeEventListener('blur', updateFocus);
+        };
+    }, []);
+
     const readActionSkippedRef = useRef(false);
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
@@ -103,7 +117,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         }
         const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
 
-        if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
+        if (((isVisible && hasFocus) || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
             readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
             if (isFromNotification) {
                 Navigation.setParams({referrer: undefined});
@@ -114,7 +128,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
         readActionSkippedRef.current = true;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
+    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, hasFocus, reportLoadingState?.hasOnceLoadedReportActions]);
 
     useEffect(() => {
         if (didMarkOnReportChangeRef.current) {
@@ -125,7 +139,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             return;
         }
 
-        if (!isVisible || !isFocused) {
+        if (!isVisible || !isFocused || !hasFocus) {
             if (!lastMessageTime.current) {
                 lastMessageTime.current = lastAction?.created ?? '';
             }
@@ -151,7 +165,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
         userActiveSince.current = DateUtils.getDBTime();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isVisible, isFocused, reportLoadingState?.hasOnceLoadedReportActions]);
+    }, [isVisible, isFocused, hasFocus, reportLoadingState?.hasOnceLoadedReportActions]);
 
     return {readActionSkippedRef};
 }
