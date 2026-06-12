@@ -128,21 +128,33 @@ function useSearchAutoRefetch({
     }, [searchResults?.search?.isLoading, shouldUseLiveData, searchResultsData]);
 }
 
+function getTransactionIDFromValue(value: unknown): string | undefined {
+    if (!value || typeof value !== 'object' || !('transactionID' in value)) {
+        return undefined;
+    }
+    const {transactionID} = value;
+    return typeof transactionID === 'string' && transactionID ? transactionID : undefined;
+}
+
 function extractTransactionIDsFromSearchResults(searchResultsData: Partial<SearchResults['data']>): string[] {
     const transactionIDs: string[] = [];
 
     for (const item of Object.values(searchResultsData)) {
-        const maybeTransaction = item as {transactionID?: string; transactions?: Array<{transactionID?: string}>};
-        if (maybeTransaction?.transactionID) {
-            transactionIDs.push(maybeTransaction.transactionID);
+        if (!item || typeof item !== 'object') {
+            continue;
         }
 
-        if (Array.isArray(maybeTransaction?.transactions)) {
-            for (const transaction of maybeTransaction.transactions) {
-                if (!transaction?.transactionID) {
-                    continue;
+        const itemTransactionID = getTransactionIDFromValue(item);
+        if (itemTransactionID) {
+            transactionIDs.push(itemTransactionID);
+        }
+
+        if ('transactions' in item && Array.isArray(item.transactions)) {
+            for (const transaction of item.transactions) {
+                const transactionID = getTransactionIDFromValue(transaction);
+                if (transactionID) {
+                    transactionIDs.push(transactionID);
                 }
-                transactionIDs.push(transaction.transactionID);
             }
         }
     }
