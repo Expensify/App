@@ -230,7 +230,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     );
 
     const existingSpendRuleTitle = spendRuleToCopySummary.join(', ');
-    const currenciesTitle = spendRuleForm.currencies?.join(', ') ?? '';
+    const currenciesTitle = spendRuleForm.currencies?.length ? spendRuleForm.currencies.join(', ') : translate('workspace.rules.spendRules.allCurrencies');
     const spendRuleMaxAmountTitle = Number.isFinite(spendRuleParsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(spendRuleParsedMaxAmount), currencyCode) : '';
 
     return (

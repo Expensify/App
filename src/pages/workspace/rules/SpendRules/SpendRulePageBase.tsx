@@ -108,10 +108,10 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         setIsErrorVisible(false);
     };
 
-    const openCurrencyMismatchModal = async () => {
+    const openMaxAmountCurrencyMismatchModal = async () => {
         const result = await showConfirmModal({
-            title: translate('workspace.rules.spendRules.currencyMismatchTitle'),
-            prompt: translate('workspace.rules.spendRules.currencyMismatchPrompt'),
+            title: translate('workspace.rules.spendRules.maxAmountCurrencyMismatchTitle'),
+            prompt: translate('workspace.rules.spendRules.maxAmountCurrencyMismatchPrompt'),
             confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
             cancelText: translate('common.cancel'),
         });
@@ -123,10 +123,10 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
     };
 
-    const openCurrencyMissingOrMismatchModal = async () => {
+    const openCurrenciesCurrencyMismatchModal = async () => {
         const result = await showConfirmModal({
-            title: translate('workspace.rules.spendRules.currencyMismatchTitle'),
-            prompt: translate('workspace.rules.spendRules.currencyMismatchPrompt'),
+            title: translate('workspace.rules.spendRules.currenciesCurrencyMismatchTitle'),
+            prompt: translate('workspace.rules.spendRules.currenciesCurrencyMismatchPrompt'),
             confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
             cancelText: translate('common.cancel'),
         });
@@ -302,7 +302,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                             clearError();
 
                             if (!selectedCurrency) {
-                                openCurrencyMissingOrMismatchModal();
+                                openCurrenciesCurrencyMismatchModal();
                                 return;
                             }
 
@@ -323,7 +323,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                             clearError();
 
                             if (!selectedCurrency) {
-                                openCurrencyMismatchModal();
+                                openMaxAmountCurrencyMismatchModal();
                                 return;
                             }
 
