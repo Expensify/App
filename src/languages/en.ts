@@ -1102,18 +1102,7 @@ const translations = {
         recentlyAddedSection: {
             title: 'Recently added',
             viewAll: 'View all expenses',
-            emptyStateMessages: {
-                emptyStateExpensesTitle: 'No recent expenses',
-                emptyStateExpensesDescription: 'Create one or drag a receipt here.',
-                receiptFairyTitle: 'Nothing here yet',
-                receiptFairyDescription: 'Add an expense and it will show up here.',
-                moneyReceiptsTitle: 'No expenses yet',
-                moneyReceiptsDescription: 'Snap a receipt or drag one in to get started.',
-                envelopeReceiptTitle: 'All clear',
-                envelopeReceiptDescription: 'New expenses will appear here as you add them.',
-                receiptWranglerTitle: 'Nothing to show',
-                receiptWranglerDescription: 'Create an expense or drop a receipt to begin.',
-            },
+            emptyStateMessage: 'Add an expense to see it here.',
         },
         gettingStartedSection: {
             title: 'Getting started',
