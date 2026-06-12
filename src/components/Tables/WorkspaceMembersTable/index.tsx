@@ -49,6 +49,7 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
+    CARD_ADMINS: 'card_admins',
 } as const;
 
 export default function WorkspaceMembersTable({
@@ -169,6 +170,12 @@ export default function WorkspaceMembersTable({
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && isPolicyApprover(policy, item.login)) {
             return true;
         }
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS) && item.role === CONST.POLICY.ROLE.AUDITOR) {
+            return true;
+        }
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS) && item.role === CONST.POLICY.ROLE.CARD_ADMIN) {
+            return true;
+        }
         return false;
     };
 
@@ -185,6 +192,11 @@ export default function WorkspaceMembersTable({
     };
 
     if (isControlPolicy(policy)) {
+        filterConfig.status.options.push({
+            label: translate('workspace.people.cardAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS,
+        });
+
         filterConfig.status.options.push({
             label: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
