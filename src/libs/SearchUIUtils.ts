@@ -262,7 +262,7 @@ type GetTransactionSectionsParams = {
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
-    policyForMovingExpenses?: OnyxTypes.Policy;
+    isAttendeesEnabledForMovingPolicy?: boolean;
     optimisticTransactionID?: string;
 };
 
@@ -608,7 +608,7 @@ type GetSectionsParams = {
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
     conciergeReportID: string | undefined;
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
-    policyForMovingExpenses?: OnyxTypes.Policy;
+    isAttendeesEnabledForMovingPolicy?: boolean;
     optimisticTransactionID?: string;
     reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'];
 };
@@ -2049,7 +2049,7 @@ function getTransactionsSections({
     bankAccountList,
     reportActions = {},
     queryJSON,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     optimisticTransactionID,
 }: GetTransactionSectionsParams): [TransactionListItemType[], number, boolean] {
     const {
@@ -2133,7 +2133,10 @@ function getTransactionsSections({
             const reportOwnerAsAttendee = reportOwnerAccountIDAsAttendee ? getReportOwnerAsAttendee(personalDetailsMap.get(reportOwnerAccountIDAsAttendee.toString())) : undefined;
             const transactionAttendees = getAttendees(transactionItem, reportOwnerAsAttendee);
             const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
+            // For unreported transactions, attendee tracking is gated by the policy-for-moving-expenses.
+            // The caller passes the precomputed boolean instead of the policy object so the screen-level
+            // getSections memo does not recompute when unrelated fields of that policy change.
+            const shouldShowAttendees = (isUnreported ? !!isAttendeesEnabledForMovingPolicy : shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy)) && transactionAttendees.length > 0;
 
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
@@ -3593,7 +3596,7 @@ function getSections({
     visibleReportActionsData,
     conciergeReportID,
     onyxPersonalDetailsList,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     convertToDisplayString,
     optimisticTransactionID,
     reportAttributesDerivedValue,
@@ -3662,7 +3665,7 @@ function getSections({
         bankAccountList,
         reportActions,
         queryJSON,
-        policyForMovingExpenses,
+        isAttendeesEnabledForMovingPolicy,
         optimisticTransactionID,
     });
 }
