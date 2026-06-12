@@ -4,7 +4,7 @@
  *
  * That effect keeps the local readings in sync with the transaction without clobbering in-progress typing, and
  * slides the discard-changes baseline when the transaction is changed elsewhere (e.g. an edit saved from the
- * confirmation step). The branching lives here as small pure predicates that can be unit-tested in isolation 
+ * confirmation step). The branching lives here as small pure predicates that can be unit-tested in isolation
  * from the effect's ref mutations
  */
 
