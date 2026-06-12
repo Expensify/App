@@ -279,7 +279,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
             {!!activeExportID && (
                 <ExportDownloadStatusModal
                     exportID={activeExportID}
-                    isVisible={!!activeExportID}
+                    isVisible
                     onClose={handleExportModalClose}
                     failedBody={translate('exportDownload.csvFailedBody')}
                 />
