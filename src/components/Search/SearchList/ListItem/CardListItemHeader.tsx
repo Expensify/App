@@ -7,12 +7,15 @@ import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getFeedNameForDisplay} from '@libs/CardUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
@@ -69,6 +72,21 @@ function CardListItemHeader<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
     const formattedDisplayName = formatPhoneNumber(getDisplayNameOrDefault(cardItem));
+
+    // The feed name is a live-only value: it is resolved from the card feeds collection and is not part of
+    // the search snapshot. Subscribing here keeps the displayed feed name in sync as feeds/nicknames change,
+    // without forcing the screen-level getSections memo to depend on cardFeeds for display purposes.
+    // This is a group header (a few instances at most), so subscribing to the full collection is cheap.
+    const cardFeed = cardItem.bank as CompanyCardFeed;
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const cardFundID = cardList?.[cardItem.cardID]?.fundID;
+    const customFeedName = cardFundID ? cardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardFundID}`]?.settings?.companyCardNicknames?.[cardFeed] : undefined;
+    const liveFormattedFeedName = getFeedNameForDisplay(translate, cardFeed, cardFeeds, customFeedName, true, cardItem.feedCountry);
+    // Fall back to the snapshot value while card feeds are still loading so the feed name never flashes empty.
+    // `||` (not `??`) is intentional: an empty live name should fall through to the snapshot value.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const formattedFeedName = liveFormattedFeedName || cardItem.formattedFeedName || '';
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
@@ -81,7 +99,7 @@ function CardListItemHeader<TItem extends ListItem>({
                 <UserDetailsTooltip accountID={cardItem.accountID}>
                     <View>
                         <ReportActionAvatars
-                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                            subscriptCardFeed={cardFeed}
                             subscriptAvatarBorderColor={backgroundColor}
                             noRightMarginOnSubscriptContainer
                             accountIDs={[cardItem.accountID]}
@@ -111,7 +129,7 @@ function CardListItemHeader<TItem extends ListItem>({
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FEED)}
             >
                 <TextWithTooltip
-                    text={cardItem.formattedFeedName ?? ''}
+                    text={formattedFeedName}
                     numberOfLines={2}
                     style={[styles.lineHeightLarge, styles.preWrap]}
                 />
@@ -155,7 +173,7 @@ function CardListItemHeader<TItem extends ListItem>({
                     {!isLargeScreenWidth && (
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                             <ReportActionAvatars
-                                subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                                subscriptCardFeed={cardFeed}
                                 subscriptAvatarBorderColor={backgroundColor}
                                 noRightMarginOnSubscriptContainer
                                 accountIDs={[cardItem.accountID]}
