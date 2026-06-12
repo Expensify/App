@@ -21,7 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
-import getBrokenDirectCompanyCardFeedsForAdmin from './getBrokenDirectCompanyCardFeedsForAdmin';
+import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectCompanyCardFeedsForAdmin';
 import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
@@ -93,6 +93,7 @@ function TimeSensitiveSection() {
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
+    const brokenCompanyCardConnections = useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies);
 
     // Find policies with broken connections (accounting + HR, only for admins)
     const brokenPolicyConnections: BrokenPolicyConnection[] = [];
@@ -121,9 +122,6 @@ function TimeSensitiveSection() {
             }
         }
     }
-
-    // Get direct company card feeds with broken connections (for admins; one task per feed)
-    const brokenCompanyCardConnections = getBrokenDirectCompanyCardFeedsForAdmin(cardFeedErrors.cardsWithBrokenFeedConnection, adminPolicies);
 
     // Get personal cards with broken connections
     const brokenPersonalCardConnections: BrokenPersonalCardConnection[] = [];
