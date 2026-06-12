@@ -30,7 +30,7 @@ type ApprovalModeValue = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typ
 
 type HRApprovalModeProviderConfig<T extends ApprovalModeValue = ApprovalModeValue> = {
     testID: string;
-    beta: Beta;
+    beta?: Beta;
     isConnected: (policy: OnyxEntry<Policy>) => boolean;
     approvalModes: {BASIC: T; MANAGER: T; CUSTOM: T};
     getCurrentApprovalMode: (policy: OnyxEntry<Policy>) => T | null;
@@ -119,7 +119,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            shouldBeBlocked={!isBetaEnabled(config.beta) || (!!policy && !config.isConnected(policy))}
+            shouldBeBlocked={(!!config.beta && !isBetaEnabled(config.beta)) || (!!policy && !config.isConnected(policy))}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -141,7 +141,10 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
                         alternateNumberOfSupportedLines={3}
                         showScrollIndicator={false}
                     />
-                    <FixedFooter style={styles.mtAuto}>
+                    <FixedFooter
+                        style={styles.mtAuto}
+                        addBottomSafeAreaPadding
+                    >
                         <Button
                             large
                             success

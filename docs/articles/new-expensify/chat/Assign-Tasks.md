@@ -1,7 +1,8 @@
 ---
 title: Assign a Task via Chat
 description: Assign and track tasks in Expensify chats using the task creation and assignment features.
-keywords: [New Expensify, assign task, task management, chat task, task tracking]
+keywords: [New Expensify, assign task, task management, chat task, task tracking, task badge]
+internalScope: Audience is all Expensify users. Covers assigning and tracking tasks in chat, does not cover workspace-level task reporting.
 ---
 
 You can create and assign tasks to yourself or other members directly within a chat. Tasks help keep conversations actionable and organized, especially in 1:1 or group chats.
@@ -30,4 +31,13 @@ The task **creator** and the **assignee** can:
 - **Mark the task as complete** by checking the box or opening the task and clicking **Mark as Complete**.
 
 ✅ **Note:** When a task is completed, it will be visibly marked as done in the chat and can be reopened if needed.
+
+---
+
+## How to identify chats with outstanding tasks
+
+When you have an incomplete task assigned to you in a workspace chat, a green **Task** badge appears next to the chat. This helps you quickly find chats that need your attention.
+
+- The **Task** badge disappears once the task is marked as complete.
+- This badge works alongside existing action badges like **Submit**, **Approve**, **Pay**, and **Fix** for expense-related actions.
 

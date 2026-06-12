@@ -6,6 +6,7 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 import {CartesianChart, Line} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import AreaGradient from '@components/Charts/components/AreaGradient';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -13,6 +14,7 @@ import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
 import ScatterPoints from '@components/Charts/components/ScatterPoints';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {
+    ChartFontsProvider,
     useChartFontManager,
     useChartInteractions,
     useChartLabelFormats,
@@ -31,7 +33,7 @@ import variables from '@styles/variables';
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
 /** Inner dot radius for line chart data points */
-const DOT_RADIUS = 6;
+const DOT_RADIUS = 4;
 
 /** Extra hover area beyond the dot radius for easier touch targeting */
 const DOT_HOVER_EXTRA_RADIUS = 2;
@@ -47,7 +49,7 @@ type LineChartProps = CartesianChartProps & {
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
 
-function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
+function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontMgr = useChartFontManager();
@@ -187,7 +189,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                 <ScatterPoints
                     points={args.points.y}
                     radius={DOT_RADIUS}
-                    color={VictoryTheme.colors.default}
+                    color={VictoryTheme.colors.defaultDot}
                 />
                 {xAxisLabelHeight !== undefined && !!fontMgr && (
                     <ChartXAxisLabels
@@ -281,13 +283,20 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                         frame={{lineWidth: 0}}
                         data={chartData}
                     >
-                        {({points}) => (
-                            <Line
-                                points={points.y}
-                                color={VictoryTheme.colors.default}
-                                strokeWidth={2}
-                                curveType="linear"
-                            />
+                        {({points, yScale, yTicks}) => (
+                            <>
+                                <AreaGradient
+                                    points={points.y}
+                                    baselineY={yScale(Math.min(...yTicks))}
+                                    color={VictoryTheme.colors.default}
+                                />
+                                <Line
+                                    points={points.y}
+                                    color={VictoryTheme.colors.default}
+                                    strokeWidth={2}
+                                    curveType="linear"
+                                />
+                            </>
                         )}
                     </CartesianChart>
                 )}
@@ -301,6 +310,14 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                 />
             </Animated.View>
         </GestureDetector>
+    );
+}
+
+function LineChartContent(props: LineChartProps) {
+    return (
+        <ChartFontsProvider>
+            <LineChartContentBody {...props} />
+        </ChartFontsProvider>
     );
 }
 

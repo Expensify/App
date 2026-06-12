@@ -129,13 +129,7 @@ type Comment = {
      * (`isManuallySet=true`). The flag prevents auto-match from overwriting a
      * deliberate selection.
      */
-    vendor?: {
-        /** Vendor ID in the connected accounting integration (e.g. QBO vendor ID) */
-        externalID: string;
-
-        /** `true` when set by the user or a merchant rule; `false` when set by the PHP fuzzy auto-matcher */
-        isManuallySet: boolean;
-    };
+    vendor?: TransactionCommentVendor;
 
     /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
     pendingAutoCategorizationTime?: string;
@@ -152,6 +146,9 @@ type Comment = {
 
     /** Odometer end image (File object with uri on web, URI string on native) */
     odometerEndImage?: FileObject | string;
+
+    /** Spotnana trip ID, set on travel transactions and used to link the expense to its trip room */
+    tripID?: string;
 };
 
 /** Model of transaction custom unit */
@@ -466,6 +463,15 @@ type SplitShare = {
 /** Record of participant split data, indexed by their `accountID` */
 type SplitShares = Record<number, SplitShare | null>;
 
+/** Accounting-system vendor stored on a transaction's comment NVP */
+type TransactionCommentVendor = {
+    /** External ID of the vendor in the connected accounting system */
+    externalID: string;
+
+    /** Whether the vendor was set manually by a user (vs. auto-matched by the fuzzy matcher) */
+    isManuallySet: boolean;
+};
+
 /** Model of transaction */
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -526,7 +532,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
         groupExchangeRate?: number;
 
-        /** Used during the creation flow before the transaction is saved to the server */
+        /** The transaction's request type (e.g. manual, scan, distance). */
         iouRequestType?: IOURequestType;
 
         /**
@@ -620,6 +626,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** If an EReceipt should be generated for this transaction */
         hasEReceipt?: boolean;
 
+        /** Raw merchant category code for this transaction */
+        mcc?: string | number;
+
         /** The MCC Group for this transaction */
         mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 
@@ -711,6 +720,9 @@ type AdditionalTransactionChanges = {
 
     /** The unit for the distance/quantity */
     quantity?: number;
+
+    /** Accounting-system vendor on the transaction's comment NVP. `null` clears the vendor. */
+    vendor?: TransactionCommentVendor | null;
 };
 
 /** Model of transaction changes  */
@@ -743,5 +755,6 @@ export type {
     TransactionCollectionDataSet,
     SplitShares,
     TransactionCustomUnit,
+    TransactionCommentVendor,
     UnreportedTransaction,
 };
