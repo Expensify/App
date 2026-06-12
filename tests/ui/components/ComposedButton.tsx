@@ -117,7 +117,7 @@ describe('ButtonComposed — Button', () => {
             expect(screen.getByTestId('ctx-isHovered')).toHaveTextContent('false');
         });
 
-        it.each(['success', 'danger', 'link'] as const)('propagates variant="%s" to children via context', (variant) => {
+        it.each(['success', 'danger'] as const)('propagates variant="%s" to children via context', (variant) => {
             renderButton({variant});
             expect(screen.getByTestId('ctx-variant')).toHaveTextContent(variant);
         });
@@ -280,11 +280,9 @@ describe('ButtonComposed — Button', () => {
             expect(screen.getByLabelText(LABEL)).toHaveStyle({backgroundColor: expectedBg});
         });
 
-        it('variant="link" sets a transparent background', () => {
-            // Link buttons must not obscure underlying content.
-            renderButton({variant: 'link'});
-            expect(screen.getByLabelText(LABEL)).toHaveStyle({backgroundColor: 'transparent'});
-        });
+        // The transparent-background invariant for link-style buttons now lives in the
+        // Link component (see tests/ui/components/Link.tsx) — Button itself no longer
+        // exposes a 'link' variant.
 
         it('no variant uses the default button background', () => {
             // Implicit check that nothing accidentally overrides the base background.

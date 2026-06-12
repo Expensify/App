@@ -34,7 +34,9 @@ If you encounter unrecognized, unauthorized, or fraudulent charges on your Expen
 2. Select **Wallet** from the left menu.
 3. Choose your Expensify Card.
 4. Click **Report card fraud**.
-5. Follow the prompts to deactivate your card and request a replacement.
+5. Follow the prompts to deactivate your card.
+
+**Note:** If you froze the card yourself, a new virtual card is automatically issued after deactivation. If your workspace admin froze the card, the card is permanently deactivated without a replacement — contact your workspace admin to issue a new card.
 
 ## 2. Contact Expensify
 
@@ -77,6 +79,10 @@ Most service-related issues can be resolved directly with the merchant. This is 
 ## How am I protected from fraud?
 
 Expensify utilizes advanced algorithms to identify unusual card activity and provides real-time notifications for every charge made on your card.
+
+## What happens when I report fraud on a card frozen by my workspace admin?
+
+Your card is permanently deactivated, but a replacement card is not automatically issued. You'll see a confirmation message asking you to contact your workspace admin to issue a new card.
 
 ## How long does the dispute process take?
 

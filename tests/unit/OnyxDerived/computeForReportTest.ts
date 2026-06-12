@@ -43,7 +43,7 @@ describe('computeForReport', () => {
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
         const allReports: OnyxCollection<Report> = {[reportKey]: createMockReport({reportID})};
 
-        const result = computeForReport(reportID, actions, allReportActions, allReports);
+        const result = computeForReport(reportID, actions, allReportActions, allReports, false);
 
         expect(result.sortedReportActions.map((a) => a.reportActionID)).toEqual(['3', '2', '1']);
     });
@@ -56,7 +56,7 @@ describe('computeForReport', () => {
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
         const allReports: OnyxCollection<Report> = {[reportKey]: createMockReport({reportID})};
 
-        const result = computeForReport(reportID, actions, allReportActions, allReports);
+        const result = computeForReport(reportID, actions, allReportActions, allReports, false);
 
         expect(result.lastAction?.reportActionID).toBe('2');
     });
@@ -66,7 +66,7 @@ describe('computeForReport', () => {
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
         const allReports: OnyxCollection<Report> = {[reportKey]: createMockReport({reportID})};
 
-        const result = computeForReport(reportID, actions, allReportActions, allReports);
+        const result = computeForReport(reportID, actions, allReportActions, allReports, false);
 
         expect(result.sortedReportActions).toEqual([]);
         expect(result.lastAction).toBeUndefined();
@@ -78,7 +78,7 @@ describe('computeForReport', () => {
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
         const allReports: OnyxCollection<Report> = {[reportKey]: createMockReport({reportID, type: CONST.REPORT.TYPE.CHAT})};
 
-        const result = computeForReport(reportID, actions, allReportActions, allReports);
+        const result = computeForReport(reportID, actions, allReportActions, allReports, false);
 
         expect(result.transactionThreadReportID).toBeUndefined();
     });
@@ -115,7 +115,7 @@ describe('computeForReport', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}3`]: chatReport,
         };
 
-        const result = computeForReport(reportID, parentActions, allReportActions, allReports);
+        const result = computeForReport(reportID, parentActions, allReportActions, allReports, false);
 
         if (result.transactionThreadReportID) {
             expect(result.sortedReportActions.length).toBeGreaterThan(Object.keys(parentActions).length);
@@ -132,7 +132,7 @@ describe('computeForReport', () => {
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
         const allReports: OnyxCollection<Report> = {[reportKey]: createMockReport({reportID})};
 
-        const result = computeForReport(reportID, actions, allReportActions, allReports);
+        const result = computeForReport(reportID, actions, allReportActions, allReports, false);
 
         expect(result.sortedReportActions).toHaveLength(1);
         expect(result.sortedReportActions.at(0)?.reportActionID).toBe('1');
@@ -149,7 +149,7 @@ describe('computeForReport', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}3`]: chatReport,
         };
 
-        const result = computeForReport(reportID, actions, undefined, allReports);
+        const result = computeForReport(reportID, actions, undefined, allReports, false);
 
         expect(result.sortedReportActions).toHaveLength(1);
         expect(result.lastAction?.reportActionID).toBe('1');
@@ -161,9 +161,77 @@ describe('computeForReport', () => {
         const actions = toReportActions(action1, action2);
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
 
-        const result = computeForReport(reportID, actions, allReportActions, undefined);
+        const result = computeForReport(reportID, actions, allReportActions, undefined, false);
 
         expect(result.sortedReportActions.map((a) => a.reportActionID)).toEqual(['2', '1']);
         expect(result.transactionThreadReportID).toBeUndefined();
+    });
+
+    describe('offline handling when a second IOU action is pending deletion', () => {
+        const transactionThreadReportID = '2';
+        const chatReportID = '3';
+
+        // An expense report with one active expense plus a second expense the user deleted while offline.
+        // Online, the deleted action is ignored, so the report is still a one-transaction report.
+        // Offline, the deleted (pending-delete) action is still counted, so it is no longer a one-transaction report.
+        function buildExpenseReportWithPendingDeletedExpense() {
+            const activeIOUAction = createAction('100', '2024-01-01 10:00:00.000', {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: transactionThreadReportID,
+                originalMessage: {
+                    IOUTransactionID: 'txn1',
+                    IOUReportID: reportID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 100,
+                    currency: 'USD',
+                },
+            } as Partial<ReportAction>);
+
+            const pendingDeleteIOUAction = createAction('101', '2024-01-01 09:00:00.000', {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: '4',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                message: [{type: 'COMMENT', html: '', text: ''}],
+                originalMessage: {
+                    IOUTransactionID: 'txn2',
+                    IOUReportID: reportID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 50,
+                    currency: 'USD',
+                },
+            } as Partial<ReportAction>);
+
+            const parentActions = toReportActions(activeIOUAction, pendingDeleteIOUAction);
+            const threadActions = toReportActions(createAction('200', '2024-01-01 11:00:00.000'));
+            const chatReport = createMockReport({reportID: chatReportID, type: CONST.REPORT.TYPE.CHAT});
+            const expenseReport = createMockReport({reportID, type: CONST.REPORT.TYPE.EXPENSE, chatReportID});
+
+            const allReportActions: OnyxCollection<ReportActions> = {
+                [reportActionsKey]: parentActions,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`]: threadActions,
+            };
+            const allReports: OnyxCollection<Report> = {
+                [reportKey]: expenseReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: chatReport,
+            };
+
+            return {parentActions, allReportActions, allReports};
+        }
+
+        it('counts the pending-delete action when offline, so it is not a one-transaction report', () => {
+            const {parentActions, allReportActions, allReports} = buildExpenseReportWithPendingDeletedExpense();
+
+            const result = computeForReport(reportID, parentActions, allReportActions, allReports, true);
+
+            expect(result.transactionThreadReportID).toBeUndefined();
+        });
+
+        it('ignores the pending-delete action when online, so it is still a one-transaction report', () => {
+            const {parentActions, allReportActions, allReports} = buildExpenseReportWithPendingDeletedExpense();
+
+            const result = computeForReport(reportID, parentActions, allReportActions, allReports, false);
+
+            expect(result.transactionThreadReportID).toBe(transactionThreadReportID);
+        });
     });
 });

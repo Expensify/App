@@ -36,4 +36,3 @@ function useConfirmationFields(): ConfirmationFieldsContextValue {
 
 export default ConfirmationFieldsContext;
 export {useConfirmationFields};
-export type {ConfirmationFieldsContextValue};
