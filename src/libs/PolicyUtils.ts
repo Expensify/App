@@ -2648,4 +2648,4 @@ export {
     isSubmitPolicy,
 };
 
-export type {MemberEmailsToAccountIDs, PolicyFeature};
+export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};

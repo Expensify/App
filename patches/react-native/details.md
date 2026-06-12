@@ -284,3 +284,11 @@
 - Upstream PR/issue: https://github.com/facebook/react-native/issues/53128
 - E/App issue: https://github.com/Expensify/App/issues/91292
 - PR introducing patch: https://github.com/Expensify/App/pull/91736
+
+
+### [react-native+0.83.1+038+fix-nil-BlobModule-crash-APP-8BM.patch](react-native+0.83.1+038+fix-nil-BlobModule-crash-APP-8BM.patch)
+
+- Reason: Fixes a fatal iOS crash (APP-8BM) in HybridApp where `RCTNetworking`'s default URL-request-handler provider builds its handler list using an Objective-C array literal (`@[...]`) with `[moduleRegistry moduleForName:"BlobModule"]` at index 3. During OldDot↔NewDot bridge transitions, the `__weak _turboModuleRegistry` in `RCTModuleRegistry` is zeroed by ARC at the start of `TurboModuleManager` dealloc — before `[RCTNetworking invalidate]` clears the handler cache — leaving a window where a concurrent in-flight network request calls `prioritizedHandlers`, finds the cache empty, and tries to rebuild it with a nil `BlobModule`. Since `@[…]` compiles to `+[NSArray arrayWithObjects:count:]` which raises `NSInvalidArgumentException` on any nil element, the crash is fatal. The fix replaces the literal with an `NSMutableArray` built from the three always-non-nil handlers (`RCTHTTPRequestHandler`, `RCTDataRequestHandler`, `RCTFileRequestHandler`) and conditionally appends `BlobModule` only when the registry lookup is non-nil, turning a guaranteed crash into a graceful "no blob handler for this window".
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/92413
+- PR introducing patch: https://github.com/Expensify/App/pull/92918
