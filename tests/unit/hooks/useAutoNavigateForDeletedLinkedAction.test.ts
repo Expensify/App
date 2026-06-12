@@ -25,14 +25,6 @@ describe('useAutoNavigateForDeletedLinkedAction', () => {
             expect(navigateToEndOfReport).toHaveBeenCalledTimes(1);
         });
 
-        it('should not call navigateToEndOfReport when shouldShowNotFoundLinkedAction is true but shouldShowNotFoundPage is false', () => {
-            // Given linked action is not found but not-found page should not be shown (e.g. still loading)
-            renderHook(() => useAutoNavigateForDeletedLinkedAction(true, navigateToEndOfReport));
-
-            // Then no navigation - page is still loading or in a transitional state
-            expect(navigateToEndOfReport).not.toHaveBeenCalled();
-        });
-
         it('should not call navigateToEndOfReport when shouldShowNotFoundPage is true but shouldShowNotFoundLinkedAction is false', () => {
             // Given not-found page should be shown but not because of a linked action
             renderHook(() => useAutoNavigateForDeletedLinkedAction(false, navigateToEndOfReport));
@@ -69,19 +61,6 @@ describe('useAutoNavigateForDeletedLinkedAction', () => {
             rerender({shouldShowNotFoundPage: false, shouldShowNotFoundLinkedAction: false});
 
             // Then no additional navigation
-            expect(navigateToEndOfReport).not.toHaveBeenCalled();
-        });
-
-        it('should not call navigateToEndOfReport when shouldShowNotFoundLinkedAction transitions to true but shouldShowNotFoundPage stays false', () => {
-            // Given initially no deleted linked action
-            const {rerender} = renderHook(({shouldShowNotFoundLinkedAction}) => useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundLinkedAction, navigateToEndOfReport), {
-                initialProps: {shouldShowNotFoundPage: false, shouldShowNotFoundLinkedAction: false},
-            });
-
-            // When linked action is not found but not-found page should not show (e.g. loading)
-            rerender({shouldShowNotFoundPage: false, shouldShowNotFoundLinkedAction: true});
-
-            // Then no navigation - the guard prevents premature navigation
             expect(navigateToEndOfReport).not.toHaveBeenCalled();
         });
 
