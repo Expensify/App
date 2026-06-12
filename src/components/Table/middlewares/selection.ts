@@ -10,8 +10,8 @@ type UseSelectionProps<DataType extends TableData> = {
     /** The data being used in the table */
     data: DataType[];
 
-    /** Whether the data is currently reduced by an active search or filter */
-    isDataFiltered: boolean;
+    /** The number of non-disabled items in the original (pre-search/filter) data */
+    originalSelectableCount: number;
 
     /** The list of selected keys */
     selectedKeys: string[];
@@ -42,7 +42,12 @@ type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataT
     mobileSelectionModalRowKey: string | null;
 };
 
-export default function useSelection<DataType extends TableData>({data, isDataFiltered, selectedKeys, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
+export default function useSelection<DataType extends TableData>({
+    data,
+    originalSelectableCount,
+    selectedKeys,
+    onRowSelectionChange,
+}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isSelectionModeEnabled = useMobileSelectionMode();
     const lastSelectedRowKeyRef = useRef<string | null>(null);
@@ -65,14 +70,14 @@ export default function useSelection<DataType extends TableData>({data, isDataFi
     }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length]);
 
     // When there are genuinely no selectable items left, turn off selection mode on mobile.
-    // Skip when data is reduced by search/filter — the items still exist, they're just hidden.
+    // Stay in selection mode as long as the original data has non-disabled items (they may be hidden by search/filter).
     useEffect(() => {
-        if (selectableKeys.length || !isSelectionModeEnabled || isDataFiltered) {
+        if (selectableKeys.length || !isSelectionModeEnabled || originalSelectableCount > 0) {
             return;
         }
 
         turnOffMobileSelectionMode();
-    }, [selectableKeys.length, isSelectionModeEnabled, isDataFiltered]);
+    }, [selectableKeys.length, isSelectionModeEnabled, originalSelectableCount]);
 
     const prevSelectionModeEnabledRef = useRef(isSelectionModeEnabled);
     useEffect(() => {

@@ -193,11 +193,12 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
           })
         : false;
 
+    const originalSelectableCount = data.filter((item) => !item.disabled).length;
     const {
         middleware: selectionMiddleware,
         methods: selectionMethods,
         mobileSelectionModalRowKey,
-    } = useSelection<DataType>({data: sortedData, isDataFiltered: hasActiveSearchString || hasAppliedFilters, selectedKeys, onRowSelectionChange});
+    } = useSelection<DataType>({data: sortedData, originalSelectableCount, selectedKeys, onRowSelectionChange});
     const processedData = selectionMiddleware(sortedData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
