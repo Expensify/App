@@ -12,7 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {WorkspaceMemberRowData} from '.';
+import type {WorkspaceMemberRowData} from '.';
 
 type WorkspaceMembersTableRowProps = {
     /** The member item for the row */
@@ -43,11 +43,14 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
     const roleLabel = (() => {
         if (item.role === CONST.POLICY.ROLE.OWNER) {
             return translate('common.owner');
-        } else if (item.role === CONST.POLICY.ROLE.ADMIN) {
+        }
+        if (item.role === CONST.POLICY.ROLE.ADMIN) {
             return translate('common.admin');
-        } else if (item.role === CONST.POLICY.ROLE.AUDITOR) {
+        }
+        if (item.role === CONST.POLICY.ROLE.AUDITOR) {
             return translate('common.auditor');
-        } else if (item.role === CONST.POLICY.ROLE.EDITOR) {
+        }
+        if (item.role === CONST.POLICY.ROLE.EDITOR) {
             return translate('common.editor');
         }
         return '';

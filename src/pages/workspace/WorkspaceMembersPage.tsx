@@ -10,9 +10,9 @@ import DecisionModal from '@components/DecisionModal';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
-import WorkspaceMembersTable, {WorkspaceMemberRowData} from '@components/Tables/WorkspaceMembersTable';
+import type {WorkspaceMemberRowData} from '@components/Tables/WorkspaceMembersTable';
+import WorkspaceMembersTable from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextLink from '@components/TextLink';
@@ -28,7 +28,6 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
@@ -62,7 +61,6 @@ import {
     isControlPolicy,
     isDeletedPolicyEmployee,
     isExpensifyTeam,
-    isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyApprover,
     shouldFilterExpensifyTeam,
@@ -99,17 +97,6 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
     customField2?: string;
 };
 
-const WORKSPACE_MEMBER_FILTER_VALUES = {
-    ALL: 'all',
-    ADMINS: 'admins',
-    CARD_ADMINS: 'cardAdmins',
-    APPROVERS: 'approvers',
-    AUDITORS: 'auditors',
-} as const;
-
-type WorkspaceMemberFilterValue = ValueOf<typeof WORKSPACE_MEMBER_FILTER_VALUES>;
-type WorkspaceMemberFilterOption = SingleSelectItem<WorkspaceMemberFilterValue>;
-
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
@@ -117,14 +104,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
-    const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<BaseTextInputRef>(null);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
-    const [selectedRoleFilter, setSelectedRoleFilter] = useState<WorkspaceMemberFilterOption | null>(null);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {isAccountLocked} = useLockedAccountState();
@@ -135,8 +120,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isPolicyAdmin = canEditWorkspaceSettings(policy);
-    // Group policies (Collect/Control + Submit) allow member management.
-    const canManageMembers = isGroupPolicy(policy);
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
@@ -229,6 +212,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      * Remove selected users from the workspace
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const removeUsers = () => {
         // Check if any of the members are approvers
         const hasApprovers = selectedEmployees.some((email) => isPolicyApprover(policy, email));
@@ -270,8 +254,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     /**
      * Show the modal to confirm removal of the selected members
      */
-    const askForConfirmationToRemove = useCallback(async () => {
-        const result = await showConfirmModal({
+    const askForConfirmationToRemove = useCallback(() => {
+        showConfirmModal({
             danger: true,
             title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
             prompt: confirmModalPrompt,
@@ -283,39 +267,46 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 }
                 textInputRef.current.focus();
             },
-        });
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
 
-        removeUsers();
+            removeUsers();
+        });
     }, [confirmModalPrompt, removeUsers, selectedEmployees.length, showConfirmModal, translate]);
 
     /** Opens the member details page */
-    const openMemberDetails = (accountID: number) => {
-        if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
-            return;
-        }
-        clearWorkspaceOwnerChangeFlow(policyID);
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, accountID));
-        });
-    };
+    const openMemberDetails = useCallback(
+        (accountID: number) => {
+            if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
+                return;
+            }
+            clearWorkspaceOwnerChangeFlow(policyID);
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, accountID));
+            });
+        },
+        [isPolicyAdmin, policy, route.params.policyID],
+    );
 
-    const dismissError = (login: string, accountID: number, pendingAction?: PendingAction) => {
-        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            clearDeleteMemberError(route.params.policyID, login);
-            return;
-        }
+    const dismissError = useCallback(
+        (login: string, accountID: number, pendingAction?: PendingAction) => {
+            if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                clearDeleteMemberError(route.params.policyID, login);
+                return;
+            }
 
-        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
-            clearUpdateMemberRoleError(route.params.policyID, login);
-            return;
-        }
+            if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
+                clearUpdateMemberRoleError(route.params.policyID, login);
+                return;
+            }
 
-        clearAddMemberError(route.params.policyID, login, accountID);
-    };
+            clearAddMemberError(route.params.policyID, login, accountID);
+        },
+        [route.params.policyID],
+    );
 
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
@@ -356,7 +347,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const hasAnyCustomField2 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeePayrollID), [filteredMembers]);
     const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
     const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
-    const shouldShowAnyCustomFieldColumn = shouldShowCustomField1Column || shouldShowCustomField2Column;
 
     const data: WorkspaceMemberRowData[] = useMemo(() => {
         return filteredMembers.map(({policyEmployee, accountID, details}) => {
@@ -391,23 +381,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }, [
         filteredMembers,
-        policy?.ownerAccountID,
-        policy?.owner,
         isPolicyAdmin,
+        policy?.owner,
+        policy?.ownerAccountID,
+        formatPhoneNumber,
         session?.accountID,
-        styles.cursorDefault,
-        styles.flex1,
-        styles.pr3,
-        translate,
-        styles.alignSelfStart,
-        styles.alignSelfEnd,
-        shouldShowAnyCustomFieldColumn,
         shouldShowCustomField1Column,
         shouldShowCustomField2Column,
-        StyleUtils,
-        formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
-        icons.FallbackAvatar,
+        openMemberDetails,
+        dismissError,
     ]);
 
     useEffect(() => {

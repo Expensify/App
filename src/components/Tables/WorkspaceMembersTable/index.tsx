@@ -1,15 +1,16 @@
-import {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import {View} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx';
-import Table, {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
+import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isControlPolicy, isPolicyApprover} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
@@ -125,14 +126,26 @@ export default function WorkspaceMembersTable({
         }
 
         if (activeSorting.columnKey === 'customField1') {
-            const item1CustomField1Value = item1.employeeUserID ?? '';
-            const item2CustomField1Value = item2.employeeUserID ?? '';
+            const item1CustomField1Value = item1.employeeUserID;
+            const item2CustomField1Value = item2.employeeUserID;
+            if (!item1CustomField1Value) {
+                return 1;
+            }
+            if (!item2CustomField1Value) {
+                return -1;
+            }
             return localeCompare(item1CustomField1Value, item2CustomField1Value) * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'customField2') {
-            const item1CustomField2Value = item1.employeePayrollID ?? '';
-            const item2CustomField2Value = item2.employeePayrollID ?? '';
+            const item1CustomField2Value = item1.employeePayrollID;
+            const item2CustomField2Value = item2.employeePayrollID;
+            if (!item1CustomField2Value) {
+                return 1;
+            }
+            if (!item2CustomField2Value) {
+                return -1;
+            }
             return localeCompare(item1CustomField2Value, item2CustomField2Value) * orderMultiplier;
         }
 
@@ -190,8 +203,6 @@ export default function WorkspaceMembersTable({
         );
     };
 
-    const isEmpty = members.length === 0;
-
     return (
         <Table
             ref={ref}
@@ -208,23 +219,18 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {isEmpty && <></>}
-            {!isEmpty && (
-                <>
-                    <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5]}>
-                        <Table.FilterButtons />
-                        {members.length > CONST.STANDARD_LIST_ITEM_LIMIT && (
-                            <Table.SearchBar
-                                label={translate('workspace.people.findMember')}
-                                style={[styles.mb0, styles.mh0]}
-                            />
-                        )}
-                    </View>
+            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5]}>
+                <Table.FilterButtons />
+                {members.length > CONST.STANDARD_LIST_ITEM_LIMIT && (
+                    <Table.SearchBar
+                        label={translate('workspace.people.findMember')}
+                        style={[styles.mb0, styles.mh0]}
+                    />
+                )}
+            </View>
 
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }
