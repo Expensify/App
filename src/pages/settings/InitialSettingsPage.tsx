@@ -115,7 +115,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'Lightbulb',
         'Lock',
         'Users',
-        'Emoji',
         'CreditCard',
         'Wallet',
         'Bolt',
