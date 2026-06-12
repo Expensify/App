@@ -51,7 +51,12 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
     let settlementCurrencyLabel = settlementCurrency;
     const currencyItems: CurrencyListItem[] = [];
 
-    for (const currencyOption of validCurrencyOptions) {
+    for (const currencyOption of currencyOptions) {
+        if (currencyOption.value === settlementCurrency) {
+            settlementCurrencyLabel = currencyOption.text;
+            continue;
+        }
+
         const isSelected = selectedCurrencies.includes(currencyOption.value);
 
         currencyItems.push({
@@ -63,10 +68,6 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
 
         if (!isSelected) {
             areAllCurrenciesSelected = false;
-        }
-
-        if (currencyOption.value === settlementCurrency) {
-            settlementCurrencyLabel = currencyOption.text;
         }
     }
 

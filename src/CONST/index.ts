@@ -4775,6 +4775,11 @@ const CONST = {
         },
     },
     SPEND_RULES: {
+        BADGE_VARIANTS: {
+            SUCCESS: 'success',
+            ERROR: 'error',
+            NEUTRAL: 'neutral',
+        },
         CATEGORIES: {
             AIRLINES: 'airlines',
             ALCOHOL_AND_BARS: 'alcoholAndBars',

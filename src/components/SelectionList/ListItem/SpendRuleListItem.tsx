@@ -5,6 +5,7 @@ import Checkbox from '@components/Checkbox';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SpendRuleListItemProps, SpendRuleListItemType} from './types';
 
@@ -50,8 +51,8 @@ function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: SpendRul
                         <Badge
                             isCondensed
                             text={part.badgeLabel}
-                            error={part.variant === 'error'}
-                            success={part.variant === 'success'}
+                            error={part.variant === CONST.SPEND_RULES.BADGE_VARIANTS.ERROR}
+                            success={part.variant === CONST.SPEND_RULES.BADGE_VARIANTS.SUCCESS}
                             badgeStyles={[styles.ml0, styles.justifyContentCenter, getMinimumWidth(40)]}
                         />
                         <Text

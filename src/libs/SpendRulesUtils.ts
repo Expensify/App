@@ -259,8 +259,8 @@ function getSpendRuleSummaryParts(
         (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
     );
 
-    const actionVariant = action === CONST.SPEND_RULES.ACTION.BLOCK ? 'error' : 'success';
     const actionLabel = action === CONST.SPEND_RULES.ACTION.BLOCK ? blockLabel : allowLabel;
+    const actionVariant = action === CONST.SPEND_RULES.ACTION.BLOCK ? CONST.SPEND_RULES.BADGE_VARIANTS.ERROR : CONST.SPEND_RULES.BADGE_VARIANTS.SUCCESS;
 
     if (merchantNames) {
         summaryParts.push({
@@ -280,7 +280,7 @@ function getSpendRuleSummaryParts(
 
     if (allowedCurrencies.length > 0) {
         summaryParts.push({
-            variant: 'success',
+            variant: CONST.SPEND_RULES.BADGE_VARIANTS.SUCCESS,
             badgeLabel: allowLabel,
             text: `${translate('workspace.rules.spendRules.currencies')}: ${allowedCurrencies.join(', ')}`,
         });
@@ -288,7 +288,7 @@ function getSpendRuleSummaryParts(
 
     if (maxAmount) {
         summaryParts.push({
-            variant: 'neutral',
+            variant: CONST.SPEND_RULES.BADGE_VARIANTS.NEUTRAL,
             badgeLabel: translate('workspace.rules.spendRules.max'),
             text: `${translate('iou.amount')}: ${convertToDisplayString(convertToBackendAmount(Number.parseFloat(maxAmount)), selectedCurrency ?? CONST.CURRENCY.USD)}`,
         });
