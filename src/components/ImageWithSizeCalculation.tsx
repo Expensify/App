@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import RESIZE_MODES from './Image/resizeModes';
@@ -49,6 +50,12 @@ type ImageWithSizeCalculationProps = {
 
     /** The resize mode of the image */
     resizeMode?: ImageResizeMode;
+
+    /** Reason attributes for skeleton span telemetry */
+    reasonAttributes?: SkeletonSpanReasonAttributes;
+
+    /** Low-resolution URI shown as a placeholder while the full image loads */
+    previewUri?: string;
 };
 
 /**
@@ -69,6 +76,8 @@ function ImageWithSizeCalculation({
     loadingIndicatorStyles,
     onLoad,
     resizeMode,
+    reasonAttributes,
+    previewUri,
 }: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
 
@@ -98,6 +107,8 @@ function ImageWithSizeCalculation({
             objectPosition={objectPosition}
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
+            reasonAttributes={reasonAttributes}
+            previewUri={previewUri}
         />
     );
 }

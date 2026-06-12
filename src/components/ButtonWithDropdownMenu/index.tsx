@@ -50,7 +50,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         wrapperStyle,
         useKeyboardShortcuts = false,
         defaultSelectedIndex = 0,
-        shouldShowSelectedItemCheck = false,
+        shouldShowRadioButton = false,
         testID,
         secondLineText = '',
         icon,
@@ -172,11 +172,12 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         ref={dropdownButtonRef}
                         onPress={handlePress}
                         text={customText ?? selectedItem?.text ?? ''}
+                        accessibilityState={!isSplitButton ? {expanded: isMenuVisible} : undefined}
                         isDisabled={isDisabled || areAllOptionsDisabled}
                         shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
-                        style={isSplitButton ? [styles.flex1, styles.pr0] : {}}
+                        style={isSplitButton ? [styles.pr0, styles.flexGrow1, styles.flexShrink1] : {}}
                         extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
                         large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                         medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
@@ -192,8 +193,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         icon={hasError ? icons.DotIndicator : icon}
                         iconFill={hasError ? theme.danger : undefined}
                         iconHoverFill={hasError ? theme.danger : undefined}
-                        iconRightFill={hasError ? theme.icon : undefined}
-                        iconRightHoverFill={hasError ? theme.icon : undefined}
+                        iconRightFill={hasError ? theme.buttonIcon : undefined}
+                        iconRightHoverFill={hasError ? theme.buttonIcon : undefined}
                         sentryLabel={sentryLabel}
                     />
 
@@ -202,6 +203,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             ref={dropdownAnchor}
                             success={success}
                             isDisabled={isDisabled}
+                            accessibilityState={{expanded: isMenuVisible}}
                             shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                             style={[styles.pl0]}
                             onPress={() => setIsMenuVisible(!isMenuVisible)}
@@ -231,7 +233,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                         height={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
                                         src={icons.DownArrow}
                                         additionalStyles={[...(shouldUseShortForm ? [styles.pRelative, styles.t0] : []), isMenuVisible ? styles.flipUpsideDown : undefined]}
-                                        fill={success ? theme.buttonSuccessText : theme.icon}
+                                        fill={success ? theme.buttonSuccessText : theme.buttonIcon}
                                         testID="dropdown-arrow-icon"
                                     />
                                 </View>
@@ -281,7 +283,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         }
                     }}
                     anchorPosition={popoverAnchorPosition}
-                    shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                    shouldShowRadioButton={shouldShowRadioButton}
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && {...styles.pt4, paddingBottom}}
                     anchorAlignment={anchorAlignment}

@@ -1,12 +1,23 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
-import {handleActionButtonPress} from '@libs/actions/Search';
+import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
+import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {LastPaymentMethod, Policy, Report, SearchResults} from '@src/types/onyx';
+import createRandomPolicy from '../../utils/collections/policies';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@src/libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    dismissModal: jest.fn(),
+    goBack: jest.fn(),
+    getActiveRoute: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+}));
 
 const mockReportItemWithHold = {
     groupedBy: 'expense-report',
@@ -14,6 +25,10 @@ const mockReportItemWithHold = {
     accountID: 1206,
     action: 'approve',
     allActions: ['approve'],
+    canPay: false,
+    canApprove: true,
+    canSubmit: false,
+    canChangeApprover: false,
     chatReportID: '2108006919825366',
     created: '2024-12-04 23:18:33',
     submitted: '2024-12-04',
@@ -99,6 +114,10 @@ const mockReportItemWithHold = {
             accountID: 1206,
             action: 'view',
             allActions: ['view'],
+            canPay: false,
+            canApprove: false,
+            canSubmit: false,
+            canChangeApprover: false,
             amount: -1200,
             category: '',
             comment: {
@@ -195,6 +214,10 @@ const mockReportItemWithHold = {
             accountID: 1206,
             action: 'view',
             allActions: ['view'],
+            canPay: false,
+            canApprove: false,
+            canSubmit: false,
+            canChangeApprover: false,
             amount: -12300,
             category: '',
             comment: {
@@ -303,7 +326,7 @@ describe('handleActionButtonPress', () => {
     const snapshotReport = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${mockReportItemWithHold.reportID}`] ?? {};
     const snapshotPolicy = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold.policyID}`] ?? {};
 
-    test('Should navigate to item when report has one transaction on hold', () => {
+    test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
             hash: searchHash,
@@ -313,8 +336,33 @@ describe('handleActionButtonPress', () => {
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            userBillingGracePeriodEnds: undefined,
+            onHoldMenuOpen: jest.fn(),
+            policy: snapshotPolicy as Policy,
         });
-        expect(goToItem).toHaveBeenCalledTimes(1);
+        expect(goToItem).not.toHaveBeenCalled();
+    });
+
+    test('Should open the hold menu when the report has one transaction on hold and action is approve', () => {
+        const onHoldMenuOpen = jest.fn();
+        handleActionButtonPress({
+            hash: searchHash,
+            item: mockReportItemWithHold,
+            goToItem: jest.fn(),
+            snapshotReport: snapshotReport as Report,
+            snapshotPolicy: snapshotPolicy as Policy,
+            lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
+            userBillingGracePeriodEnds: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            onHoldMenuOpen,
+            policy: snapshotPolicy as Policy,
+        });
+
+        expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
@@ -327,7 +375,139 @@ describe('handleActionButtonPress', () => {
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            userBillingGracePeriodEnds: undefined,
+            policy: snapshotPolicy as Policy,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
+    });
+});
+
+describe('handleBulkPayItemSelected', () => {
+    const policyID = '1001';
+    const ownerAccountID = 1;
+
+    const baseParams = {
+        item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere', icon: () => null},
+        triggerKYCFlow: jest.fn(),
+        isAccountLocked: false,
+        showLockedAccountModal: jest.fn(),
+        latestBankItems: undefined,
+        activeAdminPolicies: [],
+        isUserValidated: true,
+        isDelegateAccessRestricted: false,
+        showDelegateNoAccessModal: jest.fn(),
+        confirmPayment: jest.fn(),
+        userBillingGracePeriodEnds: undefined,
+        businessBankAccountOptions: undefined,
+        ownerBillingGracePeriodEnd: undefined,
+        currentUserAccountID: ownerAccountID,
+    };
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        await Onyx.multiSet({
+            [ONYXKEYS.SESSION]: {email: 'owner@test.com', accountID: ownerAccountID},
+        });
+    });
+
+    it('should navigate to restricted action page when amountOwed > 0 and billing is past due', async () => {
+        const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as Policy;
+
+        await Onyx.multiSet({
+            [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: policy,
+            [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: pastDate,
+            [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 100,
+        });
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 100,
+            ownerBillingGracePeriodEnd: pastDate,
+        });
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+    });
+
+    it('should not navigate to restricted action page when amountOwed is 0', async () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+        });
+
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+        expect(baseParams.confirmPayment).toHaveBeenCalled();
+    });
+
+    it('should call showDelegateNoAccessModal when delegate access is restricted', () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+        } as Policy;
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            isDelegateAccessRestricted: true,
+            amountOwed: 0,
+        });
+
+        expect(baseParams.showDelegateNoAccessModal).toHaveBeenCalled();
+        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+    });
+
+    it('should call showLockedAccountModal when account is locked', () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+        } as Policy;
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            isAccountLocked: true,
+            amountOwed: 0,
+        });
+
+        expect(baseParams.showLockedAccountModal).toHaveBeenCalled();
+        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+    });
+
+    it('should call confirmPayment when no restrictions apply and amountOwed is 0', async () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+        });
+
+        expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
 });

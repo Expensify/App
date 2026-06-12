@@ -50,6 +50,9 @@ function FormAlertWrapper({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
+    const defaultFixErrorsMessage = `${translate('common.please')} ${translate('common.fixTheErrors')} ${translate('common.inTheFormBeforeContinuing')}.`;
+    const announcementMessage = message?.length ? message : defaultFixErrorsMessage;
+
     let content;
     if (!message?.length) {
         content = (
@@ -72,8 +75,10 @@ function FormAlertWrapper({
         <View style={containerStyles}>
             {isAlertVisible && (
                 <FormHelpMessage
-                    message={message}
+                    message={announcementMessage}
+                    shouldRenderMessageAsHTML={isMessageHtml}
                     style={[styles.mb3, errorMessageStyle]}
+                    shouldReannounceOnSubmit
                 >
                     {content}
                 </FormHelpMessage>

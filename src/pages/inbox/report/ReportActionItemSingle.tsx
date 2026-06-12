@@ -10,23 +10,24 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDelegateAccountIDFromReportAction, getManagerOnVacation, getOriginalMessage, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
+import {getDelegateAccountIDFromReportAction, getHumanAgentAccountIDFromReportAction, getManagerOnVacation, getModerationFlagState, getVacationer} from '@libs/ReportActionsUtils';
 import {isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import DelegateOnBehalfOfText from './DelegateOnBehalfOfText';
+import HumanAgentAssistedByText from './HumanAgentAssistedByText';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
+import VacationDelegateText from './VacationDelegateText';
 
 type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** All the data of the action */
@@ -44,9 +45,6 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** Show header for action */
     showHeader?: boolean;
 
-    /** If the message has been flagged for moderation */
-    hasBeenFlagged?: boolean;
-
     /** If the action is being hovered */
     isHovered?: boolean;
 
@@ -55,14 +53,14 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 };
 
 const showUserDetails = (accountID: number | undefined) => {
-    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
+    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
 };
 
 const showWorkspaceDetails = (reportID: string | undefined) => {
     if (!reportID) {
         return;
     }
-    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
+    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
 };
 
 function ReportActionItemSingle({
@@ -70,18 +68,16 @@ function ReportActionItemSingle({
     children,
     wrapperStyle,
     showHeader = true,
-    hasBeenFlagged = false,
     report,
     iouReport: potentialIOUReport,
     isHovered = false,
     isActive = false,
 }: ReportActionItemSingleProps) {
+    const {latestDecision, hasBeenFlagged} = getModerationFlagState(action);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const {avatarType, avatars, details, source, reportPreviewSenderID} = useReportActionAvatars({report: potentialIOUReport ?? report, action});
 
@@ -90,24 +86,11 @@ function ReportActionItemSingle({
 
     const [primaryAvatar, secondaryAvatar] = avatars;
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
-    const mainAccountID = delegateAccountID ? (reportPreviewSenderID ?? potentialIOUReport?.ownerAccountID ?? action?.childOwnerAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
-    const mainAccountLogin = mainAccountID ? (personalDetails?.[mainAccountID]?.login ?? details.login) : details.login;
-    const accountOwnerDetails = getPersonalDetailByEmail(String(mainAccountLogin ?? ''));
+    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
+    const mainAccountID = delegateAccountID ? (reportPreviewSenderID ?? potentialIOUReport?.ownerAccountID ?? action?.childOwnerAccountID) : undefined;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    // Vacation delegate details for submitted action
-    const vacationer = getVacationer(action);
-    const submittedTo = getSubmittedTo(action);
-    const vacationDelegateDetailsForSubmit = getPersonalDetailByEmail(vacationer ?? '');
-    const submittedToDetails = getPersonalDetailByEmail(submittedTo ?? '');
-
-    // Vacation delegate details for approved action
-    const managerOnVacation = getManagerOnVacation(action);
-    const vacationDelegateDetailsForApprove = getPersonalDetailByEmail(managerOnVacation ?? '');
-
-    // Check if this is an automatic action
-    const originalMessage = getOriginalMessage(action);
-    const isAutomaticAction = originalMessage && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
+    const hasVacationDelegate = !!getVacationer(action) || !!getManagerOnVacation(action);
 
     const headingText = avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
 
@@ -207,7 +190,7 @@ function ReportActionItemSingle({
                                     delegateAccountID={action?.delegateAccountID}
                                     isSingleLine
                                     actorIcon={primaryAvatar}
-                                    moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                                    moderationDecision={latestDecision}
                                     shouldShowTooltip={avatarType !== CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE}
                                 />
                             ))}
@@ -223,21 +206,14 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
-                {!!delegateAccountID && <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')}</Text>}
-                {!!vacationer && !!submittedTo && (
-                    <Text style={[styles.chatDelegateMessage]}>
-                        {translate(
-                            'statusPage.toAsVacationDelegate',
-                            submittedToDetails?.displayName ?? submittedTo ?? '',
-                            vacationDelegateDetailsForSubmit?.displayName ?? vacationer ?? '',
-                        )}
-                    </Text>
+                {!!delegateAccountID && (
+                    <DelegateOnBehalfOfText
+                        mainAccountID={mainAccountID}
+                        fallbackLogin={details.login}
+                    />
                 )}
-                {!!managerOnVacation && !isAutomaticAction && (
-                    <Text style={[styles.chatDelegateMessage]}>
-                        {translate('statusPage.asVacationDelegate', {nameOrEmail: vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? ''})}
-                    </Text>
-                )}
+                {!!humanAgentAccountID && <HumanAgentAssistedByText action={action} />}
+                {hasVacationDelegate && <VacationDelegateText action={action} />}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
         </View>

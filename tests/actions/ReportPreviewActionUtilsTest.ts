@@ -1,11 +1,11 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
+import {getValidConnectedIntegration} from '@libs/PolicyUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
-// eslint-disable-next-line no-restricted-syntax
 import type * as ReportUtils from '@libs/ReportUtils';
+import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
@@ -35,6 +35,7 @@ jest.mock('@libs/ReportUtils', () => ({
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     hasAnyViolations: jest.fn().mockReturnValue(false),
     getReportTransactions: jest.fn().mockReturnValue(['mockValue']),
+    hasOnlyNonReimbursableTransactions: jest.fn().mockReturnValue(false),
 }));
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
@@ -42,6 +43,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
+    isGroupPolicy: jest.fn().mockReturnValue(true),
 }));
 jest.mock('@src/libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn().mockReturnValue({}),
@@ -129,6 +131,97 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
+    it('canSubmit should return false for manager who is not the submitter', async () => {
+        const MANAGER_ACCOUNT_ID = 2;
+        const MANAGER_EMAIL = 'manager@mail.com';
+        const report: Report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            managerID: MANAGER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(ONYXKEYS.SESSION, {email: MANAGER_EMAIL, accountID: MANAGER_ACCOUNT_ID});
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
+        } as unknown as Transaction;
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: MANAGER_ACCOUNT_ID,
+                currentUserLogin: MANAGER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+            }),
+        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+    });
+
+    it('canSubmit should return false for admin who is not the submitter', async () => {
+        const ADMIN_ACCOUNT_ID = 3;
+        const ADMIN_EMAIL = 'admin@mail.com';
+        const report: Report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            managerID: 2,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
+        } as unknown as Transaction;
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: ADMIN_ACCOUNT_ID,
+                currentUserLogin: ADMIN_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+            }),
+        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+    });
+
     it('canSubmit should return true for open report in instant submit policy with no approvers', async () => {
         const report: Report = {
             ...createRandomReport(REPORT_ID, undefined),
@@ -173,7 +266,7 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
-    it('canSubmit should return false for expense preview report with only pending transactions', async () => {
+    it('canSubmit should return true for expense preview report with only pending transactions', async () => {
         const report: Report = {
             ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -214,7 +307,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
             }),
-        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
     it('canSubmit should return false for expense preview report with smartscan failed violation', async () => {
@@ -546,6 +639,87 @@ describe('getReportPreviewAction', () => {
         expect(
             getReportPreviewAction({
                 isReportArchived: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+    });
+
+    it('canPay should return PAY for expense report with only non-reimbursable expenses when payments enabled', async () => {
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: -100,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+
+        jest.mocked(hasOnlyNonReimbursableTransactions).mockReturnValueOnce(true);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    });
+
+    it('canPay should return VIEW for expense report with only non-reimbursable expenses when total is 0', async () => {
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            total: 0,
+            nonReimbursableTotal: 0,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+
+        jest.mocked(hasOnlyNonReimbursableTransactions).mockReturnValueOnce(true);
+        jest.mocked(getValidConnectedIntegration).mockReturnValueOnce(undefined);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 report,

@@ -2,7 +2,11 @@ import {getTravelDotLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
-const openTravelDotLink = (activePolicyID?: string, postLoginPath?: string) => {
+const openTravelDotLink = (activePolicyID?: string, postLoginPath?: string, spotnanaToken?: string, isTestAccount?: boolean) => {
+    if (spotnanaToken) {
+        Navigation.navigate(ROUTES.TRAVEL_DOT_LINK_WEB_VIEW.getRoute(spotnanaToken, isTestAccount, postLoginPath));
+        return;
+    }
     getTravelDotLink(activePolicyID)
         ?.then((response) => {
             if (response.spotnanaToken) {

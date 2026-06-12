@@ -2,15 +2,16 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
+import MerchantListItemHeader from '@components/Search/SearchList/ListItem/MerchantListItemHeader';
+import type {TransactionMerchantGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
-import MerchantListItemHeader from '@components/SelectionListWithSections/Search/MerchantListItemHeader';
-import type {TransactionMerchantGroupListItemType} from '@components/SelectionListWithSections/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import MockSearchContextProvider from '../utils/MockSearchContextProvider';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -23,34 +24,36 @@ const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typ
 // Mock search context with all required SearchContextStateValue and SearchContextActionsValue fields
 const mockSearchStateContext = {
     currentSearchHash: 12345,
-    currentRecentSearchHash: 12345,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSelectedTransactionReportID: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
-    isOnSearch: false,
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
-    shouldShowSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
+    currentSimilarSearchHash: -1,
+    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
+    sortedReportIDs: [],
+    hasSelectedTransactions: false,
 } satisfies SearchStateContextValue;
 
 const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
-    setCurrentSearchHashAndKey: jest.fn(),
-    setCurrentSearchQueryJSON: jest.fn(),
+    setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    setSelectedReports: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
-    setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
+    setSortedReportIDs: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createMerchantListItem = (merchant: string, options: Partial<TransactionMerchantGroupListItemType> = {}): TransactionMerchantGroupListItemType => ({
@@ -81,22 +84,23 @@ const renderMerchantListItemHeader = (
     }> = {},
 ) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <SearchStateContext.Provider value={mockSearchStateContext}>
-                <SearchActionsContext.Provider value={mockSearchActionsContext}>
-                    <MerchantListItemHeader
-                        merchant={merchantItem}
-                        onCheckboxPress={props.onCheckboxPress ?? jest.fn()}
-                        isDisabled={props.isDisabled ?? false}
-                        canSelectMultiple={props.canSelectMultiple ?? false}
-                        isSelectAllChecked={props.isSelectAllChecked ?? false}
-                        isIndeterminate={props.isIndeterminate ?? false}
-                        onDownArrowClick={props.onDownArrowClick}
-                        isExpanded={props.isExpanded ?? false}
-                        columns={props.columns ?? [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]}
-                    />
-                </SearchActionsContext.Provider>
-            </SearchStateContext.Provider>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
+            <MockSearchContextProvider
+                state={mockSearchStateContext}
+                actions={mockSearchActionsContext}
+            >
+                <MerchantListItemHeader
+                    merchant={merchantItem}
+                    onCheckboxPress={props.onCheckboxPress ?? jest.fn()}
+                    isDisabled={props.isDisabled ?? false}
+                    canSelectMultiple={props.canSelectMultiple ?? false}
+                    isSelectAllChecked={props.isSelectAllChecked ?? false}
+                    isIndeterminate={props.isIndeterminate ?? false}
+                    onDownArrowClick={props.onDownArrowClick}
+                    isExpanded={props.isExpanded ?? false}
+                    columns={props.columns ?? [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]}
+                />
+            </MockSearchContextProvider>
         </ComposeProviders>,
     );
 };
@@ -122,6 +126,7 @@ describe('MerchantListItemHeader', () => {
             isSmallScreen: true,
             isInNarrowPaneModal: false,
             onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
         });
     });
 
@@ -276,6 +281,7 @@ describe('MerchantListItemHeader', () => {
                 isSmallScreen: false,
                 isInNarrowPaneModal: false,
                 onboardingIsMediumOrLargerScreenWidth: true,
+                isInLandscapeMode: false,
             });
         });
 

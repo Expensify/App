@@ -1,20 +1,24 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import React from 'react';
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
+import {getReportName} from '@src/libs/ReportNameUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
@@ -26,6 +30,24 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockSecondTransactionID = `${mockTransaction.transactionID}2`;
+const defaultPreviewTransactions = [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID}];
+const defaultReportWithTransactionsAndViolations: [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] = [
+    mockIOUReport,
+    defaultPreviewTransactions,
+    {violations: mockViolations},
+];
+let mockDeferredValueOverride: boolean | undefined;
+
+jest.mock('react', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual() returns the real React module for partial mocking
+    const actualReact = jest.requireActual('react');
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- returning the real React module plus one overridden hook is the standard Jest partial-mock pattern
+    return {
+        ...actualReact,
+        useDeferredValue: (value: boolean) => mockDeferredValueOverride ?? value,
+    };
+});
 
 jest.mock('@react-navigation/native');
 
@@ -37,11 +59,12 @@ jest.mock('@rnmapbox/maps', () => {
     };
 });
 
-jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () =>
-    jest.fn((): [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] => {
-        return [mockIOUReport, [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID}], {violations: mockViolations}];
-    }),
-);
+const mockUseReportWithTransactionsAndViolations = jest.fn(() => defaultReportWithTransactionsAndViolations);
+
+jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () => ({
+    __esModule: true,
+    default: (...args: Parameters<typeof mockUseReportWithTransactionsAndViolations>) => mockUseReportWithTransactionsAndViolations(...args),
+}));
 
 const getIOUActionForReportID = (reportID: string | undefined, transactionID: string | undefined) => {
     if (!reportID || !transactionID) {
@@ -58,25 +81,42 @@ const hasViolations = (
     shouldShowInReview?: boolean,
 ) => (shouldShowInReview === undefined || shouldShowInReview) && Object.values(transactionViolations ?? {}).length > 0;
 
-const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = null}: Partial<MoneyRequestReportPreviewProps>) => {
+const mockContextMenuStateValue = {
+    anchor: null,
+    report: mockChatReport,
+    isReportArchived: false,
+    action: mockAction,
+    transactionThreadReport: undefined,
+    isDisabled: false,
+    shouldDisplayContextMenu: true,
+    originalReportID: mockChatReport.reportID,
+};
+
+const mockContextMenuActionsValue = {
+    checkIfContextMenuActive: () => {},
+    onShowContextMenu: (callback: () => void) => callback(),
+};
+
+const renderPage = ({isWhisper = false, isHovered = false}: Partial<MoneyRequestReportPreviewProps>) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <OptionsListContextProvider>
                 <ScreenWrapper testID="test">
                     <PortalProvider>
-                        <MoneyRequestReportPreview
-                            policies={{}}
-                            policyID={mockChatReport.policyID}
-                            action={mockAction}
-                            iouReportID={mockIOUReport.reportID}
-                            chatReportID={mockChatReport.chatReportID}
-                            contextMenuAnchor={contextMenuAnchor}
-                            checkIfContextMenuActive={() => {}}
-                            onPaymentOptionsShow={() => {}}
-                            onPaymentOptionsHide={() => {}}
-                            isHovered={isHovered}
-                            isWhisper={isWhisper}
-                        />
+                        <ShowContextMenuStateContext.Provider value={mockContextMenuStateValue}>
+                            <ShowContextMenuActionsContext.Provider value={mockContextMenuActionsValue}>
+                                <MoneyRequestReportPreview
+                                    policyID={mockChatReport.policyID}
+                                    action={mockAction}
+                                    iouReportID={mockIOUReport.reportID}
+                                    chatReportID={mockChatReport.chatReportID}
+                                    onPaymentOptionsShow={() => {}}
+                                    onPaymentOptionsHide={() => {}}
+                                    isHovered={isHovered}
+                                    isWhisper={isWhisper}
+                                />
+                            </ShowContextMenuActionsContext.Provider>
+                        </ShowContextMenuStateContext.Provider>
                     </PortalProvider>
                 </ScreenWrapper>
             </OptionsListContextProvider>
@@ -121,6 +161,29 @@ const mockOnyxViolations: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLA
 
 const arrayOfTransactions = Object.values(mockOnyxTransactions);
 
+const setReportPreviewData = (
+    overrides: {
+        iouReport?: OnyxEntry<Report>;
+        transactions?: Transaction[];
+        violations?: OnyxCollection<TransactionViolation[]>;
+    } = {},
+) => {
+    const {iouReport, transactions, violations} = overrides;
+    const hasIouReportOverride = Object.prototype.hasOwnProperty.call(overrides, 'iouReport');
+
+    mockUseReportWithTransactionsAndViolations.mockImplementation(() => [
+        hasIouReportOverride ? iouReport : mockIOUReport,
+        transactions ?? defaultPreviewTransactions,
+        violations ?? {violations: mockViolations},
+    ]);
+};
+
+const setHasOnceLoadedReportActions = async (hasOnceLoadedReportActions: boolean) => {
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockChatReport.chatReportID}`, {
+        hasOnceLoadedReportActions,
+    });
+};
+
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
@@ -137,6 +200,8 @@ describe('MoneyRequestReportPreview', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockDeferredValueOverride = undefined;
+        setReportPreviewData();
         return act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
@@ -153,9 +218,7 @@ describe('MoneyRequestReportPreview', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        expect(screen.getByText(ReportUtils.getReportName({report: mockIOUReport}))).toBeOnTheScreen();
+        expect(screen.getByText(getReportName(mockIOUReport))).toBeOnTheScreen();
 
         for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
@@ -189,5 +252,42 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getAllByTestId('TransactionPreviewSkeletonView')).toHaveLength(2);
+    });
+
+    it('renders the empty placeholder immediately without waiting for width', async () => {
+        setReportPreviewData({transactions: []});
+
+        renderPage({});
+        await act(async () => {
+            await setHasOnceLoadedReportActions(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.getByText(TestHelper.translateLocal('search.moneyRequestReport.emptyStateTitle'))).toBeOnTheScreen();
+    });
+
+    it('renders the access placeholder immediately without waiting for width', async () => {
+        setReportPreviewData({iouReport: undefined, transactions: []});
+
+        renderPage({});
+        await act(async () => {
+            await setHasOnceLoadedReportActions(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.getByText(TestHelper.translateLocal('search.moneyRequestReport.accessPlaceHolder'))).toBeOnTheScreen();
+    });
+
+    it('keeps showing loading during the deferred transition before transactions populate', async () => {
+        setReportPreviewData({transactions: []});
+        mockDeferredValueOverride = true;
+
+        renderPage({});
+        await act(async () => {
+            await setHasOnceLoadedReportActions(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.queryByText(TestHelper.translateLocal('search.moneyRequestReport.emptyStateTitle'))).not.toBeOnTheScreen();
     });
 });

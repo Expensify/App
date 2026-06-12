@@ -62,9 +62,9 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
         return {image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction, filename};
     }
 
-    // For local files, we won't have a thumbnail yet
+    // For local files, use the pre-generated thumbnail if available for fast preview
     if ((isReceiptImage || isReceiptPDF) && typeof path === 'string' && (path.startsWith('blob:') || path.startsWith('file:'))) {
-        return {image: path, isLocalFile: true, filename};
+        return {thumbnail: transaction?.receipt?.thumbnail, image: path, isLocalFile: true, filename};
     }
 
     if (isReceiptImage) {
@@ -94,6 +94,5 @@ const shouldValidateFile = (file: ShareTempFile | undefined) => {
     return file?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC || file?.mimeType === CONST.SHARE_FILE_MIMETYPE.IMG;
 };
 
-// eslint-disable-next-line import/prefer-default-export
 export {getThumbnailAndImageURIs, shouldValidateFile, constructReceiptSourceFromFilename};
 export type {ThumbnailAndImageURI};

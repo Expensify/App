@@ -1,4 +1,4 @@
-import {reportByIDsSelector} from '@selectors/Attributes';
+import reportByIDsSelector from '@selectors/Attributes';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
@@ -15,7 +15,6 @@ describe('AttributesSelector', () => {
 
         const attributes: OnyxEntry<ReportAttributesDerivedValue> = {
             reports: {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- ReportAttributes contains reportErrors
                 [reportID]: reportAttributes,
             },
             locale: 'en',

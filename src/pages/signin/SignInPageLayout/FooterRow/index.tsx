@@ -24,6 +24,7 @@ function FooterRow({href, onPress, text, style}: FooterRowProps) {
         <TextLink
             style={style}
             href={href}
+            tabIndex={0}
         >
             {text}
         </TextLink>

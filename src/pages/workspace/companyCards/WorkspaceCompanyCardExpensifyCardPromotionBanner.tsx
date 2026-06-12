@@ -15,14 +15,16 @@ import type {Policy} from '@src/types/onyx';
 
 type WorkspaceCompanyCardExpensifyCardPromotionBannerProps = {
     policy: OnyxEntry<Policy>;
+    canWriteCompanyCards: boolean;
+    onReadOnlyAction: () => void;
 };
 
-function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCompanyCardExpensifyCardPromotionBannerProps) {
+function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompanyCards, onReadOnlyAction}: WorkspaceCompanyCardExpensifyCardPromotionBannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const policyID = policy?.id;
     const areExpensifyCardsEnabled = policy?.areExpensifyCardsEnabled;
 
@@ -42,19 +44,21 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCom
     }, [policyID, areExpensifyCardsEnabled]);
 
     const rightComponent = useMemo(() => {
-        const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
+        const smallScreenStyle = shouldUseNarrowLayout && !isInLandscapeMode ? [styles.flex0, styles.flexBasis100, styles.maxWidth100Percentage, styles.justifyContentCenter] : [];
         return (
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
                 <Button
                     success
-                    onPress={handleLearnMore}
-                    style={shouldUseNarrowLayout && styles.flex1}
+                    onPress={canWriteCompanyCards ? handleLearnMore : onReadOnlyAction}
+                    style={shouldUseNarrowLayout && !isInLandscapeMode && styles.flex1}
+                    innerStyles={!canWriteCompanyCards ? styles.buttonOpacityDisabled : undefined}
+                    hoverStyles={!canWriteCompanyCards ? styles.buttonOpacityDisabled : undefined}
                     text={translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}
                     accessibilityLabel={`${translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}, ${translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}`}
                 />
             </View>
         );
-    }, [styles, shouldUseNarrowLayout, translate, handleLearnMore]);
+    }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, canWriteCompanyCards, handleLearnMore, onReadOnlyAction]);
 
     return (
         <View style={[styles.ph4, styles.mb4]}>

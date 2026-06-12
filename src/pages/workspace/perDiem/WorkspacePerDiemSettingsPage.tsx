@@ -1,23 +1,22 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import CategorySelector from '@components/CategorySelector';
+import CustomUnitDefaultCategorySelector from '@components/CustomUnitDefaultCategorySelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPolicyPerDiemRatesErrorFields} from '@libs/actions/Policy/PerDiem';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Category from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -31,25 +30,20 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const styles = useThemeStyles();
-    const [isCategoryPickerVisible, setIsCategoryPickerVisible] = useState(false);
     const {translate} = useLocalize();
     const customUnit = getPerDiemCustomUnit(policy);
-    const customUnitID = customUnit?.customUnitID ?? '';
+    const {canWrite: canWritePerDiem} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.PER_DIEM);
+    const customUnitID = customUnit?.customUnitID;
 
     const defaultCategory = customUnit?.defaultCategory;
     const errorFields = customUnit?.errorFields;
 
     const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
 
-    const setNewCategory = (category: ListItem) => {
-        if (!category.searchText || !customUnit || defaultCategory === category.searchText) {
+    const clearErrorFields = (fieldName: keyof CustomUnit) => {
+        if (!customUnitID) {
             return;
         }
-
-        Category.setPolicyCustomUnitDefaultCategory(policyID, customUnitID, customUnit.defaultCategory, category.searchText);
-    };
-
-    const clearErrorFields = (fieldName: keyof CustomUnit) => {
         clearPolicyPerDiemRatesErrorFields(policyID, customUnitID, {...errorFields, [fieldName]: null});
     };
 
@@ -58,6 +52,7 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.PER_DIEM}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -74,22 +69,19 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="always"
                     >
-                        {!!policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
+                        {!!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {}) && !!customUnitID && (
                             <OfflineWithFeedback
-                                errors={ErrorUtils.getLatestErrorField(customUnit ?? {}, 'defaultCategory')}
+                                errors={getLatestErrorField(customUnit ?? {}, 'defaultCategory')}
                                 pendingAction={customUnit?.pendingFields?.defaultCategory}
                                 errorRowStyles={styles.mh5}
                                 onClose={() => clearErrorFields('defaultCategory')}
                             >
-                                <CategorySelector
-                                    policyID={policyID}
+                                <CustomUnitDefaultCategorySelector
                                     label={translate('workspace.common.defaultCategory')}
                                     defaultValue={defaultCategory}
                                     wrapperStyle={[styles.ph5, styles.mt3]}
-                                    setNewCategory={setNewCategory}
-                                    isPickerVisible={isCategoryPickerVisible}
-                                    showPickerModal={() => setIsCategoryPickerVisible(true)}
-                                    hidePickerModal={() => setIsCategoryPickerVisible(false)}
+                                    customUnitID={customUnitID}
+                                    interactive={canWritePerDiem}
                                 />
                             </OfflineWithFeedback>
                         )}

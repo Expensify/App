@@ -1,18 +1,26 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {updateChatPriorityMode} from '@libs/actions/User';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import FocusModeNotification from './FocusModeNotification';
+import RenderHTML from './RenderHTML';
 
 const isInFocusModeSelector = (priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>) => priorityMode === CONST.PRIORITY_MODE.GSD;
 
@@ -34,11 +42,40 @@ export default function PriorityModeController() {
     const [isInFocusMode, isInFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: isInFocusModeSelector});
     const [hasTriedFocusMode, hasTriedFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE);
     const currentRouteName = useCurrentRouteName();
-    const [shouldShowModal, setShouldShowModal] = useState(false);
-    const closeModal = useCallback(() => setShouldShowModal(false), []);
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['ThreeLeggedLaptopWoman']);
+    const {environmentURL} = useEnvironment();
+    const {translate} = useLocalize();
+    const {showConfirmModal, closeModal} = useConfirmModal();
+    const isModalShown = useRef(false);
 
     // We set this when we have finally auto-switched the user of #focus mode to prevent duplication.
     const hasSwitched = useRef(false);
+    const priorityModePageUrl = `${environmentURL}/settings/preferences/priority-mode`;
+
+    const handleShowModal = useCallback(() => {
+        if (isModalShown.current) {
+            return;
+        }
+
+        isModalShown.current = true;
+        showConfirmModal({
+            title: translate('focusModeUpdateModal.title'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            prompt: (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML html={translate('focusModeUpdateModal.prompt', priorityModePageUrl)} />
+                </View>
+            ),
+            image: illustrations.ThreeLeggedLaptopWoman,
+            imageStyles: StyleUtils.getBackgroundColorStyle(colors.pink800),
+            titleStyles: [styles.textHeadline, styles.mbn3],
+        }).then(() => {
+            isModalShown.current = false;
+        });
+    }, [StyleUtils, illustrations.ThreeLeggedLaptopWoman, priorityModePageUrl, showConfirmModal, styles, translate]);
 
     // Listen for state changes and trigger the #focus mode when appropriate
     useEffect(() => {
@@ -52,7 +89,6 @@ export default function PriorityModeController() {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (hasSwitched.current || isInFocusMode || hasTriedFocusMode) {
             return;
         }
@@ -71,25 +107,21 @@ export default function PriorityModeController() {
 
         Log.info('[PriorityModeController] Switching user to focus mode', false, {lhnReportCount, hasTriedFocusMode, isInFocusMode, currentRouteName});
         updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, true);
-        requestAnimationFrame(() => {
-            setShouldShowModal(true);
-        });
+        requestAnimationFrame(handleShowModal);
         hasSwitched.current = true;
-    }, [currentRouteName, hasTriedFocusMode, hasTriedFocusModeMetadata, isInFocusMode, isInFocusModeMetadata, isLoadingReportData, lhnReportCount]);
+    }, [currentRouteName, handleShowModal, hasTriedFocusMode, hasTriedFocusModeMetadata, isInFocusMode, isInFocusModeMetadata, isLoadingReportData, lhnReportCount]);
 
     useEffect(() => {
-        if (!shouldShowModal) {
+        if (!isModalShown.current || currentRouteName !== SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE) {
             return;
         }
-        const isNavigatingToPriorityModePage = currentRouteName === SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE;
 
         // Hide focus modal when settings button is pressed from the prompt.
-        if (isNavigatingToPriorityModePage) {
-            setShouldShowModal(false);
-        }
-    }, [currentRouteName, shouldShowModal]);
+        closeModal();
+        isModalShown.current = false;
+    }, [closeModal, currentRouteName]);
 
-    return shouldShowModal ? <FocusModeNotification onClose={closeModal} /> : null;
+    return null;
 }
 
 /**

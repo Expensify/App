@@ -29,7 +29,7 @@ function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText,
                 <View style={[styles.flexGrow1, shouldUseNarrowLayout ? styles.signInPageContentTopSpacerSmallScreens : styles.signInPageContentTopSpacer]} />
                 <View style={[styles.flexGrow2, styles.mb8]}>
                     <FormElement style={[styles.alignSelfStretch]}>
-                        <View style={[shouldUseNarrowLayout ? styles.mb8 : styles.mb15, shouldUseNarrowLayout ? styles.alignItemsCenter : styles.alignSelfStart]}>
+                        <View style={[shouldUseNarrowLayout ? styles.mb8 : styles.mb15, styles.alignSelfStart]}>
                             <ExpensifyWordmark />
                         </View>
                         <View style={[styles.signInPageWelcomeTextContainer]}>
@@ -40,17 +40,16 @@ function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText,
                                         StyleUtils.getLineHeightStyle(variables.lineHeightSignInHeroXSmall),
                                         StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroXSmall),
                                         !welcomeText ? styles.mb5 : {},
-                                        !shouldUseNarrowLayout ? styles.textAlignLeft : {},
+                                        styles.textAlignLeft,
                                         styles.mb5,
                                     ]}
                                     accessibilityRole={CONST.ROLE.HEADER}
+                                    aria-level={2}
                                 >
                                     {welcomeHeader}
                                 </Text>
                             ) : null}
-                            {shouldShowWelcomeText && welcomeText ? (
-                                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !shouldUseNarrowLayout ? styles.textAlignLeft : {}]}>{welcomeText}</Text>
-                            ) : null}
+                            {shouldShowWelcomeText && welcomeText ? <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, styles.textAlignLeft]}>{welcomeText}</Text> : null}
                         </View>
                         {children}
                     </FormElement>

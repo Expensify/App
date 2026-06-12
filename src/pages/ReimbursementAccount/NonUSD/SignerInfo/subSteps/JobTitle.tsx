@@ -1,16 +1,16 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type JobTitleProps = SubStepProps;
+type JobTitleProps = SubPageProps;
 
 const {SIGNER_JOB_TITLE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
@@ -18,18 +18,14 @@ function JobTitle({onNext, onMove, isEditing}: JobTitleProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const inputID = SIGNER_JOB_TITLE;
-    const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
+    const defaultValue = String(reimbursementAccountDraft?.[SIGNER_JOB_TITLE] ?? '');
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            return getFieldRequiredErrors(values, [inputID], translate);
-        },
-        [inputID, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        return getFieldRequiredErrors(values, [SIGNER_JOB_TITLE], translate);
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: [inputID],
+        fieldIds: [SIGNER_JOB_TITLE],
         onNext,
         shouldSaveDraft: isEditing,
     });
@@ -43,11 +39,12 @@ function JobTitle({onNext, onMove, isEditing}: JobTitleProps) {
             formTitle={translate('signerInfoStep.whatsYourJobTitle')}
             validate={validate}
             onSubmit={handleSubmit}
-            inputId={inputID}
+            inputId={SIGNER_JOB_TITLE}
             inputLabel={translate('signerInfoStep.jobTitle')}
             inputMode={CONST.INPUT_MODE.TEXT}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }

@@ -22,7 +22,7 @@ function DebugJSON({data}: DebugJSONProps) {
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
     const json = useMemo(() => DebugUtils.stringifyJSON(data), [data]);
-    const icons = useMemoizedLazyExpensifyIcons(['Copy'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy']);
 
     return (
         <ScrollView
@@ -38,10 +38,7 @@ function DebugJSON({data}: DebugJSONProps) {
                 }}
                 icon={icons.Copy}
             />
-            <View
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...SwipeInterceptPanResponder.panHandlers}
-            >
+            <View {...SwipeInterceptPanResponder.panHandlers}>
                 <Text style={[styles.textLabel, styles.mb5, styles.border, styles.p2]}>{json}</Text>
             </View>
         </ScrollView>

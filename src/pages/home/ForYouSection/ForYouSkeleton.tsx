@@ -5,7 +5,12 @@ import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import useContainerWidth from '@hooks/useContainerWidth';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
+type Props = {
+    reasonAttributes: SkeletonSpanReasonAttributes;
+};
 
 const ITEM_HEIGHT = 64;
 
@@ -22,12 +27,12 @@ function getTitleSkeletonWidth(index: number) {
     }
 }
 
-function ForYouSkeleton() {
+function ForYouSkeleton({reasonAttributes}: Props) {
     const {onLayout, containerWidth: pageWidth} = useContainerWidth();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    useSkeletonSpan('ForYouSkeleton');
+    useSkeletonSpan('ForYouSkeleton', reasonAttributes);
 
     const horizontalPadding = shouldUseNarrowLayout ? 20 : 32;
     const gap = 12;
@@ -38,7 +43,7 @@ function ForYouSkeleton() {
             const iconY = 12;
             const titleX = iconX + 40 + gap;
             const titleWidth = getTitleSkeletonWidth(args.itemIndex);
-            const buttonWidth = styles.widgetItemButton.minWidth;
+            const buttonWidth = styles.widgetItemButton.minWidth ?? 0;
             const buttonHeight = 28;
             const buttonX = pageWidth - horizontalPadding - buttonWidth;
             const buttonY = (ITEM_HEIGHT - buttonHeight) / 2;

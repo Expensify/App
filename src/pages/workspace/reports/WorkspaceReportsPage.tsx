@@ -1,28 +1,31 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {clearPolicyTitleFieldError, enablePolicyReportFields, setPolicyPreventMemberCreatedTitle} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -31,6 +34,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getTitleFieldWithFallback} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -58,20 +62,22 @@ function WorkspaceReportFieldsPage({
     },
 }: WorkspaceReportFieldsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for the small screen selection mode
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const policy = usePolicy(policyID);
+    const {showConfirmModal} = useConfirmModal();
+    const {canWrite: canWriteReportFields, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.reports');
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
-    const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
+    const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((connectionName) => connectionName === connectionSyncProgress?.connectionName);
+    const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
+    const connectedIntegration = getConnectedIntegration(policy) ?? syncingAccountingIntegration;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
     const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
@@ -80,7 +86,19 @@ function WorkspaceReportFieldsPage({
         if (!hasAccountingConnections) {
             return;
         }
-        setIsOrganizeWarningModalOpen(true);
+
+        showConfirmModal({
+            title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
+            prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
+            confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !policyID) {
+                return;
+            }
+
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+        });
     };
 
     const {isOffline} = useNetwork({onReconnect: () => openPolicyReportFieldsPage(policyID)});
@@ -106,6 +124,10 @@ function WorkspaceReportFieldsPage({
         : [];
 
     const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
+        if (!canWriteReportFields) {
+            return;
+        }
+
         Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
     };
 
@@ -124,6 +146,7 @@ function WorkspaceReportFieldsPage({
         );
 
     const isLoading = !isOffline && policy === undefined;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceReportFieldsPage', isOffline, isPolicyUndefined: policy === undefined};
 
     const renderItem = ({item}: ListRenderItemInfo<ReportFieldForList>) => (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
@@ -132,8 +155,8 @@ function WorkspaceReportFieldsPage({
                 onPress={() => navigateToReportFieldsSettings(item)}
                 description={item.text}
                 disabled={item.isDisabled}
-                shouldShowRightIcon={!item.isDisabled}
-                interactive={!item.isDisabled}
+                shouldShowRightIcon={!item.isDisabled && canWriteReportFields}
+                interactive={!item.isDisabled && canWriteReportFields}
                 rightLabel={item.rightLabel}
                 descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
             />
@@ -165,9 +188,10 @@ function WorkspaceReportFieldsPage({
 
     const renderReportSubtitle = () => (
         <OfflineWithFeedback pendingAction={policy?.pendingAction}>
-            <View style={[[styles.renderHTML, styles.mt1]]}>
-                <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
-            </View>
+            <SectionSubtitleHTML
+                html={translate('workspace.reports.customReportNamesSubtitle')}
+                wrapperStyle={styles.mt1}
+            />
         </OfflineWithFeedback>
     );
 
@@ -182,6 +206,7 @@ function WorkspaceReportFieldsPage({
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -202,6 +227,7 @@ function WorkspaceReportFieldsPage({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
+                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {!isLoading && (
@@ -223,9 +249,10 @@ function WorkspaceReportFieldsPage({
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
                                     title={Str.htmlDecode(titleField?.defaultValue ?? '')}
-                                    shouldShowRightIcon
+                                    shouldShowRightIcon={canWriteReportFields}
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                     onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
+                                    interactive={canWriteReportFields}
                                 />
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
@@ -247,8 +274,11 @@ function WorkspaceReportFieldsPage({
                                         return;
                                     }
 
-                                    setPolicyPreventMemberCreatedTitle(policyID, isEnabled);
+                                    setPolicyPreventMemberCreatedTitle(policyID, isEnabled, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
                                 }}
+                                disabled={!canWriteReportFields}
+                                disabledAction={withReadOnlyFallback()}
+                                showLockIcon={!canWriteReportFields}
                             />
                         </Section>
                         <Section
@@ -265,7 +295,19 @@ function WorkspaceReportFieldsPage({
                                 isActive={!!policy?.areReportFieldsEnabled}
                                 onToggle={(isEnabled) => {
                                     if (!isEnabled) {
-                                        setIsReportFieldsWarningModalOpen(true);
+                                        showConfirmModal({
+                                            danger: true,
+                                            title: translate('workspace.reportFields.disableReportFields'),
+                                            prompt: translate('workspace.reportFields.disableReportFieldsConfirmation'),
+                                            confirmText: translate('common.disable'),
+                                            cancelText: translate('common.cancel'),
+                                        }).then((result) => {
+                                            if (result.action !== ModalActions.CONFIRM || !policyID) {
+                                                return;
+                                            }
+
+                                            enablePolicyReportFields(policyID, false);
+                                        });
                                         return;
                                     }
                                     if (!isControlPolicy(policy)) {
@@ -276,8 +318,9 @@ function WorkspaceReportFieldsPage({
                                     }
                                     enablePolicyReportFields(policyID, isEnabled);
                                 }}
-                                disabled={hasAccountingConnections}
-                                disabledAction={onDisabledOrganizeSwitchPress}
+                                disabled={hasAccountingConnections || !canWriteReportFields}
+                                disabledAction={withReadOnlyFallback(onDisabledOrganizeSwitchPress)}
+                                showLockIcon={!canWriteReportFields}
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (
                                         <>
@@ -289,7 +332,7 @@ function WorkspaceReportFieldsPage({
                                                     maintainVisibleContentPosition={{disabled: true}}
                                                 />
                                             </View>
-                                            {!hasAccountingConnections && (
+                                            {!hasAccountingConnections && canWriteReportFields && (
                                                 <MenuItem
                                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
                                                     title={translate('workspace.reportFields.addField')}
@@ -304,37 +347,6 @@ function WorkspaceReportFieldsPage({
                         </Section>
                     </ScrollView>
                 )}
-                <ConfirmModal
-                    title={translate('workspace.reportFields.disableReportFields')}
-                    isVisible={isReportFieldsWarningModalOpen}
-                    onConfirm={() => {
-                        if (!policyID) {
-                            return;
-                        }
-                        setIsReportFieldsWarningModalOpen(false);
-                        enablePolicyReportFields(policyID, false);
-                    }}
-                    onCancel={() => setIsReportFieldsWarningModalOpen(false)}
-                    prompt={translate('workspace.reportFields.disableReportFieldsConfirmation')}
-                    confirmText={translate('common.disable')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
-                <ConfirmModal
-                    title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
-                    onConfirm={() => {
-                        if (!policyID) {
-                            return;
-                        }
-                        setIsOrganizeWarningModalOpen(false);
-                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
-                    }}
-                    onCancel={() => setIsOrganizeWarningModalOpen(false)}
-                    isVisible={isOrganizeWarningModalOpen}
-                    prompt={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText')}
-                    confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
-                    cancelText={translate('common.cancel')}
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

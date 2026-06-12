@@ -10,15 +10,16 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePolicy from '@hooks/usePolicy';
-import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftInviteAccountID} from '@libs/actions/Card';
 import {searchUserInServer} from '@libs/actions/Report';
 import {getCardAssignmentDateOption, getCardAssignmentStartDate, getDefaultCardName} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -47,7 +48,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
 
     const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
     const excludedUsers: Record<string, boolean> = {};
@@ -61,9 +62,8 @@ function AssigneeStep({route}: AssigneeStepProps) {
         exclusions: softExclusions,
     } = useMemo(() => getGuideAndAccountManagerInfo(policy, account?.accountManagerAccountID, personalDetails), [policy, account?.accountManagerAccountID, personalDetails]);
 
-    const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, selectedOptionsForDisplay, areOptionsInitialized} = useSearchSelector({
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+    const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, areOptionsInitialized} = usePersonalDetailSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
         excludeFromSuggestionsOnly: softExclusions,
@@ -186,8 +186,8 @@ function AssigneeStep({route}: AssigneeStepProps) {
 
         const options = [
             ...filteredOptions,
-            ...selectedOptionsForDisplay,
-            ...availableOptions.recentReports,
+            ...availableOptions.selectedOptions,
+            ...availableOptions.recentOptions,
             ...availableOptions.personalDetails,
             ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
         ];
@@ -205,10 +205,15 @@ function AssigneeStep({route}: AssigneeStepProps) {
     }, [debouncedSearchTerm]);
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
-    const headerMessage =
-        !availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]
-            ? translate('messages.errorMessageInvalidEmail')
-            : getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
+    const headerMessage = (() => {
+        if (assignees.length > 0) {
+            return '';
+        }
+        if (CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+        return getHeaderMessage(translate, searchValue, countryCode);
+    })();
 
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),

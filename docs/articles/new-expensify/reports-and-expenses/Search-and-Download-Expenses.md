@@ -1,7 +1,8 @@
 ---
 title: Export Expenses and Reports
 description: Learn how to export your expenses and reports in CSV or PDF format using default or custom templates in New Expensify.
-keywords: [New Expensify, export expenses, export reports, CSV export, PDF export, download reports, accounting integration, report templates]
+keywords: [New Expensify, export expenses, export reports, CSV export, PDF export, download reports, accounting integration, report templates, export grouped expenses, group by, grouped export, Basic export]
+internalScope: Audience is members and admins. Covers exporting expenses and reports as CSV or PDF, does not cover accounting integration setup.
 ---
 
 
@@ -19,7 +20,7 @@ Expensify offers flexible options to search and export expenses and reports in v
 
 ## Web
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile) on the left, select **Reports > Expense Reports**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile) on the left, select **Spend** > **Reports**.
 2. Check the box next to the expenses or reports you want to export, or use the top checkbox to select all.
 3. Click **Selected** at the top.
 4. Select **Export** from the dropdown.
@@ -35,7 +36,7 @@ You’ll receive a message from **Concierge** with the exported file.
 
 ## Mobile
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile) at the bottom, select **Reports > Expense Reports**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile) at the bottom, select **Spend** > **Reports**.
 2. Tap the three-line icon in the top-right corner.
 3. Choose between **Reports** or **Expenses**.
 4. Check the box next to the items you want to export, or use the top checkbox to select all.
@@ -45,6 +46,23 @@ You’ll receive a message from **Concierge** with the exported file.
 You’ll receive the export in a Concierge message.
 
 > **Note:** Report-level templates only appear when full reports are selected.
+
+# Export grouped expenses
+
+When you group expenses on the **Spend** page, you can export the grouped results and the exported file keeps each group intact.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Spend** > **Expenses**.
+2. Click **Display**, then select **Group by** and choose how to group your expenses (for example, **Category**, **Merchant**, **Tag**, or **Card**).
+3. Click **Apply**.
+4. Check the box next to the groups you want to export, or use the top checkbox to select all.
+5. Click the selection button at the top (for example, **1 selected**).
+6. Select **Basic export**.
+
+In the exported file:
+- Each group appears as its own section with a header row.
+- The expenses in each group are listed below their group header.
+
+> **Note:** If you expand the groups and select the individual expenses instead of the groups, each expense is exported as its own row without grouping.
 
 # Export as PDF
 
@@ -62,6 +80,10 @@ The PDF will include:
 ## Can I export one line per report?
 
 Yes, use the **All Data – Report Level Export** template. All other templates will export one line per expense.
+
+## Can I keep my groups when I export?
+
+Yes. Group your expenses using **Display** > **Group by**, select the groups, then choose **Basic export**. The exported file keeps each group as its own section with the expenses listed below their group header.
 
 ## Can I export in PDF or XLS format?
 

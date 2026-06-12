@@ -2,11 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getReportPreviewAction} from '@libs/actions/IOU';
-import {duplicateExpenseTransaction, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
+import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
+import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
+import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
+import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import Navigation from '@libs/Navigation/Navigation';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
@@ -16,7 +19,7 @@ import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OriginalMessageIOU, PolicyTagLists, RecentWaypoint, Report, ReportActions} from '@src/types/onyx';
+import type {OriginalMessageIOU, Policy, PolicyTagLists, RecentWaypoint, Report, ReportActions} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -52,7 +55,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -87,7 +89,7 @@ describe('actions/Duplicate', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
                 // Apply optimistic data for testing
                 if (options?.optimisticData) {
@@ -184,7 +186,7 @@ describe('actions/Duplicate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`, {});
             await waitForBatchedUpdates();
 
-            const mergeParams = {
+            const mergeParams: MergeDuplicatesParams = {
                 transactionID: mainTransactionID,
                 transactionIDList: duplicateTransactionIDs,
                 created: '2024-01-01 12:00:00',
@@ -196,12 +198,13 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
                 receiptID: 123,
                 reportID,
             };
 
             // When: Call mergeDuplicates
-            mergeDuplicates(mergeParams);
+            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
             // Then: Verify main transaction was updated
@@ -265,7 +268,7 @@ describe('actions/Duplicate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
             await waitForBatchedUpdates();
 
-            const mergeParams = {
+            const mergeParams: MergeDuplicatesParams = {
                 transactionID: mainTransactionID,
                 transactionIDList: [],
                 created: '2024-01-01 12:00:00',
@@ -282,7 +285,7 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates with empty duplicate list
-            mergeDuplicates(mergeParams);
+            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
             // Then: Verify main transaction was still updated
@@ -316,7 +319,7 @@ describe('actions/Duplicate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
             await waitForBatchedUpdates();
 
-            const mergeParams = {
+            const mergeParams: MergeDuplicatesParams = {
                 transactionID: mainTransactionID,
                 transactionIDList: duplicateTransactionIDs,
                 created: '2024-01-01 12:00:00',
@@ -333,7 +336,7 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates without expense report
-            mergeDuplicates(mergeParams);
+            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
             // Then: Verify function completed without errors
@@ -409,8 +412,8 @@ describe('actions/Duplicate', () => {
             });
             await waitForBatchedUpdates();
 
-            const transactionThreadReport1 = buildTransactionThread(iouAction1, expenseReport);
-            const transactionThreadReport2 = buildTransactionThread(iouAction2, expenseReport);
+            const transactionThreadReport1 = buildTransactionThread(iouAction1, expenseReport, RORY_ACCOUNT_ID);
+            const transactionThreadReport2 = buildTransactionThread(iouAction2, expenseReport, RORY_ACCOUNT_ID);
 
             expect(transactionThreadReport1.participants).toEqual({
                 [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
@@ -422,17 +425,26 @@ describe('actions/Duplicate', () => {
             const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
             openReport({
                 reportID: transactionThreadReport1.reportID,
                 introSelected: undefined,
-                participantLoginList: userLogins,
+                personalDetails: allPersonalDetails,
+                participants,
+                betas: undefined,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction1?.reportActionID,
             });
             openReport({
                 reportID: transactionThreadReport2.reportID,
                 introSelected: undefined,
-                participantLoginList: userLogins,
+                personalDetails: allPersonalDetails,
+                participants,
+                betas: undefined,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction2?.reportActionID,
             });
@@ -487,6 +499,7 @@ describe('actions/Duplicate', () => {
                     text: message,
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: RORY_ACCOUNT_ID,
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
             };
@@ -508,7 +521,7 @@ describe('actions/Duplicate', () => {
 
             await waitForBatchedUpdates();
 
-            const mergeParams = {
+            const mergeParams: MergeDuplicatesParams = {
                 transactionID: mainTransactionID,
                 transactionIDList: duplicateTransactionIDs,
                 created: '2024-01-01 12:00:00',
@@ -520,12 +533,13 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
                 receiptID: 123,
                 reportID,
             };
 
             // When: Call mergeDuplicates
-            mergeDuplicates(mergeParams);
+            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
@@ -607,7 +621,7 @@ describe('actions/Duplicate', () => {
             });
             await waitForBatchedUpdates();
 
-            const mergeParams = {
+            const mergeParams: MergeDuplicatesParams = {
                 transactionID: mainTransactionID,
                 transactionIDList: duplicateTransactionIDs,
                 transactionThreadReportID: optimisticTransactionThreadReportID,
@@ -625,7 +639,7 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates with transactionThreadReportID
-            mergeDuplicates(mergeParams);
+            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
             // Then: Verify the optimistic transaction thread report was created
@@ -646,6 +660,93 @@ describe('actions/Duplicate', () => {
                             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThreadReportID}`,
                         }),
                     ]),
+                }),
+            );
+        });
+
+        it('should handle cross-report duplicates by cleaning up IOU actions and totals in each source report', async () => {
+            // Given: Duplicate transactions in different reports
+            const keptReportID = 'reportA';
+            const crossReportID = 'reportB';
+            const mainTransactionID = 'mainTx';
+            const crossReportDuplicateID = 'crossDupTx';
+            const childReportIDMain = 'childMain';
+            const childReportIDCross = 'childCross';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, keptReportID, 100);
+            const crossDuplicateTransaction = createMockTransaction(crossReportDuplicateID, crossReportID, 100);
+
+            const keptReport = createMockReport(keptReportID, 200);
+            const crossReport = createMockReport(crossReportID, 200);
+
+            const mainViolations = createMockViolations();
+            const crossDuplicateViolations = createMockViolations();
+
+            const mainIouAction = createMockIouAction(mainTransactionID, 'actionMain', childReportIDMain);
+            const crossIouAction = createMockIouAction(crossReportDuplicateID, 'actionCross', childReportIDCross);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${crossReportDuplicateID}`, crossDuplicateTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${keptReportID}`, keptReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${crossReportID}`, crossReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`, crossDuplicateViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${keptReportID}`, {
+                actionMain: mainIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${crossReportID}`, {
+                actionCross: crossIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDMain}`, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDCross}`, {});
+            await waitForBatchedUpdates();
+
+            const mergeParams: MergeDuplicatesParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [crossReportDuplicateID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 100,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID: keptReportID,
+            };
+
+            // When: Call mergeDuplicates with cross-report duplicates
+            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            // Then: cross-report IOU action was soft-deleted
+            const crossReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${crossReportID}`);
+            expect(getOriginalMessage(crossReportActions?.actionCross)).toHaveProperty('deleted');
+
+            // Then: kept report total was NOT decremented (kept transaction stays)
+            const updatedKeptReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${keptReportID}`);
+            expect(updatedKeptReport?.total).toBe(200);
+
+            // Then: cross-report total WAS decremented
+            const updatedCrossReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${crossReportID}`);
+            expect(updatedCrossReport?.total).toBe(100); // 200 - 100 = 100
+
+            // Then: duplicate transaction was removed
+            const removedDuplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${crossReportDuplicateID}`);
+            expect(removedDuplicate).toBeFalsy();
+
+            // Then: Verify API was called with correct parameters
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_DUPLICATES,
+                expect.objectContaining({
+                    transactionID: mainTransactionID,
+                    transactionIDList: [crossReportDuplicateID],
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([]),
+                    failureData: expect.arrayContaining([]),
                 }),
             );
         });
@@ -762,6 +863,10 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID,
+                transactionThreadReportIDMap: {
+                    [duplicate1ID]: childReportID1,
+                    [duplicate2ID]: childReportID2,
+                },
             };
 
             // When: Call resolveDuplicates
@@ -827,7 +932,7 @@ describe('actions/Duplicate', () => {
                     transactionID: mainTransactionID,
                     transactionIDList: duplicateTransactionIDs,
                     reportActionIDList: expect.arrayContaining([]),
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
                     dismissedViolationReportActionID: expect.anything(),
                 }),
                 expect.objectContaining({
@@ -853,6 +958,7 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID: 'report123',
+                transactionThreadReportIDMap: {},
             };
 
             // When: Call resolveDuplicates with undefined transactionID
@@ -895,6 +1001,7 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID,
+                transactionThreadReportIDMap: {},
             };
 
             // When: Call resolveDuplicates with empty duplicate list
@@ -951,6 +1058,7 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID,
+                transactionThreadReportIDMap: {},
             };
 
             // When: Call resolveDuplicates without IOU actions
@@ -975,6 +1083,97 @@ describe('actions/Duplicate', () => {
 
             // Then: Verify API was called
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
+        });
+
+        it('should handle cross-report duplicates by finding IOU actions in each transaction own report', async () => {
+            // Given: Duplicate transactions that belong to different reports
+            const reportA = 'reportA';
+            const reportB = 'reportB';
+            const mainTransactionID = 'mainTx';
+            const crossReportDuplicateID = 'crossDupTx';
+            const childReportIDMain = 'childMain';
+            const childReportIDCross = 'childCross';
+
+            // Main transaction lives in reportA
+            const mainTransaction = createMockTransaction(mainTransactionID, reportA, 100);
+            // Duplicate transaction lives in reportB (cross-report duplicate)
+            const crossDuplicateTransaction = createMockTransaction(crossReportDuplicateID, reportB, 100);
+
+            const mainViolations = createMockViolations();
+            const crossDuplicateViolations = createMockViolations();
+
+            // IOU actions live in their respective transaction reports
+            const mainIouAction = createMockIouAction(mainTransactionID, 'actionMain', childReportIDMain);
+            const crossIouAction = createMockIouAction(crossReportDuplicateID, 'actionCross', childReportIDCross);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${crossReportDuplicateID}`, crossDuplicateTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`, crossDuplicateViolations);
+            // Each IOU action is stored under its own report's report actions
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportA}`, {
+                actionMain: mainIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportB}`, {
+                actionCross: crossIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDCross}`, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDMain}`, {});
+            await waitForBatchedUpdates();
+
+            const resolveParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [crossReportDuplicateID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 100,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID: reportA,
+                transactionThreadReportIDMap: {
+                    [crossReportDuplicateID]: childReportIDCross,
+                },
+            };
+
+            // When: Call resolveDuplicates with cross-report duplicates
+            resolveDuplicates(resolveParams);
+            await waitForBatchedUpdates();
+
+            // Then: The cross-report duplicate transaction should be put on hold
+            const updatedCrossDuplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${crossReportDuplicateID}`);
+            expect(updatedCrossDuplicate?.comment?.hold).toBeDefined();
+
+            // Then: Hold report action should be created in the cross-report duplicate's child report thread
+            const crossChildReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDCross}`);
+            expect(Object.keys(crossChildReportActions ?? {})).toHaveLength(1);
+
+            // Then: The cross-report duplicate should have HOLD violation but no DUPLICATED_TRANSACTION
+            const updatedCrossViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`);
+            expect(updatedCrossViolations).toEqual(
+                expect.arrayContaining([
+                    {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION},
+                    {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
+                ]),
+            );
+            expect(updatedCrossViolations).not.toEqual(expect.arrayContaining([{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION}]));
+
+            // Then: Verify API was called with correct parameters
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_DUPLICATES,
+                expect.objectContaining({
+                    transactionID: mainTransactionID,
+                    transactionIDList: [crossReportDuplicateID],
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([]),
+                    failureData: expect.arrayContaining([]),
+                }),
+            );
         });
     });
 
@@ -1049,7 +1248,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1058,11 +1256,12 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1094,6 +1293,7 @@ describe('actions/Duplicate', () => {
                 ...mockTransaction,
                 transactionID,
                 amount: AMOUNT_CENTS,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
                 comment: {
                     type: 'time' as const,
                     units: {
@@ -1112,7 +1312,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1121,11 +1320,12 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1150,6 +1350,104 @@ describe('actions/Duplicate', () => {
             expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
         });
 
+        it('should duplicate a scan expense as a manual expense when a target workspace is provided', async () => {
+            const transactionID = 'scan-workspace-1';
+            const mockScanExpenseTransaction = {
+                ...mockTransaction,
+                transactionID,
+                amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockScanExpenseTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                personalDetails: mockPersonalDetails,
+                betas: [CONST.BETAS.ALL],
+                recentWaypoints,
+                targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
+        });
+
+        it('should duplicate a scan expense as a manual expense when no targetPolicy is provided', async () => {
+            const transactionID = 'scan-unreported-1';
+            const mockScanExpenseTransaction = {
+                ...mockTransaction,
+                transactionID,
+                amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockScanExpenseTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: undefined,
+                targetPolicyCategories: undefined,
+                targetReport: undefined,
+                existingTransactionDraft: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+                recentWaypoints,
+                targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
+        });
+
         it('should create a duplicate expense successfully (previously with transaction drafts)', async () => {
             const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
             const mockCashExpenseTransaction = {
@@ -1168,7 +1466,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1177,11 +1474,12 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1221,7 +1519,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 targetPolicy: mockPolicy,
@@ -1229,11 +1526,12 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 isSelfTourViewed: false,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1264,6 +1562,7 @@ describe('actions/Duplicate', () => {
                 ...mockTransaction,
                 transactionID,
                 amount: AMOUNT_CENTS,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
                 comment: {
                     type: 'time' as const,
                     units: {
@@ -1282,7 +1581,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 targetPolicy: mockPolicy,
@@ -1290,11 +1588,12 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 isSelfTourViewed: false,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1328,7 +1627,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1337,11 +1635,12 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1368,7 +1667,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1377,11 +1675,12 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: undefined,
                 targetReport: undefined,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1394,6 +1693,7 @@ describe('actions/Duplicate', () => {
             const mockDistanceTransaction = {
                 ...mockTransaction,
                 amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
                 comment: {
                     type: 'customUnit' as const,
                     customUnit: {
@@ -1410,7 +1710,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1419,23 +1718,87 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
 
             // Verify API was called with CREATE_DISTANCE_REQUEST
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, expect.objectContaining({}), expect.objectContaining({}));
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
+        });
+
+        it('should not corrupt modifiedCreated or leak top-level Transaction fields when duplicating a distance expense', async () => {
+            const transactionID = 'distance-shim-shape';
+            const mockDistanceTransaction = {
+                ...mockTransaction,
+                transactionID,
+                amount: -1000,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    type: 'customUnit' as const,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                    waypoints: {waypoint0: {address: 'A', lat: 1, lng: 1, keyForList: 'wp0'}},
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockDistanceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                personalDetails: mockPersonalDetails,
+                betas: [CONST.BETAS.ALL],
+                recentWaypoints,
+                targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== transactionID);
+                },
+            });
+
+            expect(duplicatedTransaction).toBeDefined();
+            expect(duplicatedTransaction?.modifiedCreated).not.toBe('');
+            const persisted = duplicatedTransaction as Record<string, unknown> | undefined;
+            expect(persisted?.distance).toBeUndefined();
+            expect(persisted?.validWaypoints).toBeUndefined();
+            expect(persisted?.customUnitRateID).toBeUndefined();
         });
 
         it('should call submitPerDiemExpense for per diem transactions', async () => {
             const mockPerDiemTransaction = {
                 ...mockTransaction,
                 amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                 comment: {
                     type: 'customUnit' as const,
                     customUnit: {
@@ -1461,7 +1824,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1470,17 +1832,19 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
 
             // Verify API was called with CREATE_PER_DIEM_REQUEST
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, expect.objectContaining({}), expect.objectContaining({}));
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
         it('should not pass linkedTrackedExpenseReportAction.childReportID as transactionThreadReportID to the API', async () => {
@@ -1525,7 +1889,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1534,11 +1897,12 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1574,7 +1938,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1583,11 +1946,12 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: undefined,
                 targetReport: undefined,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1634,7 +1998,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1643,11 +2006,12 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1728,6 +2092,9 @@ describe('actions/Duplicate', () => {
                         reimbursable: true,
                         tag: '',
                         transactionIDList: [transaction2.transactionID],
+                        transactionThreadReportIDMap: {
+                            [transaction2.transactionID]: 'transactionThread-2',
+                        },
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1744,6 +2111,1163 @@ describe('actions/Duplicate', () => {
                         });
                     });
                 });
+        });
+    });
+
+    describe('duplicateReport', () => {
+        let writeSpy: jest.SpyInstance;
+
+        const mockPolicy = createRandomPolicy(1);
+        const mockPolicyCategories = createRandomPolicyCategories(3);
+        const mockPersonalDetails = {
+            [RORY_ACCOUNT_ID]: {
+                accountID: RORY_ACCOUNT_ID,
+                login: RORY_EMAIL,
+                displayName: 'Rory',
+            },
+        };
+        const mockOwnerPersonalDetails = {
+            accountID: RORY_ACCOUNT_ID,
+            login: RORY_EMAIL,
+            displayName: 'Rory',
+        };
+
+        const mockTranslate = ((path: string, ...args: string[]) => {
+            if (path === 'common.copyOfReportName') {
+                return `Copy of ${args.at(0)}`;
+            }
+            return path;
+        }) as DuplicateReportParams['translate'];
+
+        const createCashTransaction = (id: string, overrides: Partial<Transaction> = {}): Transaction => ({
+            ...createRandomTransaction(Number(id)),
+            transactionID: id,
+            amount: -500,
+            merchant: 'Test Merchant',
+            modifiedMerchant: '',
+            currency: CONST.CURRENCY.USD,
+            cardNumber: '',
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            managedCard: false,
+            bank: '',
+            receipt: {},
+            ...overrides,
+        });
+
+        const POLICY_EXPENSE_CHAT_REPORT_ID = 'policyExpenseChatReport';
+
+        const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
+            sourceReport: undefined,
+            sourceReportTransactions: sourceTransactions,
+            sourceReportName: 'Original Report',
+            targetPolicy: mockPolicy,
+            targetPolicyCategories: mockPolicyCategories,
+            targetPolicyTags: {},
+            parentChatReport: {
+                reportID: POLICY_EXPENSE_CHAT_REPORT_ID,
+                policyID: mockPolicy.id,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+            },
+            ownerPersonalDetails: mockOwnerPersonalDetails,
+            isASAPSubmitBetaEnabled: false,
+            betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            isSelfTourViewed: false,
+            transactionViolations: {},
+            translate: mockTranslate,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            currentUserLogin: RORY_EMAIL,
+            recentWaypoints: [],
+            ...overrides,
+        });
+
+        const countWriteCommandCalls = (command: string) => writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === command).length;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            global.fetch = getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+                if (options?.optimisticData) {
+                    for (const update of options.optimisticData) {
+                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
+                            Onyx.merge(update.key, update.value);
+                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
+                            Onyx.set(update.key, update.value);
+                        }
+                    }
+                }
+                return Promise.resolve();
+            });
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_EXPENSE_CHAT_REPORT_ID}`, {
+                reportID: POLICY_EXPENSE_CHAT_REPORT_ID,
+                policyID: mockPolicy.id,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        it('should create a new report and duplicate all eligible transactions', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2', {merchant: 'Coffee Shop'});
+
+            duplicateReport(getDefaultParams([tx1, tx2]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+
+            const createReportCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_APP_REPORT) as unknown[] | undefined;
+            expect(createReportCall?.at(1)).toEqual(expect.objectContaining({reportName: 'Copy of Original Report'}));
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('should filter out credit card import transactions', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const cardTx = createCashTransaction('card1', {
+                transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD,
+            });
+            const cashTx2 = createCashTransaction('cash2');
+
+            duplicateReport(getDefaultParams([cashTx, cardTx, cashTx2]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+        });
+
+        it('should filter out accountant (Expensiworks) transactions', async () => {
+            const normalTx = createCashTransaction('normal1');
+            const accountantTx = createCashTransaction('acct1', {
+                accountant: {accountID: 999, login: 'accountant@test.com'},
+            });
+
+            duplicateReport(getDefaultParams([normalTx, accountantTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+        });
+
+        it('should filter out scanning transactions', async () => {
+            const normalTx = createCashTransaction('normal1');
+            const scanningTx = createCashTransaction('scan1', {
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {
+                    source: 'receipt.jpg',
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                },
+            });
+
+            duplicateReport(getDefaultParams([normalTx, scanningTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+        });
+
+        it('should route distance transactions through createDistanceRequest', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const distanceTx = createCashTransaction('dist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([cashTx, distanceTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST)).toBe(1);
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
+        });
+
+        it('should route per diem transactions through submitPerDiemExpense', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const perDiemTx = createCashTransaction('pd1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        customUnitID: 'unit1',
+                        customUnitRateID: 'rate1',
+                        subRates: [{id: 'sub1', quantity: 1, name: 'Full Day', rate: 100}],
+                        attributes: {dates: {start: '2024-01-01', end: '2024-01-02'}},
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([cashTx, perDiemTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(1);
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
+        });
+
+        it('should duplicate a scan expense as a manual expense', async () => {
+            const scanExpenseTx = createCashTransaction('scan-completed-1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
+            });
+
+            duplicateReport(getDefaultParams([scanExpenseTx]));
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== scanExpenseTx.transactionID);
+                },
+            });
+
+            expect(duplicatedTransaction).toBeDefined();
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
+        });
+
+        it('should not duplicate expenses when no target policy exists', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2');
+
+            duplicateReport(getDefaultParams([tx1, tx2], {targetPolicy: undefined}));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(0);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(0);
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('should still create the report when all transactions are ineligible', async () => {
+            const cardTx = createCashTransaction('card1', {
+                transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD,
+            });
+            const accountantTx = createCashTransaction('acct1', {
+                accountant: {accountID: 999, login: 'accountant@test.com'},
+            });
+
+            duplicateReport(getDefaultParams([cardTx, accountantTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(0);
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('should set duplicated transaction dates to today', async () => {
+            const oldDate = '2023-06-15';
+            const tx = createCashTransaction('tx1', {created: oldDate});
+
+            duplicateReport(getDefaultParams([tx]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+
+            const today = new Date().toISOString().slice(0, 10);
+            expect(requestMoneyCall?.at(1)).toEqual(expect.objectContaining({created: today}));
+        });
+
+        it('should clear receipt data from duplicated transactions', async () => {
+            const txWithReceipt = createCashTransaction('tx1', {
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
+            });
+
+            duplicateReport(getDefaultParams([txWithReceipt]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.at(1)).toEqual(expect.objectContaining({receipt: undefined}));
+        });
+
+        it('should use modifiedMerchant when available', async () => {
+            const tx = createCashTransaction('tx1', {
+                merchant: 'Original Merchant',
+                modifiedMerchant: 'Modified Merchant',
+            });
+
+            duplicateReport(getDefaultParams([tx]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.at(1)).toEqual(expect.objectContaining({merchant: 'Modified Merchant'}));
+        });
+
+        it('should pass the same reportPreviewReportActionID to all expense calls', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2');
+            const tx3 = createCashTransaction('tx3');
+
+            duplicateReport(getDefaultParams([tx1, tx2, tx3]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as Array<[string, Record<string, unknown>]>;
+            expect(requestMoneyCalls).toHaveLength(3);
+
+            const firstPreviewID = requestMoneyCalls.at(0)?.[1]?.reportPreviewReportActionID;
+            expect(firstPreviewID).toBeDefined();
+            for (const call of requestMoneyCalls) {
+                expect(call[1].reportPreviewReportActionID).toBe(firstPreviewID);
+            }
+        });
+
+        it('should target the same chat report for all expense calls', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2');
+
+            duplicateReport(getDefaultParams([tx1, tx2]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as Array<[string, Record<string, unknown>]>;
+            expect(requestMoneyCalls).toHaveLength(2);
+
+            const firstChatReportID = requestMoneyCalls.at(0)?.[1]?.chatReportID;
+            const secondChatReportID = requestMoneyCalls.at(1)?.[1]?.chatReportID;
+            expect(firstChatReportID).toBeDefined();
+            expect(firstChatReportID).toBe(secondChatReportID);
+        });
+
+        it('should filter out partial (incomplete) transactions', async () => {
+            const normalTx = createCashTransaction('normal1');
+            const partialTx = createCashTransaction('partial1', {
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            });
+
+            duplicateReport(getDefaultParams([normalTx, partialTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+        });
+
+        it('should handle mixed eligible and ineligible transactions correctly', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const cardTx = createCashTransaction('card1', {transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD});
+            const accountantTx = createCashTransaction('acct1', {accountant: {accountID: 999, login: 'a@test.com'}});
+            const cashTx2 = createCashTransaction('cash2');
+            const scanningTx = createCashTransaction('scan1', {
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {source: 'r.jpg', state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            });
+
+            duplicateReport(getDefaultParams([cashTx, cardTx, accountantTx, cashTx2, scanningTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+        });
+
+        it('should strip waypoints and use stored distance for split distance expenses', async () => {
+            const splitDistanceTx = createCashTransaction('splitDist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    originalTransactionID: 'origTx1',
+                    source: 'split',
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 42,
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([splitDistanceTx]));
+            await waitForBatchedUpdates();
+
+            const distanceCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_DISTANCE_REQUEST) as [string, Record<string, unknown>] | undefined;
+            expect(distanceCall).toBeDefined();
+            expect(distanceCall?.at(1)).toEqual(expect.objectContaining({waypoints: 'null'}));
+        });
+
+        it('should preserve waypoints for non-split distance expenses', async () => {
+            const distanceTx = createCashTransaction('dist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                    waypoints: {
+                        waypoint0: {lat: 37.7749, lng: -122.4194, address: 'San Francisco'},
+                        waypoint1: {lat: 34.0522, lng: -118.2437, address: 'Los Angeles'},
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([distanceTx]));
+            await waitForBatchedUpdates();
+
+            const distanceCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_DISTANCE_REQUEST) as [string, Record<string, unknown>] | undefined;
+            expect(distanceCall).toBeDefined();
+
+            const waypoints = distanceCall?.[1]?.waypoints;
+            expect(waypoints).toBeDefined();
+            expect(waypoints).not.toBe('null');
+        });
+
+        it('should correctly route a report with mixed cash, distance, and per diem transactions', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const distanceTx = createCashTransaction('dist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                },
+            });
+            const perDiemTx = createCashTransaction('pd1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        customUnitID: 'unit1',
+                        customUnitRateID: 'rate1',
+                        subRates: [{id: 'sub1', quantity: 1, name: 'Full Day', rate: 100}],
+                        attributes: {dates: {start: '2024-01-01', end: '2024-01-02'}},
+                    },
+                },
+            });
+            const cashTx2 = createCashTransaction('cash2');
+
+            duplicateReport(getDefaultParams([cashTx, distanceTx, perDiemTx, cashTx2]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(1);
+        });
+
+        it('should preserve transaction fields like category, tag, and currency', async () => {
+            const tx = createCashTransaction('tx1', {
+                category: 'Travel',
+                tag: 'Business',
+                currency: 'EUR',
+                amount: -1500,
+                billable: true,
+            });
+
+            duplicateReport(getDefaultParams([tx]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.at(1)).toEqual(
+                expect.objectContaining({
+                    category: 'Travel',
+                    tag: 'Business',
+                    currency: 'EUR',
+                    amount: 1500,
+                    billable: true,
+                }),
+            );
+        });
+
+        it('should strip originalTransactionID and source when duplicating split distance expenses', async () => {
+            const splitDistanceTx = createCashTransaction('splitDist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    originalTransactionID: 'origParent123',
+                    source: 'split',
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 10,
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([splitDistanceTx]));
+            await waitForBatchedUpdates();
+
+            const distanceCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_DISTANCE_REQUEST) as [string, Record<string, unknown>] | undefined;
+            expect(distanceCall).toBeDefined();
+
+            const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+            const duplicatedTransactions = (Object.values(allTransactions ?? {}) as Array<Transaction | null>).filter(
+                (tx): tx is Transaction => !!tx && tx.transactionID !== splitDistanceTx.transactionID,
+            );
+            expect(duplicatedTransactions.length).toBeGreaterThan(0);
+            for (const tx of duplicatedTransactions) {
+                expect(tx.comment?.originalTransactionID).toBeFalsy();
+                expect(tx.comment?.source).not.toBe('split');
+            }
+        });
+
+        it('should clear modifiedAmount from duplicated transactions', async () => {
+            const tx = createCashTransaction('tx1', {
+                modifiedAmount: 999,
+            });
+
+            duplicateReport(getDefaultParams([tx]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.[1]?.modifiedAmount).toBeUndefined();
+        });
+
+        it('should not create any expense calls for an empty transactions array', async () => {
+            duplicateReport(getDefaultParams([]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(0);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST)).toBe(0);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(0);
+        });
+
+        it('should pass shouldPlaySound false to individual expense calls', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2');
+
+            duplicateReport(getDefaultParams([tx1, tx2]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as Array<[string, Record<string, unknown>]>;
+            expect(requestMoneyCalls).toHaveLength(2);
+
+            for (const call of requestMoneyCalls) {
+                expect(call[1]).not.toEqual(expect.objectContaining({shouldPlaySound: true}));
+            }
+        });
+    });
+
+    describe('bulkDuplicateExpenses', () => {
+        let writeSpy: jest.SpyInstance;
+
+        const mockPolicy: Policy = {
+            ...createRandomPolicy(1),
+            type: CONST.POLICY.TYPE.TEAM,
+            autoReporting: false,
+            harvesting: {enabled: false},
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        };
+        const fakePolicyCategories = createRandomPolicyCategories(3);
+        const policyExpenseChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            global.fetch = getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+                if (options?.optimisticData) {
+                    for (const update of options.optimisticData) {
+                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
+                            Onyx.merge(update.key, update.value);
+                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
+                            Onyx.set(update.key, update.value);
+                        }
+                    }
+                }
+                return Promise.resolve();
+            });
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy.id}`, mockPolicy);
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        it('should create a single IOU report for multiple bulk-duplicated expenses', async () => {
+            const tx1: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'bulk_1',
+                amount: -500,
+                currency: 'USD',
+            };
+            const tx2: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'bulk_2',
+                amount: -300,
+                currency: 'USD',
+            };
+            const tx3: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID: 'bulk_3',
+                amount: -200,
+                currency: 'USD',
+            };
+            delete (tx1 as Partial<Transaction>).comment;
+            delete (tx2 as Partial<Transaction>).comment;
+            delete (tx3 as Partial<Transaction>).comment;
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_1`]: tx1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_2`]: tx2,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_3`]: tx3,
+            };
+
+            bulkDuplicateExpenses({
+                transactionIDs: ['bulk_1', 'bulk_2', 'bulk_3'],
+                allTransactions,
+                sourcePolicyIDMap: {},
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetPolicyTags: {},
+                targetReport: policyExpenseChat,
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                isASAPSubmitBetaEnabled: false,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                transactionDrafts: undefined,
+                betas: [CONST.BETAS.ALL],
+                recentWaypoints: [],
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY);
+            expect(requestMoneyCalls).toHaveLength(3);
+
+            const iouReportIDs = new Set(
+                requestMoneyCalls.map((call: unknown[]) => {
+                    const params = call.at(1) as Record<string, unknown>;
+                    return params.iouReportID;
+                }),
+            );
+            expect(iouReportIDs.size).toBe(1);
+        });
+    });
+
+    describe('bulkDuplicateReports', () => {
+        let writeSpy: jest.SpyInstance;
+
+        const SOURCE_POLICY_ID = 'sourcePolicy1';
+        const DEFAULT_POLICY_ID = 'defaultPolicy1';
+        const OTHER_POLICY_ID = 'otherPolicy1';
+
+        const sourcePolicy = {
+            ...createRandomPolicy(100, CONST.POLICY.TYPE.TEAM, 'Source WS'),
+            id: SOURCE_POLICY_ID,
+            role: CONST.POLICY.ROLE.USER,
+            pendingAction: undefined,
+            employeeList: {[RORY_EMAIL]: {email: RORY_EMAIL, role: CONST.POLICY.ROLE.USER}},
+        };
+
+        const defaultPolicy = {
+            ...createRandomPolicy(200, CONST.POLICY.TYPE.TEAM, 'Default WS'),
+            id: DEFAULT_POLICY_ID,
+            role: CONST.POLICY.ROLE.USER,
+            pendingAction: undefined,
+            employeeList: {[RORY_EMAIL]: {email: RORY_EMAIL, role: CONST.POLICY.ROLE.USER}},
+        };
+
+        const inaccessiblePolicy = {
+            ...createRandomPolicy(300, CONST.POLICY.TYPE.TEAM, 'Inaccessible WS'),
+            id: OTHER_POLICY_ID,
+            role: undefined,
+            pendingAction: undefined,
+            employeeList: {},
+        } as unknown as Policy;
+
+        const ACTIVE_PEC_REPORT_ID = 'activePEC';
+        const activePolicyExpenseChat: Report = {
+            reportID: ACTIVE_PEC_REPORT_ID,
+            policyID: DEFAULT_POLICY_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            ownerAccountID: RORY_ACCOUNT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+
+        const mockTranslate = ((path: string, ...args: string[]) => {
+            if (path === 'common.copyOfReportName') {
+                return `Copy of ${args.at(0)}`;
+            }
+            return path;
+        }) as BulkDuplicateReportsParams['translate'];
+
+        const createCashTransaction = (id: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction => ({
+            ...createRandomTransaction(Number(id.replaceAll(/\D/g, '')) || 1),
+            transactionID: id,
+            reportID,
+            amount: -500,
+            merchant: 'Test Merchant',
+            modifiedMerchant: '',
+            currency: CONST.CURRENCY.USD,
+            cardNumber: '',
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            managedCard: false,
+            bank: '',
+            receipt: {},
+            ...overrides,
+        });
+
+        const getDefaultBulkParams = (reportIDs: string[], overrides: Partial<BulkDuplicateReportsParams> = {}): BulkDuplicateReportsParams => ({
+            selectedReports: reportIDs.map((id) => ({
+                reportID: id,
+                policyID: undefined,
+                action: CONST.SEARCH.ACTION_TYPES.DONE,
+                canPay: false,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
+                total: 0,
+                chatReportID: undefined,
+            })),
+            allReports: {},
+            searchData: undefined,
+            allPolicies: {
+                [`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`]: sourcePolicy,
+                [`${ONYXKEYS.COLLECTION.POLICY}${DEFAULT_POLICY_ID}`]: defaultPolicy,
+                [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`]: inaccessiblePolicy,
+            } as BulkDuplicateReportsParams['allPolicies'],
+            allPolicyCategories: {},
+            allPolicyTags: {},
+            defaultExpensePolicy: defaultPolicy,
+            activePolicyExpenseChat,
+            ownerPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'},
+            currentUserLogin: RORY_EMAIL,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            isASAPSubmitBetaEnabled: false,
+            betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'}},
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            isSelfTourViewed: false,
+            transactionViolations: {},
+            translate: mockTranslate,
+            recentWaypoints: [],
+            ...overrides,
+        });
+
+        const countWriteCommandCalls = (command: string) => writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === command).length;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            global.fetch = getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+                if (options?.optimisticData) {
+                    for (const update of options.optimisticData) {
+                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
+                            Onyx.merge(update.key, update.value);
+                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
+                            Onyx.set(update.key, update.value);
+                        }
+                    }
+                }
+                return Promise.resolve();
+            });
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`, activePolicyExpenseChat);
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        it('should duplicate multiple reports, calling CREATE_APP_REPORT for each', async () => {
+            const report1: Report = {
+                reportID: 'rpt1',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Report 1',
+                chatReportID: ACTIVE_PEC_REPORT_ID,
+            };
+            const report2: Report = {
+                reportID: 'rpt2',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Report 2',
+                chatReportID: ACTIVE_PEC_REPORT_ID,
+            };
+
+            const tx1 = createCashTransaction('tx1', 'rpt1');
+            const tx2 = createCashTransaction('tx2', 'rpt2');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`, tx2);
+
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt2`]: report2,
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+
+            bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+        });
+
+        it('should use source policy when accessible, and fall back to default policy when not', async () => {
+            const chatForSource: Report = {
+                reportID: 'chatSource',
+                policyID: SOURCE_POLICY_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            };
+            const report1: Report = {
+                reportID: 'rpt1',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Source Policy Report',
+                chatReportID: 'chatSource',
+            };
+            const report2: Report = {
+                reportID: 'rpt2',
+                policyID: OTHER_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Inaccessible Policy Report',
+                chatReportID: 'chatOther',
+            };
+
+            const tx1 = createCashTransaction('tx1', 'rpt1');
+            const tx2 = createCashTransaction('tx2', 'rpt2');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`, tx2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}chatSource`, chatForSource);
+
+            const sourceCategories = {Travel: {name: 'Travel', enabled: true, areCommentsRequired: false, externalID: '', origin: ''}};
+            const defaultCategories = {Office: {name: 'Office', enabled: true, areCommentsRequired: false, externalID: '', origin: ''}};
+
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt2`]: report2,
+                [`${ONYXKEYS.COLLECTION.REPORT}chatSource`]: chatForSource,
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+
+            bulkDuplicateReports(
+                getDefaultBulkParams(['rpt1', 'rpt2'], {
+                    allReports,
+                    allPolicyCategories: {
+                        [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${SOURCE_POLICY_ID}`]: sourceCategories,
+                        [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${DEFAULT_POLICY_ID}`]: defaultCategories,
+                    },
+                }),
+            );
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+
+            const createReportCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_APP_REPORT) as Array<[string, Record<string, unknown>]>;
+            expect(createReportCalls).toHaveLength(2);
+
+            const reportNames = createReportCalls.map((call) => call[1].reportName);
+            expect(reportNames).toContain('Copy of Source Policy Report');
+            expect(reportNames).toContain('Copy of Inaccessible Policy Report');
+        });
+
+        it('should filter out pending-delete transactions', async () => {
+            const report1: Report = {
+                reportID: 'rpt1',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Report 1',
+                chatReportID: ACTIVE_PEC_REPORT_ID,
+            };
+
+            const normalTx = createCashTransaction('tx1', 'rpt1');
+            const deletedTx = createCashTransaction('tx2', 'rpt1', {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, normalTx);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`, deletedTx);
+
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+
+            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+        });
+
+        it('should fall back to activePolicyExpenseChat when source chat report is missing', async () => {
+            const report1: Report = {
+                reportID: 'rpt1',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Orphan Report',
+                chatReportID: 'nonexistentChat',
+            };
+
+            const tx1 = createCashTransaction('tx1', 'rpt1');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
+
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+
+            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.[1]?.chatReportID).toBe(ACTIVE_PEC_REPORT_ID);
+        });
+
+        it('should use activePolicyExpenseChat when source policy is inaccessible', async () => {
+            const report1: Report = {
+                reportID: 'rpt1',
+                policyID: OTHER_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Cross Policy Report',
+                chatReportID: 'chatOther',
+            };
+            const chatOther: Report = {
+                reportID: 'chatOther',
+                policyID: OTHER_POLICY_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            };
+
+            const tx1 = createCashTransaction('tx1', 'rpt1');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
+
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}chatOther`]: chatOther,
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+
+            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.[1]?.chatReportID).toBe(ACTIVE_PEC_REPORT_ID);
+        });
+
+        it('should skip reports with no transactions available', async () => {
+            const report1: Report = {
+                reportID: 'rpt1',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Real Report',
+                chatReportID: ACTIVE_PEC_REPORT_ID,
+            };
+
+            const tx1 = createCashTransaction('tx1', 'rpt1');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
+
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+
+            bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'nonexistent1', 'nonexistent2'], {allReports}));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+        });
+
+        it('should create empty reports for reports with no transactions', async () => {
+            const report1: Report = {
+                reportID: 'rpt1',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Empty Report',
+                chatReportID: ACTIVE_PEC_REPORT_ID,
+            };
+
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+
+            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(0);
+        });
+
+        it('should group transactions correctly per report when duplicating multiple reports', async () => {
+            const report1: Report = {
+                reportID: 'rpt1',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Report 1',
+                chatReportID: ACTIVE_PEC_REPORT_ID,
+            };
+            const report2: Report = {
+                reportID: 'rpt2',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Report 2',
+                chatReportID: ACTIVE_PEC_REPORT_ID,
+            };
+
+            const tx1 = createCashTransaction('tx1', 'rpt1', {merchant: 'Merchant A'});
+            const tx2 = createCashTransaction('tx2', 'rpt1', {merchant: 'Merchant B'});
+            const tx3 = createCashTransaction('tx3', 'rpt2', {merchant: 'Merchant C'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`, tx2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx3`, tx3);
+
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt2`]: report2,
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+
+            bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(3);
+        });
+
+        it('should resolve categories and tags from source policy when accessible, default policy otherwise', async () => {
+            const chatForSource: Report = {
+                reportID: 'chatSource',
+                policyID: SOURCE_POLICY_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            };
+            const report1: Report = {
+                reportID: 'rpt1',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Source Report',
+                chatReportID: 'chatSource',
+            };
+            const report2: Report = {
+                reportID: 'rpt2',
+                policyID: OTHER_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Other Report',
+                chatReportID: 'chatOther',
+            };
+
+            const tx1 = createCashTransaction('tx1', 'rpt1', {category: 'Travel'});
+            const tx2 = createCashTransaction('tx2', 'rpt2', {category: 'Office'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`, tx2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}chatSource`, chatForSource);
+
+            const sourceTags: PolicyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {Engineering: {name: 'Engineering', enabled: true, errors: null, rules: undefined}},
+                },
+            };
+
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt2`]: report2,
+                [`${ONYXKEYS.COLLECTION.REPORT}chatSource`]: chatForSource,
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+
+            bulkDuplicateReports(
+                getDefaultBulkParams(['rpt1', 'rpt2'], {
+                    allReports,
+                    allPolicyTags: {
+                        [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${SOURCE_POLICY_ID}`]: sourceTags,
+                    },
+                }),
+            );
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
+        });
+
+        it('should handle parentReportID fallback when chatReportID is undefined', async () => {
+            const parentChat: Report = {
+                reportID: 'parentChat',
+                policyID: SOURCE_POLICY_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            };
+            const report1: Report = {
+                reportID: 'rpt1',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Report with parentReportID',
+                parentReportID: 'parentChat',
+            };
+
+            const tx1 = createCashTransaction('tx1', 'rpt1');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}parentChat`, parentChat);
+
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}parentChat`]: parentChat,
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+
+            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.[1]?.chatReportID).toBe('parentChat');
         });
     });
 });

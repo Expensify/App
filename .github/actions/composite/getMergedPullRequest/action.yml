@@ -1,0 +1,66 @@
+name: Get merged pull request
+description: Given the current push event's commit SHA, finds the pull request that was merged to produce it.
+
+inputs:
+  github_token:
+    description: GitHub token used to call the API
+    required: true
+
+outputs:
+  number:
+    description: The PR number
+    value: ${{ steps.getMergedPR.outputs.number }}
+  title:
+    description: The PR title
+    value: ${{ steps.getMergedPR.outputs.title }}
+  body:
+    description: The PR body
+    value: ${{ steps.getMergedPR.outputs.body }}
+  labels:
+    description: Newline-separated label names
+    value: ${{ steps.getMergedPR.outputs.labels }}
+  assignees:
+    description: Newline-separated assignee logins
+    value: ${{ steps.getMergedPR.outputs.assignees }}
+
+runs:
+  using: composite
+  steps:
+    - name: Find merged pull request for this commit
+      id: getMergedPR
+      shell: bash
+      run: |
+        RESP=$(gh api -H "Accept: application/vnd.github+json" "/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls")
+
+        # Prefer the PR whose merge_commit_sha matches exactly (parity with the old action)
+        PR=$(echo "$RESP" | jq -c "first(.[] | select(.merge_commit_sha == \"${GITHUB_SHA}\"))" 2>/dev/null)
+
+        # Fall back to the first merged PR associated with this commit
+        if [[ -z "$PR" || "$PR" == "null" ]]; then
+          PR=$(echo "$RESP" | jq -c 'first(.[] | select(.merged_at != null))' 2>/dev/null)
+        fi
+
+        if [[ -z "$PR" || "$PR" == "null" ]]; then
+          echo "::warning::No merged pull request found for commit ${GITHUB_SHA}"
+          exit 0
+        fi
+
+        {
+          echo "number=$(echo "$PR" | jq -r '.number')"
+          echo "title=$(echo "$PR" | jq -r '.title')"
+
+          echo "body<<GETMPR_EOF"
+          echo "$PR" | jq -r '.body // ""'
+          echo "GETMPR_EOF"
+
+          echo "labels<<GETMPR_LABELS_EOF"
+          echo "$PR" | jq -r '[.labels[].name] | join("\n")'
+          echo "GETMPR_LABELS_EOF"
+
+          echo "assignees<<GETMPR_ASSIGNEES_EOF"
+          echo "$PR" | jq -r '[.assignees[].login] | join("\n")'
+          echo "GETMPR_ASSIGNEES_EOF"
+
+        } >> "$GITHUB_OUTPUT"
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}

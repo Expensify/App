@@ -15,11 +15,11 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getShortMentionIfFound} from '@libs/PersonalDetailsUtils';
-import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import asMutable from '@src/types/utils/asMutable';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -33,7 +33,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     const htmlAttribAccountID = tnode.attributes.accountid;
     const personalDetails = usePersonalDetails();
     const htmlAttributeAccountID = tnode.attributes.accountid;
-    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
+    const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
 
     let accountID: number;
@@ -46,7 +46,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         accountID = parseInt(htmlAttribAccountID, 10);
         mentionDisplayText = formatPhoneNumber(user?.login ?? '') || getDisplayNameOrDefault(user);
         mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails, user?.login ?? '') ?? '';
-        navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute());
+        navigationRoute = createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID), Navigation.getReportRHPActiveRoute());
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
         tnodeClone = cloneDeep(tnode);
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
@@ -58,13 +58,13 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         );
 
         accountID = getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
-        navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText);
+        navigationRoute = createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID, mentionDisplayText), Navigation.getReportRHPActiveRoute());
         mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
     } else if (!isEmpty(htmlAttribAccountID)) {
         // accountID not found in personal details and mention data not provided
         accountID = parseInt(htmlAttribAccountID, 10);
         mentionDisplayText = getDisplayNameOrDefault();
-        navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute());
+        navigationRoute = createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID), Navigation.getReportRHPActiveRoute());
     } else {
         // If neither an account ID or email is provided, don't render anything
         return null;
@@ -82,17 +82,15 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                 if (isDisabled || !shouldDisplayContextMenu) {
                     return;
                 }
-                return onShowContextMenu(() =>
-                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
-                );
+                return onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID));
             }}
             onPress={(event) => {
                 event.preventDefault();
                 if (!isEmpty(htmlAttribAccountID)) {
-                    Navigation.navigate(ROUTES.PROFILE.getRoute(parseInt(htmlAttribAccountID, 10), Navigation.getReportRHPActiveRoute()));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(parseInt(htmlAttribAccountID, 10)), Navigation.getReportRHPActiveRoute()));
                     return;
                 }
-                Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID, mentionDisplayText), Navigation.getReportRHPActiveRoute()));
             }}
             role={CONST.ROLE.LINK}
             accessibilityLabel={`/${navigationRoute}`}
@@ -104,7 +102,6 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                 }}
             >
                 <Text
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
                     style={[
                         styles.link,

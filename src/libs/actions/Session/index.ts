@@ -3,7 +3,6 @@ import {openAuthSessionAsync} from 'expo-web-browser';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
@@ -16,6 +15,7 @@ import type {
     BeginSignInParams,
     DisableTwoFactorAuthParams,
     LogOutParams,
+    ReplaceTwoFactorDeviceParams,
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
     ResetSMSDeliveryFailureStatusParams,
@@ -27,28 +27,31 @@ import type {
 import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
-import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import FraudProtection from '@libs/FraudProtection';
 import Fullstory from '@libs/Fullstory';
+import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
+import {findMatchingDynamicSuffix} from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
-import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsReportUtils} from '@libs/ReportUtils';
+import reauthenticate from '@libs/Reauthentication';
+import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {checkIfShouldUseNewPartnerName, resetDidUserLogInDuringSession} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {confirmReadyToOpenApp, KEYS_TO_PRESERVE, openApp} from '@userActions/App';
-import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
+import {clearCachedAttachments} from '@userActions/Attachment';
+import clearOnyxAndSeedFullReconnect from '@userActions/clearOnyxAndSeedFullReconnect';
+import {clearOnyxForDelegateTransition} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
@@ -58,8 +61,8 @@ import CONFIG from '@src/CONFIG';
 import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
@@ -104,7 +107,7 @@ Onyx.connectWithoutView({
 });
 
 let stashedSession: Session = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.STASHED_SESSION,
     callback: (value) => (stashedSession = value ?? {}),
 });
@@ -116,17 +119,9 @@ Onyx.connect({
 });
 
 let stashedCredentials: Credentials = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.STASHED_CREDENTIALS,
     callback: (value) => (stashedCredentials = value ?? {}),
-});
-
-let activePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (newActivePolicyID) => {
-        activePolicyID = newActivePolicyID;
-    },
 });
 
 let isUsingImportedState: boolean | undefined;
@@ -158,7 +153,9 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
 }
 
 function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.HYBRID_APP>> = [
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.HYBRID_APP | typeof ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -174,14 +171,19 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
             value: {
                 signedInWithShortLivedAuthToken: true,
                 signedInWithSAML: isSAML,
-                isAuthenticatingWithShortLivedToken: true,
                 isSupportAuthTokenUsed,
             },
+        },
+        // Kept on a RAM-only key so an interrupted SignIn cannot persist a stuck `true` to IndexedDB and block all future reauth attempts.
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            value: true,
         },
     ];
 
     // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'finallyData' to ensure the user is logged out on refresh
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -196,8 +198,12 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
                 signedInWithShortLivedAuthToken: null,
                 signedInWithSAML: isSAML,
                 isSupportAuthTokenUsed: null,
-                isAuthenticatingWithShortLivedToken: false,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            value: false,
         },
     ];
 
@@ -258,13 +264,18 @@ function signOut(params: {autoGeneratedLogin?: string; signedInWithSAML?: boolea
 }
 
 function callSAMLSignOut(params: LogOutParams, authToken: string): Promise<void | Response<never>> {
-    const queryString = CONFIG.IS_HYBRID_APP ? `appversion=${pkg.version}&referer=ecash&authToken=${authToken}` : `referer=ecash&authToken=${authToken}`;
-    return openAuthSessionAsync(`${CONFIG.EXPENSIFY.SAML_URL}/logout?${queryString}`, CONST.SAML_REDIRECT_URL)
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+    const queryString = isWeb ? `referer=ecash&authToken=${authToken}` : `appversion=${pkg.version}&referer=ecash&authToken=${authToken}`;
+    const expectedURL = isWeb ? CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL : CONST.SAML_REDIRECT_URL;
+    return openAuthSessionAsync(`${CONFIG.EXPENSIFY.SAML_URL}/logout?${queryString}`, expectedURL)
         .catch((error) => {
             Log.hmmm('SAML sign out failed', {error});
         })
         .then((result) => {
             if (result && result.type !== 'success') {
+                if (CONFIG.IS_HYBRID_APP) {
+                    HybridAppModule.cancelSignOut();
+                }
                 return Promise.reject(Error('Logout cancelled'));
             }
             // We always want to sign out the user from the app
@@ -280,8 +291,8 @@ function isAnonymousUser(sessionParam?: OnyxEntry<Session>): boolean {
     return (sessionParam?.authTokenType ?? session.authTokenType) === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 }
 
-function hasStashedSession(): boolean {
-    return !!(stashedSession.authToken && stashedCredentials.autoGeneratedLogin && stashedCredentials.autoGeneratedLogin !== '');
+function hasStashedSession(stashedSessionParam: Session | undefined, stashedCredentialsParam: Credentials | undefined): boolean {
+    return !!(stashedSessionParam?.authToken && stashedCredentialsParam?.autoGeneratedLogin && stashedCredentialsParam.autoGeneratedLogin !== '');
 }
 
 /**
@@ -303,7 +314,7 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
-    ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+    ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
     ONYXKEYS.SESSION,
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.HAS_LOADED_APP,
@@ -312,7 +323,7 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
 
     // We need to preserve the sidebar loaded state since we never unmount the sidebar when connecting as a delegate
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
-    ONYXKEYS.IS_SIDEBAR_LOADED,
+    ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
@@ -320,6 +331,8 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     // Preserve IS_USING_IMPORTED_STATE so that when transitioning to/from supportal,
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
     ONYXKEYS.IS_USING_IMPORTED_STATE,
+    ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
+    ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
 ];
 
 function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldSignOutFromOldDot = true, shouldForceUseStashedSession?: boolean) {
@@ -338,6 +351,10 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
 
     const isSupportal = isSupportAuthToken();
     const shouldRestoreStashedSession = isSupportal || shouldForceUseStashedSession;
+
+    if (CONFIG.IS_HYBRID_APP && shouldSignOutFromOldDot) {
+        HybridAppModule.startSignOut();
+    }
 
     // We'll only call signOut if we're not stashing the session and not restoring a stashed session,
     // otherwise we'll call the API to invalidate the autogenerated credentials used for infinite
@@ -364,7 +381,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     // If this is a supportal token, and we've received the parameters to stashSession as true, and
     // we already have a stashedSession, that means we are supportal-ed, currently supportal-ing
     // into another account and we want to keep the stashed data from the original account.
-    if (isSupportal && shouldStashSession && hasStashedSession()) {
+    if (isSupportal && shouldStashSession && hasStashedSession(stashedSession, stashedCredentials)) {
         onyxSetParams = {
             [ONYXKEYS.STASHED_CREDENTIALS]: stashedCredentials,
             [ONYXKEYS.STASHED_SESSION]: stashedSession,
@@ -373,13 +390,12 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
 
     // If we should restore the stashed session, and we do not want to stash the current session, and we have a
     // stashed session, then switch the account instead of completely logging out.
-    if (shouldRestoreStashedSession && !shouldStashSession && hasStashedSession()) {
+    if (shouldRestoreStashedSession && !shouldStashSession && hasStashedSession(stashedSession, stashedCredentials)) {
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.switchAccount({
                 newDotCurrentAccountEmail: stashedSession.email ?? '',
                 authToken: stashedSession.authToken ?? '',
-                // eslint-disable-next-line rulesdir/no-default-id-values
-                policyID: activePolicyID ?? '',
+                policyID: '',
                 accountID: session.accountID ? String(session.accountID) : '',
             });
             hasSwitchedAccountInHybridMode = true;
@@ -390,7 +406,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             [ONYXKEYS.SESSION]: stashedSession,
         };
     }
-    if (shouldRestoreStashedSession && !shouldStashSession && !hasStashedSession()) {
+    if (shouldRestoreStashedSession && !shouldStashSession && !hasStashedSession(stashedSession, stashedCredentials)) {
         Log.info('No stashed session found, clearing the session');
     }
 
@@ -417,7 +433,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                     true,
                     true,
                 );
-            } else if (isPerformingSupportalLogout && hasStashedSession()) {
+            } else if (isPerformingSupportalLogout && hasStashedSession(stashedSession, stashedCredentials)) {
                 // We have confirmed here that the supportal agent was logged in, so we can restore the stashed session
                 // and then redirect to the oldDot supportal page to restore the stashed session
                 // Clear the Onyx DB of stale data that might be present from a previous session
@@ -430,7 +446,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                         });
                     });
                 });
-            } else if (isPerformingSupportalLogout && !hasStashedSession()) {
+            } else if (isPerformingSupportalLogout && !hasStashedSession(stashedSession, stashedCredentials)) {
                 // If the supportal agent was not logged in, we call `redirectToSignIn` to clear the Onyx DB
                 // and then redirect to supportal and restore the stashed session
                 redirectToSignIn().then(() => {
@@ -439,6 +455,28 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                             // Open the oldDot URL to restore the stashed session and go back to OD supportal page
                             openExternalLink(oldDotURL, undefined, true);
                         });
+                    });
+                });
+            } else if (shouldRestoreStashedSession && !shouldStashSession && hasStashedSession(stashedSession, stashedCredentials)) {
+                // Preserve SESSION during clear to avoid a login page flash, then restore the stashed session.
+                // Seed LAST_FULL_RECONNECT_TIME so subscribeToFullReconnect doesn't fire a duplicate
+                // ReconnectApp once the openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
+                clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_SUPPORTAL).then(() => {
+                    Onyx.multiSet(onyxSetParams).then(() => {
+                        Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
+                        Onyx.set(ONYXKEYS.STASHED_SESSION, {});
+
+                        confirmReadyToOpenApp();
+                        openApp();
+
+                        if (CONFIG.IS_HYBRID_APP && hasSwitchedAccountInHybridMode) {
+                            HybridAppModule.switchAccount({
+                                newDotCurrentAccountEmail: stashedSession.email ?? '',
+                                authToken: stashedSession.authToken ?? '',
+                                policyID: '',
+                                accountID: '',
+                            });
+                        }
                     });
                 });
             } else {
@@ -495,9 +533,10 @@ function resendValidateCode(login = credentials.login) {
         },
     ];
 
-    const params: RequestNewValidateCodeParams = {email: login};
-
-    API.write(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE, params, {optimisticData, finallyData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        const params: RequestNewValidateCodeParams = {email: login, deviceInfo};
+        API.write(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE, params, {optimisticData, finallyData});
+    });
 }
 
 /**
@@ -554,9 +593,10 @@ function signInAttemptState(): OnyxData<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEY
 function beginSignIn(email: string) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
-    const params: BeginSignInParams = {email};
-
-    API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        const params: BeginSignInParams = {email, deviceInfo};
+        API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
+    });
 }
 
 /**
@@ -578,7 +618,7 @@ function buildOnyxDataToCleanUpAnonymousUser(): OnyxUpdate<typeof ONYXKEYS.PERSO
  * Creates an account for the new user and signs them into the application with the newly created account.
  *
  */
-function signUpUser(preferredLocale: Locale | undefined) {
+function signUpUser(preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -613,9 +653,13 @@ function signUpUser(preferredLocale: Locale | undefined) {
         },
     ];
 
-    const params: SignUpUserParams = {email: credentials.login, preferredLocale: preferredLocale ?? null};
-
-    API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        const params: SignUpUserParams = {email: credentials.login, preferredLocale: preferredLocale ?? null, deviceInfo};
+        if (hasSMSMarketingConsent !== undefined) {
+            params.hasSMSMarketingConsent = hasSMSMarketingConsent;
+        }
+        API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
+    });
 }
 
 function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot?: TryNewDot) {
@@ -691,7 +735,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             }
 
             Log.info('[HybridApp] User switched account on OldDot side. Clearing onyx and applying delegate data');
-            return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS)
+            return clearOnyxForDelegateTransition()
                 .then(() =>
                     Onyx.multiSet({
                         ...stashedData,
@@ -788,7 +832,8 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
  */
 function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
-    API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true}, {optimisticData, failureData, finallyData});
+    const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN;
+    API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod}, {optimisticData, failureData, finallyData});
     NetworkStore.setLastShortAuthToken(authToken);
 }
 
@@ -991,7 +1036,7 @@ function resetNavigationState() {
     Navigation.isNavigationReady().then(() => {
         // Safe handling when navigation is not yet initialized
         if (!navigationRef.isReady()) {
-            Log.warn('[src/libs/actions/Session/index.ts] NavigationRef is not ready. Returning undefined.');
+            Log.hmmm('[src/libs/actions/Session/index.ts] NavigationRef is not ready. Returning undefined.');
             return undefined;
         }
         navigationRef.resetRoot({index: 0, routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]});
@@ -1010,12 +1055,12 @@ function cleanupSession() {
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     PersistedRequests.clear();
-    NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
     resetNavigationState();
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });
+    clearCachedAttachments();
     clearSoundAssetsCache();
 }
 
@@ -1038,7 +1083,7 @@ function setAccountError(error: string) {
 const reauthenticatePusher = throttle(
     () => {
         Log.info('[Pusher] Re-authenticating and then reconnecting');
-        Authentication.reauthenticate(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER)
+        reauthenticate(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER)
             .then((wasSuccessful) => {
                 if (!wasSuccessful) {
                     return;
@@ -1273,6 +1318,9 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+                // Clear the secret key once we know we no longer need to show it
+                // This is necessary in case the user needs to complete the replaceTwoFactorDevice flow on this device at some point in the future - that flow uses the presence of this key to know when to navigate from one step to the next
+                twoFactorAuthSecretKey: null,
             },
         },
     ];
@@ -1298,12 +1346,60 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
         // Clear onyx data if the user has just signed in and is forced to add 2FA
         if (shouldClearData) {
             const keysToPreserveWithPrivatePersonalDetails = [...KEYS_TO_PRESERVE, ONYXKEYS.PRIVATE_PERSONAL_DETAILS];
-            Onyx.clear(keysToPreserveWithPrivatePersonalDetails).then(() => updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken));
+            clearOnyxAndSeedFullReconnect(keysToPreserveWithPrivatePersonalDetails).then(() => updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken));
             return;
         }
 
         updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken);
     });
+}
+
+function replaceTwoFactorDevice(step: 'verify_old' | 'verify_new', twoFactorAuthCode: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                errors: null,
+                // clear out the secret key to signal to the view that the call succeeded
+                ...(step === 'verify_new' ? {twoFactorAuthSecretKey: null} : {}),
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const params: ReplaceTwoFactorDeviceParams = {step, twoFactorAuthCode};
+
+    return API.write(WRITE_COMMANDS.REPLACE_TWO_FACTOR_DEVICE, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears the two-factor auth secret key from account data.
+ * Used when starting the device replacement flow to ensure clean state.
+ */
+function clearTwoFactorAuthSecretKey() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthSecretKey: null});
 }
 
 /**
@@ -1330,13 +1426,10 @@ function waitForUserSignIn(): Promise<boolean> {
 }
 
 function handleExitToNavigation(exitTo: Route) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    InteractionManager.runAfterInteractions(() => {
-        waitForUserSignIn().then(() => {
-            Navigation.waitForProtectedRoutes().then(() => {
-                Navigation.goBack();
-                Navigation.navigate(exitTo);
-            });
+    waitForUserSignIn().then(() => {
+        Navigation.waitForProtectedRoutes().then(() => {
+            Navigation.goBack(ROUTES.HOME, {waitForTransition: true});
+            Navigation.navigate(exitTo, {waitForTransition: true});
         });
     });
 }
@@ -1350,36 +1443,39 @@ function signInWithValidateCodeAndNavigate(accountID: number, validateCode: stri
     }
 }
 
+const ANONYMOUS_ACCESSIBLE_DYNAMIC_SUFFIXES = new Set<DynamicRouteSuffix>([DYNAMIC_ROUTES.REPORT_DETAILS.path, DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path]);
+
 /**
  * check if the route can be accessed by anonymous user
  *
- * @param {string} route
+ * @param route
  */
-
 const canAnonymousUserAccessRoute = (route: string) => {
     const reportID = getReportIDFromLink(route);
     if (reportID) {
         return true;
     }
-    const parsedReportRouteParams = parseReportRouteParamsReportUtils(route);
-    let routeRemovedReportId = route;
-    if ((parsedReportRouteParams as {reportID: string})?.reportID) {
-        routeRemovedReportId = route.replace((parsedReportRouteParams as {reportID: string})?.reportID, ':reportID');
-    }
-    if (route.startsWith('/')) {
-        routeRemovedReportId = routeRemovedReportId.slice(1);
-    }
-    const routesAccessibleByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route, ROUTES.CONCIERGE];
-    const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
 
-    if ((routesAccessibleByAnonymousUser as string[]).includes(routeRemovedReportId) || isMagicLink) {
+    const normalizedRoute = route.startsWith('/') ? route.slice(1) : route;
+    if (normalizedRoute === ROUTES.SIGN_IN_MODAL || normalizedRoute === ROUTES.CONCIERGE) {
         return true;
     }
+
+    const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
+    if (isMagicLink) {
+        return true;
+    }
+
+    const suffixMatch = findMatchingDynamicSuffix(normalizedRoute);
+    if (suffixMatch && ANONYMOUS_ACCESSIBLE_DYNAMIC_SUFFIXES.has(suffixMatch.pattern as DynamicRouteSuffix)) {
+        return CONST.REGEX.REPORT_ID_FROM_PATH.test(`/${normalizedRoute}`);
+    }
+
     return false;
 };
 
 function AddWorkEmail(workEmail: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1387,6 +1483,11 @@ function AddWorkEmail(workEmail: string) {
                 onboardingWorkEmail: workEmail,
                 isLoading: true,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            value: null,
         },
     ];
 
@@ -1400,7 +1501,7 @@ function AddWorkEmail(workEmail: string) {
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.NVP_ONBOARDING>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1408,24 +1509,39 @@ function AddWorkEmail(workEmail: string) {
                 isLoading: false,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_ONBOARDING,
-            value: {
-                isMergingAccountBlocked: true,
-            },
-        },
     ];
 
-    API.write(
-        WRITE_COMMANDS.ADD_WORK_EMAIL,
+    // We need to inspect the response to detect the closed-account error and surface a specific translation key, which API.write cannot do.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL,
         {workEmail},
         {
             optimisticData,
             successData,
             failureData,
         },
-    );
+    ).then((response) => {
+        if (response?.jsonCode !== CONST.JSON_CODE.EXP_ERROR) {
+            return;
+        }
+
+        if (response?.message?.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) {
+            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.workEmail2FAError');
+            return;
+        }
+
+        if (response?.message?.includes(CONST.MERGE_ACCOUNT_SINGLE_SIGN_ON_ERROR)) {
+            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.singleSignOnError');
+            return;
+        }
+
+        if (response?.message === CONST.WORK_ACCOUNT_CLOSED_ERROR || response?.title === CONST.WORK_ACCOUNT_CLOSED_ERROR) {
+            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.workAccountClosedSubtitle');
+            return;
+        }
+        Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
+    });
 }
 
 function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
@@ -1580,13 +1696,14 @@ export {
     clearAccountMessages,
     setAccountError,
     authenticatePusher,
-    reauthenticatePusher,
     invalidateCredentials,
     invalidateAuthToken,
     expireSessionWithDelay,
     isAnonymousUser,
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
+    replaceTwoFactorDevice,
+    clearTwoFactorAuthSecretKey,
     waitForUserSignIn,
     hasAuthToken,
     isExpiredSession,
@@ -1600,5 +1717,4 @@ export {
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
-    getShortLivedLoginParams,
 };

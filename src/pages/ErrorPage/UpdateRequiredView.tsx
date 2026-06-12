@@ -2,15 +2,19 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Header from '@components/Header';
+import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
+import variables from '@styles/variables';
 import {updateApp} from '@userActions/AppUpdate';
 import CONFIG from '@src/CONFIG';
 
@@ -21,6 +25,8 @@ function UpdateRequiredView() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
+    const illustrations = useMemoizedLazyIllustrations(['UpgradeRocket']);
     const {isProduction} = useEnvironment();
     const isStandaloneNewAppProduction = isProduction && !CONFIG.IS_HYBRID_APP;
 
@@ -30,14 +36,22 @@ function UpdateRequiredView() {
                 <Header title={translate('updateRequiredView.updateRequired')} />
             </View>
             <View style={[styles.flex1, StyleUtils.getUpdateRequiredViewStyles(shouldUseNarrowLayout)]}>
-                <Lottie
-                    source={LottieAnimations.Update}
-                    // For small screens it looks better to have the arms from the animation come in from the edges of the screen.
-                    style={shouldUseNarrowLayout ? styles.w100 : styles.updateAnimation}
-                    webStyle={shouldUseNarrowLayout ? styles.w100 : styles.updateAnimation}
-                    autoPlay
-                    loop
-                />
+                {isReduceMotionEnabled ? (
+                    <ImageSVG
+                        src={illustrations.UpgradeRocket}
+                        width={variables.updateRocketW}
+                        height={variables.updateRocketH}
+                    />
+                ) : (
+                    <Lottie
+                        source={LottieAnimations.Update}
+                        // For small screens it looks better to have the arms from the animation come in from the edges of the screen.
+                        style={shouldUseNarrowLayout ? styles.w100 : styles.updateAnimation}
+                        webStyle={shouldUseNarrowLayout ? styles.w100 : styles.updateAnimation}
+                        autoPlay
+                        loop
+                    />
+                )}
                 <View style={[styles.ph5, styles.alignItemsCenter, styles.mt5]}>
                     <View style={styles.updateRequiredViewTextContainer}>
                         <View style={[styles.mb3]}>

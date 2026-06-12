@@ -1,25 +1,26 @@
 import React, {useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 type TransactionGroupListItem = ListItem & {
@@ -28,9 +29,8 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
-    const {translate, toLocaleDigit} = useLocalize();
-    const {selectedTransactions} = useSearchStateContext();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactions} = useSearchSelectionContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const transactions = useMemo(
         () =>
@@ -49,7 +49,11 @@ function SearchTransactionsChangeReport() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
@@ -66,7 +70,7 @@ function SearchTransactionsChangeReport() {
     // Get the policyID from the selected transactions' report to pass to usePolicyForMovingExpenses
     // This ensures the "Create report" button shows the correct workspace instead of the user's default
     const selectedReportPolicyID = selectedReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`]?.policyID : undefined;
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, selectedReportPolicyID);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, selectedReportPolicyID);
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const areAllTransactionsUnreported =
         selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((transactionKey) => selectedTransactions[transactionKey]?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
@@ -89,9 +93,9 @@ function SearchTransactionsChangeReport() {
             return undefined;
         }
 
-        const report = getReportOrDraftReport(reportIDWithOwner);
+        const report = getReportOrDraftReport(reportIDWithOwner, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithOwner}`]);
         return report?.ownerAccountID;
-    }, [selectedTransactions, selectedTransactionsKeys]);
+    }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
         const optimisticReport = createNewReport(
@@ -104,6 +108,7 @@ function SearchTransactionsChangeReport() {
             shouldDismissEmptyReportsConfirmation,
         );
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
+        const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
                 transactionIDs: selectedTransactionsKeys,
@@ -115,15 +120,15 @@ function SearchTransactionsChangeReport() {
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
                 allTransactions: transactions,
-                translate,
-                toLocaleDigit,
+                policyTagList,
+                allTransactionViolation: transactionViolations,
             });
             clearSelectedTransactions();
         });
         Navigation.goBack();
     };
 
-    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+    const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
@@ -131,11 +136,43 @@ function SearchTransactionsChangeReport() {
     });
 
     const createReport = () => {
-        if (shouldSelectPolicy) {
-            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true));
+        if (!policyForMovingExpensesID && !shouldSelectPolicy && selectedTransactionsKeys.length > 0) {
+            const firstTransactionID = selectedTransactionsKeys.at(0);
+            if (firstTransactionID) {
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.EDIT,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: firstTransactionID,
+                        reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                    }),
+                );
+            }
             return;
         }
-        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID)) {
+
+        if (shouldSelectPolicy) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true)));
+            return;
+        }
+        if (!policyForMovingExpensesID) {
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                    action: CONST.IOU.ACTION.CREATE,
+                    iouType: CONST.IOU.TYPE.CREATE,
+                    transactionID: generateReportID(),
+                    reportID: generateReportID(),
+                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                }),
+            );
+            return;
+        }
+        if (
+            policyForMovingExpensesID &&
+            policyForMovingExpenses &&
+            shouldRestrictUserBillableActions(policyForMovingExpenses, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID)
+        ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
@@ -149,6 +186,7 @@ function SearchTransactionsChangeReport() {
 
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
+        const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
         changeTransactionsReport({
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
@@ -159,10 +197,9 @@ function SearchTransactionsChangeReport() {
             reportNextStep,
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
             allTransactions: transactions,
-            translate,
-            toLocaleDigit,
+            policyTagList,
+            allTransactionViolation: transactionViolations,
         });
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
         });
@@ -174,6 +211,7 @@ function SearchTransactionsChangeReport() {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }
+        const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
         changeTransactionsReport({
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
@@ -181,29 +219,27 @@ function SearchTransactionsChangeReport() {
             email: session?.email ?? '',
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions: transactions,
-            translate,
-            toLocaleDigit,
+            policyTagList,
+            allTransactionViolation: transactionViolations,
         });
         clearSelectedTransactions();
         Navigation.goBack();
     };
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <IOURequestEditReportCommon
-                backTo={undefined}
-                transactionIDs={selectedTransactionsKeys}
-                selectedReportID={selectedReportID}
-                selectReport={selectReport}
-                removeFromReport={removeFromReport}
-                createReport={createReport}
-                isEditing
-                isUnreported={areAllTransactionsUnreported}
-                targetOwnerAccountID={targetOwnerAccountID}
-                isPerDiemRequest={hasPerDiemTransactions}
-            />
-        </>
+        <IOURequestEditReportCommon
+            backTo={undefined}
+            transactionIDs={selectedTransactionsKeys}
+            selectedReportID={selectedReportID}
+            selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            createReport={createReport}
+            isEditing
+            isUnreported={areAllTransactionsUnreported}
+            targetOwnerAccountID={targetOwnerAccountID}
+            transactionPolicyID={selectedReportPolicyID}
+            isPerDiemRequest={hasPerDiemTransactions}
+        />
     );
 }
 

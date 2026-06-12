@@ -52,6 +52,7 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader
                 />
             ) : (
                 <>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                     <Image
                         source={{uri: plaidUrl}}
                         style={plaidLoadedStyle}
@@ -63,6 +64,7 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader
                         <CardIconSkeleton
                             width={iconWidth}
                             height={iconHeight}
+                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {loading && !useSkeletonLoader && (

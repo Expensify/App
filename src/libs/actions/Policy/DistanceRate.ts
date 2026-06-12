@@ -8,6 +8,7 @@ import type {
     OpenPolicyDistanceRatesPageParams,
     SetPolicyDistanceRatesEnabledParams,
     SetPolicyDistanceRatesUnitParams,
+    UpdatePolicyDistanceRateParams,
     UpdatePolicyDistanceRateValueParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -122,7 +123,7 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean, customUni
     API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature();
     }
 }
 
@@ -319,6 +320,18 @@ function updatePolicyDistanceRateName(policyID: string, customUnit: CustomUnit, 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_NAME, params, {optimisticData, successData, failureData});
 }
 
+function updatePolicyDistanceRate(policyID: string, customUnit: CustomUnit, rateToUpdate: Rate, fieldName: keyof Pick<Rate, 'startDate' | 'endDate'>) {
+    const {optimisticData, successData, failureData} = buildOnyxDataForPolicyDistanceRateUpdates(policyID, customUnit, [rateToUpdate], fieldName);
+
+    const params: UpdatePolicyDistanceRateParams = {
+        policyID,
+        customUnitID: customUnit.customUnitID,
+        customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray([rateToUpdate])),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE, params, {optimisticData, successData, failureData});
+}
+
 function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, NullishDeep<Rate>> = {};
@@ -447,7 +460,7 @@ function deletePolicyDistanceRates(
     for (const transactionID of transactionIDsAffected) {
         const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         if (currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)) {
-            return;
+            continue;
         }
 
         optimisticTransactionsViolations.push({
@@ -517,6 +530,7 @@ export {
     clearPolicyDistanceRateErrorFields,
     updatePolicyDistanceRateValue,
     updatePolicyDistanceRateName,
+    updatePolicyDistanceRate,
     setPolicyDistanceRatesEnabled,
     deletePolicyDistanceRates,
     updateDistanceTaxClaimableValue,

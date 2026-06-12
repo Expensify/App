@@ -19,5 +19,5 @@ inputs:
     required: false
     default: '20'
 runs:
-  using: 'node20'
+  using: 'node24'
   main: './index.js'

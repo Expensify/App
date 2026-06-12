@@ -5,7 +5,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
-import useUpdateGpsNotificationOnUnitChange from './useUpdateGpsNotificationOnUnitChange';
+import useUpdateGpsNotification from './useUpdateGpsNotification';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
 function GPSTripStateChecker() {
@@ -27,8 +27,8 @@ function GPSTripStateChecker() {
 
     const reportID = gpsDraftDetails?.reportID ?? generateReportID();
 
-    useUpdateGpsTripOnReconnect();
-    useUpdateGpsNotificationOnUnitChange();
+    useUpdateGpsTripOnReconnect({gpsPoints: getGpsPoints(gpsDraftDetails)});
+    useUpdateGpsNotification();
 
     useEffect(() => {
         async function handleGpsTripInProgressOnAppRestart() {
@@ -43,7 +43,6 @@ function GPSTripStateChecker() {
         }
 
         handleGpsTripInProgressOnAppRestart();
-        checkAndCleanGpsNotification();
 
         return () => {
             hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).then((isRunning) => {
@@ -94,7 +93,7 @@ function GPSTripStateChecker() {
 
     const onViewTrip = () => {
         setShowContinueTripModal(false);
-        stopGpsTrip(isOffline);
+        stopGpsTrip(isOffline, getGpsPoints(gpsDraftDetails));
         navigateToGpsScreen();
     };
 

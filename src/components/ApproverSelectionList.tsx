@@ -77,7 +77,6 @@ function ApproverSelectionList({
 
     const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
 
     const data = useMemo(() => {

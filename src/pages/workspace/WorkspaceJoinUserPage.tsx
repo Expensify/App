@@ -56,7 +56,10 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
 
     return (
         <ScreenWrapper testID="WorkspaceJoinUserPage">
-            <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            <FullScreenLoadingIndicator
+                style={[styles.flex1, styles.pRelative]}
+                reasonAttributes={{context: 'WorkspaceJoinUserPage'}}
+            />
         </ScreenWrapper>
     );
 }

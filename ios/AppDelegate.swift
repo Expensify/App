@@ -9,9 +9,8 @@ import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
-import ExpoModulesCore
 import Firebase
-import Expo
+internal import Expo
 import ActivityKit
 import AirshipFrameworkProxy
 
@@ -25,12 +24,11 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
     let appStartTimePreferencesKey = "AppStartTime"
     UserDefaults.standard.set(Date().timeIntervalSince1970 * 1000, forKey: appStartTimePreferencesKey)
     let delegate = ReactNativeDelegate()
-    let factory = RCTReactNativeFactory(delegate: delegate)
+    let factory = ExpoReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
 
     reactNativeDelegate = delegate
     reactNativeFactory = factory
-    bindReactNativeFactory(factory)
 
     window = UIWindow(frame: UIScreen.main.bounds)
     factory.startReactNative(

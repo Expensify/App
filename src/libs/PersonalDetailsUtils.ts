@@ -1,14 +1,15 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -20,13 +21,12 @@ type FirstAndLastName = {
     lastName: string;
 };
 
-let personalDetails: Array<PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        personalDetails = Object.values(val ?? {});
+        const personalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
         emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
             if (detail?.login) {
@@ -41,14 +41,12 @@ let hiddenTranslation = '';
 let youTranslation = '';
 
 Onyx.connect({
-    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+    key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
     callback: (value) => {
         if (value ?? true) {
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         hiddenTranslation = translateLocal('common.hidden');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         youTranslation = translateLocal('common.you').toLowerCase();
     },
 });
@@ -103,6 +101,10 @@ function getDisplayNameOrDefault(
     return shouldFallbackToHidden ? hiddenTranslation : '';
 }
 
+function getPersonalDetailsByID(accountID: number | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetails | undefined {
+    return accountID ? (personalDetailsList?.[accountID] ?? undefined) : undefined;
+}
+
 /**
  * Given a list of account IDs (as number) it will return an array of personal details objects.
  * @param accountIDs  - Array of accountIDs
@@ -129,7 +131,6 @@ function getPersonalDetailsByIDs({
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 return {
                     ...detail,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     displayName: translateLocal('common.you'),
                 };
             }
@@ -140,7 +141,44 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
+function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+    const result: PersonalDetails[] = [];
+    for (const accountID of accountIDs) {
+        const detail = getPersonalDetailsByID(accountID, personalDetails);
+        if (!detail) {
+            continue;
+        }
+
+        result.push(detail);
+    }
+    return result;
+}
+
+function getPersonalDetailsListByIDs(accountIDs: Array<number | undefined>, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+    return accountIDs.reduce((acc, accountID) => {
+        if (!accountID) {
+            return acc;
+        }
+        const detail = personalDetails?.[accountID];
+        if (!detail) {
+            return acc;
+        }
+        acc[accountID] = detail;
+        return acc;
+    }, {} as PersonalDetailsList);
+}
+
+function getDisplayNameOrYou(displayName: string, accountID: number, currentUserAccountID: number, translate: LocalizedTranslate) {
+    if (accountID === currentUserAccountID) {
+        return translate('common.you');
+    }
+    return displayName;
+}
+
+function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | undefined {
+    if (!email) {
+        return undefined;
+    }
     return emailToPersonalDetailsCache[email.toLowerCase()];
 }
 
@@ -163,14 +201,8 @@ function getAccountIDsByLogins(logins: string[]): number[] {
     }, []);
 }
 
-/**
- * Given an accountID, find the associated personal detail and return related login.
- *
- * @param accountID User accountID
- * @returns Login according to passed accountID
- */
-function getLoginByAccountID(accountID: number): string | undefined {
-    return allPersonalDetails?.[accountID]?.login;
+function getLoginByAccountID(accountID: number | undefined, personalDetails: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string | undefined {
+    return accountID ? personalDetails?.[accountID]?.login : undefined;
 }
 
 /**
@@ -300,6 +332,27 @@ function getCurrentAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDeta
 }
 
 /**
+ * Builds a PersonalDetailsForm snapshot from Onyx private details,
+ * optionally layering draft values on top so in-progress edits win.
+ */
+function getPrivatePersonalDetailsFormValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, draftValues?: PersonalDetailsForm | null): PersonalDetailsForm {
+    const address = getCurrentAddress(privatePersonalDetails);
+    const [street1, street2] = getStreetLines(address?.street);
+    return {
+        [INPUT_IDS.LEGAL_FIRST_NAME]: draftValues?.[INPUT_IDS.LEGAL_FIRST_NAME] ?? privatePersonalDetails?.legalFirstName ?? '',
+        [INPUT_IDS.LEGAL_LAST_NAME]: draftValues?.[INPUT_IDS.LEGAL_LAST_NAME] ?? privatePersonalDetails?.legalLastName ?? '',
+        [INPUT_IDS.DATE_OF_BIRTH]: draftValues?.[INPUT_IDS.DATE_OF_BIRTH] ?? privatePersonalDetails?.dob ?? '',
+        [INPUT_IDS.PHONE_NUMBER]: draftValues?.[INPUT_IDS.PHONE_NUMBER] ?? privatePersonalDetails?.phoneNumber ?? '',
+        [INPUT_IDS.ADDRESS_LINE_1]: draftValues?.[INPUT_IDS.ADDRESS_LINE_1] ?? street1 ?? '',
+        [INPUT_IDS.ADDRESS_LINE_2]: draftValues?.[INPUT_IDS.ADDRESS_LINE_2] ?? address?.street2 ?? street2 ?? '',
+        [INPUT_IDS.CITY]: draftValues?.[INPUT_IDS.CITY] ?? address?.city ?? '',
+        [INPUT_IDS.STATE]: draftValues?.[INPUT_IDS.STATE] ?? address?.state ?? '',
+        [INPUT_IDS.ZIP_POST_CODE]: draftValues?.[INPUT_IDS.ZIP_POST_CODE] ?? address?.zip ?? '',
+        [INPUT_IDS.COUNTRY]: draftValues?.[INPUT_IDS.COUNTRY] ?? address?.country ?? '',
+    };
+}
+
+/**
  * Formats an address object into an easily readable string
  *
  * @param privatePersonalDetails - details object
@@ -358,7 +411,7 @@ function createDisplayName(
  */
 function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
     // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     if (firstName || lastName) {
         return {firstName: firstName ?? '', lastName: lastName ?? ''};
     }
@@ -456,20 +509,13 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
     return !privatePersonalDetails?.legalFirstName || !privatePersonalDetails?.legalLastName;
 }
 
-/**
- * Determines if the user should be redirected to the missing details page
- * before revealing their card details (for UK/EU cards only).
- */
-function shouldShowMissingDetailsPage(card: {nameValuePairs?: {feedCountry?: string}} | null | undefined, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
-    const isUKOrEUCard = card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
-    const hasMissingDetails = arePersonalDetailsMissing(privatePersonalDetails);
-
-    return hasMissingDetails && isUKOrEUCard;
-}
-
 export {
     getDisplayNameOrDefault,
+    getPersonalDetailsByID,
     getPersonalDetailsByIDs,
+    newGetPersonalDetailsByIDs,
+    getPersonalDetailsListByIDs,
+    getDisplayNameOrYou,
     getPersonalDetailByEmail,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
@@ -477,6 +523,7 @@ export {
     getCurrentAddress,
     getFormattedAddress,
     getFormattedStreet,
+    getPrivatePersonalDetailsFormValues,
     getStreetLines,
     getEffectiveDisplayName,
     createDisplayName,
@@ -488,6 +535,5 @@ export {
     getPhoneNumber,
     arePersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
-    shouldShowMissingDetailsPage,
     createPersonalDetailsLookupByAccountID,
 };

@@ -1,20 +1,21 @@
 import {PortalProvider} from '@gorhom/portal';
+import type * as CoreNavigation from '@react-navigation/core';
 import {NavigationContainer} from '@react-navigation/native';
-import type {InitialState} from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import type * as reactNavigationNativeImport from '@react-navigation/native';
+import {act, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import FullScreenBlockingViewContextProvider from '@components/FullScreenBlockingViewContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
-import type {AuthScreensParamList, SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-// eslint-disable-next-line no-restricted-imports, no-restricted-syntax
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import SearchPage from '@pages/Search/SearchPage';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -23,9 +24,23 @@ import SCREENS from '@src/SCREENS';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
-type TestNavigationContainerProps = {initialState: InitialState};
+jest.mock('@react-navigation/core', () => ({
+    ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: jest.fn(() => true)})),
+}));
 
-const RootStack = createRootStackNavigator<AuthScreensParamList>();
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
+    useNavigationState: () => {},
+}));
+
+type TestNavigationContainerProps = {initialState: reactNavigationNativeImport.InitialState};
+
+type SearchTestRootParamList = {
+    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: reactNavigationNativeImport.NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
+};
+
+const RootStack = createRootStackNavigator<SearchTestRootParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
 
 function TestSearchFullscreenNavigator() {
@@ -61,24 +76,26 @@ const renderPage = () => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, PlaybackContextProvider, FullScreenBlockingViewContextProvider]}>
             <PortalProvider>
-                <TestNavigationContainer
-                    initialState={{
-                        index: 0,
-                        routes: [
-                            {
-                                name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-                                state: {
-                                    index: 0,
-                                    routes: [
-                                        {
-                                            name: SCREENS.SEARCH.ROOT,
-                                        },
-                                    ],
+                <SearchContextProvider>
+                    <TestNavigationContainer
+                        initialState={{
+                            index: 0,
+                            routes: [
+                                {
+                                    name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                    state: {
+                                        index: 0,
+                                        routes: [
+                                            {
+                                                name: SCREENS.SEARCH.ROOT,
+                                            },
+                                        ],
+                                    },
                                 },
-                            },
-                        ],
-                    }}
-                />
+                            ],
+                        }}
+                    />
+                </SearchContextProvider>
             </PortalProvider>
         </ComposeProviders>,
     );
@@ -107,7 +124,7 @@ describe('SearchPageNarrow', () => {
         jest.clearAllMocks();
     });
 
-    it('NavigationTabBar should be hidden when the search input is focused', async () => {
+    it('SearchPageNarrow renders correctly', async () => {
         renderPage();
 
         await act(async () => {
@@ -116,43 +133,7 @@ describe('SearchPageNarrow', () => {
 
         expect(screen.getByTestId('SearchPageNarrow')).toBeTruthy();
 
-        // Initially, there are two NavigationTabBars on screen: one from TopLevelNavigationTabBar and one from SearchPageNarrow.
-        let navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
-        expect(navigationTabBars).toHaveLength(2);
-
         const searchAutocompleteInput = screen.getByTestId('search-autocomplete-text-input', {includeHiddenElements: true});
         expect(searchAutocompleteInput).toBeTruthy();
-
-        // When the search input is focused, the NavigationTabBar from SearchPageNarrow will unmount, and the one from TopLevelNavigationTabBar will be hidden.
-        // eslint-disable-next-line testing-library/no-unnecessary-act
-        await act(async () => {
-            fireEvent(searchAutocompleteInput, 'focus');
-        });
-
-        await waitFor(() => {
-            navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
-            expect(navigationTabBars).toHaveLength(1);
-        });
-
-        await waitFor(() => {
-            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar', {includeHiddenElements: true});
-            expect(topLevelNavigationTabBar).toHaveStyle({pointerEvents: 'none', opacity: 0});
-        });
-
-        // The original state is restored after the search input is canceled.
-        // eslint-disable-next-line testing-library/no-unnecessary-act
-        await act(async () => {
-            fireEvent.press(await screen.findByText('Cancel'));
-        });
-
-        await waitFor(() => {
-            navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
-            expect(navigationTabBars).toHaveLength(2);
-        });
-
-        await waitFor(() => {
-            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar', {includeHiddenElements: true});
-            expect(topLevelNavigationTabBar).toHaveStyle({pointerEvents: 'auto', opacity: 1});
-        });
     });
 });

@@ -32,10 +32,9 @@ function TextInput({ref, navigation, ...props}: BaseTextInputProps) {
 
     return (
         <BaseTextInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             // Setting autoCompleteType to new-password throws an error on Android/iOS, so fall back to password in that case
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
+
             ref={ref}
             autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
             inputStyle={[styles.baseTextInput, props.inputStyle]}
@@ -44,4 +43,10 @@ function TextInput({ref, navigation, ...props}: BaseTextInputProps) {
     );
 }
 
+// No-op on native — keyboard restoration is only needed on mobile Chrome (web)
+function getIsRestoringKeyboardFocus() {
+    return false;
+}
+
 export default TextInput;
+export {getIsRestoringKeyboardFocus};

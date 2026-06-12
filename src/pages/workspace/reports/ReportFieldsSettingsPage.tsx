@@ -1,13 +1,15 @@
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -34,8 +36,9 @@ function ReportFieldsSettingsPage({
 }: ReportFieldsSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const {showConfirmModal} = useConfirmModal();
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
+    const {canWrite: canWriteReportFields} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const reportFieldKey = getReportFieldKey(reportFieldID);
@@ -50,9 +53,21 @@ function ReportFieldsSettingsPage({
     const isListFieldEmpty = isListFieldType && reportField.disabledOptions.filter((disabledListValue) => !disabledListValue).length <= 0;
     const listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.sort(localeCompare);
 
-    const deleteReportFieldAndHideModal = () => {
+    const confirmAndDeleteReportField = async () => {
+        const result = await showConfirmModal({
+            danger: true,
+            title: translate('workspace.reportFields.delete'),
+            prompt: translate('workspace.reportFields.deleteConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldSetModalVisibility: false,
+        });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
         deleteReportFields({policy, reportFieldsToUpdate: [reportFieldKey]});
-        setIsDeleteModalVisible(false);
         Navigation.goBack();
     };
 
@@ -61,6 +76,7 @@ function ReportFieldsSettingsPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -70,17 +86,6 @@ function ReportFieldsSettingsPage({
                 <HeaderWithBackButton
                     title={reportField.name}
                     shouldSetModalVisibility={false}
-                />
-                <ConfirmModal
-                    title={translate('workspace.reportFields.delete')}
-                    isVisible={isDeleteModalVisible && !hasAccountingConnections}
-                    onConfirm={deleteReportFieldAndHideModal}
-                    onCancel={() => setIsDeleteModalVisible(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('workspace.reportFields.deleteConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
                 />
                 <View style={styles.flexGrow1}>
                     <MenuItemWithTopDescription
@@ -114,17 +119,17 @@ function ReportFieldsSettingsPage({
                             titleStyle={styles.flex1}
                             title={getReportFieldInitialValue(reportField, translate)}
                             description={translate('common.initialValue')}
-                            shouldShowRightIcon={!isDateFieldType}
-                            interactive={!isDateFieldType}
+                            shouldShowRightIcon={canWriteReportFields && !isDateFieldType}
+                            interactive={canWriteReportFields && !isDateFieldType}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
                         />
                     )}
-                    {!hasAccountingConnections && (
+                    {canWriteReportFields && !hasAccountingConnections && (
                         <View style={styles.flexGrow1}>
                             <MenuItem
                                 icon={icons.Trashcan}
                                 title={translate('common.delete')}
-                                onPress={() => setIsDeleteModalVisible(true)}
+                                onPress={confirmAndDeleteReportField}
                             />
                         </View>
                     )}

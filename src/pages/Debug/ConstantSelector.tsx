@@ -4,9 +4,10 @@ import React, {useEffect} from 'react';
 import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type ConstantSelectorProps = {
     /** Form error text. e.g when no constant is selected */
@@ -63,7 +64,7 @@ function ConstantSelector(
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}
             onPress={() => {
-                Navigation.navigate(ROUTES.DETAILS_CONSTANT_PICKER_PAGE.getRoute(formType, name, value, policyID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_CONSTANT_PICKER.getRoute(formType, name, value, policyID)));
             }}
             shouldShowRightIcon
         />

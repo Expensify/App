@@ -1,6 +1,6 @@
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import type {CorpayFields} from '@src/types/onyx/CorpayFields';
 
-type BankInfoSubStepProps = SubStepProps & {corpayFields?: CorpayFields; preferredMethod?: string};
+type BankInfoSubStepProps = SubPageProps & {corpayFields?: CorpayFields; preferredMethod?: string};
 
 export default BankInfoSubStepProps;

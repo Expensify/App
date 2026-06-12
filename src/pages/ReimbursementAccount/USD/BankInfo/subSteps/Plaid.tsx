@@ -1,4 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
@@ -6,24 +6,30 @@ import InputWrapper from '@components/Form/InputWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
+import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
+import type BankInfoSubStepProps from '@pages/ReimbursementAccount/USD/BankInfo/types';
 import {setBankAccountSubStep, validatePlaidSelection} from '@userActions/BankAccounts';
 import {updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type PlaidProps = SubStepProps & {
-    setUSDBankAccountStep: (step: string | null) => void;
-};
+type ReimbursementAccountNavigatorRoute = PlatformStackRouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_USD>;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
-function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
+function Plaid({onNext}: BankInfoSubStepProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+
+    const route = useRoute<ReimbursementAccountNavigatorRoute>();
+    const {policyID, backTo} = route?.params ?? {};
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -48,7 +54,7 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
         onNext(bankAccountData);
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
 
     useEffect(() => {
         const plaidBankAccounts = plaidData?.bankAccounts ?? [];
@@ -61,12 +67,11 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
             return;
         }
         setBankAccountSubStep(null);
-        setUSDBankAccountStep(null);
-    }, [isFocused, prevIsFocused, plaidData?.bankAccounts, setUSDBankAccountStep]);
+    }, [isFocused, prevIsFocused, plaidData?.bankAccounts]);
 
     const handlePlaidExit = () => {
         setBankAccountSubStep(null);
-        setUSDBankAccountStep(null);
+        Navigation.goBack(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}));
     };
 
     return (
@@ -76,7 +81,8 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
             onSubmit={handleNextPress}
             scrollContextEnabled
             submitButtonText={translate('common.next')}
-            style={[styles.mh5, styles.flexGrow1]}
+            style={styles.flexGrow1}
+            submitButtonStyles={styles.mh5}
             isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
             shouldHideFixErrorsAlert
         >

@@ -2,6 +2,7 @@ import type {ImagePrefetchOptions, ImageSource} from 'expo-image';
 import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type CONST from '@src/CONST';
 
 type ExpoImageSource = ImageSource | number | ImageSource[];
@@ -52,6 +53,9 @@ type ImageOwnProps = BaseImageProps & {
 
     /** The style of the loading indicator */
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
+
+    /** Reason attributes for skeleton span telemetry */
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 
     /** Event for when the image begins loading */
     onLoadStart?: () => void;

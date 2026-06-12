@@ -1,9 +1,8 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
 type TransactionPreviewCarouselStyle = {
@@ -25,9 +24,6 @@ type MoneyRequestReportPreviewStyleType = {
 };
 
 type MoneyRequestReportPreviewProps = {
-    /** All the data of the policy collection */
-    policies: OnyxCollection<Policy>;
-
     /** The report's policyID, used for Onyx subscription */
     policyID: string | undefined;
 
@@ -40,12 +36,6 @@ type MoneyRequestReportPreviewProps = {
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
 
-    /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor?: ContextMenuAnchor;
-
-    /** Callback for updating context menu active state, used for showing context menu */
-    checkIfContextMenuActive?: () => void;
-
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
 
@@ -57,9 +47,6 @@ type MoneyRequestReportPreviewProps = {
 
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
-
-    /** Whether  context menu should be shown on press */
-    shouldDisplayContextMenu?: boolean;
 
     /** Whether to show a border to separate Reports Chat Item and Money Request Report Preview */
     shouldShowBorder?: boolean;

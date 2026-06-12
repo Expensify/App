@@ -3,39 +3,32 @@ import {Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as AppUpdate from '@libs/actions/AppUpdate';
+import {translateLocal} from '@libs/Localize';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
+import NotificationPermission from '@libs/Notification/notificationPermission';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
 import SafeString from '@src/utils/SafeString';
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
 const notificationCache: Record<string, Notification> = {};
 
 /**
- * Checks if the user has granted permission to show browser notifications
+ * Checks if the user has granted permission to show browser notifications, prompting them
+ * if they have not yet decided.
  */
 function canUseBrowserNotifications(): Promise<boolean> {
-    return new Promise((resolve) => {
-        // They have no browser notifications so we can't use this feature
-        if (!window.Notification) {
-            resolve(false);
-            return;
+    return NotificationPermission.getStatus().then((status) => {
+        if (status === 'granted') {
+            return true;
         }
-
-        // Check if they previously granted or denied us access to send a notification
-        const permissionGranted = Notification.permission === 'granted';
-
-        if (permissionGranted || Notification.permission === 'denied') {
-            resolve(permissionGranted);
-            return;
+        if (status === 'denied') {
+            return false;
         }
-
-        // Check their global preferences for browser notifications and ask permission if they have none
-        Notification.requestPermission().then((status) => {
-            resolve(status === 'granted');
-        });
+        return NotificationPermission.request().then((requested) => requested === 'granted');
     });
 }
 
@@ -94,7 +87,13 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushReportCommentNotification(
+        report: Report,
+        reportAction: ReportAction,
+        onClick: LocalNotificationClickHandler,
+        usesIcon = false,
+        reportAttributes?: ReportAttributesDerivedValue['reports'],
+    ) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
@@ -113,9 +112,7 @@ export default {
         }
 
         if (isRoomOrGroupChat) {
-            // Will be fixed in https://github.com/Expensify/App/issues/76852
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = ReportUtils.getReportName({report});
+            const roomName = getReportName(report, reportAttributes);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
@@ -130,15 +127,31 @@ export default {
         push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, usesIcon = false, currentUserLogin}: LocalNotificationModifiedExpensePushParams) {
+    pushModifiedExpenseNotification({
+        report,
+        reportAction,
+        movedFromReport,
+        movedToReport,
+        onClick,
+        usesIcon = false,
+        policyTags,
+        policy,
+        currentUserLogin,
+        reportAttributes,
+    }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = getForReportAction({
+        const bodyWithHTML = getForReportAction({
+            translate: translateLocal,
             reportAction,
-            policyID: report.policyID,
+            policy,
             movedFromReport,
             movedToReport,
+            policyTags,
             currentUserLogin,
+            reportAttributes,
         });
+        // Strip HTML tags for plain text notification body
+        const body = getTextFromHtml(bodyWithHTML);
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,

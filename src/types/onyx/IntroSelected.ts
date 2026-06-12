@@ -2,7 +2,7 @@ import type {OnboardingInvite} from '@src/CONST';
 import type {OnboardingPurpose} from './index';
 
 /** The tasks of IntroSelected model */
-type IntroSelectedTask = 'viewTour' | 'createWorkspace' | 'setupCategories' | 'setupCategoriesAndTags';
+type IntroSelectedTask = 'viewTour' | 'createWorkspace' | 'setupCategories' | 'setupTags' | 'setupCategoriesAndTags';
 
 /** Model of onboarding */
 type IntroSelected = {
@@ -38,6 +38,9 @@ type IntroSelected = {
 
     /** The previous onboarding choices of the user */
     previousChoices?: OnboardingPurpose[];
+
+    /** The personal track goal selected during onboarding */
+    personalTrackGoal?: string;
 };
 
 export default IntroSelected;

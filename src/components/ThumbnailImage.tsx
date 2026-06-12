@@ -7,6 +7,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -79,6 +80,12 @@ type ThumbnailImageProps = {
 
     /** The resize mode of the image */
     resizeMode?: ImageResizeMode;
+
+    /** Reason attributes for skeleton span telemetry */
+    reasonAttributes?: SkeletonSpanReasonAttributes;
+
+    /** Low-resolution URI shown as a placeholder while the full image loads */
+    previewUri?: string;
 };
 
 function ThumbnailImage({
@@ -101,6 +108,8 @@ function ThumbnailImage({
     loadingIndicatorStyles,
     onLoad,
     resizeMode,
+    reasonAttributes,
+    previewUri,
 }: ThumbnailImageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'OfflineCloud']);
     const styles = useThemeStyles();
@@ -166,6 +175,8 @@ function ThumbnailImage({
                     loadingIndicatorStyles={loadingIndicatorStyles}
                     onLoad={onLoad}
                     resizeMode={resizeMode}
+                    reasonAttributes={reasonAttributes}
+                    previewUri={previewUri}
                 />
             </View>
         </View>

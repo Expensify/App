@@ -16,8 +16,12 @@ jest.mock('@libs/SidebarUtils', () => ({
     sortReportsToDisplayInLHN: jest.fn(),
     getReportsToDisplayInLHN: jest.fn(),
     updateReportsToDisplayInLHN: jest.fn(),
+    filterReportsForInboxTab: jest.fn((reportIDs: string[]) => reportIDs),
+    getInboxTabCounts: jest.fn(() => ({})),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     getTopmostReportId: jest.fn(),
 }));
 jest.mock('@libs/ReportUtils', () => ({
@@ -205,7 +209,7 @@ describe('useSidebarOrderedReports', () => {
             expect.any(Function), // localeCompare
             expect.any(Object), // reportsDrafts
             expect.any(Object), // reportNameValuePairs
-            undefined, // conciergeReportID - undefined when not set in Onyx
+            expect.anything(), // reportAttributes
         );
     });
 

@@ -1,14 +1,13 @@
 import React, {useState} from 'react';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
-import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, TabNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -24,10 +23,10 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
  * This SplitNavigator includes the HOME screen (<BaseSidebarScreen /> component) with a list of reports as a sidebar screen and the REPORT screen displayed as a central one.
  * There can be multiple report screens in the stack with different report IDs.
  */
-function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
+function ReportsSplitNavigator({route}: PlatformStackScreenProps<TabNavigatorParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
 
     const [initialReportID] = useState(() => {
@@ -51,13 +50,10 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
             return '';
         }
 
-        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isOpenOnAdminRoom, undefined, archivedReportsIdSet);
+        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isOpenOnAdminRoom, undefined, archivedReportsIDSet);
         // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });
-
-    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
-    usePreloadFullScreenNavigators();
 
     const reportScreenInitialParams = {
         reportID: initialReportID,

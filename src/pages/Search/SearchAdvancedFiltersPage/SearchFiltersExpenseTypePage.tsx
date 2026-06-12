@@ -13,6 +13,7 @@ import {updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ExpenseTypeValues} from '@src/types/form/SearchAdvancedFiltersForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function SearchFiltersExpenseTypePage() {
@@ -39,7 +40,7 @@ function SearchFiltersExpenseTypePage() {
         });
     }, [allExpenseTypes, translate]);
 
-    const updateExpenseTypeFilter = useCallback((values: string[]) => updateAdvancedFilters({expenseType: values}), []);
+    const updateExpenseTypeFilter = useCallback((values: ExpenseTypeValues) => updateAdvancedFilters({expenseType: values}), []);
 
     return (
         <ScreenWrapper

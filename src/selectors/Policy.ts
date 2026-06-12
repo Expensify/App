@@ -1,14 +1,25 @@
+import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {areAllGroupPoliciesExpenseChatDisabled, getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
+import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+type ReusablePolicyConnectionName =
+    | typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE
+    | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT
+    | typeof CONST.POLICY.CONNECTIONS.NAME.QBD
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
 
 const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
+
+const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => !!activeAdminPoliciesSelector(policies, currentUserAccountLogin).length;
 
 /**
  * Creates a selector that aggregates all non-formula policy report fields from all policies,
@@ -76,25 +87,184 @@ const hasMultipleOutputCurrenciesSelector = (policies: OnyxCollection<Policy>) =
     return false;
 };
 
-const groupPaidPoliciesWithExpenseChatEnabledSelector = (policies: OnyxCollection<Policy>, currentUserLogin: string | undefined) => {
-    if (isEmptyObject(policies)) {
-        return CONST.EMPTY_ARRAY;
+type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
+
+const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
+    (policy && {
+        type: policy.type,
+        role: policy.role,
+        id: policy.id,
+        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
+        pendingAction: policy.pendingAction,
+        avatarURL: policy.avatarURL,
+        name: policy.name,
+        areInvoicesEnabled: policy.areInvoicesEnabled,
+    }) as PolicySelector;
+
+// deepEqual on ~15 fields is cheaper than re-rendering IOURequestStartPage's full hook/memo tree.
+const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
+    if (!policies) {
+        return {};
     }
-    return Object.values(policies ?? {}).filter(
-        (policy): policy is Policy => !!policy?.isPolicyExpenseChatEnabled && !policy?.isJoinRequestPending && isPaidGroupPolicy(policy) && shouldShowPolicy(policy, false, currentUserLogin),
-    );
+
+    const result: Record<string, Policy> = {};
+
+    for (const [id, policyItem] of Object.entries(policies)) {
+        if (!policyItem) {
+            continue;
+        }
+
+        result[id] = {
+            id: policyItem.id,
+            type: policyItem.type,
+            name: policyItem.name,
+            pendingAction: policyItem.pendingAction,
+            isPolicyExpenseChatEnabled: policyItem.isPolicyExpenseChatEnabled,
+            role: policyItem.role,
+            chatReportIDAdmins: policyItem.chatReportIDAdmins,
+            employeeList: policyItem.employeeList,
+            arePerDiemRatesEnabled: policyItem.arePerDiemRatesEnabled,
+            customUnits: policyItem.customUnits,
+            units: policyItem.units,
+            isJoinRequestPending: policyItem.isJoinRequestPending,
+            errors: policyItem.errors,
+            owner: policyItem.owner,
+            areInvoicesEnabled: policyItem.areInvoicesEnabled,
+        } as Policy;
+    }
+
+    return result;
 };
 
-const shouldRedirectToExpensifyClassicSelector = (policies: OnyxCollection<Policy>) => areAllGroupPoliciesExpenseChatDisabled(policies);
+const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
+    return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+};
 
+function isAdminPolicyConnectedTo(policy: OnyxEntry<Policy>, connectionName: ReusablePolicyConnectionName): policy is Policy {
+    return !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy.connections?.[connectionName];
+}
+
+const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT));
+
+const adminPoliciesConnectedToCertiniaSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA));
+
+const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE));
+
+const adminPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.QBD));
+
+const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (policies: OnyxCollection<Policy>) => Policy[]> = {
+    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: adminPoliciesConnectedToNetSuiteSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: adminPoliciesConnectedToSageIntacctSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.QBD]: adminPoliciesConnectedToQBDSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: adminPoliciesConnectedToCertiniaSelector,
+};
+
+function isReusablePolicyConnection(policy: Policy, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
+    if (policy.id === currentPolicyID) {
+        return false;
+    }
+
+    return !isConnectionUnverified(policy, connectionName) && !hasSynchronizationErrorMessage(policy, connectionName, false);
+}
+
+function getReusablePoliciesConnectedTo(policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
+    return reusableConnectionAdminSelectors[connectionName](policies).filter((policy) => isReusablePolicyConnection(policy, connectionName, currentPolicyID));
+}
+
+const reusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) =>
+    getReusablePoliciesConnectedTo(policies, connectionName, currentPolicyID);
+
+const hasPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToQBDSelector(policies).length;
+
+const hasReusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) =>
+    Object.values(policies ?? {}).some((policy) => isAdminPolicyConnectedTo(policy, connectionName) && isReusablePolicyConnection(policy, connectionName, currentPolicyID));
+
+// Locales are loaded on demand. Instead of getting each workspace translation using `translate`, we hardcoded it here.
+// en|es|fr|it|ja|nl|pl|pt-BR|zh-hans
+// cspell:disable-next-line
+const WORKSPACE_TRANSLATIONS = 'Workspace|Espacio de trabajo|Espace de travail|Spazio di lavoro|ワークスペース|Werkruimte|Przestrzeń robocza|Espaço de trabalho|工作区';
+
+function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string): number | undefined {
+    const emailParts = email.split('@');
+    if (emailParts.length !== 2) {
+        return undefined;
+    }
+
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email);
+    // find default named workspaces and increment the last number
+    const escapedName = escapeRegExp(displayNameForWorkspace);
+
+    const domain = emailParts.at(1) ?? '';
+    const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
+    const workspaceRegex = isSMSDomain ? new RegExp(`^${escapedName}\\s*(\\d+)?$`, 'i') : new RegExp(`^(?=.*${escapedName})(?:.*(?:${WORKSPACE_TRANSLATIONS})\\s*(\\d+)?)`, 'i');
+
+    const workspaceNumbers = Object.values(policies ?? {})
+        .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
+        .filter(Boolean) // Remove null matches
+        .map((match) => Number(match?.[1] ?? '0'));
+    const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : undefined;
+
+    return lastWorkspaceNumber;
+}
+
+const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
+
+const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
+
+const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
+
+function isAdminForPolicyByIDSelector(policyID?: string) {
+    return (policies: OnyxCollection<Policy> | null): boolean => {
+        if (!policyID) {
+            return true;
+        }
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        return !!policy && policy.role === CONST.POLICY.ROLE.ADMIN;
+    };
+}
+
+const createAdminPoliciesSelector =
+    (currentPolicyID: string | undefined = undefined) =>
+    (policies: OnyxCollection<Policy>) => {
+        return Object.entries(policies ?? {}).reduce<Record<string, Pick<Policy, 'name' | 'id' | 'avatarURL' | 'created'>>>((acc, [key, policy]) => {
+            if (!policy?.id || !policy?.name) {
+                return acc;
+            }
+            const isCurrentPolicy = policy.id === currentPolicyID;
+            if (!isCurrentPolicy && (policy.type === CONST.POLICY.TYPE.PERSONAL || policy.role !== CONST.POLICY.ROLE.ADMIN)) {
+                return acc;
+            }
+            acc[key] = {id: policy.id, name: policy.name, avatarURL: policy.avatarURL, created: policy.created};
+            return acc;
+        }, {});
+    };
+
+export type {PolicySelector};
 export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     activeAdminPoliciesSelector,
+    hasActiveAdminPoliciesSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
     hasMultipleOutputCurrenciesSelector,
-    groupPaidPoliciesWithExpenseChatEnabledSelector,
-    shouldRedirectToExpensifyClassicSelector,
+    iouRequestPolicyCollectionSelector,
+    policyMapper,
+    adminPoliciesConnectedToQBDSelector,
+    reusablePoliciesConnectedToSelector,
+    hasPoliciesConnectedToQBDSelector,
+    hasReusablePoliciesConnectedToSelector,
+    lastWorkspaceNumberSelector,
+    hasOnlyPersonalPoliciesSelector,
+    policyNameSelector,
+    policyTypeSelector,
+    areInvoicesEnabledSelector,
+    createAdminPoliciesSelector,
+    isAdminForPolicyByIDSelector,
 };
+export type {ReusablePolicyConnectionName};

@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -13,6 +14,8 @@ import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
@@ -26,16 +29,22 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type NewTaskPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
 
 function NewTaskPage({route}: NewTaskPageProps) {
     const [task] = useOnyx(ONYXKEYS.TASK);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.shareDestination}`);
+    const policy = usePolicy(parentReport?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const reportAttributes = useReportAttributes();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
+    });
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails);
@@ -45,8 +54,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         localeCompare,
         formatPhoneNumber,
     );
-    const shareDestination = task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined;
-    const parentReport = task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined;
+    const shareDestination = task?.shareDestination ? getShareDestination(parentReport, personalDetails, localeCompare, policy, reportAttributes) : undefined;
     const ancestors = useAncestors(parentReport);
     const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
     const [error, setError] = useState<{message: string; taskKey: string}>({message: '', taskKey: ''});
@@ -62,7 +70,6 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useFocusEffect(() => {
         focusTimeoutRef.current = setTimeout(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 blurActiveElement();
             });
@@ -102,12 +109,15 @@ function NewTaskPage({route}: NewTaskPageProps) {
             assigneeEmail: task?.assignee ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
             currentUserEmail: currentUserPersonalDetails.email ?? '',
+            currentUserDisplayName: currentUserPersonalDetails.displayName,
+            currentUserAvatar: currentUserPersonalDetails.avatar,
             assigneeAccountID: task.assigneeAccountID,
             assigneeChatReport: task.assigneeChatReport,
             policyID: parentReport?.policyID,
             isCreatedUsingMarkdown: false,
             quickAction,
             ancestors,
+            taskCreatorAndAssigneeDetails,
         });
     };
 

@@ -5,10 +5,10 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 
 type ReportActionsListLoadingSkeletonProps = {
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function ReportActionsListLoadingSkeleton({reasonAttributes}: ReportActionsListLoadingSkeletonProps = {}) {
+function ReportActionsListLoadingSkeleton({reasonAttributes}: ReportActionsListLoadingSkeletonProps) {
     useSkeletonSpan('ReportActionsListLoadingSkeleton', reasonAttributes);
 
     return (

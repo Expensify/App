@@ -282,6 +282,7 @@ key "key"
       / exporter
       / expenseType
       / withdrawalType
+      / withdrawalStatus
       / withdrawalID
       / submitted
       / approved

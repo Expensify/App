@@ -11,6 +11,4 @@ type ContactPermissionModalProps = {
     onFocusTextInput: () => void;
 };
 
-export default {};
-
-export type {ContactPermissionModalProps};
+export default ContactPermissionModalProps;

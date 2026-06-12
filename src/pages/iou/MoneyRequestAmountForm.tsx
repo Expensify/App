@@ -8,11 +8,13 @@ import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString, convertToFrontendAmountAsInteger, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
+import {isTaxAmountInvalid} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
@@ -23,7 +25,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
 
-type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldShowBigNumberPad'> & {
+type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldShowBigNumberPad' | 'onFormatAmount'> & {
     /** Calculated tax amount based on selected tax rate */
     taxAmount?: number;
 
@@ -74,8 +76,6 @@ const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>
 
     return false;
 };
-const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
-    isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
 
 /**
  * Wrapper around MoneyRequestAmountInput with money request flow-specific logics.
@@ -102,6 +102,7 @@ function MoneyRequestAmountForm({
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
@@ -114,12 +115,20 @@ function MoneyRequestAmountForm({
 
     const absoluteAmount = Math.abs(amount);
 
+    const onFormatAmount = useCallback(
+        (amountAsInt: number, currencyParam?: string) => {
+            const decimals = getCurrencyDecimals(currencyParam);
+            return convertToFrontendAmountAsString(amountAsInt, decimals);
+        },
+        [getCurrencyDecimals],
+    );
+
     const initializeAmount = useCallback(
         (newAmount: number) => {
-            const frontendAmount = newAmount ? convertToFrontendAmountAsString(newAmount, currency) : '';
+            const frontendAmount = newAmount ? onFormatAmount(newAmount, currency) : '';
             moneyRequestAmountInputRef.current?.updateNumber(frontendAmount);
         },
-        [currency],
+        [currency, onFormatAmount],
     );
 
     const toggleNegative = useCallback(() => {
@@ -168,7 +177,7 @@ function MoneyRequestAmountForm({
                 return;
             }
 
-            if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm, currency)) {
+            if (isTaxAmountForm && isTaxAmountInvalid(currentAmount, taxAmount, getCurrencyDecimals(currency))) {
                 setFormError(translate('iou.error.invalidTaxAmount', formattedTaxAmount));
                 return;
             }
@@ -177,7 +186,7 @@ function MoneyRequestAmountForm({
 
             onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P],
+        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P, getCurrencyDecimals],
     );
 
     const buttonText: string = useMemo(() => {
@@ -263,8 +272,10 @@ function MoneyRequestAmountForm({
                 autoGrowExtraSpace={variables.w80}
                 hideCurrencySymbol={hideCurrencySymbol}
                 currency={currency}
+                shouldUseDynamicFontSize
                 isCurrencyPressable={isCurrencyPressable}
                 onCurrencyButtonPress={onCurrencyButtonPress}
+                onFormatAmount={onFormatAmount}
                 onAmountChange={() => {
                     if (!formError) {
                         return;
@@ -299,4 +310,4 @@ function MoneyRequestAmountForm({
 }
 
 export default MoneyRequestAmountForm;
-export type {CurrentMoney, MoneyRequestAmountFormProps};
+export type {CurrentMoney};

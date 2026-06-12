@@ -37,6 +37,7 @@ const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.Report
 function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates}: MoneyRequestReportRHPNavigationButtonsProps) {
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {markReportIDAsExpense} = useWideRHPActions();
 
@@ -92,7 +93,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         };
     }, [nextTransactionID, parentReportActions, prevTransactionID, transactionIDsList]);
 
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`);
+    const [prevParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevTransaction?.reportID}`);
+    const [nextParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextTransaction?.reportID}`);
     const [prevThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportAction?.childReportID}`);
     const [nextThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`);
 
@@ -124,18 +126,26 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             backTo = params?.backTo ?? backTo;
         }
         const nextThreadReportID = nextParentReportAction?.childReportID;
-        const navigationParams = {reportID: nextThreadReportID, backTo};
+        const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, backTo};
 
         if (nextThreadReportID) {
             markReportIDAsExpense(nextThreadReportID);
         }
         // We know that the next thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
         if (!nextThreadReport && nextThreadReportID) {
-            setOptimisticTransactionThread(nextThreadReportID, parentReport?.reportID, nextParentReportAction?.reportActionID, parentReport?.policyID);
+            setOptimisticTransactionThread(nextThreadReportID, nextParentReport?.reportID, nextParentReportAction?.reportActionID, nextParentReport?.policyID);
         }
         // The transaction thread doesn't exist yet, so we should create it
         if (!nextThreadReportID) {
-            const transactionThreadReport = createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, parentReport, nextParentReportAction, nextTransaction);
+            const transactionThreadReport = createTransactionThreadReport({
+                introSelected,
+                currentUserLogin: currentUserEmail ?? '',
+                currentUserAccountID,
+                betas,
+                iouReport: nextParentReport,
+                iouReportAction: nextParentReportAction,
+                transaction: nextTransaction,
+            });
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
@@ -152,18 +162,26 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             backTo = params?.backTo ?? backTo;
         }
         const prevThreadReportID = prevParentReportAction?.childReportID;
-        const navigationParams = {reportID: prevThreadReportID, backTo};
+        const navigationParams = {reportID: prevThreadReportID, reportActionID: undefined, backTo};
 
         if (prevThreadReportID) {
             markReportIDAsExpense(prevThreadReportID);
         }
         // We know that the previous thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
         if (!prevThreadReport && prevThreadReportID) {
-            setOptimisticTransactionThread(prevThreadReportID, parentReport?.reportID, prevParentReportAction?.reportActionID, parentReport?.policyID);
+            setOptimisticTransactionThread(prevThreadReportID, prevParentReport?.reportID, prevParentReportAction?.reportActionID, prevParentReport?.policyID);
         }
         // The transaction thread doesn't exist yet, so we should create it
         if (!prevThreadReportID) {
-            const transactionThreadReport = createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, parentReport, prevParentReportAction, prevTransaction);
+            const transactionThreadReport = createTransactionThreadReport({
+                introSelected,
+                currentUserLogin: currentUserEmail ?? '',
+                currentUserAccountID,
+                betas,
+                iouReport: prevParentReport,
+                iouReportAction: prevParentReportAction,
+                transaction: prevTransaction,
+            });
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating

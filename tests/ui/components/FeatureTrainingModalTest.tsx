@@ -25,7 +25,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 jest.mock('@components/ImageSVG', () => {
     const {View} = require<typeof ReactNative>('react-native');
-    // eslint-disable-next-line react/jsx-props-no-spreading
+
     return (props: ViewProps) => <View {...props} />;
 });
 
@@ -33,11 +33,6 @@ describe('FeatureTrainingModal', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            initialKeyStates: {
-                [ONYXKEYS.NETWORK]: {
-                    isOffline: false,
-                },
-            },
         });
     });
     describe('renderIllustration', () => {

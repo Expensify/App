@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -19,6 +20,7 @@ import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection'
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
@@ -43,9 +45,12 @@ type BankConnectionProps = {
 
     /** Route params for add new card flow */
     route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION>;
+
+    /** Title of the header */
+    title?: string;
 };
 
-function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnectionProps) {
+function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
@@ -74,6 +79,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
+    const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
@@ -148,20 +154,17 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         if (isNewFeedConnected) {
             setShouldBlockWindowOpen(true);
             customWindow?.close();
+
+            if (checkForDuplicateFeed(newFeed)) {
+                return;
+            }
+
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
             }
 
-            // Direct feeds (except those added via Plaid) are created with default statement period end date.
-            // Redirect the user to set a custom date.
-            if (policyID && !isPlaid) {
-                setAddNewCompanyCardStepAndData({
-                    step: CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE,
-                });
-            } else {
-                Navigation.closeRHPFlow();
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-            }
+            Navigation.closeRHPFlow();
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
             return;
         }
         if (!shouldBlockWindowOpen) {
@@ -190,6 +193,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        checkForDuplicateFeed,
     ]);
 
     const getContent = () => {
@@ -214,10 +218,17 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 />
             );
         }
+        const activityReasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'BankConnection',
+            isPlaid,
+            isAllFeedsResultLoading,
+            isBlockedToAddNewFeedsWithoutFeed: isBlockedToAddNewFeeds && !feed,
+        };
         return (
             <ActivityIndicator
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                 style={styles.flex1}
+                reasonAttributes={activityReasonAttributes}
             />
         );
     };
@@ -228,7 +239,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
-                title={headerTitle}
+                title={title ?? headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>{getContent()}</FullPageOfflineBlockingView>

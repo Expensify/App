@@ -1,6 +1,6 @@
 import type {ViewStyle} from 'react-native';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
-import {isMobileSafari} from '@libs/Browser';
+import {isMobile} from '@libs/Browser';
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -236,7 +236,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     // Workaround for Safari not supporting interactive-widget=resizes-content, sets max height of a container modal.
                     // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
                     // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
-                    ...(isMobileSafari() ? {maxHeight: `${windowDimensions.windowHeight}px`} : {}),
+                    ...(isMobile() ? {maxHeight: `${windowDimensions.windowHeight}px`, height: 'fit-content'} : {}),
                 };
 
                 if (shouldUseModalPaddingStyle) {

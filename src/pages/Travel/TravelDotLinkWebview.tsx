@@ -21,7 +21,6 @@ function TravelDotLinkWebview({route}: TravelDotLinkWebviewProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             testID="TravelDotLinkWebview"

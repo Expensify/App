@@ -92,6 +92,10 @@ function Badge({
         [styles.defaultBadge, styles.condensedBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles, isCondensed, isStrong],
     );
 
+    if (!text && !icon) {
+        return null;
+    }
+
     return (
         <Wrapper
             style={pressable ? wrapperStyles : wrapperStyles({focused: false, hovered: false, isDisabled: false, isScreenReaderActive: false, pressed: false})}
@@ -102,7 +106,7 @@ function Badge({
             accessible={false}
         >
             {!!icon && (
-                <View style={[styles.mr2, iconStyles]}>
+                <View style={[!!text && styles.mr1, iconStyles]}>
                     <Icon
                         width={iconSize}
                         height={iconSize}
@@ -111,22 +115,25 @@ function Badge({
                     />
                 </View>
             )}
-            <Text
-                style={[
-                    styles.badgeText,
-                    styles.textStrong,
-                    isCondensed && styles.condensedBadgeText,
-                    !isStrong && !success && !error && styles.badgeDefaultText,
-                    !isStrong && success && styles.badgeSuccessText,
-                    !isStrong && error && styles.badgeDangerText,
-                    isStrong && (success || error) && styles.badgeStrongText,
-                    textStyles,
-                    isDeleted ? styles.offlineFeedbackDeleted : {},
-                ]}
-                numberOfLines={1}
-            >
-                {text}
-            </Text>
+            {!!text && (
+                <Text
+                    style={[
+                        styles.badgeText,
+                        styles.textStrong,
+                        isCondensed && styles.condensedBadgeText,
+                        !isStrong && !success && !error && styles.badgeDefaultText,
+                        !isStrong && success && styles.badgeSuccessText,
+                        !isStrong && error && styles.badgeDangerText,
+                        isStrong && success && styles.buttonSuccessText,
+                        isStrong && error && styles.buttonDangerText,
+                        textStyles,
+                        isDeleted ? styles.offlineFeedbackDeleted : {},
+                    ]}
+                    numberOfLines={1}
+                >
+                    {text}
+                </Text>
+            )}
         </Wrapper>
     );
 }

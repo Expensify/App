@@ -1,22 +1,22 @@
 import {useEffect, useRef} from 'react';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
 
 function MarkAllMessagesAsReadHandler() {
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-    const archivedReportsIdSetRef = useRef(archivedReportsIdSet);
+    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const archivedReportsIDSetRef = useRef(archivedReportsIDSet);
 
     useEffect(() => {
-        archivedReportsIdSetRef.current = archivedReportsIdSet;
-    }, [archivedReportsIdSet]);
+        archivedReportsIDSetRef.current = archivedReportsIDSet;
+    }, [archivedReportsIDSet]);
 
     useEffect(() => {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.MARK_ALL_MESSAGES_AS_READ;
         const unsubscribe = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
-            () => markAllMessagesAsRead(archivedReportsIdSetRef.current),
+            () => markAllMessagesAsRead(archivedReportsIDSetRef.current),
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,
             true,
@@ -24,7 +24,6 @@ function MarkAllMessagesAsReadHandler() {
 
         return () => unsubscribe();
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return null;

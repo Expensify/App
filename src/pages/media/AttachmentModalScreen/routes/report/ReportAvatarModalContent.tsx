@@ -48,7 +48,6 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
 
     const onDownloadAttachment = useDownloadAttachment();
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !report?.reportID && !isLoadingApp;
     const isLoading = (!report?.reportID || !policy?.id) && !!isLoadingApp;
 

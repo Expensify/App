@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -69,17 +70,24 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const cardholderEmail = Str.removeSMSDomain(cardToAssign?.email ?? '');
     const cardholderAccountID = cardholder?.accountID;
 
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+
     useEffect(() => {
         if (!assignCard?.isAssignmentFinished) {
             return;
         }
 
-        Navigation.dismissModal();
         if (backTo) {
-            Navigation.navigate(backTo);
+            Navigation.dismissModal();
+            Navigation.navigate(backTo, {
+                afterTransition: () => clearAssignCardStepAndData(),
+            });
+        } else {
+            Navigation.dismissModal({
+                afterTransition: () => clearAssignCardStepAndData(),
+            });
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard?.isAssignmentFinished, backTo]);
 
     const submit = () => {
@@ -112,7 +120,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, {...cardToAssign, cardholder, bankName});
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, {...cardToAssign, cardholder, bankName}, currentUserAccountID);
     };
 
     const editStep = (step: string) => {

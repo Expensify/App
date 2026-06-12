@@ -5,10 +5,16 @@ import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 import {translateLocal} from '../../utils/TestHelper';
 
 jest.mock('@src/hooks/useResponsiveLayout');
+jest.mock('@libs/Navigation/Navigation', () => ({
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    getActiveRoute: jest.fn(() => ''),
+    navigate: jest.fn(),
+}));
 jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: jest.fn(),
     useIsFocused: () => true,
-    useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn(), goBack: jest.fn()}),
+    useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn(), goBack: jest.fn(), isFocused: () => true}),
     useFocusEffect: jest.fn(),
     usePreventRemove: jest.fn(),
 }));

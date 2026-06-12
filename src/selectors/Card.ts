@@ -1,15 +1,16 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {isCard, isCardHiddenFromSearch, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
+import {getExpensifyCardFeedsForDisplay} from '@libs/CardFeedUtils';
+import {isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard, isUkEuExpensifyCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
 
 /**
- * Builds a lightweight map of "${domainID}_${feedName}" keys that have at least one assigned card.
- * Used for O(1) lookup when filtering stale direct feeds, instead of passing the full WORKSPACE_CARDS_LIST collection.
+ * Builds a lightweight map of "${domainID}_${feedName}" keys that have card entries.
+ * A feed counts as having cards when:
+ * - it has at least one assigned card object, OR
+ * - it is a CSV feed, and it has at least one entry in `cardList`.
  *
  * Input key format: "cards_${domainID}_${feedName}" (e.g., "cards_12345_oauth.chase.com")
  * Output key format: "${domainID}_${feedName}" (e.g., "12345_oauth.chase.com")
@@ -22,8 +23,12 @@ const buildFeedKeysWithAssignedCards = (allWorkspaceCards: OnyxCollection<Worksp
             continue;
         }
 
-        if (Object.keys(cards).some((k) => k !== 'cardList')) {
-            const feedKey = key.replace(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, '');
+        const feedKey = key.replace(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, '');
+        const cardFeedName = feedKey.split('_').slice(1).join('_');
+        const hasAssignedCards = Object.keys(cards).some((k) => k !== 'cardList');
+        const isCSVFeed = isCSVFeedOrExpensifyCard(cardFeedName);
+        const hasCardsToAssign = isCSVFeed && Object.keys(cards.cardList ?? {}).length > 0;
+        if (hasAssignedCards || hasCardsToAssign) {
             result[feedKey] = true;
         }
     }
@@ -66,11 +71,11 @@ const getBankLinkedPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 };
 
 /**
- * Selects the Expensify Card feed from the card list and returns the first one.
+ * Selects the Expensify Card feed from the card list and returns the first regular (non-travel) one.
  */
-const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>, translate: LocalizedTranslate) => {
-    const cards = getCardFeedsForDisplay({}, allCards, translate);
-    return Object.values(cards)?.at(0);
+const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => {
+    const cards = Object.values(getExpensifyCardFeedsForDisplay(allCards ?? undefined, undefined));
+    return cards.find((feed) => feed.country !== CONST.TRAVEL.PROGRAM_TRAVEL_US);
 };
 
 /**
@@ -88,6 +93,14 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
         .filter((card) => isCard(card) && isExpensifyCard(card))
         .every((card) => card.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
 
+/** Checks whether the Expensify card matching the given cardID supports UK/EU features (e.g. PIN management). */
+const isExpensifyCardUkEuSupportedSelector = (cardList: OnyxEntry<CardList>, cardID: string): boolean =>
+    !!cardID && Object.values(cardList ?? {}).some((card) => isCard(card) && card.cardID === Number(cardID) && isUkEuExpensifyCard(card ?? undefined));
+
+const isExpensifyCardContinuousReconciliationEnabledSelector = (value: boolean | string | undefined): boolean | undefined => {
+    return typeof value === 'string' ? value === '1' : value;
+};
+
 export {
     filterCardsHiddenFromSearch,
     filterOutPersonalCards,
@@ -95,5 +108,7 @@ export {
     cardByIdSelector,
     areAllExpensifyCardsShipped,
     buildFeedKeysWithAssignedCards,
+    isExpensifyCardUkEuSupportedSelector,
     getBankLinkedPersonalCards,
+    isExpensifyCardContinuousReconciliationEnabledSelector,
 };

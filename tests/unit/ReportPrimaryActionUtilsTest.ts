@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getValidConnectedIntegration, isPreferredExporter} from '@libs/PolicyUtils';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getReportPrimaryAction,
@@ -47,6 +46,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
     getValidConnectedIntegration: jest.fn(),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
+    isGroupPolicy: jest.fn().mockReturnValue(true),
 }));
 
 describe('getPrimaryAction', () => {
@@ -94,6 +94,74 @@ describe('getPrimaryAction', () => {
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+    });
+
+    it('should return SUBMIT while a retract update is pending', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            pendingFields: {
+                hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+    });
+
+    it('should return SUBMIT while only nextStep is pending', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            pendingFields: {
+                nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = {
@@ -186,7 +254,7 @@ describe('getPrimaryAction', () => {
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
-    it('should not return SUBMIT option for admin with only pending transactions', async () => {
+    it('should return SUBMIT option for admin with only pending transactions', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -219,7 +287,7 @@ describe('getPrimaryAction', () => {
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
-        ).toBe('');
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
 
     it('should return Approve for report being processed', async () => {
@@ -503,6 +571,39 @@ describe('getPrimaryAction', () => {
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
+    it('should not return PAY for expense report with only non-reimbursable transactions when total is 0', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: 0,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            reimbursable: false,
+        } as unknown as Transaction;
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('should return EXPORT TO ACCOUNTING for finished reports', async () => {
@@ -924,6 +1025,82 @@ describe('getPrimaryAction', () => {
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH);
+    });
+
+    it('should not return MARK AS CASH for broken connection on approved report', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {};
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+        } as unknown as Transaction;
+
+        const violation = {
+            name: CONST.VIOLATIONS.RTER,
+            data: {
+                rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION,
+            },
+        } as unknown as TransactionViolation;
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH);
+    });
+
+    it('should not return MARK AS CASH for broken connection on settled (reimbursed) report', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {};
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+        } as unknown as Transaction;
+
+        const violation = {
+            name: CONST.VIOLATIONS.RTER,
+            data: {
+                rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION,
+            },
+        } as unknown as TransactionViolation;
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH);
     });
 
     it('should not return SUBMIT for expense report with smartscan failed violation', async () => {

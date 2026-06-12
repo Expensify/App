@@ -3,12 +3,12 @@ import React, {memo, useCallback, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,20 +30,10 @@ import type {TransactionPreviewProps} from './types';
 
 function TransactionPreview(props: TransactionPreviewProps) {
     const {translate} = useLocalize();
-    const {
-        action,
-        chatReportID,
-        reportID,
-        contextMenuAnchor,
-        checkIfContextMenuActive = () => {},
-        shouldDisplayContextMenu,
-        iouReportID,
-        transactionID: transactionIDFromProps,
-        onPreviewPressed,
-        shouldHighlight,
-        reportPreviewAction,
-        contextAction,
-    } = props;
+    const {convertToDisplayString} = useCurrencyListActions();
+    const {action, chatReportID, reportID, iouReportID, transactionID: transactionIDFromProps, onPreviewPressed, shouldHighlight, reportPreviewAction, contextAction} = props;
+    const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
+    const {checkIfContextMenuActive} = useShowContextMenuActions();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
@@ -71,11 +61,14 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const transactionDetails = getTransactionDetails(transaction);
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails ?? {};
 
+    const contextMenuReportID = contextAction ? chatReportID : reportID;
+    const contextMenuAction = contextAction ?? action;
+
     const showContextMenu = (event: GestureResponderEvent) => {
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchor, contextAction ? chatReportID : reportID, contextAction ?? action, checkIfContextMenuActive);
+        showContextMenuForReport(event, contextMenuAnchorRef, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, originalReportID);
     };
 
     const offlineWithFeedbackOnClose = useCallback(() => {
@@ -95,7 +88,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const iouAction = action;
 
     // See description of `transactionRawAmount` prop for more context
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const transactionRawAmount = (Number(transaction?.modifiedAmount) || transaction?.amount) ?? 0;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
@@ -114,7 +107,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
                 sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_PREVIEW.CARD}
             >
                 <TransactionPreviewContent
-                    /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...props}
                     action={iouAction}
                     isBillSplit={isBillSplit && !transaction?.comment?.originalTransactionID}
@@ -139,7 +131,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     return (
         <TransactionPreviewContent
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             action={iouAction}
             isBillSplit={isBillSplit}

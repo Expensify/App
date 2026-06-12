@@ -31,7 +31,7 @@ const PopoverStateContext = createContext<PopoverStateContextType>({
 const PopoverActionsContext = createContext<PopoverActionsContextType>(defaultPopoverActionsContext);
 
 function elementContains(ref: RefObject<View | HTMLElement | Text | null> | undefined, target: EventTarget | null) {
-    if (ref?.current && 'contains' in ref.current && ref?.current?.contains(target as Node)) {
+    if (ref?.current && 'contains' in ref.current && ref?.current?.contains(target as never)) {
         return true;
     }
     return false;
@@ -40,6 +40,7 @@ function elementContains(ref: RefObject<View | HTMLElement | Text | null> | unde
 function PopoverContextProvider(props: PopoverContextProps) {
     const [isOpen, setIsOpen] = useState(false);
     const activePopoverRef = useRef<AnchorRef | null>(null);
+    const [activePopover, setActivePopover] = useState<AnchorRef | null>(null);
     const [activePopoverAnchor, setActivePopoverAnchor] = useState<AnchorRef['anchorRef']['current'] | null>(null);
     const [activePopoverExtraAnchorRefs, setActivePopoverExtraAnchorRefs] = useState<AnchorRef['extraAnchorRefs']>([]);
 
@@ -50,6 +51,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
 
         activePopoverRef.current.close();
         activePopoverRef.current = null;
+        setActivePopover(null);
         setIsOpen(false);
         setActivePopoverAnchor(null);
         return true;
@@ -135,6 +137,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
                 closePopover(activePopoverRef.current.anchorRef);
             }
             activePopoverRef.current = popoverParams;
+            setActivePopover(popoverParams);
             setActivePopoverAnchor(popoverParams.anchorRef.current);
             setIsOpen(true);
         },
@@ -170,10 +173,10 @@ function PopoverContextProvider(props: PopoverContextProps) {
     const stateContextValue = useMemo<PopoverStateContextType>(
         () => ({
             isOpen,
-            popover: activePopoverRef.current,
+            popover: activePopover,
             popoverAnchor: activePopoverAnchor,
         }),
-        [isOpen, activePopoverAnchor],
+        [isOpen, activePopover, activePopoverAnchor],
     );
 
     return (

@@ -15,12 +15,10 @@ function ShortMentionRenderer(props: CustomRendererProps<TText | TPhrasing>) {
     const mentionLogin = mentionValue.substring(1);
 
     if (currentUserMentions?.includes(mentionLogin)) {
-        // eslint-disable-next-line react/jsx-props-no-spreading
         return <MentionHereRenderer {...props} />;
     }
 
     if (availableLoginsList.includes(mentionLogin)) {
-        // eslint-disable-next-line react/jsx-props-no-spreading
         return <MentionUserRenderer {...props} />;
     }
 

@@ -10,12 +10,11 @@ import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {getApprovalWorkflow} from '@libs/PolicyUtils';
+import {getApprovalWorkflow, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,12 +35,12 @@ type LimitTypeStepProps = {
 };
 
 function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
-    const {isBetaEnabled} = usePermissions();
     const formRef = useRef<FormRef | null>(null);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultType = getDefaultExpensifyCardLimitType(policy);
@@ -49,15 +48,17 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     const [typeSelected, setTypeSelected] = useState(issueNewCard?.data?.limitType ?? defaultType);
 
     const isEditing = issueNewCard?.isEditing;
+    const areSpendRulesAvailable = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED);
+
     const nextStep = useMemo(() => {
         if (isEditing) {
             return CONST.EXPENSIFY_CARD.STEP.CONFIRMATION;
         }
-        if (issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL && isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS)) {
-            return CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS;
+        if (areSpendRulesAvailable || issueNewCard?.data.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL) {
+            return CONST.EXPENSIFY_CARD.STEP.SPEND_RULES;
         }
         return CONST.EXPENSIFY_CARD.STEP.CARD_NAME;
-    }, [isBetaEnabled, isEditing, issueNewCard?.data?.cardType]);
+    }, [areSpendRulesAvailable, isEditing, issueNewCard?.data.cardType]);
 
     const onInputFocus = useCallback(() => {
         formRef.current?.scrollToEnd();
@@ -116,7 +117,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
             },
         );
 
-        if (issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL && isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS)) {
+        if (issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL) {
             options.push({
                 value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE,
                 label: translate('workspace.card.issueNewCard.singleUse'),
@@ -126,7 +127,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
             });
         }
         return options;
-    }, [areApprovalsConfigured, isBetaEnabled, issueNewCard?.data?.cardType, translate, typeSelected]);
+    }, [areApprovalsConfigured, issueNewCard?.data?.cardType, translate, typeSelected]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
@@ -194,7 +195,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
                     <InputWrapperWithRef
                         InputComponent={AmountForm}
                         label={translate('workspace.card.issueNewCard.amount')}
-                        defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, issueNewCard?.data?.currency, false)}
+                        defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, 0)}
                         isCurrencyPressable={false}
                         currency={issueNewCard?.data?.currency}
                         inputID={INPUT_IDS.LIMIT}

@@ -4,18 +4,19 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import useOnyx from '@hooks/useOnyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
 import {resolveReportFieldValue} from '@libs/Formula';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     getFieldViolation,
     getFieldViolationTranslation,
     getReportFieldKey,
     getReportFieldMaps,
+    isGroupPolicyExpenseReport as isGroupPolicyExpenseReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
-    isPaidGroupPolicyExpenseReport as isPaidGroupPolicyExpenseReportUtils,
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
@@ -23,8 +24,7 @@ import {
 } from '@libs/ReportUtils';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report, ReportViolationName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -63,7 +63,11 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
                 description={Str.UCFirst(reportField.name)}
                 title={reportField.fieldValue}
                 onPress={() => {
-                    Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, reportField.fieldID, Navigation.getActiveRoute()));
+                    if (!report?.policyID) {
+                        return;
+                    }
+
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, reportField.fieldID)));
                 }}
                 shouldShowRightIcon={!reportField.isFieldDisabled}
                 wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -81,8 +85,7 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
 }
 function MoneyRequestViewReportFields({report, policy, isCombinedReport = false, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
-
-    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
         const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {});
@@ -94,11 +97,11 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
                 const fieldValue = resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName);
-                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy);
+                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID);
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);
 
-                const violation = isFieldDisabled ? undefined : getFieldViolation(violations, field);
+                const violation = isFieldDisabled ? undefined : getFieldViolation(field);
                 const violationTranslation = getFieldViolationTranslation(field, violation);
 
                 return {
@@ -110,16 +113,16 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
                     violationTranslation,
                 };
             });
-    }, [policy, report, violations]);
+    }, [policy, report, currentUserAccountID]);
 
     const enabledReportFields = sortedPolicyReportFields.filter(
         (reportField) => !isReportFieldDisabled(report, reportField, policy) || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA,
     );
     const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && isReportFieldOfTypeTitle(enabledReportFields.at(0));
-    const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
+    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
-    const shouldDisplayReportFields = (isPaidGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && (!isOnlyTitleFieldEnabled || !isCombinedReport);
+    const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && (!isOnlyTitleFieldEnabled || !isCombinedReport);
 
     if (!shouldDisplayReportFields || !sortedPolicyReportFields.length) {
         return null;

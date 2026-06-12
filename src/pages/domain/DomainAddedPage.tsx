@@ -4,6 +4,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -11,10 +12,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isAdminSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainAddedPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_ADDED>;
@@ -23,11 +26,18 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
     const {asset: Encryption} = useMemoizedLazyAsset(() => loadIllustration('Encryption'));
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const domainAccountID = route.params.domainAccountID;
-    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const isAdmin = isAdminSelector(currentUserAccountID)(domain);
 
-    if (isLoadingOnyxValue(isAdminResults)) {
-        return <FullScreenLoadingIndicator />;
+    const isDomainLoading = isLoadingOnyxValue(domainMetadata);
+    if (isDomainLoading) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'DomainAddedPage',
+            isDomainLoading,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (!isAdmin) {

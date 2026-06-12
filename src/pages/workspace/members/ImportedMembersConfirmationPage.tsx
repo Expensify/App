@@ -1,11 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -13,6 +11,7 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -21,17 +20,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {openExternalLink} from '@libs/actions/Link';
 import {clearImportedSpreadsheetMemberData, importPolicyMembers} from '@libs/actions/Policy/Member';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {isControlPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
-import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
@@ -40,8 +38,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
-    const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(CONST.POLICY.ROLE.USER);
-    const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
+    const [role = CONST.POLICY.ROLE.USER] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE);
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
@@ -50,6 +47,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
 
     const personalDetails = usePersonalDetails();
     const {setIsClosing} = useCloseImportPage();
+    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
 
     useEffect(() => {
         return () => {
@@ -58,9 +56,17 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     }, []);
 
     const [importedSpreadsheetMemberData] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA);
-    const newMembers = useMemo(() => {
+    const computedNewMembers = useMemo(() => {
         return importedSpreadsheetMemberData?.filter((member) => !isPolicyMemberWithoutPendingDelete(member.email, policy) && !member.role) ?? [];
     }, [importedSpreadsheetMemberData, policy]);
+
+    // Freeze the displayed members once import starts so the UI doesn't reset
+    // when the policy updates with the newly imported members.
+    const newMembersRef = useRef(computedNewMembers);
+    if (!isImporting) {
+        newMembersRef.current = computedNewMembers;
+    }
+    const newMembers = newMembersRef.current;
     const invitedEmailsToAccountIDsDraft = useMemo(() => {
         const memberEmails = newMembers.map((member) => member.email);
         return memberEmails.reduce(
@@ -80,56 +86,27 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         openExternalLink(CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL);
     };
 
-    const importMembers = useCallback(() => {
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImporting(false);
+        closeImportPage();
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+    };
+
+    const importMembers = async () => {
         if (!newMembers) {
             return;
         }
         setIsImporting(true);
         const membersWithRole = (importedSpreadsheetMemberData ?? []).map((member) => ({...member, role: member.role || role}));
-        importPolicyMembers(policy, membersWithRole);
-    }, [importedSpreadsheetMemberData, newMembers, policy, role]);
-
-    const closeImportPageAndModal = () => {
-        setIsClosing(true);
-        setIsImporting(false);
-        closeImportPage();
-    };
-
-    const onRoleChange = (item: ListItemType) => {
-        setRole(item.value);
-        setIsRoleSelectionModalVisible(false);
-    };
-
-    const roleItems: ListItemType[] = useMemo(() => {
-        const items: ListItemType[] = [
-            {
-                value: CONST.POLICY.ROLE.ADMIN,
-                text: translate('common.admin'),
-                alternateText: translate('workspace.common.adminAlternateText'),
-                isSelected: role === CONST.POLICY.ROLE.ADMIN,
-                keyForList: CONST.POLICY.ROLE.ADMIN,
-            },
-            {
-                value: CONST.POLICY.ROLE.AUDITOR,
-                text: translate('common.auditor'),
-                alternateText: translate('workspace.common.auditorAlternateText'),
-                isSelected: role === CONST.POLICY.ROLE.AUDITOR,
-                keyForList: CONST.POLICY.ROLE.AUDITOR,
-            },
-            {
-                value: CONST.POLICY.ROLE.USER,
-                text: translate('common.member'),
-                alternateText: translate('workspace.common.memberAlternateText'),
-                isSelected: role === CONST.POLICY.ROLE.USER,
-                keyForList: CONST.POLICY.ROLE.USER,
-            },
-        ];
-
-        if (!isControlPolicy(policy)) {
-            return items.filter((item) => item.value !== CONST.POLICY.ROLE.AUDITOR);
+        const importFinalModal = await importPolicyMembers(policy, membersWithRole);
+        const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
+        if (!didShowImportFinalModal) {
+            setIsImporting(false);
+            return;
         }
-        return items;
-    }, [role, translate, policy]);
+        closeImportPageAndModal();
+    };
 
     if (!spreadsheet || !importedSpreadsheetMemberData) {
         return <NotFoundPage />;
@@ -171,9 +148,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                             title={translate(`workspace.common.roleName`, role)}
                             description={translate('common.role')}
                             shouldShowRightIcon
-                            onPress={() => {
-                                setIsRoleSelectionModalVisible(true);
-                            }}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.IMPORTED_MEMBERS_ROLE.path))}
                         />
                     </View>
                 </View>
@@ -195,27 +170,13 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                     accessibilityLabel={translate('common.privacy')}
                     href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                     style={[styles.mv2, styles.alignSelfStart]}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK}
                 >
                     <View style={[styles.flexRow]}>
                         <Text style={[styles.mr1, styles.label, styles.link]}>{translate('common.privacy')}</Text>
                     </View>
                 </PressableWithoutFeedback>
             </FixedFooter>
-            <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                closeImportPageAndModal={closeImportPageAndModal}
-                shouldHandleNavigationBack={false}
-                onModalHide={() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
-                }}
-            />
-            <WorkspaceMemberDetailsRoleSelectionModal
-                isVisible={isRoleSelectionModalVisible}
-                items={roleItems}
-                onRoleChange={onRoleChange}
-                onClose={() => setIsRoleSelectionModalVisible(false)}
-            />
         </ScreenWrapper>
     );
 }

@@ -15,18 +15,24 @@ type FormHelpMessageRowWithRetryButtonProps = {
 
     /** Whether the retry button's size should be "small". If not, then the size is "medium". */
     isButtonSmall?: boolean;
+
+    /** Whether the retry button should use danger styling. */
+    danger?: boolean;
+
+    /** Whether the retry button should stay next to the message instead of being pushed to the far edge. */
+    shouldAlignButtonToMessage?: boolean;
 };
 
-function FormHelpMessageRowWithRetryButton({message, isButtonSmall = false, onRetry}: FormHelpMessageRowWithRetryButtonProps) {
+function FormHelpMessageRowWithRetryButton({message, isButtonSmall = false, onRetry, danger = false, shouldAlignButtonToMessage = false}: FormHelpMessageRowWithRetryButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
     return (
-        <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldAlignButtonToMessage ? styles.justifyContentStart : styles.justifyContentBetween]}>
             <FormHelpMessage
                 message={message}
-                style={[styles.mt0, styles.mb0, styles.flex1]}
+                style={[styles.mt0, styles.mb0, shouldAlignButtonToMessage ? styles.flexShrink1 : styles.flex1]}
             />
             <Button
                 small={isButtonSmall}
@@ -34,6 +40,7 @@ function FormHelpMessageRowWithRetryButton({message, isButtonSmall = false, onRe
                 text={translate('domain.retry')}
                 onPress={onRetry}
                 isDisabled={isOffline}
+                danger={danger}
             />
         </View>
     );

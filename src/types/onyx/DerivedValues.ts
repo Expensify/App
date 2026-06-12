@@ -1,9 +1,9 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {Card} from '.';
+import type {Card, ReportAction} from '.';
 import type {CardList} from './Card';
-import type {CardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
+import type {CardFeedWithDomainID} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
 import type Transaction from './Transaction';
@@ -30,6 +30,14 @@ type ReportAttributes = {
      */
     requiresAttention: boolean;
     /**
+     * The action badge to display instead of the GBR/RBR dot (e.g. 'submit', 'approve', 'pay').
+     */
+    actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
+    /**
+     * The reportActionID that the action badge refers to, used for deep linking when the LHN row is pressed.
+     */
+    actionTargetReportActionID?: string;
+    /**
      * The errors of the report.
      */
     reportErrors: Errors;
@@ -37,6 +45,14 @@ type ReportAttributes = {
      * The reportID of the one-transaction thread report, if applicable.
      */
     oneTransactionThreadReportID?: string;
+
+    /**
+     * True when this report (typically a child expense report) has an RBR-worthy reason that should
+     * propagate up to its parent workspace chat. Set by the per-report pass; consumed by the propagation
+     * loop. We track it separately from `brickRoadStatus` because we suppress the child's own RBR/Fix badge
+     * when the parent workspace chat is accessible (so we can't read `brickRoadStatus` to drive propagation).
+     */
+    needsParentChatErrorPropagation?: boolean;
 };
 
 /**
@@ -76,6 +92,15 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
  * The derived value for report outstanding reports.
  */
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
+
+/**
+ * The derived value for reports grouped by policy ID.
+ * Groups reports by their policyID where:
+ * - The report has a policyID
+ * - The report is owned by the current user
+ * - The report state is open or submitted (stateNum <= 1)
+ */
+type OpenAndSubmittedReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
 /**
  * The derived value for visible report actions.
@@ -147,16 +172,6 @@ type FeedErrors = CardFeedErrorState & {
      */
     workspaceErrors?: Errors;
 };
-
-/**
- * The ID of a card feed in the errors map/object.
- */
-type CardFeedId = CompanyCardFeedWithNumber;
-
-/**
- * The errors of all card feeds by workspace account ID and feed name with domain ID.
- */
-type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
 
 /**
  * The errors of all card feeds.
@@ -252,26 +267,55 @@ type TodosDerivedValue = {
 };
 
 /**
+ * The derived value for flagged expenses.
+ *
+ * Aggregates transactions on the current user's `OPEN`/`OPEN` expense reports that have
+ * at least one transaction-level violation (excluding `showInReview === false` entries and
+ * `REPORT_VIOLATIONS.FIELD_REQUIRED` entries that may slip into the collection).
+ */
+type FlaggedExpensesDerivedValue = {
+    /** Ordered list of flagged transactions with their parent report IDs */
+    flaggedExpenses: Array<{
+        /** ID of the flagged transaction */
+        transactionID: string;
+        /** ID of the parent expense report */
+        reportID: string;
+    }>;
+};
+
+/**
+ * The derived value for sorted report actions, last report actions, and cached transaction thread report IDs.
+ */
+type SortedReportActionsDerivedValue = {
+    /** Sorted report actions keyed by report ID */
+    sortedActions: Record<string, ReportAction[]>;
+    /** Last report action for each report, keyed by report ID */
+    lastActions: Record<string, ReportAction>;
+    /** Transaction thread report IDs keyed by parent report action ID */
+    transactionThreadIDs: Record<string, string | undefined>;
+};
+
+/**
  * The derived value for merged personal and workspace card feeds.
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
 
-export default ReportAttributesDerivedValue;
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
+    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
+    SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     TodosDerivedValue,
     TodoMetadata,
-    AllCardFeedErrorsMap,
+    FlaggedExpensesDerivedValue,
     CardFeedErrorsObject,
-    FeedErrors,
     CardFeedErrorState,
     CardFeedErrors,
     CardErrors,

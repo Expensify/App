@@ -6,32 +6,44 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
-import {isCurrentUserValidated} from '@libs/UserUtils';
+import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingPrivateDomainProps} from './types';
 
 function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboardingPrivateDomainProps) {
     const [hasMagicCodeBeenSent, setHasMagicCodeBeenSent] = useState(false);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (acc) => ({
+            validated: acc?.validated,
+            isFromPublicDomain: acc?.isFromPublicDomain,
+        }),
+    });
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
-    const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
+    const joinablePoliciesLength = Object.values(joinablePolicies ?? {}).filter((policy) => policy.policyType !== CONST.POLICY.TYPE.SUBMIT || canUseSubmit2026).length;
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PRIVATE_DOMAIN);
 
     const email = session?.email ?? '';
     const domain = email.split('@').at(1) ?? '';
@@ -59,20 +71,56 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         Navigation.goBack(routeToNavigate);
     }, [route.params?.backTo, onboardingValues]);
 
+    const navigateToNextOnboardingStep = useCallback(
+        (backTo: string | undefined, options?: {forceReplace?: boolean}) => {
+            if (isVsb || isSmb) {
+                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(backTo), options);
+                return;
+            }
+            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(backTo), options);
+        },
+        [isVsb, isSmb],
+    );
+
+    // Only validated public-domain users are blocked from this screen — for them the "people on YOUR domain" copy would reference gmail.com.
+    // An unvalidated public-domain user who just submitted a work email may land here before isFromPublicDomain updates; that's the staging happy path.
+    const shouldBlockPublicDomain = !!account?.validated && !!account?.isFromPublicDomain;
+
     useEffect(() => {
+        if (shouldBlockPublicDomain) {
+            return;
+        }
         if (isValidated) {
             return;
         }
         sendValidateCode();
-    }, [sendValidateCode, isValidated]);
+    }, [sendValidateCode, isValidated, shouldBlockPublicDomain]);
 
     useEffect(() => {
-        if (!isValidated || joinablePoliciesLength === 0) {
+        if (shouldBlockPublicDomain) {
+            navigateToNextOnboardingStep(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
             return;
         }
 
-        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
-    }, [isValidated, joinablePoliciesLength]);
+        if (!isValidated) {
+            return;
+        }
+
+        if (joinablePoliciesLength > 0) {
+            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+            return;
+        }
+
+        // When validation succeeded but there are no joinable workspaces and the API call has completed,
+        // navigate to the next onboarding step (same as the skip button behavior).
+        if (getAccessiblePoliciesAction?.loading === false) {
+            navigateToNextOnboardingStep(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+        }
+    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, shouldBlockPublicDomain, navigateToNextOnboardingStep]);
+
+    if (shouldBlockPublicDomain) {
+        return null;
+    }
 
     return (
         <ScreenWrapper
@@ -83,7 +131,8 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         >
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={40}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={handleBackButtonPress}
                 shouldDisplayHelpButton={false}
             />
@@ -99,7 +148,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                     >
                         {translate('onboarding.peopleYouMayKnow')}
                     </Text>
-                    <Text style={[styles.textAlignLeft, styles.mv5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
+                    <Text style={[styles.textAlignLeft, styles.mv5]}>{translate('onboarding.workspaceYouMayJoin', domain, email)}</Text>
                     <ValidateCodeForm
                         validateCodeActionErrorField="getAccessiblePolicies"
                         handleSubmitForm={(code) => {
@@ -114,18 +163,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         validateError={getAccessiblePoliciesAction?.errors}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         shouldShowSkipButton
-                        handleSkipButtonPress={() => {
-                            if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
-                                return;
-                            }
-
-                            if (isSmb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
-                        }}
+                        handleSkipButtonPress={() => navigateToNextOnboardingStep(route.params?.backTo)}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}
                         isLoading={getAccessiblePoliciesAction?.loading}
                     />

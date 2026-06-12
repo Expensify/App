@@ -1,10 +1,10 @@
-/* eslint-disable rulesdir/no-negated-variables */
 import {adminAccountIDsSelector} from '@selectors/Domain';
 import React, {useEffect} from 'react';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,7 +37,6 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
     const shouldShowNotFoundPage = !domain || !isAdmin || shouldBeBlocked;
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (shouldShowFullScreenLoadingIndicator || (domain && isAdmin)) {
             return;
         }
@@ -46,7 +45,11 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
     }, [domain, isAdmin, shouldShowFullScreenLoadingIndicator]);
 
     if (shouldShowFullScreenLoadingIndicator) {
-        return <FullscreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'DomainNotFoundPageWrapper',
+            shouldShowFullScreenLoadingIndicator,
+        };
+        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (shouldShowNotFoundPage) {
@@ -55,9 +58,8 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
                 shouldForceFullScreen
                 shouldShowOfflineIndicator={false}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+                    Navigation.goBack(ROUTES.DOMAINS_LIST.route);
                 }}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...fullPageNotFoundViewProps}
                 shouldShowBackButton
             />

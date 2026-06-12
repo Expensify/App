@@ -1,5 +1,5 @@
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
+import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 
 /** Model of commands data */
@@ -109,6 +109,15 @@ type Response<TKey extends OnyxKey> = {
 
     /** PIN for an activated UK/EU Expensify Card */
     pin?: string;
+
+    /** Primary Account Number (full card number) returned from RevealExpensifyCardDetailsWithSCA */
+    pan?: string;
+
+    /** Expiration date returned from RevealExpensifyCardDetailsWithSCA */
+    expiration?: string;
+
+    /** CVV returned from RevealExpensifyCardDetailsWithSCA */
+    cvv?: string;
 
     /** Transactions pending 3DS review returned from GetTransactionsPending3DSReview */
     transactionsPending3DSReview?: TransactionsPending3DSReview;

@@ -6,6 +6,7 @@ import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,17 +33,19 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     const delegateEmail = account?.delegatedAccess?.delegate ?? '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {status} = useAccountTabIndicatorStatus();
 
     /**
      * Renders the appropriate avatar component based on user state (delegate, emoji status, or default profile)
      * with the correct active (ring) state for selection and hover effects.
      */
-    const renderAvatar = (active: boolean) => {
+    const renderAvatar = (active: boolean, isHovered: boolean) => {
         if (delegateEmail) {
             return (
                 <AvatarWithDelegateAvatar
                     delegateEmail={delegateEmail}
+                    isHovered={isHovered}
                     isSelected={active}
                     containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
                 />
@@ -76,12 +79,12 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             wrapperStyle={styles.flex1}
             accessibilityState={accountAccessibilityState}
             aria-selected={accountAccessibilityState.selected}
-            style={({hovered}) => [style, hovered && styles.navigationTabBarItemHovered]}
+            style={({hovered}) => [style, !shouldUseNarrowLayout && hovered && styles.navigationTabBarItemHovered]}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
         >
             {({hovered}) => (
                 <>
-                    {renderAvatar(isSelected || hovered)}
+                    {renderAvatar(isSelected || (!shouldUseNarrowLayout && hovered), hovered)}
                     <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}>
                         {translate('initialSettingsPage.account')}
                     </Text>

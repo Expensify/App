@@ -1,13 +1,8 @@
 import {useEffect} from 'react';
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import * as User from '@userActions/User';
+import {clearCustomStatus, clearDraftCustomStatus} from '@userActions/User';
 import CONST from '@src/CONST';
-
-function clearStatus() {
-    User.clearCustomStatus();
-    User.clearDraftCustomStatus();
-}
 
 /**
  * Component that does not render anything and owns the timezone auto-update logic and
@@ -20,6 +15,11 @@ function UserStatusHandler() {
     useAutoUpdateTimezone();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const clearStatus = () => {
+        clearCustomStatus(currentUserPersonalDetails.accountID);
+        clearDraftCustomStatus();
+    };
 
     useEffect(() => {
         if (!currentUserPersonalDetails.status?.clearAfter) {
@@ -71,7 +71,7 @@ function UserStatusHandler() {
         }
 
         clearStatus();
-    }, [currentUserPersonalDetails.status?.clearAfter]);
+    }, [clearStatus, currentUserPersonalDetails.status?.clearAfter]);
 
     return null;
 }

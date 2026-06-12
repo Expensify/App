@@ -7,7 +7,7 @@ function SelectionList<TItem extends ListItem>(props: SelectionListWithSectionsP
     return (
         <BaseSelectionList
             // Props spreading is necessary here to pass through all SelectionList props while adding native-specific behavior
-            // eslint-disable-next-line react/jsx-props-no-spreading
+
             {...props}
             onScrollBeginDrag={Keyboard.dismiss}
         />

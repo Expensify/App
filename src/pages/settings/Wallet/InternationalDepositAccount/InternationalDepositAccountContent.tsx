@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,11 +8,14 @@ import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubPage from '@hooks/useSubPage';
+import {clearCorpayBankAccountFields} from '@libs/actions/BankAccounts';
 import {clearDraftValues} from '@libs/actions/FormActions';
+import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,16 +77,13 @@ function InternationalDepositAccountContent({
 }: InternationalDepositAccountContentProps) {
     const {translate} = useLocalize();
 
-    const fieldsMap = useMemo(() => getFieldsMap(corpayFields), [corpayFields]);
+    const fieldsMap = getFieldsMap(corpayFields);
 
-    const values = useMemo(
-        () => getSubstepValues(privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, fieldsMap),
-        [privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, fieldsMap],
-    );
+    const values = getSubstepValues(privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, fieldsMap);
 
-    const initialAccountHolderDetailsValues = useMemo(() => getInitialPersonalDetailsValues(privatePersonalDetails), [privatePersonalDetails]);
+    const initialAccountHolderDetailsValues = getInitialPersonalDetailsValues(privatePersonalDetails);
 
-    const startFrom = useMemo(() => getInitialSubstep(values, fieldsMap), [fieldsMap, values]);
+    const startFrom = getInitialSubstep(values, fieldsMap);
 
     const skipAccountTypeStep = isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE]);
 
@@ -93,32 +93,31 @@ function InternationalDepositAccountContent({
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT>>();
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((r) => isFullScreenName(r.name)));
+    const activeTab = getActiveTabName(topmostFullScreenRoute);
 
-    const goBack = useCallback(
-        (shouldIgnoreBackToParam = false) => {
-            if (backTo && !shouldIgnoreBackToParam) {
-                Navigation.goBack(backTo);
-                return;
-            }
-            switch (topmostFullScreenRoute?.name) {
-                case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
-                    Navigation.goBack(ROUTES.SETTINGS_WALLET);
-                    break;
-                case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
-                    Navigation.closeRHPFlow();
-                    break;
-                default:
-                    Navigation.goBack();
-                    break;
-            }
-        },
-        [backTo, topmostFullScreenRoute?.name],
-    );
+    const goBack = (shouldIgnoreBackToParam = false) => {
+        if (backTo && !shouldIgnoreBackToParam) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        switch (activeTab) {
+            case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
+                Navigation.goBack(ROUTES.SETTINGS_WALLET);
+                break;
+            case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
+                Navigation.closeRHPFlow();
+                break;
+            default:
+                Navigation.goBack();
+                break;
+        }
+    };
 
-    const handleFinishStep = useCallback(() => {
+    const handleFinishStep = () => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+        clearCorpayBankAccountFields();
         goBack(backTo?.includes(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE));
-    }, [goBack, backTo]);
+    };
 
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomSubPageProps>({
         pages,
@@ -141,6 +140,7 @@ function InternationalDepositAccountContent({
         // Clicking back on the first screen should dismiss the modal
         if (pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR) {
             clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+            clearCorpayBankAccountFields();
             goBack();
             return true;
         }
@@ -151,13 +151,13 @@ function InternationalDepositAccountContent({
 
     useAndroidBackButtonHandler(handleBackButtonPress);
 
-    const handleNextScreen = useCallback(() => {
+    const handleNextScreen = () => {
         if (isEditing) {
             goBackToConfirmStep();
             return;
         }
         nextPage();
-    }, [isEditing, goBackToConfirmStep, nextPage]);
+    };
 
     return (
         <ScreenWrapper
@@ -166,7 +166,9 @@ function InternationalDepositAccountContent({
             shouldShowOfflineIndicatorInWideScreen={pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
             {isRedirecting || isAccountLoading ? (
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator
+                    reasonAttributes={{context: 'InternationalDepositAccountContent', isRedirecting: !!isRedirecting, isAccountLoading} satisfies SkeletonSpanReasonAttributes}
+                />
             ) : (
                 <>
                     <HeaderWithBackButton

@@ -20,8 +20,8 @@ Anyone with an Expensify account can use the free features — no workspace requ
 
 ## Where to find free features in Expensify
 
-- **Web:** Use the navigation tabs on the left to access **Inbox**, **Reports**, or **Account**.
-- **Mobile:** Use the navigation tabs on the bottom to access **Inbox**, **Reports**, or **Account**.
+- **Web:** Use the navigation tabs on the left to access **Inbox**, **Spend**, or **Account**.
+- **Mobile:** Use the navigation tabs on the bottom to access **Inbox**, **Spend**, or **Account**.
 
 ---
 
@@ -94,7 +94,7 @@ For purchases without receipts, enter expenses by hand.
 Export your data for taxes, budgeting, or sharing with an accountant.
 
 ### Web
-1. Click **Reports** > **Expenses**.
+1. Click **Spend** > **Expenses**.
 2. Tick the boxes of the expenses you want to export. 
 3. Click **Selected** at the top.
 4. Choose **Export** from the dropdown menu.

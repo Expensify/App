@@ -8,9 +8,10 @@ import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoa
 import ImageWithLoading from '@components/ImageWithLoading';
 import PDFThumbnail from '@components/PDFThumbnail';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
-import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
@@ -104,6 +105,9 @@ type ReceiptImageProps = (
 
     isEmptyReceipt?: boolean;
 
+    /** Reason attributes for skeleton span telemetry */
+    reasonAttributes?: SkeletonSpanReasonAttributes;
+
     /** Callback to be called on pressing the image */
     onPress?: () => void;
 
@@ -125,11 +129,11 @@ type ReceiptImageProps = (
     /** The resize mode of the image */
     resizeMode?: ImageResizeMode;
 
-    /** Whether the receipt is a map distance request */
-    isMapDistanceRequest?: boolean;
-
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle & ImageStyle>;
+
+    /** Low-resolution URI shown as a placeholder while the full image loads */
+    previewUri?: string;
 };
 
 function ReceiptImage({
@@ -149,6 +153,7 @@ function ReceiptImage({
     fallbackIconColor,
     fallbackIconBackground,
     isEmptyReceipt = false,
+    reasonAttributes,
     onPress,
     transactionItem,
     isPerDiemRequest,
@@ -158,8 +163,8 @@ function ReceiptImage({
     onLoad,
     onLoadFailure,
     resizeMode,
-    isMapDistanceRequest,
     style,
+    previewUri,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
     const [receiptImageWidth, setReceiptImageWidth] = useState<number | undefined>(undefined);
@@ -205,7 +210,6 @@ function ReceiptImage({
                 <EReceiptThumbnail
                     transactionID={transactionID}
                     iconSize={iconSize}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             </View>
@@ -216,6 +220,7 @@ function ReceiptImage({
         return (
             <ThumbnailImage
                 previewSourceURL={source ?? ''}
+                previewUri={previewUri}
                 style={[styles.w100, styles.h100, style, thumbnailContainerStyles]}
                 isAuthTokenRequired={isAuthTokenRequired ?? false}
                 shouldDynamicallyResize={false}
@@ -229,6 +234,7 @@ function ReceiptImage({
                 onLoad={onLoad}
                 onLoadFailure={onLoadFailure}
                 resizeMode={resizeMode}
+                reasonAttributes={reasonAttributes}
             />
         );
     }
@@ -242,7 +248,7 @@ function ReceiptImage({
                 lastUpdateWidthTimestampRef.current = e.timeStamp;
             }}
             source={typeof source === 'string' ? {uri: source} : source}
-            style={[style, isMapDistanceRequest && styles.flex1, styles.overflowHidden]}
+            style={[style, styles.overflowHidden]}
             isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
@@ -253,6 +259,8 @@ function ReceiptImage({
             imageWidthToCalculateHeight={receiptImageWidth}
             onError={onLoadFailure}
             resizeMode={resizeMode}
+            reasonAttributes={reasonAttributes}
+            previewUri={previewUri}
         />
     );
 }

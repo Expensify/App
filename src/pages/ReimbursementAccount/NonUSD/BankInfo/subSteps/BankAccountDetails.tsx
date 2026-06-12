@@ -11,6 +11,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInputForValueSet from '@pages/ReimbursementAccount/NonUSD/utils/getInputForValueSet';
@@ -75,21 +77,24 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: fieldIds as Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>,
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
+
+    const corpayFieldsLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'BankAccountDetails', isLoading: !!corpayFields?.isLoading};
 
     const inputs = bankAccountDetailsFields?.map((field) => {
         if (field.valueSet !== undefined) {
             return getInputForValueSet(field, SafeString(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
         }
 
+        const inputComponent = getInputComponent(field);
         return (
             <View
                 style={styles.mb6}
                 key={field.id}
             >
                 <InputWrapper
-                    InputComponent={getInputComponent(field)}
+                    InputComponent={inputComponent}
                     inputID={field.id}
                     label={field.label}
                     aria-label={field.label}
@@ -103,6 +108,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                         country: '',
                     }}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                    {...(inputComponent === TextInput ? getTextInputAutocorrectProps() : {})}
                 />
             </View>
         );
@@ -125,6 +131,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={styles.flexGrow1}
+                            reasonAttributes={corpayFieldsLoadingReasonAttributes}
                         />
                     </View>
                 ) : (

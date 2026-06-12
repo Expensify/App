@@ -44,4 +44,3 @@ function usePreferredPolicy(): UsePreferredPolicyResult {
 }
 
 export default usePreferredPolicy;
-export type {UsePreferredPolicyResult};

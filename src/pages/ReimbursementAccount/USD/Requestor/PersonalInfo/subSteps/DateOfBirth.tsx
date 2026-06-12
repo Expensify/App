@@ -4,8 +4,9 @@ import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,7 +16,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 const PERSONAL_INFO_DOB_KEY = INPUT_IDS.PERSONAL_INFO_STEP.DOB;
 const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY];
 
-function DateOfBirth({onNext, onMove, isEditing}: SubStepProps) {
+function DateOfBirth({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -32,7 +33,11 @@ function DateOfBirth({onNext, onMove, isEditing}: SubStepProps) {
     });
 
     if (isLoadingReimbursementAccount) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'DateOfBirth',
+            isLoadingReimbursementAccount,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

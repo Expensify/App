@@ -6,15 +6,19 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
@@ -34,28 +38,31 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {clearPolicyTagErrors, deletePolicyTags, setWorkspaceTagEnabled} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 type TagSettingsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS>;
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS>;
 
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
-    const {orderWeight, policyID, tagName, backTo, parentTagsFilter} = route.params;
+    const {policyID, tagName, parentTagsFilter} = route.params;
+    const orderWeight = Number(route.params.orderWeight);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
+    const {canWrite: canWriteTags, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const policyTag = getTagListByOrderWeight(policyTags, orderWeight);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Trashcan'] as const);
-    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS;
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Trashcan']);
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.path);
     const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
     const approver = getPersonalDetailByEmail(tagApprover);
-    const approverText = approver?.displayName ?? tagApprover;
+    const approverText = formatPhoneNumber(approver?.displayName ?? tagApprover);
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
     const currentPolicyTag = hasDependentTags
         ? Object.values(policyTag.tags ?? {}).find((tag) => tag?.name === tagName && tag.rules?.parentTagsFilter === parentTagsFilter)
@@ -90,7 +97,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const navigateToEditTag = () => {
         Navigation.navigate(
             isQuickSettingsFlow
-                ? ROUTES.SETTINGS_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.getRoute(orderWeight, currentPolicyTag.name))
                 : ROUTES.WORKSPACE_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name),
         );
     };
@@ -102,7 +109,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     policyID,
                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
                     isQuickSettingsFlow
-                        ? ROUTES.SETTINGS_TAG_GL_CODE.getRoute(policyID, orderWeight, tagName, backTo)
+                        ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, tagName))
                         : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, tagName),
                 ),
             );
@@ -110,16 +117,14 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         }
         Navigation.navigate(
             isQuickSettingsFlow
-                ? ROUTES.SETTINGS_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name))
                 : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name),
         );
     };
 
     const navigateToEditTagApprover = () => {
         Navigation.navigate(
-            isQuickSettingsFlow
-                ? ROUTES.SETTINGS_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
-                : ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name),
+            isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path) : ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name),
         );
     };
 
@@ -135,6 +140,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.TAGS}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -144,10 +150,10 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                 <HeaderWithBackButton
                     title={getCleanedTagName(tagName)}
                     shouldSetModalVisibility={false}
-                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
+                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backPath : undefined)}
                 />
 
-                <View style={styles.flexGrow1}>
+                <ScrollView>
                     {!hasDependentTags && (
                         <OfflineWithFeedback
                             errors={getLatestErrorMessageField(currentPolicyTag)}
@@ -167,7 +173,9 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                         isOn={currentPolicyTag.enabled}
                                         accessibilityLabel={translate('workspace.tags.enableTag')}
                                         onToggle={updateWorkspaceTagEnabled}
-                                        showLockIcon={shouldPreventDisableOrDelete}
+                                        disabled={!canWriteTags}
+                                        disabledAction={withReadOnlyFallback()}
+                                        showLockIcon={!canWriteTags || shouldPreventDisableOrDelete}
                                     />
                                 </View>
                             </View>
@@ -178,8 +186,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             title={getCleanedTagName(currentPolicyTag.name)}
                             description={translate(`common.name`)}
                             onPress={navigateToEditTag}
-                            interactive={!hasDependentTags}
-                            shouldShowRightIcon={!hasDependentTags}
+                            interactive={canWriteTags && !hasDependentTags}
+                            shouldShowRightIcon={canWriteTags && !hasDependentTags}
                         />
                     </OfflineWithFeedback>
                     {(!hasDependentTags || !!currentPolicyTag?.['GL Code']) && (
@@ -189,8 +197,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 title={currentPolicyTag?.['GL Code']}
                                 onPress={navigateToEditGlCode}
                                 iconRight={hasAccountingConnections ? expensifyIcons.Lock : undefined}
-                                interactive={!hasAccountingConnections && !hasDependentTags}
-                                shouldShowRightIcon={!hasDependentTags}
+                                interactive={canWriteTags && !hasAccountingConnections && !hasDependentTags}
+                                shouldShowRightIcon={canWriteTags && !hasDependentTags}
                             />
                         </OfflineWithFeedback>
                     )}
@@ -204,7 +212,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 title={approverText}
                                 description={translate(`workspace.tags.approverDescription`)}
                                 onPress={navigateToEditTagApprover}
-                                shouldShowRightIcon
+                                interactive={canWriteTags}
+                                shouldShowRightIcon={canWriteTags}
                                 disabled={approverDisabled}
                                 helperText={
                                     approverDisabled
@@ -216,7 +225,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                         </>
                     )}
 
-                    {shouldShowDeleteMenuItem && (
+                    {canWriteTags && shouldShowDeleteMenuItem && (
                         <MenuItem
                             icon={expensifyIcons.Trashcan}
                             title={translate('common.delete')}
@@ -242,12 +251,12 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                         return;
                                     }
                                     deletePolicyTags(policyData, [currentPolicyTag.name]);
-                                    Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
+                                    Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
                                 }
                             }}
                         />
                     )}
-                </View>
+                </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

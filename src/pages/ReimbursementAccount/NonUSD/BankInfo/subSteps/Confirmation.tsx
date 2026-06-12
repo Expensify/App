@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInputKeysForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInputKeysForBankInfoStep';
@@ -54,6 +55,8 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
         [corpayFields, onMove, values],
     );
 
+    const corpayFieldsLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'BankInfo.Confirmation', isLoading: !!corpayFields?.isLoading};
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -69,6 +72,7 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flexGrow1}
+                        reasonAttributes={corpayFieldsLoadingReasonAttributes}
                     />
                 ) : (
                     items

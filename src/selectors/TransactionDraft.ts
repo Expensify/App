@@ -9,5 +9,12 @@ const validTransactionDraftsSelector = (drafts: OnyxCollection<Transaction>): Re
         return acc;
     }, {});
 
-// eslint-disable-next-line import/prefer-default-export
-export {validTransactionDraftsSelector};
+const validTransactionDraftIDsSelector = (drafts: OnyxCollection<Transaction>): string[] =>
+    Object.values(drafts ?? {}).reduce<string[]>((acc, draft) => {
+        if (draft) {
+            acc.push(draft.transactionID);
+        }
+        return acc;
+    }, []);
+
+export {validTransactionDraftsSelector, validTransactionDraftIDsSelector};

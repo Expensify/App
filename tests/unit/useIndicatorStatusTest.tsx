@@ -15,7 +15,7 @@ const otherUserID = 'otheruser@expensify.com';
 
 const brokenCardFeed = {
     feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-    workspaceAccountID: 12345,
+    policyAccountID: 12345,
 };
 
 const cardFeedErrorTestCases = {
@@ -112,6 +112,12 @@ const TEST_CASES = {
         policyIDWithErrors: undefined,
     },
     hasPolicyAdminCardFeedErrors: cardFeedErrorTestCases.admin,
+    hasLockedBankAccount: {
+        name: 'has locked bank account',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT,
+        policyIDWithErrors: undefined,
+    },
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const TEST_CASES_NON_ADMIN = {
@@ -145,7 +151,7 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
             name: 'Workspace 1',
             owner: isAdmin ? userID : otherUserID,
             role: isAdmin ? 'admin' : 'user',
-            workspaceAccountID: brokenCardFeed.workspaceAccountID,
+            policyAccountID: brokenCardFeed.policyAccountID,
             customUnits:
                 status === CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR
                     ? {
@@ -173,7 +179,6 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
             owner: userID,
             role: isAdmin ? 'admin' : 'user',
             employeeList: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 [userID]: {
                     email: userID,
                     errors:
@@ -212,6 +217,12 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                               error: 'Something went wrong',
                           }
                         : undefined,
+                accountData:
+                    status === CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT
+                        ? {
+                              state: CONST.BANK_ACCOUNT.STATE.LOCKED,
+                          }
+                        : undefined,
             },
         },
         [ONYXKEYS.USER_WALLET]: {
@@ -231,9 +242,9 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                       }
                     : undefined,
         },
-        [ONYXKEYS.LOGIN_LIST]: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            [userID]: {
+        [ONYXKEYS.LOGINS]: {
+            [`1_${userID}`]: {
+                partnerID: 1,
                 partnerName: 'John Doe',
                 partnerUserID: userID,
                 validatedDate: status !== CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO ? new Date().toISOString() : undefined,
@@ -264,13 +275,13 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
             card1: {
                 bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
                 lastScrapeResult: name === cardFeedErrorTestCases.admin.name || name === cardFeedErrorTestCases.employee.name ? 403 : 200,
-                fundID: String(brokenCardFeed.workspaceAccountID),
+                fundID: String(brokenCardFeed.policyAccountID),
             },
             card2: {
                 cardID: 123456,
                 bank: CONST.EXPENSIFY_CARD.BANK,
                 accountID: 123,
-                fundID: String(brokenCardFeed.workspaceAccountID),
+                fundID: String(brokenCardFeed.policyAccountID),
                 state: status === CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO ? CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED : CONST.EXPENSIFY_CARD.STATE.OPEN,
             },
         },

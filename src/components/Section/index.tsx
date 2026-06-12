@@ -134,7 +134,6 @@ function Section({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
     const isLottie = isIllustrationLottieAnimation(illustration);
 
     const lottieIllustration = isLottie ? illustration : undefined;
@@ -166,7 +165,6 @@ function Section({
                                 source={illustration}
                                 style={styles.h100}
                                 webStyle={styles.h100}
-                                autoPlay
                                 loop
                                 shouldLoadAfterInteractions={shouldUseNarrowLayout}
                             />

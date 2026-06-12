@@ -1,4 +1,4 @@
-import splitPathAndQuery from '@libs/Navigation/helpers/splitPathAndQuery';
+import splitPathAndQuery from '@libs/Navigation/helpers/dynamicRoutesUtils/splitPathAndQuery';
 
 describe('splitPathAndQuery', () => {
     it('should split path and query', () => {

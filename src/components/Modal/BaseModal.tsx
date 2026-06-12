@@ -1,12 +1,15 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter, View} from 'react-native';
+import {Animated, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
+import ScrollView from '@components/ScrollView';
 import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -54,6 +57,7 @@ function BaseModal({
     onBackdropPress,
     modalId,
     shouldEnableNewFocusManagement = false,
+    shouldReturnFocus,
     restoreFocusType,
     shouldUseModalPaddingStyle = true,
     initialFocus = false,
@@ -69,17 +73,20 @@ function BaseModal({
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
     ref,
     shouldDisplayBelowModals = false,
+    shouldKeepRightDockedBackdropInNarrowPane = false,
+    shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
 }: BaseModalProps) {
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const {windowWidth, windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
     const canUseTouchScreen = canUseTouchScreenCheck();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal, isInLandscapeMode} = useResponsiveLayout();
 
     const {sidePanelOffset} = useSidePanelState();
     const sidePanelAnimatedStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]} : undefined;
@@ -92,6 +99,7 @@ function BaseModal({
 
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
+    const bottomDockedDismissButtonRef = useRef<View>(null);
 
     const wasVisible = usePrevious(isVisible);
 
@@ -163,11 +171,9 @@ function BaseModal({
             }
             hideModalCallbackRef.current?.(true);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [],
     );
-
-    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
@@ -176,8 +182,8 @@ function BaseModal({
         onModalShow();
     }, [onModalShow, shouldSetModalVisibility, type]);
 
-    const handleBackdropPress = (e?: KeyboardEvent) => {
-        if (e?.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+    const handleBackdropPress = (e?: GestureResponderEvent | KeyboardEvent) => {
+        if (e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             return;
         }
 
@@ -300,12 +306,23 @@ function BaseModal({
     const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? (originalValues ?? {}) : {}), [isInNarrowPane, originalValues]);
 
+    const shouldSuppressRightDockedBackdrop =
+        type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
     const backdropOpacityAdjusted =
-        hideBackdrop || (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal)) // right_docked modals shouldn't add backdrops when opened in same-width RHP
+        hideBackdrop || shouldSuppressRightDockedBackdrop // right_docked modals shouldn't add backdrops when opened in same-width RHP
             ? 0
             : backdropOpacity;
 
     const dragArea = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ? undefined : false;
+
+    const isBottomDockedModalInLandscapeMode = type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && isInLandscapeMode;
+
+    const shouldWrapChildrenInScrollView = shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode && isBottomDockedModalInLandscapeMode;
+    const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
+    // `bottomDockedDismissButtonRef.current` can be `null` by the time focus-trap reads `initialFocus` (the read is
+    // deferred via setTimeout) — e.g. the sheet was dismissed quickly, or a layout change flipped `shouldShowBottomDockedDismissButton`
+    // and unmounted the button. focus-trap throws on a `null` (vs `false`) initial focus, so coerce it to `false` ("no initial focus").
+    const modalInitialFocus = shouldShowBottomDockedDismissButton ? () => bottomDockedDismissButtonRef.current ?? false : initialFocus;
 
     return (
         <ModalContext.Provider value={modalContextValue}>
@@ -343,7 +360,7 @@ function BaseModal({
                         onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}
                         shouldPreventScrollOnFocus={shouldPreventScrollOnFocus}
-                        initialFocus={initialFocus}
+                        initialFocus={modalInitialFocus}
                         swipeThreshold={swipeThreshold}
                         isVisible={isVisible}
                         backdropColor={theme.overlay}
@@ -368,14 +385,36 @@ function BaseModal({
                         type={type}
                         shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
                         shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+                        supportedOrientations={['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right']}
+                        shouldReturnFocus={shouldReturnFocus}
                     >
                         <Animated.View
                             onLayout={onViewLayout}
-                            style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelAnimatedStyle]}
+                            style={[
+                                styles.defaultModalContainer,
+                                modalContainerStyle,
+                                modalPaddingStyles,
+                                !isVisible && styles.pointerEventsNone,
+                                sidePanelAnimatedStyle,
+                                isBottomDockedModalInLandscapeMode && {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE},
+                            ]}
                             ref={ref}
                             fsClass={forwardedFSClass}
                         >
-                            <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                            {shouldShowBottomDockedDismissButton && (
+                                <PressableWithoutFeedback
+                                    ref={bottomDockedDismissButtonRef}
+                                    onPress={handleBackdropPress}
+                                    role={CONST.ROLE.BUTTON}
+                                    accessibilityRole={CONST.ROLE.BUTTON}
+                                    accessibilityLabel={translate('common.dismiss')}
+                                    sentryLabel={CONST.SENTRY_LABEL.MODAL.DISMISS_DIALOG}
+                                    style={styles.bottomDockedModalDismissButton}
+                                >
+                                    <View />
+                                </PressableWithoutFeedback>
+                            )}
+                            <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
                         </Animated.View>
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ReanimatedModal>

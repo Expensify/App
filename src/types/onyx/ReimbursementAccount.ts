@@ -13,6 +13,33 @@ type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 /** Substeps to setup a reimbursement bank account */
 type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
 
+/** Model of a single beneficial owner returned by Corpay */
+type CorpayBeneficialOwner = {
+    /** Unique identifier for the owner */
+    uid?: string;
+
+    /** Full name of the owner */
+    fullName?: string;
+
+    /** Residential address of the owner */
+    residentialAddress?: string;
+
+    /** Ownership percentage */
+    ownershipPercentage?: string;
+
+    /** Nationality of the owner */
+    nationality?: string;
+
+    /** Date of birth of the owner */
+    dob?: string;
+
+    /** Proof of beneficial owner document filename */
+    proofOfBeneficialOwner?: string;
+
+    /** Address proof document filename */
+    addressProofForBeneficialOwner?: string;
+};
+
 /** Model of Corpay data */
 type Corpay = {
     /** Account holder address - country */
@@ -83,8 +110,8 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OWNS_MORE_THAN_25_PERCENT]: boolean;
     /** Are the more owners */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
-    /** Stringified array of owners data */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
+    /** Array of beneficial owners data */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: CorpayBeneficialOwner[];
     /** Signer full name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_FULL_NAME]: string;
     /** Signer DOB */
@@ -148,6 +175,9 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Weather Onfido setup is complete */
     isOnfidoSetupComplete?: boolean;
 
+    /** Confirmation that the user accepted the ACH terms. The form input key is `acceptTermsAndConditions`; the achData field uses the shorter `acceptTerms`. */
+    acceptTerms?: boolean;
+
     /** Last 4 digits of the account number */
     mask?: string;
 
@@ -193,6 +223,41 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     /** Currency of the bank account */
     currency?: string;
+
+    /** Statuses of additional checks hinting at missing documents user still needs to upload */
+    verifications?: {
+        /** points towards one of external providers */
+        externalApiResponses?: {
+            /** provider name */
+            companyTaxID?: {
+                /** status of check */
+                status: string;
+            };
+            /** provider name */
+            lexisNexisInstantIDResult?: {
+                /** status of check */
+                status: string;
+            };
+            /** provider name */
+            requestorIdentityID?: {
+                /** status of check */
+                status: string;
+                /** result with validation errors */
+                apiResult?: {
+                    /** contains validation qualifiers that provide additional details about the identity verification result */
+                    qualifiers: {
+                        /** array of individual validation checks that were flagged during identity verification */
+                        qualifier: Array<{
+                            /** Unique code of the error */
+                            key: string;
+                            /** Message of the error */
+                            message: string;
+                        }>;
+                    };
+                };
+            };
+        };
+    };
 };
 
 /** The step in an reimbursement account's ach data */

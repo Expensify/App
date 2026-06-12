@@ -24,12 +24,12 @@ function trackAuthenticationError(error: Error, context: AuthenticationErrorCont
     const {errorType, functionName, jsonCode, command, commandName, errorMessage, providedParameters} = context;
 
     const tags: Record<string, string> = {
-        [CONST.TELEMETRY.TAG_AUTHENTICATION_FUNCTION]: functionName,
-        [CONST.TELEMETRY.TAG_AUTHENTICATION_ERROR_TYPE]: errorType,
+        [CONST.TELEMETRY.TAGS.AUTHENTICATION_FUNCTION]: functionName,
+        [CONST.TELEMETRY.TAGS.AUTHENTICATION_ERROR_TYPE]: errorType,
     };
 
     if (jsonCode !== undefined) {
-        tags[CONST.TELEMETRY.TAG_AUTHENTICATION_JSON_CODE] = String(jsonCode);
+        tags[CONST.TELEMETRY.TAGS.AUTHENTICATION_JSON_CODE] = String(jsonCode);
     }
 
     const extra: Record<string, unknown> = {

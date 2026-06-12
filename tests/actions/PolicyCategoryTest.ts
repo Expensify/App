@@ -7,7 +7,9 @@ import {
     createPolicyCategory,
     deleteWorkspaceCategories,
     enablePolicyCategories,
+    importPolicyCategories,
     renamePolicyCategory,
+    setPolicyCategoryReceiptsAndItemizedReceiptRequired,
     setPolicyCategoryTax,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
@@ -15,7 +17,7 @@ import {
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, PolicyCategory} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
@@ -611,6 +613,247 @@ describe('actions/PolicyCategory', () => {
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
+        });
+    });
+
+    describe('importPolicyCategories', () => {
+        it('Import categories with correct success modal data', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const categoriesToImport: PolicyCategory[] = [
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Advertising', enabled: true, 'GL Code': '6000'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Benefits', enabled: true, 'GL Code': '6001'},
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport);
+
+            expect(importFinalModal).toStrictEqual({
+                titleKey: 'spreadsheet.importSuccessfulTitle',
+                promptKey: 'spreadsheet.importCategoriesSuccessfulDescription',
+                promptKeyParams: {added: 2, updated: 0},
+            });
+        });
+
+        it('Import categories with failure modal data', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const categoriesToImport: PolicyCategory[] = [
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Travel', enabled: true, 'GL Code': 'GL001'},
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            mockFetch?.fail?.();
+            const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport);
+
+            expect(importFinalModal).toStrictEqual({
+                titleKey: 'spreadsheet.importFailedTitle',
+                promptKey: 'spreadsheet.importFailedDescription',
+            });
+        });
+
+        it('Duplicate category names are counted only once for the unique categories length', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const categoriesToImport: PolicyCategory[] = [
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Advertising', enabled: true, 'GL Code': '6000'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Advertising', enabled: false, 'GL Code': '9999'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Benefits', enabled: true, 'GL Code': '6001'},
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport);
+
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 0});
+        });
+
+        it('Categories with empty names are skipped when counting unique categories', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const categoriesToImport: PolicyCategory[] = [
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: '', enabled: true, 'GL Code': '6000'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Meals', enabled: true, 'GL Code': '100'},
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport);
+
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 0});
+        });
+
+        it('Empty categories array results in zero unique count', async () => {
+            const fakePolicy = createRandomPolicy(0);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const importFinalModal = await importPolicyCategories(fakePolicy.id, []);
+
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 0});
+        });
+    });
+
+    describe('setPolicyCategoryReceiptsAndItemizedReceiptRequired', () => {
+        it('should cascade receipt required to Never and also disable itemized receipt because an itemized receipt cannot be required when no receipt is required', async () => {
+            // Given a policy with a category that requires both receipts and itemized receipts (Always = 0)
+            const fakePolicy = createRandomPolicy(0);
+            const categoryName = 'Food';
+            const fakeCategories = {
+                [categoryName]: {
+                    name: categoryName,
+                    enabled: true,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'GL Code': '',
+                    unencodedName: categoryName,
+                    externalID: '',
+                    areCommentsRequired: false,
+                    origin: '',
+                    maxAmountNoReceipt: 0,
+                    maxAmountNoItemizedReceipt: 0,
+                },
+            };
+
+            mockFetch?.pause?.();
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
+            });
+
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            // When setting receipt required to Never, which should cascade itemized receipt to Never as well
+            setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData.current, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE, CONST.DISABLED_MAX_EXPENSE_VALUE);
+            await waitForBatchedUpdates();
+
+            // Then both fields should be optimistically updated to Never (DISABLED_MAX_EXPENSE_VALUE) with pending state
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policyCategories) => {
+                        Onyx.disconnect(connection);
+                        const category = policyCategories?.[categoryName];
+
+                        expect(category?.maxAmountNoReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+                        expect(category?.maxAmountNoItemizedReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+                        expect(category?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        expect(category?.pendingFields?.maxAmountNoReceipt).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        expect(category?.pendingFields?.maxAmountNoItemizedReceipt).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        resolve();
+                    },
+                });
+            });
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then after the API call resolves, pending state should be cleared while values persist
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policyCategories) => {
+                        Onyx.disconnect(connection);
+                        const category = policyCategories?.[categoryName];
+
+                        expect(category?.maxAmountNoReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+                        expect(category?.maxAmountNoItemizedReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+                        expect(category?.pendingAction).toBeFalsy();
+                        expect(category?.pendingFields?.maxAmountNoReceipt).toBeFalsy();
+                        expect(category?.pendingFields?.maxAmountNoItemizedReceipt).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+        });
+
+        it('should cascade itemized receipt required to Always and also enable receipt required because a receipt must exist before it can be itemized', async () => {
+            // Given a policy with a category where both receipts and itemized receipts are disabled (Never = DISABLED_MAX_EXPENSE_VALUE)
+            const fakePolicy = createRandomPolicy(0);
+            const categoryName = 'Travel';
+            const fakeCategories = {
+                [categoryName]: {
+                    name: categoryName,
+                    enabled: true,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'GL Code': '',
+                    unencodedName: categoryName,
+                    externalID: '',
+                    areCommentsRequired: false,
+                    origin: '',
+                    maxAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                    maxAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                },
+            };
+
+            mockFetch?.pause?.();
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
+            });
+
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            // When setting itemized receipt required to Always, which should cascade receipt required to Always as well
+            setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData.current, categoryName, 0, 0);
+            await waitForBatchedUpdates();
+
+            // Then both fields should be optimistically updated to Always (0) with pending state
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policyCategories) => {
+                        Onyx.disconnect(connection);
+                        const category = policyCategories?.[categoryName];
+
+                        expect(category?.maxAmountNoReceipt).toBe(0);
+                        expect(category?.maxAmountNoItemizedReceipt).toBe(0);
+                        expect(category?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        expect(category?.pendingFields?.maxAmountNoReceipt).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        expect(category?.pendingFields?.maxAmountNoItemizedReceipt).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        resolve();
+                    },
+                });
+            });
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then after the API call resolves, pending state should be cleared while values persist
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policyCategories) => {
+                        Onyx.disconnect(connection);
+                        const category = policyCategories?.[categoryName];
+
+                        expect(category?.maxAmountNoReceipt).toBe(0);
+                        expect(category?.maxAmountNoItemizedReceipt).toBe(0);
+                        expect(category?.pendingAction).toBeFalsy();
+                        expect(category?.pendingFields?.maxAmountNoReceipt).toBeFalsy();
+                        expect(category?.pendingFields?.maxAmountNoItemizedReceipt).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
         });
     });
 });

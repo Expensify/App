@@ -1,0 +1,13 @@
+# @desc   Complete onboarding with minimal choices (skip work email, pick "Something else" purpose, enter generic name). Lands on Home.
+# @pre    text="What’s your work email?"
+# @post   text="Home"
+# @post   role="button" label="Search"
+# @tag    onboarding
+# @param  FIRST_NAME First name to enter on onboarding profile step.
+# @param  LAST_NAME Last name to enter on onboarding profile step.
+
+press "id=\"onboardingPrivateEmailSkipButton\" || role=\"button\" label=\"Skip\" || label=\"Skip\""
+press "role=\"button\" label=\"Something else\" || label=\"Something else\""
+fill "role=\"textfield\" label=\"First name\" editable=true || label=\"First name\" editable=true" "${FIRST_NAME}"
+fill "role=\"textfield\" label=\"Last name\" editable=true || label=\"Last name\" editable=true" "${LAST_NAME}"
+press "role=\"button\" label=\"Continue\" || label=\"Continue\""

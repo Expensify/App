@@ -1,5 +1,6 @@
-import type {BaseTransportOptions, Transport, TransportRequest, TransportRequestExecutor} from '@sentry/core';
-import {createTransport} from '@sentry/core';
+import type {BaseTransportOptions, Envelope, Transport} from '@sentry/core';
+import {makeFetchTransport} from '@sentry/react';
+import {makeNativeTransportFactory} from '@sentry/react-native/dist/js/transports/native';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -12,6 +13,14 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.IS_SENTRY_DEBUG_ENABLED,
     callback: (value) => {
         isSentryDebugEnabled = value ?? false;
+    },
+});
+
+let isSentrySendEnabled = false;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.IS_SENTRY_SEND_ENABLED,
+    callback: (value) => {
+        isSentrySendEnabled = value ?? false;
     },
 });
 
@@ -52,22 +61,13 @@ function isHighlightedSpanOp(op: string): boolean {
     return highlightedSpanOps.some((highlightedOp) => op === highlightedOp || op.startsWith(`${highlightedOp}.`));
 }
 
-function parseEnvelopeBody(body: string | Uint8Array): unknown[] {
-    let bodyString: string;
-    if (body instanceof Uint8Array) {
-        bodyString = new TextDecoder().decode(body);
-    } else {
-        bodyString = body;
+function flattenEnvelope(envelope: Envelope): unknown[] {
+    const [header, items] = envelope;
+    const result: unknown[] = [header];
+    for (const [itemHeader, itemPayload] of items) {
+        result.push(itemHeader, itemPayload);
     }
-
-    const lines = bodyString.split('\n').filter(Boolean);
-    return lines.map((line) => {
-        try {
-            return JSON.parse(line) as unknown;
-        } catch {
-            return line;
-        }
-    });
+    return result;
 }
 
 function logSpan(span: Record<string, unknown>): void {
@@ -167,18 +167,26 @@ function processEnvelopeItems(items: unknown[]): void {
 }
 
 function makeDebugTransport(options: BaseTransportOptions): Transport {
-    const makeRequest: TransportRequestExecutor = (request: TransportRequest) => {
-        if (isSentryDebugEnabled) {
-            const items = parseEnvelopeBody(request.body);
-            processEnvelopeItems(items);
-        }
+    const transportFactory = makeNativeTransportFactory({enableNative: true}) ?? makeFetchTransport;
+    const sentryTransport = transportFactory(options);
 
-        return Promise.resolve({
-            statusCode: 200,
-        });
+    return {
+        send(envelope: Envelope) {
+            if (isSentryDebugEnabled) {
+                const items = flattenEnvelope(envelope);
+                processEnvelopeItems(items);
+            }
+
+            if (!isSentrySendEnabled) {
+                return Promise.resolve({});
+            }
+
+            return sentryTransport.send(envelope);
+        },
+        flush(timeout?: number) {
+            return sentryTransport.flush(timeout);
+        },
     };
-
-    return createTransport(options, makeRequest);
 }
 
 export default makeDebugTransport;

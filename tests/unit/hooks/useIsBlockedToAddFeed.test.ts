@@ -13,7 +13,7 @@ const delay = (ms: number) =>
         setTimeout(resolve, ms);
     });
 
-const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID, workspaceAccountID: Number(mockPolicyID)};
+const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID, policyAccountID: Number(mockPolicyID)};
 
 const mockCardFeeds = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -35,7 +35,6 @@ const mockCardFeeds = {
 };
 
 jest.mock('@hooks/useCardFeeds', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));

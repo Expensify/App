@@ -17,7 +17,7 @@ type Selector<T> = (state: NavigationState | undefined) => T;
 function useRootNavigationState<T>(selector: Selector<T>): T {
     const [result, setResult] = useState<T>(() => {
         if (!navigationRef.isReady()) {
-            Log.warn('[src/hooks/useRootNavigationState.ts] NavigationRef is not ready. Returning selector value with undefined.');
+            Log.hmmm('[src/hooks/useRootNavigationState.ts] NavigationRef is not ready. Returning selector value with undefined.');
             return selector(undefined);
         }
         return selector(navigationRef.getRootState());
@@ -33,7 +33,8 @@ function useRootNavigationState<T>(selector: Selector<T>): T {
     useEffect(() => {
         const unsubscribe = navigationRef.addListener('state', () => {
             // State from the event data may be incomplete. (defined params but no nested state for the route)
-            setResult(selectorRef.current(navigationRef.getRootState()));
+            const newResult = selectorRef.current(navigationRef.getRootState());
+            setResult((prev) => (Object.is(prev, newResult) ? prev : newResult));
         });
 
         return unsubscribe;

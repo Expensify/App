@@ -43,10 +43,4 @@ const useMouseState = () => useContext(MouseStateContext);
 
 const useMouseActions = () => useContext(MouseActionsContext);
 
-const useMouseContext = () => {
-    const state = useMouseState();
-    const actions = useMouseActions();
-    return {...state, ...actions};
-};
-
-export {MouseProvider, useMouseContext, useMouseState, useMouseActions};
+export {MouseProvider, useMouseState, useMouseActions};

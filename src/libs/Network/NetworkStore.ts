@@ -1,3 +1,4 @@
+// TODO: Rename this module to AuthStore in a follow-up PR — it only manages auth/credentials state now.
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -10,21 +11,7 @@ let credentials: Credentials | null | undefined;
 let lastShortAuthToken: string | null | undefined;
 let authToken: string | null | undefined;
 let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
-let offline = false;
 let authenticating = false;
-
-// Allow code that is outside of the network listen for when a reconnection happens so that it can execute any side-effects (like flushing the sequential network queue)
-let reconnectCallback: () => void;
-function triggerReconnectCallback() {
-    if (typeof reconnectCallback !== 'function') {
-        return;
-    }
-    return reconnectCallback();
-}
-
-function onReconnection(callbackFunction: () => void) {
-    reconnectCallback = callbackFunction;
-}
 
 let resolveIsReadyPromise: (args?: unknown[]) => void;
 let isReadyPromise = new Promise((resolve) => {
@@ -70,31 +57,8 @@ Onyx.connectWithoutView({
     },
 });
 
-// We subscribe to the online/offline status of the network to determine when we should fire off API calls
-// vs queueing them for later.
-// Use connectWithoutView since this doesn't affect to any UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NETWORK,
-    callback: (network) => {
-        if (!network) {
-            return;
-        }
-
-        // Client becomes online emit connectivity resumed event
-        if (offline && !network.isOffline) {
-            triggerReconnectCallback();
-        }
-
-        offline = !!network.shouldForceOffline || !!network.isOffline;
-    },
-});
-
 function getCredentials(): Credentials | null | undefined {
     return credentials;
-}
-
-function isOffline(): boolean {
-    return offline;
 }
 
 function getAuthToken(): string | null | undefined {
@@ -135,8 +99,6 @@ export {
     getCurrentUserEmail,
     hasReadRequiredDataFromStorage,
     resetHasReadRequiredDataFromStorage,
-    isOffline,
-    onReconnection,
     isAuthenticating,
     setIsAuthenticating,
     getCredentials,

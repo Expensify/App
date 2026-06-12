@@ -27,7 +27,7 @@ function LoadingIndicator({style, iconSize, reasonAttributes}: LoadingIndicatorP
             <View style={styles.w100}>
                 <ActivityIndicator
                     size={iconSize ?? CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={reasonAttributes}
+                    reasonAttributes={reasonAttributes ?? {context: 'LoadingIndicator'}}
                 />
             </View>
         </View>
@@ -37,5 +37,3 @@ function LoadingIndicator({style, iconSize, reasonAttributes}: LoadingIndicatorP
 LoadingIndicator.displayName = 'LoadingIndicator';
 
 export default LoadingIndicator;
-
-export type {LoadingIndicatorIconSize};

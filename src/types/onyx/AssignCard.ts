@@ -85,6 +85,9 @@ type AssignCard = {
 
     /** Whether the card is assigning */
     isAssigning?: boolean;
+
+    /** Whether the feed connection is currently being refreshed */
+    isRefreshing?: boolean;
 };
 
 export type {AssignCard, AssignCardStep, AssignCardData};

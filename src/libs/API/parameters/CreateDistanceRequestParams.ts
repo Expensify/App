@@ -12,6 +12,7 @@ type CreateDistanceRequestParams = {
     iouReportID?: string;
     createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
+    amount?: number;
     category?: string;
     receipt?: Receipt;
     tag?: string;
@@ -30,7 +31,11 @@ type CreateDistanceRequestParams = {
     odometerStart?: number;
     odometerEnd?: number;
     gpsCoordinates?: string;
+    distanceRequestType?: string;
     customUnitPolicyID?: string;
+
+    /** When true, the backend defers auto-submit so batch expense creation (e.g. duplicate report) can finish before the report is submitted */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 export default CreateDistanceRequestParams;

@@ -31,6 +31,7 @@ const lightTheme = {
     buttonHoveredBG: colors.productLight500,
     buttonPressedBG: colors.productLight600,
     buttonSuccessText: colors.productLight100,
+    buttonDangerText: colors.white,
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
@@ -41,6 +42,7 @@ const lightTheme = {
     transparent: colors.transparent,
     signInPage: colors.green800,
     darkSupportingText: colors.productDark800,
+    receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
     overlay: colors.productLight400,
@@ -90,6 +92,8 @@ const lightTheme = {
     badgeDangerText: colors.tangerine700,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
+    bordersBold: colors.productLight400,
+    buttonIcon: colors.productLight700,
     mentionText: colors.blue600,
     mentionBG: colors.blue100,
     ourMentionText: colors.green600,
@@ -160,10 +164,6 @@ const lightTheme = {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.REFERRAL_DETAILS]: {
-            backgroundColor: colors.pink800,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
@@ -190,6 +190,14 @@ const lightTheme = {
         closed: {
             backgroundColor: colors.pink200,
             textColor: colors.pink700,
+        },
+        deleted: {
+            backgroundColor: colors.tangerine500,
+            textColor: colors.productLight100,
+        },
+        unreported: {
+            backgroundColor: colors.productLight400,
+            textColor: colors.productLight900,
         },
     },
 

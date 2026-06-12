@@ -21,9 +21,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@src/libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
-}));
+jest.mock('@src/libs/Navigation/Navigation');
 
 describe('DebugReportActions', () => {
     beforeAll(() => {
@@ -78,6 +76,6 @@ describe('DebugReportActions', () => {
 
         const input = screen.getByTestId('selection-list-text-input');
         fireEvent.changeText(input, 'Should show no results found');
-        expect(await screen.findByText('No results found')).toBeOnTheScreen();
+        expect(await screen.findByText('No results found', {includeHiddenElements: true})).toBeOnTheScreen();
     });
 });

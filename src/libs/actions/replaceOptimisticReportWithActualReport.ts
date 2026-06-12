@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -82,7 +83,6 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
         // Or we optimistically created a transaction thread chat report for an IOU report action that already has an associated child chat report.
@@ -140,7 +140,18 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         const backTo = (currentRouteInfo?.params as {backTo?: Route})?.backTo;
         const screenName = currentRouteInfo?.name;
 
-        const isOptimisticReportFocused = activeRoute.includes(`/r/${reportID}`);
+        // Besides the central-pane report route (/r/:reportID), the optimistic report can also be focused
+        // in the RHP transaction-thread carousel (search/view/:reportID) used by the "Review X expenses"
+        // flow. Matched via route name + reportID param (not a path substring) since the carousel's nested
+        // backTo can contain other report IDs. Without this, the report is cleared out from under the user
+        // and ReportNavigateAwayHandler treats it as removed, dismissing the RHP and navigating to the parent.
+        const isOptimisticReportFocusedInSearchRHP =
+            screenName === SCREENS.RIGHT_MODAL.SEARCH_REPORT &&
+            !!currentRouteInfo?.params &&
+            typeof currentRouteInfo.params === 'object' &&
+            'reportID' in currentRouteInfo.params &&
+            currentRouteInfo.params.reportID === reportID;
+        const isOptimisticReportFocused = activeRoute.includes(`/r/${reportID}`) || isOptimisticReportFocusedInSearchRHP;
 
         // Fix specific case: https://github.com/Expensify/App/pull/77657#issuecomment-3678696730.
         // When user is editing a money request report (/e/:reportID route) and has
@@ -195,13 +206,19 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     callback();
 
                     // We are already on the parent one expense report, so just call the API to fetch report data
-                    openReport({reportID: parentReportID, introSelected: undefined});
+                    // betas is safe to pass as undefined because introSelected is undefined, so the code path
+                    // that uses betas is never reached. Passing it explicitly so the compiler flags this when
+                    // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
+                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined});
                 });
             } else {
                 callback();
 
                 // We are already on the parent one expense report, so just call the API to fetch report data
-                openReport({reportID: parentReportID, introSelected: undefined});
+                // betas is safe to pass as undefined because introSelected is undefined, so the code path
+                // that uses betas is never reached. Passing it explicitly so the compiler flags this when
+                // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
+                openReport({reportID: parentReportID, introSelected: undefined, betas: undefined});
             }
             return;
         }

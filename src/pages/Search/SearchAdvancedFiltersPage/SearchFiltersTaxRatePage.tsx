@@ -23,7 +23,7 @@ function SearchFiltersTaxRatePage() {
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const allTaxRates = getAllTaxRates(policies);
-    const selectedTaxesItems: SearchMultipleSelectionPickerItem[] = [];
+    const selectedTaxesItems: Array<SearchMultipleSelectionPickerItem<string[]>> = [];
     for (const [taxRateName, taxRateKeys] of Object.entries(allTaxRates)) {
         if (searchAdvancedFiltersForm?.taxRate) {
             for (const taxRateKey of searchAdvancedFiltersForm.taxRate) {

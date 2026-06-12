@@ -24,6 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 
 type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
@@ -34,6 +35,9 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`, undefined, [task?.parentReportID]);
     const ancestors = useAncestors(parentReport);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
+    });
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [localTitle, setLocalTitle] = useState<string>();
@@ -80,12 +84,15 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                 assigneeEmail: task?.assignee ?? '',
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
+                currentUserDisplayName: currentUserPersonalDetails.displayName,
+                currentUserAvatar: currentUserPersonalDetails.avatar,
                 assigneeAccountID: task.assigneeAccountID,
                 assigneeChatReport: task.assigneeChatReport,
                 policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
                 isCreatedUsingMarkdown: false,
                 quickAction,
                 ancestors,
+                taskCreatorAndAssigneeDetails,
             });
         } else {
             Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));

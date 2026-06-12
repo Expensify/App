@@ -8,7 +8,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import RenderHTML from '@components/RenderHTML';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -142,6 +142,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                 <InteractiveStepSubHeader
                     startStepIndex={1}
                     stepNames={CONST.COMPANY_CARD.STEP_NAMES}
+                    currentStepAccessibilityDescription={translate('workspace.companyCards.chooseCard')}
                 />
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
@@ -174,7 +175,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
             ) : (
                 <SelectionList
                     data={searchedListOptions}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={({value}) => handleSelectCard(value)}
                     initiallyFocusedItemKey={cardSelected}
                     textInputOptions={textInputOptions}

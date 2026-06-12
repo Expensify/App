@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useState} from 'react';
-import {InteractionManager} from 'react-native';
 import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
 import TextInput from '@components/TextInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -17,8 +17,8 @@ import {
     setMoneyRequestDescription,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
-    setMoneyRequestReceipt,
-} from '@libs/actions/IOU';
+} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {verifyTestDriveRecipient} from '@libs/actions/Onboarding';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import type AccountExistsError from '@libs/Errors/AccountExistsError';
@@ -49,8 +49,8 @@ function EmployeeTestDriveModal() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const onBossEmailChange = useCallback((value: string) => {
         setBossEmail(value);
@@ -86,7 +86,7 @@ function EmployeeTestDriveModal() {
                             currentDate,
                             currentUserPersonalDetails,
                             hasOnlyPersonalPolicies,
-                            draftTransactions,
+                            draftTransactionIDs,
                         });
 
                         setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
@@ -106,11 +106,8 @@ function EmployeeTestDriveModal() {
 
                         Log.hmmm('[EmployeeTestDriveModal] Running after interactions');
                         Navigation.goBack();
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        InteractionManager.runAfterInteractions(() => {
-                            Log.hmmm('[EmployeeTestDriveModal] Calling Navigation.goBack() and Navigation.navigate()');
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                        });
+                        Log.hmmm('[EmployeeTestDriveModal] Calling Navigation.goBack() and Navigation.navigate()');
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                     },
                     () => {
                         Log.hmmm('[EmployeeTestDriveModal] Error setting test receipt');

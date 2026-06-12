@@ -7,6 +7,7 @@ type BankIconParams = {
     styles: ThemeStyles;
     bankName?: BankName;
     isCard?: boolean;
+    maxIconSize?: number;
 };
 
 /**

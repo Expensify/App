@@ -110,7 +110,7 @@ async function validateAvatarImage(image: FileObject): Promise<ValidationResult>
     return {isValid: true};
 }
 
-function getValidatedImageSource(source: AvatarSource | undefined) {
+function getValidatedImageSource(source: AvatarSource | undefined, shouldResolveUrlFromApiRoot = true) {
     const numberSource = Number(source);
 
     if (!Number.isNaN(numberSource) && numberSource !== 0) {
@@ -118,7 +118,9 @@ function getValidatedImageSource(source: AvatarSource | undefined) {
     }
 
     if (typeof source === 'string') {
-        return tryResolveUrlFromApiRoot(decodeURIComponent(source));
+        const decoded = decodeURIComponent(source);
+
+        return shouldResolveUrlFromApiRoot ? tryResolveUrlFromApiRoot(decoded) : decoded;
     }
 
     return undefined;

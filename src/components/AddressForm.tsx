@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -55,6 +56,12 @@ type AddressFormProps = {
 
     /** A unique Onyx key identifying the form */
     formID: typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM;
+
+    /** Whether to hide the country selector (e.g. when country cannot be changed) */
+    shouldHideCountrySelector?: boolean;
+
+    /** Whether the form submit button should be enabled when offline */
+    enabledWhenOffline?: boolean;
 };
 
 function AddressForm({
@@ -69,13 +76,15 @@ function AddressForm({
     street2 = '',
     submitButtonText = '',
     zip = '',
+    shouldHideCountrySelector = false,
+    enabledWhenOffline: enabledWhenOfflineProp = true,
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const zipSampleFormat = (country && (CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
+    const zipSampleFormat = (country && (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
 
-    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
+    const zipFormat = translate('common.zipCodeExampleFormat', zipSampleFormat);
 
     const isUSAForm = country === CONST.COUNTRY.US;
 
@@ -87,11 +96,14 @@ function AddressForm({
      */
 
     const validator = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
+        (rawValues: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
+            // When hidden, the country input is unregistered so fall back to the country prop.
+            const values = shouldHideCountrySelector ? {...rawValues, country: rawValues.country || country} : rawValues;
+
             const errors: Errors & {
                 zipPostCode?: string | string[];
             } = {};
-            const requiredFields = ['addressLine1', 'city', 'country', 'state'] as const;
+            const requiredFields = shouldHideCountrySelector ? (['addressLine1', 'city', 'state'] as const) : (['addressLine1', 'city', 'country', 'state'] as const);
 
             // Check "State" dropdown is a valid state if selected Country is USA
             if (values.country === CONST.COUNTRY.US && !values.state) {
@@ -125,7 +137,7 @@ function AddressForm({
             }
 
             // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-            const countryRegexDetails = (values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
+            const countryRegexDetails = (values.country ? COMMON_CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
 
             // The postal code system might not exist for a country, so no regex either for them.
             const countrySpecificZipRegex = countryRegexDetails?.regex;
@@ -139,13 +151,13 @@ function AddressForm({
                         errors.zipPostCode = translate('common.error.fieldRequired');
                     }
                 }
-            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values?.zipPostCode?.trim()?.toUpperCase() ?? '')) {
+            } else if (!COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(values?.zipPostCode?.trim()?.toUpperCase() ?? '')) {
                 errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
             }
 
             return errors;
         },
-        [translate],
+        [translate, shouldHideCountrySelector, country],
     );
 
     return (
@@ -155,7 +167,7 @@ function AddressForm({
             validate={validator}
             onSubmit={onSubmit}
             submitButtonText={submitButtonText}
-            enabledWhenOffline
+            enabledWhenOffline={enabledWhenOfflineProp}
             addBottomSafeAreaPadding
         >
             <View>
@@ -192,16 +204,20 @@ function AddressForm({
                 autoComplete="address-line2"
             />
             <View style={styles.formSpaceVertical} />
-            <View style={styles.mhn5}>
-                <InputWrapper
-                    InputComponent={CountrySelector}
-                    inputID={INPUT_IDS.COUNTRY}
-                    value={country}
-                    onValueChange={onAddressChanged}
-                    shouldSaveDraft={shouldSaveDraft}
-                />
-            </View>
-            <View style={styles.formSpaceVertical} />
+            {!shouldHideCountrySelector && (
+                <>
+                    <View style={styles.mhn5}>
+                        <InputWrapper
+                            InputComponent={CountrySelector}
+                            inputID={INPUT_IDS.COUNTRY}
+                            value={country}
+                            onValueChange={onAddressChanged}
+                            shouldSaveDraft={shouldSaveDraft}
+                        />
+                    </View>
+                    <View style={styles.formSpaceVertical} />
+                </>
+            )}
             {isUSAForm ? (
                 <View style={styles.mhn5}>
                     <InputWrapper

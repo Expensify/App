@@ -39,7 +39,7 @@ function useReportWasDeleted(
             prevReportIDFromRouteRef.current = reportIDFromRoute;
             wasEverAccessibleRef.current = false;
             // state update is guarded by a route change check, preventing infinite re-render loops
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+
             setWasDeleted(false);
             setParentReportID(undefined);
         }
@@ -57,7 +57,7 @@ function useReportWasDeleted(
             return;
         }
         // guarded by if to prevent rerenders
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+
         setWasDeleted(true);
     }, [currentReportID, isOptimisticDelete, userLeavingStatus]);
 

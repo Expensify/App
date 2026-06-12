@@ -1,6 +1,4 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
-import {tierNameSelector} from '@selectors/UserWallet';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
 import React, {useCallback, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
@@ -8,20 +6,44 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
-import Checkbox from '@components/Checkbox';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
-import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import type TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
-import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import type TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
+import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
+import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
+import useKeyboardState from '@hooks/useKeyboardState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import DateUtils from '@libs/DateUtils';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import navigationRef from '@libs/Navigation/navigationRef';
+import {getTableMinWidth, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
+import variables from '@styles/variables';
+import type {TransactionPreviewData} from '@userActions/Search';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import type {CardList, Transaction} from '@src/types/onyx';
+import BaseSearchList from './BaseSearchList';
+import type ChatListItem from './ListItem/ChatListItem';
+import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
+import GroupChildrenContainer from './ListItem/GroupChildrenContainer';
+import GroupHeader from './ListItem/GroupHeader';
+import type TaskListItem from './ListItem/TaskListItem';
+import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
+import type TransactionListItem from './ListItem/TransactionListItem';
 import type {
-    ExtendedTargetedEvent,
     ReportActionListItemType,
     TaskListItemType,
     TransactionCardGroupListItemType,
@@ -33,28 +55,9 @@ import type {
     TransactionQuarterGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
-import Text from '@components/Text';
-import useKeyboardState from '@hooks/useKeyboardState';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import DateUtils from '@libs/DateUtils';
-import navigationRef from '@libs/Navigation/navigationRef';
-import {applySelectionToItem, getTableMinWidth} from '@libs/SearchUIUtils';
-import variables from '@styles/variables';
-import type {TransactionPreviewData} from '@userActions/Search';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
-import BaseSearchList from './BaseSearchList';
+} from './ListItem/types';
+import {isGroupChildrenContainerItem, isGroupHeaderItem} from './ListItem/types';
+import SearchSelectAllMenu from './SearchSelectAllMenu';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
@@ -62,7 +65,7 @@ const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 let savedHorizontalScrollOffset = 0;
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
-type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem;
+type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem | typeof ExpenseReportListItem;
 
 type SearchListHandle = {
     scrollToIndex: (index: number, animated?: boolean) => void;
@@ -77,7 +80,7 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     SearchTableHeader?: React.JSX.Element;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => void;
+    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
 
     /** Whether this is a multi-select list */
     canSelectMultiple: boolean;
@@ -90,9 +93,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
-
-    /** Whether to prevent default focusing of options and focus the text input when selecting an option */
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
@@ -120,23 +120,21 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     newTransactions?: Transaction[];
 
-    /** Violations indexed by transaction ID */
-    violations?: Record<string, TransactionViolations | undefined> | undefined;
-
-    /** Custom card names */
-    customCardNames?: Record<number, string>;
-
-    /** Callback to fire when DEW modal should be opened */
-    onDEWModalOpen?: () => void;
-
-    /** Whether the DEW beta flag is enabled */
-    isDEWBetaEnabled?: boolean;
-
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
 
+    /** Non-personal and workspace cards (same drill path as former custom card names for rows) */
+    nonPersonalAndWorkspaceCards?: CardList;
+
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
+
+    /** Precomputed boolean: shouldShowAttendees applied to the user's policy-for-moving-expenses.
+     * Drilled instead of the policy object to avoid ref churn on unrelated policy updates. */
+    isAttendeesEnabledForMovingPolicy?: boolean;
+
+    /** Whether the action column should use its wider variant (e.g. when there is at least one deleted transaction) */
+    isActionColumnWide?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
@@ -209,7 +207,6 @@ function SearchList({
     onEndReached,
     containerStyle,
     ListFooterComponent,
-    shouldPreventDefaultFocusOnSelectRow,
     shouldPreventLongPressRow,
     queryJSON,
     columns,
@@ -218,18 +215,17 @@ function SearchList({
     shouldAnimate,
     isMobileSelectionModeEnabled,
     newTransactions = [],
-    violations,
-    customCardNames,
-    onDEWModalOpen,
-    isDEWBetaEnabled,
+    nonPersonalAndWorkspaceCards,
     selectedTransactions,
     hasLoadedAllTransactions,
+    isAttendeesEnabledForMovingPolicy,
+    isActionColumnWide,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
 
-    const {hash, groupBy, type} = queryJSON;
+    const {groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
         if (groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (!isTransactionGroupListItemArray(data)) {
@@ -285,8 +281,6 @@ function SearchList({
         return selectableTransactions.length;
     }, [data, type, flattenedItems, emptyReports]);
 
-    const itemsWithSelection = useMemo(() => data.map((item) => applySelectionToItem(item, canSelectMultiple, selectedTransactions)), [data, canSelectMultiple, selectedTransactions]);
-
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
@@ -296,29 +290,95 @@ function SearchList({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
-    const personalDetails = usePersonalDetails();
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
 
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
+    const isGroupByActive = !!groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set());
+
+    const onToggleGroup = useCallback((key: string) => {
+        setExpandedGroups((prev) => {
+            const next = new Set(prev);
+            if (next.has(key)) {
+                next.delete(key);
+            } else {
+                next.add(key);
+            }
+            return next;
+        });
+    }, []);
+
+    const shouldSplitGroups = isGroupByActive && isLargeScreenWidth;
+
+    const {splitData: listData, stickyHeaderIndices} = useMemo(() => {
+        if (!shouldSplitGroups) {
+            return {splitData: data, stickyHeaderIndices: undefined};
+        }
+        const {splitData, stickyHeaderIndices: allIndices} = splitGroupsIntoPairs(data);
+        const activeIndices = allIndices.filter((idx) => {
+            const item = splitData.at(idx);
+            const originalKey = item?.keyForList?.replace('header_', '') ?? '';
+            return expandedGroups.has(originalKey);
+        });
+        return {splitData, stickyHeaderIndices: activeIndices.length > 0 ? activeIndices : undefined};
+    }, [data, shouldSplitGroups, expandedGroups]);
+
+    const getItemType = useCallback(
+        (item: SearchListItem) => {
+            if (!shouldSplitGroups) {
+                return undefined;
+            }
+            if (isGroupHeaderItem(item)) {
+                return item.listItemType;
+            }
+            if (isGroupChildrenContainerItem(item)) {
+                return item.listItemType;
+            }
+            return 'default';
+        },
+        [shouldSplitGroups],
+    );
+
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const undeleteTransactions = useUndeleteTransactions();
+
+    const handleUndelete = (transaction: Transaction) => undeleteTransactions([transaction]);
 
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
 
     const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
 
+    const newTransactionIDByItemKey = (() => {
+        if (newTransactions.length === 0) {
+            return CONST.EMPTY_MAP;
+        }
+
+        const mappedTransactionIDs = new Map<string, string>();
+        for (const item of data) {
+            const matchedTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
+            if (matchedTransactionID && item.keyForList) {
+                mappedTransactionIDs.set(item.keyForList, matchedTransactionID);
+            }
+        }
+
+        return mappedTransactionIDs;
+    })();
+
     const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columns);
+    const minTableWidth = getTableMinWidth(columns, queryJSON.type, isActionColumnWide);
     const shouldScrollHorizontally = !!SearchTableHeader && minTableWidth > windowWidth;
 
     const horizontalScrollViewRef = useRef<RNScrollView>(null);
@@ -335,6 +395,19 @@ function SearchList({
         horizontalScrollViewRef.current?.scrollTo({x: savedHorizontalScrollOffset, animated: false});
     }, [data, shouldScrollHorizontally]);
 
+    const handleLongPressRowInMobileSelectionMode = (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
+        const currentRoute = navigationRef.current?.getCurrentRoute();
+        if (currentRoute && route.key !== currentRoute.key) {
+            return;
+        }
+
+        if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+
+        onCheckboxPress(item, itemTransactions);
+    };
+
     const handleLongPressRow = useCallback(
         (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
             const currentRoute = navigationRef.current?.getCurrentRoute();
@@ -342,20 +415,15 @@ function SearchList({
                 return;
             }
 
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
 
-            if (isMobileSelectionModeEnabled) {
-                onCheckboxPress(item, itemTransactions);
-                return;
-            }
             setLongPressedItem(item);
             setLongPressedItemTransactions(itemTransactions);
             setIsModalVisible(true);
         },
-        [route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
+        [route.key, shouldPreventLongPressRow, isSmallScreenWidth],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -381,9 +449,21 @@ function SearchList({
                 return;
             }
 
-            listRef.current.scrollToIndex({index, animated, viewOffset: -variables.contentHeaderHeight});
+            if (isEditingCell || wasRecentlyEditingCell) {
+                return;
+            }
+
+            let targetIndex = index;
+            if (shouldSplitGroups && item.keyForList) {
+                const splitIndex = listData.findIndex((li) => li.keyForList === `header_${item.keyForList}` || li.keyForList === item.keyForList);
+                if (splitIndex !== -1) {
+                    targetIndex = splitIndex;
+                }
+            }
+
+            listRef.current.scrollToIndex({index: targetIndex, animated, viewOffset: -variables.contentHeaderHeight});
         },
-        [data],
+        [data, isEditingCell, wasRecentlyEditingCell, shouldSplitGroups, listData],
     );
 
     useFocusEffect(
@@ -401,15 +481,84 @@ function SearchList({
 
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
 
+    const isItemVisible = useCallback((item: SearchListItem) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline, [isOffline]);
+    const firstVisibleIndex = useMemo(() => listData.findIndex(isItemVisible), [listData, isItemVisible]);
+    const lastVisibleIndex = useMemo(() => listData.findLastIndex(isItemVisible), [listData, isItemVisible]);
+
     const renderItem = useCallback(
         (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
+            // Handle group header items (sticky)
+            if (isGroupHeaderItem(item)) {
+                const headerItem = item;
+                const originalKey = (item.keyForList ?? '').replace('header_', '');
+                return (
+                    <GroupHeader
+                        item={headerItem}
+                        groupBy={groupBy}
+                        searchType={type}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isExpanded={expandedGroups.has(originalKey)}
+                        onToggle={() => onToggleGroup(originalKey)}
+                        onSelectRow={(rowItem, previewData, event) => onSelectRow({...rowItem, keyForList: originalKey}, previewData, event)}
+                        onCheckboxPress={(val, itemTransactions) => onCheckboxPress({...val, keyForList: originalKey} as SearchListItem, itemTransactions)}
+                        onLongPressRow={(rowItem, itemTransactions) => {
+                            const fixedItem = {...rowItem, keyForList: originalKey} as SearchListItem;
+                            if (isMobileSelectionModeEnabled) {
+                                handleLongPressRowInMobileSelectionMode(fixedItem, itemTransactions);
+                            } else {
+                                handleLongPressRow(fixedItem, itemTransactions);
+                            }
+                        }}
+                        onFocus={onFocus}
+                        isFocused={isItemFocused}
+                        isFirstItem={index === firstVisibleIndex}
+                        isLastItem={index + 1 >= lastVisibleIndex && !ListFooterComponent}
+                        originalKey={originalKey}
+                        lastPaymentMethod={lastPaymentMethod}
+                        personalPolicyID={personalPolicyID}
+                        userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                        ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
+                        visibleColumns={visibleColumns}
+                    />
+                );
+            }
+
+            // Handle children container items (animated expand/collapse)
+            if (isGroupChildrenContainerItem(item)) {
+                const containerItem = item;
+                const originalKey = (item.keyForList ?? '').replace('children_', '');
+                const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
+                const isContainerSelected =
+                    !!containerItem.isSelected || (containerItem.transactions.length > 0 && containerItem.transactions.every((t) => selectedTransactions[t.transactionID]?.isSelected));
+                return (
+                    <GroupChildrenContainer
+                        item={containerItem}
+                        isExpanded={expandedGroups.has(originalKey)}
+                        isSelected={isContainerSelected}
+                        groupBy={groupBy}
+                        searchType={type}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        onSelectRow={onSelectRow}
+                        onCheckboxPress={onCheckboxPress}
+                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                        onUndelete={handleUndelete}
+                        isLastItem={index === lastVisibleIndex && !ListFooterComponent}
+                        newTransactionID={containerNewTransactionID}
+                        bankAccountList={bankAccountList}
+                        cardFeeds={cardFeeds}
+                        conciergeReportID={conciergeReportID}
+                    />
+                );
+            }
+
+            // Default rendering for non-group items
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            const shouldApplyAnimation = shouldAnimate && index < data.length - 1;
+            const shouldApplyAnimation = shouldAnimate && index < listData.length - 1;
 
-            const newTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
-
-            const itemData = itemsWithSelection.at(index);
-            const itemWithSelection = itemData?.itemWithSelection ?? item;
+            const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
 
             return (
                 <Animated.View
@@ -422,30 +571,26 @@ function SearchList({
                         showTooltip
                         isFocused={isItemFocused}
                         onSelectRow={onSelectRow}
-                        onLongPressRow={handleLongPressRow}
-                        onCheckboxPress={onCheckboxPress}
+                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
+                        onSelectionButtonPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
-                        item={itemWithSelection}
-                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                        queryJSONHash={hash}
+                        item={item}
                         columns={columns}
-                        policies={policies}
+                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
-                        onDEWModalOpen={onDEWModalOpen}
-                        isDEWBetaEnabled={isDEWBetaEnabled}
                         lastPaymentMethod={lastPaymentMethod}
                         personalPolicyID={personalPolicyID}
-                        userWalletTierName={userWalletTierName}
-                        isUserValidated={isUserValidated}
-                        personalDetails={personalDetails}
-                        userBillingFundID={userBillingFundID}
-                        isOffline={isOffline}
-                        violations={violations}
-                        customCardNames={customCardNames}
+                        userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                        ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
+                        onUndelete={handleUndelete}
+                        keyForList={item.keyForList}
+                        isFirstItem={index === firstVisibleIndex}
+                        isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                     />
                 </Animated.View>
             );
@@ -453,32 +598,36 @@ function SearchList({
         [
             type,
             groupBy,
-            newTransactions,
+            newTransactionIDByItemKey,
             shouldAnimate,
-            data.length,
-            itemsWithSelection,
+            listData.length,
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
             onSelectRow,
             handleLongPressRow,
+            handleLongPressRowInMobileSelectionMode,
+            isMobileSelectionModeEnabled,
             onCheckboxPress,
             canSelectMultiple,
-            shouldPreventDefaultFocusOnSelectRow,
-            hash,
             columns,
-            policies,
-            userWalletTierName,
-            isUserValidated,
-            personalDetails,
-            userBillingFundID,
-            isOffline,
-            violations,
-            onDEWModalOpen,
-            isDEWBetaEnabled,
             lastPaymentMethod,
             personalPolicyID,
-            customCardNames,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
+            nonPersonalAndWorkspaceCards,
+            ListFooterComponent,
+            isAttendeesEnabledForMovingPolicy,
+            handleUndelete,
+            firstVisibleIndex,
+            lastVisibleIndex,
+            expandedGroups,
+            onToggleGroup,
+            bankAccountList,
+            cardFeeds,
+            conciergeReportID,
+            visibleColumns,
+            selectedTransactions,
         ],
     );
 
@@ -489,39 +638,30 @@ function SearchList({
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
-                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
+                <View
+                    style={[
+                        styles.searchListHeaderContainerStyle,
+                        isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
+                        isLargeScreenWidth && shouldSplitGroups && styles.searchListHeaderTableStickyOverlap,
+                    ]}
+                >
                     {canSelectMultiple && (
-                        <Checkbox
-                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
-                            isChecked={isSelectAllChecked}
+                        <SearchSelectAllMenu
+                            isSelectAllChecked={isSelectAllChecked}
                             isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
-                            onPress={() => {
-                                onAllCheckboxPress();
-                            }}
-                            disabled={totalItems === 0}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
+                            selectedItemsLength={selectedItemsLength}
+                            totalItems={totalItems}
+                            shouldShowTextButton={selectAllButtonVisible}
+                            onAllCheckboxPress={onAllCheckboxPress}
                         />
                     )}
 
                     {SearchTableHeader}
-
-                    {selectAllButtonVisible && (
-                        <PressableWithFeedback
-                            style={[styles.userSelectNone, styles.alignItemsCenter]}
-                            onPress={onAllCheckboxPress}
-                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
-                            role="button"
-                            accessibilityState={{checked: isSelectAllChecked}}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_BUTTON}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                        >
-                            <Text style={[styles.textMicroSupporting, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                        </PressableWithFeedback>
-                    )}
+                    {isLargeScreenWidth && shouldSplitGroups && <View style={styles.searchListHeaderBorderCover} />}
                 </View>
             )}
             <BaseSearchList
-                data={data}
+                data={listData}
                 renderItem={renderItem}
                 onSelectRow={onSelectRow}
                 keyExtractor={keyExtractor}
@@ -530,7 +670,7 @@ function SearchList({
                 ref={listRef}
                 columns={columns}
                 scrollToIndex={scrollToIndex}
-                flattenedItemsLength={flattenedItems.length}
+                flattenedItemsLength={listData.length}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
@@ -539,7 +679,10 @@ function SearchList({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
                 selectedTransactions={selectedTransactions}
-                customCardNames={customCardNames}
+                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                stickyHeaderIndices={stickyHeaderIndices}
+                getItemType={getItemType}
             />
             <Modal
                 isVisible={isModalVisible}
@@ -567,7 +710,7 @@ function SearchList({
                 contentContainerStyle={{width: minTableWidth}}
                 contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
                 onScroll={handleHorizontalScroll}
-                scrollEventThrottle={16}
+                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             >
                 {content}
             </ScrollView>

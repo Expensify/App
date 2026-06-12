@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-negated-variables */
 import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType} from 'react';
 import React, {useEffect} from 'react';
@@ -10,6 +9,7 @@ import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
@@ -33,6 +33,9 @@ type WithReportOrNotFoundOnyxProps = {
     /** Metadata of the report currently being looked at */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
 
+    /** Loading state of the report currently being looked at */
+    reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
+
     /** The policy linked to the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -44,17 +47,21 @@ type WithReportOrNotFoundOnyxProps = {
 };
 
 type ScreenProps =
-    | PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT>
-    | PlatformStackScreenProps<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>
+    | PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT>
+    | PlatformStackScreenProps<ReportDescriptionNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_DESCRIPTION>
     | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>
     | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>
     | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>
-    | PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>
-    | PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.SHARE_CODE>
+    | PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>
+    | PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE>
     | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>
-    | PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>
-    | PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>
-    | PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ROOT>;
+    | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_NOTIFICATION_PREFERENCES>
+    | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_NAME>
+    | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_WRITE_CAPABILITY>
+    | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_VISIBILITY>
+    | PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DYNAMIC_DETAILS>
+    | PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.DYNAMIC_ROOT>
+    | PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT>;
 
 type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
     route: ScreenProps['route'];
@@ -68,6 +75,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
             const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
             const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`);
+            const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${props.route.params.reportID}`);
             const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
             const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
             const isFocused = useIsFocused();
@@ -76,7 +84,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const isReportLoaded = !isEmptyObject(report) && !!report?.reportID;
             const isReportArchived = useReportIsArchived(report?.reportID);
             // The `isLoadingInitialReportActions` value will become `false` only after the first OpenReport API call is finished (either succeeded or failed)
-            const shouldFetchReport = isReportIdInRoute && reportMetadata?.isLoadingInitialReportActions !== false;
+            const shouldFetchReport = isReportIdInRoute && reportLoadingState?.isLoadingInitialReportActions !== false;
 
             // When accessing certain report-dependant pages (e.g. Task Title) by deeplink, the OpenReport API is not called,
             // So we need to call OpenReport API here to make sure the report data is loaded if it exists on the Server
@@ -86,7 +94,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     return;
                 }
 
-                openReport({reportID: props.route.params.reportID, introSelected});
+                openReport({reportID: props.route.params.reportID, introSelected, betas});
                 // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
 
@@ -101,7 +109,17 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 }
 
                 if (shouldShowFullScreenLoadingIndicator) {
-                    return <FullscreenLoadingIndicator />;
+                    const reasonAttributes: SkeletonSpanReasonAttributes = {
+                        context: 'withReportOrNotFound',
+                        isLoadingReportData: isLoadingReportData !== false,
+                        shouldFetchReport,
+                    };
+                    return (
+                        <FullscreenLoadingIndicator
+                            shouldUseGoBackButton
+                            reasonAttributes={reasonAttributes}
+                        />
+                    );
                 }
 
                 if (shouldShowNotFoundPage) {
@@ -115,12 +133,12 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
 
             return (
                 <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     report={report}
                     betas={betas}
                     policy={policy}
                     reportMetadata={reportMetadata}
+                    reportLoadingState={reportLoadingState}
                     isLoadingReportData={isLoadingReportData}
                 />
             );

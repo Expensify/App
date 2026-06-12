@@ -1,4 +1,4 @@
-import {format, subDays} from 'date-fns';
+import {format} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
@@ -56,12 +57,10 @@ function TransactionStartDateStep() {
             return;
         }
 
-        const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
-
         setAssignCardStepAndData({
             cardToAssign: {
                 dateOption: dateOptionSelected,
-                startDate: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate,
+                startDate: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? '' : startDate,
             },
             isEditing: false,
         });
@@ -85,6 +84,10 @@ function TransactionStartDateStep() {
     ];
 
     const isLoading = isLoadingOnyxValue(assignCardMeta);
+    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'TransactionStartDateStep',
+        isLoading,
+    };
 
     return (
         <InteractiveStepWrapper
@@ -97,6 +100,7 @@ function TransactionStartDateStep() {
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={styles.h100}
+                    reasonAttributes={activityReasonAttributes}
                 />
             ) : (
                 <>
@@ -110,7 +114,6 @@ function TransactionStartDateStep() {
                             initiallyFocusedItemKey={dateOptionSelected}
                             shouldUpdateFocusedIndex
                             addBottomSafeAreaPadding
-                            shouldHighlightSelectedItem={false}
                             footerContent={
                                 <Button
                                     success

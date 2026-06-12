@@ -1,11 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import CONST from '@src/CONST';
 import Button from './Button';
+import ImageSVG from './ImageSVG';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
 import Modal from './Modal';
@@ -38,7 +41,8 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
+    const illustrations = useMemoizedLazyIllustrations(['Safe']);
     return (
         <Modal
             onClose={onCancel}
@@ -49,13 +53,20 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
         >
             <View>
                 <View style={[styles.cardSectionIllustration, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor)]}>
-                    <Lottie
-                        source={LottieAnimations.Safe}
-                        style={styles.h100}
-                        webStyle={styles.h100}
-                        autoPlay
-                        loop
-                    />
+                    {isReduceMotionEnabled ? (
+                        <ImageSVG
+                            src={illustrations.Safe}
+                            style={styles.h100}
+                        />
+                    ) : (
+                        <Lottie
+                            source={LottieAnimations.Safe}
+                            style={styles.h100}
+                            webStyle={styles.h100}
+                            autoPlay
+                            loop
+                        />
+                    )}
                 </View>
                 <View style={[styles.mt5, styles.mh5]}>
                     <View style={[styles.gap2, styles.mb10]}>

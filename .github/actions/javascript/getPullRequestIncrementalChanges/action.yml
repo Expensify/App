@@ -25,5 +25,5 @@ outputs:
     description: 'True if any of the specified files were changed in the PR'
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: './index.js'

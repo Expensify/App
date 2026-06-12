@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import PopoverMenu from '@components/PopoverMenu';
+import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {isAuthenticationError} from '@libs/actions/connections';
-import {getAdminPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {useAccountingState} from '@pages/workspace/accounting/AccountingContext';
 import {getInitialSubPageForNetsuiteTokenInput} from '@pages/workspace/accounting/netsuite/utils';
@@ -18,7 +18,7 @@ import type {ConnectToNetSuiteFlowProps} from './types';
 function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
     const {translate} = useLocalize();
 
-    const hasPoliciesConnectedToNetSuite = !!getAdminPoliciesConnectedToNetSuite()?.length;
+    const hasReusablePoliciesConnectedToNetSuite = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, policyID);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -29,7 +29,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
     const {popoverAnchorRefs} = useAccountingState();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'LinkCopy'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'LinkCopy']);
     const shouldGoToCredentialsPage = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 
     const threeDotsMenuContainerRef = popoverAnchorRefs?.current?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
@@ -54,7 +54,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
     ];
 
     useEffect(() => {
-        if (shouldGoToCredentialsPage || !hasPoliciesConnectedToNetSuite) {
+        if (shouldGoToCredentialsPage || !hasReusablePoliciesConnectedToNetSuite) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID, getInitialSubPageForNetsuiteTokenInput(policy)));
             return;
         }

@@ -19,11 +19,14 @@ import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
+import useTransactionThreadReportIDs from '@hooks/useTransactionThreadReportIDs';
 import {mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
+import {setDeleteTransactionNavigateBackUrl} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
@@ -31,6 +34,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import {generateReportID} from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -56,6 +60,7 @@ function Confirmation() {
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [duplicatedTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, undefined, policy, policyCategories);
     const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
@@ -72,32 +77,61 @@ function Confirmation() {
         () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
         [duplicates, reviewDuplicates, newTransaction],
     );
+    const transactionThreadReportIDMap = useTransactionThreadReportIDs(transactionsMergeParams.transactionIDList);
+    const reviewDuplicatesTaxCode = reviewDuplicates?.taxCode;
+    const reviewDuplicatesTaxAmount = reviewDuplicates?.taxAmount;
+    const duplicatedTransactionTaxCode = duplicatedTransaction?.taxCode;
+    const taxRates = duplicatedTransactionPolicy?.taxRates?.taxes;
+    const taxData = useMemo(() => {
+        const taxCode = reviewDuplicatesTaxCode ?? '';
+        const taxRate = taxCode ? taxRates?.[taxCode] : undefined;
+        // Preserve taxAmount and taxValue if taxCode is deleted or remains unchanged compared to duplicatedTransaction?.taxCode.
+        if (!taxRate || (taxCode && duplicatedTransactionTaxCode === taxCode) || reviewDuplicatesTaxAmount === undefined) {
+            return;
+        }
+
+        return {
+            taxAmount: -reviewDuplicatesTaxAmount,
+            taxValue: taxRate?.value,
+            taxCode,
+        };
+    }, [reviewDuplicatesTaxCode, reviewDuplicatesTaxAmount, taxRates, duplicatedTransactionTaxCode]);
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserLogin = currentUserPersonalDetails?.login;
+    const childReportID = reportAction?.childReportID;
 
     const handleMergeDuplicates = useCallback(() => {
-        const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
-        if (!reportAction?.childReportID) {
-            transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
-        }
-        mergeDuplicates(transactionsMergeParams);
+        const transactionThreadReportID = childReportID ?? generateReportID();
+        const mergeParams = !childReportID ? {...transactionsMergeParams, transactionThreadReportID} : transactionsMergeParams;
+        // Server deletes the discarded transaction's now-empty expense report on merge and
+        // pushes back a "Report not found" payload for it. Hint the guard and redirect to
+        // the kept transaction's report so the user doesn't land on the discarded one.
+        const keptReportRoute = ROUTES.REPORT_WITH_ID.getRoute(mergeParams.reportID);
+        setDeleteTransactionNavigateBackUrl(keptReportRoute);
+        mergeDuplicates({...mergeParams, ...taxData, currentUserAccountID, currentUserLogin: currentUserLogin ?? ''});
         if (isSuperWideRHPDisplayed) {
             Navigation.dismissToSuperWideRHP();
             return;
         }
-        Navigation.dismissModal();
-    }, [reportAction?.childReportID, transactionsMergeParams, isSuperWideRHPDisplayed]);
+        const topmostReportID = Navigation.getTopmostReportId?.();
+        if (topmostReportID === mergeParams.reportID) {
+            Navigation.dismissModal();
+        } else {
+            Navigation.goBack(keptReportRoute);
+        }
+    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed]);
 
     const handleResolveDuplicates = useCallback(() => {
-        resolveDuplicates(transactionsMergeParams);
+        resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap});
         Navigation.dismissToSuperWideRHP();
-    }, [transactionsMergeParams]);
+    }, [transactionsMergeParams, taxData, transactionThreadReportIDMap]);
 
     const contextMenuStateValue = useMemo(
         () => ({
             transactionThreadReport: report,
             action: reportAction,
             report,
-            isReportArchived: false,
             anchor: null,
             isDisabled: false,
         }),
@@ -116,7 +150,6 @@ function Confirmation() {
 
     const isDismissingRef = useRef(false);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
         isEmptyObject(report) ||
         (!ReportUtils.isValidReport(report) && !isDismissingRef.current) ||
@@ -124,7 +157,13 @@ function Confirmation() {
         (reviewDuplicatesResult.status === 'loaded' && (!newTransaction?.transactionID || !doesTransactionBelongToReport));
 
     if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult) || !newTransaction?.transactionID) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'TransactionDuplicate.Confirmation',
+            isLoadingReviewDuplicates: isLoadingOnyxValue(reviewDuplicatesResult),
+            isLoadingReport: isLoadingOnyxValue(reportResult),
+            hasNewTransaction: !!newTransaction?.transactionID,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

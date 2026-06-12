@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -29,7 +29,7 @@ const selectReportHandler = (option: unknown) => {
     HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
     const optionItem = option as OptionData;
 
-    if (!optionItem || !optionItem?.reportID) {
+    if (!optionItem?.reportID) {
         return;
     }
 
@@ -52,7 +52,7 @@ function TaskShareDestinationSelectorModal() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
@@ -64,15 +64,15 @@ function TaskShareDestinationSelectorModal() {
         onSingleSelect: selectReportHandler,
     });
 
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     const filteredOptions = useMemo(() => {
-        const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, archivedReportsIdSet);
+        const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, archivedReportsIDSet);
         return {
             ...availableOptions,
             recentReports: filteredReports ?? [],
         };
-    }, [availableOptions, archivedReportsIdSet]);
+    }, [availableOptions, archivedReportsIDSet]);
 
     const data = useMemo(
         () =>
