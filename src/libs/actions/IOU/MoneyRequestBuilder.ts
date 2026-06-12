@@ -12,7 +12,7 @@ import {translateLocal} from '@libs/Localize';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -1085,8 +1085,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         }
     }
 
-    // We don't need to compute violations unless we're on a paid policy
-    if (!policy || !isPaidGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+    // We don't need to compute violations unless we're on a group policy
+    if (!policy || !isGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return onyxData;
     }
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
@@ -1518,7 +1518,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID, undefined, delegateAccountID);
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID, delegateAccountID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.

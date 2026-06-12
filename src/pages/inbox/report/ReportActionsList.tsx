@@ -1,9 +1,9 @@
 import {useRoute} from '@react-navigation/native';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
@@ -24,10 +24,12 @@ import useUnreadMarker from '@hooks/useUnreadMarker';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
     getReportActionMessage,
@@ -50,6 +52,7 @@ import {
     isIOUReport,
     isMoneyRequestReport,
     isTaskReport,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
@@ -190,6 +193,9 @@ function ReportActionsList({
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+
     const reportAttributesSelector = useCallback(
         (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
             const attrs = value?.reports?.[report.reportID];
@@ -400,13 +406,17 @@ function ReportActionsList({
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => {
-            if (shouldFocusToTopOnMount) {
-                return;
-            }
-            setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (shouldFocusToTopOnMount) {
+                    return;
+                }
+                setIsFloatingMessageCounterVisible(false);
+                reportScrollManager.scrollToBottom();
+            },
+            waitForUpcomingTransition: true,
         });
+        return () => handle.cancel();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -417,11 +427,15 @@ function ReportActionsList({
             return;
         }
         const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
-        if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
-            InteractionManager.runAfterInteractions(() => {
-                reportScrollManager.scrollToBottom();
-            });
+        if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER || prevSorted) {
+            return;
         }
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                reportScrollManager.scrollToBottom();
+            },
+        });
+        return () => handle.cancel();
     }, [lastAction?.reportActionID, lastAction?.actionName, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
     // Clear the highlighted report action after scrolling and highlighting
@@ -443,9 +457,12 @@ function ReportActionsList({
         if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
-        InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.scrollToBottom();
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                reportScrollManager.scrollToBottom();
+            },
         });
+        return () => handle.cancel();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
 
@@ -666,7 +683,11 @@ function ReportActionsList({
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                requestAnimationFrame(() => loadNewerChats(false));
+            },
+        });
     }, [loadNewerChats]);
 
     const onEndReached = useCallback(() => {
@@ -698,6 +719,12 @@ function ReportActionsList({
         requestAnimationFrame(() => setShouldAutoscrollToBottom(false));
     }, [shouldFocusToTopOnMount, shouldAutoscrollToBottom, prevHasOnceLoadedReportActions, reportLoadingState?.hasOnceLoadedReportActions]);
 
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report,
+        isTrackIntentUser,
+    });
+
     return (
         <>
             <FloatingMessageCounter
@@ -707,6 +734,7 @@ function ReportActionsList({
                 actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
                 actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
                 onActionBadgePress={scrollToActionBadgeTarget}
+                isMarkAsDone={shouldUseMarkAsDoneCopy}
             />
             <ReportActionsListPaddingView
                 report={report}
