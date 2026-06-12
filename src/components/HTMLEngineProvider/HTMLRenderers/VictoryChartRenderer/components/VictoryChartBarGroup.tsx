@@ -1,5 +1,5 @@
+import type {TNode} from '@native-html/render';
 import React from 'react';
-import type {TNode} from 'react-native-render-html';
 import {BarGroup} from 'victory-native';
 import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
 import VictoryTheme from '@components/Charts/VictoryTheme';

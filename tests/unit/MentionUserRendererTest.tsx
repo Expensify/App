@@ -34,7 +34,7 @@ jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
     showContextMenu: jest.fn(),
 }));
 
-// Simplify react-native-render-html children renderer to just echo the provided data
+// Simplify @native-html/render children renderer to just echo the provided data
 jest.mock('@native-html/render', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Text: TextComponent} = jest.requireActual<{Text: React.ComponentType}>('react-native');

@@ -23,7 +23,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
-jest.mock('react-native-render-html', () => {
+jest.mock('@native-html/render', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View: MockView} = require('react-native');
     return {

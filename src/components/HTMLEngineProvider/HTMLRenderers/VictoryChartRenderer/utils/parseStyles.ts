@@ -1,6 +1,6 @@
+import type {TNode} from '@native-html/render';
 import lodashIsObject from 'lodash/isObject';
 import type {ViewStyle} from 'react-native';
-import type {TNode} from 'react-native-render-html';
 import parseAttribute from './parseAttribute';
 
 /**

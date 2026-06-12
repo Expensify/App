@@ -1,4 +1,4 @@
-import type {TNode} from 'react-native-render-html';
+import type {TNode} from '@native-html/render';
 import type {PartialProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseCategories from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseCategories';
 import parseDomain from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseDomain';

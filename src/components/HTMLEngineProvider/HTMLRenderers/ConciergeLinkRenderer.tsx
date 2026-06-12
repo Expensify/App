@@ -1,6 +1,6 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import type {CustomRendererProps, TPhrasing, TText} from '@native-html/render';
 import {TNodeChildrenRenderer} from '@native-html/render';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';

@@ -245,7 +245,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
 
                 // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
-                // react-native-render-html uses variable to log exclusively during development.
+                // @native-html/render uses variable to log exclusively during development.
                 // See https://reactnative.dev/docs/javascript-environment
                 __DEV__: /staging|prod|adhoc/.test(file) === false,
                 // Expose the current git branch so the debug menu can display it in the browser tab title.

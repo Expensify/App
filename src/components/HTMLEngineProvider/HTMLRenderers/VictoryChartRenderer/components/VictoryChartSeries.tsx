@@ -1,5 +1,5 @@
+import type {TNode} from '@native-html/render';
 import React from 'react';
-import type {TNode} from 'react-native-render-html';
 import VictoryChartBar from './VictoryChartBar';
 import VictoryChartBarGroup from './VictoryChartBarGroup';
 import VictoryChartLine from './VictoryChartLine';

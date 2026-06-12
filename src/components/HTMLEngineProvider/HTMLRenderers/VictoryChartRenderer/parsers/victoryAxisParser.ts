@@ -1,6 +1,6 @@
+import type {TNode} from '@native-html/render';
 import {Skia} from '@shopify/react-native-skia';
 import type {SkTypeface} from '@shopify/react-native-skia';
-import type {TNode} from 'react-native-render-html';
 import type {PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import {
     parseAttributeAsNumber,

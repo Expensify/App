@@ -179,7 +179,7 @@ const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
 
 const webViewStyles = (theme: ThemeColors) =>
     ({
-        // As of react-native-render-html v6, don't declare distinct styles for
+        // As of @native-html/render v6, don't declare distinct styles for
         // custom renderers, the API for custom renderers has changed. Declare the
         // styles in the below "tagStyles" instead. If you need to reuse those
         // styles from the renderer, just pass the "style" prop to the underlying
