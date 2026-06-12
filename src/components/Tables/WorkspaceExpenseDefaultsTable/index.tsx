@@ -30,7 +30,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             key: 'type',
             label: translate('workspace.rules.expenseDefaultsTable.tableColumnType'),
             sortable: true,
-            width: variables.tableStatusColumnWidth,
+            width: variables.tableTypeColumnWidth,
             styling: {containerStyles: [{justifyContent: 'center'}]},
         },
         {key: 'condition', label: translate('workspace.rules.expenseDefaultsTable.tableColumnCondition'), sortable: true},

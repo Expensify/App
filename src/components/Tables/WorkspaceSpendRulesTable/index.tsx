@@ -30,7 +30,7 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             key: 'type',
             label: translate('workspace.rules.spendRules.tableColumnType'),
             sortable: true,
-            width: variables.tableStatusColumnWidth,
+            width: variables.tableTypeColumnWidth,
             styling: {containerStyles: [{justifyContent: 'center'}]},
         },
         {key: 'card', label: translate('workspace.rules.spendRules.tableColumnCard'), sortable: true},
