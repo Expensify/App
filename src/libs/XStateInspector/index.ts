@@ -1,4 +1,5 @@
 import type {createBrowserInspector as createBrowserInspectorFn} from '@statelyai/inspect';
+import type {filterGhostActorRegistrations as filterGhostActorRegistrationsFn} from './filterGhostActorRegistrations';
 import type {maskInspectionEvent as maskInspectionEventFn} from './maskSensitive';
 import type XStateInspector from './types';
 
@@ -7,12 +8,14 @@ function createXStateInspector(): XStateInspector {
         return {inspect: undefined};
     }
 
-    // Guarded requires instead of static imports so webpack drops both modules from production bundles together with this dead branch.
+    // Guarded requires instead of static imports so webpack drops these modules from production bundles together with this dead branch.
     // require() returns `any`; the assertions restore the modules' real shapes via the type-only imports above (which webpack erases).
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const {createBrowserInspector} = require('@statelyai/inspect') as {createBrowserInspector: typeof createBrowserInspectorFn};
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const {maskInspectionEvent} = require('./maskSensitive') as {maskInspectionEvent: typeof maskInspectionEventFn};
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const {filterGhostActorRegistrations} = require('./filterGhostActorRegistrations') as {filterGhostActorRegistrations: typeof filterGhostActorRegistrationsFn};
 
     // autoStart: false defers window.open until `start()` (the dev-menu button); events sent before
     // that are buffered by the inspector (maxDeferredEvents) and flushed once the window opens.
@@ -25,7 +28,10 @@ function createXStateInspector(): XStateInspector {
     });
 
     return {
-        inspect: inspector.inspect,
+        // The filter keeps actors created in render passes React threw away (and thus never
+        // started) out of the inspector; without it every such ghost shows up as a duplicate
+        // machine forever stuck in its initial state.
+        inspect: filterGhostActorRegistrations(inspector.inspect),
         start: () => inspector.start(),
     };
 }
