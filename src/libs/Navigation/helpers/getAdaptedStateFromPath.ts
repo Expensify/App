@@ -310,27 +310,23 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
 
 function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
     let currentState = state;
-    let fullScreenRoute = currentState.routes.find((route) => isFullScreenName(route.name));
+    const fullScreenRoute = currentState.routes.find((route) => isFullScreenName(route.name));
 
-    // RN's getStateFromPath emits only the tab matched by the path, so the TAB_NAVIGATOR strip may be sparse.
-    // Rebuild the full strip around the active tab — consumers (e.g. REPLACE_FULLSCREEN_UNDER_RHP) expect every tab to be present.
     if (fullScreenRoute?.name === NAVIGATORS.TAB_NAVIGATOR) {
-        const tabState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
+        let tabState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
+
+        // RN's getStateFromPath emits only the tab matched by the path, so the TAB_NAVIGATOR strip may be sparse.
+        // Rebuild the full strip around the active tab — consumers (e.g. REPLACE_FULLSCREEN_UNDER_RHP) expect every tab to be present.
         if (tabState?.routes && tabState.routes.length < TAB_SCREENS.length) {
             const activeTabRoute = tabState.routes.at(tabState.index ?? tabState.routes.length - 1);
             if (activeTabRoute) {
-                const sparseTabRoute = fullScreenRoute;
-                const fullStripTabRoute = getTabNavigatorState(activeTabRoute as NavigationPartialRoute);
-                const normalizedRoutes = currentState.routes.map((r) => (r === sparseTabRoute ? {...r, state: fullStripTabRoute.state} : r));
+                tabState = getTabNavigatorState(activeTabRoute as NavigationPartialRoute).state;
+                const normalizedRoutes = currentState.routes.map((r) => (r === fullScreenRoute ? {...r, state: tabState} : r));
                 currentState = {...currentState, routes: normalizedRoutes};
-                fullScreenRoute = currentState.routes.find((route) => isFullScreenName(route.name));
             }
         }
-    }
 
-    // If TAB_NAVIGATOR contains WORKSPACE_NAVIGATOR, ensure WORKSPACES_LIST is in its nested state
-    if (fullScreenRoute?.name === NAVIGATORS.TAB_NAVIGATOR) {
-        const tabState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
+        // If TAB_NAVIGATOR contains WORKSPACE_NAVIGATOR, ensure WORKSPACES_LIST is in its nested state
         const wsNavRoute = tabState?.routes?.find((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
         if (wsNavRoute) {
             const wsNavState = wsNavRoute.state as PartialState<NavigationState> | undefined;
