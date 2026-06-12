@@ -2158,8 +2158,11 @@ describe('ModifiedExpenseMessage', () => {
         });
 
         describe('vendor changes', () => {
-            // QBO policy with two named vendors used by the resolver. The third case below
-            // omits a vendor from the list to exercise the externalID fallback path.
+            // QBO policy with two named vendors used by the resolver. No `config` block — the resolver
+            // must look up vendors regardless of the workspace's current export mode so historical
+            // chat entries keep rendering the vendor name after an admin switches export modes away
+            // from CC/DC. The fourth case below omits a vendor from the list to exercise the
+            // externalID fallback path.
             const policyWithVendors: Policy = {
                 id: 'p-1',
                 name: 'My Workspace',
@@ -2170,9 +2173,6 @@ describe('ModifiedExpenseMessage', () => {
                 isPolicyExpenseChatEnabled: true,
                 connections: {
                     quickbooksOnline: {
-                        config: {
-                            nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
-                        },
                         data: {
                             vendors: [
                                 {id: 'v-acme', name: 'Acme', currency: 'USD', email: ''},

@@ -2097,15 +2097,38 @@ function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
 }
 
 /**
- * Look up a single matching vendor by `externalID` across whichever integration is active.
- * Returns undefined when the ID isn't found (the inactive-vendor violation case — see
- * `getViolationsOnyxData`).
+ * Look up a single matching vendor by `externalID`, scoped to the active vendor-matching
+ * integration. Returns undefined when the ID isn't found in the active list (the inactive-vendor
+ * violation case — see `getViolationsOnyxData`).
  */
 function getMatchingVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
     if (!vendorID) {
         return undefined;
     }
     return getMatchingVendors(policy).find((vendor) => vendor.id === vendorID);
+}
+
+/**
+ * Resolve a stored vendor ID to a display vendor, searching across every connection that may hold
+ * vendor data (currently QBO and Intacct) without gating on the active export mode. Use this for
+ * historical lookups — rendering a vendor name stored on a past transaction or modified-expense
+ * action — so the display stays correct after an admin switches the workspace's non-reimbursable
+ * export mode away from the vendor-matching mode. Use `getMatchingVendorByID` instead when the
+ * caller is enforcing the active-integration scope (e.g. the inactive-vendor violation check).
+ */
+function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
+    if (!policy || !vendorID) {
+        return undefined;
+    }
+    const qboVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
+    if (qboVendor) {
+        return qboVendor;
+    }
+    const intacctVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
+    if (intacctVendor) {
+        return {id: intacctVendor.id, name: intacctVendor.value, currency: '', email: ''};
+    }
+    return undefined;
 }
 
 function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
@@ -2514,6 +2537,7 @@ export {
     getConnectedIntegration,
     getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
+    findVendorByID,
     getMatchingVendorByID,
     getMatchingVendors,
     hasVendorFeature,
