@@ -5025,6 +5025,8 @@ const translations = {
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: 'Company',
             autoSyncDescription: 'Expensify will automatically sync with Certinia every day.',
             syncReimbursedReportsDescription: 'With this option enabled, anytime a Payable Invoice is paid in FFA, the related Expensify report will be automatically marked as reimbursed.',
             exportDescription: 'Configure how Expensify data exports to Certinia.',
@@ -5054,6 +5056,8 @@ const translations = {
             },
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please sync the connection again after vendors are added in Certinia.',
+            noCompaniesFound: 'No companies found',
+            noCompaniesFoundDescription: 'Please sync the connection again after companies are added in Certinia.',
             prerequisites: {
                 title: 'Before you connect',
                 installBundle: 'For FFA Connections',

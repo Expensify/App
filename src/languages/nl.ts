@@ -4909,6 +4909,8 @@ ${amount} voor ${merchant} - ${date}`,
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: 'Bedrijf',
             autoSyncDescription: 'Expensify wordt elke dag automatisch met Certinia gesynchroniseerd.',
             syncReimbursedReportsDescription:
                 'Als deze optie is ingeschakeld, wordt elke keer dat een te betalen factuur in FFA wordt betaald, het bijbehorende Expensify-rapport automatisch als terugbetaald gemarkeerd.',
@@ -4937,6 +4939,8 @@ ${amount} voor ${merchant} - ${date}`,
             exportNonReimbursable: {label: 'Niet-declarabele uitgaven exporteren als'},
             noVendorsFound: 'Geen leveranciers gevonden',
             noVendorsFoundDescription: 'Synchroniseer de verbinding opnieuw nadat leveranciers zijn toegevoegd in Certinia.',
+            noCompaniesFound: 'Geen bedrijven gevonden',
+            noCompaniesFoundDescription: 'Synchroniseer de verbinding opnieuw nadat bedrijven zijn toegevoegd in Certinia.',
             prerequisites: {
                 title: 'Voordat je verbinding maakt',
                 installBundle: 'Voor FFA-verbindingen',

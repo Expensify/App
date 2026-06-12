@@ -4879,6 +4879,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: '会社',
             autoSyncDescription: 'Expensify は毎日自動的に Certinia と同期します。',
             syncReimbursedReportsDescription: 'このオプションを有効にすると、FFA で買掛請求書が支払われるたびに、関連する Expensify レポートが自動的に精算済みとしてマークされます。',
             exportDescription: 'Expensify のデータを Certinia へエクスポートする方法を設定します。',
@@ -4903,6 +4905,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             exportNonReimbursable: {label: '未払い精算の対象外経費を次の形式でエクスポートする'},
             noVendorsFound: 'ベンダーが見つかりませんでした',
             noVendorsFoundDescription: 'Certinia にベンダーを追加した後に、もう一度接続の同期を行ってください。',
+            noCompaniesFound: '会社が見つかりませんでした',
+            noCompaniesFoundDescription: 'Certinia に会社を追加した後に、もう一度接続の同期を行ってください。',
             prerequisites: {
                 title: '接続する前に',
                 installBundle: 'FFA 接続用',

@@ -245,6 +245,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const integrationSpecificMenuItems = useMemo(() => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
         const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
+        const certiniaConfig = policy?.connections?.financialforce?.config;
+        const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
+        const certiniaCompanyID = certiniaConfig?.credentials?.companyID ?? '';
+        const selectedCertiniaCompany = certiniaCompanies.find((company) => company.id === certiniaCompanyID);
         switch (connectedIntegration) {
             case CONST.POLICY.CONNECTIONS.NAME.XERO:
                 return !policy?.connections?.xero?.data?.tenants
@@ -316,6 +320,22 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           titleStyle: styles.fontWeightNormal,
                           shouldShowDescriptionOnTop: true,
                           interactive: false,
+                      };
+            case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
+                return !certiniaConfig?.hasPSA || certiniaConfig?.hasPSAOnly !== false
+                    ? {}
+                    : {
+                          description: translate('workspace.certinia.company'),
+                          iconRight: icons.ArrowRight,
+                          title: selectedCertiniaCompany?.name || certiniaCompanyID || translate('common.none'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: canWriteAccounting,
+                          shouldShowDescriptionOnTop: true,
+                          interactive: canWriteAccounting,
+                          pendingAction: settingsPendingAction([CONST.CERTINIA_CONFIG.COMPANY_ID], certiniaConfig?.pendingFields),
+                          brickRoadIndicator: areSettingsInErrorFields([CONST.CERTINIA_CONFIG.COMPANY_ID], certiniaConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          onPress: canWriteAccounting ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR.getRoute(policyID)) : undefined,
                       };
 
             default:

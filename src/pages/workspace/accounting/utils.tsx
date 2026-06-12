@@ -328,9 +328,14 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
             const certiniaConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA];
             const certiniaConfig = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
-            const shouldShowCertiniaFFATitle = !!certiniaConnection && !certiniaConfig?.hasPSAOnly;
+            let certiniaTitle = translate('workspace.certinia.title');
+            if (certiniaConnection && certiniaConfig?.hasPSA) {
+                certiniaTitle = translate('workspace.certinia.titlePSA');
+            } else if (certiniaConnection) {
+                certiniaTitle = translate('workspace.certinia.titleFFA');
+            }
             return {
-                title: shouldShowCertiniaFFATitle ? translate('workspace.certinia.titleFFA') : translate('workspace.certinia.title'),
+                title: certiniaTitle,
                 icon: expensifyIcons?.CertiniaSquare,
                 setupConnectionFlow: (
                     <ConnectToCertiniaFlow

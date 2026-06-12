@@ -4934,6 +4934,8 @@ ${amount} für ${merchant} – ${date}`,
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: 'Unternehmen',
             autoSyncDescription: 'Expensify wird jeden Tag automatisch mit Certinia synchronisiert.',
             syncReimbursedReportsDescription:
                 'Wenn diese Option aktiviert ist, wird jedes Mal, wenn eine zu zahlende Rechnung in FFA bezahlt wird, der zugehörige Expensify-Bericht automatisch als erstattet markiert.',
@@ -4962,6 +4964,8 @@ ${amount} für ${merchant} – ${date}`,
             exportNonReimbursable: {label: 'Nicht erstattungsfähige Ausgaben exportieren als'},
             noVendorsFound: 'Keine Anbieter gefunden',
             noVendorsFoundDescription: 'Bitte synchronisieren Sie die Verbindung erneut, nachdem Lieferanten in Certinia hinzugefügt wurden.',
+            noCompaniesFound: 'Keine Unternehmen gefunden',
+            noCompaniesFoundDescription: 'Bitte synchronisieren Sie die Verbindung erneut, nachdem Unternehmen in Certinia hinzugefügt wurden.',
             prerequisites: {
                 title: 'Bevor Sie die Verbindung herstellen',
                 installBundle: 'Für FFA-Verbindungen',
