@@ -170,7 +170,10 @@ function useSelectedTransactionsActions({
         return map;
     }, [selectedTransactionIDs, allTransactions]);
 
-    const activePolicyExpenseChat = useMemo(() => getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id, allReports), [currentUserAccountID, defaultExpensePolicy?.id, allReports]);
+    const activePolicyExpenseChat = useMemo(
+        () => getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id, allReports),
+        [currentUserAccountID, defaultExpensePolicy?.id, allReports],
+    );
 
     const isDuplicateOptionVisible = useMemo(
         () =>
