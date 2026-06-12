@@ -67,4 +67,3 @@ function useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies: Policy[] | undef
 }
 
 export default useBrokenDirectCompanyCardFeedsForAdmin;
-export type {BrokenCompanyCardConnection};

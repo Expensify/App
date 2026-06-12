@@ -163,6 +163,7 @@ describe('useBrokenDirectCompanyCardFeedsForAdmin', () => {
         const {result} = renderHook(() =>
             useBrokenDirectCompanyCardFeedsForAdmin([
                 createAdminPolicy({
+                    id: POLICY_ID,
                     policyAccountID: 99999999,
                 }),
             ]),
