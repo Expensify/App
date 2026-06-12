@@ -22,7 +22,9 @@ import {
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
@@ -85,6 +87,7 @@ function PayActionButton({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
@@ -131,6 +134,11 @@ function PayActionButton({
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
     const shouldShowOnlyPayElsewhere = !canIOUBePaid && onlyShowPayElsewhere;
     const canIOUBePaidAndApproved = canIOUBePaid;
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report: iouReport,
+        isTrackIntentUser,
+    });
 
     const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction, transactions, convertToDisplayString);
 
@@ -241,6 +249,7 @@ function PayActionButton({
             }}
             isDisabled={isOffline && !canAllowSettlement}
             isLoading={!isOffline && !canAllowSettlement}
+            isMarkAsDone={shouldUseMarkAsDoneCopy}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.PAY_BUTTON}
         />
     );

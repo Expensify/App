@@ -1,4 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
@@ -20,7 +21,7 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isAllowedToApproveExpenseReport, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
+import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isAllowedToApproveExpenseReport, isInvoiceReport as isInvoiceReportUtil, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
@@ -51,6 +52,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -105,6 +107,11 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report: moneyRequestReport,
+        isTrackIntentUser,
+    });
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
@@ -201,6 +208,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
             shouldDisableApproveButton={shouldDisableApproveButton}
             isDisabled={isOffline && !canAllowSettlement}
             isLoading={!isOffline && !canAllowSettlement}
+            isMarkAsDone={shouldUseMarkAsDoneCopy}
         />
     );
 }
