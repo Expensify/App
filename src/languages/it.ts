@@ -2821,9 +2821,12 @@ ${amount} per ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agenti',
-        subtitle: 'Crea agenti per gestire il tuo flusso di lavoro. Elimina il lavoro manuale e recupera ore della tua giornata.',
+        subtitle: `<muted-text>Crea agenti per gestire il tuo flusso di lavoro. Salta il lavoro manuale e recupera ore nella tua giornata. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Scopri di più</a>.</muted-text>`,
         newAgent: 'Nuovo agente',
-        emptyAgents: {title: 'Nessun agente creato', subtitle: 'Smetti di fare le cose manualmente. Dai istruzioni a un agente e risparmia un sacco di tempo.'},
+        emptyAgents: {
+            title: 'Nessun agente creato',
+            subtitle: `<muted-text><centered-text>Smetti di fare le cose manualmente. Dai istruzioni a un agente e risparmia un sacco di tempo. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Scopri di più</a>.</centered-text></muted-text>`,
+        },
         error: {
             genericAdd: "Si è verificato un problema durante l'aggiunta di questo agente",
             genericUpdate: "Si è verificato un problema durante l'aggiornamento di questo agente",

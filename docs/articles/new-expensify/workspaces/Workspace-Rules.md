@@ -9,9 +9,7 @@ internalScope: Audience is Workspace Admins on the Control plan. Covers enabling
 
 Workspace Rules let Admins enforce expense policies by setting custom requirements for receipts, spending limits, category behavior, auto-approvals, and more. These rules help ensure compliance and streamline the approval process.
 
-**Note:** Rules are only available on the **Control** plan. You must be a **Workspace Admin** to enable or manage them.
-
-You can also [add text or a PDF expense policy document](/articles/new-expensify/workspaces/Add-an-Expense-Policy-to-a-Workspace) to your workspace overview page so members can reference your company's expense guidelines.
+If your approval requirements can't be handled using Workspace Rules alone, create an Agent Rule. Agent Rules are AI-powered rules that let Workspace Admins automate report reviews, routing, approvals, and other workspace actions using natural-language instructions. [Learn how to create Agent Rules](/articles/new-expensify/ai-agents/Create-Agent-Rules).
 
 ---
 

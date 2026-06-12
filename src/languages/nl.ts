@@ -2819,9 +2819,12 @@ ${amount} voor ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agenten',
-        subtitle: 'Maak agents aan om je workflow af te handelen. Sla het handmatige werk over en krijg uren van je dag terug.',
+        subtitle: `<muted-text>Maak agents aan om je workflow af te handelen. Sla het handmatige werk over en krijg uren per dag terug. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Meer informatie</a>.</muted-text>`,
         newAgent: 'Nieuwe medewerker',
-        emptyAgents: {title: 'Geen agents aangemaakt', subtitle: 'Stop met dingen handmatig doen. Geef in plaats daarvan een opdracht aan een agent en bespaar jezelf veel tijd.'},
+        emptyAgents: {
+            title: 'Geen agents aangemaakt',
+            subtitle: `<muted-text><centered-text>Stop met dingen handmatig doen. Geef een agent instructies en bespaar jezelf veel tijd. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Meer informatie</a>.</centered-text></muted-text>`,
+        },
         error: {
             genericAdd: 'Er was een probleem bij het toevoegen van deze agent',
             genericUpdate: 'Er is een probleem opgetreden bij het bijwerken van deze agent',
