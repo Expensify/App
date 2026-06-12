@@ -1,7 +1,11 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import SearchBar from '@components/SearchBar';
+import TextInput from '@components/TextInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import {useTableContext} from './TableContext';
 
 /**
@@ -40,11 +44,24 @@ type TableSearchBarProps = {
 };
 
 function TableSearchBar({label, style}: TableSearchBarProps) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const {
         activeSearchString,
         tableMethods: {updateSearchString},
     } = useTableContext();
+
+    return (
+        <TextInput
+            role={CONST.ROLE.SEARCHBOX}
+            multiline={false}
+            placeholder={label}
+            inputStyle={[styles.textLabel, styles.h7]}
+            shouldShowClearButton={activeSearchString.length > 0}
+            onChangeText={(text) => updateSearchString(text)}
+        />
+    );
 
     return (
         <SearchBar
