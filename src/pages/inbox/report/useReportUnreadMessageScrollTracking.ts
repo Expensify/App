@@ -111,7 +111,7 @@ export default function useReportUnreadMessageScrollTracking({
     };
 
     const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
-        if (!ref.current.isFocused || !Visibility.hasFocus()) {
+        if (!ref.current.isFocused) {
             return;
         }
 
@@ -138,7 +138,7 @@ export default function useReportUnreadMessageScrollTracking({
         }
 
         // if we're scrolled closer than the offset and read action has been skipped then mark message as read
-        if (hasUnreadMarkerReportAction && unreadActionVisible && readActionSkippedRef.current) {
+        if (hasUnreadMarkerReportAction && unreadActionVisible && readActionSkippedRef.current && Visibility.hasFocus()) {
             // eslint-disable-next-line no-param-reassign
             readActionSkippedRef.current = false;
             readNewestAction(ref.current.reportID, ref.current.hasOnceLoadedReportActions);
