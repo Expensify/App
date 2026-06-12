@@ -23,7 +23,7 @@ import {convertPolicyEmployeesToApprovalWorkflows, mergeWorkflowMembersWithAvail
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearApprovalWorkflow, queueDeferredAgentWorkflowSave, removeApprovalWorkflow, setApprovalWorkflow, updateApprovalWorkflow, validateApprovalWorkflow} from '@userActions/Workflow';
+import {buildDeferredAgentWorkflowSaveKey, clearApprovalWorkflow, queueDeferredAgentWorkflowSave, removeApprovalWorkflow, setApprovalWorkflow, updateApprovalWorkflow, validateApprovalWorkflow} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -42,6 +42,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
     const [optimisticAgentAccountIDMapping] = useOnyx(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
+    const [deferredAgentWorkflowSaves] = useOnyx(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
     const formRef = useRef<ScrollView>(null);
@@ -131,10 +132,30 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             currentUserLogin: currentUserPersonalDetails?.login,
         });
 
+        const rawWorkflow = result.approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === firstApprover);
+
+        // When an agent was added as approver while offline (or while CREATE_AGENT is still
+        // in flight), the save is stashed in DEFERRED_AGENT_WORKFLOW_SAVES instead of being
+        // pushed to policy.employeeList.  The Workflows page overlays that stash via
+        // useDeferredAgentWorkflowReconciliation, but the Edit RHP never consults it — so it
+        // re-derives the workflow from the stale employeeList and shows the previous approver.
+        // Overlay the deferred entry here so both screens share the same source of truth.
+        const deferredEntry = firstApprover
+            ? deferredAgentWorkflowSaves?.[buildDeferredAgentWorkflowSaveKey(route.params.policyID, firstApprover)]
+            : undefined;
+
+        const currentApprovalWorkflow =
+            rawWorkflow && deferredEntry
+                ? {
+                      ...rawWorkflow,
+                      approvers: deferredEntry.approvalWorkflow.approvers.filter((a): a is Approver => !!a),
+                  }
+                : rawWorkflow;
+
         return {
             defaultWorkflowMembers: result.availableMembers,
             usedApproverEmails: result.usedApproverEmails,
-            currentApprovalWorkflow: result.approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === firstApprover),
+            currentApprovalWorkflow,
         };
     };
 
