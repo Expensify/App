@@ -88,7 +88,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const closeModal = () => send({type: 'CLOSE_MODAL'});
     const notifyModalClosed = () => send({type: 'MODAL_CLOSED'});
 
-    // PR-5: the cancel-confirmation dialog lands in PR-11; until then every cancel path closes the modal directly.
+    // The cancel-confirmation dialog lands in a later slice; until then every cancel path closes the modal directly.
     const requestCancel = () => send({type: 'CLOSE_MODAL'});
     const hideCancelConfirm = () => send({type: 'CLOSE_MODAL'});
     const confirmCancel = () => send({type: 'CLOSE_MODAL'});

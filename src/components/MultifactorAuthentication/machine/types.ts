@@ -21,8 +21,8 @@ type MfaModalPhase = 'open' | 'closing' | 'closed';
 type MfaMachineContext = Omit<MultifactorAuthenticationState, 'isModalOpen'>;
 
 /**
- * Events accepted by the machine. PR-5 (Slice 1) only needs the three that drive the
- * `idle -> success -> teardown` lifecycle; semantic input events (validate code, soft prompt, ...) are
+ * Events accepted by the machine. So far only the three that drive the
+ * `idle -> success -> teardown` lifecycle exist; semantic input events (validate code, soft prompt, ...) are
  * added by the slices that introduce their states.
  *
  * CLOSE_MODAL requests the close (flow -> `closing`); MODAL_CLOSED is the navigator's notification

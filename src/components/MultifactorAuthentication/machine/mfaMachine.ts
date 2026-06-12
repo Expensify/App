@@ -78,7 +78,7 @@ const mfaMachine = setup({
                 CLOSE_MODAL: {target: 'closing', actions: 'hideCancelConfirm'},
             },
             states: {
-                // Transparent initial screen. PR-5 has no pre-screen work yet, so it falls straight through;
+                // Transparent initial screen. There is no pre-screen work yet, so it falls straight through;
                 // later slices replace `always` with child states (device check, registration decision, ...).
                 preparing: {
                     always: 'outcome',
