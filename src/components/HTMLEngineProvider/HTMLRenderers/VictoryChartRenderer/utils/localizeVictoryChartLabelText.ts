@@ -4,8 +4,7 @@ import CONST from '@src/CONST';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 const AS_OF_LABEL_PATTERN = /^As of:\s*(.+)$/i;
-
-const CHART_AS_OF_DISPLAY_FORMAT = `MMM d, yyyy 'at' ${CONST.DATE.LOCAL_TIME_FORMAT}`;
+const CHART_DISPLAY_FORMAT = `MMM d, yyyy 'at' ${CONST.DATE.LOCAL_TIME_FORMAT}`;
 
 /** Matches server `EXP_CHAT_COMMENT_DATETIME` (`M j, Y \a\t h:i A`) with and without a leading zero on the hour. */
 const SERVER_AS_OF_PARSE_FORMATS = ['MMM d, yyyy hh:mm aa', 'MMM d, yyyy h:mm aa'] as const;
@@ -51,7 +50,7 @@ function getLocalizedVictoryChartLabelText(text: string, timezone?: SelectedTime
         return text;
     }
 
-    const localizedDate = DateUtils.formatInTimeZoneWithFallback(utcDate, timezone, CHART_AS_OF_DISPLAY_FORMAT);
+    const localizedDate = DateUtils.formatInTimeZoneWithFallback(utcDate, timezone, CHART_DISPLAY_FORMAT);
     return `As of: ${localizedDate}`;
 }
 
