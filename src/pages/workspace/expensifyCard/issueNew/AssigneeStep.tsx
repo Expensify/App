@@ -168,10 +168,17 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
             ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
         ];
 
-        assignees = options.map((option) => ({
-            ...option,
-            keyForList: option.keyForList ?? option.login ?? '',
-        }));
+        assignees = options.map((option) => {
+            const isPolicyMember = !!policy?.employeeList?.[option.login ?? ''];
+            const shouldDisableNonMember = !canInviteMembers && !isPolicyMember;
+
+            return {
+                ...option,
+                keyForList: option.keyForList ?? option.login ?? '',
+                isDisabled: shouldDisableNonMember,
+                alternateText: shouldDisableNonMember ? translate('workspace.card.issueNewCard.inviteMemberNotAllowed') : option.alternateText,
+            };
+        });
     } else if (debouncedSearchTerm) {
         assignees = [];
     }
