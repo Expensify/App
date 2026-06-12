@@ -7,7 +7,6 @@ import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/Victo
 import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';
 import {getLocalizedAsOfVictoryChartLabelText} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/formatAsOfVictoryChartLabel';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 
 type VictoryChartLabelsProps = LabelItem;
@@ -28,9 +27,8 @@ type ProcessedLine = {
 function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle'}: VictoryChartLabelsProps) {
     const typefaces = useChartTypefaces();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
-    const viewerTimezone = DateUtils.getCurrentTimezone(timezone).selected;
-    const displayText = getLocalizedAsOfVictoryChartLabelText(text, viewerTimezone);
+    const timezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
+    const displayText = getLocalizedAsOfVictoryChartLabelText(text, timezone);
     const processedLines = displayText.split('\n').reduce(
         (acc, line, index) => {
             const lineColor = color?.[index];
