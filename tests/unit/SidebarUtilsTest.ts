@@ -1630,6 +1630,164 @@ describe('SidebarUtils', () => {
             expect(result.messageText).toBeTruthy();
             expect(result.messageText).not.toContain('Concierge');
         });
+
+        it('returns track-intent welcome message for policy expense chat when user is track-intent and owns the report', async () => {
+            const currentUserAccountID = 1;
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                ownerAccountID: currentUserAccountID,
+                policyID: 'testPolicy',
+            };
+            const MOCK_POLICY: Policy = {
+                id: 'testPolicy',
+                name: 'Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    [ONYXKEYS.SESSION]: {accountID: currentUserAccountID},
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: MOCK_POLICY,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                isTrackIntentUser: true,
+                currentUserAccountID,
+            });
+            expect(result.messageText).toBe("This is where you'll track expenses.");
+        });
+
+        it('returns standard welcome message for policy expense chat when user is track-intent but does NOT own the report', async () => {
+            const currentUserAccountID = 1;
+            const otherUserAccountID = 2;
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                ownerAccountID: otherUserAccountID,
+                policyID: 'testPolicy',
+            };
+            const MOCK_POLICY: Policy = {
+                id: 'testPolicy',
+                name: 'Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        ...LHNTestUtils.fakePersonalDetails,
+                        [otherUserAccountID]: {
+                            accountID: otherUserAccountID,
+                            displayName: 'Other User',
+                            login: 'other@test.com',
+                            avatar: '',
+                        },
+                    },
+                    [ONYXKEYS.SESSION]: {accountID: currentUserAccountID},
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: MOCK_POLICY,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                isTrackIntentUser: true,
+                currentUserAccountID,
+            });
+            expect(result.messageHtml).toContain('will submit expenses to');
+        });
+
+        it('returns standard welcome message for policy expense chat when user is NOT track-intent', async () => {
+            const currentUserAccountID = 1;
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                ownerAccountID: currentUserAccountID,
+                policyID: 'testPolicy',
+            };
+            const MOCK_POLICY: Policy = {
+                id: 'testPolicy',
+                name: 'Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    [ONYXKEYS.SESSION]: {accountID: currentUserAccountID},
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: MOCK_POLICY,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                isTrackIntentUser: false,
+                currentUserAccountID,
+            });
+            expect(result.messageHtml).toContain('will submit expenses to');
+        });
+
+        it('returns standard welcome message when policy has a custom description even for track-intent users', async () => {
+            const currentUserAccountID = 1;
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                ownerAccountID: currentUserAccountID,
+                policyID: 'testPolicy',
+            };
+            const MOCK_POLICY: Policy = {
+                id: 'testPolicy',
+                name: 'Test Workspace',
+                description: 'Custom workspace description',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    [ONYXKEYS.SESSION]: {accountID: currentUserAccountID},
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: MOCK_POLICY,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                isTrackIntentUser: true,
+                currentUserAccountID,
+            });
+            expect(result.messageHtml).toBe('Custom workspace description');
+        });
     });
 
     describe('getOptionData', () => {
