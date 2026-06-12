@@ -465,7 +465,6 @@ function SearchList({
             if (isGroupChildrenContainerItem(item)) {
                 const containerItem = item;
                 const originalKey = (item.keyForList ?? '').replace('children_', '');
-                const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
                 const isContainerSelected =
                     !!containerItem.isSelected || (containerItem.transactions.length > 0 && containerItem.transactions.every((t) => selectedTransactions[t.transactionID]?.isSelected));
                 return (
@@ -483,7 +482,6 @@ function SearchList({
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onUndelete={handleUndelete}
                         isLastItem={index === lastVisibleIndex && !ListFooterComponent}
-                        newTransactionID={containerNewTransactionID}
                         bankAccountList={bankAccountList}
                         cardFeeds={cardFeeds}
                         conciergeReportID={conciergeReportID}
@@ -494,8 +492,6 @@ function SearchList({
             // Default rendering for non-group items
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             const shouldApplyAnimation = shouldAnimate && index < listData.length - 1;
-
-            const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
 
             return (
                 <Animated.View
