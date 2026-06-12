@@ -1,10 +1,14 @@
-import React, {useDeferredValue, useEffect, useId} from 'react';
+import React, {useDeferredValue, useEffect, useId, useState} from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import Pencil from '@assets/images/pencil.svg';
 import {useEditingCellActions} from './EditingCellContext';
 
 type EditableCellProps = {
@@ -32,6 +36,9 @@ type EditableCellProps = {
 
     /** Ref attached to the cell wrapper — used as popover anchor for date/category pickers */
     anchorRef?: RefObject<View | null>;
+
+    /** Whether the cell content is right-aligned (e.g. Total, Tax cells). When true, the edit icon appears on the left. */
+    isRightAligned?: boolean;
 };
 
 /**
@@ -43,10 +50,12 @@ type EditableCellProps = {
  *   2. isEditing + editContent    → replaces children with editContent (inline edit)
  *   3. isEditing + no editContent → shows children with active border (popover edit)
  *   4. canEdit=false              → styled container View, no pressable (transient: loading / no permission)
- *   5. default                    → PressableWithFeedback (hover border, click triggers edit)
+ *   5. default                    → Hoverable wrapper showing edit icon on hover, click icon to edit
  */
-function EditableCell({children, editContent, popoverContent, isEditing, canEdit, onStartEditing, anchorRef}: EditableCellProps) {
+function EditableCell({children, editContent, popoverContent, isEditing, canEdit, onStartEditing, anchorRef, isRightAligned = false}: EditableCellProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const [isIconHovered, setIsIconHovered] = useState(false);
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const isEditable = isLargeScreenWidth && !shouldUseNarrowLayout;
     const cellId = useId();
@@ -95,20 +104,63 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }
 
     return (
-        <PressableWithFeedback
-            accessibilityRole={CONST.ROLE.BUTTON}
-            accessibilityLabel="Edit cell"
-            sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
-            onPress={onStartEditing}
-            onFocus={() => setFocusedCellId(cellId)}
-            onBlur={() => setFocusedCellId(null)}
-            style={styles.editableCell}
-            wrapperStyle={styles.w100}
-            focusStyle={styles.editableCellFocus}
-            hoverStyle={styles.editableCellHover}
-        >
-            {children}
-        </PressableWithFeedback>
+        <Hoverable>
+            {(isCellHovered) => (
+                <View style={styles.editableCell}>
+                    {isRightAligned && isCellHovered && (
+                        <View
+                            style={[styles.editableCellHoverIcon, styles.editableCellHoverIconLeft]}
+                            pointerEvents="box-none"
+                        >
+                            <PressableWithFeedback
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel="Edit cell"
+                                sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
+                                onPress={onStartEditing}
+                                onFocus={() => setFocusedCellId(cellId)}
+                                onBlur={() => setFocusedCellId(null)}
+                                onHoverIn={() => setIsIconHovered(true)}
+                                onHoverOut={() => setIsIconHovered(false)}
+                                style={[styles.editableCellHoverIconButton, isIconHovered && styles.editableCellHoverIconButtonActive]}
+                            >
+                                <Icon
+                                    src={Pencil}
+                                    width={14}
+                                    height={14}
+                                    fill={theme.icon}
+                                />
+                            </PressableWithFeedback>
+                        </View>
+                    )}
+                    {children}
+                    {!isRightAligned && isCellHovered && (
+                        <View
+                            style={[styles.editableCellHoverIcon, styles.editableCellHoverIconRight]}
+                            pointerEvents="box-none"
+                        >
+                            <PressableWithFeedback
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel="Edit cell"
+                                sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
+                                onPress={onStartEditing}
+                                onFocus={() => setFocusedCellId(cellId)}
+                                onBlur={() => setFocusedCellId(null)}
+                                onHoverIn={() => setIsIconHovered(true)}
+                                onHoverOut={() => setIsIconHovered(false)}
+                                style={[styles.editableCellHoverIconButton, isIconHovered && styles.editableCellHoverIconButtonActive]}
+                            >
+                                <Icon
+                                    src={Pencil}
+                                    width={14}
+                                    height={14}
+                                    fill={theme.icon}
+                                />
+                            </PressableWithFeedback>
+                        </View>
+                    )}
+                </View>
+            )}
+        </Hoverable>
     );
 }
 

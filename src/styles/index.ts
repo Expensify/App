@@ -1194,8 +1194,36 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        editableCellHover: {
-            borderColor: theme.buttonHoveredBG,
+        editableCellHoverIcon: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            width: 30,
+            height: 30,
+            paddingHorizontal: 6,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        editableCellHoverIconRight: {
+            right: -2,
+            backgroundImage: `linear-gradient(to right, ${theme.hoverComponentBG}00 0% 0%, ${theme.hoverComponentBG} 40% 100%)`,
+        },
+
+        editableCellHoverIconLeft: {
+            left: -2,
+            backgroundImage: `linear-gradient(to left, ${theme.hoverComponentBG}00 0% 0%, ${theme.hoverComponentBG} 40% 100%)`,
+        },
+
+        editableCellHoverIconButton: {
+            padding: 4,
+            borderRadius: '50%',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        editableCellHoverIconButtonActive: {
+            backgroundColor: theme.buttonDefaultBG,
         },
 
         editableCellFocus: {
