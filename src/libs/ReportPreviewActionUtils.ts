@@ -82,6 +82,10 @@ function canApprove(report: Report, currentUserAccountID: number, reportMetadata
         return false;
     }
 
+    if (reportMetadata?.pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.APPROVE) {
+        return false;
+    }
+
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(report);
 

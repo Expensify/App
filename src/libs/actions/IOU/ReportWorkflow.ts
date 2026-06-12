@@ -533,15 +533,13 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         });
     }
 
-    if (isDEWPolicy) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
-            value: {
-                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
-            },
-        });
-    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
+        value: {
+            pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+        },
+    });
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [];
 
@@ -570,15 +568,13 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         });
     }
 
-    if (isDEWPolicy) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
-            value: {
-                pendingExpenseAction: null,
-            },
-        });
-    }
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
+        value: {
+            pendingExpenseAction: null,
+        },
+    });
 
     const failureData: Array<
         OnyxUpdate<
@@ -642,15 +638,13 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         }
     }
 
-    if (isDEWPolicy) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
-            value: {
-                pendingExpenseAction: null,
-            },
-        });
-    }
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
+        value: {
+            pendingExpenseAction: null,
+        },
+    });
 
     // Clear hold reason of all transactions if we approve all requests
     if (full && hasHeldExpenses) {
