@@ -1278,16 +1278,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const completeReport = getReportFromSearchSnapshot(report.reportID, currentSearchResults?.data, allReports);
+                const snapshotReport = getReportFromSearchSnapshot(report.reportID, currentSearchResults?.data, allReports);
 
-                if (!completeReport) {
+                if (!snapshotReport) {
                     return false;
                 }
 
                 const reportExportOptions = getSecondaryExportReportActions(
                     currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserPersonalDetails?.login ?? '',
-                    completeReport,
+                    snapshotReport,
                     bankAccountList,
                     reportPolicy,
                 );
