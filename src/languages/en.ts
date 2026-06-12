@@ -376,6 +376,10 @@ const translations = {
             subtitleText1: 'Find a chat using the',
             subtitleText2: 'button above, or create something using the',
             subtitleText3: 'button below.',
+            noUnreadChats: 'No unread chats',
+            noTodos: 'No to-dos',
+            caughtUp: "You're all caught up. Well done!",
+            seeAllChats: 'See all chats',
         },
         businessName: 'Business name',
         clear: 'Clear',
@@ -3004,6 +3008,16 @@ const translations = {
             },
         },
     },
+    focusModeUpdateModal: {
+        title: 'Welcome to #focus mode!',
+        prompt: (priorityModePageUrl: string) =>
+            `Stay on top of things by only seeing unread chats or chats that need your attention. Don’t worry, you can change this at any point in <a href="${priorityModePageUrl}">settings</a>.`,
+    },
+    inboxTabs: {
+        all: 'All',
+        todo: 'To-dos',
+        unread: 'Unread',
+    },
     reportDetailsPage: {
         goToRoom: 'Go to room',
         inWorkspace: (policyName: string) => `in ${policyName}`,
@@ -3579,11 +3593,6 @@ const translations = {
     monthPickerPage: {
         month: 'Month',
         selectMonth: 'Please select a month',
-    },
-    focusModeUpdateModal: {
-        title: 'Welcome to #focus mode!',
-        prompt: (priorityModePageUrl: string) =>
-            `Stay on top of things by only seeing unread chats or chats that need your attention. Don’t worry, you can change this at any point in <a href="${priorityModePageUrl}">settings</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
