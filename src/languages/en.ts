@@ -2340,12 +2340,16 @@ const translations = {
     lockAccountPage: {
         reportSuspiciousActivity: 'Report suspicious activity',
         lockAccount: 'Lock account',
+        lockMyAccount: 'Lock my account',
         unlockAccount: 'Unlock account',
         unlockTitle: 'We’ve received your request',
         unlockDescription: 'We’ll review the account to verify it’s safe to unlock and reach out via Concierge with any questions.',
-        compromisedDescription:
-            'Notice something off with your account? Reporting it will immediately lock your account, block new Expensify Card transactions, and prevent any account changes.',
-        domainAdminsDescription: 'For domain admins: This also pauses all Expensify Card activity and admin actions across your domain(s).',
+        findYourSituation: 'Most issues don’t require locking your account! Find your situation below:',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Lost card or unfamiliar charges</a>: Cancel your card and contact Concierge to dispute unknown transactions.',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Unauthorized account access</a>: Lock your account below. This blocks new Expensify Card transactions, card orders, and account changes. If you’re a domain admin, this also pauses all domain-wide card activity and admin actions.',
+        securityTeamFollowUp: 'Our security team will follow up from <a href="mailto:risk@expensify.com">risk@expensify.com</a> after locking.',
         areYouSure: 'Are you sure you want to lock your Expensify account?',
         onceLocked: 'Once locked, your account will be restricted pending an unlock request and a security review',
     },

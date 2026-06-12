@@ -2250,10 +2250,14 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: 'Verdachte activiteit melden',
         lockAccount: 'Account vergrendelen',
+        lockMyAccount: 'Account vergrendelen',
         unlockAccount: 'Account ontgrendelen',
-        compromisedDescription:
-            'Val je iets op aan je account? Als je dit meldt, wordt je account onmiddellijk vergrendeld, worden nieuwe Expensify Kaart-transacties geblokkeerd en worden wijzigingen aan je account voorkomen.',
-        domainAdminsDescription: 'Voor domeinbeheerders: dit pauzeert ook alle Expensify Kaart-activiteit en beheerdersacties in je domein(en).',
+        findYourSituation: 'Voor de meeste problemen hoef je je account niet te blokkeren. Zoek hieronder jouw situatie:',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Kaart kwijt of onbekende kosten</a>: Annuleer je kaart en neem contact op met Concierge om onbekende transacties te betwisten.',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Onbevoegde accounttoegang</a>: Vergrendel hieronder je account. Dit blokkeert nieuwe Expensify Kaart-transacties, kaartbestellingen en accountwijzigingen. Als je domeinbeheerder bent, pauzeert dit ook alle domeinbrede kaartactiviteiten en beheerdersacties.',
+        securityTeamFollowUp: 'Ons beveiligingsteam neemt na het blokkeren contact met je op vanaf <a href="mailto:risk@expensify.com">risk@expensify.com</a>.',
         areYouSure: 'Weet je zeker dat je je Expensify-account wilt vergrendelen?',
         onceLocked: 'Zodra deze wordt vergrendeld, wordt je account beperkt in afwachting van een deblokkeringsverzoek en een beveiligingscontrole',
         unlockTitle: 'We hebben je verzoek ontvangen',

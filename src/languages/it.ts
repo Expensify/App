@@ -2254,11 +2254,14 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: 'Segnala attività sospetta',
         lockAccount: 'Blocca account',
+        lockMyAccount: 'Blocca il mio account',
         unlockAccount: 'Sblocca conto',
-        compromisedDescription:
-            'Hai notato qualcosa di strano nel tuo account? Segnalarlo bloccherà immediatamente il tuo account, fermerà le nuove transazioni con la Carta Expensify e impedirà qualsiasi modifica all’account.',
-        domainAdminsDescription:
-            'Per gli amministratori di dominio: questo mette in pausa anche tutta l’attività della Carta Expensify e le azioni di amministratore in tutti i tuoi domini.',
+        findYourSituation: 'La maggior parte dei problemi non richiede il blocco del tuo account! Trova la tua situazione qui sotto:',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Carta smarrita o addebiti non riconosciuti</a>: Annulla la tua carta e contatta Concierge per contestare le transazioni sconosciute.',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Accesso non autorizzato all’account</a>: Blocca il tuo account qui sotto. Questo blocca le nuove transazioni con la Carta Expensify, gli ordini di carte e le modifiche all’account. Se sei un amministratore di dominio, sospende anche tutta l’attività delle carte a livello di dominio e le azioni amministrative.',
+        securityTeamFollowUp: 'Il nostro team di sicurezza ti ricontatterà da <a href="mailto:risk@expensify.com">risk@expensify.com</a> dopo il blocco.',
         areYouSure: 'Sei sicuro di voler bloccare il tuo account Expensify?',
         onceLocked: 'Una volta bloccato, il tuo account sarà limitato in attesa di una richiesta di sblocco e di una revisione di sicurezza',
         unlockTitle: 'Abbiamo ricevuto la tua richiesta',

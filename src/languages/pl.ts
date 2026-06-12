@@ -2250,10 +2250,14 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: 'Zgłoś podejrzaną aktywność',
         lockAccount: 'Zablokuj konto',
+        lockMyAccount: 'Zablokuj moje konto',
         unlockAccount: 'Odblokuj konto',
-        compromisedDescription:
-            'Zauważyłeś coś niepokojącego na swoim koncie? Zgłoszenie tego natychmiast zablokuje twoje konto, wstrzyma nowe transakcje Kartą Expensify i uniemożliwi wprowadzanie jakichkolwiek zmian na koncie.',
-        domainAdminsDescription: 'Dla administratorów domen: to również wstrzymuje całą aktywność Kart Expensify i działania administracyjne w twoich domenach.',
+        findYourSituation: 'Większość problemów nie wymaga blokowania konta! Znajdź swoją sytuację poniżej:',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Zgubiona karta lub nieznane obciążenia</a>: Anuluj swoją kartę i skontaktuj się z Concierge, żeby zakwestionować nieznane transakcje.',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Nieautoryzowany dostęp do konta</a>: Zablokuj swoje konto poniżej. To zablokuje nowe transakcje Kartą Expensify, zamówienia kart i zmiany na koncie. Jeśli jesteś administratorem domeny, to wstrzyma też całą aktywność kart i działania administratorów w obrębie domeny.',
+        securityTeamFollowUp: 'Nasz zespół ds. bezpieczeństwa skontaktuje się z tobą z adresu <a href="mailto:risk@expensify.com">risk@expensify.com</a> po zablokowaniu.',
         areYouSure: 'Czy na pewno chcesz zablokować swoje konto Expensify?',
         onceLocked: 'Po zablokowaniu Twoje konto będzie ograniczone do czasu złożenia prośby o odblokowanie i przeprowadzenia kontroli bezpieczeństwa',
         unlockTitle: 'Otrzymaliśmy Twoją prośbę',
