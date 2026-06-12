@@ -4670,9 +4670,9 @@ const translations = {
             editCurrencySubtitle: (destination: string) => `Updating this currency will change it for all ${destination} per diem subrates.`,
         },
         qbd: {
-            exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Desktop.',
+            exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QBD.',
             exportOutOfPocketExpensesCheckToggle: 'Mark checks as “print later”',
-            exportDescription: 'Configure how Expensify data exports to QuickBooks Desktop.',
+            exportDescription: 'Configure how Expensify data exports to QBD.',
             date: 'Export date',
             exportInvoices: 'Export invoices to',
             exportExpensifyCard: 'Export Expensify Card transactions as',
@@ -4686,7 +4686,7 @@ const translations = {
             creditCardAccount: 'Credit card account',
             exportDate: {
                 label: 'Export date',
-                description: 'Use this date when exporting reports to QuickBooks Desktop.',
+                description: 'Use this date when exporting reports to QBD.',
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date of last expense',
@@ -4694,7 +4694,7 @@ const translations = {
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Export date',
-                        description: 'Date the report was exported to QuickBooks Desktop.',
+                        description: 'Date the report was exported to QBD.',
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Submitted date',
@@ -4706,8 +4706,7 @@ const translations = {
             exportJournalEntryDescription: "We'll create an itemized journal entry for each Expensify report and post it to the account below.",
             exportVendorBillDescription:
                 "We'll create an itemized vendor bill for each Expensify report and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
-            outOfPocketTaxEnabledDescription:
-                "QuickBooks Desktop doesn't support taxes on journal entry exports. As you have taxes enabled on your workspace, this export option is unavailable.",
+            outOfPocketTaxEnabledDescription: "QBD doesn't support taxes on journal entry exports. As you have taxes enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledError: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
             accounts: {
                 [CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Credit card',
@@ -4733,39 +4732,39 @@ const translations = {
                     'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
             },
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in QuickBooks Desktop and sync the connection again',
-            qbdSetup: 'QuickBooks Desktop setup',
+            noAccountsFoundDescription: 'Add the account in QBD and sync the connection again',
+            qbdSetup: 'QBD setup',
             requiredSetupDevice: {
                 title: "Can't connect from this device",
-                body1: "You'll need to setup this connection from the computer that hosts your QuickBooks Desktop company file.",
+                body1: "You'll need to setup this connection from the computer that hosts your QBD company file.",
                 body2: "Once you're connected, you'll be able to sync and export from anywhere.",
             },
             setupPage: {
                 title: 'Open this link to connect',
-                body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running.',
+                body: 'To complete setup, open the following link on the computer where QBD is running.',
                 setupErrorTitle: 'Something went wrong',
                 setupErrorBody: (conciergeLink: string) =>
-                    `<muted-text><centered-text>The QuickBooks Desktop connection isn't working at the moment. Please try again later or <a href="${conciergeLink}">reach out to Concierge</a> if the problem persists.</centered-text></muted-text>`,
+                    `<muted-text><centered-text>The QBD connection isn't working at the moment. Please try again later or <a href="${conciergeLink}">reach out to Concierge</a> if the problem persists.</centered-text></muted-text>`,
             },
-            importDescription: 'Choose which coding configurations to import from QuickBooks Desktop to Expensify.',
+            importDescription: 'Choose which coding configurations to import from QBD to Expensify.',
             classes: 'Classes',
             items: 'Items',
             customers: 'Customers/projects',
-            exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Desktop.',
+            exportCompanyCardsDescription: 'Set how company card purchases export to QBD.',
             defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
-            accountsDescription: 'Your QuickBooks Desktop chart of accounts will import into Expensify as categories.',
+            accountsDescription: 'Your QBD chart of accounts will import into Expensify as categories.',
             accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
-            classesDescription: 'Choose how to handle QuickBooks Desktop classes in Expensify.',
+            classesDescription: 'Choose how to handle QBD classes in Expensify.',
             tagsDisplayedAsDescription: 'Line item level',
             reportFieldsDisplayedAsDescription: 'Report level',
-            customersDescription: 'Choose how to handle QuickBooks Desktop customers/projects in Expensify.',
+            customersDescription: 'Choose how to handle QBD customers/projects in Expensify.',
             advancedConfig: {
-                autoSyncDescription: 'Expensify will automatically sync with QuickBooks Desktop every day.',
+                autoSyncDescription: 'Expensify will automatically sync with QBD every day.',
                 createEntities: 'Auto-create entities',
-                createEntitiesDescription: "Expensify will automatically create vendors in QuickBooks Desktop if they don't exist already.",
+                createEntitiesDescription: "Expensify will automatically create vendors in QBD if they don't exist already.",
             },
-            itemsDescription: 'Choose how to handle QuickBooks Desktop items in Expensify.',
+            itemsDescription: 'Choose how to handle QBD items in Expensify.',
             accountingMethods: {
                 label: 'When to Export',
                 description: 'Choose when to export the expenses:',
@@ -6446,7 +6445,7 @@ const translations = {
             title: 'Connections',
             subtitle: 'Connect your accounting software for an automatic sync.',
             qbo: 'QuickBooks Online',
-            qbd: 'QuickBooks Desktop',
+            qbd: 'QBD',
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
@@ -6501,7 +6500,7 @@ const translations = {
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                         return "Can't connect to NetSuite";
                     case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return "Can't connect to QuickBooks Desktop";
+                        return "Can't connect to QBD";
                     default: {
                         return "Can't connect to integration";
                     }
@@ -6583,7 +6582,7 @@ const translations = {
                             return 'Importing QuickBooks Online data';
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'Importing QuickBooks Desktop data';
+                            return 'Importing QBD data';
                         case 'quickbooksDesktopImportTitle':
                             return 'Importing title';
                         case 'quickbooksDesktopImportApproveCertificate':
@@ -7010,10 +7009,10 @@ const translations = {
                     `<muted-text>Our Sage Intacct integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'QuickBooks Desktop',
-                description: `Enjoy automated syncing and reduce manual entries with the Expensify + QuickBooks Desktop integration. Gain ultimate efficiency with a realtime, two-way connection and expense coding by class, item, customer, and project.`,
+                title: 'QBD',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + QBD integration. Gain ultimate efficiency with a realtime, two-way connection and expense coding by class, item, customer, and project.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Our QuickBooks Desktop integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+                    `<muted-text>Our QBD integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
@@ -7207,7 +7206,7 @@ const translations = {
                     important: 'IMPORTANT: ',
                     confirm: 'You\'ll need to change the "Plan type" of every workspace to "Collect" in order to secure the Collect rate.',
                     benefit1Label: 'ERP integrations',
-                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit1: 'NetSuite, Sage Intacct, QBD, Oracle, Microsoft Dynamics',
                     benefit2Label: 'HR integrations',
                     benefit2: 'Workday, Certinia',
                     benefit3Label: 'Security',
