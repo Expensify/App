@@ -96,7 +96,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         );
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        const alternateText = getAlternateText(report, {}, {isReportArchived: privateIsArchived, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID});
+        const alternateText = getAlternateText(report, {}, {isReportArchived: privateIsArchived, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser});
         return {...report, alternateText};
     });
 
