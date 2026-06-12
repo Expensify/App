@@ -331,7 +331,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             if (!taxCode || !policyTaxRates) {
                 return !taxCode;
             }
-            const currentTaxCode = getCurrentTaxID({taxRates: {taxes: policyTaxRates}} as Policy, taxCode) ?? taxCode;
+            const currentTaxCode = getCurrentTaxID({taxRates: {taxes: policyTaxRates}}, taxCode) ?? taxCode;
             const matchingTaxRate = policyTaxRates[currentTaxCode];
             if (!matchingTaxRate) {
                 return false;
