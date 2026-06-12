@@ -42,7 +42,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     // isSmallScreenWidth is needed here because the modal type depends on actual screen width, not layout mode
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {environment} = useEnvironment();
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -53,7 +53,6 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
 
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
     const displayedExport = usePreviousDefined(exportDownload);
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const state = displayedExport?.state;
     const shouldSendFromConcierge = displayedExport?.shouldSendFromConcierge;

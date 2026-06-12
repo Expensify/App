@@ -682,7 +682,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         translate,
         clearSelectedTransactions,
         hash,
-        selectAllMatchingItems,
         currentSearchResults?.data,
     ]);
 
