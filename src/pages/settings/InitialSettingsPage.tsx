@@ -498,7 +498,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     reasonAttributes={skeletonReasonAttributes}
                 />
             ) : (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
                     <AccountSwitcher isScreenFocused={isScreenFocused} />
                 </View>
             )}
