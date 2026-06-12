@@ -37,7 +37,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Pencil']);
 
     const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -47,6 +47,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
     };
 
     const accessibilityLabel = `${item.typeLabel}. ${item.conditionText}. ${item.ruleDescription}`;
+    const badgeColors = item.isRename ? theme.reportStatusBadge.approved : theme.reportStatusBadge.draft;
 
     return (
         <Table.Row
@@ -66,8 +67,16 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                 <Badge
                                     text={item.typeLabel}
-                                    badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
-                                    success
+                                    icon={Expensicons.Pencil}
+                                    iconFill={badgeColors.textColor}
+                                    badgeStyles={[
+                                        styles.ml0,
+                                        styles.justifyContentCenter,
+                                        styles.borderNone,
+                                        StyleUtils.getMinimumWidth(40),
+                                        StyleUtils.getBackgroundColorStyle(badgeColors.backgroundColor),
+                                    ]}
+                                    textStyles={StyleUtils.getColorStyle(badgeColors.textColor)}
                                     isCondensed
                                 />
                                 <TextWithTooltip
@@ -88,8 +97,16 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                         <View style={[styles.justifyContentCenter]}>
                             <Badge
                                 text={item.typeLabel}
-                                badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
-                                success
+                                icon={Expensicons.Pencil}
+                                iconFill={badgeColors.textColor}
+                                badgeStyles={[
+                                    styles.ml0,
+                                    styles.justifyContentCenter,
+                                    styles.borderNone,
+                                    StyleUtils.getMinimumWidth(40),
+                                    StyleUtils.getBackgroundColorStyle(badgeColors.backgroundColor),
+                                ]}
+                                textStyles={StyleUtils.getColorStyle(badgeColors.textColor)}
                                 isCondensed
                             />
                         </View>

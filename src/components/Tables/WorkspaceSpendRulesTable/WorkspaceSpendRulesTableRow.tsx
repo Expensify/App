@@ -39,7 +39,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lock']);
+    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lock', 'CircleSlash', 'Checkmark']);
     const {processedData} = useTableContext<SpendRuleTableItem>();
 
     const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -92,6 +92,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                     <Badge
                                         text={item.actionLabel}
+                                        icon={item.isBlock ? Expensicons.CircleSlash : Expensicons.Checkmark}
                                         badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
                                         error={item.isBlock}
                                         success={!item.isBlock}
@@ -115,6 +116,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                             <View style={[styles.justifyContentCenter]}>
                                 <Badge
                                     text={item.actionLabel}
+                                    icon={item.isBlock ? Expensicons.CircleSlash : Expensicons.Checkmark}
                                     badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
                                     error={item.isBlock}
                                     success={!item.isBlock}
