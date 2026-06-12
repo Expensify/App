@@ -3983,6 +3983,7 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
             MAKE_AUDITOR: 'makeAuditor',
+            MAKE_CARD_ADMIN: 'makeCardAdmin',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -7441,12 +7442,12 @@ const CONST = {
                 description: 'workspace.upgrade.distanceRates.description' as const,
                 icon: 'CarIce',
             },
-            auditor: {
-                id: 'auditor' as const,
-                alias: 'auditor',
-                name: 'Auditor',
-                title: 'workspace.upgrade.auditor.title' as const,
-                description: 'workspace.upgrade.auditor.description' as const,
+            controlPolicyRoles: {
+                id: 'controlPolicyRoles' as const,
+                alias: 'control-policy-roles',
+                name: 'Control policy roles',
+                title: 'workspace.upgrade.controlPolicyRoles.title' as const,
+                description: 'workspace.upgrade.controlPolicyRoles.description' as const,
                 icon: 'BlueShield',
             },
             reports: {

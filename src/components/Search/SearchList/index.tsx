@@ -27,19 +27,35 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getTableMinWidth} from '@libs/SearchUIUtils';
+import {getTableMinWidth, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {CardList, Transaction} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
+import GroupChildrenContainer from './ListItem/GroupChildrenContainer';
+import GroupHeader from './ListItem/GroupHeader';
 import type TaskListItem from './ListItem/TaskListItem';
 import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
 import type TransactionListItem from './ListItem/TransactionListItem';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from './ListItem/types';
+import type {
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionYearGroupListItemType,
+} from './ListItem/types';
+import {isGroupChildrenContainerItem, isGroupHeaderItem} from './ListItem/types';
 import SearchSelectAllMenu from './SearchSelectAllMenu';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
@@ -173,11 +189,11 @@ function SearchList({
         return data;
     }, [data, groupBy, type]);
     const emptyReports = useMemo(() => {
-        if (isTransactionGroupListItemArray(data)) {
-            return data.filter((item) => item.transactions.length === 0 && item.keyForList);
+        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
+            return data.filter((item) => item.transactions.length === 0);
         }
         return [];
-    }, [data]);
+    }, [data, type]);
 
     const selectedItemsLength = useMemo(() => {
         const selectedTransactionsCount = flattenedItems.reduce((acc, item) => {
@@ -185,7 +201,7 @@ function SearchList({
             return acc + (isTransactionSelected ? 1 : 0);
         }, 0);
 
-        if (isTransactionGroupListItemArray(data)) {
+        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
             const selectedEmptyReports = emptyReports.reduce((acc, item) => {
                 const isEmptyReportSelected = !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
                 return acc + (isEmptyReportSelected ? 1 : 0);
@@ -195,10 +211,10 @@ function SearchList({
         }
 
         return selectedTransactionsCount;
-    }, [flattenedItems, data, emptyReports, selectedTransactions]);
+    }, [flattenedItems, type, data, emptyReports, selectedTransactions]);
 
     const totalItems = useMemo(() => {
-        if (isTransactionGroupListItemArray(data)) {
+        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
             const selectableEmptyReports = emptyReports.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             const selectableTransactions = flattenedItems.filter((item) => {
                 if ('pendingAction' in item) {
@@ -216,7 +232,7 @@ function SearchList({
             return true;
         });
         return selectableTransactions.length;
-    }, [data, flattenedItems, emptyReports]);
+    }, [data, type, flattenedItems, emptyReports]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -235,10 +251,60 @@ function SearchList({
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
 
+    const isGroupByActive = !!groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set());
+
+    const onToggleGroup = useCallback((key: string) => {
+        setExpandedGroups((prev) => {
+            const next = new Set(prev);
+            if (next.has(key)) {
+                next.delete(key);
+            } else {
+                next.add(key);
+            }
+            return next;
+        });
+    }, []);
+
+    const shouldSplitGroups = isGroupByActive && isLargeScreenWidth;
+
+    const {splitData: listData, stickyHeaderIndices} = useMemo(() => {
+        if (!shouldSplitGroups) {
+            return {splitData: data, stickyHeaderIndices: undefined};
+        }
+        const {splitData, stickyHeaderIndices: allIndices} = splitGroupsIntoPairs(data);
+        const activeIndices = allIndices.filter((idx) => {
+            const item = splitData.at(idx);
+            const originalKey = item?.keyForList?.replace('header_', '') ?? '';
+            return expandedGroups.has(originalKey);
+        });
+        return {splitData, stickyHeaderIndices: activeIndices.length > 0 ? activeIndices : undefined};
+    }, [data, shouldSplitGroups, expandedGroups]);
+
+    const getItemType = useCallback(
+        (item: SearchListItem) => {
+            if (!shouldSplitGroups) {
+                return undefined;
+            }
+            if (isGroupHeaderItem(item)) {
+                return item.listItemType;
+            }
+            if (isGroupChildrenContainerItem(item)) {
+                return item.listItemType;
+            }
+            return 'default';
+        },
+        [shouldSplitGroups],
+    );
+
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const undeleteTransactions = useUndeleteTransactions();
 
     const handleUndelete = (transaction: Transaction) => undeleteTransactions([transaction]);
@@ -320,16 +386,21 @@ function SearchList({
                 return;
             }
 
-            // Don't scroll while a cell is being edited
-            // as it can cause unwanted scrolling when the edit is dismissed
-            // See: https://github.com/Expensify/App/pull/83127#issuecomment-4064533155
             if (isEditingCell || wasRecentlyEditingCell) {
                 return;
             }
 
-            listRef.current.scrollToIndex({index, animated, viewOffset: -variables.contentHeaderHeight});
+            let targetIndex = index;
+            if (shouldSplitGroups && item.keyForList) {
+                const splitIndex = listData.findIndex((li) => li.keyForList === `header_${item.keyForList}` || li.keyForList === item.keyForList);
+                if (splitIndex !== -1) {
+                    targetIndex = splitIndex;
+                }
+            }
+
+            listRef.current.scrollToIndex({index: targetIndex, animated, viewOffset: -variables.contentHeaderHeight});
         },
-        [data, isEditingCell, wasRecentlyEditingCell],
+        [data, isEditingCell, wasRecentlyEditingCell, shouldSplitGroups, listData],
     );
 
     useFocusEffect(
@@ -348,13 +419,83 @@ function SearchList({
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
 
     const isItemVisible = useCallback((item: SearchListItem) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline, [isOffline]);
-    const firstVisibleIndex = useMemo(() => data.findIndex(isItemVisible), [data, isItemVisible]);
-    const lastVisibleIndex = useMemo(() => data.findLastIndex(isItemVisible), [data, isItemVisible]);
+    const firstVisibleIndex = useMemo(() => listData.findIndex(isItemVisible), [listData, isItemVisible]);
+    const lastVisibleIndex = useMemo(() => listData.findLastIndex(isItemVisible), [listData, isItemVisible]);
 
     const renderItem = useCallback(
         (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
+            // Handle group header items (sticky)
+            if (isGroupHeaderItem(item)) {
+                const headerItem = item;
+                const originalKey = (item.keyForList ?? '').replace('header_', '');
+                return (
+                    <GroupHeader
+                        item={headerItem}
+                        groupBy={groupBy}
+                        searchType={type}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isExpanded={expandedGroups.has(originalKey)}
+                        onToggle={() => onToggleGroup(originalKey)}
+                        onSelectRow={(rowItem, previewData, event) => onSelectRow({...rowItem, keyForList: originalKey}, previewData, event)}
+                        onCheckboxPress={(val, itemTransactions) => onCheckboxPress({...val, keyForList: originalKey} as SearchListItem, itemTransactions)}
+                        onLongPressRow={(rowItem, itemTransactions) => {
+                            const fixedItem = {...rowItem, keyForList: originalKey} as SearchListItem;
+                            if (isMobileSelectionModeEnabled) {
+                                handleLongPressRowInMobileSelectionMode(fixedItem, itemTransactions);
+                            } else {
+                                handleLongPressRow(fixedItem, itemTransactions);
+                            }
+                        }}
+                        onFocus={onFocus}
+                        isFocused={isItemFocused}
+                        isFirstItem={index === firstVisibleIndex}
+                        isLastItem={index + 1 >= lastVisibleIndex && !ListFooterComponent}
+                        originalKey={originalKey}
+                        lastPaymentMethod={lastPaymentMethod}
+                        personalPolicyID={personalPolicyID}
+                        userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                        ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
+                        visibleColumns={visibleColumns}
+                    />
+                );
+            }
+
+            // Handle children container items (animated expand/collapse)
+            if (isGroupChildrenContainerItem(item)) {
+                const containerItem = item;
+                const originalKey = (item.keyForList ?? '').replace('children_', '');
+                const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
+                const isContainerSelected =
+                    !!containerItem.isSelected || (containerItem.transactions.length > 0 && containerItem.transactions.every((t) => selectedTransactions[t.transactionID]?.isSelected));
+                return (
+                    <GroupChildrenContainer
+                        item={containerItem}
+                        isExpanded={expandedGroups.has(originalKey)}
+                        isSelected={isContainerSelected}
+                        groupBy={groupBy}
+                        searchType={type}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        onSelectRow={onSelectRow}
+                        onCheckboxPress={onCheckboxPress}
+                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                        onUndelete={handleUndelete}
+                        isLastItem={index === lastVisibleIndex && !ListFooterComponent}
+                        newTransactionID={containerNewTransactionID}
+                        bankAccountList={bankAccountList}
+                        cardFeeds={cardFeeds}
+                        conciergeReportID={conciergeReportID}
+                    />
+                );
+            }
+
+            // Default rendering for non-group items
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            const shouldApplyAnimation = shouldAnimate && index < data.length - 1;
+            const shouldApplyAnimation = shouldAnimate && index < listData.length - 1;
+
+            const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
 
             return (
                 <Animated.View
@@ -394,7 +535,7 @@ function SearchList({
             type,
             groupBy,
             shouldAnimate,
-            data.length,
+            listData.length,
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
@@ -415,6 +556,13 @@ function SearchList({
             handleUndelete,
             firstVisibleIndex,
             lastVisibleIndex,
+            expandedGroups,
+            onToggleGroup,
+            bankAccountList,
+            cardFeeds,
+            conciergeReportID,
+            visibleColumns,
+            selectedTransactions,
         ],
     );
 
@@ -429,6 +577,7 @@ function SearchList({
                     style={[
                         styles.searchListHeaderContainerStyle,
                         isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
+                        isLargeScreenWidth && shouldSplitGroups && styles.searchListHeaderTableStickyOverlap,
                     ]}
                 >
                     {canSelectMultiple && (
@@ -443,10 +592,11 @@ function SearchList({
                     )}
 
                     {SearchTableHeader}
+                    {isLargeScreenWidth && shouldSplitGroups && <View style={styles.searchListHeaderBorderCover} />}
                 </View>
             )}
             <BaseSearchList
-                data={data}
+                data={listData}
                 renderItem={renderItem}
                 onSelectRow={onSelectRow}
                 keyExtractor={keyExtractor}
@@ -455,7 +605,7 @@ function SearchList({
                 ref={listRef}
                 columns={columns}
                 scrollToIndex={scrollToIndex}
-                flattenedItemsLength={data.length}
+                flattenedItemsLength={listData.length}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
@@ -465,6 +615,8 @@ function SearchList({
                 selectedTransactions={selectedTransactions}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                stickyHeaderIndices={stickyHeaderIndices}
+                getItemType={getItemType}
             />
             <Modal
                 isVisible={isModalVisible}

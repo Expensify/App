@@ -17,6 +17,7 @@ type BaseSearchListProps = Pick<
     | 'keyExtractor'
     | 'showsVerticalScrollIndicator'
     | 'onLayout'
+    | 'stickyHeaderIndices'
 > & {
     /** The data to display in the list */
     data: SearchListItem[];
@@ -47,6 +48,9 @@ type BaseSearchListProps = Pick<
 
     /** Non-personal and workspace cards for triggering re-render via extraData */
     nonPersonalAndWorkspaceCards?: CardList;
+
+    /** Function to determine item type for FlashList recycling */
+    getItemType?: (item: SearchListItem, index: number) => string | number | undefined;
 };
 
 export default BaseSearchListProps;
