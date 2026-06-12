@@ -2076,6 +2076,8 @@ const CONST = {
             RHP_DURATION_OUT_WEB: 100,
             CENTERED_DURATION_IN_WEB: 120,
             CENTERED_DURATION_OUT_WEB: 80,
+            NARROW_SLIDE_DURATION_IN_WEB: 300,
+            NARROW_SLIDE_DURATION_OUT_WEB: 200,
         },
         RHP_ENTER_OFFSET_PX_WEB: 60,
     },
