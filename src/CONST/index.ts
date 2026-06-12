@@ -7671,16 +7671,12 @@ const CONST = {
             SIGN_UP: {
                 NAME: 'sign_up',
                 META: 'CompleteRegistration',
-                REDDIT: 'SignUp',
-                LINKEDIN: 507587661,
             },
             // Fired for workspace creations that don't match the "sales-eligible" profile. Uses a custom Meta event
             // so the lower-value, higher-volume conversions don't dilute the standard "Lead" optimization below.
             WORKSPACE_CREATED: {
                 NAME: 'workspace_created',
                 META: 'workspace_created',
-                REDDIT: 'Lead',
-                LINKEDIN: 25474804,
                 IS_CUSTOM_PIXEL_EVENT: true,
             },
             // Fired for workspace creations that match the "sales-eligible" profile (see getWorkspaceCreatedAnalyticsEvent).
@@ -7688,14 +7684,10 @@ const CONST = {
             WORKSPACE_CREATED_SALES_ELIGIBLE: {
                 NAME: 'workspace_created_sales_eligible',
                 META: 'Lead',
-                REDDIT: 'Lead',
-                LINKEDIN: 25474804,
             },
             PAID_ADOPTION: {
                 NAME: 'paid_adoption',
                 META: 'Purchase',
-                REDDIT: 'Purchase',
-                LINKEDIN: 25474820,
             },
         },
     },

@@ -13,8 +13,6 @@ type WindowWithPixels = Window & {
         push: (params: DataLayerPushParams) => void;
     };
     fbq?: (method: string, eventName: string, params?: Record<string, unknown>, options?: Record<string, unknown>) => void;
-    rdt?: (method: string, eventType: string, params?: Record<string, string>) => void;
-    lintrk?: (method: string, params: Record<string, unknown>) => void;
 };
 
 type DataLayerPushParams = {
@@ -58,20 +56,6 @@ function publishEvent(event: GoogleTagManagerEvent, accountID: number, email: st
     // Meta
     if (typeof window.fbq === 'function') {
         window.fbq(isCustomPixelEvent ? 'trackCustom' : 'track', pixelEvent.META, {em: email}, {eventID});
-    }
-
-    // Reddit
-    if (typeof window.rdt === 'function') {
-        window.rdt('track', pixelEvent.REDDIT, {
-            conversionId: eventID,
-            email,
-        });
-    }
-
-    // LinkedIn (uses numeric conversion IDs instead of named events)
-    if (typeof window.lintrk === 'function') {
-        window.lintrk('setUserData', {email});
-        window.lintrk('track', {conversion_id: pixelEvent.LINKEDIN, event_id: eventID});
     }
 }
 
