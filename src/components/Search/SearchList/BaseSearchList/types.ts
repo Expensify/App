@@ -45,9 +45,6 @@ type BaseSearchListProps = Pick<
     /** Selected transactions for triggering re-render via extraData */
     selectedTransactions?: SelectedTransactions;
 
-    /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses) */
-    isAttendeesEnabledForMovingPolicy?: boolean;
-
     /** Non-personal and workspace cards for triggering re-render via extraData */
     nonPersonalAndWorkspaceCards?: CardList;
 };
