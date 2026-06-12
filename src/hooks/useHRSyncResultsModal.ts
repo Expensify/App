@@ -3,7 +3,6 @@ import {useEffect, useEffectEvent, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import HRSyncResultsModal from '@components/HRSyncResultsModal';
 import {useModal} from '@components/Modal/Global/ModalContext';
-// eslint-disable-next-line no-restricted-imports -- the hook delays a global modal until the existing modal/navigation transitions complete to avoid stacked native modal races.
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

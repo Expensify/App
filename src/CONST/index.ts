@@ -370,6 +370,8 @@ const CONST = {
 
     API_TRANSACTION_TAG_MAX_LENGTH: 255,
 
+    TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES: 5,
+
     AUTO_AUTH_STATE: {
         NOT_STARTED: 'not-started',
         SIGNING_IN: 'signing-in',
@@ -1965,6 +1967,7 @@ const CONST = {
         MESSAGE_KEY: {
             WAITING_TO_ADD_TRANSACTIONS: 'waitingToAddTransactions',
             WAITING_TO_SUBMIT: 'waitingToSubmit',
+            WAITING_TO_MARK_AS_DONE: 'waitingToMarkAsDone',
             NO_FURTHER_ACTION: 'noFurtherAction',
             WAITING_FOR_SUBMITTER_ACCOUNT: 'waitingForSubmitterAccount',
             WAITING_FOR_AUTOMATIC_SUBMIT: 'waitingForAutomaticSubmit',
@@ -2330,6 +2333,11 @@ const CONST = {
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
+    },
+    INBOX_TAB: {
+        ALL: 'all',
+        TODO: 'todo',
+        UNREAD: 'unread',
     },
     THEME: {
         DEFAULT: 'system',
@@ -3688,6 +3696,8 @@ const CONST = {
 
     IOU: {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
+        MAX_RECENT_ATTENDEES: 40,
+
         // This will guranatee that the quantity input will not exceed 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
@@ -4039,7 +4049,6 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GENERAL_SETTINGS: 'generalSettings',
-            ADD_AGENT: 'addAgent',
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
@@ -4286,6 +4295,12 @@ const CONST = {
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         MILES_TO_KILOMETERS: 1.609344,
         KILOMETERS_TO_MILES: 0.621371,
+        RATE_STATUS: {
+            ACTIVE: 'active',
+            FUTURE: 'future',
+            EXPIRED: 'expired',
+            INACTIVE: 'inactive',
+        },
         RATE_FIELD: {
             START_DATE: 'startDate',
             END_DATE: 'endDate',
@@ -7746,7 +7761,6 @@ const CONST = {
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
-    AGENTS_WORKFLOWS_BANNER: 'agentsWorkflowsBanner',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
     SMART_BANNER_HEIGHT: 152,
 
@@ -7892,9 +7906,6 @@ const CONST = {
         },
         HIGH_CONTRAST_MODE_SWITCHER: {
             TOGGLE: 'HighContrastModeSwitcher-Toggle',
-        },
-        AGENTS_WORKFLOWS_BANNER: {
-            DISMISS: 'AgentsWorkflowsBanner-Dismiss',
         },
         AGENTS_RULES_BANNER: {
             CTA: 'AgentsRulesBanner-CTA',
@@ -8457,6 +8468,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTaxes-BulkActionsDropdown',
             },
             DISTANCE_RATES: {
+                ROW: 'WorkspaceDistanceRates-Row',
                 ADD_BUTTON: 'WorkspaceDistanceRates-AddButton',
                 MORE_DROPDOWN: 'WorkspaceDistanceRates-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceDistanceRates-BulkActionsDropdown',

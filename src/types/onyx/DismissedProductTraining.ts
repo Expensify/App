@@ -69,11 +69,6 @@ type DismissedProductTraining = {
     [CONST.CHANGE_POLICY_TRAINING_MODAL]: DismissedProductTrainingElement;
 
     /**
-     * When user dismisses the agents workflows promo banner, we store the timestamp here.
-     */
-    [CONST.AGENTS_WORKFLOWS_BANNER]: DismissedProductTrainingElement;
-
-    /**
      * When user dismisses the agents rules promo banner, we store the timestamp here.
      */
     [CONST.AGENTS_RULES_BANNER]: DismissedProductTrainingElement;
