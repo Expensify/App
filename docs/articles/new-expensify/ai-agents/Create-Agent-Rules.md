@@ -55,7 +55,7 @@ Agent Rules apply to future report activity, but not existing Paid or Done repor
 
 RuleBot is an AI-powered workspace agent that enforces Agent Rules. 
 
-RuleBot can operate as a workspace observer that monitors reports and applies Agent Rules, and as the designated approver in a workflow
+RuleBot can operate as a workspace observer that monitors reports and applies Agent Rules, and as the designated approver in a workflow. 
 
 Whenever report activity occurs, RuleBot evaluates the report using:
 
