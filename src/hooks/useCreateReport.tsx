@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDefaultChatEnabledPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getDefaultChatEnabledPolicy, isGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
@@ -87,15 +87,13 @@ export default function useCreateReport({
                 const freshReportID = generateReportID();
                 const freshTransactionID = generateReportID();
                 Navigation.navigate(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.CREATE,
-                            iouType: CONST.IOU.TYPE.CREATE,
-                            transactionID: freshTransactionID,
-                            reportID: freshReportID,
-                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                        }),
-                    ),
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CREATE,
+                        iouType: CONST.IOU.TYPE.CREATE,
+                        transactionID: freshTransactionID,
+                        reportID: freshReportID,
+                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                    }),
                 );
                 return;
             }
@@ -106,7 +104,7 @@ export default function useCreateReport({
             // at least 2 non-personal workspaces to choose between. Also fall back to the selector if
             // the default is billing-restricted and alternatives exist, so the user isn't dead-ended
             // on the restricted-action page.
-            const isDefaultPersonal = !activePolicy || activePolicy.type === CONST.POLICY.TYPE.PERSONAL || !isPaidGroupPolicy(activePolicy);
+            const isDefaultPersonal = !activePolicy || activePolicy.type === CONST.POLICY.TYPE.PERSONAL || !isGroupPolicy(activePolicy);
             const hasMultipleNonPersonalWorkspaces = groupPoliciesWithChatEnabled.length > 1;
             const isDefaultBillingRestricted =
                 !!workspaceIDForReportCreation && shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
