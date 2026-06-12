@@ -104,9 +104,7 @@ function Confirmation() {
     const handleMergeDuplicates = useCallback(() => {
         const transactionThreadReportID = childReportID ?? generateReportID();
         const mergeParams = !childReportID ? {...transactionsMergeParams, transactionThreadReportID} : transactionsMergeParams;
-        // Server deletes the discarded transaction's now-empty expense report on merge and
-        // pushes back a "Report not found" payload for it. Hint the guard and redirect to
-        // the kept transaction's report so the user doesn't land on the discarded one.
+        // Suppress the NotFound guard for the discarded thread the server tears down on merge.
         const keptReportRoute = ROUTES.REPORT_WITH_ID.getRoute(mergeParams.reportID);
         setDeleteTransactionNavigateBackUrl(keptReportRoute);
         mergeDuplicates({...mergeParams, ...taxData, currentUserAccountID, currentUserLogin: currentUserLogin ?? ''});
@@ -114,13 +112,17 @@ function Confirmation() {
             Navigation.dismissToSuperWideRHP();
             return;
         }
-        const topmostReportID = Navigation.getTopmostReportId?.();
-        if (topmostReportID === mergeParams.reportID) {
+        // Opened from Search: dismiss back to the search results instead of opening the kept report in the Inbox.
+        if (route.params.backTo) {
             Navigation.dismissModal();
-        } else {
-            Navigation.goBack(keptReportRoute);
+            return;
         }
-    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed]);
+        // Opened from the discarded thread: pop the modal's history entries, then replace the now-dead
+        // thread with the kept report so browser-back can't reach its NotFound page.
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(keptReportRoute, {forceReplace: true}),
+        });
+    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, route.params.backTo]);
 
     const handleResolveDuplicates = useCallback(() => {
         resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap});
