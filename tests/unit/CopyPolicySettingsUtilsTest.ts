@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {
     areAllTargetsAccountingCompatible,
     areAllTargetsCompatibleForAccountingPart,
@@ -12,10 +12,14 @@ import {
     isTargetCompatibleForAccountingPart,
 } from '@libs/CopyPolicySettingsUtils';
 import type {CopyPolicySettingsSourceFeatureContext} from '@libs/CopyPolicySettingsUtils';
+import {translate} from '@libs/Localize';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import createRandomPolicy from '../utils/collections/policies';
+
+const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
 
 function makePolicyWithConnection(connectionName: ConnectionName, connectionPayload: Record<string, unknown>): Policy {
     const base = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
@@ -28,6 +32,8 @@ function makePolicyWithConnection(connectionName: ConnectionName, connectionPayl
 }
 
 describe('CopyPolicySettingsUtils', () => {
+    beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
+
     describe('getConnectionCompanyID', () => {
         it('returns realmId for QuickBooks Online', () => {
             const policy = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.QBO, {config: {realmId: 'REALM-123'}});
@@ -202,11 +208,10 @@ describe('CopyPolicySettingsUtils', () => {
         });
 
         it('describes receipt partners with the connected Uber organization name', () => {
-            const translate = ((key: string) => (key === 'common.enabled' ? 'Enabled' : key)) as LocalizedTranslate;
             const policy = createRandomPolicy(11);
             policy.receiptPartners = {enabled: true, uber: {organizationName: 'Acme Uber Org'}};
 
-            expect(getReceiptPartnersCopySettingsDescription(policy, translate)).toBe('Acme Uber Org');
+            expect(getReceiptPartnersCopySettingsDescription(policy, mockTranslate)).toBe('Acme Uber Org');
         });
 
         it('shows time tracking only when the feature is enabled on the source', () => {
@@ -222,27 +227,19 @@ describe('CopyPolicySettingsUtils', () => {
         });
 
         it('describes time tracking without currency when a default rate exists', () => {
-            const translate = ((key: string) => {
-                if (key === 'common.enabled') {
-                    return 'Enabled';
-                }
-                if (key === 'workspace.moreFeatures.timeTracking.defaultHourlyRate') {
-                    return 'Default hourly rate';
-                }
-                return key;
-            }) as LocalizedTranslate;
             const policy = createRandomPolicy(7);
             policy.units = {time: {enabled: true, rate: 75}};
 
-            expect(getTimeTrackingCopySettingsDescription(policy, translate)).toBe('Enabled, Default hourly rate: 75');
+            expect(getTimeTrackingCopySettingsDescription(policy, mockTranslate)).toBe(
+                `${mockTranslate('common.enabled')}, ${mockTranslate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}: 75`,
+            );
         });
 
         it('describes time tracking as enabled when no default rate is set', () => {
-            const translate = ((key: string) => (key === 'common.enabled' ? 'Enabled' : key)) as LocalizedTranslate;
             const policy = createRandomPolicy(8);
             policy.units = {time: {enabled: true}};
 
-            expect(getTimeTrackingCopySettingsDescription(policy, translate)).toBe('Enabled');
+            expect(getTimeTrackingCopySettingsDescription(policy, mockTranslate)).toBe(mockTranslate('common.enabled'));
         });
 
         it('hides distance rates when the feature flag is off even if rates exist', () => {
