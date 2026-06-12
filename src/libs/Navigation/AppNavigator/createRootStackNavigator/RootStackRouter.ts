@@ -1,5 +1,5 @@
 import {CommonActions, StackRouter} from '@react-navigation/native';
-import type {NavigationState, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
@@ -144,10 +144,17 @@ function handleNavigationGuards(
             // SignInModal.tsx and navigateAfterOnboarding's Navigation.navigate(ROUTES.HOME)
             // calls expect; removing them caused regression #90303.
             if (underlyingFullScreen && redirectModal) {
-                const modalResetAction = CommonActions.reset({
+                const redirectModalWithKey: StackNavigationState<ParamListBase>['routes'][number] = {
+                    ...redirectModal,
+                    key: redirectModal.key ?? `${redirectModal.name}-modal-redirect`,
+                };
+                const modalResetState: StackNavigationState<ParamListBase> = {
+                    ...state,
                     index: 1,
-                    routes: [underlyingFullScreen, redirectModal],
-                } as PartialState<NavigationState>);
+                    routes: [underlyingFullScreen, redirectModalWithKey],
+                    preloadedRoutes: [],
+                };
+                const modalResetAction = CommonActions.reset(modalResetState);
                 return stackRouter.getStateForAction(state, modalResetAction, configOptions);
             }
         }
