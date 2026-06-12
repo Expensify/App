@@ -292,7 +292,7 @@ function WorkspacesListPage() {
         const prevIsPendingDelete = prevIsPendingDeleteRef.current;
         prevIsPendingDeleteRef.current = isPendingDelete;
 
-        const policyToDeleteLatestErrorMessagePrompt = (
+        const policyToDeleteLatestErrorMessagePrompt = policyToDeleteLatestErrorMessage && (
             <RenderHTML
                 html={policyToDeleteLatestErrorMessage}
                 onConciergeLinkPress={() => {
