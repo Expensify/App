@@ -133,11 +133,12 @@ function RulesRequireReceiptsPage({
                     contentContainerStyle={[styles.ph5, styles.pb5]}
                     addBottomSafeAreaPadding
                 >
-                    <Text style={[styles.mutedTextLabel, styles.mt3, styles.mb4]}>{translate('workspace.rules.requireReceipts.description')}</Text>
+                    <Text style={[styles.mutedTextLabel, styles.pv2]}>{translate('workspace.rules.requireReceipts.description')}</Text>
 
                     <ToggleSettingOptionRow
                         title={translate('workspace.rules.requireReceipts.requireReceipt')}
                         switchAccessibilityLabel={translate('workspace.rules.requireReceipts.requireReceipt')}
+                        shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={styles.pv3}
                         isActive={receiptEnabled}
                         pendingAction={policy?.pendingFields?.maxExpenseAmountNoReceipt}
@@ -150,7 +151,7 @@ function RulesRequireReceiptsPage({
                         }}
                     />
                     {receiptEnabled && (
-                        <View style={styles.mt4}>
+                        <View style={styles.pv2}>
                             <AmountForm
                                 value={receiptAmount}
                                 currency={policyCurrency}
@@ -166,11 +167,12 @@ function RulesRequireReceiptsPage({
                         </View>
                     )}
 
-                    <View style={[styles.sectionDividerLine, styles.mv4]} />
+                    <View style={[styles.sectionDividerLine, styles.mv3]} />
 
                     <ToggleSettingOptionRow
                         title={translate('workspace.rules.requireReceipts.requireItemizedReceipt')}
                         switchAccessibilityLabel={translate('workspace.rules.requireReceipts.requireItemizedReceipt')}
+                        shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={styles.pv3}
                         isActive={itemizedEnabled}
                         pendingAction={policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt}
@@ -183,7 +185,7 @@ function RulesRequireReceiptsPage({
                         }}
                     />
                     {itemizedEnabled && (
-                        <View style={styles.mt4}>
+                        <View style={styles.pv2}>
                             <AmountForm
                                 value={itemizedAmount}
                                 currency={policyCurrency}
