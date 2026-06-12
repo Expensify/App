@@ -7,7 +7,7 @@ internalScope: Audience is Workspace Admins. Covers best practices for writing A
 
 # How to Write Agent Rules
 
-Agent Rules are written in natural language. Describe the behavior you want, and RuleBot evaluates reports against those instructions.Well-written Agent Rules help RuleBot make more consistent decisions and reduce unexpected behavior.
+Agent Rules are written in natural language. Describe the behavior you want, and RuleBot evaluates reports against those instructions. Well-written Agent Rules help RuleBot make more consistent decisions and reduce unexpected behavior.
 
 If you're unsure how to write a rule, you can chat with RuleBot and describe the outcome you want. RuleBot can ask clarifying questions, help draft a rule, and explain how an existing rule would behave in a specific situation.
 
@@ -17,7 +17,7 @@ If you're unsure how to write a rule, you can chat with RuleBot and describe the
 
 Any Workspace Admin on a workspace with an Agent Rule configured can edit the rules. 
 
-If you haven't created an Agent Rule yet, [learn how to create Agent Rules](/articles/new-expensify/ai-agents/Create-Agent-Rules.md).
+If you haven't created an Agent Rule yet, [learn how to create Agent Rules](/articles/new-expensify/ai-agents/Create-Agent-Rules).
 
 ---
 
@@ -101,10 +101,10 @@ To chat with RuleBot:
 
 ## What to do when an Agent Rule doesn't behave as expected
 
-If RuleBot isn't behaving the way you expect:
-
  - Rewrite the rule using more specific language.
-- Break large rules into multiple focused rules.
+ - Break large rules into multiple focused rules.
+ - Add examples that demonstrate the intended behavior.
+ - Remove unnecessary instructions that may create ambiguity.
  - Add examples that demonstrate the intended behavior.
  - Remove unnecessary instructions that may create ambiguity.
 

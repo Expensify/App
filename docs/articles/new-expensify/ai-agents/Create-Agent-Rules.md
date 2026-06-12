@@ -24,7 +24,7 @@ To create an Agent Rule:
  - **Rules** must be enabled on the workspace.
 
 ---
-
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Your Workspace]**.
 ## How to create an Agent Rule
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Your Workspace]**
@@ -89,7 +89,7 @@ For example, RuleBot might:
  - Approve certain reports automatically 
    
 ---
-
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Your Workspace]**.
 ## How to delete an Agent Rule
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Your Workspace]**
