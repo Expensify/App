@@ -36,6 +36,9 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
     /** Whether or not the table row is loading */
     isLoading?: boolean;
 
+    /** Whether or not checkbox selection is disabled for this specific row */
+    isSelectionDisabled?: boolean;
+
     /** Whether or not the row should animate in highlighted */
     shouldAnimateInHighlight?: boolean;
 
@@ -57,6 +60,7 @@ export default function TableRow({
     sentryLabel,
     interactive,
     isLoading,
+    isSelectionDisabled,
     shouldAnimateInHighlight,
     skeletonReasonAttributes,
     LoadingComponent,
@@ -212,9 +216,9 @@ export default function TableRow({
                                         shouldStopMouseDownPropagation
                                         containerStyle={styles.m0}
                                         style={styles.flex1}
-                                        disabled={item.disabled}
                                         isChecked={!!item.selected}
                                         accessibilityLabel={translate('common.select')}
+                                        disabled={item.disabled || isSelectionDisabled}
                                         onPress={(event) => handleCheckboxPress(event)}
                                     />
                                 )}

@@ -96,13 +96,13 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                         </View>
                     </View>
 
-                    {shouldUseNarrowTableLayout && shouldShowCustomField1Column && (
+                    {!shouldUseNarrowTableLayout && shouldShowCustomField1Column && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text numberOfLines={1}>{item.employeeUserID}</Text>
                         </View>
                     )}
 
-                    {shouldUseNarrowTableLayout && shouldShowCustomField2Column && (
+                    {!shouldUseNarrowTableLayout && shouldShowCustomField2Column && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text numberOfLines={1}>{item.employeePayrollID}</Text>
                         </View>
