@@ -23,6 +23,7 @@ import useTransactionThreadReportIDs from '@hooks/useTransactionThreadReportIDs'
 import {mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import {setDeleteTransactionNavigateBackUrl} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -113,7 +114,9 @@ function Confirmation() {
             return;
         }
         // Opened from Search: dismiss back to the search results instead of opening the kept report in the Inbox.
-        if (route.params.backTo) {
+        // The review flow always sets route.params.backTo (keepSelected passes getActiveRoute), so it can't be used
+        // to detect the Search entry point — check the topmost full-screen route instead.
+        if (isSearchTopmostFullScreenRoute()) {
             Navigation.dismissModal();
             return;
         }
@@ -122,7 +125,7 @@ function Confirmation() {
         Navigation.dismissModal({
             afterTransition: () => Navigation.navigate(keptReportRoute, {forceReplace: true}),
         });
-    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, route.params.backTo]);
+    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed]);
 
     const handleResolveDuplicates = useCallback(() => {
         resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap});
