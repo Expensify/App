@@ -6,8 +6,9 @@ import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useOnyx from './hooks/useOnyx';
 import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
-import {hasAuthToken} from './libs/actions/Session';
+import {hasAuthToken, isAnonymousUser} from './libs/actions/Session';
 import Log from './libs/Log';
+import {getReportIDFromLink} from './libs/ReportUtils';
 import {endSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
 import type {Route} from './ROUTES';
@@ -27,8 +28,11 @@ type DeepLinkHandlerProps = {
 function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
     const initialUrlProcessed = useRef(false);
+    const pendingPublicRoomReportID = useRef('');
+    const hasRefetchedPublicRoom = useRef(false);
 
     const [allReports, allReportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -76,6 +80,11 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                     // closure value may be stale on cold start (useOnyx reports 'loaded' before storage completes).
                     const isCurrentlyAuthenticated = hasAuthToken();
                     openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
+                    const deepLinkReportID = getReportIDFromLink(url);
+                    if (deepLinkReportID && !isCurrentlyAuthenticated) {
+                        pendingPublicRoomReportID.current = deepLinkReportID;
+                        hasRefetchedPublicRoom.current = false;
+                    }
                 } else {
                     Report.doneCheckingPublicRoom();
                 }
@@ -103,6 +112,11 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             }
             const isCurrentlyAuthenticated = hasAuthToken();
             openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
+            const deepLinkReportID = getReportIDFromLink(state.url);
+            if (deepLinkReportID && !isCurrentlyAuthenticated) {
+                pendingPublicRoomReportID.current = deepLinkReportID;
+                hasRefetchedPublicRoom.current = false;
+            }
         });
 
         return () => {
@@ -135,6 +149,25 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
         Report.doneCheckingPublicRoom();
     }, [isAuthenticated]);
+
+    // An anonymous user opening a public room via a cold deep link loads the room (OpenReport), but the
+    // OpenApp that follows anonymous session creation drops it from Onyx, so it never reaches the LHN.
+    // Once OpenApp settles, re-fetch the room if it went missing so it shows up in the LHN. See #92672.
+    useEffect(() => {
+        const reportID = pendingPublicRoomReportID.current;
+        if (!reportID || isLoadingApp || !isAnonymousUser()) {
+            return;
+        }
+        if (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
+            hasRefetchedPublicRoom.current = false;
+            return;
+        }
+        if (hasRefetchedPublicRoom.current) {
+            return;
+        }
+        hasRefetchedPublicRoom.current = true;
+        Report.openReport({reportID, introSelected, betas});
+    }, [isLoadingApp, allReports, introSelected, betas]);
 
     return null;
 }

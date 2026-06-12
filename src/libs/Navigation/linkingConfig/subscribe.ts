@@ -1,6 +1,7 @@
 import type {LinkingOptions} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import {Linking} from 'react-native';
+import {hasAuthToken} from '@libs/actions/Session';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
@@ -29,6 +30,13 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             // Without this, the native SDK never sees the callback URL and retries OAuth in a loop
             // after app-to-app bank auth returns. See issue #87757.
             continuePlaidOAuth(url);
+            return;
+        }
+        // For an unauthenticated session, a report deep link (`/r/<reportID>`) targets the Report screen,
+        // which lives in AuthScreens and is not mounted while PublicScreens is showing. Dispatching it here
+        // throws "NAVIGATE ... was not handled by any navigator". openReportFromDeepLink() already opens the
+        // public room as an anonymous user and handles navigation, so defer to it instead. See #92672.
+        if (!hasAuthToken() && url.includes(`/${ROUTES.REPORT}/`)) {
             return;
         }
         listener(url);
