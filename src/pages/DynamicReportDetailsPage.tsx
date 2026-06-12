@@ -1,7 +1,7 @@
 import {StackActions} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
@@ -33,6 +33,7 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import useInitialValue from '@hooks/useInitialValue';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -384,7 +385,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     // Only show the "Go to room" row when the Details page was opened from a screen other than the room report itself (e.g. the Workspace rooms list).
     // The check is evaluated once when the page is opened, so the menu doesn't change while the page is closing after "Go to room" makes the room the topmost report.
-    const [isRoomCurrentlyOpen] = useState(() => isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === report?.reportID);
+    const isRoomCurrentlyOpen = useInitialValue(() => isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === report?.reportID);
     const shouldShowGoToRoom = (isChatRoom || isPolicyExpenseChat) && !isRoomCurrentlyOpen;
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending && !shouldShowGoToRoom;
 
