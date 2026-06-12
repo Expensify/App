@@ -7171,8 +7171,9 @@ ${reportName}
                 describeRuleTitle: '描述你的规则',
                 describeRuleSubtitle: '描述你的规则，我们会由 Concierge 为你创建',
                 disclaimer: 'AI 智能体可能会犯错。',
-                agentCreatedTitle: 'RuleBot 已添加到你的工作区',
-                agentCreatedDescription: '为了执行你的代理规则，我们为你创建了一个代理，并将其添加为你工作区的管理员。\n\n你可以在“账户”>“代理”中编辑代理的详细信息。',
+                agentCreatedTitle: 'RuleBot 已添加到你的工作区!',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `为了执行你的代理规则，我们为你创建了一个代理，并将其添加为你工作区的管理员。<br><br>你可以在 <a href="${agentsRoute}">“账户”&gt;“代理”</a> 中编辑代理的详细信息。`,
             },
         },
         planTypePage: {

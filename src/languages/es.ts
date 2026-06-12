@@ -7297,9 +7297,9 @@ ${amount} para ${merchant} - ${date}`,
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',
                 disclaimer: 'Los agentes de IA pueden cometer errores.',
-                agentCreatedTitle: 'RuleBot se ha añadido a tu espacio de trabajo',
-                agentCreatedDescription:
-                    'Para aplicar tus reglas de agente, hemos creado un agente para ti y lo hemos añadido como administrador de tu espacio de trabajo.\n\nEdita los datos de tu agente en Cuenta > Agentes.',
+                agentCreatedTitle: '¡RuleBot se ha añadido a tu espacio de trabajo!',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `Para aplicar tus reglas de agente, hemos creado un agente para ti y lo hemos añadido como administrador de tu espacio de trabajo.<br><br>Edita los datos de tu agente en <a href="${agentsRoute}">Cuenta &gt; Agentes</a>.`,
             },
         },
         emptyDomain: {

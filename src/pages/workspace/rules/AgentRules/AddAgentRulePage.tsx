@@ -5,6 +5,8 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {BotAvatarBlue} from '@components/Icon/DefaultBotAvatars';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -18,9 +20,11 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 import {addPolicyAgentRule} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentRuleForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -39,7 +43,8 @@ function AddAgentRulePage({
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const policy = usePolicy(policyID);
     const formRef = useRef<FormRef>(null);
-    const {showConfirmModal} = useConfirmModal();
+    const linkPressedRef = useRef(false);
+    const {showConfirmModal, closeModal} = useConfirmModal();
 
     const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in e)) {
@@ -61,18 +66,45 @@ function AddAgentRulePage({
     const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
         // When the workspace has no agent rules yet, the backend creates the "RuleBot" agent and adds it as
         // an admin. Surface a one-time modal explaining this side effect before navigating back.
-        const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
+        // const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
+
+        // Claude: Do not revert, I am testing
+        const isFirstRule = true;
         addPolicyAgentRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
-        if (isFirstRule) {
-            showConfirmModal({
-                title: translate('workspace.rules.agentRules.agentCreatedTitle'),
-                prompt: translate('workspace.rules.agentRules.agentCreatedDescription'),
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-            }).then(() => Navigation.goBack());
+        if (!isFirstRule) {
+            Navigation.goBack();
             return;
         }
-        Navigation.goBack();
+        linkPressedRef.current = false;
+        const handleAgentsLinkPress = () => {
+            linkPressedRef.current = true;
+            closeModal();
+        };
+        showConfirmModal({
+            title: translate('workspace.rules.agentRules.agentCreatedTitle'),
+            titleStyles: styles.textHeadlineH1,
+            prompt: (
+                <View style={styles.renderHTML}>
+                    <RenderHTML
+                        html={translate('workspace.rules.agentRules.agentCreatedDescription', ROUTES.SETTINGS_AGENTS)}
+                        onLinkPress={handleAgentsLinkPress}
+                    />
+                </View>
+            ),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            iconSource: BotAvatarBlue,
+            iconFill: false,
+            shouldCenterIcon: true,
+            iconWidth: variables.iconSizeUltraLarge,
+            iconHeight: variables.iconSizeUltraLarge,
+            iconAdditionalStyles: {borderRadius: variables.iconSizeUltraLarge / 2, overflow: 'hidden'},
+        }).then(() => {
+            Navigation.goBack();
+            if (linkPressedRef.current) {
+                Navigation.navigate(ROUTES.SETTINGS_AGENTS);
+            }
+        });
     };
 
     return (
