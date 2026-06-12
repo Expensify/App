@@ -1354,6 +1354,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   optimisticIOUReportID: optimisticReportID,
                   reportTransactions,
                   betas,
+                  shouldMarkAsDone: action === CONST.IOU.ACTION.SUBMIT,
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
