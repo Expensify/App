@@ -26,12 +26,11 @@ function useResumePaymentAfterValidation(reportID: string | undefined, resume: (
         if (!isValidated || !pendingPaymentContinue || !reportID || pendingPaymentContinue.reportID !== reportID) {
             return;
         }
+
         // Clear first so the resume runs exactly once, even across re-renders.
         clearPendingPaymentContinue();
         TransitionTracker.runAfterTransitions({
-            callback: () => {
-                setNavigationActionToMicrotaskQueue(() => resume(pendingPaymentContinue));
-            },
+            callback: () => resume(pendingPaymentContinue),
             waitForUpcomingTransition: true,
         });
     }, [isValidated, pendingPaymentContinue, reportID, resume]);
