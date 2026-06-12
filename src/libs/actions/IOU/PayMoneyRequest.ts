@@ -41,6 +41,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllPersonalDetails, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import {getReportPreviewAction} from './MoneyRequestBuilder';
+import {getYourSpendSnapshotReportMoveUpdates} from './YourSpendSnapshotUpdate';
 
 type PayInvoiceArgs = {
     paymentMethodType: PaymentMethodType;
@@ -712,6 +713,14 @@ function cancelPayment(
         }),
     });
 
+    const yourSpendSnapshotUpdates = getYourSpendSnapshotReportMoveUpdates({
+        iouReport: expenseReport,
+        reportTransactions: getReportTransactions(expenseReport.reportID),
+        fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
+        toStatus: {stateNum, statusNum},
+        currentUserAccountID: currentUserAccountIDParam,
+    });
+
     API.write(
         WRITE_COMMANDS.CANCEL_PAYMENT,
         {
@@ -720,7 +729,11 @@ function cancelPayment(
             managerAccountID: expenseReport.managerID ?? CONST.DEFAULT_NUMBER_ID,
             reportActionID: optimisticReportAction.reportActionID,
         },
-        {optimisticData, successData, failureData},
+        {
+            optimisticData: [...optimisticData, ...yourSpendSnapshotUpdates.optimisticData],
+            successData: [...successData, ...yourSpendSnapshotUpdates.successData],
+            failureData: [...failureData, ...yourSpendSnapshotUpdates.failureData],
+        },
     );
 
     notifyNewAction(expenseReport.reportID, undefined, true);

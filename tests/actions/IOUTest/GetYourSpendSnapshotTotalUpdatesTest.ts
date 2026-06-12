@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {getUpdateMoneyRequestParams} from '@libs/actions/IOU/UpdateMoneyRequest';
-import {getYourSpendSnapshotTotalUpdates, transactionMatchesAwaitingApprovalQuery} from '@libs/actions/IOU/YourSpendSnapshotUpdate';
+import {getYourSpendSnapshotTotalUpdates, getYourSpendSnapshotTransactionRemovalUpdates, transactionMatchesAwaitingApprovalQuery} from '@libs/actions/IOU/YourSpendSnapshotUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {buildAwaitingApprovalQuery} from '@libs/YourSpendQueryUtils';
@@ -155,6 +155,53 @@ describe('getYourSpendSnapshotTotalUpdates', () => {
         const {optimisticData} = getYourSpendSnapshotTotalUpdates({
             transaction,
             updatedTransaction,
+            iouReport: expenseReport,
+            currentUserAccountID: ACCOUNT_ID,
+        });
+
+        expect(optimisticData).toHaveLength(0);
+    });
+});
+
+describe('getYourSpendSnapshotTransactionRemovalUpdates', () => {
+    it('subtracts the removed transaction amount from the awaiting-approval snapshot total', async () => {
+        const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
+        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(30000, CONST.CURRENCY.USD));
+        await waitForBatchedUpdates();
+
+        const {optimisticData, failureData} = getYourSpendSnapshotTransactionRemovalUpdates({
+            transaction,
+            iouReport: expenseReport,
+            currentUserAccountID: ACCOUNT_ID,
+        });
+
+        expect(optimisticData).toEqual([
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {search: {total: 20000, currency: CONST.CURRENCY.USD}},
+            }),
+        ]);
+        expect(failureData).toEqual([
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {search: {total: 30000, currency: CONST.CURRENCY.USD}},
+            }),
+        ]);
+    });
+
+    it('does not patch when the removed transaction is non-reimbursable', async () => {
+        const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
+        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(30000, CONST.CURRENCY.USD));
+        await waitForBatchedUpdates();
+
+        const {optimisticData} = getYourSpendSnapshotTransactionRemovalUpdates({
+            transaction: {...transaction, reimbursable: false},
             iouReport: expenseReport,
             currentUserAccountID: ACCOUNT_ID,
         });

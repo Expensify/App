@@ -41,6 +41,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
+import {getYourSpendSnapshotTransactionRemovalUpdates} from './YourSpendSnapshotUpdate';
 
 type RejectMoneyRequestData = {
     optimisticData: Array<
@@ -52,6 +53,7 @@ type RejectMoneyRequestData = {
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     >;
     successData: Array<
@@ -66,6 +68,7 @@ type RejectMoneyRequestData = {
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     >;
     parameters: RejectMoneyRequestParams;
@@ -179,6 +182,7 @@ function prepareRejectMoneyRequestData(
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
 
@@ -202,6 +206,7 @@ function prepareRejectMoneyRequestData(
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
 
@@ -894,6 +899,14 @@ function prepareRejectMoneyRequestData(
         expenseMovedReportActionID,
         expenseCreatedReportActionID,
     };
+
+    const yourSpendSnapshotUpdates = getYourSpendSnapshotTransactionRemovalUpdates({
+        transaction,
+        iouReport: report,
+        currentUserAccountID: currentUserAccountIDParam,
+    });
+    optimisticData.push(...yourSpendSnapshotUpdates.optimisticData);
+    failureData.push(...yourSpendSnapshotUpdates.failureData);
 
     return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
 }

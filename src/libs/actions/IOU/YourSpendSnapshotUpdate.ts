@@ -255,6 +255,45 @@ function getYourSpendSnapshotReportMoveUpdates({
     return result;
 }
 
+type GetYourSpendSnapshotTransactionRemovalUpdatesParams = {
+    transaction: OnyxEntry<Transaction>;
+    iouReport: OnyxEntry<Report>;
+    currentUserAccountID: number;
+};
+
+/**
+ * Optimistically patches Your spend snapshot aggregates when a single transaction leaves a report (e.g. delete or
+ * reject), subtracting its reimbursable amount from whichever section the report currently belongs to.
+ */
+function getYourSpendSnapshotTransactionRemovalUpdates({transaction, iouReport, currentUserAccountID}: GetYourSpendSnapshotTransactionRemovalUpdatesParams): YourSpendSnapshotOnyxData {
+    const result: YourSpendSnapshotOnyxData = {optimisticData: [], successData: [], failureData: []};
+    if (!transaction || !iouReport) {
+        return result;
+    }
+
+    const isExpenseReportLocal = isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport);
+    const amount = Math.abs(getAmount(transaction, isExpenseReportLocal));
+    if (amount === 0) {
+        return result;
+    }
+
+    const diff = -amount;
+    const currency = getCurrency(transaction);
+    const paidGroupPolicyIDs = getPaidGroupPolicyIDs();
+
+    if (transactionMatchesAwaitingApprovalQuery(iouReport, transaction, currentUserAccountID, paidGroupPolicyIDs)) {
+        const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(currentUserAccountID, paidGroupPolicyIDs));
+        mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, diff, currency));
+    }
+
+    if (transactionMatchesRepaidLast30DaysQuery(iouReport, transaction, currentUserAccountID)) {
+        const paymentQueryJSON = buildSearchQueryJSON(buildRepaidLast30DaysQuery(currentUserAccountID));
+        mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, diff, currency));
+    }
+
+    return result;
+}
+
 /**
  * Optimistically patches Your spend snapshot aggregates when a transaction amount changes.
  * Home reads totals from `snapshot.search.total`, which is only refreshed via search() while online.
@@ -287,4 +326,4 @@ function getYourSpendSnapshotTotalUpdates({transaction, updatedTransaction, iouR
     return result;
 }
 
-export {getYourSpendSnapshotReportMoveUpdates, getYourSpendSnapshotTotalUpdates, transactionMatchesAwaitingApprovalQuery};
+export {getYourSpendSnapshotReportMoveUpdates, getYourSpendSnapshotTotalUpdates, getYourSpendSnapshotTransactionRemovalUpdates, transactionMatchesAwaitingApprovalQuery};
