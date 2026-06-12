@@ -63,7 +63,9 @@ const translations: TranslationDeepObject<typeof en> = {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
+        markAsDone: 'Marcar como listo',
         submitted: 'Enviado',
+        markedAsDoneStatus: 'Marcado como listo',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
@@ -249,7 +251,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Descripción',
         title: 'Título',
         assignee: 'Asignado a',
-        createdBy: 'Creado por',
         with: 'con',
         shareCode: 'Compartir código',
         share: 'Compartir',
@@ -313,6 +314,10 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Encuentra un chat usando el botón',
             subtitleText2: 'o crea algo usando el botón',
             subtitleText3: '.',
+            noUnreadChats: 'No hay chats sin leer',
+            noTodos: 'No hay tareas pendientes',
+            caughtUp: 'Te has puesto al día. ¡Bien hecho!',
+            seeAllChats: 'Ver todos los chats',
         },
         businessName: 'Nombre de la empresa',
         clear: 'Borrar',
@@ -802,6 +807,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users) => `Este chat es con ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName, submitterDisplayName) =>
             `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Aquí es donde harás seguimiento de los gastos',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
@@ -997,6 +1003,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Todo al día',
                 f1FlagsDescription: 'Has completado todas las tareas pendientes.',
             },
+            reviewExpenses: ({count}: {count: number}) => `Revisa ${count} ${count === 1 ? 'gasto' : 'gastos'}`,
         },
         gettingStartedSection: {
             title: 'Primeros pasos',
@@ -1313,6 +1320,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount) => `Enviar factura de ${amount}`,
         expenseAmount: (formattedAmount, comment) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: (memo) => `enviado${memo ? `, dijo ${memo}` : ''}`,
+        markedAsDone: (memo) => `marcado como listo${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
         failedToAutoSubmitViaDEW: (reason: string) => `no ha podido enviar este informe mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>. ${reason}`,
@@ -1532,6 +1540,9 @@ const translations: TranslationDeepObject<typeof en> = {
         removed: 'eliminó',
         transactionPending: 'Transacción pendiente.',
         chooseARate: 'Selecciona una tasa de reembolso por milla o kilómetro para el espacio de trabajo',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} a ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Válido desde ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Válido hasta ${endDate}`,
         unapprove: 'Desaprobar',
         unapproveReport: 'Anular la aprobación del informe',
         headsUp: 'Atención!',
@@ -1739,6 +1750,17 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que <strong>${actor}</strong> envíe los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Esperando a que un administrador envíe los gastos.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (actor, actorType, _eta, _etaType) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> lo marques como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> lo marque como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador lo marque como listo.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_actor, _actorType, _eta, _etaType) => `¡No se requiere ninguna acción adicional!`,
@@ -2476,13 +2498,10 @@ ${amount} para ${merchant} - ${date}`,
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `gastos de ${members}, y el aprobador es ${approvers}`,
         addApprovalButton: 'Añadir flujo de aprobación',
         editWorkflowAction: 'Editar',
-        addAgentAction: 'Añadir agente',
         findWorkflow: 'Buscar flujo de trabajo',
         addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
-        automateApprovalsWithAgentsTitle: 'Automatiza las aprobaciones con agentes',
-        automateApprovalsWithAgentsSubtitle: 'Añade el agente de abajo al flujo de trabajo para automatizar las aprobaciones.',
         configureViaHR: ({provider}: {provider: string}) => `Configurar mediante ${provider}.`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Las aprobaciones se gestionan mediante tu integración de ${provider}. Para actualizar tu flujo de aprobación, ve a la configuración de conexión de ${provider}.`,
@@ -2781,6 +2800,12 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: '¡Bienvenido al modo #focus!',
+        prompt: (priorityModePageUrl: string) =>
+            `Mantente al tanto de todo viendo solo los chats no leídos o los chats que necesitan tu atención. No te preocupes, puedes cambiarlo en cualquier momento en los <a href="${priorityModePageUrl}">ajustes</a>.`,
+    },
+    inboxTabs: {all: 'Todo', todo: 'Tareas pendientes', unread: 'No leído'},
     reportDetailsPage: {
         goToRoom: 'Ir a la sala',
         inWorkspace: (policyName) => `en ${policyName}`,
@@ -3345,11 +3370,6 @@ ${amount} para ${merchant} - ${date}`,
     monthPickerPage: {
         month: 'Mes',
         selectMonth: 'Por favor, selecciona un mes',
-    },
-    focusModeUpdateModal: {
-        title: '¡Bienvenido al modo #concentración!',
-        prompt: (priorityModePageUrl) =>
-            `Mantente al tanto de todo viendo sólo los chats no leídos o los que necesitan tu atención. No te preocupes, puedes cambiar el ajuste en cualquier momento desde la <a href="${priorityModePageUrl}">configuración</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',
@@ -6626,6 +6646,10 @@ ${amount} para ${merchant} - ${date}`,
             }),
             enableRate: 'Activar tasa',
             status: 'Estado',
+            statusActive: 'Activo',
+            statusFuture: 'Futuro',
+            statusExpired: 'Expirado',
+            statusInactive: 'Inactivo',
             unit: 'Unidad',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a <a href="#">Más funcionalidades</a> para hacer ese cambio.</muted-text>',
@@ -7263,6 +7287,7 @@ ${amount} para ${merchant} - ${date}`,
                 editRuleTitle: 'Editar regla',
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',
+                disclaimer: 'Los agentes de IA pueden cometer errores.',
             },
         },
         emptyDomain: {

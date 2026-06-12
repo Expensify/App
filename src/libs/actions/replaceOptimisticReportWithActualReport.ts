@@ -140,7 +140,18 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         const backTo = (currentRouteInfo?.params as {backTo?: Route})?.backTo;
         const screenName = currentRouteInfo?.name;
 
-        const isOptimisticReportFocused = activeRoute.includes(`/r/${reportID}`) || activeRoute.includes(`/search/view/${reportID}`);
+        // Besides the central-pane report route (/r/:reportID), the optimistic report can also be focused
+        // in the RHP transaction-thread carousel (search/view/:reportID) used by the "Review X expenses"
+        // flow. Matched via route name + reportID param (not a path substring) since the carousel's nested
+        // backTo can contain other report IDs. Without this, the report is cleared out from under the user
+        // and ReportNavigateAwayHandler treats it as removed, dismissing the RHP and navigating to the parent.
+        const isOptimisticReportFocusedInSearchRHP =
+            screenName === SCREENS.RIGHT_MODAL.SEARCH_REPORT &&
+            !!currentRouteInfo?.params &&
+            typeof currentRouteInfo.params === 'object' &&
+            'reportID' in currentRouteInfo.params &&
+            currentRouteInfo.params.reportID === reportID;
+        const isOptimisticReportFocused = activeRoute.includes(`/r/${reportID}`) || isOptimisticReportFocusedInSearchRHP;
 
         // Fix specific case: https://github.com/Expensify/App/pull/77657#issuecomment-3678696730.
         // When user is editing a money request report (/e/:reportID route) and has

@@ -1,4 +1,5 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
@@ -17,6 +18,7 @@ import {isInvoiceReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 
 type PayActionCellProps = {
     isLoading: boolean;
@@ -26,9 +28,10 @@ type PayActionCellProps = {
     amount?: number;
     extraSmall: boolean;
     shouldDisablePointerEvents?: boolean;
+    chatReport: OnyxEntry<Report>;
 };
 
-function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall, shouldDisablePointerEvents}: PayActionCellProps) {
+function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
@@ -37,7 +40,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const {
