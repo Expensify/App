@@ -115,9 +115,26 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
             cancelText: translate('common.cancel'),
         });
+
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
+
+        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
+    };
+
+    const openCurrencyMissingOrMismatchModal = async () => {
+        const result = await showConfirmModal({
+            title: translate('workspace.rules.spendRules.currencyMismatchTitle'),
+            prompt: translate('workspace.rules.spendRules.currencyMismatchPrompt'),
+            confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
+            cancelText: translate('common.cancel'),
+        });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
         navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
     };
 
@@ -283,6 +300,12 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         description={translate('workspace.rules.spendRules.permittedCurrencies')}
                         onPress={() => {
                             clearError();
+
+                            if (!selectedCurrency) {
+                                openCurrencyMissingOrMismatchModal();
+                                return;
+                            }
+
                             navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CURRENCIES, {policyID, ruleID: currentRuleID});
                         }}
                         shouldShowRightIcon

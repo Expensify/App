@@ -1,13 +1,18 @@
 import React, {useState} from 'react';
+import {View} from 'react-native';
 import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSearchResults from '@hooks/useSearchResults';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,8 +29,10 @@ type CurrencyListItem = ListItem & {
 };
 
 export default function SpendRulesCurrencyBase({currencies, settlementCurrency, onCurrenciesChange}: SpendRulesCurrencyBaseProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Lock']);
     const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(currencies);
 
     const {currencyList} = useCurrencyListState();
@@ -83,6 +90,34 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
         goBack();
     };
 
+    const ListHeaderContent = (
+        <View style={[styles.flexColumn, styles.ph5]}>
+            <View style={[styles.borderBottom]} />
+
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv5]}>
+                <View style={styles.flex1}>
+                    <Text
+                        style={styles.textStrong}
+                        numberOfLines={1}
+                    >
+                        USD - $
+                    </Text>
+                    <Text
+                        style={[styles.textLabel, styles.textSupporting]}
+                        numberOfLines={1}
+                    >
+                        The card settlement currency is always permitted
+                    </Text>
+                </View>
+                <Icon
+                    src={icons.Lock}
+                    fill={theme.icon}
+                    medium
+                />
+            </View>
+        </View>
+    );
+
     return (
         <ScreenWrapper
             testID="SpendRuleCurrenciesPage"
@@ -97,13 +132,14 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
             <SelectionList
                 canSelectMultiple
                 shouldUpdateFocusedIndex
+                customListHeader={<Text style={[styles.textLabel, styles.textSupporting]}>Choose to allow all or specific currencies.</Text>}
+                customListHeaderContent={ListHeaderContent}
                 ListItem={MultiSelectListItem}
                 data={filteredCurrencyItems}
                 selectedItems={selectedCurrencies}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onSelectRow={toggleCurrency}
                 onSelectionButtonPress={toggleCurrency}
-                onSelectAll={filteredCurrencyItems.length > 0 ? toggleSelectAll : undefined}
                 textInputOptions={{
                     value: inputValue,
                     label: translate('common.search'),
