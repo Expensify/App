@@ -7,9 +7,9 @@ internalScope: Audience is Workspace Admins. Covers creating, managing, and unde
 
 # Create Agent Rules 
 
-Agent Rules are AI-powered rules that let Workspace Admins automate report reviews, routing, approvals, and other workspace actions using natural-language instructions. Write a description of the behavior you want, and RuleBot automatically evaluates reports and enforces your Agent Rules.
+Agent Rules are AI-powered rules that let Workspace Admins automate report reviews, routing, approvals, and other workspace actions using natural-language instructions.
 
-Agent Rules are useful when approval requirements can't be handled using standard workspace rules alone.
+When you create your first Agent Rule, Expensify automatically creates RuleBot, an AI-powered workspace agent that evaluates reports and enforces your Agent Rules.
 
 ---
 
@@ -37,15 +37,9 @@ To create an Agent Rule:
 
 ## How to write Agent Rules
 
-Agent Rules are written in natural language. Describe the outcome you want, and RuleBot will monitor reports and take action when the rule applies.
+Agent Rules are written in natural language. Describe the behavior you want, and RuleBot will monitor reports and take action when the rule applies.
 
-Examples:
-
- - "Forward reports over $500 to Alice and all other reports to Bob."
- - "Ask the submitter to justify any meal expense over $75."
- - "Approve reports under $100 that contain no policy violations."
- - "Add a 2% FX surcharge to all non-USD reimbursable expenses."
- - "Forward reports containing hardware purchases to Alice. Route all other reports randomly between Bob and Cathy."
+For guidance, examples, and prompt-writing best practices, [learn how to write Agent Rules](/articles/new-expensify/ai-agents/How-to-Write-Agent-Rules).
 
 ---
 
@@ -94,7 +88,6 @@ For example, RuleBot might:
  - Route reports to specific approvers
  - Approve certain reports automatically 
    
-
 ---
 
 ## How to delete an Agent Rule
