@@ -92,7 +92,36 @@ describe('useSidePanelContext', () => {
         expect(result.current).toBeUndefined();
     });
 
-    describe('EXPENSE_REPORT search type', () => {
+    describe('Spend => Expenses (EXPENSE search type)', () => {
+        beforeEach(() => {
+            mockIsInSidePanel = true;
+            mockSearchState.currentSearchQueryJSON = {type: CONST.SEARCH.DATA_TYPES.EXPENSE};
+        });
+
+        it('returns only selectedTransactionIDs when expenses are selected', async () => {
+            mockSearchState.selectedTransactionIDs = ['txn_a', 'txn_b'];
+            const {result} = await renderWithConciergeReport();
+            await waitForBatchedUpdates();
+            expect(result.current).toEqual({selectedTransactionIDs: 'txn_a,txn_b'});
+        });
+
+        it('ignores an open report and never sends reportID or selectedReportIDs', async () => {
+            mockCurrentReportIDState = {currentRHPReportID: 'rhp_report', currentReportID: 'main_report'};
+            mockSearchState.selectedReports = [{reportID: 'report_1'}];
+            mockSearchState.selectedTransactionIDs = ['txn_a'];
+            const {result} = await renderWithConciergeReport();
+            await waitForBatchedUpdates();
+            expect(result.current).toEqual({selectedTransactionIDs: 'txn_a'});
+        });
+
+        it('returns undefined when no expenses are selected', async () => {
+            const {result} = await renderWithConciergeReport();
+            await waitForBatchedUpdates();
+            expect(result.current).toBeUndefined();
+        });
+    });
+
+    describe('Spend => Reports (EXPENSE_REPORT search type)', () => {
         beforeEach(() => {
             mockIsInSidePanel = true;
             mockSearchState.currentSearchQueryJSON = {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT};
@@ -104,22 +133,27 @@ describe('useSidePanelContext', () => {
             await waitForBatchedUpdates();
             expect(result.current).toEqual({selectedReportIDs: 'report_1,report_2'});
         });
+    });
 
-        it('falls back to contextReportID and selectedTransactionIDs when no reports are selected', async () => {
-            mockSearchState.selectedReports = [];
-            mockCurrentReportIDState = {currentRHPReportID: 'rhp_report', currentReportID: undefined};
-            mockSearchState.selectedTransactionIDs = ['txn_a'];
-            const {result} = await renderWithConciergeReport();
-            await waitForBatchedUpdates();
-            expect(result.current).toEqual({reportID: 'rhp_report', selectedTransactionIDs: 'txn_a'});
+    describe('Expense report view (single report with child transactions)', () => {
+        beforeEach(() => {
+            mockIsInSidePanel = true;
+            mockSearchState.currentSearchQueryJSON = {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT};
         });
 
-        it('includes child transaction selections when drilling into a report', async () => {
-            mockSearchState.selectedReports = [];
+        it('sends reportID and selectedTransactionIDs when child transactions are selected', async () => {
+            mockCurrentReportIDState = {currentRHPReportID: 'rhp_report', currentReportID: undefined};
             mockSearchState.selectedTransactionIDs = ['txn_1', 'txn_2'];
             const {result} = await renderWithConciergeReport();
             await waitForBatchedUpdates();
-            expect(result.current).toMatchObject({selectedTransactionIDs: 'txn_1,txn_2'});
+            expect(result.current).toEqual({reportID: 'rhp_report', selectedTransactionIDs: 'txn_1,txn_2'});
+        });
+
+        it('sends only reportID when no child transactions are selected', async () => {
+            mockCurrentReportIDState = {currentRHPReportID: undefined, currentReportID: 'expense_report'};
+            const {result} = await renderWithConciergeReport();
+            await waitForBatchedUpdates();
+            expect(result.current).toEqual({reportID: 'expense_report', selectedTransactionIDs: undefined});
         });
     });
 
@@ -146,6 +180,7 @@ describe('useSidePanelContext', () => {
     describe('transaction ID derivation', () => {
         beforeEach(() => {
             mockIsInSidePanel = true;
+            mockSearchState.currentSearchQueryJSON = {type: CONST.SEARCH.DATA_TYPES.EXPENSE};
         });
 
         it('derives IDs from selectedTransactions map (Search list selections), filtering out unselected and non-transaction entries', async () => {
@@ -177,17 +212,13 @@ describe('useSidePanelContext', () => {
         });
     });
 
-    it('returns all available context when every field is populated', async () => {
+    it('prioritizes selectedReportIDs (Reports section) over an open report and selected transactions', async () => {
         mockIsInSidePanel = true;
         mockCurrentReportIDState = {currentRHPReportID: 'rhp_report', currentReportID: undefined};
         mockSearchState.selectedTransactions = {txn1: {isSelected: true, transaction: {}}};
         mockSearchState.selectedReports = [{reportID: 'report_1'}];
         const {result} = await renderWithConciergeReport();
         await waitForBatchedUpdates();
-        expect(result.current).toEqual({
-            reportID: 'rhp_report',
-            selectedTransactionIDs: 'txn1',
-            selectedReportIDs: 'report_1',
-        });
+        expect(result.current).toEqual({selectedReportIDs: 'report_1'});
     });
 });

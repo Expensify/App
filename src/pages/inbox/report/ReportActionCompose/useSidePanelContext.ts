@@ -40,17 +40,22 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
                       .join(',') || undefined
                 : undefined;
 
-        // This condition is reached when we are either in the global Reports => Reports page, or within a single expense report having multiple transactions.
-        // If we have selectedReportIDs, that means we're in the Reports page, otherwise we're in the expense report RHP.
-        if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-            return selectedReportIDsForContext ? {selectedReportIDs: selectedReportIDsForContext} : {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext};
+        // Spend => Expenses: a flat list of expenses. Only the selected expenses are meaningful here.
+        if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+            return selectedTransactionIDsForContext ? {selectedTransactionIDs: selectedTransactionIDsForContext} : undefined;
         }
 
-        if (!contextReportID && !selectedTransactionIDsForContext && !selectedReportIDsForContext) {
-            return undefined;
+        // Spend => Reports: a list of reports with one or more selected. Only the selected reports are meaningful here.
+        if (selectedReportIDsForContext) {
+            return {selectedReportIDs: selectedReportIDsForContext};
         }
 
-        return {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
+        // Expense report view: a single report is open with its child transactions, optionally with some of them selected.
+        if (contextReportID) {
+            return {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext};
+        }
+
+        return undefined;
     }, [conciergeReportID, reportID, isInSidePanel, currentSearchQueryJSON?.type, currentRHPReportID, currentReportID, selectedTransactionIDs, selectedTransactions, selectedReports]);
 }
 
