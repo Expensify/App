@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 type DebugReportActionCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
 
@@ -62,6 +63,8 @@ function DebugReportActionCreatePage({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     const reportAction = useMemo(() => parseReportActionJSON(draftReportAction), [draftReportAction]);
 
@@ -128,7 +131,8 @@ function DebugReportActionCreatePage({
                                 <ReportActionItem
                                     action={reportAction}
                                     transactionThreadReport={transactionThreadReport}
-                                    report={{reportID}}
+                                    report={report}
+                                    chatReport={chatReport}
                                     parentReportAction={undefined}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
