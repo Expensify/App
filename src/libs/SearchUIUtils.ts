@@ -181,6 +181,7 @@ import {
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
+    compareScanningPriority,
     getAmount,
     getAttendees,
     getCategory,
@@ -3838,8 +3839,27 @@ function getTransactionCategoryGLCodeSortValue(transaction: TransactionListItemT
 /**
  * @private
  * Sorts transaction sections based on a specified column and sort order.
+ * Transactions with an in-progress receipt scan are then pinned to the top, regardless of
+ * the selected column or direction, so the user can track the scan's progress.
  */
 function getSortedTransactionData(
+    data: TransactionListItemType[],
+    localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocaleContextProps['translate'],
+    sortBy?: SearchSortBy,
+    sortOrder?: SortOrder,
+    options?: SortSectionsOptions,
+) {
+    const sortedData = getColumnSortedTransactionData(data, localeCompare, translate, sortBy, sortOrder, options);
+    // The sort is stable, so rows keep their column order within the scanning and non-scanning groups
+    return sortedData.sort(compareScanningPriority);
+}
+
+/**
+ * @private
+ * Sorts transaction sections based on a specified column and sort order.
+ */
+function getColumnSortedTransactionData(
     data: TransactionListItemType[],
     localeCompare: LocaleContextProps['localeCompare'],
     translate: LocaleContextProps['translate'],

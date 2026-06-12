@@ -113,6 +113,7 @@ function TransactionItemRowWide({
     totalPerAttendee,
     transactionThreadReportID,
     createdAt,
+    createdDateTextOverride,
     isMarkAsDone,
 }: TransactionItemRowWideProps) {
     const styles = useThemeStyles();
@@ -186,6 +187,7 @@ function TransactionItemRowWide({
                         <DateCell
                             canEdit={canEditDate}
                             date={createdAt}
+                            displayTextOverride={createdDateTextOverride}
                             onSave={onEditDate}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth

@@ -115,6 +115,8 @@ function TransactionItemRow({
 
     const bgActiveStyles = isSelected && shouldHighlightItemWhenSelected ? styles.activeComponentBG : EMPTY_ACTIVE_STYLE;
     const merchant = getMerchantName(transactionItem, translate);
+    // Mirrors the merchant cell's treatment: no real date is known until the scan completes
+    const createdDateTextOverride = isScanning(transactionItem) ? translate('iou.receiptStatusTitle') : undefined;
 
     const getMissingFieldError = () => {
         if (isSettled(report)) {
@@ -181,6 +183,7 @@ function TransactionItemRow({
                 missingFieldError={missingFieldError}
                 categoryForDisplay={categoryForDisplay}
                 createdAt={createdAt}
+                createdDateTextOverride={createdDateTextOverride}
                 transactionThreadReportID={transactionThreadReportID}
                 shouldRenderChatBubbleCell={shouldRenderChatBubbleCell}
             />
@@ -261,6 +264,7 @@ function TransactionItemRow({
             shouldShowAttendees={shouldShowAttendees}
             totalPerAttendee={!attendeesCount || totalAmount === undefined ? undefined : totalAmount / attendeesCount}
             createdAt={createdAt}
+            createdDateTextOverride={createdDateTextOverride}
             transactionThreadReportID={transactionThreadReportID}
             isMarkAsDone={shouldUseMarkAsDoneCopy}
         />

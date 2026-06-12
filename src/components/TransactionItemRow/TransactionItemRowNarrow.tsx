@@ -73,6 +73,7 @@ function TransactionItemRowNarrow({
     transactionThreadReportID,
     categoryForDisplay,
     createdAt,
+    createdDateTextOverride,
     shouldRenderChatBubbleCell,
 }: TransactionItemRowNarrowProps) {
     const styles = useThemeStyles();
@@ -136,6 +137,7 @@ function TransactionItemRowNarrow({
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
                             <DateCell
                                 date={createdAt}
+                                displayTextOverride={createdDateTextOverride}
                                 showTooltip={shouldShowTooltip}
                                 isLargeScreenWidth={false}
                                 suffixText={categoryForDisplay}

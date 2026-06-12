@@ -125,6 +125,8 @@ type TransactionItemRowNarrowComputedData = {
     missingFieldError: string;
     categoryForDisplay: string;
     createdAt: string;
+    /** Text rendered in place of the created date while the receipt is scanning */
+    createdDateTextOverride: string | undefined;
     transactionThreadReportID: string | undefined;
     shouldRenderChatBubbleCell: boolean;
 };
