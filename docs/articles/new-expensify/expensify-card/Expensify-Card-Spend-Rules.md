@@ -125,7 +125,7 @@ After deletion, the card is governed only by default protections and any applica
 
 ## How to create Expensify Card Spend rule while issuing a card
 
-You can apply an Expensif Card Spend rule during card issuance so spending controls are active before the card is used.
+You can apply an Expensify Card Spend rule during card issuance so spending controls are active before the card is used.
 
 [Learn how to set up and manage Expensify Cards](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card).
 
