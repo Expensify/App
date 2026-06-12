@@ -336,7 +336,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     // 2. Synced missingAttendees violation computed at render time (for stale data)
     // We're using || instead of ?? because the variables are boolean
     const hasLiveTransactions = liveReportTransactions.length > 0;
-    const unhydratedHasVisibleViolations = liveViolationsForSnapshotTransactions
+    const fallbackHasVisibleViolations = liveViolationsForSnapshotTransactions
         ? hasVisibleViolations(
               reportForViolations,
               liveViolationsForSnapshotTransactions,
@@ -346,7 +346,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
               policyForViolations,
           )
         : !!reportItem.hasVisibleViolations;
-    const hasVisibleReportViolations = hasLiveTransactions ? liveHasVisibleViolations : unhydratedHasVisibleViolations;
+    const hasVisibleReportViolations = hasLiveTransactions ? liveHasVisibleViolations : fallbackHasVisibleViolations;
     const hasAnyVisibleViolations = hasVisibleReportViolations || hasSyncedMissingAttendeesViolation;
 
     const getDescription = useMemo(() => {
