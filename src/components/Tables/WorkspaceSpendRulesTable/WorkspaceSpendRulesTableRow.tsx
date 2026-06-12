@@ -7,6 +7,7 @@ import type {TableData} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +38,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lock']);
     const {processedData} = useTableContext<SpendRuleTableItem>();
 
@@ -49,8 +51,8 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
 
     const accessibilityLabel = `${item.actionLabel}. ${item.cardSummary}. ${item.ruleSummary}`;
 
-    const prevItem = processedData.at(rowIndex - 1) as SpendRuleTableItem | undefined;
-    const hasMultipleTypes = processedData.length > 1 && processedData.some((r) => (r as SpendRuleTableItem).isDefault !== (processedData.at(0) as SpendRuleTableItem).isDefault);
+    const prevItem = rowIndex > 0 ? processedData.at(rowIndex - 1) : undefined;
+    const hasMultipleTypes = processedData.length > 1 && processedData.some((r) => r.isDefault !== processedData.at(0)?.isDefault);
     const showSectionHeader = hasMultipleTypes && (rowIndex === 0 || !!prevItem?.isDefault !== !!item.isDefault);
 
     const lockIcon = item.isDefault ? (
@@ -67,7 +69,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
             {!!showSectionHeader && (
                 <View style={[styles.mh5, styles.pv2, styles.ph3, styles.highlightBG, rowIndex === 0 ? styles.borderBottom : styles.borderTop]}>
                     <TextWithTooltip
-                        text={item.isDefault ? 'Default' : 'Custom rules'}
+                        text={item.isDefault ? translate('workspace.rules.spendRules.defaultSection') : translate('workspace.rules.spendRules.customRulesSection')}
                         style={[styles.textMicroSupporting]}
                     />
                 </View>
@@ -75,7 +77,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
             <Table.Row
                 interactive
                 rowIndex={rowIndex}
-                disabled={item.disabled}
+                disabled={isDeleting}
                 accessibilityLabel={accessibilityLabel}
                 skeletonReasonAttributes={reasonAttributes}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
