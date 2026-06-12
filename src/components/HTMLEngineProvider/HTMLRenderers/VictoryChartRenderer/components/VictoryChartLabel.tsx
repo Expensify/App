@@ -9,7 +9,7 @@ import {getLocalizedVictoryChartLabelText} from '@components/HTMLEngineProvider/
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 type VictoryChartLabelsProps = LabelItem & {
-    timezone: SelectedTimezone;
+    timezone?: SelectedTimezone;
 };
 
 type ProcessedLine = {

@@ -33,7 +33,6 @@ function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
                 <VictoryChartCategories
                     key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
                     tnode={child}
-                    timezone={timezone}
                 />
             ))}
             {labelItems.map((labelItem) => (
