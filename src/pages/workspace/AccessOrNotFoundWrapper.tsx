@@ -18,13 +18,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import {
     canEditWorkspaceSettings,
     canMemberRead,
+    canMemberWrite,
     canSendInvoice,
     isControlPolicy,
     isGroupPolicy,
     isPolicyAccessible,
     isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil,
 } from '@libs/PolicyUtils';
-import type {PolicyFeature} from '@libs/PolicyUtils';
+import type {PolicyFeature, PolicyFeatureAccess} from '@libs/PolicyUtils';
 import {canCreateRequest} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -105,6 +106,9 @@ type AccessOrNotFoundWrapperProps = {
     /** Policy feature permission needed to access the page */
     policyFeature?: PolicyFeature;
 
+    /** Required policy feature access level */
+    policyFeatureAccess?: PolicyFeatureAccess;
+
     /** Props for customizing fallback pages */
     fullPageNotFoundViewProps?: FullPageNotFoundViewProps;
 
@@ -154,6 +158,7 @@ function AccessOrNotFoundWrapper({
     allPolicies,
     featureName,
     policyFeature,
+    policyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
     ...props
 }: AccessOrNotFoundWrapperProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -197,7 +202,8 @@ function AccessOrNotFoundWrapper({
     }, true);
     let hasAccessToPolicyFeature = true;
     if (policyFeature) {
-        hasAccessToPolicyFeature = canMemberRead(policy, login, policyFeature);
+        hasAccessToPolicyFeature =
+            policyFeatureAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE ? canMemberWrite(policy, login, policyFeature) : canMemberRead(policy, login, policyFeature);
     }
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy, login);
@@ -206,6 +212,7 @@ function AccessOrNotFoundWrapper({
     //  - workspace central-pane usages where an RHP overlay makes `isFocused` false but the Workspaces tab is still active.
     const shouldShowNotFoundPage =
         (isFocused || isWorkspacesTabFocused) && ((!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !hasAccessToPolicyFeature || shouldBeBlocked);
+
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.

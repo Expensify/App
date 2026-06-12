@@ -33,6 +33,7 @@ import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilte
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
@@ -67,8 +68,9 @@ type SearchAutocompleteListProps = {
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
     shouldSubscribeToArrowKeyEvents?: boolean;
 
-    /** Callback to highlight (e.g. scroll to) the first matched item in the list. */
-    onHighlightFirstItem?: () => void;
+    /** Whether to highlight the first matched result so Enter selects it. Only the SearchRouter (Cmd+K) uses this;
+     *  the search page input keeps focus on the search-query row to match production behavior. */
+    shouldHighlightFirstItem?: boolean;
 
     /** Ref for the external text input */
     textInputRef?: RefObject<AnimatedTextInputRef | null>;
@@ -144,7 +146,7 @@ function SearchAutocompleteList({
     getAdditionalSections,
     onListItemPress,
     shouldSubscribeToArrowKeyEvents = true,
-    onHighlightFirstItem,
+    shouldHighlightFirstItem = false,
     textInputRef,
     autocompleteSubstitutions,
     ref,
@@ -159,7 +161,7 @@ function SearchAutocompleteList({
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedActions = useSortedActions();
@@ -272,8 +274,8 @@ function SearchAutocompleteList({
                 // effect can re-fire and correctly focus the first focusable item (skipping section headers).
                 hasSetInitialFocusRef.current = false;
             } else {
-                // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top
-                // onHighlightFirstItem will switch focus to the first result when there's a good match
+                // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top.
+                // The highlight effect below switches focus to the first result when there's a good match.
                 innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
             }
         }
@@ -569,8 +571,6 @@ function SearchAutocompleteList({
         reports,
     ]);
 
-    const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
-    const normalizedReferenceText = sectionItemText.toLowerCase();
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
     const isLoading = !isRecentSearchesDataLoaded;
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
@@ -580,28 +580,36 @@ function SearchAutocompleteList({
     const shouldAnnounceNoResults = !isLoading && suggestionsCount === 0 && !!trimmedAutocompleteQueryValue;
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldAnnounceNoResults, autocompleteQueryValue);
 
-    const firstRecentReportKey = styledRecentReports.at(0)?.keyForList;
+    // Locate the first recent report row in the order it is actually rendered. The two-section switcher sorts the
+    // local "Recent chats" rows by a frozen rank, so the rendered order can differ from styledRecentReports (the
+    // unsorted combined local + server list). Walking sections keeps the focused row, its reference text, and the
+    // initially focused key all pointing at the first row the user actually sees.
+    const recentReportKeys = new Set(styledRecentReports.map((report) => report.keyForList));
+    let firstRecentReportKey: string | undefined;
+    let firstRecentReportText = '';
     let firstRecentReportFlatIndex = -1;
-    if (firstRecentReportKey) {
-        let flatIndex = 0;
-        for (const section of sections) {
-            const hasData = (section.data?.length ?? 0) > 0;
-            const hasHeader = hasData && (section.title !== undefined || ('customHeader' in section && section.customHeader !== undefined));
-            if (hasHeader) {
-                flatIndex++;
-            }
-            for (const item of section.data ?? []) {
-                if (item.keyForList === firstRecentReportKey) {
-                    firstRecentReportFlatIndex = flatIndex;
-                    break;
-                }
-                flatIndex++;
-            }
-            if (firstRecentReportFlatIndex !== -1) {
+    let flatIndex = 0;
+    for (const section of sections) {
+        const hasData = (section.data?.length ?? 0) > 0;
+        const hasHeader = hasData && (section.title !== undefined || ('customHeader' in section && section.customHeader !== undefined));
+        if (hasHeader) {
+            flatIndex++;
+        }
+        for (const item of section.data ?? []) {
+            if (item.keyForList && recentReportKeys.has(item.keyForList)) {
+                firstRecentReportKey = item.keyForList;
+                firstRecentReportText = item.text ?? '';
+                firstRecentReportFlatIndex = flatIndex;
                 break;
             }
+            flatIndex++;
+        }
+        if (firstRecentReportFlatIndex !== -1) {
+            break;
         }
     }
+
+    const normalizedReferenceText = firstRecentReportText.toLowerCase();
 
     // When options initialize after the list is already mounted, initiallyFocusedItemKey has no effect
     // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
@@ -618,10 +626,13 @@ function SearchAutocompleteList({
     useEffect(() => {
         const targetText = autocompleteQueryValue;
 
-        if (shouldHighlight(normalizedReferenceText, targetText)) {
-            onHighlightFirstItem?.();
+        if (!shouldHighlightFirstItem || firstRecentReportFlatIndex === -1 || !shouldHighlight(normalizedReferenceText, targetText)) {
+            return;
         }
-    }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
+        // Focus the header-aware flat index of the first result. A fixed index (e.g. searchQueryItems.length)
+        // lands on the "Recent chats" section header row after the two-section switcher was introduced.
+        innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, true);
+    }, [autocompleteQueryValue, firstRecentReportFlatIndex, normalizedReferenceText, shouldHighlightFirstItem]);
 
     if (isLoading) {
         return (

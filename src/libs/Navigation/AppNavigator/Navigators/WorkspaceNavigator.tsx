@@ -16,21 +16,10 @@ import WorkspaceSplitNavigator from './WorkspaceSplitNavigator';
 
 const Stack = createWorkspaceNavigator<WorkspaceNavigatorParamList>();
 
-function hasNoEnterAnimationFlag(params: unknown): boolean {
-    return !!(params as {noEnterAnimation?: boolean} | undefined)?.noEnterAnimation;
-}
-
 function WorkspaceNavigator({route}: PlatformStackScreenProps<TabNavigatorParamList, typeof NAVIGATORS.WORKSPACE_NAVIGATOR>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    // On narrow layout, slide in the split navigator and enable swipe-back, except when the leaf route carries
-    // `noEnterAnimation` (set by handleReplaceFullscreenUnderRHP for `collapseTabToLeaf`), where it mounts instantly.
-    const buildSplitNavigatorOptions = ({route: screenRoute}: {route: {params?: unknown}}) => {
-        if (!shouldUseNarrowLayout || hasNoEnterAnimationFlag(screenRoute.params)) {
-            return {animation: Animations.NONE};
-        }
-        return {animation: Animations.SLIDE_FROM_RIGHT, gestureEnabled: true};
-    };
+    // On narrow layout, use slide animation and enable swipe-back gesture on native platforms from WorkspaceInitialPage and DomainInitialPage.
+    const splitNavigatorOptions = shouldUseNarrowLayout ? {animation: Animations.SLIDE_FROM_RIGHT, gestureEnabled: true} : {animation: Animations.NONE};
 
     return (
         <Stack.Navigator
@@ -50,12 +39,12 @@ function WorkspaceNavigator({route}: PlatformStackScreenProps<TabNavigatorParamL
             />
             <Stack.Screen
                 name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                options={buildSplitNavigatorOptions}
+                options={splitNavigatorOptions}
                 component={WorkspaceSplitNavigator}
             />
             <Stack.Screen
                 name={NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR}
-                options={buildSplitNavigatorOptions}
+                options={splitNavigatorOptions}
                 component={DomainSplitNavigator}
             />
         </Stack.Navigator>

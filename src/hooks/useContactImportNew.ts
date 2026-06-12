@@ -6,6 +6,7 @@ import type {ContactImportResult} from '@libs/ContactImport/types';
 import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
 import {getContacts} from '@libs/ContactUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useLocalize from './useLocalize';
@@ -31,7 +32,7 @@ function useContactImport(): UseContactImportResult {
     const [contacts, setContacts] = useState<OptionData[]>([]);
     const {localeCompare, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
 
     const importAndSaveContacts = () => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
