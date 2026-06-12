@@ -108,4 +108,4 @@ const mfaMachine = setup({
     },
 });
 
-export {DEFAULT_CONTEXT, mfaMachine};
+export default mfaMachine;

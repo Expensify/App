@@ -33,4 +33,4 @@ type MfaEvent =
     | {type: 'CLOSE_MODAL'}
     | {type: 'MODAL_CLOSED'};
 
-export type {MfaMachineContext, MfaEvent, MfaModalPhase, ScenarioPayload};
+export type {MfaMachineContext, MfaEvent, MfaModalPhase};

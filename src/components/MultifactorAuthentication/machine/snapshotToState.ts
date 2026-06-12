@@ -1,6 +1,6 @@
 import type {SnapshotFrom} from 'xstate';
 import type {MultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/state';
-import type {mfaMachine} from './mfaMachine';
+import type mfaMachine from './mfaMachine';
 import type {MfaModalPhase} from './types';
 
 type MfaSnapshot = SnapshotFrom<typeof mfaMachine>;
@@ -26,4 +26,4 @@ function snapshotToState(snapshot: MfaSnapshot): MfaState {
 }
 
 export default snapshotToState;
-export type {MfaSnapshot, MfaState};
+export type {MfaState};
