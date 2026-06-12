@@ -22,6 +22,7 @@ import {getReportName} from '@src/libs/ReportNameUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {actionR14932 as mockAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
@@ -65,6 +66,31 @@ jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () => ({
     __esModule: true,
     default: (...args: Parameters<typeof mockUseReportWithTransactionsAndViolations>) => mockUseReportWithTransactionsAndViolations(...args),
 }));
+
+type OnHoldMenuOpen = (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
+
+// Capture the onHoldMenuOpen callback the preview passes to the pay button so a held-expense payment can be triggered
+// directly with a selected bank account, mirroring a user picking an account in the dropdown for a held report.
+const mockOnHoldMenuOpenHolder: {current?: OnHoldMenuOpen} = {current: undefined};
+jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton', () => ({
+    __esModule: true,
+    default: (props: {onHoldMenuOpen?: OnHoldMenuOpen}) => {
+        mockOnHoldMenuOpenHolder.current = props.onHoldMenuOpen;
+        return null;
+    },
+}));
+
+// Capture the props the preview forwards to the hold menu so the selected bank account that reaches it can be asserted.
+const mockHoldMenuPropsHolder: {current?: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number}} = {current: undefined};
+jest.mock('@components/ProcessMoneyReportHoldMenu', () => ({
+    __esModule: true,
+    default: (props: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number}) => {
+        mockHoldMenuPropsHolder.current = props;
+        return null;
+    },
+}));
+
+const SELECTED_BANK_ACCOUNT_ID = 9999;
 
 const getIOUActionForReportID = (reportID: string | undefined, transactionID: string | undefined) => {
     if (!reportID || !transactionID) {
@@ -227,6 +253,31 @@ describe('MoneyRequestReportPreview', () => {
             expect(screen.getAllByText(transactionHeaderText)).toHaveLength(arrayOfTransactions.length);
             expect(screen.getAllByText(transaction.merchant)).toHaveLength(arrayOfTransactions.length);
         }
+    });
+
+    it('forwards the selected bank account to the hold menu when paying a held expense from the preview', async () => {
+        mockOnHoldMenuOpenHolder.current = undefined;
+        mockHoldMenuPropsHolder.current = undefined;
+
+        renderPage({});
+        await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
+        await act(async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOnHoldMenuOpenHolder.current).toBeDefined();
+
+        act(() => {
+            mockOnHoldMenuOpenHolder.current?.(CONST.IOU.REPORT_ACTION_TYPE.PAY, CONST.IOU.PAYMENT_TYPE.VBBA, true, SELECTED_BANK_ACCOUNT_ID);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockHoldMenuPropsHolder.current?.isVisible).toBe(true);
+        expect(mockHoldMenuPropsHolder.current?.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.VBBA);
+        expect(mockHoldMenuPropsHolder.current?.methodID).toBe(SELECTED_BANK_ACCOUNT_ID);
     });
 
     it('renders RBR for every transaction with violations', async () => {
