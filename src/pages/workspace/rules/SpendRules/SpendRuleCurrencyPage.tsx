@@ -4,11 +4,11 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useOnyx from '@hooks/useOnyx';
 import {updateDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
-import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 
 type SpendRuleCurrenciesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CURRENCIES>;
 
@@ -22,8 +22,8 @@ export default function SpendRuleCurrenciesPage({route}: SpendRuleCurrenciesPage
     const currencies = spendRuleForm?.currencies ?? [];
     const selectedCurrency = getSelectedCardsSharedCurrency(cardIDs, cardsList) ?? '';
 
-    const onCurrenciesChange = (currencies: string[]) => {
-        updateDraftSpendRule({currencies});
+    const onCurrenciesChange = (updatedCurrencies: string[]) => {
+        updateDraftSpendRule({currencies: updatedCurrencies});
     };
 
     return (

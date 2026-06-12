@@ -2,7 +2,7 @@ import type {NavigationProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -110,34 +110,34 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         setIsErrorVisible(false);
     };
 
-    const openMaxAmountCurrencyMismatchModal = async () => {
-        const result = await showConfirmModal({
+    const openMaxAmountCurrencyMismatchModal = () => {
+        showConfirmModal({
             title: translate('workspace.rules.spendRules.maxAmountCurrencyMismatchTitle'),
             prompt: translate('workspace.rules.spendRules.maxAmountCurrencyMismatchPrompt'),
             confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
             cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
         });
-
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
-
-        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
     };
 
-    const openCurrenciesCurrencyMismatchModal = async () => {
-        const result = await showConfirmModal({
+    const openCurrenciesCurrencyMismatchModal = () => {
+        showConfirmModal({
             title: translate('workspace.rules.spendRules.currenciesCurrencyMismatchTitle'),
             prompt: translate('workspace.rules.spendRules.currenciesCurrencyMismatchPrompt'),
             confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
             cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
         });
-
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
-
-        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
     };
 
     const getCardsMenuTitle = (cardIDsToSummarize: string[] | undefined) => {

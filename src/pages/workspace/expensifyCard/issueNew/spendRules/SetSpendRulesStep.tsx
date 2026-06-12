@@ -29,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
-import {IssueNewCardData} from '@src/types/onyx/Card';
+import type {IssueNewCardData} from '@src/types/onyx/Card';
 
 type SetSpendRulesStepProps = {
     /* The policy that the card will be issued under */
