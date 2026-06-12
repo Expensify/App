@@ -233,6 +233,11 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const currenciesTitle = spendRuleForm.currencies?.length ? spendRuleForm.currencies.join(', ') : translate('workspace.rules.spendRules.allCurrencies');
     const spendRuleMaxAmountTitle = Number.isFinite(spendRuleParsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(spendRuleParsedMaxAmount), currencyCode) : '';
 
+    const merchantsDescription =
+        spendRuleAction === CONST.SPEND_RULES.ACTION.ALLOW ? translate('workspace.rules.spendRules.allowedMerchants') : translate('workspace.rules.spendRules.blockedMerchants');
+    const merchantTypesDescription =
+        spendRuleAction === CONST.SPEND_RULES.ACTION.ALLOW ? translate('workspace.rules.spendRules.allowedMerchantTypes') : translate('workspace.rules.spendRules.blockedMerchantTypes');
+
     return (
         <InteractiveStepWrapper
             wrapperID="SetExpiryOptions"
@@ -320,7 +325,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                                     numberOfLinesTitle={2}
                                                     titleStyle={styles.flex1}
                                                     title={spendRuleMerchantNamesTitle}
-                                                    description={translate('common.merchant')}
+                                                    description={merchantsDescription}
                                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                                     onPress={() => {
                                                         setSpendRuleErrorMessage('');
@@ -332,7 +337,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                                     numberOfLinesTitle={2}
                                                     titleStyle={styles.flex1}
                                                     title={spendRuleCategoriesTitle}
-                                                    description={translate('workspace.rules.spendRules.merchantTypes')}
+                                                    description={merchantTypesDescription}
                                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                                     onPress={() => {
                                                         setSpendRuleErrorMessage('');

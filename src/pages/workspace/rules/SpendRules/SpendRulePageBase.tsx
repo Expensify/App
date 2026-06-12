@@ -250,9 +250,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         updateDraftSpendRule({restrictionAction: action});
     };
 
-    const merchantsTitle =
+    const merchantsDescription =
         restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW ? translate('workspace.rules.spendRules.allowedMerchants') : translate('workspace.rules.spendRules.blockedMerchants');
-    const merchantTypesTitle =
+    const merchantTypeDescription =
         restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW ? translate('workspace.rules.spendRules.allowedMerchantTypes') : translate('workspace.rules.spendRules.blockedMerchantTypes');
 
     if (isEditingRule && !existingRule) {
@@ -340,7 +340,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     {!isRestrictMerchantsOff && (
                         <>
                             <MenuItemWithTopDescription
-                                description={merchantsTitle}
+                                description={merchantsDescription}
                                 onPress={
                                     canWriteRules
                                         ? () => {
@@ -357,7 +357,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                             />
                             <MenuItemWithTopDescription
-                                description={merchantTypesTitle}
+                                description={merchantTypeDescription}
                                 onPress={
                                     canWriteRules
                                         ? () => {
