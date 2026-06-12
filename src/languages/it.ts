@@ -6800,11 +6800,9 @@ Se vuoi assumere la fatturazione per l'intero abbonamento, chiedi loro di aggiun
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `I seguenti report sono già stati esportati su ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:
+            }: ExportAgainModalDescriptionParams) => `I seguenti report sono già stati esportati in ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Sei sicuro di volerli esportare di nuovo?
 
-${reportName}
-
-Vuoi davvero esportarli di nuovo?`,
+${reportName}`,
             confirmText: 'Sì, esporta di nuovo',
             cancelText: 'Annulla',
         },
