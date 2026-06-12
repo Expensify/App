@@ -42,6 +42,11 @@ function RulesRequireFieldsPage({
     );
 
     const handleSave = useCallback(() => {
+        if (!hasChanges) {
+            Navigation.goBack();
+            return;
+        }
+
         if (categoryRequired !== initialCategoryRequired) {
             setWorkspaceRequiresCategory(policyData, categoryRequired);
         }
@@ -49,7 +54,7 @@ function RulesRequireFieldsPage({
             setPolicyRequiresTag(policyData, tagRequired);
         }
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-    }, [categoryRequired, initialCategoryRequired, tagRequired, initialTagRequired, policyData]);
+    }, [hasChanges, categoryRequired, initialCategoryRequired, tagRequired, initialTagRequired, policyData]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -101,7 +106,6 @@ function RulesRequireFieldsPage({
                         large
                         text={translate('workspace.rules.requireFields.save')}
                         onPress={handleSave}
-                        isDisabled={!hasChanges}
                     />
                 </View>
             </ScreenWrapper>

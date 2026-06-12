@@ -80,19 +80,6 @@ function RulesRequireReceiptsPage({
         return true;
     }, [receiptEnabled, itemizedEnabled, receiptAmount, itemizedAmount, decimals, translate]);
 
-    const handleSave = useCallback(() => {
-        if (!validate()) {
-            return;
-        }
-
-        const receiptValue = receiptEnabled ? receiptAmount : '';
-        const itemizedValue = itemizedEnabled ? itemizedAmount : '';
-
-        setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt);
-        setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt);
-        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-    }, [validate, receiptEnabled, receiptAmount, itemizedEnabled, itemizedAmount, policyID, policy?.maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoItemizedReceipt]);
-
     const hasChanges = useMemo(() => {
         const receiptChanged =
             receiptEnabled !== initialReceiptEnabled ||
@@ -112,6 +99,24 @@ function RulesRequireReceiptsPage({
         policy?.maxExpenseAmountNoItemizedReceipt,
         decimals,
     ]);
+
+    const handleSave = useCallback(() => {
+        if (!hasChanges) {
+            Navigation.goBack();
+            return;
+        }
+
+        if (!validate()) {
+            return;
+        }
+
+        const receiptValue = receiptEnabled ? receiptAmount : '';
+        const itemizedValue = itemizedEnabled ? itemizedAmount : '';
+
+        setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt);
+        setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt);
+        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+    }, [hasChanges, validate, receiptEnabled, receiptAmount, itemizedEnabled, itemizedAmount, policyID, policy?.maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoItemizedReceipt]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -133,7 +138,7 @@ function RulesRequireReceiptsPage({
                     contentContainerStyle={[styles.ph5, styles.pb5]}
                     addBottomSafeAreaPadding
                 >
-                    <Text style={[styles.mutedTextLabel, styles.pv2]}>{translate('workspace.rules.requireReceipts.description')}</Text>
+                    <Text style={[styles.textNormal, styles.textSupporting, styles.lh20, styles.pv2]}>{translate('workspace.rules.requireReceipts.description')}</Text>
 
                     <ToggleSettingOptionRow
                         title={translate('workspace.rules.requireReceipts.requireReceipt')}
@@ -207,7 +212,6 @@ function RulesRequireReceiptsPage({
                         large
                         text={translate('workspace.rules.requireReceipts.saveRule')}
                         onPress={handleSave}
-                        isDisabled={!hasChanges}
                     />
                 </View>
             </ScreenWrapper>
