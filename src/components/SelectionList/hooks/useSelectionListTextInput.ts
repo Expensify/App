@@ -9,7 +9,7 @@ type UseSelectionListTextInputResult = {
     innerTextInputRef: RefObject<BaseTextInputRef | null>;
     isTextInputFocusedRef: RefObject<boolean>;
     focusTextInput: () => void;
-    textInputKeyPress: (event: TextInputKeyPressEvent) => void;
+    textInputKeyPress: (event: Pick<TextInputKeyPressEvent, 'nativeEvent'>) => void;
 };
 
 /** Consumers attach innerTextInputRef to the TextInput and call focusTextInput() rather than poking the ref, keeping it out of their dependency arrays. */
@@ -21,7 +21,7 @@ function useSelectionListTextInput(setHasKeyBeenPressed: () => void): UseSelecti
         innerTextInputRef.current?.focus();
     };
 
-    const textInputKeyPress = (event: TextInputKeyPressEvent) => {
+    const textInputKeyPress = (event: Pick<TextInputKeyPressEvent, 'nativeEvent'>) => {
         if (event.nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
             return;
         }

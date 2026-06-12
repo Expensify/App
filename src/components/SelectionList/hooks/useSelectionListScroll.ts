@@ -11,7 +11,7 @@ type UseSelectionListScrollResult = {
 };
 
 /** Bounds-checked scroll-to-index helpers (immediate + debounced) over the component-owned FlashList ref. */
-function useSelectionListScroll<TData>(listRef: RefObject<FlashListRef<TData> | null>, data: TData[]): UseSelectionListScrollResult {
+function useSelectionListScroll<TData>(listRef: RefObject<Pick<FlashListRef<TData>, 'scrollToIndex'> | null>, data: TData[]): UseSelectionListScrollResult {
     const scrollToIndex: ScrollToIndex = (index, animated = true) => {
         if (index < 0 || index >= data.length || !listRef.current) {
             return;

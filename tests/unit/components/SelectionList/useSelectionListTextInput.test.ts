@@ -1,7 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import type {TextInputKeyPressEvent} from 'react-native';
 import useSelectionListTextInput from '@components/SelectionList/hooks/useSelectionListTextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import CONST from '@src/CONST';
 
@@ -9,25 +8,26 @@ jest.mock('@hooks/useSyncFocus/useSyncFocusImplementation', () => ({
     focusedItemRef: {focus: jest.fn()},
 }));
 
-const mockFocusedItemRefFocus = focusedItemRef?.focus as jest.Mock;
+const mockFocusedItemRefFocus = jest.mocked(focusedItemRef)?.focus;
 
-function keyPressEvent(key: string): TextInputKeyPressEvent {
-    return {nativeEvent: {key}} as TextInputKeyPressEvent;
+function keyPressEvent(key: string): Pick<TextInputKeyPressEvent, 'nativeEvent'> {
+    return {nativeEvent: {key}};
 }
 
 describe('useSelectionListTextInput', () => {
     beforeEach(() => {
-        mockFocusedItemRefFocus.mockClear();
+        mockFocusedItemRefFocus?.mockClear();
     });
 
     it('focusTextInput focuses the attached input ref', () => {
         const {result} = renderHook(() => useSelectionListTextInput(jest.fn()));
-        const focus = jest.fn();
-        result.current.innerTextInputRef.current = {focus} as unknown as BaseTextInputRef;
+        const inputElement = document.createElement('form');
+        const focusSpy = jest.spyOn(inputElement, 'focus').mockImplementation(() => {});
+        result.current.innerTextInputRef.current = inputElement;
 
         result.current.focusTextInput();
 
-        expect(focus).toHaveBeenCalledTimes(1);
+        expect(focusSpy).toHaveBeenCalledTimes(1);
     });
 
     it('focusTextInput no-ops when no input is attached', () => {

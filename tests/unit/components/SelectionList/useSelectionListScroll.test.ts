@@ -5,11 +5,11 @@ import useSelectionListScroll from '@components/SelectionList/hooks/useSelection
 
 type MockItem = {keyForList: string};
 
-function createListRef(scrollToIndex: jest.Mock | null): RefObject<FlashListRef<MockItem> | null> {
+function createListRef(scrollToIndex: jest.Mock | null): RefObject<Pick<FlashListRef<MockItem>, 'scrollToIndex'> | null> {
     if (scrollToIndex === null) {
         return {current: null};
     }
-    return {current: {scrollToIndex} as unknown as FlashListRef<MockItem>};
+    return {current: {scrollToIndex}};
 }
 
 describe('useSelectionListScroll', () => {

@@ -170,7 +170,7 @@ function BaseSelectionList<TItem extends ListItem>({
             shouldDebounceScrolling,
             scrollToIndex,
             debouncedScrollToIndex,
-            listRef,
+            announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
             setShouldDisableHoverStyle,
         });
 

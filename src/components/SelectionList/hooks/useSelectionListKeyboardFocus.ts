@@ -1,5 +1,3 @@
-import type {FlashListRef} from '@shopify/flash-list';
-import type {RefObject} from 'react';
 import {useEffect, useRef, useState} from 'react';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
@@ -8,7 +6,7 @@ import CONST from '@src/CONST';
 
 type ScrollToIndex = (index: number, animated?: boolean) => void;
 
-type UseSelectionListKeyboardFocusParams<TData> = {
+type UseSelectionListKeyboardFocusParams = {
     initialFocusedIndex: number;
     maxIndex: number;
     disabledIndexes: readonly number[];
@@ -18,7 +16,7 @@ type UseSelectionListKeyboardFocusParams<TData> = {
     shouldDebounceScrolling: boolean;
     scrollToIndex: ScrollToIndex;
     debouncedScrollToIndex: ScrollToIndex;
-    listRef: RefObject<FlashListRef<TData> | null>;
+    announceProgrammaticScroll: () => void;
     setShouldDisableHoverStyle: (shouldDisableHoverStyle: boolean) => void;
 };
 
@@ -33,7 +31,7 @@ type UseSelectionListKeyboardFocusResult = {
 };
 
 /** Owns a SelectionList's keyboard-navigable focused index: wraps useArrowKeyFocusManager, tracks keyboard-nav modality (incl. Tab), and provides the focus-restore-aware cursor setters + scroll suppression. */
-function useSelectionListKeyboardFocus<TData>({
+function useSelectionListKeyboardFocus({
     initialFocusedIndex,
     maxIndex,
     disabledIndexes,
@@ -43,9 +41,9 @@ function useSelectionListKeyboardFocus<TData>({
     shouldDebounceScrolling,
     scrollToIndex,
     debouncedScrollToIndex,
-    listRef,
+    announceProgrammaticScroll,
     setShouldDisableHoverStyle,
-}: UseSelectionListKeyboardFocusParams<TData>): UseSelectionListKeyboardFocusResult {
+}: UseSelectionListKeyboardFocusParams): UseSelectionListKeyboardFocusResult {
     const hasKeyBeenPressed = useRef(false);
     const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
     const suppressNextFocusScrollRef = useRef(false);
@@ -90,7 +88,7 @@ function useSelectionListKeyboardFocus<TData>({
         isFocused,
         onArrowUpDownCallback: () => {
             setShouldDisableHoverStyle(true);
-            listRef.current?.announceProgrammaticScroll();
+            announceProgrammaticScroll();
         },
     });
 

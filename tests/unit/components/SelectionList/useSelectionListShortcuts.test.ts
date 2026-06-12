@@ -1,5 +1,4 @@
 import {renderHook} from '@testing-library/react-native';
-import type {GestureResponderEvent} from 'react-native';
 import useSelectionListShortcuts from '@components/SelectionList/hooks/useSelectionListShortcuts';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -9,8 +8,8 @@ import CONST from '@src/CONST';
 jest.mock('@hooks/useKeyboardShortcut');
 jest.mock('@hooks/useActiveElementRole');
 
-const mockUseKeyboardShortcut = useKeyboardShortcut as jest.MockedFunction<typeof useKeyboardShortcut>;
-const mockUseActiveElementRole = useActiveElementRole as jest.MockedFunction<typeof useActiveElementRole>;
+const mockUseKeyboardShortcut = jest.mocked(useKeyboardShortcut);
+const mockUseActiveElementRole = jest.mocked(useActiveElementRole);
 
 const focusedOption: ListItem = {keyForList: 'focused', text: 'Focused'};
 
@@ -101,7 +100,7 @@ describe('useSelectionListShortcuts', () => {
             const onConfirm = jest.fn();
             const {selectFocusedItem} = renderShortcuts({confirmButtonOptions: {onConfirm}});
             const {callback} = getShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER);
-            const event = {} as GestureResponderEvent;
+            const event = new KeyboardEvent('keydown');
 
             callback?.(event);
 

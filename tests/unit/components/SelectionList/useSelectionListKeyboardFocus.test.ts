@@ -1,6 +1,4 @@
-import type {FlashListRef} from '@shopify/flash-list';
 import {act, renderHook} from '@testing-library/react-native';
-import type {RefObject} from 'react';
 import useSelectionListKeyboardFocus from '@components/SelectionList/hooks/useSelectionListKeyboardFocus';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import {addKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
@@ -16,11 +14,9 @@ jest.mock('@libs/KeyboardShortcut/KeyDownPressListener', () => ({
     removeKeyDownPressListener: jest.fn(),
 }));
 
-const mockUseArrowKeyFocusManager = useArrowKeyFocusManager as jest.MockedFunction<typeof useArrowKeyFocusManager>;
-const mockIsFocusRestoreInProgress = isFocusRestoreInProgress as jest.MockedFunction<typeof isFocusRestoreInProgress>;
-const mockAddKeyDownPressListener = addKeyDownPressListener as jest.MockedFunction<typeof addKeyDownPressListener>;
-
-type MockItem = {keyForList: string};
+const mockUseArrowKeyFocusManager = jest.mocked(useArrowKeyFocusManager);
+const mockIsFocusRestoreInProgress = jest.mocked(isFocusRestoreInProgress);
+const mockAddKeyDownPressListener = jest.mocked(addKeyDownPressListener);
 
 const FOCUSED_INDEX = 3;
 const mockSetFocusedIndex = jest.fn();
@@ -40,7 +36,7 @@ function renderKeyboardFocus(overrides: Overrides = {}) {
     const scrollToIndex = jest.fn();
     const debouncedScrollToIndex = jest.fn();
     const setShouldDisableHoverStyle = jest.fn();
-    const listRef = {current: {announceProgrammaticScroll: jest.fn()}} as unknown as RefObject<FlashListRef<MockItem> | null>;
+    const announceProgrammaticScroll = jest.fn();
 
     const {result} = renderHook(() =>
         useSelectionListKeyboardFocus({
@@ -53,13 +49,13 @@ function renderKeyboardFocus(overrides: Overrides = {}) {
             shouldDebounceScrolling: false,
             scrollToIndex,
             debouncedScrollToIndex,
-            listRef,
+            announceProgrammaticScroll,
             setShouldDisableHoverStyle,
             ...overrides,
         }),
     );
 
-    return {result, scrollToIndex, debouncedScrollToIndex, setShouldDisableHoverStyle, listRef};
+    return {result, scrollToIndex, debouncedScrollToIndex, setShouldDisableHoverStyle, announceProgrammaticScroll};
 }
 
 describe('useSelectionListKeyboardFocus', () => {
@@ -159,10 +155,10 @@ describe('useSelectionListKeyboardFocus', () => {
 
     describe('onArrowUpDownCallback', () => {
         it('disables hover styling and announces a programmatic scroll', () => {
-            const {setShouldDisableHoverStyle, listRef} = renderKeyboardFocus();
+            const {setShouldDisableHoverStyle, announceProgrammaticScroll} = renderKeyboardFocus();
             capturedConfig.onArrowUpDownCallback?.();
             expect(setShouldDisableHoverStyle).toHaveBeenCalledWith(true);
-            expect(listRef.current?.announceProgrammaticScroll).toHaveBeenCalledTimes(1);
+            expect(announceProgrammaticScroll).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -179,7 +175,7 @@ describe('useSelectionListKeyboardFocus', () => {
             const handler = mockAddKeyDownPressListener.mock.calls.at(0)?.[0];
 
             expect(result.current.isKeyboardNavigating).toBe(false);
-            act(() => handler?.({key: CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey} as KeyboardEvent));
+            act(() => handler?.(new KeyboardEvent('keydown', {key: CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey})));
             expect(result.current.isKeyboardNavigating).toBe(true);
         });
 
@@ -187,7 +183,7 @@ describe('useSelectionListKeyboardFocus', () => {
             const {result} = renderKeyboardFocus();
             const handler = mockAddKeyDownPressListener.mock.calls.at(0)?.[0];
 
-            act(() => handler?.({key: 'a'} as KeyboardEvent));
+            act(() => handler?.(new KeyboardEvent('keydown', {key: 'a'})));
             expect(result.current.isKeyboardNavigating).toBe(false);
         });
     });

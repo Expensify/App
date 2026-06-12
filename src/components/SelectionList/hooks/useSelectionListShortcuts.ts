@@ -1,4 +1,4 @@
-import type {ConfirmButtonOptions, InteractiveElementRoles, ListItem} from '@components/SelectionList/types';
+import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
@@ -26,7 +26,7 @@ function useSelectionListShortcuts<TItem extends ListItem>({
     shouldBubble,
 }: UseSelectionListShortcutsParams<TItem>) {
     const activeElementRole = useActiveElementRole();
-    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].includes(activeElementRole as InteractiveElementRoles);
+    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].some((role) => role === activeElementRole);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedItem, {
         captureOnInputs: true,
