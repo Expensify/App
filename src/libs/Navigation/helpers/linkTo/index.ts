@@ -172,6 +172,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
 
     if (forceReplace) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
+    } else if (focusedRouteFromPath?.name === 'Settings' && currentFocusedRoute.name !== 'Settings') {
+        action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
     // Attachment screen - This is a special case. We want to navigate to it instead of push. If there is no screen on the stack, it will be pushed.
