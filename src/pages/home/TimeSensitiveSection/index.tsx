@@ -21,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+import getBrokenDirectCompanyCardFeedsForAdmin from './getBrokenDirectCompanyCardFeedsForAdmin';
 import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
@@ -50,17 +51,6 @@ type BrokenPolicyConnection = {
 
     /** Human-readable integration name (e.g. "QuickBooks Online", "Gusto", "BambooHR"). */
     integrationName: string;
-};
-
-type BrokenCompanyCardConnection = {
-    /** The policy ID associated with this connection */
-    policyID: string;
-
-    /** The policy name associated with this connection */
-    policyName: string;
-
-    /** The card ID associated with this connection */
-    cardID: string;
 };
 
 type BrokenPersonalCardConnection = {
@@ -132,30 +122,8 @@ function TimeSensitiveSection() {
         }
     }
 
-    // Get company cards with broken connections (for admins)
-    const brokenCompanyCardConnections: BrokenCompanyCardConnection[] = [];
-    const cardsWithBrokenConnection = cardFeedErrors.cardsWithBrokenFeedConnection;
-    if (cardsWithBrokenConnection && adminPolicies) {
-        for (const card of Object.values(cardsWithBrokenConnection)) {
-            if (!card?.fundID) {
-                continue;
-            }
-
-            // Find the policy associated with this card's fundID (workspaceAccountID)
-            const cardFundID = Number(card.fundID);
-            const matchingPolicy = adminPolicies.find((policy) => policy.policyAccountID === cardFundID);
-
-            if (!matchingPolicy) {
-                continue;
-            }
-
-            brokenCompanyCardConnections.push({
-                policyID: matchingPolicy.id,
-                policyName: matchingPolicy.name,
-                cardID: String(card.cardID),
-            });
-        }
-    }
+    // Get direct company card feeds with broken connections (for admins; one task per feed)
+    const brokenCompanyCardConnections = getBrokenDirectCompanyCardFeedsForAdmin(cardFeedErrors.cardsWithBrokenFeedConnection, adminPolicies);
 
     // Get personal cards with broken connections
     const brokenPersonalCardConnections: BrokenPersonalCardConnection[] = [];
@@ -242,7 +210,7 @@ function TimeSensitiveSection() {
         }
         items.push(
             <FixCompanyCardConnection
-                key={`company-card-${connection.cardID}`}
+                key={`company-card-${connection.feedKey}`}
                 card={card}
                 policyID={connection.policyID}
                 policyName={connection.policyName}
