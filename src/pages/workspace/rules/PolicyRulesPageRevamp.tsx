@@ -196,6 +196,12 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                         translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`),
                     );
                 }
+                if (rule.reimbursable !== undefined) {
+                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', rule.reimbursable));
+                }
+                if (rule.billable !== undefined) {
+                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', rule.billable));
+                }
                 const ruleDescription = actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
 
                 return {
@@ -316,30 +322,12 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         [illustrations.ExpensifyCardCoins, styles, translate, policyID, emptyStateContainerStyle, emptyStateIllustrationStyle],
     );
 
-    const expenseDefaultsEmptyState = useMemo(
-        () => (
-            <View style={[styles.flex1, styles.mh5, styles.mb5, styles.highlightBG, styles.tableBottomRadius, styles.alignItemsCenter, styles.justifyContentCenter, styles.pv8, styles.ph5]}>
-                <View style={emptyStateContainerStyle}>
-                    <ImageSVG
-                        src={illustrations.ExpensifyCardCoins}
-                        contentFit="contain"
-                        style={emptyStateIllustrationStyle}
-                    />
-                    <Text style={[styles.textHeadlineH1, styles.mt5, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.title')}</Text>
-                    <Text style={[styles.textLabel, styles.textSupporting, styles.mt2, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}</Text>
-                </View>
-            </View>
-        ),
-        [illustrations.ExpensifyCardCoins, styles, translate, emptyStateContainerStyle, emptyStateIllustrationStyle],
-    );
-
     const renderExpenseDefaultsContent = () => (
         <WorkspaceExpenseDefaultsTable
             rulesData={expenseDefaultsTableData}
             selectionEnabled={canWriteRules}
             selectedKeys={selectedExpenseDefaultKeys}
             onRowSelectionChange={setSelectedExpenseDefaultKeys}
-            emptyStateContent={expenseDefaultsEmptyState}
         />
     );
 
