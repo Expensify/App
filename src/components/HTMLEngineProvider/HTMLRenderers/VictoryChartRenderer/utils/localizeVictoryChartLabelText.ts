@@ -11,7 +11,10 @@ const CHART_AS_OF_DISPLAY_FORMAT = `MMM d, yyyy 'at' ${CONST.DATE.LOCAL_TIME_FOR
  * Parses a Victory chart "As of" datetime label text into a UTC date.
  */
 function parseDateAsUTC(sourceText: string): Date | null {
-    const normalizedText = sourceText.trim().replace(/\s+at\s+/i, ' ').trim();
+    const normalizedText = sourceText
+        .trim()
+        .replace(/\s+at\s+/i, ' ')
+        .trim();
     const parsed = new Date(`${normalizedText} UTC`);
 
     if (!isValid(parsed)) {
