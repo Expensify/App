@@ -28,6 +28,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -109,8 +110,11 @@ const translations = {
         selectMultiple: 'Select multiple',
         saveChanges: 'Save changes',
         submit: 'Submit',
+        markAsDone: 'Mark as done',
         // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
         submitted: 'Submitted',
+        // @context Status label meaning an item has been marked as done (track-intent users). Not the action “to mark as done.”
+        markedAsDoneStatus: 'Marked as done',
         rotate: 'Rotate',
         zoom: 'Zoom',
         password: 'Password',
@@ -307,7 +311,6 @@ const translations = {
         description: 'Description',
         title: 'Title',
         assignee: 'Assignee',
-        createdBy: 'Created by',
         with: 'with',
         shareCode: 'Share code',
         share: 'Share',
@@ -329,6 +332,7 @@ const translations = {
         merchant: 'Merchant',
         change: 'Change',
         category: 'Category',
+        vendor: 'Vendor',
         report: 'Report',
         billable: 'Billable',
         nonBillable: 'Non-billable',
@@ -372,6 +376,10 @@ const translations = {
             subtitleText1: 'Find a chat using the',
             subtitleText2: 'button above, or create something using the',
             subtitleText3: 'button below.',
+            noUnreadChats: 'No unread chats',
+            noTodos: 'No to-dos',
+            caughtUp: "You're all caught up. Well done!",
+            seeAllChats: 'See all chats',
         },
         businessName: 'Business name',
         clear: 'Clear',
@@ -886,6 +894,7 @@ const translations = {
         beginningOfChatHistory: (users: string) => `This chat is with ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the + button.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: "This is where you'll track expenses.",
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
@@ -1004,7 +1013,7 @@ const translations = {
                 cta: 'Review',
             },
             validateAccount: {
-                title: 'Validate your account to continue using Expensify',
+                title: 'Validate your account',
                 subtitle: 'Account',
                 cta: 'Validate',
             },
@@ -1051,6 +1060,7 @@ const translations = {
             menuItemDescription: 'See what Expensify can do in 2 min',
         },
         forYouSection: {
+            reviewExpenses: ({count}: {count: number}) => `Review ${count} ${count === 1 ? 'expense' : 'expenses'}`,
             submit: ({count}: {count: number}) => `Submit ${count} ${count === 1 ? 'report' : 'reports'}`,
             approve: ({count}: {count: number}) => `Approve ${count} ${count === 1 ? 'report' : 'reports'}`,
             pay: ({count}: {count: number}) => `Pay ${count} ${count === 1 ? 'report' : 'reports'}`,
@@ -1409,6 +1419,7 @@ const translations = {
         sendInvoice: (amount: string) => `Send ${amount} invoice`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         submitted: (memo?: string) => `submitted${memo ? `, saying ${memo}` : ''}`,
+        markedAsDone: (memo?: string) => `marked as done${memo ? `, saying ${memo}` : ''}`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
         queuedToSubmitViaDEW: 'queued to submit via custom approval workflow',
         failedToAutoSubmitViaDEW: (reason: string) => `failed to submit the report via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>. ${reason}`,
@@ -1435,7 +1446,7 @@ const translations = {
         approvedMessage: `approved`,
         unapproved: `unapproved`,
         automaticallyForwarded: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
-        forwarded: `approved`,
+        forwarded: (memo?: string) => `approved${memo ? `, saying ${memo}` : ''}`,
         rejectedThisReport: 'rejected',
         waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a bank account.`,
         adminCanceledRequest: 'canceled the payment',
@@ -1625,6 +1636,9 @@ const translations = {
         removed: 'removed',
         transactionPending: 'Transaction pending.',
         chooseARate: 'Select a workspace reimbursement rate per mile or kilometer',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} to ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Valid from ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Valid until ${endDate}`,
         unapprove: 'Unapprove',
         unapproveReport: 'Unapprove report',
         headsUp: 'Heads up!',
@@ -1725,6 +1739,7 @@ const translations = {
         },
         correctRateError: 'Fix the rate error and try again.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explain<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge matched this expense to <strong>${vendorName}</strong>`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"'),
             billable: (value: boolean) => (value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"'),
@@ -1851,6 +1866,22 @@ const translations = {
                         return `Waiting for <strong>${actor}</strong> to submit expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Waiting for an admin to submit expenses.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to mark this as done.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to mark this as done.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to mark this as done.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2664,13 +2695,10 @@ const translations = {
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `expenses from ${members}, and the approver is ${approvers}`,
         addApprovalButton: 'Add approval workflow',
         editWorkflowAction: 'Edit',
-        addAgentAction: 'Add agent',
         findWorkflow: 'Find workflow',
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
-        automateApprovalsWithAgentsTitle: 'Automate approvals with agents',
-        automateApprovalsWithAgentsSubtitle: 'Add agent below to workflow to automate approvals.',
         configureViaHR: ({provider}: {provider: string}) => `Configure via ${provider}.`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Approvals are managed by your ${provider} integration. To update your approval workflow, head to your ${provider} connection settings.`,
@@ -2981,7 +3009,18 @@ const translations = {
             },
         },
     },
+    focusModeUpdateModal: {
+        title: 'Welcome to #focus mode!',
+        prompt: (priorityModePageUrl: string) =>
+            `Stay on top of things by only seeing unread chats or chats that need your attention. Don’t worry, you can change this at any point in <a href="${priorityModePageUrl}">settings</a>.`,
+    },
+    inboxTabs: {
+        all: 'All',
+        todo: 'To-dos',
+        unread: 'Unread',
+    },
     reportDetailsPage: {
+        goToRoom: 'Go to room',
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'Generate PDF',
         waitForPDF: 'Please wait while we generate the PDF.',
@@ -3149,6 +3188,7 @@ const translations = {
             offline: 'We couldn’t add your work email as you appear to be offline',
         },
         workEmail2FAError: 'This login is an existing account with Two-Factor Authentication (2FA) enabled.',
+        singleSignOnError: 'This login is an existing account with SSO/SAML enabled.',
         mergeBlockScreen: {
             title: 'Couldn’t add work email',
             subtitle: (workEmail: string | undefined) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
@@ -3554,11 +3594,6 @@ const translations = {
     monthPickerPage: {
         month: 'Month',
         selectMonth: 'Please select a month',
-    },
-    focusModeUpdateModal: {
-        title: 'Welcome to #focus mode!',
-        prompt: (priorityModePageUrl: string) =>
-            `Stay on top of things by only seeing unread chats or chats that need your attention. Don’t worry, you can change this at any point in <a href="${priorityModePageUrl}">settings</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
@@ -5020,6 +5055,7 @@ const translations = {
         },
         certinia: {
             title: 'Certinia',
+            titleFFA: 'Certinia (FFA)',
             autoSyncDescription: 'Expensify will automatically sync with Certinia every day.',
             syncReimbursedReportsDescription: 'With this option enabled, anytime a Payable Invoice is paid in FFA, the related Expensify report will be automatically marked as reimbursed.',
             exportDescription: 'Configure how Expensify data exports to Certinia.',
@@ -6485,6 +6521,7 @@ const translations = {
                 `Are you sure you want to connect ${
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'this accounting integration'
                 }? This will remove any existing accounting connections.`,
+            reconnect: 'Reconnect',
             enterCredentials: 'Enter your credentials',
             updateCredentials: 'Update credentials',
             claimOffer: {
@@ -6759,6 +6796,15 @@ const translations = {
             zenefits: {
                 title: 'TriNet',
             },
+            mergeHR: {
+                completeSetup: 'Complete setup',
+                setupIncomplete: (setupLink: string | undefined) =>
+                    `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import employees.</muted-text-label>`,
+                groups: {
+                    title: 'Groups',
+                    description: 'Choose the groups of employees you would like to sync with this workspace',
+                },
+            },
         },
         export: {
             notReadyHeading: 'Not ready to export',
@@ -6826,6 +6872,10 @@ const translations = {
             }),
             enableRate: 'Enable rate',
             status: 'Status',
+            statusActive: 'Active',
+            statusFuture: 'Future',
+            statusExpired: 'Expired',
+            statusInactive: 'Inactive',
             unit: 'Unit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Taxes must be enabled on the workspace to use this feature. Head over to <a href="#">More features</a> to make that change.</muted-text>',
@@ -7443,6 +7493,19 @@ const translations = {
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Travel agencies',
                 },
             },
+            aiRules: {
+                title: 'AI Rules',
+                subtitle: 'Describe flexible rules that run when you need them',
+                addRule: 'Add AI rule',
+                findRule: 'Find AI rule',
+                addRuleTitle: 'Add rule',
+                editRuleTitle: 'Edit rule',
+                deleteRule: 'Delete rule',
+                deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
+                describeRuleTitle: 'Describe your rule',
+                describeRuleSubtitle: 'Describe your rule and Concierge will build it',
+                disclaimer: 'AI agents can make mistakes.',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7681,16 +7744,12 @@ const translations = {
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'enabled' : 'disabled'} the ${customUnitName} rate "${customUnitRateName}"`;
         },
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `updated start date of "${rateName}" rate to ${newDate} (previously ${oldDate})` : `set start date of "${rateName}" rate to ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `updated end date of "${rateName}" rate to ${newDate} (previously ${oldDate})` : `set end date of "${rateName}" rate to ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `updated start and end date of "${rateName}" rate to ${newStartDate} - ${newEndDate} (previously ${oldStartDate} - ${oldEndDate})`
-                : `set start and end date of "${rateName}" rate to ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `removed start date from "${rateName}" rate (previously ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `removed end date from "${rateName}" rate (previously ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `updated the distance rate "${rateName}" to apply ${newDateRange} (previously ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `from ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `until ${date}`,
+        customUnitRateDateRangeAllDates: () => `for all dates`,
         updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `added the option "${optionName}" to the report field "${fieldName}"`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `removed the option "${optionName}" from the report field "${fieldName}"`,
@@ -7974,6 +8033,8 @@ const translations = {
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
             `changed the auto-pay approved reports threshold to "${newLimit}" (previously "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'removed the auto-pay approved reports threshold',
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `changed the "${categoryName}" category default tax rate to "${newTax}" (previously "${oldTax}")`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `changed the default spend category for "${mccGroupName}" to "${newCategory}" (previously "${oldCategory}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
@@ -8163,6 +8224,7 @@ const translations = {
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
+        applyFilters: 'Apply filters',
         appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
@@ -8274,7 +8336,12 @@ const translations = {
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Between ${greaterThan} and ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Between ${greaterThan} and ${lessThan}`;
+                    }
+                    return 'Between';
+                },
                 equalTo: (amount?: string) => `Equal to ${amount ?? ''}`,
             },
             card: {
@@ -9402,6 +9469,11 @@ const translations = {
         },
         removeCopilot: 'Remove copilot',
         removeCopilotConfirmation: 'Are you sure you want to remove this copilot?',
+        removeCopilotAccess: 'Remove my copilot access',
+        removeCopilotAccessTitle: 'Remove copilot access?',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `Are you sure you want to remove your copilot access to ${delegatorName}'s Expensify account? This action cannot be undone.`,
+        removeCopilotAccessConfirm: 'Remove access',
         changeAccessLevel: 'Change access level',
         makeSureItIsYou: "Let's make sure it's you",
         enterMagicCode: (contactMethod: string) => `Please enter the magic code sent to ${contactMethod} to add a copilot. It should arrive within a minute or two.`,

@@ -70,6 +70,14 @@ export default function useSelection<DataType extends TableData>({data, selected
         turnOffMobileSelectionMode();
     }, [selectableKeys.length, isSelectionModeEnabled]);
 
+    const prevSelectionModeEnabledRef = useRef(isSelectionModeEnabled);
+    useEffect(() => {
+        if (prevSelectionModeEnabledRef.current && !isSelectionModeEnabled) {
+            onRowSelectionChange?.([]);
+        }
+        prevSelectionModeEnabledRef.current = isSelectionModeEnabled;
+    }, [isSelectionModeEnabled, onRowSelectionChange]);
+
     /**
      * Clear all of the currently selected keys
      */

@@ -47,6 +47,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -179,6 +180,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         'Camera',
         'Trashcan',
         'ArrowSplit',
+        'Hashtag',
     ]);
     const navigateBackFromReportDetailsPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DETAILS.path);
 
@@ -379,7 +381,11 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     }, [showConfirmModal, translate, leaveChat]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserPersonalDetails?.accountID, !!reportNameValuePairs?.private_isArchived);
-    const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
+
+    // Only show the "Go to room" row when the Details page was opened from a screen other than the room report itself (e.g. the Workspace rooms list).
+    const isRoomCurrentlyOpen = isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === report?.reportID;
+    const shouldShowGoToRoom = (isChatRoom || isPolicyExpenseChat) && !isRoomCurrentlyOpen;
+    const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending && !shouldShowGoToRoom;
 
     const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
     const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
@@ -411,6 +417,19 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             return items;
         }
 
+        if (shouldShowGoToRoom) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_ROOM,
+                translationKey: 'reportDetailsPage.goToRoom',
+                icon: expensifyIcons.Hashtag,
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+                action: () => {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID));
+                },
+            });
+        }
+
         // The Members page is only shown when:
         // - The report is a thread in a chat report
         // - The report is not a user created room with participants to show i.e. DM, Group Chat, etc
@@ -434,7 +453,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 shouldShowRightIcon: true,
                 action: () => {
                     if (shouldOpenRoomMembersPage) {
-                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID, Navigation.getActiveRoute()));
                     }
@@ -448,7 +467,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report?.reportID));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_INVITE.path));
                 },
             });
         }
@@ -630,6 +649,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     }, [
         isSelfDM,
         isArchivedRoom,
+        shouldShowGoToRoom,
         isGroupChat,
         isDefaultRoom,
         isChatThread,
@@ -660,6 +680,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         expensifyIcons.Building,
         expensifyIcons.Exit,
         expensifyIcons.Bug,
+        expensifyIcons.Hashtag,
         styles.ph2,
         shouldOpenRoomMembersPage,
         navigateBackFromReportDetailsPath,
@@ -812,6 +833,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         interactive={false}
                         description={translate('workspace.common.workspace')}
                         title={getPolicyName({report})}
+                        numberOfLinesTitle={2}
+                        shouldBreakWord
                     />
                 )}
             </View>
