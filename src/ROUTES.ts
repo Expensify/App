@@ -189,6 +189,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.MONEY_REQUEST.CREATE,
         ],
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID?: string) => {
             if (!transactionID || !reportID) {
@@ -207,6 +209,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.MONEY_REQUEST.CREATE,
         ],
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID?: string) => {
             if (!transactionID || !reportID) {
@@ -227,6 +231,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.MONEY_REQUEST.CREATE,
         ],
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) => {
             if (!transactionID || !reportID) {
@@ -245,6 +250,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.MONEY_REQUEST.CREATE,
         ],
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined) => {
             if (!transactionID || !reportID) {
@@ -264,6 +271,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.MONEY_REQUEST.CREATE,
         ],
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined) => {
             if (!transactionID || !reportID) {
@@ -287,6 +296,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SEARCH.ROOT,
             SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.MONEY_REQUEST.CREATE,
         ],
         getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string; upgradePath?: string; shouldSubmitExpense?: boolean}) => {
             const {action, iouType, transactionID, reportID, upgradePath, shouldSubmitExpense} = params;
