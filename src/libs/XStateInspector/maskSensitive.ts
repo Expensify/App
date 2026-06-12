@@ -8,7 +8,23 @@ const MAX_DEPTH_MARKER = '[MaxDepth]';
 const MAX_DEPTH = 10;
 
 /** Keys whose entire subtree is masked (at any depth) before inspection events leave the app. Extend when machines start carrying a new kind of secret. */
-const SENSITIVE_KEYS = new Set(['payload', 'pin', 'password', 'token', 'otp', 'secret', 'validateCode', 'challenge', 'signedChallenge', 'registrationChallenge', 'authorizationChallenge']);
+const SENSITIVE_KEYS = new Set([
+    'payload',
+    'body',
+    'pin',
+    'pan',
+    'cvv',
+    'password',
+    'token',
+    'otp',
+    'secret',
+    'validateCode',
+    'keyInfo',
+    'challenge',
+    'signedChallenge',
+    'registrationChallenge',
+    'authorizationChallenge',
+]);
 
 function hasToJSON(value: unknown): value is {toJSON: () => unknown} {
     if (typeof value !== 'object' || value === null || !('toJSON' in value)) {
