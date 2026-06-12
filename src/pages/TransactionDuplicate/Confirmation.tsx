@@ -113,15 +113,12 @@ function Confirmation() {
             Navigation.dismissToSuperWideRHP();
             return;
         }
-        // Opened from Search: dismiss back to the search results instead of opening the kept report in the Inbox.
-        // The review flow always sets route.params.backTo (keepSelected passes getActiveRoute), so it can't be used
-        // to detect the Search entry point — check the topmost full-screen route instead.
+        // From Search, dismiss back to the results (backTo is always set here, so it can't detect Search).
         if (isSearchTopmostFullScreenRoute()) {
             Navigation.dismissModal();
             return;
         }
-        // Opened from the discarded thread: pop the modal's history entries, then replace the now-dead
-        // thread with the kept report so browser-back can't reach its NotFound page.
+        // From the discarded thread: pop the modal entries, then replace the dead thread with the kept report.
         Navigation.dismissModal({
             afterTransition: () => Navigation.navigate(keptReportRoute, {forceReplace: true}),
         });
