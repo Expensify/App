@@ -1323,8 +1323,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                         areAnyReportsExported = true;
 
-                        if (report.reportName) {
-                            exportedReportNames.push(report.reportName);
+                        // The live Onyx report can be an incomplete optimistic record (e.g. exported offline before it
+                        // was ever loaded) that lacks `reportName`, so fall back to the Search snapshot for the name.
+                        const reportName = report.reportName ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
+                        if (reportName) {
+                            exportedReportNames.push(reportName);
                         }
                     }
 
