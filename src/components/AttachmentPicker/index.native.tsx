@@ -20,6 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
+import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
@@ -118,14 +119,25 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
         size: fileData.size,
     };
 
-    if (fileResult.size) {
-        return Promise.resolve(fileResult);
-    }
+    const fileWithSize = fileResult.size
+        ? Promise.resolve(fileResult)
+        : RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+              fileResult.size = stats.size;
+              return fileResult;
+          });
 
-    return RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
-        fileResult.size = stats.size;
-        return fileResult;
-    });
+    // Move the file out of the OS-purgeable cache directory into durable storage so it survives an
+    // app force-kill while the upload is queued offline. `source` is what prepareRequestPayload
+    // re-reads on offline replay, so it must point at the durable path too. On failure
+    // moveReceiptToDurableStorage returns the original URI, so the catch is just a safeguard.
+    return fileWithSize.then((file) =>
+        moveReceiptToDurableStorage(file.uri ?? '', file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME)
+            .then((durableUri) => ({...file, uri: durableUri, source: durableUri}) as FileObject)
+            .catch((error: unknown) => {
+                Log.warn('[AttachmentPicker] Failed to move attachment to durable storage, using original URI', {error});
+                return file;
+            }),
+    );
 };
 
 /**

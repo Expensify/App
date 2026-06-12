@@ -74,7 +74,6 @@ import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
@@ -815,7 +814,7 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
  * @param isInSidePanel - Whether the comment is being added from the side panel
  * @param pregeneratedResponseParams - Optional params for pre-generated response (API only, no optimistic action - used when response display is delayed)
  */
-async function addActions({
+function addActions({
     report,
     notifyReportID,
     ancestors,
@@ -856,37 +855,16 @@ async function addActions({
         reportCommentText = reportComment.commentText;
     }
 
-    // Move file to durable storage so it survives app force-kill while offline.
-    // This must happen before building the optimistic action so that the HTML and
-    // the persisted API request both reference a path that won't be purged.
-    let resolvedFile = file;
-    if (file?.uri) {
-        try {
-            const durableUri = await moveReceiptToDurableStorage(file.uri, file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME);
-
-            // Only rebuild the file object when the URI actually changed (native durable move).
-            // On web the move is a no-op that returns the same URI, and `file` is a native `File`
-            // instance whose `name`/`type` live on the prototype — spreading it would drop those
-            // properties (and the blob), so we keep the original file untouched, exactly as before.
-            if (durableUri !== file.uri) {
-                resolvedFile = {...file, uri: durableUri, source: durableUri} as FileObject;
-            }
-        } catch (error) {
-            Log.warn('[addActions] Failed to move attachment to durable storage, using original URI', {error});
-            resolvedFile = file;
-        }
-    }
-
-    if (resolvedFile) {
+    if (file) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = buildOptimisticAddCommentReportAction({text, file: resolvedFile, reportID, attachmentID, delegateAccountIDParam: delegateAccountID});
+        const attachment = buildOptimisticAddCommentReportAction({text, file, reportID, attachmentID, delegateAccountIDParam: delegateAccountID});
         attachmentAction = attachment.reportAction;
-        cacheAttachment({attachmentID, uri: resolvedFile.uri ?? '', mimeType: resolvedFile.type});
+        cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
     }
 
-    if (text && resolvedFile) {
+    if (text && file) {
         // When there is both text and a file, the text for the report comment needs to be parsed)
         reportCommentText = getParsedComment(text ?? '', {reportID});
 
@@ -895,7 +873,7 @@ async function addActions({
     }
 
     // Store all markdown text attachments i.e `![](https://images.unsplash.com/...)`
-    const resolvedReportActionID = resolvedFile ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
+    const resolvedReportActionID = file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
     const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT.ATTACHMENT)];
 
     const attachments = attachmentTags.flatMap((htmlTag, index) => {
@@ -945,10 +923,10 @@ async function addActions({
     const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction | ReportAction> = {};
 
     // Only add the reportCommentAction when there is no file attachment. If there is both a file attachment and text, that will all be contained in the attachmentAction.
-    if (text && reportCommentAction?.reportActionID && !resolvedFile) {
+    if (text && reportCommentAction?.reportActionID && !file) {
         optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
-    if (resolvedFile && attachmentAction?.reportActionID) {
+    if (file && attachmentAction?.reportActionID) {
         optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
     }
 
@@ -965,10 +943,10 @@ async function addActions({
     const parameters: AddCommentOrAttachmentParams = {
         reportID,
         reportActionID: resolvedReportActionID,
-        commentReportActionID: resolvedFile && reportCommentAction ? reportCommentAction.reportActionID : null,
+        commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
-        file: resolvedFile,
-        clientCreatedTime: resolvedFile ? attachmentAction?.created : reportCommentAction?.created,
+        file,
+        clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
         idempotencyKey: Str.guid(),
     };
 
@@ -977,7 +955,7 @@ async function addActions({
         parameters.isOldDotConciergeChat = true;
     }
 
-    if (resolvedFile) {
+    if (file) {
         parameters.attachmentID = attachmentID;
     }
 
