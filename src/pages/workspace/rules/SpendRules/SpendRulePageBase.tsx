@@ -71,7 +71,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'Coins', 'CoinsButton', 'Building']);
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'MoneyCircle', 'CoinsButton', 'Basket', 'CircleSlash']);
     const domainAccountID = useDefaultFundID(policyID);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
@@ -268,7 +268,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 interactive={false}
                                 title={selectedCurrency ?? ''}
                                 titleStyle={styles.flex1}
-                                icon={icons.Coins}
+                                icon={icons.MoneyCircle}
                                 iconWidth={variables.iconSizeNormal}
                                 iconHeight={variables.iconSizeNormal}
                                 shouldIconUseAutoWidthStyle
@@ -307,6 +307,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                             : translate('workspace.rules.spendRules.setRestrictions')
                                     }
                                     shouldShowHelperText={false}
+                                    icon={restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? icons.CircleSlash : undefined}
                                     onSelect={(action) => {
                                         if (!canWriteRules) {
                                             showReadOnlyModal();
@@ -334,7 +335,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                         title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
                                         numberOfLinesTitle={2}
                                         titleStyle={styles.flex1}
-                                        icon={icons.Building}
+                                        icon={icons.Basket}
                                         iconWidth={variables.iconSizeNormal}
                                         iconHeight={variables.iconSizeNormal}
                                         shouldIconUseAutoWidthStyle
@@ -355,7 +356,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                         title={categoriesMenuTitle}
                                         numberOfLinesTitle={2}
                                         titleStyle={styles.flex1}
-                                        icon={icons.Building}
+                                        icon={icons.Basket}
                                         iconWidth={variables.iconSizeNormal}
                                         iconHeight={variables.iconSizeNormal}
                                         shouldIconUseAutoWidthStyle
