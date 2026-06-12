@@ -10,9 +10,11 @@ import CONST from '@src/CONST';
 type SpendRuleRestrictionTypeToggleProps = {
     restrictionAction: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
     onSelect: (action: ValueOf<typeof CONST.SPEND_RULES.ACTION>) => void;
+    label?: string;
+    shouldShowHelperText?: boolean;
 };
 
-function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect}: SpendRuleRestrictionTypeToggleProps) {
+function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect, label, shouldShowHelperText = true}: SpendRuleRestrictionTypeToggleProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -24,7 +26,7 @@ function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect}: SpendRule
     return (
         <>
             <View style={[styles.flexRow]}>
-                <Text style={[styles.flex1, styles.pr3, styles.alignSelfCenter]}>{translate('workspace.rules.spendRules.restrictionType')}</Text>
+                <Text style={[styles.flex1, styles.pr3, styles.alignSelfCenter]}>{label ?? translate('workspace.rules.spendRules.restrictionType')}</Text>
                 <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal]}>
                     <Button
                         text={translate('workspace.rules.spendRules.allow')}
@@ -50,7 +52,7 @@ function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect}: SpendRule
                     />
                 </View>
             </View>
-            <Text style={[styles.mutedNormalTextLabel, styles.pt3]}>{restrictionTypeHelperText}</Text>
+            {shouldShowHelperText && <Text style={[styles.mutedNormalTextLabel, styles.pt3]}>{restrictionTypeHelperText}</Text>}
         </>
     );
 }

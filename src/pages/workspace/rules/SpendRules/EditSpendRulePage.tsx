@@ -11,7 +11,7 @@ function EditSpendRulePage({route}: EditSpendRulePageProps) {
         <SpendRulePageBase
             policyID={route.params.policyID}
             ruleID={route.params.ruleID}
-            titleKey="workspace.rules.spendRules.editRuleTitle"
+            titleKey="workspace.rules.spendRules.restrictCardSpendTitle"
             testID="EditSpendRulePage"
         />
     );
