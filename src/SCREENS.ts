@@ -902,6 +902,7 @@ const SCREENS = {
         RULES_REIMBURSABLE_DEFAULT: 'Rules_Reimbursable_Default',
         RULES_CUSTOM: 'Rules_Custom',
         RULES_PROHIBITED_DEFAULT: 'Rules_Prohibited_Default',
+        RULES_NEW: 'Rules_New',
         RULES_MERCHANT_NEW: 'Rules_Merchant_New',
         RULES_SPEND_NEW: 'Rules_Spend_New',
         RULES_SPEND_EDIT: 'Rules_Spend_Edit',

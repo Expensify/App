@@ -1309,6 +1309,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
                             path: ROUTES.RULES_PROHIBITED_DEFAULT.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_NEW]: {
+                            path: ROUTES.RULES_NEW.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
                             path: ROUTES.RULES_MERCHANT_NEW.route,
                         },

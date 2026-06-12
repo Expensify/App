@@ -260,35 +260,18 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             showReadOnlyModal();
             return;
         }
-        switch (activeTab) {
-            case RULES_TAB.CARD_RESTRICTIONS:
-                Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
-                break;
-            case RULES_TAB.EXPENSE_DEFAULTS:
-                Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
-                break;
-            default:
-                break;
-        }
+        Navigation.navigate(ROUTES.RULES_NEW.getRoute(policyID));
     };
 
-    const shouldShowAddButton = activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS;
-
-    const getHeaderContent = () => {
-        if (!shouldShowAddButton) {
-            return null;
-        }
-
-        return (
-            <Button
-                success
-                onPress={handleNewRule}
-                text={translate('workspace.rules.merchantRules.addRuleTitle')}
-                icon={icons.Plus}
-                style={shouldUseNarrowLayout && styles.flex1}
-            />
-        );
-    };
+    const getHeaderContent = () => (
+        <Button
+            success
+            onPress={handleNewRule}
+            text={translate('workspace.rules.merchantRules.addRuleTitle')}
+            icon={icons.Plus}
+            style={shouldUseNarrowLayout && styles.flex1}
+        />
+    );
 
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled;
 

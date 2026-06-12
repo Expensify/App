@@ -1,0 +1,70 @@
+import React from 'react';
+import {View} from 'react-native';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+
+type RulesNewPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_NEW>;
+
+function RulesNewPage({route}: RulesNewPageProps) {
+    const {policyID} = route.params;
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew', 'FolderOpen']);
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
+        >
+            <ScreenWrapper testID={RulesNewPage.displayName}>
+                <HeaderWithBackButton title={translate('workspace.rules.newRule.title')} />
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.rules.newRule.subtitle')}</Text>
+                <View style={styles.mh5}>
+                    <MenuItem
+                        icon={illustrations.CreditCardsNew}
+                        title={translate('workspace.rules.newRule.restrictCardSpend')}
+                        description={translate('workspace.rules.newRule.restrictCardSpendDescription')}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                        displayInDefaultIconColor
+                        iconStyles={[styles.ml3, styles.mr2]}
+                        iconWidth={variables.menuIconSize}
+                        iconHeight={variables.menuIconSize}
+                        wrapperStyle={styles.purposeMenuItem}
+                    />
+                    <MenuItem
+                        icon={illustrations.FolderOpen}
+                        title={translate('workspace.rules.newRule.applyExpenseDefaults')}
+                        description={translate('workspace.rules.newRule.applyExpenseDefaultsDescription')}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
+                        displayInDefaultIconColor
+                        iconStyles={[styles.ml3, styles.mr2]}
+                        iconWidth={variables.menuIconSize}
+                        iconHeight={variables.menuIconSize}
+                        wrapperStyle={styles.purposeMenuItem}
+                    />
+                </View>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+RulesNewPage.displayName = 'RulesNewPage';
+
+export default RulesNewPage;

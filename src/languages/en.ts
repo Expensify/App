@@ -7376,6 +7376,14 @@ const translations = {
                 saveAnyway: 'Save anyway',
                 applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
             },
+            newRule: {
+                title: 'New rule',
+                subtitle: 'What do you want to do?',
+                restrictCardSpend: 'Restrict card spend',
+                restrictCardSpendDescription: 'Block or limit spend at the point of sale',
+                applyExpenseDefaults: 'Apply expense defaults',
+                applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
+            },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
                 tableColumnCondition: 'Condition',

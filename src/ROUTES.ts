@@ -3175,6 +3175,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/overview/policy',
         getRoute: (policyID: string) => `workspaces/${policyID}/overview/policy` as const,
     },
+    RULES_NEW: {
+        route: 'workspaces/:policyID/rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/new` as const,
+    },
     RULES_MERCHANT_NEW: {
         route: 'workspaces/:policyID/rules/merchant-rules/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new` as const,
