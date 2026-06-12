@@ -1279,7 +1279,6 @@ function getReportOption(
         policyTags: reportPolicyTags,
         visibleReportActionsData,
         conciergeReportID,
-        isTrackIntentUser: true,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1337,7 +1336,6 @@ function getReportDisplayOption(
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
-        isTrackIntentUser: true,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1390,7 +1388,6 @@ function getPolicyExpenseReportOption(
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
-        isTrackIntentUser: true,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
