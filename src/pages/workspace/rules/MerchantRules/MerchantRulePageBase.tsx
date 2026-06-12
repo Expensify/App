@@ -471,73 +471,73 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             >
                 <HeaderWithBackButton title={translate(isRulesRevampEnabled ? 'workspace.rules.merchantRules.expenseDefaultsTitle' : titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    {isRulesRevampEnabled
-                        ? (
-                            <>
-                                <View style={[styles.ph5, styles.pv3, styles.gap6]}>
-                                    <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.merchantRules.expenseDefaultsSubtitle')}</Text>
-                                    <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
+                    {isRulesRevampEnabled ? (
+                        <>
+                            <View style={[styles.ph5, styles.pv3, styles.gap6]}>
+                                <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.merchantRules.expenseDefaultsSubtitle')}</Text>
+                                <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
+                            </View>
+                            {sections.map((section, sectionIndex) => (
+                                <View key={section.titleTranslationKey}>
+                                    {sectionIndex > 0 && (
+                                        <>
+                                            <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
+                                            <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>
+                                                {translate('workspace.rules.merchantRules.thenApplyFollowingDefaults')}
+                                            </Text>
+                                        </>
+                                    )}
+                                    {section.items
+                                        .filter((item): item is SectionItemType => !!item)
+                                        .map((item) => (
+                                            <MenuItemWithTopDescription
+                                                key={item.key}
+                                                description={item.description}
+                                                errorText={canWriteRules && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
+                                                onPress={canWriteRules ? item.onPress : undefined}
+                                                rightLabel={canWriteRules && item.required ? translate('common.required') : undefined}
+                                                shouldShowRightIcon={canWriteRules}
+                                                interactive={canWriteRules}
+                                                title={item.title}
+                                                numberOfLinesTitle={2}
+                                                titleStyle={styles.flex1}
+                                                shouldRenderAsHTML={item.shouldRenderAsHTML}
+                                                icon={item.icon}
+                                                {...(item.icon && {
+                                                    iconWidth: variables.iconSizeNormal,
+                                                    iconHeight: variables.iconSizeNormal,
+                                                    shouldIconUseAutoWidthStyle: true,
+                                                })}
+                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                            />
+                                        ))}
                                 </View>
-                                {sections.map((section, sectionIndex) => (
-                              <View key={section.titleTranslationKey}>
-                                  {sectionIndex > 0 && (
-                                      <>
-                                          <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
-                                          <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>
-                                              {translate('workspace.rules.merchantRules.thenApplyFollowingDefaults')}
-                                          </Text>
-                                      </>
-                                  )}
-                                  {section.items
-                                      .filter((item): item is SectionItemType => !!item)
-                                      .map((item) => (
-                                          <MenuItemWithTopDescription
-                                              key={item.key}
-                                              description={item.description}
-                                              errorText={canWriteRules && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
-                                              onPress={canWriteRules ? item.onPress : undefined}
-                                              rightLabel={canWriteRules && item.required ? translate('common.required') : undefined}
-                                              shouldShowRightIcon={canWriteRules}
-                                              interactive={canWriteRules}
-                                              title={item.title}
-                                              numberOfLinesTitle={2}
-                                              titleStyle={styles.flex1}
-                                              shouldRenderAsHTML={item.shouldRenderAsHTML}
-                                              icon={item.icon}
-                                              {...(item.icon && {
-                                                  iconWidth: variables.iconSizeNormal,
-                                                  iconHeight: variables.iconSizeNormal,
-                                                  shouldIconUseAutoWidthStyle: true,
-                                              })}
-                                              sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                                          />
-                                      ))}
-                              </View>
-                          ))}
-                            </>
-                          )
-                        : sections.map((section) => (
-                              <View key={section.titleTranslationKey}>
-                                  <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
-                                  {section.items
-                                      .filter((item): item is SectionItemType => !!item)
-                                      .map((item) => (
-                                          <MenuItemWithTopDescription
-                                              key={item.key}
-                                              description={item.description}
-                                              errorText={canWriteRules && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
-                                              onPress={canWriteRules ? item.onPress : undefined}
-                                              rightLabel={canWriteRules && item.required ? translate('common.required') : undefined}
-                                              shouldShowRightIcon={canWriteRules}
-                                              interactive={canWriteRules}
-                                              title={item.title}
-                                              titleStyle={styles.flex1}
-                                              shouldRenderAsHTML={item.shouldRenderAsHTML}
-                                              sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                                          />
-                                      ))}
-                              </View>
-                          ))}
+                            ))}
+                        </>
+                    ) : (
+                        sections.map((section) => (
+                            <View key={section.titleTranslationKey}>
+                                <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
+                                {section.items
+                                    .filter((item): item is SectionItemType => !!item)
+                                    .map((item) => (
+                                        <MenuItemWithTopDescription
+                                            key={item.key}
+                                            description={item.description}
+                                            errorText={canWriteRules && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
+                                            onPress={canWriteRules ? item.onPress : undefined}
+                                            rightLabel={canWriteRules && item.required ? translate('common.required') : undefined}
+                                            shouldShowRightIcon={canWriteRules}
+                                            interactive={canWriteRules}
+                                            title={item.title}
+                                            titleStyle={styles.flex1}
+                                            shouldRenderAsHTML={item.shouldRenderAsHTML}
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                        />
+                                    ))}
+                            </View>
+                        ))
+                    )}
                     {isInLandscapeMode && footer}
                 </ScrollView>
                 {!isInLandscapeMode && footer}
