@@ -7333,7 +7333,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 saveRule: 'Enregistrer la règle',
                 allow: 'Autoriser',
                 spendRuleSectionTitle: 'Règles de dépense',
-                restrictionType: 'Type de restriction',
                 addMerchant: 'Ajouter un commerçant',
                 merchantContains: 'Le commerçant contient',
                 merchantExactlyMatches: 'Le commerçant correspond exactement',
