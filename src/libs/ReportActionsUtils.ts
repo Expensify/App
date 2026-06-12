@@ -391,7 +391,7 @@ function hasPendingDEWApprove(reportMetadata: OnyxEntry<ReportMetadata>, isDEWPo
 }
 
 function isDynamicExternalWorkflowForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED) && getOriginalMessage(reportAction)?.workflow === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED) && !!getOriginalMessage(reportAction)?.to;
 }
 
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
