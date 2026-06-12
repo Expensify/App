@@ -70,8 +70,8 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const navigation = useNavigation();
     const {isOffline} = useNetwork();
 
-    // On small screens, render the player while offline so BaseVideoPlayer can show the offline overlay instead of the thumbnail.
-    const shouldRenderVideoPlayer = !isDeleted && ((isSmallScreenWidth && isOffline) || (!isSmallScreenWidth && !isThumbnail));
+    // While offline, render BaseVideoPlayer instead of the thumbnail so the existing player-level offline state is shown consistently.
+    const shouldRenderVideoPlayer = !isDeleted && (isOffline || (!isSmallScreenWidth && !isThumbnail));
 
     useEffect(() => {
         if (!videoUrl || getPlatform() !== CONST.PLATFORM.WEB) {
