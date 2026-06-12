@@ -358,6 +358,10 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Encontre um chat usando o',
             subtitleText2: 'botão acima ou crie algo usando o',
             subtitleText3: 'botão abaixo.',
+            noUnreadChats: 'Nenhum chat não lido',
+            noTodos: 'Nenhuma tarefa pendente',
+            caughtUp: 'Você está em dia. Muito bem!',
+            seeAllChats: 'Ver todas as conversas',
         },
         businessName: 'Nome da empresa',
         clear: 'Limpar',
@@ -1016,6 +1020,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Tudo em dia',
                 f1FlagsDescription: 'Você concluiu todas as tarefas pendentes.',
             },
+            reviewExpenses: ({count}: {count: number}) => `Revisar ${count} ${count === 1 ? 'despesa' : 'despesas'}`,
         },
         upcomingTravel: 'Próximas viagens',
         upcomingTravelSection: {
@@ -2909,6 +2914,12 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: 'Bem-vindo ao modo #focus!',
+        prompt: (priorityModePageUrl: string) =>
+            `Fique no controle vendo apenas chats não lidos ou que precisam da sua atenção. Não se preocupe, você pode mudar isso a qualquer momento em <a href="${priorityModePageUrl}">configurações</a>.`,
+    },
+    inboxTabs: {all: 'Todos', todo: 'Pendências', unread: 'Não lidas'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `em ${policyName}`,
         generatingPDF: 'Gerar PDF',
@@ -3468,11 +3479,6 @@ ${amount} para ${merchant} - ${date}`,
     yearPickerPage: {
         year: 'Ano',
         selectYear: 'Selecione um ano',
-    },
-    focusModeUpdateModal: {
-        title: 'Bem-vindo ao modo #focus!',
-        prompt: (priorityModePageUrl: string) =>
-            `Mantenha tudo sob controle vendo apenas os chats não lidos ou que precisam da sua atenção. Não se preocupe, você pode alterar isso a qualquer momento em <a href="${priorityModePageUrl}">configurações</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'O chat que você está procurando não foi encontrado.',

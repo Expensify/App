@@ -370,6 +370,8 @@ const CONST = {
 
     API_TRANSACTION_TAG_MAX_LENGTH: 255,
 
+    TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES: 5,
+
     AUTO_AUTH_STATE: {
         NOT_STARTED: 'not-started',
         SIGNING_IN: 'signing-in',
@@ -2331,6 +2333,11 @@ const CONST = {
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
+    },
+    INBOX_TAB: {
+        ALL: 'all',
+        TODO: 'todo',
+        UNREAD: 'unread',
     },
     THEME: {
         DEFAULT: 'system',

@@ -358,6 +358,10 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: '使用以下方式查找聊天',
             subtitleText2: '上方的按钮，或使用以下内容创建',
             subtitleText3: '下方按钮。',
+            noUnreadChats: '没有未读聊天',
+            noTodos: '没有待办事项',
+            caughtUp: '你已经全部处理完了。干得好！',
+            seeAllChats: '查看所有聊天',
         },
         businessName: '公司名称',
         clear: '清除',
@@ -987,6 +991,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: '全部完成',
                 f1FlagsDescription: '你已完成所有未完成的待办事项。',
             },
+            reviewExpenses: ({count}: {count: number}) => `审核 ${count} ${count === 1 ? '费用' : '费用'}`,
         },
         upcomingTravel: '即将出行',
         upcomingTravelSection: {
@@ -2836,6 +2841,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: '欢迎使用 #focus 模式！',
+        prompt: (priorityModePageUrl: string) => `通过只查看未读聊天或需要你关注的聊天，随时掌握最新进展。别担心，你可以随时在<a href="${priorityModePageUrl}">设置</a>中更改此项。`,
+    },
+    inboxTabs: {all: '全部', todo: '待办事项', unread: '未读'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `在 ${policyName} 中`,
         generatingPDF: '生成 PDF',
@@ -3392,10 +3402,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     yearPickerPage: {
         year: '年份',
         selectYear: '请选择年份',
-    },
-    focusModeUpdateModal: {
-        title: '欢迎进入 #focus 模式！',
-        prompt: (priorityModePageUrl: string) => `通过仅查看未读聊天或需要你关注的聊天来随时掌握进展。别担心，你可以随时在<a href="${priorityModePageUrl}">设置</a>中更改此项。`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: '找不到您要查找的聊天。',

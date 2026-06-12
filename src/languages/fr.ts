@@ -357,6 +357,10 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Recherchez une discussion à l’aide de la',
             subtitleText2: 'bouton ci-dessus, ou créez quelque chose en utilisant le',
             subtitleText3: 'bouton ci-dessous.',
+            noUnreadChats: 'Aucune discussion non lue',
+            noTodos: 'Aucune tâche à faire',
+            caughtUp: 'Vous êtes à jour. Bravo !',
+            seeAllChats: 'Voir toutes les discussions',
         },
         businessName: 'Nom de l’entreprise',
         clear: 'Effacer',
@@ -1019,6 +1023,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Tout est à jour',
                 f1FlagsDescription: 'Vous avez terminé toutes les tâches en cours.',
             },
+            reviewExpenses: ({count}: {count: number}) => `Examiner ${count} ${count === 1 ? 'dépense' : 'dépenses'}`,
         },
         upcomingTravel: 'Voyages à venir',
         upcomingTravelSection: {
@@ -2929,6 +2934,12 @@ ${amount} pour ${merchant} - ${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: 'Bienvenue dans le mode #focus !',
+        prompt: (priorityModePageUrl: string) =>
+            `Gardez le contrôle en n’affichant que les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez modifier ce réglage à tout moment dans les <a href="${priorityModePageUrl}">paramètres</a>.`,
+    },
+    inboxTabs: {all: 'Tout', todo: 'Tâches', unread: 'Non lu'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `dans ${policyName}`,
         generatingPDF: 'Générer le PDF',
@@ -3499,11 +3510,6 @@ ${amount} pour ${merchant} - ${date}`,
     yearPickerPage: {
         year: 'Année',
         selectYear: 'Veuillez sélectionner une année',
-    },
-    focusModeUpdateModal: {
-        title: 'Bienvenue en mode #focus !',
-        prompt: (priorityModePageUrl: string) =>
-            `Gardez le contrôle en affichant uniquement les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez modifier ce paramètre à tout moment dans les <a href="${priorityModePageUrl}">paramètres</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'La discussion que vous recherchez est introuvable.',
