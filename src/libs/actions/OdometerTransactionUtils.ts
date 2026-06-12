@@ -21,7 +21,7 @@ type SaveOdometerDraftParams = {
 };
 
 /**
- * Set the odometer readings for a transaction
+ * Set the odometer readings for a transaction.
  */
 function setMoneyRequestOdometerReading(transactionID: string, startReading: number | null, endReading: number | null, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -207,20 +207,69 @@ function hydrateOdometerDraftIntoTransaction(transactionID: string, odometerDraf
 }
 
 /**
- * True when an ODOMETER_DRAFT exists but the active transaction comment hasn't yet been hydrated
- * from it. Used to defer baseline snapshots that would otherwise treat post-hydration values as
- * unsaved changes.
+ * True when an ODOMETER_DRAFT exists but the transaction comment hasn't received it yet (hydration pending) -
+ * used to defer the baseline snapshot and gate the hydration effect
  */
 function isOdometerDraftPendingHydration(odometerDraft: OnyxEntry<OdometerDraft>, comment: Partial<Comment> | undefined): boolean {
     if (!odometerDraft) {
         return false;
     }
-    return (
-        (odometerDraft.odometerStartReading ?? null) !== (comment?.odometerStart ?? null) ||
-        (odometerDraft.odometerEndReading ?? null) !== (comment?.odometerEnd ?? null) ||
-        !!odometerDraft.odometerStartImage !== !!comment?.odometerStartImage ||
-        !!odometerDraft.odometerEndImage !== !!comment?.odometerEndImage
-    );
+    const startPending = odometerDraft.odometerStartReading !== undefined && (comment?.odometerStart ?? null) === null;
+    const endPending = odometerDraft.odometerEndReading !== undefined && (comment?.odometerEnd ?? null) === null;
+    const draftCarriesReadings = odometerDraft.odometerStartReading !== undefined || odometerDraft.odometerEndReading !== undefined;
+    const startImagePending = !draftCarriesReadings && !!odometerDraft.odometerStartImage && !comment?.odometerStartImage;
+    const endImagePending = !draftCarriesReadings && !!odometerDraft.odometerEndImage && !comment?.odometerEndImage;
+    return startPending || endPending || startImagePending || endImagePending;
+}
+
+type OdometerUnsavedChangesState = {
+    /** Discard guard active: focused && !editing && no bypass/save/manual-backup flags. */
+    isGuardActive: boolean;
+
+    /** Whether the reading text inputs hold values not yet written to the transaction (mid-edit typing). */
+    isUserTyping: boolean;
+
+    /** The active save-for-later draft, if any. */
+    odometerDraft: OnyxEntry<OdometerDraft>;
+
+    /** The comment of currentTransaction (split draft when editing a split, else the transaction) - used ONLY for the directional hydration check. */
+    currentComment: Partial<Comment> | undefined;
+
+    /** Re-mint-invariant start/end image identities (getOdometerImageIdentity) from the live transaction comment. */
+    transactionStartImageUri: string;
+    transactionEndImageUri: string;
+
+    /** Re-mint-invariant start/end image identities captured in the on-mount baseline refs. */
+    baselineStartImageUri: string;
+    baselineEndImageUri: string;
+
+    /** Whether the readings differ from the on-mount baseline. */
+    hasReadingChanges: boolean;
+};
+
+/**
+ * Decide whether the odometer screen has unsaved changes that warrant a "Discard changes?" prompt.
+ *
+ * The image guard is load-bearing: isOdometerDraftPendingHydration is directional (reports a transaction MISSING
+ * what the draft holds, never one AHEAD of it), so a genuine image add/swap reads as "not pending" and the draft
+ * clause would wrongly suppress it - hence that clause must not suppress when hasImageChanges is set. The identity
+ * is re-mint-invariant (name|size), so a non-user blob re-mint doesn't register. The typing guard does the same for readings
+ */
+function getOdometerHasUnsavedChanges(state: OdometerUnsavedChangesState): boolean {
+    if (!state.isGuardActive) {
+        return false;
+    }
+    const hasImageChanges = state.transactionStartImageUri !== state.baselineStartImageUri || state.transactionEndImageUri !== state.baselineEndImageUri;
+    // Suppress only when the transaction still EQUALS the draft (spurious baseline drift, not a genuine edit).
+    // isOdometerDraftPendingHydration is directional, so it can't catch a transaction that moved AHEAD of the draft
+    // (changed reading + Next, no re-save) - this reading-equality check and the typing guard do
+    const draftReadingsMatchTransaction =
+        (state.odometerDraft?.odometerStartReading ?? null) === (state.currentComment?.odometerStart ?? null) &&
+        (state.odometerDraft?.odometerEndReading ?? null) === (state.currentComment?.odometerEnd ?? null);
+    if (!state.isUserTyping && !hasImageChanges && !!state.odometerDraft && draftReadingsMatchTransaction && !isOdometerDraftPendingHydration(state.odometerDraft, state.currentComment)) {
+        return false;
+    }
+    return state.hasReadingChanges || hasImageChanges;
 }
 
 export {
@@ -231,5 +280,7 @@ export {
     saveOdometerDraft,
     hydrateOdometerDraftIntoTransaction,
     isOdometerDraftPendingHydration,
+    getOdometerHasUnsavedChanges,
 };
+export type {OdometerUnsavedChangesState};
 export default clearOdometerDraftTransactionState;

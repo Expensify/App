@@ -34,13 +34,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
-import {
-    clearOdometerDraft,
-    isOdometerDraftPendingHydration,
-    removeMoneyRequestOdometerImage,
-    saveOdometerDraft,
-    setMoneyRequestOdometerReading,
-} from '@libs/actions/OdometerTransactionUtils';
+import {clearOdometerDraft, getOdometerHasUnsavedChanges, removeMoneyRequestOdometerImage, saveOdometerDraft, setMoneyRequestOdometerReading} from '@libs/actions/OdometerTransactionUtils';
 import {restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -48,7 +42,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getOdometerImageUri} from '@libs/OdometerImageUtils';
+import {getOdometerImageIdentity} from '@libs/OdometerImageUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -86,7 +80,7 @@ type StandaloneDiscardGuardProps = {
 };
 
 /**
- * A component (not an inline hook) so the discard hook runs only on the standalone screen — in the
+ * A component (not an inline hook) so the discard hook runs only on the standalone screen - in the
  * `DISTANCE_CREATE` tab flow `DistanceRequestStartPage` owns discard, and running it here too would
  * register a second `beforeRemove` listener and show the discard modal twice.
  */
@@ -236,10 +230,10 @@ function IOURequestStepDistanceOdometer({
             transactionEndValue: endValue,
             localStartValue: startReadingRef.current,
             localEndValue: endReadingRef.current,
-            transactionStartImageUri: getOdometerImageUri(currentTransaction?.comment?.odometerStartImage),
-            transactionEndImageUri: getOdometerImageUri(currentTransaction?.comment?.odometerEndImage),
-            baselineStartImageUri: getOdometerImageUri(initialStartImageRef.current),
-            baselineEndImageUri: getOdometerImageUri(initialEndImageRef.current),
+            transactionStartImageUri: getOdometerImageIdentity(currentTransaction?.comment?.odometerStartImage),
+            transactionEndImageUri: getOdometerImageIdentity(currentTransaction?.comment?.odometerEndImage),
+            baselineStartImageUri: getOdometerImageIdentity(initialStartImageRef.current),
+            baselineEndImageUri: getOdometerImageIdentity(initialEndImageRef.current),
             hasTransactionData: (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined),
             hasLocalState: !!(startReadingRef.current || endReadingRef.current),
             hasInitialized: hasInitializedRefs.current,
@@ -257,12 +251,13 @@ function IOURequestStepDistanceOdometer({
             endReadingRef.current = endValue;
         }
 
-        // Slide the discard-changes baseline up so leaving doesn't flag the externally-saved value as unsaved
+        // Slide the readings baseline up on a non-user change (draft hydration, an external save from confirmation)
+        // so leaving doesn't flag the externally-saved value as unsaved; the typing guard in isExternalOdometerResync
+        // protects in-progress keystrokes. Images are NOT slid: their diff uses a re-mint-invariant identity, so a
+        // re-mint never registers (nothing to absorb) and sliding would wrongly absorb a genuine swap
         if (isExternalResync) {
             initialStartReadingRef.current = startValue;
             initialEndReadingRef.current = endValue;
-            initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
-            initialEndImageRef.current = currentTransaction?.comment?.odometerEndImage;
         }
         // The refs and setters destructured from `useOdometerReadingsState` are stable; we intentionally omit them
         // to keep this effect driven only by transaction changes.
@@ -346,11 +341,6 @@ function IOURequestStepDistanceOdometer({
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
-    // Per-keystroke validation: enforce format constraints and cap the max value.
-    // The max-value check allows edits that *reduce* the value (e.g. backspacing
-    // a legacy over-max reading) but rejects keystrokes that would increase
-    // beyond ODOMETER_MAX_VALUE.  Submit-time validation in handleNext is the
-    // final safety net.
     const isOdometerInputValid = (text: string, previousText: string): boolean => {
         if (!text) {
             return true;
@@ -366,7 +356,7 @@ function IOURequestStepDistanceOdometer({
         const value = parseFloat(stripped);
 
         // Allow edits that reduce the value (e.g. backspacing a legacy over-max reading),
-        // but reject keystrokes that would increase beyond the max.
+        // but reject keystrokes that would increase beyond the max
         if (!Number.isNaN(value) && value > CONST.IOU.ODOMETER_MAX_VALUE) {
             const previousValue = parseFloat(DistanceRequestUtils.normalizeOdometerText(previousText, fromLocaleDigit));
             if (Number.isNaN(previousValue) || value >= previousValue) {
@@ -502,7 +492,7 @@ function IOURequestStepDistanceOdometer({
         }
 
         if (shouldSkipConfirmation) {
-            // Skip-confirmation submit navigates away and should never be blocked by discard modal.
+            // Skip-confirmation submit navigates away and should never be blocked by discard modal
             shouldBypassDiscardConfirmationRef.current = true;
         }
 
@@ -561,20 +551,24 @@ function IOURequestStepDistanceOdometer({
         navigateToNextPage();
     };
 
-    const getHasUnsavedChanges = () => {
-        if (!isFocused || isEditing || shouldBypassDiscardConfirmationRef.current || didSaveEditingConfirmationRef.current || backupHandledManually.current) {
-            return false;
-        }
-        // Draft matching the transaction means changes are persisted; the typing guard prevents suppressing the modal mid-edit (typed values aren't in the transaction yet).
-        if (!userHasUnsavedTypingRef.current && !!odometerDraft && !isOdometerDraftPendingHydration(odometerDraft, currentTransaction?.comment)) {
-            return false;
-        }
-        const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
-        const hasImageChanges =
-            getOdometerImageUri(transaction?.comment?.odometerStartImage) !== getOdometerImageUri(initialStartImageRef.current) ||
-            getOdometerImageUri(transaction?.comment?.odometerEndImage) !== getOdometerImageUri(initialEndImageRef.current);
-        return hasReadingChanges || hasImageChanges;
-    };
+    const getHasUnsavedChanges = () =>
+        getOdometerHasUnsavedChanges({
+            isGuardActive:
+                hasInitializedRefs.current &&
+                isFocused &&
+                !isEditing &&
+                !shouldBypassDiscardConfirmationRef.current &&
+                !didSaveEditingConfirmationRef.current &&
+                !backupHandledManually.current,
+            isUserTyping: userHasUnsavedTypingRef.current,
+            odometerDraft,
+            currentComment: currentTransaction?.comment,
+            transactionStartImageUri: getOdometerImageIdentity(transaction?.comment?.odometerStartImage),
+            transactionEndImageUri: getOdometerImageIdentity(transaction?.comment?.odometerEndImage),
+            baselineStartImageUri: getOdometerImageIdentity(initialStartImageRef.current),
+            baselineEndImageUri: getOdometerImageIdentity(initialEndImageRef.current),
+            hasReadingChanges: startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current,
+        });
 
     const handleTabSwitchDiscard = async () => {
         if (isEditingConfirmation) {
@@ -630,9 +624,8 @@ function IOURequestStepDistanceOdometer({
         Navigation.closeRHPFlow();
     }, [fromLocaleDigit, startReading, endReading, odometerStartImage, odometerEndImage, translate, setFormError]);
 
-    // The discard hook runs only on the standalone screen (edit / edit-from-confirmation). In the
-    // `DISTANCE_CREATE` tab flow `DistanceRequestStartPage` owns discard; running it here too would show
-    // the discard modal twice on browser back. Rendered as a child because hooks can't be conditional.
+    // Standalone screen only (edit / edit-from-confirmation); in the `DISTANCE_CREATE` tab flow `DistanceRequestStartPage`
+    // owns discard, so running it here too would show the modal twice. Rendered as a child since hooks can't be conditional
     const isStandaloneScreen = routeName !== SCREENS.MONEY_REQUEST.DISTANCE_CREATE;
 
     return (

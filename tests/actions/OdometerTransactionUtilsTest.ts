@@ -2,14 +2,16 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import '@libs/actions/IOU/MoneyRequest';
-import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
+import {getOdometerHasUnsavedChanges, isOdometerDraftPendingHydration, removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
+import type {OdometerUnsavedChangesState} from '@libs/actions/OdometerTransactionUtils';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {getOdometerImageIdentity} from '@libs/OdometerImageUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {OdometerDraft, Policy} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import currencyList from '../unit/currencyList.json';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -56,7 +58,7 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 // In production, requestMoney defers its API.write() call until the target screen's
 // content lays out (or a safety timeout fires). In tests there is no target component
-// to flush the deferred write, so we bypass the deferral by executing the callback immediately.
+// to flush the deferred write, so we bypass the deferral by executing the callback immediately
 jest.mock('@libs/deferredLayoutWrite', () => ({
     registerDeferredWrite: (_key: string, callback: () => void) => callback(),
     flushDeferredWrite: jest.fn(),
@@ -205,6 +207,193 @@ describe('actions/OdometerTransactionUtils', () => {
 
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(updatedTransaction?.comment?.odometerEndImage).toBeUndefined();
+        });
+    });
+
+    describe('isOdometerDraftPendingHydration (directional)', () => {
+        it('returns false when there is no draft (no save-for-later flow)', () => {
+            expect(isOdometerDraftPendingHydration(undefined, {odometerStart: 120, odometerEnd: 300})).toBe(false);
+        });
+
+        it('is pending while the transaction is still MISSING readings the draft carries (the hydration window)', () => {
+            const draft = {odometerStartReading: 100, odometerEndReading: 250};
+            expect(isOdometerDraftPendingHydration(draft, undefined)).toBe(true);
+            expect(isOdometerDraftPendingHydration(draft, {})).toBe(true);
+            // Partially hydrated (start landed, end not yet) is still pending.
+            expect(isOdometerDraftPendingHydration(draft, {odometerStart: 100})).toBe(true);
+        });
+
+        // After Next the transaction holds new readings but the draft still holds the old ones (Next doesn't write
+        // the draft). A staler-than-transaction draft must read as NOT pending, else the baseline defers forever
+        it('is NOT pending once the transaction holds the readings, even if the draft is now staler', () => {
+            const staleDraft = {odometerStartReading: 100, odometerEndReading: 250};
+            const newerComment = {odometerStart: 120, odometerEnd: 300};
+            expect(isOdometerDraftPendingHydration(staleDraft, newerComment)).toBe(false);
+        });
+
+        // A readings-bearing draft hydrates atomically, so once the transaction holds the readings a still-missing
+        // image is a deliberate user removal, NOT pending hydration (else the baseline would defer forever)
+        it('is NOT pending when a readings-bearing draft is hydrated but its image was removed from the transaction', () => {
+            const draft = {odometerStartReading: 100, odometerEndReading: 250, odometerStartImage: 'data:image/png;base64,xxx'};
+            expect(isOdometerDraftPendingHydration(draft, {odometerStart: 100, odometerEnd: 250})).toBe(false);
+        });
+
+        // A readings + image draft on a fresh/wiped transaction is still pending via the readings (the image
+        // rides along in the same atomic hydration merge), so it must hydrate after a refresh
+        it('is pending while a readings+image draft has not hydrated into an empty transaction', () => {
+            const draft = {odometerStartReading: 100, odometerEndReading: 250, odometerStartImage: 'data:image/png;base64,xxx'};
+            expect(isOdometerDraftPendingHydration(draft, {})).toBe(true);
+        });
+
+        // An image-only draft (no readings) has no reading to mark the hydration window, so its image presence is
+        // what signals "still pending" - required so an image-only save-for-later restores after a page refresh
+        it('is pending while an image-only draft is missing from the transaction', () => {
+            const draft = {odometerStartImage: 'data:image/png;base64,xxx'};
+            expect(isOdometerDraftPendingHydration(draft, {})).toBe(true);
+            expect(isOdometerDraftPendingHydration(draft, {odometerEndImage: {uri: 'other.uri'}})).toBe(true);
+        });
+
+        it('is NOT pending once an image-only draft has hydrated into the transaction', () => {
+            const draft = {odometerStartImage: 'data:image/png;base64,xxx'};
+            expect(isOdometerDraftPendingHydration(draft, {odometerStartImage: {uri: 'image.uri'}})).toBe(false);
+        });
+
+        it('is NOT pending when the transaction already has an image the draft lacks (transaction is ahead)', () => {
+            const draft = {odometerStartReading: 100, odometerEndReading: 250};
+            const comment = {odometerStart: 100, odometerEnd: 250, odometerStartImage: {uri: 'image.uri'}};
+            expect(isOdometerDraftPendingHydration(draft, comment)).toBe(false);
+        });
+    });
+
+    describe('getOdometerHasUnsavedChanges', () => {
+        // Guard active, not mid-typing, a save-for-later readings draft that has fully hydrated into the
+        // transaction, image URIs matching their baseline, no reading change => nothing unsaved
+        const STEADY: OdometerUnsavedChangesState = {
+            isGuardActive: true,
+            isUserTyping: false,
+            odometerDraft: {odometerStartReading: 100, odometerEndReading: 250} as unknown as OdometerDraft,
+            currentComment: {odometerStart: 100, odometerEnd: 250},
+            transactionStartImageUri: '',
+            transactionEndImageUri: '',
+            baselineStartImageUri: '',
+            baselineEndImageUri: '',
+            hasReadingChanges: false,
+        };
+
+        const buildState = (overrides: Partial<OdometerUnsavedChangesState> = {}): OdometerUnsavedChangesState => ({...STEADY, ...overrides});
+
+        it('returns false in a steady state (draft hydrated, nothing changed)', () => {
+            expect(getOdometerHasUnsavedChanges(STEADY)).toBe(false);
+        });
+
+        it('returns false when the discard guard is inactive, even if everything else looks changed', () => {
+            expect(
+                getOdometerHasUnsavedChanges(
+                    buildState({
+                        isGuardActive: false,
+                        isUserTyping: true,
+                        hasReadingChanges: true,
+                        transactionStartImageUri: 'b.jpg',
+                        baselineStartImageUri: 'a.jpg',
+                    }),
+                ),
+            ).toBe(false);
+        });
+
+        // The user ADDS an image the draft lacked, so the transaction is ahead of the draft. The presence-only
+        // isOdometerDraftPendingHydration reports "not pending", so without the image guard the modal is suppressed
+        it('detects an added image when the draft carried none (the false-negative being fixed)', () => {
+            expect(getOdometerHasUnsavedChanges(buildState({transactionStartImageUri: 'new.jpg', baselineStartImageUri: ''}))).toBe(true);
+        });
+
+        // Mirror regression guard: a readings-bearing draft whose image is absent from the transaction (removed)
+        // has no transaction-vs-baseline image diff, so it must STAY silent (the previously-fixed false-positive)
+        it('stays silent when the image was removed (baseline and transaction both have no image)', () => {
+            expect(
+                getOdometerHasUnsavedChanges(
+                    buildState({
+                        odometerDraft: {odometerStartReading: 100, odometerEndReading: 250, odometerStartImage: 'data:image/png;base64,xxx'} as unknown as OdometerDraft,
+                        transactionStartImageUri: '',
+                        baselineStartImageUri: '',
+                    }),
+                ),
+            ).toBe(false);
+        });
+
+        it('detects a swapped image (content differs from the baseline)', () => {
+            expect(getOdometerHasUnsavedChanges(buildState({transactionStartImageUri: 'b.jpg', baselineStartImageUri: 'a.jpg'}))).toBe(true);
+        });
+
+        it('detects a reading change while the user is actively typing', () => {
+            expect(getOdometerHasUnsavedChanges(buildState({isUserTyping: true, hasReadingChanges: true}))).toBe(true);
+        });
+
+        // Proves we did NOT gate the clause on !hasReadingChanges: a readings diff that is NOT from live typing
+        // (e.g. baseline drift after an external resync) against a hydrated draft must stay suppressed
+        it('suppresses a non-typing reading diff against a hydrated draft (readings false-positive guard)', () => {
+            expect(getOdometerHasUnsavedChanges(buildState({isUserTyping: false, hasReadingChanges: true}))).toBe(false);
+        });
+
+        // User changes a reading + Next with a save-for-later draft, so the transaction is AHEAD of the draft. The
+        // directional check reports "not pending", but the change is genuinely unsaved -> leaving MUST still prompt
+        it('detects a reading change when the transaction is AHEAD of the draft (changed + Next + back)', () => {
+            expect(
+                getOdometerHasUnsavedChanges(
+                    buildState({
+                        odometerDraft: {odometerStartReading: 100, odometerEndReading: 300} as unknown as OdometerDraft,
+                        currentComment: {odometerStart: 100, odometerEnd: 400},
+                        hasReadingChanges: true,
+                    }),
+                ),
+            ).toBe(true);
+        });
+
+        it('detects when both readings and an image changed', () => {
+            expect(
+                getOdometerHasUnsavedChanges(
+                    buildState({
+                        hasReadingChanges: true,
+                        transactionStartImageUri: 'b.jpg',
+                        baselineStartImageUri: 'a.jpg',
+                    }),
+                ),
+            ).toBe(true);
+        });
+
+        // No save-for-later draft => the draft clause never applies, so a genuine image change must prompt
+        it('detects an image change when there is no draft at all', () => {
+            expect(getOdometerHasUnsavedChanges(buildState({odometerDraft: undefined, transactionStartImageUri: 'b.jpg', baselineStartImageUri: ''}))).toBe(true);
+        });
+
+        it('stays silent when a saved-for-later draft is re-entered with no change', () => {
+            expect(getOdometerHasUnsavedChanges(buildState())).toBe(false);
+        });
+    });
+
+    describe('getOdometerImageIdentity (re-mint-invariant)', () => {
+        it('is empty for a missing image', () => {
+            expect(getOdometerImageIdentity(undefined)).toBe('');
+            expect(getOdometerImageIdentity(null)).toBe('');
+        });
+
+        // A non-user blob re-mint (base64 -> blob on resume/reload) keeps name + size and only changes the uri, so
+        // the identity must stay equal - this is what lets the discard guard stay silent on a re-mint
+        it('is invariant under a blob re-mint (same name + size, new uri)', () => {
+            const original = {uri: 'blob:abc', name: 'a.jpg', type: 'image/jpeg', size: 1234};
+            const reminted = {uri: 'blob:xyz', name: 'a.jpg', type: 'image/jpeg', size: 1234};
+            expect(getOdometerImageIdentity(reminted)).toBe(getOdometerImageIdentity(original));
+        });
+
+        // A genuine user swap is a different file (different name and/or size), so the identity must change - this is
+        // what lets the discard guard fire on an add/swap/remove
+        it('changes when the user swaps to a different file (different name and size)', () => {
+            const a = {uri: 'blob:abc', name: 'a.jpg', type: 'image/jpeg', size: 1234};
+            const b = {uri: 'blob:xyz', name: 'b.jpg', type: 'image/jpeg', size: 5678};
+            expect(getOdometerImageIdentity(b)).not.toBe(getOdometerImageIdentity(a));
+        });
+
+        it('uses the uri string directly for native images', () => {
+            expect(getOdometerImageIdentity('file:///path/to/a.jpg')).toBe('file:///path/to/a.jpg');
         });
     });
 });
