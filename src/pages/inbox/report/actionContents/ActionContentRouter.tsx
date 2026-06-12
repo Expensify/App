@@ -144,7 +144,8 @@ function ActionContentRouter({
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
+    const stableReportSelector = (reportEntry: OnyxEntry<OnyxTypes.Report>) => getStableReportSelector(reportEntry);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: stableReportSelector});
 
     // Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped).
     const actionOwnerReportStable = originalReport ?? report;
