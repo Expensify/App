@@ -6219,8 +6219,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 other: 'Leden maken',
             }),
             makeAdmin: () => ({
-                one: 'Admin maken',
-                other: 'Beheerders maken',
+                one: 'Workspace-beheerder maken',
+                other: 'Workspace-beheerders maken',
             }),
             makeAuditor: () => ({
                 one: 'Auditeur maken',

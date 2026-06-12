@@ -6253,8 +6253,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 other: 'Mitglieder erstellen',
             }),
             makeAdmin: () => ({
-                one: 'Als Admin festlegen',
-                other: 'Admins ernennen',
+                one: 'Als Workspace-Admin festlegen',
+                other: 'Workspace-Admins ernennen',
             }),
             makeAuditor: () => ({
                 one: 'Zum Prüfer machen',

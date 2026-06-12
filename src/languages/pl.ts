@@ -6214,8 +6214,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 other: 'Utwórz członków',
             }),
             makeAdmin: () => ({
-                one: 'Ustaw jako administratora',
-                other: 'Ustaw jako administratorów',
+                one: 'Ustaw jako administratora przestrzeni roboczej',
+                other: 'Ustaw jako administratorów przestrzeni roboczej',
             }),
             makeAuditor: () => ({
                 one: 'Ustaw jako audytora',

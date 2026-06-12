@@ -6091,8 +6091,8 @@ ${amount} para ${merchant} - ${date}`,
                 other: 'Convertir en miembros',
             }),
             makeAdmin: () => ({
-                one: 'Hacer administrador',
-                other: 'Convertir en administradores',
+                one: 'Hacer administrador del espacio de trabajo',
+                other: 'Convertir en administradores del espacio de trabajo',
             }),
             makeAuditor: () => ({
                 one: 'Convertir en auditor',

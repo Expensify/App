@@ -6278,8 +6278,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 other: 'Créer des membres',
             }),
             makeAdmin: () => ({
-                one: 'Nommer administrateur',
-                other: 'Nommer des administrateurs',
+                one: 'Nommer administrateur de l’espace de travail',
+                other: 'Nommer des administrateurs de l’espace de travail',
             }),
             makeAuditor: () => ({
                 one: 'Nommer auditeur',

@@ -6241,8 +6241,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 other: 'Rendi membri',
             }),
             makeAdmin: () => ({
-                one: 'Rendi amministratore',
-                other: 'Rendi amministratori',
+                one: 'Rendi amministratore dello spazio di lavoro',
+                other: 'Rendi amministratori dello spazio di lavoro',
             }),
             makeAuditor: () => ({
                 one: 'Rendi revisore',

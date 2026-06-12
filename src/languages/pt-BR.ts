@@ -6218,8 +6218,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 other: 'Tornar membros',
             }),
             makeAdmin: () => ({
-                one: 'Tornar admin',
-                other: 'Tornar admins',
+                one: 'Tornar admin do workspace',
+                other: 'Tornar admins do workspace',
             }),
             makeAuditor: () => ({
                 one: 'Tornar auditor',

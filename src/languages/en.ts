@@ -6300,16 +6300,16 @@ const translations = {
                 other: 'Make members',
             }),
             makeAdmin: () => ({
-                one: 'Make admin',
-                other: 'Make admins',
+                one: 'Make workspace admin',
+                other: 'Make workspace admins',
             }),
             makeAuditor: () => ({
                 one: 'Make auditor',
                 other: 'Make auditors',
             }),
             makeCardAdmin: () => ({
-                one: 'Make Card Admin',
-                other: 'Make Card Admins',
+                one: 'Make card admin',
+                other: 'Make card admins',
             }),
             selectAll: 'Select all',
             error: {

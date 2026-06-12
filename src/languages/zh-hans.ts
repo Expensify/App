@@ -6062,8 +6062,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 other: '设为成员',
             }),
             makeAdmin: () => ({
-                one: '设为管理员',
-                other: '设为管理员',
+                one: '设为工作区管理员',
+                other: '设为工作区管理员',
             }),
             makeAuditor: () => ({
                 one: '设为审计员',
