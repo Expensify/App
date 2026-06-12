@@ -64,14 +64,6 @@ type DirectionProps = {
     belowLayerID?: string;
 };
 
-type GPSDirectionProps = DirectionProps & {
-    // Current user location used to animate the trailing route segment
-    lastLocation: {
-        longitude: number;
-        latitude: number;
-    };
-};
-
 type PendingMapViewProps = {
     /** Title message below the icon */
     title?: string;
@@ -109,4 +101,4 @@ type MapViewHandle = {
     fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type {WayPoint, MapViewProps, GPSMapViewProps, DirectionProps, GPSDirectionProps, PendingMapViewProps, MapViewHandle, Coordinate};
+export type {WayPoint, MapViewProps, GPSMapViewProps, DirectionProps, PendingMapViewProps, Coordinate};
