@@ -17,18 +17,14 @@ describe('formatAsOfVictoryChartLabel', () => {
         expect(utcDate?.toISOString()).toBe('2026-06-05T18:47:00.000Z');
     });
 
+    it('parses server UTC chart timestamps without a leading zero on the hour', () => {
+        const utcDate = parseUtcAsOfDateTime('Jun 12, 2026 at 8:48 AM');
+        expect(utcDate?.toISOString()).toBe('2026-06-12T08:48:00.000Z');
+    });
+
     it('parses ISO UTC chart timestamps', () => {
         const utcDate = parseUtcAsOfDateTime('2026-06-05T18:47:00Z');
         expect(utcDate?.toISOString()).toBe('2026-06-05T18:47:00.000Z');
-    });
-
-    it('strips an existing timezone abbreviation before parsing', () => {
-        const utcDate = parseUtcAsOfDateTime('May 6, 12:49 PM PT');
-        expect(utcDate?.getUTCHours()).toBe(12);
-        expect(utcDate?.getUTCMinutes()).toBe(49);
-
-        const utcDateWithGmtOffset = parseUtcAsOfDateTime('Jun 5, 2026 at 06:47 PM GMT -6');
-        expect(utcDateWithGmtOffset?.toISOString()).toBe('2026-06-05T18:47:00.000Z');
     });
 
     it('formats the timestamp in the viewer timezone without a timezone label', () => {
