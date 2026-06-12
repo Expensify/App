@@ -92,7 +92,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
         });
-    }, [personalDetails, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports]);
+    }, [personalDetails, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports, isTrackIntentUser]);
 
     /**
      * This effect is responsible for generating the options list when their data is not yet initialized
