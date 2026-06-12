@@ -47,4 +47,4 @@ function getLocalizedVictoryChartLabelText(text: string, timezone?: SelectedTime
     return `As of: ${localizedDate}`;
 }
 
-export {AS_OF_LABEL_PATTERN, getLocalizedVictoryChartLabelText, parseDateAsUTC};
+export {getLocalizedVictoryChartLabelText, parseDateAsUTC};
