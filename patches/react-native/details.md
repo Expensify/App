@@ -286,7 +286,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/92413
 - PR introducing patch: https://github.com/Expensify/App/pull/92918
 
-### [react-native+0.83.1+038+nested-text-border-radius.patch](react-native+0.83.1+038+nested-text-border-radius.patch)
+### [react-native+0.83.1+039+nested-text-border-radius.patch](react-native+0.83.1+039+nested-text-border-radius.patch)
 
 - Reason:
 
