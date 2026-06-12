@@ -3123,7 +3123,48 @@ describe('PolicyUtils', () => {
                 expect(findVendorByID(policy, 'iv-1')).toEqual({id: 'iv-1', name: 'Acme Intacct', currency: '', email: ''});
             });
 
-            it('resolves the QBO vendor first when both QBO and Intacct hold an entry with the same ID', () => {
+            it('prefers the active Intacct integration over stale QBO data when both hold the same vendor ID', () => {
+                // Workspace state: QBO connected but in Vendor Bill mode (not vendor-matching),
+                // Intacct connected in Credit Card Charge mode (the active matching integration).
+                // Both happen to carry a vendor with the same external ID. The selector wrote the
+                // Intacct vendor, so the display lookup must return the Intacct name, not the
+                // stale QBO one.
+                const intacctPolicy = buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE, [{id: 'shared', name: 'V001', value: 'Intacct Name'}]);
+                const policy = {
+                    ...intacctPolicy,
+                    connections: {
+                        ...intacctPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                            data: {vendors: [{id: 'shared', name: 'QBO Stale Name', currency: 'USD'}]},
+                        },
+                    },
+                } as Policy;
+                expect(findVendorByID(policy, 'shared')).toEqual({id: 'shared', name: 'Intacct Name', currency: '', email: ''});
+            });
+
+            it('prefers the active QBO integration over stale Intacct data when both hold the same vendor ID', () => {
+                // Symmetric to the prior case: QBO is the active matching integration, Intacct has
+                // lingering data from a prior config. QBO wins.
+                const qboPolicy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [{id: 'shared', name: 'QBO Name', currency: 'USD'}]);
+                const policy = {
+                    ...qboPolicy,
+                    connections: {
+                        ...qboPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL}},
+                            data: {vendors: [{id: 'shared', name: 'V001', value: 'Intacct Stale Name'}]},
+                        },
+                    },
+                } as Policy;
+                expect(findVendorByID(policy, 'shared')).toEqual({id: 'shared', name: 'QBO Name', currency: 'USD'});
+            });
+
+            it('falls back to QBO data first when neither integration is in vendor-matching mode and both hold the same vendor ID (historical lookup)', () => {
+                // Workspace state: admin switched both integrations away from vendor-matching mode
+                // after a vendor was set on a historical transaction. The display must still
+                // resolve to *a* vendor name; pick the QBO entry first to match `getMatchingVendors`'
+                // QBO-first tie-break.
                 const qboPolicy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL, [{id: 'shared', name: 'QBO Name', currency: 'USD'}]);
                 const policy = {
                     ...qboPolicy,

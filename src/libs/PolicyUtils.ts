@@ -2109,16 +2109,23 @@ function getMatchingVendorByID(policy: OnyxEntry<Policy>, vendorID: string | und
 }
 
 /**
- * Resolve a stored vendor ID to a display vendor, searching across every connection that may hold
- * vendor data (currently QBO and Intacct) without gating on the active export mode. Use this for
- * historical lookups — rendering a vendor name stored on a past transaction or modified-expense
- * action — so the display stays correct after an admin switches the workspace's non-reimbursable
- * export mode away from the vendor-matching mode. Use `getMatchingVendorByID` instead when the
- * caller is enforcing the active-integration scope (e.g. the inactive-vendor violation check).
+ * Resolve a stored vendor ID to a display vendor. Prefers the active vendor-matching integration
+ * (delegating to `getMatchingVendors`) so a freshly-selected vendor in the dual-connected state
+ * never gets overshadowed by a stale entry with the same ID on the inactive integration. Falls
+ * back to a permissive search across every connection's vendor data (QBO then Intacct) so
+ * historical lookups keep working after an admin switches the workspace's non-reimbursable export
+ * mode away from the vendor-matching mode — rendering a vendor name stored on a past transaction
+ * or modified-expense action must not regress to the raw external ID. Use `getMatchingVendorByID`
+ * instead when the caller is enforcing the active-integration scope (e.g. the inactive-vendor
+ * violation check).
  */
 function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
     if (!policy || !vendorID) {
         return undefined;
+    }
+    const activeMatch = getMatchingVendors(policy).find((vendor) => vendor.id === vendorID);
+    if (activeMatch) {
+        return activeMatch;
     }
     const qboVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
     if (qboVendor) {

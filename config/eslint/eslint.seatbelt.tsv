@@ -1866,7 +1866,7 @@
 "../../tests/unit/PersonalDetailsSelectorTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/PolicyChangeLogContentTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/PolicySelectorTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	21
-"../../tests/unit/PolicyUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	109
+"../../tests/unit/PolicyUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	111
 "../../tests/unit/PopoverMenuV2Test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/PressResponderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/QuickActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
