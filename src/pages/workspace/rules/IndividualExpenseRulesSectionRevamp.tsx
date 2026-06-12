@@ -123,8 +123,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.requireFieldsForAllExpenses'),
             description: requiredFieldsList,
             icon: icons.Task,
-            // TODO: Navigate to a dedicated RHP page for required fields
-            action: () => {},
+            action: () => Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS.getRoute(policyID)),
         },
     ];
 

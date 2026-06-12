@@ -7246,6 +7246,12 @@ const translations = {
                 requireAboveAmount: 'Require above amount',
                 saveRule: 'Save rule',
             },
+            requireFields: {
+                title: 'Require fields for all expenses',
+                category: 'Category',
+                tag: 'Tag',
+                save: 'Save',
+            },
             individualExpenseRules: {
                 title: 'Expenses',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

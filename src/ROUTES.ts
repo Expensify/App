@@ -3147,6 +3147,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/require-receipts',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-receipts` as const,
     },
+    RULES_REQUIRE_FIELDS: {
+        route: 'workspaces/:policyID/rules/require-fields',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields` as const,
+    },
     RULES_MAX_EXPENSE_AMOUNT: {
         route: 'workspaces/:policyID/rules/max-expense-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/max-expense-amount` as const,

@@ -1471,6 +1471,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_REQUIRE_RECEIPTS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
         policyID: string;
     };

@@ -1,0 +1,114 @@
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import Button from '@components/Button';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import useLocalize from '@hooks/useLocalize';
+import usePolicyData from '@hooks/usePolicyData';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
+import {clearPolicyErrorField} from '@userActions/Policy/Policy';
+import {setPolicyRequiresTag} from '@userActions/Policy/Tag';
+import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
+
+type RulesRequireFieldsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS>;
+
+function RulesRequireFieldsPage({
+    route: {
+        params: {policyID},
+    },
+}: RulesRequireFieldsPageProps) {
+    const policyData = usePolicyData(policyID);
+    const {policy} = policyData;
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    const initialCategoryRequired = !!policy?.requiresCategory;
+    const initialTagRequired = !!policy?.requiresTag;
+
+    const [categoryRequired, setCategoryRequired] = useState(initialCategoryRequired);
+    const [tagRequired, setTagRequired] = useState(initialTagRequired);
+
+    const hasChanges = useMemo(
+        () => categoryRequired !== initialCategoryRequired || tagRequired !== initialTagRequired,
+        [categoryRequired, initialCategoryRequired, tagRequired, initialTagRequired],
+    );
+
+    const handleSave = useCallback(() => {
+        if (categoryRequired !== initialCategoryRequired) {
+            setWorkspaceRequiresCategory(policyData, categoryRequired);
+        }
+        if (tagRequired !== initialTagRequired) {
+            setPolicyRequiresTag(policyData, tagRequired);
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+    }, [categoryRequired, initialCategoryRequired, tagRequired, initialTagRequired, policyData]);
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
+        >
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
+                testID={RulesRequireFieldsPage.displayName}
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.rules.requireFields.title')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <ScrollView
+                    style={[styles.flexGrow1]}
+                    contentContainerStyle={[styles.ph5, styles.pb5]}
+                    addBottomSafeAreaPadding
+                >
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.rules.requireFields.category')}
+                        switchAccessibilityLabel={translate('workspace.rules.requireFields.category')}
+                        shouldPlaceSubtitleBelowSwitch
+                        wrapperStyle={styles.pv3}
+                        isActive={categoryRequired}
+                        pendingAction={policy?.pendingFields?.requiresCategory}
+                        errors={policy?.errorFields?.requiresCategory ?? undefined}
+                        onCloseError={() => clearPolicyErrorField(policyID, 'requiresCategory')}
+                        onToggle={setCategoryRequired}
+                    />
+
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.rules.requireFields.tag')}
+                        switchAccessibilityLabel={translate('workspace.rules.requireFields.tag')}
+                        shouldPlaceSubtitleBelowSwitch
+                        wrapperStyle={styles.pv3}
+                        isActive={tagRequired}
+                        pendingAction={policy?.pendingFields?.requiresTag}
+                        errors={policy?.errorFields?.requiresTag ?? undefined}
+                        onCloseError={() => clearPolicyErrorField(policyID, 'requiresTag')}
+                        onToggle={setTagRequired}
+                    />
+                </ScrollView>
+                <View style={[styles.ph5, styles.pb5]}>
+                    <Button
+                        success
+                        large
+                        text={translate('workspace.rules.requireFields.save')}
+                        onPress={handleSave}
+                        isDisabled={!hasChanges}
+                    />
+                </View>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+RulesRequireFieldsPage.displayName = 'RulesRequireFieldsPage';
+
+export default RulesRequireFieldsPage;
