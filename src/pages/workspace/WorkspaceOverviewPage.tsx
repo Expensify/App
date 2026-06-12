@@ -398,7 +398,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         const prevIsPendingDeleteValue = prevIsPendingDeleteRef.current;
         prevIsPendingDeleteRef.current = isPendingDelete;
 
-        const policyLastErrorMessagePrompt = (
+        const policyLastErrorMessagePrompt = !!policyLastErrorMessage && (
             <RenderHTML
                 html={policyLastErrorMessage}
                 onConciergeLinkPress={() => {
