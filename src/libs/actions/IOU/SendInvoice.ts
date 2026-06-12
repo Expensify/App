@@ -9,8 +9,8 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
