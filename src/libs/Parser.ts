@@ -57,6 +57,9 @@ class ExpensiMarkWithContext extends ExpensiMark {
     }
 
     htmlToText(htmlString: string, extras?: Extras): string {
+        if (!htmlString) {
+            return '';
+        }
         return super.htmlToText(htmlString, {
             reportIDToName: extras?.reportIDToName ?? reportIDToNameMap,
             accountIDToName: extras?.accountIDToName ?? accountIDToNameMap,
