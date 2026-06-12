@@ -48,7 +48,7 @@ function DatePickerModal({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const shouldHideInPlace = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
+    const isDesktopWeb = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
     const isYearSelectorOpen = useIsYearSelectorOpen();
 
     useEffect(() => {
@@ -72,7 +72,7 @@ function DatePickerModal({
             anchorRef={anchorRef}
             // While the year-selector route is focused (wide-screen hide-in-place), hide the whole popover frame —
             // not just the inner CalendarPicker — so the year-selector RHP isn't painted over the date popover.
-            isVisible={isVisible && !(shouldHideInPlace && isYearSelectorOpen)}
+            isVisible={isVisible && !(isDesktopWeb && isYearSelectorOpen)}
             onClose={onClose}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
@@ -96,7 +96,7 @@ function DatePickerModal({
                 onSelected={handleDateSelection}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
                 pickerContextID={`datePicker-${inputID}`}
-                shouldCloseModalOnYearPickerOpen={!shouldHideInPlace}
+                shouldCloseModalOnYearPickerOpen={!isDesktopWeb}
             />
         </PopoverWithMeasuredContent>
     );
