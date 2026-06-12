@@ -272,22 +272,6 @@ describe('addRootHistoryRouterExtension', () => {
         expect(result).toBeNull();
     });
 
-    it('getStateForAction returns the same reference when the base router returns its input unchanged (blocked/no-op action)', () => {
-        // Rehydrating a no-op result would leak a state event for an action a navigation guard vetoed
-        const factory = createMockRouterFactory((state) => state);
-        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
-
-        const state = makeState([makeRoute('ScreenA', 'a-1'), makeRoute('ScreenB', 'b-1')]);
-
-        const action: RootStackNavigatorAction = {
-            type: 'RESET',
-            payload: state,
-        };
-
-        const result = enhancedRouter.getStateForAction(state, action, CONFIG_OPTIONS);
-        expect(result).toBe(state);
-    });
-
     describe('reveal protocol (REPLACE_FULLSCREEN_UNDER_RHP + DISMISS_MODAL)', () => {
         // Helper that builds a router whose actionHandler implements the minimum shape of the
         // reveal protocol: REPLACE swaps the under-modal route, DISMISS pops the top route,

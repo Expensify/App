@@ -16,24 +16,6 @@ jest.mock('@hooks/useBeforeRemove', () => ({
     },
 }));
 
-jest.mock('@react-navigation/native', () => ({
-    useRoute: () => ({key: 'route-1', name: 'TestScreen'}),
-}));
-
-type MockRegisteredDiscardScreen = {
-    hasUnsavedChanges: () => boolean;
-    onBlocked: (action: {type: string}) => void;
-};
-
-let mockRegisteredScreen: MockRegisteredDiscardScreen | undefined;
-const mockUnregisterDiscardScreen = jest.fn();
-jest.mock('@libs/Navigation/guards/DiscardChangesGuard', () => ({
-    registerDiscardChangesScreen: (routeKey: string, screen: MockRegisteredDiscardScreen) => {
-        mockRegisteredScreen = screen;
-        return mockUnregisterDiscardScreen;
-    },
-}));
-
 const mockShowConfirmModal = jest.fn();
 const mockCloseModal = jest.fn();
 jest.mock('@hooks/useConfirmModal', () => ({
@@ -123,7 +105,6 @@ describe('useDiscardChangesConfirmation (web)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockBeforeRemoveCallback = undefined;
-        mockRegisteredScreen = undefined;
         resolveModal = undefined;
         historyGoSpy = jest.spyOn(window.history, 'go').mockImplementation(() => {});
         mockShowConfirmModal.mockImplementation(
@@ -186,6 +167,26 @@ describe('useDiscardChangesConfirmation (web)', () => {
 
             expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'RESET'});
             expect(historyGoSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it('lets the confirmed re-dispatch through without re-blocking it', async () => {
+            renderDiscardHook(() => true);
+
+            invokeBeforeRemove('RESET');
+            dispatchPopstate();
+            dispatchPopstate();
+
+            let redeliveredEvent: MockBeforeRemoveEvent | undefined;
+            mockNavigationDispatch.mockImplementation(() => {
+                redeliveredEvent = createBeforeRemoveEvent('RESET');
+                mockBeforeRemoveCallback?.(redeliveredEvent);
+            });
+
+            await resolveModalWith('CONFIRM');
+
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'RESET'});
+            expect(redeliveredEvent?.defaultPrevented).toBe(false);
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
 
         it('starts a fresh flow after cancelling', async () => {
@@ -259,106 +260,6 @@ describe('useDiscardChangesConfirmation (web)', () => {
 
             expect(event.defaultPrevented).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('browser back blocked by DiscardChangesGuard (focus change)', () => {
-        const invokeGuardBlocked = () => {
-            act(() => {
-                mockRegisteredScreen?.onBlocked({type: 'RESET'});
-            });
-        };
-
-        it('registers the screen on mount and unregisters on unmount', () => {
-            const {unmount} = renderDiscardHook(() => true);
-
-            expect(mockRegisteredScreen).toBeDefined();
-
-            unmount();
-
-            expect(mockUnregisterDiscardScreen).toHaveBeenCalledTimes(1);
-        });
-
-        it('shows a single modal and restores the URL once', () => {
-            renderDiscardHook(() => true);
-
-            invokeGuardBlocked();
-
-            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-
-            dispatchPopstate();
-
-            expect(historyGoSpy).toHaveBeenCalledTimes(1);
-            expect(historyGoSpy).toHaveBeenCalledWith(1);
-
-            dispatchPopstate();
-
-            expect(historyGoSpy).toHaveBeenCalledTimes(1);
-            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        });
-
-        it('reports the screen as clean while the confirmed action re-dispatches', async () => {
-            renderDiscardHook(() => true);
-
-            invokeGuardBlocked();
-            dispatchPopstate();
-            dispatchPopstate();
-
-            expect(mockRegisteredScreen?.hasUnsavedChanges()).toBe(true);
-
-            let dirtyDuringDispatch: boolean | undefined;
-            mockNavigationDispatch.mockImplementation(() => {
-                dirtyDuringDispatch = mockRegisteredScreen?.hasUnsavedChanges();
-            });
-
-            await resolveModalWith('CONFIRM');
-
-            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'RESET'});
-            expect(dirtyDuringDispatch).toBe(false);
-            expect(mockRegisteredScreen?.hasUnsavedChanges()).toBe(true);
-        });
-
-        it('restores the URL and dismisses the prompt as Cancel without stacking a second modal when blocked while it is open', () => {
-            renderDiscardHook(() => true);
-
-            invokeGuardBlocked();
-            dispatchPopstate();
-            dispatchPopstate();
-
-            // e.g. another browser back while the modal is open
-            invokeGuardBlocked();
-            dispatchPopstate();
-
-            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-            expect(historyGoSpy).toHaveBeenCalledTimes(2);
-            expect(historyGoSpy).toHaveBeenNthCalledWith(2, 1);
-            expect(mockCloseModal).toHaveBeenCalledTimes(1);
-        });
-
-        it('cancelling a block without a popstate (programmatic reset) leaves later popstate events untouched', async () => {
-            renderDiscardHook(() => true);
-
-            invokeGuardBlocked();
-            await resolveModalWith('CLOSE');
-
-            dispatchPopstate();
-
-            expect(historyGoSpy).not.toHaveBeenCalled();
-            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        });
-
-        it('cancel clears the blocked action so a later unrelated popstate does nothing', async () => {
-            renderDiscardHook(() => true);
-
-            invokeGuardBlocked();
-            dispatchPopstate();
-            dispatchPopstate();
-            await resolveModalWith('CLOSE');
-
-            dispatchPopstate();
-
-            expect(historyGoSpy).toHaveBeenCalledTimes(1);
-            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
     });
 

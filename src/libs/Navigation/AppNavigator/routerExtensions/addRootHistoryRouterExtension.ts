@@ -81,12 +81,6 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
                 return null;
             }
 
-            // A same-reference result is the router's no-op signal (e.g. a navigation guard vetoed the action): `useOnAction` skips
-            // `setState` only on reference equality, so rehydrating it would leak a state event (and a browser history sync) for nothing.
-            if (newState === state) {
-                return state;
-            }
-
             // REPLACE: capture pending reveal + freeze history (intermediate frame; useLinking historyDelta=0).
             if (isReplaceFullscreenUnderRHPAction(action)) {
                 const result = getFrozenHistoryStateForReplaceFullscreenUnderRHP(state, newState, configOptions, pendingReveal, rehydrate);

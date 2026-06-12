@@ -1,5 +1,4 @@
 import type {NavigationAction} from '@react-navigation/native';
-import {useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
@@ -7,14 +6,12 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
-import {registerDiscardChangesScreen} from '@libs/Navigation/guards/DiscardChangesGuard';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type UseDiscardChangesConfirmationOptions from './types';
 
 function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm}: UseDiscardChangesConfirmationOptions) {
-    const route = useRoute();
     const {translate} = useLocalize();
     const {showConfirmModal, closeModal} = useConfirmModal();
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
@@ -25,16 +22,12 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
     const shouldDismissModalOnRestore = useRef(false);
 
     const navigateBack = () => {
-        if (blockedNavigationAction.current) {
-            shouldNavigateBack.current = true;
-            navigationRef.current?.dispatch(blockedNavigationAction.current);
-            shouldNavigateBack.current = false;
+        if (!blockedNavigationAction.current) {
             return;
         }
-        if (!shouldNavigateBack.current) {
-            return;
-        }
-        navigationRef.current?.goBack();
+        shouldNavigateBack.current = true;
+        navigationRef.current?.dispatch(blockedNavigationAction.current);
+        shouldNavigateBack.current = false;
     };
 
     const showDiscardModal = () => {
@@ -107,37 +100,15 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
         navigateAfterInteraction(showDiscardModal);
     });
 
-    // Callbacks change every render, so stable consumers (the guard registration and the popstate listener) read them through refs
-    const getHasUnsavedChangesRef = useRef(getHasUnsavedChanges);
-    const showDiscardModalRef = useRef(showDiscardModal);
+    // `closeModal` changes every render, so the once-registered popstate listener reads it through a ref
     const closeModalRef = useRef(closeModal);
     useEffect(() => {
-        getHasUnsavedChangesRef.current = getHasUnsavedChanges;
-        showDiscardModalRef.current = showDiscardModal;
         closeModalRef.current = closeModal;
     });
 
-    // The guard vetoes a browser-back reset that would unfocus this screen (e.g. a tab switch) BEFORE the state commits, so local form state survives untouched
-    useEffect(
-        () =>
-            registerDiscardChangesScreen(route.key, {
-                hasUnsavedChanges: () => !shouldNavigateBack.current && getHasUnsavedChangesRef.current(),
-                onBlocked: (action) => {
-                    blockedNavigationAction.current = action;
-                    didPreventResetOnPopstate.current = true;
-                    if (isDiscardModalOpen.current) {
-                        shouldDismissModalOnRestore.current = true;
-                        return;
-                    }
-                    navigateAfterInteraction(() => showDiscardModalRef.current());
-                },
-            }),
-        [route.key],
-    );
-
     /**
-     * Browser back is blocked before the state commits (removed routes via the patched `beforeRemove`, focus changes via `DiscardChangesGuard`),
-     * but the browser entry has already moved — this listener restores it with `history.go(1)`, and dismisses the prompt as Cancel when the back happened over it.
+     * Browser back is blocked by the patched `beforeRemove` before the state commits, but the browser entry has
+     * already moved — this listener restores it with `history.go(1)`, and dismisses the prompt as Cancel when the back happened over it.
      */
     useEffect(() => {
         // Register exactly once: re-registering on render would move this listener behind `withInternalPopstate`'s one-shot flag reset, breaking the internal-popstate detection
