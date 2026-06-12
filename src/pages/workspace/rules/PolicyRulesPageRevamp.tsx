@@ -24,6 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
+import Tab from '@libs/actions/Tab';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -74,7 +75,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
 
-    const [activeTab, setActiveTab] = useState<RulesTab>(RULES_TAB.GENERAL);
+    const [lastSelectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RULES_TAB_TYPE}`);
+    const lastSelectedTabStr = lastSelectedTab as string | undefined;
+    const activeTab: RulesTab = lastSelectedTabStr && isRulesTab(lastSelectedTabStr) ? lastSelectedTabStr : RULES_TAB.GENERAL;
     const [selectedSpendRuleKeys, setSelectedSpendRuleKeys] = useState<string[]>([]);
 
     const {showConfirmModal} = useConfirmModal();
@@ -312,7 +315,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                 if (!isRulesTab(key)) {
                                     return;
                                 }
-                                setActiveTab(key);
+                                Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
                             }}
                         />
                     </View>

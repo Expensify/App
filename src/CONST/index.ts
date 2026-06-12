@@ -5913,6 +5913,7 @@ const CONST = {
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
         DISTANCE_EDIT_TYPE: 'distanceEditType',
         SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
+        RULES_TAB_TYPE: 'rulesTabType',
         SPLIT: {
             AMOUNT: 'amount',
             PERCENTAGE: 'percentage',
