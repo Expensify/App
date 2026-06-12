@@ -40,6 +40,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -108,7 +109,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Seleção múltipla',
         saveChanges: 'Salvar alterações',
         submit: 'Enviar',
+        markAsDone: 'Marcar como concluído',
         submitted: 'Enviado',
+        markedAsDoneStatus: 'Marcado como concluído',
         rotate: 'Girar',
         zoom: 'Zoom',
         password: 'Senha',
@@ -293,7 +296,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Descrição',
         title: 'Título',
         assignee: 'Responsável',
-        createdBy: 'Criado por',
         with: 'com',
         shareCode: 'Compartilhar código',
         share: 'Compartilhar',
@@ -314,6 +316,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: 'Estabelecimento',
         change: 'Alterar',
         category: 'Categoria',
+        vendor: 'Fornecedor',
         report: 'Relatório',
         billable: 'Faturável',
         nonBillable: 'Não faturável',
@@ -355,6 +358,10 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Encontre um chat usando o',
             subtitleText2: 'botão acima ou crie algo usando o',
             subtitleText3: 'botão abaixo.',
+            noUnreadChats: 'Nenhum chat não lido',
+            noTodos: 'Nenhuma tarefa pendente',
+            caughtUp: 'Você está em dia. Muito bem!',
+            seeAllChats: 'Ver todas as conversas',
         },
         businessName: 'Nome da empresa',
         clear: 'Limpar',
@@ -852,6 +859,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Este chat é com ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `É aqui que <strong>${submitterDisplayName}</strong> enviará despesas para <strong>${workspaceName}</strong>. Basta usar o botão +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'É aqui que você vai acompanhar as despesas',
         beginningOfChatHistorySelfDM: 'Este é o seu espaço pessoal. Use-o para anotações, tarefas, rascunhos e lembretes.',
         beginningOfChatHistorySystemDM: 'Bem-vindo(a)! Vamos fazer a sua configuração.',
         chatWithAccountManager: 'Converse com seu gerente de conta aqui',
@@ -1012,6 +1020,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Tudo em dia',
                 f1FlagsDescription: 'Você concluiu todas as tarefas pendentes.',
             },
+            reviewExpenses: ({count}: {count: number}) => `Revisar ${count} ${count === 1 ? 'despesa' : 'despesas'}`,
         },
         upcomingTravel: 'Próximas viagens',
         upcomingTravelSection: {
@@ -1347,6 +1356,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `Enviar fatura de ${amount}`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `para ${comment}` : ''}`,
         submitted: (memo?: string) => `enviado${memo ? `, dizendo ${memo}` : ''}`,
+        markedAsDone: (memo) => `marcado como concluído${memo ? `, dizendo ${memo}` : ''}`,
         automaticallySubmitted: `enviado via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">atrasar envios</a>`,
         queuedToSubmitViaDEW: 'na fila para enviar via fluxo de aprovação personalizado',
         queuedToApproveViaDEW: 'na fila para aprovar via fluxo de aprovação personalizado',
@@ -1558,6 +1568,9 @@ const translations: TranslationDeepObject<typeof en> = {
         removed: 'removido',
         transactionPending: 'Transação pendente.',
         chooseARate: 'Selecione uma taxa de reembolso do espaço de trabalho por milha ou quilômetro',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} a ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Válido a partir de ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Válido até ${endDate}`,
         unapprove: 'Reprovar',
         unapproveReport: 'Rejeitar relatório',
         headsUp: 'Atenção!',
@@ -1658,6 +1671,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Corrija o erro de taxa e tente novamente.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explicar<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge associou esta despesa ao fornecedor <strong>${vendorName}</strong>`,
         duplicateNonDefaultWorkspacePerDiemError: 'Você não pode duplicar despesas de diárias entre espaços de trabalho porque as tarifas podem variar entre eles.',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcou a despesa como "reembolsável"' : 'marcou a despesa como “não reembolsável”'),
@@ -1783,6 +1797,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Aguardando <strong>${actor}</strong> enviar as despesas.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Aguardando um administrador enviar as despesas.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Aguardando <strong>você</strong> marcar como concluído.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Aguardando <strong>${actor}</strong> marcar como concluído.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Aguardando um administrador marcar como concluído.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2586,13 +2615,10 @@ ${amount} para ${merchant} - ${date}`,
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `despesas de ${members}, e o aprovador é ${approvers}`,
         addApprovalButton: 'Adicionar fluxo de aprovação',
         editWorkflowAction: 'Editar',
-        addAgentAction: 'Adicionar agente',
         findWorkflow: 'Buscar fluxo de trabalho',
         addApprovalTip: 'Este fluxo de trabalho padrão se aplica a todos os membros, a menos que exista um fluxo de trabalho mais específico.',
         approver: 'Aprovador',
         addApprovalsDescription: 'Exigir aprovação adicional antes de autorizar um pagamento.',
-        automateApprovalsWithAgentsTitle: 'Automatize aprovações com agentes',
-        automateApprovalsWithAgentsSubtitle: 'Adicione o agente abaixo ao fluxo de trabalho para automatizar as aprovações.',
         makeOrTrackPaymentsTitle: 'Pagamentos',
         makeOrTrackPaymentsDescription: 'Adicione um pagador autorizado para pagamentos feitos no Expensify ou acompanhe pagamentos feitos em outros lugares.',
         customApprovalWorkflowEnabled:
@@ -2888,6 +2914,12 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: 'Bem-vindo ao modo #focus!',
+        prompt: (priorityModePageUrl: string) =>
+            `Fique no controle vendo apenas chats não lidos ou que precisam da sua atenção. Não se preocupe, você pode mudar isso a qualquer momento em <a href="${priorityModePageUrl}">configurações</a>.`,
+    },
+    inboxTabs: {all: 'Todos', todo: 'Pendências', unread: 'Não lidas'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `em ${policyName}`,
         generatingPDF: 'Gerar PDF',
@@ -3447,11 +3479,6 @@ ${amount} para ${merchant} - ${date}`,
     yearPickerPage: {
         year: 'Ano',
         selectYear: 'Selecione um ano',
-    },
-    focusModeUpdateModal: {
-        title: 'Bem-vindo ao modo #focus!',
-        prompt: (priorityModePageUrl: string) =>
-            `Mantenha tudo sob controle vendo apenas os chats não lidos ou que precisam da sua atenção. Não se preocupe, você pode alterar isso a qualquer momento em <a href="${priorityModePageUrl}">configurações</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'O chat que você está procurando não foi encontrado.',
@@ -6663,6 +6690,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             }),
             enableRate: 'Ativar tarifa',
             status: 'Status',
+            statusActive: 'Ativo',
+            statusFuture: 'Futuro',
+            statusExpired: 'Expirado',
+            statusInactive: 'Inativo',
             unit: 'Unidade',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Os impostos precisam estar ativados no workspace para usar este recurso. Vá até <a href="#">Mais recursos</a> para fazer essa alteração.</muted-text>',
@@ -7318,6 +7349,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 deleteRuleConfirmation: 'Tem certeza de que quer excluir esta regra?',
                 describeRuleTitle: 'Descreva sua regra',
                 describeRuleSubtitle: 'Descreva sua regra e a Concierge vai criá-la',
+                disclaimer: 'Os agentes de IA podem cometer erros.',
             },
         },
         planTypePage: {
@@ -7991,22 +8023,20 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `alterou a alíquota de imposto padrão da categoria "${categoryName}" para "${newTax}" (antes "${oldTax}")`,
         addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `adicionou a taxa "${rateName}" de ${rateValue}`,
         addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) =>
             `adicionou a taxa "${rateName}" de ${rateValue}, válida a partir de ${startDate}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `adicionou a taxa "${rateName}" de ${rateValue}, válida até ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `adicionou a tarifa "${rateName}" de ${rateValue}, válida de ${startDate} a ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `atualizou a data de início da tarifa "${rateName}" para ${newDate} (antes ${oldDate})` : `definir data de início da tarifa "${rateName}" para ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `atualizou a data de término da tarifa "${rateName}" para ${newDate} (antes ${oldDate})` : `definir data de término da tarifa "${rateName}" para ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `atualizou a data de início e término da tarifa "${rateName}" para ${newStartDate} - ${newEndDate} (antes ${oldStartDate} - ${oldEndDate})`
-                : `define a data de início e de término da tarifa "${rateName}" para ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `removeu a data de início da tarifa "${rateName}" (antes ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `removeu a data de término da tarifa "${rateName}" (anteriormente ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `atualizou a taxa de distância "${rateName}" para se aplicar a ${newDateRange} (anteriormente ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `de ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `até ${date}`,
+        customUnitRateDateRangeAllDates: () => `para todas as datas`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -9342,6 +9372,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Como <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copiloto</a> de ${accountOwnerEmail}, você não tem permissão para realizar esta ação. Desculpe!`,
+        removeCopilotAccess: 'Remover meu acesso de copiloto',
+        removeCopilotAccessTitle: 'Remover acesso de copiloto?',
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `Tem certeza de que deseja remover seu acesso de copiloto à conta Expensify de ${delegatorName}? Esta ação não pode ser desfeita.`,
+        removeCopilotAccessConfirm: 'Remover acesso',
         copilotAccess: 'Acesso ao Copilot',
     },
     debug: {
