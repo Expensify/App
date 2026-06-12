@@ -46,7 +46,13 @@ type WorkspaceMembersRoleData = {
 };
 
 function shouldBeInPolicyAdminsRoom(role: string | undefined): boolean {
-    return role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.CARD_ADMIN || role === CONST.POLICY.ROLE.EDITOR;
+    return (
+        role === CONST.POLICY.ROLE.ADMIN ||
+        role === CONST.POLICY.ROLE.CARD_ADMIN ||
+        role === CONST.POLICY.ROLE.PEOPLE_ADMIN ||
+        role === CONST.POLICY.ROLE.PAYMENTS_ADMIN ||
+        role === CONST.POLICY.ROLE.EDITOR
+    );
 }
 
 let allReportActions: OnyxCollection<ReportActions>;
