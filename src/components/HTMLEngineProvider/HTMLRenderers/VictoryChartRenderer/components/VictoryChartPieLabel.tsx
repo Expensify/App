@@ -3,6 +3,7 @@ import React from 'react';
 import type {PieSliceData} from 'victory-native';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import convertDegreeToRadian from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertDegreeToRadian';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartPieLabelIndicator from './VictoryChartPieLabelIndicator';
 
@@ -17,6 +18,7 @@ type VictoryChartPieLabelProps = {
     labelIndicatorStrokeWidth: number | undefined;
     labelIndicatorInnerOffset: number | undefined;
     labelIndicatorOuterOffset: number | undefined;
+    timezone: SelectedTimezone;
 };
 
 function VictoryChartPieLabel({
@@ -30,6 +32,7 @@ function VictoryChartPieLabel({
     labelIndicatorStrokeWidth,
     labelIndicatorInnerOffset,
     labelIndicatorOuterOffset,
+    timezone,
 }: VictoryChartPieLabelProps) {
     const midAngle = convertDegreeToRadian((slice.startAngle + slice.endAngle) / 2);
     const x = slice.center.x + (labelRadius ?? slice.radius) * Math.cos(midAngle);
@@ -58,7 +61,10 @@ function VictoryChartPieLabel({
                     labelIndicatorOuterOffset={labelIndicatorOuterOffset}
                 />
             )}
-            <VictoryChartLabel {...labelItem} />
+            <VictoryChartLabel
+                {...labelItem}
+                timezone={timezone}
+            />
         </>
     );
 }

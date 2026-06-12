@@ -6,13 +6,10 @@ import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface'
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';
 import {getLocalizedVictoryChartLabelText} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/localizeVictoryChartLabelText';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import DateUtils from '@libs/DateUtils';
-import CONST from '@src/CONST';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 type VictoryChartLabelsProps = LabelItem & {
-    timezone?: SelectedTimezone;
+    timezone: SelectedTimezone;
 };
 
 type ProcessedLine = {
@@ -28,10 +25,8 @@ type ProcessedLine = {
  * Renders floating Skia text labels (from `<victorylabel>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
-function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle', timezone: timezoneProp}: VictoryChartLabelsProps) {
+function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle', timezone}: VictoryChartLabelsProps) {
     const typefaces = useChartTypefaces();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const timezone = timezoneProp ?? DateUtils.getCurrentTimezone(currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE).selected;
     const displayText = getLocalizedVictoryChartLabelText(text, timezone);
     const processedLines = displayText.split('\n').reduce(
         (acc, line, index) => {

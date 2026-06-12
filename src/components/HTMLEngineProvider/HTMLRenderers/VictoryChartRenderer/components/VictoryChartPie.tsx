@@ -10,9 +10,13 @@ import type {PolarChartData} from '@components/HTMLEngineProvider/HTMLRenderers/
 import convertAngleToArcLength from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertAngleToArcLength';
 import {parseAttributeAsNumber, parseAttributeAsStringArray} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import VictoryChartPieLabel from './VictoryChartPieLabel';
 
-type VictoryChartPieProps = {tnode: TNode};
+type VictoryChartPieProps = {
+    tnode: TNode;
+    timezone: SelectedTimezone;
+};
 
 // Victory Chart's 0° angle is equivalent to 270° in Victory Native
 const START_ANGLE = 270;
@@ -21,7 +25,7 @@ const START_ANGLE = 270;
 const EVEN_SLICE_LABEL_RADIUS_FACTOR = 1;
 const ODD_SLICE_LABEL_RADIUS_FACTOR = 0.8;
 
-function VictoryChartPie({tnode}: VictoryChartPieProps) {
+function VictoryChartPie({tnode, timezone}: VictoryChartPieProps) {
     const {data, chartContainerStyles} = useVictoryChartContext();
     const renderEngine = useAmbientTRenderEngine();
     const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel', HTMLContentModel.textual);
@@ -74,6 +78,7 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
                                 labelIndicatorStrokeWidth={labelIndicatorStrokeWidth}
                                 labelIndicatorInnerOffset={labelIndicatorInnerOffset}
                                 labelIndicatorOuterOffset={labelIndicatorOuterOffset}
+                                timezone={timezone}
                             />
                         )}
                     </Pie.Slice>
