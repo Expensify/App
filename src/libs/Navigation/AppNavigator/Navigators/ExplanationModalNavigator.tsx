@@ -1,10 +1,8 @@
 import React from 'react';
-import CenteredModalLayout from '@components/CenteredModalLayout';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import ExplanationModalScreen from '@components/ExplanationModalScreen';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {ExplanationModalNavigatorParamList} from '@libs/Navigation/types';
-import {completeHybridAppOnboarding} from '@userActions/Welcome';
 import SCREENS from '@src/SCREENS';
 
 const Stack = createPlatformStackNavigator<ExplanationModalNavigatorParamList>();
@@ -12,14 +10,20 @@ const Stack = createPlatformStackNavigator<ExplanationModalNavigatorParamList>()
 function ExplanationModalNavigator() {
     return (
         <NoDropZone>
-            <CenteredModalLayout onBackdropPress={completeHybridAppOnboarding}>
-                <Stack.Navigator screenOptions={{headerShown: false}}>
-                    <Stack.Screen
-                        name={SCREENS.EXPLANATION_MODAL.ROOT}
-                        component={ExplanationModalScreen}
-                    />
-                </Stack.Navigator>
-            </CenteredModalLayout>
+            <Stack.Navigator
+                screenOptions={{
+                    headerShown: false,
+                    // The screen renders its own backdrop and bottom-docked card (CenteredModalLayout),
+                    // so it has to be transparent to let the root navigator's overlay show through.
+                    native: {contentStyle: {backgroundColor: 'transparent'}},
+                    web: {cardStyle: {backgroundColor: 'transparent'}},
+                }}
+            >
+                <Stack.Screen
+                    name={SCREENS.EXPLANATION_MODAL.ROOT}
+                    component={ExplanationModalScreen}
+                />
+            </Stack.Navigator>
         </NoDropZone>
     );
 }

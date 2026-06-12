@@ -6590,9 +6590,9 @@ const dynamicStyles = (theme: ThemeColors) =>
 
             return {
                 width: shouldUseNarrowLayout ? '100%' : (width ?? variables.featureTrainingModalWidth),
-                height: height ?? (shouldUseNarrowLayout ? '65%' : variables.featureTrainingModalHeight),
-                maxHeight: '100%',
-                paddingTop: shouldUseNarrowLayout ? 8 : undefined,
+                // No default height - the card hugs its content (children must have intrinsic height)
+                height,
+                maxHeight: '100%' as const,
                 borderRadius: variables.componentBorderRadiusLarge,
                 borderBottomRightRadius: borderBottomRadius,
                 borderBottomLeftRadius: borderBottomRadius,

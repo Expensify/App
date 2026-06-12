@@ -16,9 +16,7 @@ type CenteredModalLayoutProps = {
     /** Width of the inner card on wide layouts (defaults to featureTrainingModalWidth) */
     width?: number;
 
-    /**
-     * Height of the inner card. Defaults to '65%' on narrow and featureTrainingModalHeight on wide.
-     */
+    /** Width of the inner card on wide layout */
     height?: DimensionValue;
 
     /** Called when the backdrop is pressed, before navigating back */
