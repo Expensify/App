@@ -66,9 +66,9 @@ Use these best practices to ensure predictable results:
 
 ---
 
-## Examples of Workspace Merchant Rules
+# Examples of Workspace Merchant Rules
 
-**Standardize rideshare expenses**
+## Standardize rideshare expenses
 
 Use Workspace Merchant Rules to ensure rideshare expenses are always categorized the same way.
 
@@ -78,7 +78,7 @@ Examples:
 
 This helps keep travel reporting consistent across the workspace.
 
-**Automatically code SaaS and subscription expenses**
+## Automatically code SaaS and subscription expenses
 
 Use Workspace Merchant Rules to consistently code recurring software and subscription charges.
 
@@ -89,7 +89,7 @@ Examples:
 
 This is especially useful for marking subscription expenses as non-reimbursable.
 
-**Standardize merchant name variations**
+## Standardize merchant name variations
 
 Use Workspace Merchant Rules to normalize merchant names that appear with multiple variations (e.g., "Starbucks #1234", "Starbucks Store 5678").
 
@@ -99,7 +99,7 @@ Example:
 
 This improves reporting accuracy and reduces duplicate merchant entries.
 
-**Apply consistent coding for office supply purchases**
+## Apply consistent coding for office supply purchases
 
 Use Workspace Merchant Rules to apply specific categories, tags, or descriptions to office supply expenses.
 
