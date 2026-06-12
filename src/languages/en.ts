@@ -7376,6 +7376,15 @@ const translations = {
                 saveAnyway: 'Save anyway',
                 applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
             },
+            expenseDefaultsTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Condition',
+                tableColumnRule: 'Rule',
+                findRule: 'Find rule',
+                rename: 'Rename',
+                update: 'Update',
+                merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
+            },
             categoryRules: {
                 title: 'Category rules',
                 approver: 'Approver',

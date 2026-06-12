@@ -4,6 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
+import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseDefaultsTable';
+import WorkspaceExpenseDefaultsTable from '@components/Tables/WorkspaceExpenseDefaultsTable';
 import type {SpendRuleTableItem} from '@components/Tables/WorkspaceSpendRulesTable';
 import WorkspaceSpendRulesTable from '@components/Tables/WorkspaceSpendRulesTable';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
@@ -26,20 +28,25 @@ import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import Tab from '@libs/actions/Tab';
 import {dismissProductTraining} from '@libs/actions/Welcome';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
+import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import variables from '@styles/variables';
+import {clearPolicyCodingRuleErrors} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
+import type {CodingRule} from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AIRulesSection from './AIRulesSection';
 import IndividualExpenseRulesSectionRevamp from './IndividualExpenseRulesSectionRevamp';
-import MerchantRulesSection from './MerchantRulesSection';
 
 const RULES_TAB = {
     GENERAL: 'general',
@@ -79,6 +86,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const lastSelectedTabStr = lastSelectedTab as string | undefined;
     const activeTab: RulesTab = lastSelectedTabStr && isRulesTab(lastSelectedTabStr) ? lastSelectedTabStr : RULES_TAB.GENERAL;
     const [selectedSpendRuleKeys, setSelectedSpendRuleKeys] = useState<string[]>([]);
+    const [selectedExpenseDefaultKeys, setSelectedExpenseDefaultKeys] = useState<string[]>([]);
 
     const {showConfirmModal} = useConfirmModal();
     const defaultFundID = useDefaultFundID(policyID);
@@ -148,6 +156,73 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         return [defaultRule, ...customRules];
     }, [cardRules, policyID, translate, showBuiltInProtectionModal]);
 
+    const expenseDefaultsTableData: ExpenseDefaultTableItem[] = useMemo(() => {
+        const codingRules = policy?.rules?.codingRules;
+        if (isEmptyObject(codingRules)) {
+            return [];
+        }
+
+        const fieldLabels = {
+            category: translate('common.category').toLowerCase(),
+            tag: translate('common.tag').toLowerCase(),
+            description: translate('common.description').toLowerCase(),
+            tax: translate('common.tax').toLowerCase(),
+        };
+
+        return Object.entries(codingRules)
+            .filter(([, rule]) => !!rule)
+            .map(([ruleID, rule]: [string, CodingRule]) => {
+                const merchantName = rule.filters?.right ?? '';
+                const hasOnlyMerchantRename =
+                    !!rule.merchant && !rule.category && !rule.tag && !rule.comment && !rule.tax?.field_id_TAX?.value && rule.reimbursable === undefined && rule.billable === undefined;
+                const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
+
+                const actions: string[] = [];
+                if (rule.merchant) {
+                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleMerchant', rule.merchant));
+                }
+                if (rule.category) {
+                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.category, getDecodedCategoryName(rule.category)));
+                }
+                if (rule.tag) {
+                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tag, getCommaSeparatedTagNameWithSanitizedColons(rule.tag)));
+                }
+                if (rule.comment) {
+                    const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
+                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.description, commentMarkdown));
+                }
+                if (rule.tax?.field_id_TAX?.value) {
+                    actions.push(
+                        translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`),
+                    );
+                }
+                const ruleDescription = actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
+
+                return {
+                    keyForList: ruleID,
+                    ruleID,
+                    isRename: hasOnlyMerchantRename,
+                    typeLabel,
+                    conditionText: translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantName),
+                    ruleDescription,
+                    searchTokens: [merchantName, ruleDescription],
+                    pendingAction: rule.pendingAction,
+                    errors: rule.errors,
+                    onCloseError: () => clearPolicyCodingRuleErrors(policyID, ruleID, rule),
+                    disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    action: () => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID)),
+                };
+            })
+            .sort((a, b) => {
+                const ruleA = codingRules[a.ruleID];
+                const ruleB = codingRules[b.ruleID];
+                if (ruleA?.created && ruleB?.created) {
+                    return ruleA.created < ruleB.created ? 1 : -1;
+                }
+                return 0;
+            });
+    }, [policy?.rules?.codingRules, policyID, translate]);
+
     const fetchRules = useCallback(() => {
         openPolicyRulesPage(policyID);
     }, [policyID]);
@@ -211,18 +286,21 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled;
 
+    const emptyStateContainerStyle = [styles.alignItemsCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth), styles.overflowHidden];
+    const emptyStateIllustrationStyle = {
+        width: '100%' as const,
+        maxWidth: variables.cardRulesEmptyStateIllustrationWidth,
+        aspectRatio: variables.cardRulesEmptyStateIllustrationWidth / variables.cardRulesEmptyStateIllustrationHeight,
+    };
+
     const cardRulesEmptyState = useMemo(
         () => (
             <View style={[styles.flex1, styles.mh5, styles.mb5, styles.highlightBG, styles.tableBottomRadius, styles.alignItemsCenter, styles.justifyContentCenter, styles.pv8, styles.ph5]}>
-                <View style={[styles.alignItemsCenter, {maxWidth: variables.cardRulesEmptyStateMaxWidth}, styles.overflowHidden]}>
+                <View style={emptyStateContainerStyle}>
                     <ImageSVG
                         src={illustrations.ExpensifyCardCoins}
                         contentFit="contain"
-                        style={{
-                            width: '100%',
-                            maxWidth: variables.cardRulesEmptyStateIllustrationWidth,
-                            aspectRatio: variables.cardRulesEmptyStateIllustrationWidth / variables.cardRulesEmptyStateIllustrationHeight,
-                        }}
+                        style={emptyStateIllustrationStyle}
                     />
                     <Text style={[styles.textHeadlineH1, styles.mt5, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.title')}</Text>
                     <Text style={[styles.textLabel, styles.textSupporting, styles.mt2, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}</Text>
@@ -235,7 +313,34 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 </View>
             </View>
         ),
-        [illustrations.ExpensifyCardCoins, styles, translate, policyID],
+        [illustrations.ExpensifyCardCoins, styles, translate, policyID, emptyStateContainerStyle, emptyStateIllustrationStyle],
+    );
+
+    const expenseDefaultsEmptyState = useMemo(
+        () => (
+            <View style={[styles.flex1, styles.mh5, styles.mb5, styles.highlightBG, styles.tableBottomRadius, styles.alignItemsCenter, styles.justifyContentCenter, styles.pv8, styles.ph5]}>
+                <View style={emptyStateContainerStyle}>
+                    <ImageSVG
+                        src={illustrations.ExpensifyCardCoins}
+                        contentFit="contain"
+                        style={emptyStateIllustrationStyle}
+                    />
+                    <Text style={[styles.textHeadlineH1, styles.mt5, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.title')}</Text>
+                    <Text style={[styles.textLabel, styles.textSupporting, styles.mt2, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}</Text>
+                </View>
+            </View>
+        ),
+        [illustrations.ExpensifyCardCoins, styles, translate, emptyStateContainerStyle, emptyStateIllustrationStyle],
+    );
+
+    const renderExpenseDefaultsContent = () => (
+        <WorkspaceExpenseDefaultsTable
+            rulesData={expenseDefaultsTableData}
+            selectionEnabled={canWriteRules}
+            selectedKeys={selectedExpenseDefaultKeys}
+            onRowSelectionChange={setSelectedExpenseDefaultKeys}
+            emptyStateContent={expenseDefaultsEmptyState}
+        />
     );
 
     const renderCardRestrictionsContent = () => (
@@ -272,13 +377,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     </>
                 );
             case RULES_TAB.EXPENSE_DEFAULTS:
-                return (
-                    <MerchantRulesSection
-                        policyID={policyID}
-                        canWriteRules={canWriteRules}
-                        showReadOnlyModal={showReadOnlyModal}
-                    />
-                );
+                return null;
             default:
                 return null;
         }
@@ -293,7 +392,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         >
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
-                shouldUseScrollView={activeTab !== RULES_TAB.CARD_RESTRICTIONS}
+                shouldUseScrollView={activeTab === RULES_TAB.GENERAL}
                 headerText={translate('workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
@@ -304,9 +403,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 addBottomSafeAreaPadding
                 headerContent={getHeaderContent()}
             >
-                <View
-                    style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, activeTab === RULES_TAB.CARD_RESTRICTIONS && [styles.flex1, {maxWidth: '100%'}]]}
-                >
+                <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, activeTab !== RULES_TAB.GENERAL && [styles.flex1, {maxWidth: '100%'}]]}>
                     <View style={[styles.flexRow, styles.mb1]}>
                         <TabSelectorBase
                             tabs={tabs}
@@ -319,8 +416,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                             }}
                         />
                     </View>
-                    {activeTab !== RULES_TAB.CARD_RESTRICTIONS && renderTabContent()}
+                    {activeTab === RULES_TAB.GENERAL && renderTabContent()}
                     {activeTab === RULES_TAB.CARD_RESTRICTIONS && renderCardRestrictionsContent()}
+                    {activeTab === RULES_TAB.EXPENSE_DEFAULTS && renderExpenseDefaultsContent()}
                     {isCustomAgentBetaEnabled && !isRulesRevampEnabled && (
                         <AIRulesSection
                             policyID={policyID}
