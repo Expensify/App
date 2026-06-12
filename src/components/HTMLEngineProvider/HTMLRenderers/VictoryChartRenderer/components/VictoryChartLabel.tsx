@@ -1,6 +1,6 @@
 import {Skia, Text as SkText} from '@shopify/react-native-skia';
 import type {Color, SkFont} from '@shopify/react-native-skia';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
@@ -28,11 +28,9 @@ type ProcessedLine = {
 function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle'}: VictoryChartLabelsProps) {
     const typefaces = useChartTypefaces();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const viewerTimezone = useMemo(() => {
-        const timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
-        return DateUtils.getCurrentTimezone(timezone).selected;
-    }, [currentUserPersonalDetails?.timezone?.automatic, currentUserPersonalDetails?.timezone?.selected]);
-    const displayText = useMemo(() => getLocalizedAsOfVictoryChartLabelText(text, viewerTimezone), [text, viewerTimezone]);
+    const timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
+    const viewerTimezone = DateUtils.getCurrentTimezone(timezone).selected;
+    const displayText = getLocalizedAsOfVictoryChartLabelText(text, viewerTimezone);
     const processedLines = displayText.split('\n').reduce(
         (acc, line, index) => {
             const lineColor = color?.[index];
