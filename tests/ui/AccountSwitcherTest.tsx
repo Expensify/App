@@ -25,30 +25,19 @@ jest.mock('@components/ProductTrainingContext', () => ({
     }),
 }));
 
-// ReanimatedModal calls onModalHide via the native Modal's onDismiss callback,
-// which doesn't fire in tests because animations are disabled.
-// This mock renders visible modal content synchronously instead.
+// ReanimatedModal animates its content in, which doesn't work in tests because
+// animations are disabled. This mock renders visible modal content synchronously instead.
 jest.mock('@components/Modal/ReanimatedModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {useEffect, useRef, createElement, Fragment}: typeof React = require('react');
+    const {createElement, Fragment}: typeof React = require('react');
 
-    function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
-        const wasVisible = useRef<boolean>(isVisible);
-
-        useEffect(() => {
-            if (wasVisible.current && !isVisible) {
-                onModalHide?.();
-            }
-            wasVisible.current = isVisible;
-        }, [isVisible, onModalHide]);
-
+    function MockReanimatedModal({isVisible, children}: {isVisible: boolean; children: React.ReactNode}) {
         if (!isVisible) {
             return null;
         }
 
         return createElement(Fragment, null, children);
     }
-    MockReanimatedModal.displayName = 'ReanimatedModal';
     return MockReanimatedModal;
 });
 
