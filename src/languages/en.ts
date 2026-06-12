@@ -7224,8 +7224,6 @@ const translations = {
                 expensesAboveAmount: 'Expenses above amount',
                 flagReceiptLineItems: 'Flag receipt line items',
                 receiptRequirements: 'Require receipts',
-                receiptRequirementsDescription: (amount: string) => `Amount is above ${amount}`,
-                dontRequireReceipts: "Don't require receipts",
                 receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
                     if (regularAmount && itemizedAmount) {
                         return `Regular above ${regularAmount}, itemized above ${itemizedAmount}`;
@@ -7247,9 +7245,6 @@ const translations = {
                 billableExpenses: 'Billable expenses',
                 billableExpensesBillable: 'Cash and credit card billable',
                 billableExpensesNonBillable: 'Cash and credit card non-billable',
-                trackAttendees: 'Track attendees',
-                autoCreateEReceipts: 'Auto-create eReceipts',
-                autoCreateEReceiptsDescription: 'For most USD credit transactions.',
             },
             requireReceipts: {
                 title: 'Require receipts',

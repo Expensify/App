@@ -5914,6 +5914,11 @@ const CONST = {
         DISTANCE_EDIT_TYPE: 'distanceEditType',
         SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
         RULES_TAB_TYPE: 'rulesTabType',
+        RULES: {
+            GENERAL: 'general',
+            CARD_RESTRICTIONS: 'cardRestrictions',
+            EXPENSE_DEFAULTS: 'expenseDefaults',
+        },
         SPLIT: {
             AMOUNT: 'amount',
             PERCENTAGE: 'percentage',

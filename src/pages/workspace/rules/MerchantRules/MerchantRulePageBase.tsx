@@ -250,7 +250,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         if (isEditing) {
             Navigation.goBack();
         } else {
-            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, 'expenseDefaults');
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
             Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
         }
     };
@@ -502,9 +502,11 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                               titleStyle={styles.flex1}
                                               shouldRenderAsHTML={item.shouldRenderAsHTML}
                                               icon={item.icon}
-                                              iconWidth={variables.iconSizeNormal}
-                                              iconHeight={variables.iconSizeNormal}
-                                              shouldIconUseAutoWidthStyle
+                                              {...(item.icon && {
+                                                  iconWidth: variables.iconSizeNormal,
+                                                  iconHeight: variables.iconSizeNormal,
+                                                  shouldIconUseAutoWidthStyle: true,
+                                              })}
                                               sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                           />
                                       ))}

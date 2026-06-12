@@ -4,6 +4,7 @@ import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -22,6 +23,7 @@ type WorkspaceExpenseDefaultsTableProps = {
 
 function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyStateContent}: WorkspaceExpenseDefaultsTableProps) {
     const {translate, localeCompare} = useLocalize();
+    const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -31,7 +33,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             label: translate('workspace.rules.expenseDefaultsTable.tableColumnType'),
             sortable: true,
             width: variables.tableTypeColumnWidth,
-            styling: {containerStyles: [{justifyContent: 'center'}]},
+            styling: {containerStyles: [styles.justifyContentCenter]},
         },
         {key: 'condition', label: translate('workspace.rules.expenseDefaultsTable.tableColumnCondition'), sortable: true},
         {key: 'rule', label: translate('workspace.rules.expenseDefaultsTable.tableColumnRule'), sortable: false},

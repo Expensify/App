@@ -48,11 +48,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AIRulesSection from './AIRulesSection';
 import IndividualExpenseRulesSectionRevamp from './IndividualExpenseRulesSectionRevamp';
 
-const RULES_TAB = {
-    GENERAL: 'general',
-    CARD_RESTRICTIONS: 'cardRestrictions',
-    EXPENSE_DEFAULTS: 'expenseDefaults',
-} as const;
+const RULES_TAB = CONST.TAB.RULES;
 
 type RulesTab = (typeof RULES_TAB)[keyof typeof RULES_TAB];
 
@@ -347,8 +343,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                         />
                     </>
                 );
-            case RULES_TAB.EXPENSE_DEFAULTS:
-                return null;
             default:
                 return null;
         }

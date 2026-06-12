@@ -33,7 +33,7 @@ import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
-import SpendRuleRestrictionTypeToggle from '@src/components/SpendRules/SpendRuleRestrictionTypeToggle';
+import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRestrictionTypeToggle';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -180,7 +180,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         if (isEditing) {
             navigation.goBack();
         } else {
-            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, 'cardRestrictions');
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.CARD_RESTRICTIONS);
             Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
         }
     };
@@ -257,7 +257,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 iconWidth={variables.iconSizeNormal}
                                 iconHeight={variables.iconSizeNormal}
                                 shouldIconUseAutoWidthStyle
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SECTION_ITEM}
                             />
                             <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                             <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>
@@ -272,7 +272,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 iconWidth={variables.iconSizeNormal}
                                 iconHeight={variables.iconSizeNormal}
                                 shouldIconUseAutoWidthStyle
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SECTION_ITEM}
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.rules.spendRules.maxAmount')}
@@ -296,7 +296,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 iconWidth={variables.iconSizeNormal}
                                 iconHeight={variables.iconSizeNormal}
                                 shouldIconUseAutoWidthStyle
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SECTION_ITEM}
                             />
                             <View style={[styles.ph5, styles.pv3]}>
                                 <SpendRuleRestrictionTypeToggle
@@ -339,7 +339,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                         iconWidth={variables.iconSizeNormal}
                                         iconHeight={variables.iconSizeNormal}
                                         shouldIconUseAutoWidthStyle
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SECTION_ITEM}
                                     />
                                     <MenuItemWithTopDescription
                                         description={translate('workspace.rules.spendRules.blockedMerchantTypes')}
@@ -360,7 +360,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                         iconWidth={variables.iconSizeNormal}
                                         iconHeight={variables.iconSizeNormal}
                                         shouldIconUseAutoWidthStyle
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SECTION_ITEM}
                                     />
                                 </>
                             )}

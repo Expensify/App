@@ -12,6 +12,7 @@ import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWor
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -156,11 +157,11 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     title={item.title}
                     description={item.description}
                     icon={item.icon}
-                    iconWidth={20}
-                    iconHeight={20}
+                    iconWidth={variables.iconSizeNormal}
+                    iconHeight={variables.iconSizeNormal}
                     shouldIconUseAutoWidthStyle
                     shouldShowBasicTitle
-                    innerContainerStyle={{gap: 20}}
+                    innerContainerStyle={styles.gap5}
                     titleStyle={[styles.ml0, !item.description && styles.colorMuted]}
                     descriptionTextStyle={[styles.ml0, styles.breakWord]}
                     shouldShowRightIcon={canWriteRules}

@@ -123,6 +123,7 @@ function RulesRequireReceiptsPage({
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
