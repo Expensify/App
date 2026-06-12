@@ -45,7 +45,7 @@ type WorkspaceMembersRoleData = {
     role: ValueOf<typeof CONST.POLICY.ROLE>;
 };
 
-function shouldBeInPolicyAdminsRoom(role: string | undefined): boolean {
+function hasPolicyAdminsRoomsAccess(role: string | undefined): boolean {
     return (
         role === CONST.POLICY.ROLE.ADMIN ||
         role === CONST.POLICY.ROLE.CARD_ADMIN ||
@@ -359,7 +359,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
         selectedMemberEmails
             .filter((login) => {
                 const role = login ? policy?.employeeList?.[login]?.role : '';
-                return shouldBeInPolicyAdminsRoom(role);
+                return hasPolicyAdminsRoomsAccess(role);
             })
             .map((login) => policyMemberEmailsToAccountIDs[login]),
     );
@@ -653,7 +653,7 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
     if (adminRoom) {
         const failureDataParticipants: Record<number, Participant | null> = {...adminRoom.participants};
         const optimisticParticipants: Record<number, Participant | null> = {};
-        if (shouldBeInPolicyAdminsRoom(newRole)) {
+        if (hasPolicyAdminsRoomsAccess(newRole)) {
             for (const accountID of selectedMemberAccountIDs) {
                 if (adminRoom?.participants?.[accountID]) {
                     continue;
@@ -829,7 +829,7 @@ function buildAddMembersToWorkspaceOnyxData(
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
-    const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, shouldBeInPolicyAdminsRoom(effectiveRole) ? accountIDs : []);
+    const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, hasPolicyAdminsRoomsAccess(effectiveRole) ? accountIDs : []);
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUser.accountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
