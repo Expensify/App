@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {RefObject} from 'react';
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import useAppFocusEvent from './useAppFocusEvent';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnyx from './useOnyx';
@@ -102,8 +103,9 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             return;
         }
         const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
+        const shouldReadOnReportChange = ((isVisible && Visibility.hasFocus()) || isFromNotification) && !hasNewerActions && isScrolledToEnd;
 
-        if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
+        if (shouldReadOnReportChange) {
             readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
             if (isFromNotification) {
                 Navigation.setParams({referrer: undefined});
@@ -116,7 +118,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
 
-    useEffect(() => {
+    const markAsReadWhenVisibleAndFocused = useCallback(() => {
         if (didMarkOnReportChangeRef.current) {
             didMarkOnReportChangeRef.current = false;
             return;
@@ -125,7 +127,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             return;
         }
 
-        if (!isVisible || !isFocused) {
+        if (!isVisible || !Visibility.hasFocus() || !isFocused) {
             if (!lastMessageTime.current) {
                 lastMessageTime.current = lastAction?.created ?? '';
             }
@@ -151,7 +153,25 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
         userActiveSince.current = DateUtils.getDBTime();
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        currentUserAccountID,
+        isFocused,
+        isReportArchived,
+        isScrolledToEnd,
+        isVisible,
+        lastAction?.created,
+        report,
+        reportID,
+        reportLoadingState?.hasOnceLoadedReportActions,
+        sortedVisibleReportActions,
+    ]);
+
+    useEffect(() => {
+        markAsReadWhenVisibleAndFocused();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, isFocused, reportLoadingState?.hasOnceLoadedReportActions]);
+
+    useAppFocusEvent(markAsReadWhenVisibleAndFocused);
 
     return {readActionSkippedRef};
 }

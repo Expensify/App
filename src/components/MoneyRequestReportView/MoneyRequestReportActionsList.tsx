@@ -7,6 +7,7 @@ import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyn
 import {DeviceEventEmitter, View} from 'react-native';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import ScrollView from '@components/ScrollView';
+import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
@@ -350,7 +351,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+            const isScrolledToEnd = scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
+            const shouldReadOnReportChange = ((isVisible && Visibility.hasFocus()) || isFromNotification) && isScrolledToEnd;
+
+            if (shouldReadOnReportChange) {
                 readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
@@ -362,8 +366,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report?.reportID, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
 
-    useEffect(() => {
-        if (!isVisible || !isFocused) {
+    const markAsReadWhenVisibleAndFocused = useCallback(() => {
+        if (!isVisible || !Visibility.hasFocus() || !isFocused) {
             if (!lastMessageTime.current) {
                 lastMessageTime.current = lastAction?.created ?? '';
             }
@@ -392,7 +396,23 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        currentUserAccountID,
+        isFocused,
+        isVisible,
+        lastAction?.created,
+        report,
+        reportActions,
+        reportLoadingState?.hasOnceLoadedReportActions,
+        transactionThreadReport,
+    ]);
+
+    useEffect(() => {
+        markAsReadWhenVisibleAndFocused();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
+
+    useAppFocusEvent(markAsReadWhenVisibleAndFocused);
 
     /**
      * The index of the earliest message that was received while offline
@@ -418,6 +438,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         isScrolledOverThreshold: scrollingVerticalBottomOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD,
         isOffline,
         isReversed: true,
+        hasWindowFocus: Visibility.hasFocus(),
     });
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({

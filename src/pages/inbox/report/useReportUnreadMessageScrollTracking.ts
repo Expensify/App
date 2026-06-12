@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import Visibility from '@libs/Visibility';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 
@@ -110,7 +111,7 @@ export default function useReportUnreadMessageScrollTracking({
     };
 
     const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
-        if (!ref.current.isFocused) {
+        if (!ref.current.isFocused || !Visibility.hasFocus()) {
             return;
         }
 
@@ -137,7 +138,7 @@ export default function useReportUnreadMessageScrollTracking({
         }
 
         // if we're scrolled closer than the offset and read action has been skipped then mark message as read
-        if (unreadActionVisible && readActionSkippedRef.current) {
+        if (hasUnreadMarkerReportAction && unreadActionVisible && readActionSkippedRef.current) {
             // eslint-disable-next-line no-param-reassign
             readActionSkippedRef.current = false;
             readNewestAction(ref.current.reportID, ref.current.hasOnceLoadedReportActions);
