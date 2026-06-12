@@ -74,8 +74,6 @@ function useAwaitSidePanelClose(shouldMount: boolean): boolean {
 
 function MultifactorAuthenticationModalNavigator() {
     const {state, requestCancel, hideCancelConfirm, confirmCancel, notifyModalClosed} = useMultifactorAuthenticationInternal();
-    // modalPhase mirrors the machine's top-level state: 'closing' keeps this navigator mounted after
-    // the close request so the slide-out can play; 'closed' (machine idle) unmounts it.
     const {isCancelConfirmVisible, modalPhase, scenario} = state;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
