@@ -28,16 +28,11 @@ function CenteredModalLayout({children, width, height, onBackdropPress}: Centere
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
 
-    const handleOuterPress = () => {
-        onBackdropPress?.();
-        Navigation.goBack();
-    };
-
     const handleInnerClick = (e: MouseEvent) => e.stopPropagation();
 
     return (
         <PressableWithoutFeedback
-            onPress={handleOuterPress}
+            onPress={onBackdropPress}
             style={[styles.flex1, styles.alignItemsCenter, styles.getCenteredModalOuterView(shouldUseNarrowLayout)]}
             accessibilityLabel={translate('common.close')}
             role={CONST.ROLE.BUTTON}

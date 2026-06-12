@@ -1,6 +1,8 @@
-import React from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,13 +28,22 @@ function ExplanationModalScreen() {
         style: [shouldUseNarrowLayout && styles.pt2, !isContentScrollable && styles.pb5],
     });
 
-    const handleClose = () => {
+    // Mark hybrid-app onboarding complete however this screen is dismissed.
+    const hasCompletedOnboarding = useRef(false);
+    useBeforeRemove(() => {
+        if (hasCompletedOnboarding.current) {
+            return;
+        }
+        hasCompletedOnboarding.current = true;
         completeHybridAppOnboarding();
-        Navigation.goBack();
-    };
+    });
+
+    const handleClose = () => Navigation.goBack();
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleClose, {shouldBubble: false});
 
     return (
-        <CenteredModalLayout onBackdropPress={completeHybridAppOnboarding}>
+        <CenteredModalLayout onBackdropPress={handleClose}>
             <View style={contentStyle}>
                 <FeatureTrainingContent
                     title={translate('onboarding.explanationModal.title')}
