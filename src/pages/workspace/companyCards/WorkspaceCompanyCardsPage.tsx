@@ -6,6 +6,7 @@ import useCompanyCards from '@hooks/useCompanyCards';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -18,6 +19,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -41,10 +43,11 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         bankName,
         isFeedPending,
         isFeedAdded,
-        isInitiallyLoadingFeeds,
         effectiveWorkspaceAccountID = CONST.DEFAULT_NUMBER_ID,
         onyxMetadata: {cardListMetadata},
     } = companyCards;
+
+    const [isLoadingCompanyCardsPage] = useOnyx(ONYXKEYS.IS_LOADING_COMPANY_CARDS_PAGE);
 
     const baseAccountID = workspaceAccountID === CONST.DEFAULT_NUMBER_ID ? effectiveWorkspaceAccountID : workspaceAccountID;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(baseAccountID, selectedFeed);
@@ -72,9 +75,13 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const [isInitialFeedFetchPending, setIsInitialFeedFetchPending] = useState(false);
     const [isInitialFeedFetchSettled, setIsInitialFeedFetchSettled] = useState(false);
 
+    // Tracks that we've actually seen this page's read go in-flight, so a stale loading flag left
+    // false by a previously-viewed workspace can't settle the fetch before our own read starts.
+    const hasObservedFeedFetchLoadingRef = useRef(false);
+
     useEffect(() => {
         if (isOffline || hasFeedsLoaded) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect -- syncs the fetch-lifecycle flags with the feed-loading outcome; these must persist across the async fetch/RAF window so they can't be derived during render
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- syncs the fetch-lifecycle flags with the feed-loading outcome; these must persist across the async fetch window so they can't be derived during render
             setIsInitialFeedFetchPending(false);
             if (hasFeedsLoaded) {
                 setIsInitialFeedFetchSettled(true);
@@ -88,23 +95,29 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     useEffect(() => {
         if (hasFeedsLoaded || domainOrWorkspaceAccountID !== CONST.DEFAULT_NUMBER_ID) {
+            hasObservedFeedFetchLoadingRef.current = false;
             // eslint-disable-next-line react-hooks/set-state-in-effect -- settles the fetch state once feeds load or the domain account ID resolves; reflects an async outcome that can't be derived during render
             setIsInitialFeedFetchPending(false);
             setIsInitialFeedFetchSettled(true);
             return;
         }
 
-        if (!isInitialFeedFetchPending || isInitiallyLoadingFeeds) {
+        // Wait for the OpenPolicyCompanyCardsPage read to actually settle before deciding the domain feed is genuinely
+        // missing, otherwise a false error flashes during slow requests. We only settle once we've seen the read's
+        // loading flag go true (in-flight) and then false (resolved), so a stale flag can't settle us early.
+        if (isLoadingCompanyCardsPage) {
+            hasObservedFeedFetchLoadingRef.current = true;
             return;
         }
 
-        const frame = requestAnimationFrame(() => {
-            setIsInitialFeedFetchPending(false);
-            setIsInitialFeedFetchSettled(true);
-        });
+        if (!isInitialFeedFetchPending || !hasObservedFeedFetchLoadingRef.current) {
+            return;
+        }
 
-        return () => cancelAnimationFrame(frame);
-    }, [domainOrWorkspaceAccountID, hasFeedsLoaded, isInitialFeedFetchPending, isInitiallyLoadingFeeds]);
+        hasObservedFeedFetchLoadingRef.current = false;
+        setIsInitialFeedFetchPending(false);
+        setIsInitialFeedFetchSettled(true);
+    }, [domainOrWorkspaceAccountID, hasFeedsLoaded, isInitialFeedFetchPending, isLoadingCompanyCardsPage]);
 
     const isWaitingForDomainFeedData = shouldWaitForDomainFeedData(workspaceAccountID, domainOrWorkspaceAccountID, hasFeedsLoaded, isOffline, isInitialFeedFetchSettled);
 
