@@ -99,6 +99,7 @@ function AddBankAccount() {
                             <InteractiveStepSubHeader
                                 startStepIndex={0}
                                 stepNames={CONST.WALLET.STEP_NAMES}
+                                currentStepAccessibilityDescription={translate('bankAccount.addBankAccount')}
                             />
                         </View>
                         <SubStep
