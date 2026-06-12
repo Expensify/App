@@ -259,10 +259,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     }, [policyID]);
 
     const openSubRateDetails = (rate: PolicyOption) => {
-        if (!canWritePerDiem) {
-            return;
-        }
-        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
+        if (canWritePerDiem && isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleSubRate(rate);
             return;
         }
@@ -509,9 +506,9 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         customListHeaderContent={headerContent}
                         shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
-                        turnOnSelectionModeOnLongPress
+                        turnOnSelectionModeOnLongPress={canWritePerDiem}
                         shouldHeaderBeInsideList
-                        shouldShowRightCaret={canWritePerDiem}
+                        shouldShowRightCaret
                     />
                 )}
                 {!hasVisibleSubRates && !isLoading && (

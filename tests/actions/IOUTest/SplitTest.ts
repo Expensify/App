@@ -2121,7 +2121,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             isSelfTourViewed: false,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             personalDetails: {},
         });
         await waitForBatchedUpdates();
@@ -2348,7 +2347,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             isSelfTourViewed: false,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             personalDetails: {},
         });
         await waitForBatchedUpdates();
@@ -2931,7 +2929,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -3110,7 +3107,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -3294,7 +3290,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -3488,7 +3483,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -3750,7 +3744,6 @@ describe('updateSplitTransactions', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
         });
         await waitForBatchedUpdates();
 
@@ -4017,7 +4010,6 @@ describe('updateSplitTransactions', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
         });
         await waitForBatchedUpdates();
 
@@ -4157,7 +4149,6 @@ describe('updateSplitTransactions', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             existingTransactionDraft: undefined,
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},

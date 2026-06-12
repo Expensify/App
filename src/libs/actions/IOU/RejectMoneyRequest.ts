@@ -116,6 +116,8 @@ function prepareRejectMoneyRequestData(
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     options?: RejectMoneyRequestOptions,
     shouldUseBulkAction?: boolean,
+    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined,
 ): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
@@ -388,6 +390,7 @@ function prepareRejectMoneyRequestData(
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
                 currentUserAccountID: currentUserAccountIDParam,
+                delegateAccountIDParam: delegateAccountID,
             });
             createdIOUReportActionID = iouAction.reportActionID;
 
@@ -480,9 +483,10 @@ function prepareRejectMoneyRequestData(
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
                 currentUserAccountID: currentUserAccountIDParam,
+                delegateAccountIDParam: delegateAccountID,
             });
 
-            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined);
+            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined, undefined, delegateAccountID);
             movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
             createdIOUReportActionID = iouAction.reportActionID;
             expenseMovedReportActionID = movedTransactionAction.reportActionID;

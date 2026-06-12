@@ -68,7 +68,7 @@ function WorkspaceReportFieldsPage({
     const {translate, localeCompare} = useLocalize();
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
-    const {canWrite: canWriteReportFields, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
+    const {canWrite: canWriteReportFields, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.reports');
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
@@ -277,7 +277,7 @@ function WorkspaceReportFieldsPage({
                                     setPolicyPreventMemberCreatedTitle(policyID, isEnabled, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
                                 }}
                                 disabled={!canWriteReportFields}
-                                disabledAction={showReadOnlyModal}
+                                disabledAction={withReadOnlyFallback()}
                                 showLockIcon={!canWriteReportFields}
                             />
                         </Section>
@@ -319,7 +319,7 @@ function WorkspaceReportFieldsPage({
                                     enablePolicyReportFields(policyID, isEnabled);
                                 }}
                                 disabled={hasAccountingConnections || !canWriteReportFields}
-                                disabledAction={canWriteReportFields ? onDisabledOrganizeSwitchPress : showReadOnlyModal}
+                                disabledAction={withReadOnlyFallback(onDisabledOrganizeSwitchPress)}
                                 showLockIcon={!canWriteReportFields}
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (
