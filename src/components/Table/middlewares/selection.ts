@@ -49,7 +49,7 @@ export default function useSelection<DataType extends TableData>({data, selected
     // the user confirms the selection
     const [mobileSelectionModalRowKey, setMobileSelectionModalRowKey] = useState<string | null>(null);
 
-    const selectableKeys = data.filter((item) => !item.disabled).map((item) => item.keyForList);
+    const selectableKeys = data.filter((item) => !item.disabled && !item.isSelectionDisabled).map((item) => item.keyForList);
     const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
 
     // Automatically disable selection mode when switching to desktop, or enable it when switching to mobile if there are selected rows
@@ -70,6 +70,7 @@ export default function useSelection<DataType extends TableData>({data, selected
         turnOffMobileSelectionMode();
     }, [selectableKeys.length, isSelectionModeEnabled]);
 
+    //  When selection mode is turned off, clear the list of selected keys, so that re-enabling selection mode doesn't retain rows
     const prevSelectionModeEnabledRef = useRef(isSelectionModeEnabled);
     useEffect(() => {
         if (prevSelectionModeEnabledRef.current && !isSelectionModeEnabled) {

@@ -15,6 +15,9 @@ type TableData = {
 
     /** Whether or not the row is disabled. Prevents clicking the row & renders it with disabled styles. */
     disabled?: boolean;
+
+    /** Optionally disable a specific row from selection, when selection is enabled */
+    isSelectionDisabled?: boolean;
 };
 
 /**

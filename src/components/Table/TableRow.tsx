@@ -36,9 +36,6 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
     /** Whether or not the table row is loading */
     isLoading?: boolean;
 
-    /** Whether or not checkbox selection is disabled for this specific row */
-    isSelectionDisabled?: boolean;
-
     /** Whether or not the row should animate in highlighted */
     shouldAnimateInHighlight?: boolean;
 
@@ -60,7 +57,6 @@ export default function TableRow({
     sentryLabel,
     interactive,
     isLoading,
-    isSelectionDisabled,
     shouldAnimateInHighlight,
     skeletonReasonAttributes,
     LoadingComponent,
@@ -161,16 +157,18 @@ export default function TableRow({
             return;
         }
 
-        if (shouldUseNarrowLayout && isMobileSelectionEnabled && selectionEnabled) {
-            handleCheckboxPress(event);
+        if (!shouldUseNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
+            onPress?.();
             return;
         }
 
-        onPress?.();
+        if (!item.isSelectionDisabled) {
+            handleCheckboxPress(event);
+        }
     };
 
     const handleRowLongPress = () => {
-        if (isDisabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive) {
+        if (isDisabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive || item.isSelectionDisabled) {
             return;
         }
 
@@ -218,7 +216,7 @@ export default function TableRow({
                                         style={styles.flex1}
                                         isChecked={!!item.selected}
                                         accessibilityLabel={translate('common.select')}
-                                        disabled={item.disabled || isSelectionDisabled}
+                                        disabled={item.disabled || item.isSelectionDisabled}
                                         onPress={(event) => handleCheckboxPress(event)}
                                     />
                                 )}

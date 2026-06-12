@@ -21,7 +21,6 @@ type WorkspaceMemberRowData = TableData & {
     role?: string;
     employeeUserID?: string;
     employeePayrollID?: string;
-    isSelectionDisabled: boolean;
     name: string;
     email: string;
     shouldShowEmployeeUserID: boolean;
