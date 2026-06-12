@@ -991,6 +991,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: '全部完成',
                 f1FlagsDescription: '你已完成所有未完成的待办事项。',
             },
+            reviewExpenses: ({count}: {count: number}) => `审核 ${count} ${count === 1 ? '费用' : '费用'}`,
         },
         upcomingTravel: '即将出行',
         upcomingTravelSection: {

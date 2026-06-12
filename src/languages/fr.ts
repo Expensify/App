@@ -1023,6 +1023,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Tout est à jour',
                 f1FlagsDescription: 'Vous avez terminé toutes les tâches en cours.',
             },
+            reviewExpenses: ({count}: {count: number}) => `Examiner ${count} ${count === 1 ? 'dépense' : 'dépenses'}`,
         },
         upcomingTravel: 'Voyages à venir',
         upcomingTravelSection: {
