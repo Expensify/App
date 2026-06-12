@@ -1,7 +1,6 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -9,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -39,7 +39,7 @@ function AddAgentRulePage({
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const policy = usePolicy(policyID);
     const formRef = useRef<FormRef>(null);
-    const [isAgentCreatedModalVisible, setIsAgentCreatedModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in e)) {
@@ -64,14 +64,14 @@ function AddAgentRulePage({
         const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
         addPolicyAgentRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
         if (isFirstRule) {
-            setIsAgentCreatedModalVisible(true);
+            showConfirmModal({
+                title: translate('workspace.rules.agentRules.agentCreatedTitle'),
+                prompt: translate('workspace.rules.agentRules.agentCreatedDescription'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            }).then(() => Navigation.goBack());
             return;
         }
-        Navigation.goBack();
-    };
-
-    const closeAgentCreatedModal = () => {
-        setIsAgentCreatedModalVisible(false);
         Navigation.goBack();
     };
 
@@ -124,16 +124,6 @@ function AddAgentRulePage({
                         <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
                     </View>
                 </FormProvider>
-                <ConfirmModal
-                    title={translate('workspace.rules.agentRules.agentCreatedTitle')}
-                    prompt={translate('workspace.rules.agentRules.agentCreatedDescription')}
-                    isVisible={isAgentCreatedModalVisible}
-                    onConfirm={closeAgentCreatedModal}
-                    onCancel={closeAgentCreatedModal}
-                    onBackdropPress={closeAgentCreatedModal}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
