@@ -1657,6 +1657,7 @@
 "../../tests/ui/ForYouSectionTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/ui/IOURequestStartPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/IOURequestStepAmountDraftTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../tests/ui/IOURequestStepDistanceOdometerBackupTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/ui/IOURequestStepDistanceTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/ui/IOURequestStepScanTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/ui/InitialSettingsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1950,6 +1951,7 @@
 "../../tests/unit/hooks/useNonPersonalCardList.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/hooks/useOdometerReadingsState.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/hooks/useOdometerReceiptStitcherTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../tests/unit/hooks/useOdometerTransactionBackup.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/hooks/useOtherFeedsForFeedSelector.test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../tests/unit/hooks/usePendingConciergeResponse.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/hooks/useReceiptTraining.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

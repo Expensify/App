@@ -41,7 +41,7 @@ import {
     saveOdometerDraft,
     setMoneyRequestOdometerReading,
 } from '@libs/actions/OdometerTransactionUtils';
-import {createBackupTransaction, removeBackupTransactionWithImageCleanup, restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
+import {restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -301,26 +301,6 @@ function IOURequestStepDistanceOdometer({
         introSelected,
         personalOutputCurrency: personalPolicy?.outputCurrency,
     });
-
-    useEffect(() => {
-        if (!isEditingConfirmation) {
-            return () => {};
-        }
-        createBackupTransaction(transaction, isTransactionDraft, true);
-
-        return () => {
-            if (backupHandledManually.current) {
-                return;
-            }
-            if (didSaveEditingConfirmationRef.current) {
-                removeBackupTransactionWithImageCleanup(transactionID, isTransactionDraft);
-                return;
-            }
-            restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
-        };
-        // We only want to create the backup once on mount and restore/remove it on unmount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     // Calculate total distance - updated live after every input change
     const totalDistance = (() => {
