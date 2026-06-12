@@ -713,7 +713,6 @@
 "../../src/libs/Navigation/helpers/useIsSidebarRouteActive.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/linkingConfig/RELATIONS/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/Navigation/linkingConfig/config.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/Navigation/navigateAfterInteraction/index.ios.ts"	"no-restricted-imports"	1
 "../../src/libs/NavigationFocusReturn.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Network/LoadTestState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Network/SequentialQueue.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
