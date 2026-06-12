@@ -46,6 +46,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                         iconWidth={variables.menuIconSize}
                         iconHeight={variables.menuIconSize}
                         wrapperStyle={styles.purposeMenuItem}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
                     />
                     <MenuItem
                         icon={illustrations.FolderOpen}
@@ -58,6 +59,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                         iconWidth={variables.menuIconSize}
                         iconHeight={variables.menuIconSize}
                         wrapperStyle={styles.purposeMenuItem}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
                     />
                 </View>
             </ScreenWrapper>

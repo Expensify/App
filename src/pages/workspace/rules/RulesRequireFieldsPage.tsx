@@ -122,6 +122,7 @@ function RulesRequireFieldsPage({
                         large
                         text={translate('workspace.rules.requireFields.save')}
                         onPress={handleSave}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_SAVE}
                     />
                 </View>
             </ScreenWrapper>

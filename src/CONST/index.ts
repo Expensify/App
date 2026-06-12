@@ -8511,6 +8511,9 @@ const CONST = {
                 ADD_AI_RULE: 'WorkspaceRules-AddAIRule',
                 AI_RULE_SAVE: 'WorkspaceRules-AIRuleSave',
                 AI_RULE_DELETE: 'WorkspaceRules-AIRuleDelete',
+                NEW_RULE_MENU_ITEM: 'WorkspaceRules-NewRuleMenuItem',
+                REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
+                REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',

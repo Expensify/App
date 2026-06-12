@@ -7258,7 +7258,7 @@ const translations = {
                 title: 'Require fields for all expenses',
                 category: 'Category',
                 tag: 'Tag',
-                save: 'Save',
+                save: 'Save rule',
             },
             individualExpenseRules: {
                 title: 'Expenses',

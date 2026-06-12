@@ -472,14 +472,15 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                 <HeaderWithBackButton title={translate(isRulesRevampEnabled ? 'workspace.rules.merchantRules.expenseDefaultsTitle' : titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     {isRulesRevampEnabled
-                        ? sections.map((section, sectionIndex) => (
+                        ? (
+                            <>
+                                <View style={[styles.ph5, styles.pv3, styles.gap6]}>
+                                    <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.merchantRules.expenseDefaultsSubtitle')}</Text>
+                                    <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
+                                </View>
+                                {sections.map((section, sectionIndex) => (
                               <View key={section.titleTranslationKey}>
-                                  {sectionIndex === 0 ? (
-                                      <View style={[styles.ph5, styles.pv3, styles.gap6]}>
-                                          <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.merchantRules.expenseDefaultsSubtitle')}</Text>
-                                          <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
-                                      </View>
-                                  ) : (
+                                  {sectionIndex > 0 && (
                                       <>
                                           <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                                           <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>
@@ -499,6 +500,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                               shouldShowRightIcon={canWriteRules}
                                               interactive={canWriteRules}
                                               title={item.title}
+                                              numberOfLinesTitle={2}
                                               titleStyle={styles.flex1}
                                               shouldRenderAsHTML={item.shouldRenderAsHTML}
                                               icon={item.icon}
@@ -511,7 +513,9 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                           />
                                       ))}
                               </View>
-                          ))
+                          ))}
+                            </>
+                          )
                         : sections.map((section) => (
                               <View key={section.titleTranslationKey}>
                                   <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>

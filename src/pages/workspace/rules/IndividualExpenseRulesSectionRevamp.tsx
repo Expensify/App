@@ -24,6 +24,7 @@ type IndividualExpenseRulesSectionRevampProps = {
 };
 
 type BasicRuleMenuItem = {
+    key: string;
     title: string;
     description?: string;
     icon: IconAsset;
@@ -44,19 +45,10 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
         setPolicyAttendeeTrackingEnabled(policyID, newValue, policy?.isAttendeeTrackingEnabled);
     };
 
-    const maxExpenseAgeText = (() => {
-        if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE) {
-            return '';
-        }
-        return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge ?? 0});
-    })();
+    const maxExpenseAgeText =
+        policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE ? '' : translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge ?? 0});
 
-    const maxExpenseAmountText = (() => {
-        if (policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE) {
-            return '';
-        }
-        return convertToDisplayString(policy?.maxExpenseAmount, policyCurrency);
-    })();
+    const maxExpenseAmountText = policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE ? '' : convertToDisplayString(policy?.maxExpenseAmount, policyCurrency);
 
     const receiptRequirementText = (() => {
         const receiptAmount = policy?.maxExpenseAmountNoReceipt;
@@ -84,19 +76,11 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
-    const requiredFieldsList = (() => {
-        const fields: string[] = [];
-        if (policy?.requiresCategory) {
-            fields.push(translate('common.category'));
-        }
-        if (policy?.requiresTag) {
-            fields.push(translate('common.tag'));
-        }
-        return fields.join(', ');
-    })();
+    const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), policy?.requiresTag && translate('common.tag')].filter(Boolean).join(', ');
 
     const policyControlItems: BasicRuleMenuItem[] = [
         {
+            key: 'expensesOlderThan',
             title: translate('workspace.rules.generalTab.expensesOlderThan'),
             description: maxExpenseAgeText,
             icon: icons.CalendarSolid,
@@ -104,6 +88,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: policy?.pendingFields?.maxExpenseAge,
         },
         {
+            key: 'expensesAboveAmount',
             title: translate('workspace.rules.generalTab.expensesAboveAmount'),
             description: maxExpenseAmountText,
             icon: icons.Coins,
@@ -111,11 +96,13 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: policy?.pendingFields?.maxExpenseAmount,
         },
         {
+            key: 'flagReceiptLineItems',
             title: translate('workspace.rules.generalTab.flagReceiptLineItems'),
             icon: icons.Receipt,
             action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
         },
         {
+            key: 'receiptRequirements',
             title: translate('workspace.rules.generalTab.receiptRequirements'),
             description: receiptRequirementText,
             icon: icons.ReceiptCheck,
@@ -123,6 +110,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt,
         },
         {
+            key: 'requireFields',
             title: translate('workspace.rules.generalTab.requireFieldsForAllExpenses'),
             description: requiredFieldsList,
             icon: icons.Task,
@@ -132,6 +120,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const productDefaultItems: BasicRuleMenuItem[] = [
         {
+            key: 'cashExpenses',
             title: translate('workspace.rules.generalTab.cashExpenses'),
             description: reimbursableModeText,
             icon: icons.Cash,
@@ -139,6 +128,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: policy?.pendingFields?.defaultReimbursable,
         },
         {
+            key: 'billableExpenses',
             title: translate('workspace.rules.generalTab.billableExpenses'),
             description: billableModeText,
             icon: icons.Cash,
@@ -151,7 +141,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
         items.map((item) => (
             <OfflineWithFeedback
                 pendingAction={item.pendingAction}
-                key={item.title}
+                key={item.key}
             >
                 <MenuItem
                     title={item.title}
@@ -168,6 +158,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     onPress={item.action}
                     interactive={canWriteRules}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
                 />
             </OfflineWithFeedback>
         ));

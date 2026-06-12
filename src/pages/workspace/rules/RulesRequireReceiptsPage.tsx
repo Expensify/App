@@ -16,7 +16,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {setPolicyMaxExpenseAmountNoItemizedReceipt, setPolicyMaxExpenseAmountNoReceipt} from '@userActions/Policy/Policy';
+import {clearPolicyErrorField, setPolicyMaxExpenseAmountNoItemizedReceipt, setPolicyMaxExpenseAmountNoReceipt} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
@@ -59,8 +59,8 @@ function RulesRequireReceiptsPage({
         }
 
         if (receiptEnabled && itemizedEnabled && receiptAmount && itemizedAmount) {
-            const receiptCents = convertToBackendAmount(parseFloat(receiptAmount));
-            const itemizedCents = convertToBackendAmount(parseFloat(itemizedAmount));
+            const receiptCents = convertToBackendAmount(Number(receiptAmount) || 0);
+            const itemizedCents = convertToBackendAmount(Number(itemizedAmount) || 0);
 
             if (receiptCents > itemizedCents) {
                 setReceiptError(
@@ -148,6 +148,8 @@ function RulesRequireReceiptsPage({
                         wrapperStyle={styles.pv3}
                         isActive={receiptEnabled}
                         pendingAction={policy?.pendingFields?.maxExpenseAmountNoReceipt}
+                        errors={policy?.errorFields?.maxExpenseAmountNoReceipt ?? undefined}
+                        onCloseError={() => clearPolicyErrorField(policyID, 'maxExpenseAmountNoReceipt')}
                         onToggle={(newValue) => {
                             setReceiptEnabled(newValue);
                             if (!newValue) {
@@ -182,6 +184,8 @@ function RulesRequireReceiptsPage({
                         wrapperStyle={styles.pv3}
                         isActive={itemizedEnabled}
                         pendingAction={policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt}
+                        errors={policy?.errorFields?.maxExpenseAmountNoItemizedReceipt ?? undefined}
+                        onCloseError={() => clearPolicyErrorField(policyID, 'maxExpenseAmountNoItemizedReceipt')}
                         onToggle={(newValue) => {
                             setItemizedEnabled(newValue);
                             if (!newValue) {
@@ -213,6 +217,7 @@ function RulesRequireReceiptsPage({
                         large
                         text={translate('workspace.rules.requireReceipts.saveRule')}
                         onPress={handleSave}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_RECEIPTS_SAVE}
                     />
                 </View>
             </ScreenWrapper>
