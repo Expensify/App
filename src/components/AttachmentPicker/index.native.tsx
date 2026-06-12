@@ -126,8 +126,8 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
               return fileResult;
           });
 
-    // Move the file out of the OS-purgeable cache directory into durable storage so it survives an
-    // app force-kill while the upload is queued offline. `source` is what prepareRequestPayload
+    // Move the file out of the cache directory (which the OS can purge) into durable storage so it
+    // survives an app force-kill while the upload is queued offline. `source` is what prepareRequestPayload
     // re-reads on offline replay, so it must point at the durable path too. On failure
     // moveReceiptToDurableStorage returns the original URI, so the catch is just a safeguard.
     return fileWithSize.then((file) =>
