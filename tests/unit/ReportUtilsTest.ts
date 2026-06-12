@@ -108,7 +108,6 @@ import {
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
     getReportActionWithSmartscanError,
-    getReportFieldMaps,
     getReportFieldsByPolicyID,
     getReportIDFromLink,
     getReportOrDraftReport,
@@ -10422,26 +10421,17 @@ describe('ReportUtils', () => {
             const policyID = '123456';
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
-            const policyWithoutCurrentUser: Policy = {
-                ...createRandomPolicy(1),
-                id: policyID,
-                employeeList: {
-                    'employee@test.com': {
-                        role: CONST.POLICY.ROLE.USER,
-                        errors: {},
-                    },
-                },
-            };
+            // policy.role holds the current user's own role and is synced for every workspace they belong to,
+            // even when employeeList has not loaded (the roster is only fully synced for the active workspace).
+            // A non-member therefore has no role, so membership is determined from policy.role.
+            const policyWithoutCurrentUser: Policy = {...createRandomPolicy(1), id: policyID, employeeList: {}};
+            delete (policyWithoutCurrentUser as Partial<Policy>).role;
 
             const policyWithCurrentUser: Policy = {
                 ...createRandomPolicy(2),
                 id: policyID,
-                employeeList: {
-                    [currentUserEmail]: {
-                        role: CONST.POLICY.ROLE.USER,
-                        errors: {},
-                    },
-                },
+                role: CONST.POLICY.ROLE.USER,
+                employeeList: {},
             };
 
             const restrictedReport: Report = {
@@ -14628,106 +14618,6 @@ describe('ReportUtils', () => {
                 },
             ] as unknown as PolicyReportField[];
             expect(getAvailableReportFields(report, policyFieldList)).toEqual(expectedFieldList);
-        });
-    });
-
-    describe('getReportFieldMaps', () => {
-        it('should read invoice field values from report name value pairs keyed by raw field ID', async () => {
-            const reportID = 'getReportFieldMapsRawKey';
-            const report: Report = {
-                reportID,
-                policyID: '1',
-                type: CONST.REPORT.TYPE.INVOICE,
-                fieldList: {},
-            };
-            const policyFieldList: Record<string, PolicyReportField> = {
-                expensify_field_id_LIST: {
-                    type: 'dropdown',
-                    values: ['policy default'],
-                    disabledOptions: [false],
-                    fieldID: 'field_id_LIST',
-                    name: 'Client',
-                    defaultValue: 'policy default',
-                    orderWeight: 0,
-                    deletable: true,
-                    keys: [],
-                    externalIDs: [],
-                    isTax: false,
-                    target: CONST.REPORT_FIELD_TARGETS.INVOICE,
-                },
-            };
-            const reportNameValuePairField: PolicyReportField = {
-                type: 'dropdown',
-                values: ['policy default'],
-                disabledOptions: [false],
-                fieldID: 'field_id_LIST',
-                name: 'Client',
-                defaultValue: 'policy default',
-                orderWeight: 0,
-                deletable: true,
-                keys: [],
-                externalIDs: [],
-                isTax: false,
-                value: 'persisted value',
-                target: CONST.REPORT_FIELD_TARGETS.INVOICE,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, Object.fromEntries([['field_id_LIST', reportNameValuePairField]]));
-
-            const {fieldValues, fieldsByName} = getReportFieldMaps(report, policyFieldList);
-
-            expect(fieldValues.client).toBe('persisted value');
-            expect(fieldsByName.client.value).toBe('persisted value');
-        });
-
-        it('should not read expense field values from report name value pairs', async () => {
-            const reportID = 'getReportFieldMapsExpenseField';
-            const report: Report = {
-                reportID,
-                policyID: '1',
-                type: CONST.REPORT.TYPE.EXPENSE,
-                fieldList: {},
-            };
-            const policyFieldList: Record<string, PolicyReportField> = {
-                expensify_field_id_LIST: {
-                    type: 'dropdown',
-                    values: ['policy default'],
-                    disabledOptions: [false],
-                    fieldID: 'field_id_LIST',
-                    name: 'Client',
-                    defaultValue: 'policy default',
-                    orderWeight: 0,
-                    deletable: true,
-                    keys: [],
-                    externalIDs: [],
-                    isTax: false,
-                    target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
-                },
-            };
-            const reportNameValuePairField: PolicyReportField = {
-                type: 'dropdown',
-                values: ['policy default'],
-                disabledOptions: [false],
-                fieldID: 'field_id_LIST',
-                name: 'Client',
-                defaultValue: 'policy default',
-                orderWeight: 0,
-                deletable: true,
-                keys: [],
-                externalIDs: [],
-                isTax: false,
-                value: 'persisted value',
-                target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, Object.fromEntries([['field_id_LIST', reportNameValuePairField]]));
-
-            const {fieldValues, fieldsByName} = getReportFieldMaps(report, policyFieldList);
-
-            expect(fieldValues.client).toBe('policy default');
-            expect(fieldsByName.client.value).toBeUndefined();
         });
     });
 
