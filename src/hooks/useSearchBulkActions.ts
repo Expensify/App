@@ -1183,8 +1183,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, []);
 
     const activePolicyExpenseChat = useMemo(
-        () => getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id),
-        [currentUserPersonalDetails.accountID, defaultExpensePolicy?.id],
+        () => getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id, allReports),
+        [currentUserPersonalDetails.accountID, defaultExpensePolicy?.id, allReports],
     );
 
     const allTransactionsForDuplicate = useMemo(

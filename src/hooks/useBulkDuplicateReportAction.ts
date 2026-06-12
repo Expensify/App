@@ -39,7 +39,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const handleDuplicateReports = () => {
-        const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
+        const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id, allReports);
 
         bulkDuplicateReports({
             selectedReports,

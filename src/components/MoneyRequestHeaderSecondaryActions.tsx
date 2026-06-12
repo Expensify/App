@@ -183,7 +183,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         transaction &&
         getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, transaction, transactionViolations, policy, false)
     );
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id, allReports);
     const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
     const isParentChatReportDM = isDM(chatIOUReport);
