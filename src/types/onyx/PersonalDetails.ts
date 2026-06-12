@@ -56,6 +56,9 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Avatar original file name with extension */
     originalFileName?: string;
 
+    /** Colour-scheme key for a generated initials avatar (e.g. "blue100"). Set only when the user picks a colour; absent means it's derived from the login hash */
+    avatarSchemeKey?: string;
+
     /** Flag to set when Avatar uploading */
     avatarUploading?: boolean;
 

@@ -16,7 +16,10 @@ import sharp from 'sharp';
 import {LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 
 const GLYPH_DIR = path.resolve(__dirname, '../assets/images/avatars/workspace');
-const OUTPUT_DIR = path.resolve(process.cwd(), process.argv.at(2) ?? 'dist/letter-avatars');
+
+/** CDN images root. Defaults to the sibling Web-Static checkout; override with a path arg. */
+const outputArg = process.argv.at(2);
+const OUTPUT_DIR = outputArg ? path.resolve(process.cwd(), outputArg) : path.resolve(__dirname, '../../Web-Static/images');
 
 /** Characters we render. Letters render uppercase in the path; digits are case-less. */
 const CHARS = [...'0123456789abcdefghijklmnopqrstuvwxyz'];
@@ -56,7 +59,9 @@ async function main() {
         for (const ch of CHARS) {
             const inner = glyphs.get(ch) ?? '';
             const svg = composeSvg(inner, backgroundColor, fillColor, AVATAR_PX);
-            await sharp(Buffer.from(svg)).png({compressionLevel: 9}).toFile(path.join(dir, `${ch.toUpperCase()}.png`));
+            await sharp(Buffer.from(svg))
+                .png({compressionLevel: 9})
+                .toFile(path.join(dir, `${ch.toUpperCase()}.png`));
             written++;
         }
     }
