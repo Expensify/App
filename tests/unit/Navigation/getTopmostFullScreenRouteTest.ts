@@ -3,8 +3,9 @@ import NAVIGATORS from '@src/NAVIGATORS';
 
 const mockGetRootState = jest.fn();
 
-jest.mock('@libs/Navigation/Navigation', () => ({
-    navigationRef: {
+jest.mock('@libs/Navigation/navigationRef', () => ({
+    __esModule: true,
+    default: {
         getRootState: () => mockGetRootState() as unknown,
     },
 }));
