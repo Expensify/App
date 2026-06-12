@@ -67,10 +67,10 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
     return (
         <>
             {!!showSectionHeader && (
-                <View style={[styles.mh5, styles.pv2, styles.ph3, styles.highlightBG, rowIndex === 0 ? styles.borderBottom : styles.borderTop]}>
+                <View style={[styles.mh5, styles.pv2, styles.ph3, {backgroundColor: theme.hoverComponentBG}, rowIndex === 0 ? styles.borderBottom : styles.borderTop]}>
                     <TextWithTooltip
                         text={item.isDefault ? translate('workspace.rules.spendRules.defaultSection') : translate('workspace.rules.spendRules.customRulesSection')}
-                        style={[styles.textMicroSupporting]}
+                        style={[styles.textMicroBoldSupporting, styles.lh14]}
                     />
                 </View>
             )}
