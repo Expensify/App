@@ -1,0 +1,78 @@
+diff --git a/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts b/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
+index fa786bf..586014c 100644
+--- a/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
++++ b/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
+@@ -127,10 +127,12 @@ export interface FlashListProps<TItem> extends Omit<ScrollViewProps, "maintainVi
+     /**
+      * Additional configuration for initialScrollIndex.
+      * Use viewOffset to apply an offset to the initial scroll position as defined by initialScrollIndex.
++     * Use viewPosition to position the item within the viewport (0 = start, 0.5 = center, 1 = end), mirroring scrollToIndex.
+      * Ignored if initialScrollIndex is not set.
+      */
+     initialScrollIndexParams?: {
+         viewOffset?: number;
++        viewPosition?: number;
+     } | null | undefined;
+     /**
+      * Used to extract a unique key for a given item at the specified index.
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
+index 3b69234..eb6a14e 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
+@@ -296,9 +296,24 @@ export class RecyclerViewManager {
+             // stale offset, causing the wrong items to be rendered.
+             this.layoutManager.recomputeLayouts(0, initialScrollIndex);
+             const initialItemLayout = this.layoutManager.getLayout(initialScrollIndex);
+-            const initialItemOffset = this.propsRef.horizontal
++            let initialItemOffset = this.propsRef.horizontal
+                 ? initialItemLayout.x
+                 : initialItemLayout.y;
++            // Anchor the initial render window according to initialScrollIndexParams.viewPosition so the
++            // first painted frame already shows the target item at the requested position in the viewport.
++            const initialScrollIndexParams = this.propsRef.initialScrollIndexParams;
++            const viewPosition = initialScrollIndexParams === null || initialScrollIndexParams === void 0 ? void 0 : initialScrollIndexParams.viewPosition;
++            if (viewPosition !== undefined) {
++                const windowSize = this.propsRef.horizontal
++                    ? this.getWindowSize().width
++                    : this.getWindowSize().height;
++                const itemSize = this.propsRef.horizontal
++                    ? initialItemLayout.width
++                    : initialItemLayout.height;
++                if (windowSize > 0) {
++                    initialItemOffset = Math.max(0, initialItemOffset - (windowSize - itemSize) * viewPosition);
++                }
++            }
+             this.engagedIndicesTracker.scrollOffset = initialItemOffset;
+         }
+         else {
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+index 18e59ce..a972c93 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+@@ -566,10 +566,22 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+             }, 500);
+             pauseOffsetCorrection.current = true;
+             const additionalOffset = (_c = initialScrollIndexParams === null || initialScrollIndexParams === void 0 ? void 0 : initialScrollIndexParams.viewOffset) !== null && _c !== void 0 ? _c : 0;
+-            const offset = horizontal
+-                ? recyclerViewManager.getLayout(initialScrollIndex).x + additionalOffset
+-                : recyclerViewManager.getLayout(initialScrollIndex).y +
+-                    additionalOffset;
++            const initialItemLayout = recyclerViewManager.getLayout(initialScrollIndex);
++            let offset = (horizontal ? initialItemLayout.x : initialItemLayout.y) +
++                additionalOffset;
++            // Position the target item within the viewport (0 = start, 0.5 = center, 1 = end), mirroring scrollToIndex.
++            const viewPosition = initialScrollIndexParams === null || initialScrollIndexParams === void 0 ? void 0 : initialScrollIndexParams.viewPosition;
++            if (viewPosition !== undefined) {
++                const containerSize = horizontal
++                    ? recyclerViewManager.getWindowSize().width
++                    : recyclerViewManager.getWindowSize().height;
++                const itemSize = horizontal
++                    ? initialItemLayout.width
++                    : initialItemLayout.height;
++                if (containerSize > 0) {
++                    offset = Math.max(0, offset - (containerSize - itemSize) * viewPosition);
++                }
++            }
+             handlerMethods.scrollToOffset({
+                 offset,
+                 animated: false,
