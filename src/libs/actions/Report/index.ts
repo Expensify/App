@@ -5469,7 +5469,12 @@ async function completeOnboarding({
  * to avoid a race condition where the Onyx callback hasn't fired yet when navigateAfterOnboarding is called.
  */
 function extractRHPVariantFromResponse(response: Awaited<ReturnType<typeof completeOnboarding>>): OnboardingRHPVariant | undefined {
-    return response?.onyxData?.find((update) => (update.key as string) === ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT)?.value as OnboardingRHPVariant | undefined;
+    const raw = response?.onyxData?.find((update) => (update.key as string) === ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT)?.value as string | undefined;
+    if (!raw) {
+        return undefined;
+    }
+    const knownValues = Object.values(CONST.ONBOARDING_RHP_VARIANT) as string[];
+    return knownValues.includes(raw) ? (raw as OnboardingRHPVariant) : undefined;
 }
 
 /** Loads necessary data for rendering the RoomMembersPage */

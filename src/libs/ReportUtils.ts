@@ -11647,7 +11647,7 @@ function prepareOnboardingOnyxData({
     }
 
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
-    // Server picks the inbAdminsWel variant at response time, so optimistic writes here would be stale.
+    // Server picks the inboxAdminsBespoke variant at response time, so optimistic writes here would be stale.
     const shouldDeferOptimisticTasks = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
     const adminsChatReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const conciergeChat =
@@ -11718,7 +11718,7 @@ function prepareOnboardingOnyxData({
         reportComment: textComment.commentText,
     };
 
-    // Auth needs this ID to post the inbAdminsWel welcome idempotently; the real message comes from the server.
+    // Auth needs this ID to post the inboxAdminsBespoke welcome idempotently; the real message comes from the server.
     const optimisticConciergeReportActionID: string | undefined = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? rand64() : undefined;
 
     let createWorkspaceTaskReportID;
@@ -12007,7 +12007,7 @@ function prepareOnboardingOnyxData({
         },
     );
     if (message && !shouldDeferOptimisticTasks) {
-        // Server may return empty guidedSetupData for inbAdminsWel; without a real reportAction, the optimistic entry lingers.
+        // Server may return empty guidedSetupData for inboxAdminsBespoke; without a real reportAction, the optimistic entry lingers.
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -12221,7 +12221,7 @@ function prepareOnboardingOnyxData({
     guidedSetupData.push(...tasksForParameters);
 
     if (!skipSignOff && (!introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER)) {
-        // inbAdminsWel may skip welcomeSignOff creation, so the optimistic push would linger as stale state.
+        // inboxAdminsBespoke may skip welcomeSignOff creation, so the optimistic push would linger as stale state.
         if (!shouldDeferOptimisticTasks) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
