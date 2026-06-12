@@ -102,7 +102,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
                       isTrackIntentUser,
                   )
                 : null,
-        [enabled, allReports, allPersonalDetails, reportAttributesDerived, privateIsArchivedMap, allPolicies, reportsLimit, includeP2P, isSearching, betas],
+        [enabled, allReports, allPersonalDetails, reportAttributesDerived, privateIsArchivedMap, allPolicies, reportsLimit, includeP2P, isSearching, betas, isTrackIntentUser],
     );
 
     // When isSearching is set to true, the createFilteredOptionList returns all reports
