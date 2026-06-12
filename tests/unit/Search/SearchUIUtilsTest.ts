@@ -24,7 +24,7 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
+import type {SearchQueryJSON, SearchSortBy, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@navigation/Navigation';
 import type * as ReportUserActions from '@userActions/Report';
@@ -5993,6 +5993,59 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionsListItems, localeCompare, translateLocal, 'date', 'asc', undefined)).toStrictEqual(
                 transactionsListItems,
             );
+        });
+
+        it('should pin scanning transactions to the top regardless of sort column and order', () => {
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing transaction fixture at index 0');
+            }
+            const regularNewer: TransactionListItemType = {
+                ...baseTransaction,
+                transactionID: 'regular-newer',
+                keyForList: 'regular-newer',
+                created: '2024-12-21',
+                amount: -5000,
+                receipt: undefined,
+            };
+            const regularOlder: TransactionListItemType = {
+                ...baseTransaction,
+                transactionID: 'regular-older',
+                keyForList: 'regular-older',
+                created: '2024-12-19',
+                amount: -100,
+                receipt: undefined,
+            };
+            // The created date sits between the regular ones and the amount is the smallest, so no
+            // column order would naturally rank this row first in both directions
+            const scanningTransaction: TransactionListItemType = {
+                ...baseTransaction,
+                transactionID: 'scanning',
+                keyForList: 'scanning',
+                created: '2024-12-20',
+                amount: 0,
+                modifiedAmount: '',
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                modifiedMerchant: '',
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            };
+
+            const getSortedIDs = (sortBy: SearchSortBy, sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    '',
+                    [regularNewer, regularOlder, scanningTransaction],
+                    localeCompare,
+                    translateLocal,
+                    sortBy,
+                    sortOrder,
+                    undefined,
+                ).map((item) => ('transactionID' in item ? item.transactionID : undefined));
+
+            expect(getSortedIDs(CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC)).toEqual(['scanning', 'regular-newer', 'regular-older']);
+            expect(getSortedIDs(CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.ASC)).toEqual(['scanning', 'regular-older', 'regular-newer']);
+            expect(getSortedIDs(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.SORT_ORDER.DESC)).toEqual(['scanning', 'regular-newer', 'regular-older']);
+            expect(getSortedIDs(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.SORT_ORDER.ASC)).toEqual(['scanning', 'regular-older', 'regular-newer']);
         });
 
         it('should sort expense data by category GL code using policy categories', () => {
