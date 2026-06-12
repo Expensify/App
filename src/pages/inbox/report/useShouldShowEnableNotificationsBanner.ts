@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import type {NotificationPermissionStatus} from '@libs/Notification/notificationPermission/types';
-import {isConciergeChatReport} from '@libs/ReportUtils';
+import {isConciergeChatReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
@@ -13,9 +13,14 @@ function useShouldShowEnableNotificationsBanner(report: OnyxEntry<Report>): bool
     const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus | undefined>();
 
     const isConcierge = isConciergeChatReport(report, conciergeReportID);
+    const isPolicyExpenseChatReport = isPolicyExpenseChat(report);
 
     useEffect(() => {
-        if (!isConcierge || hasDismissed) {
+        // Show banner for Concierge chats or policy expense chats where notifications might not work
+        if (!isConcierge && !isPolicyExpenseChatReport) {
+            return;
+        }
+        if (hasDismissed) {
             return;
         }
         let isMounted = true;
@@ -39,9 +44,10 @@ function useShouldShowEnableNotificationsBanner(report: OnyxEntry<Report>): bool
                 window.removeEventListener('focus', checkStatus);
             }
         };
-    }, [isConcierge, hasDismissed]);
+    }, [isConcierge, isPolicyExpenseChatReport, hasDismissed]);
 
-    return isConcierge && !hasDismissed && permissionStatus === 'default';
+    // Show banner if permission is not granted (default or denied) for Concierge or policy expense chats
+    return (isConcierge || isPolicyExpenseChatReport) && !hasDismissed && permissionStatus !== 'granted';
 }
 
 export default useShouldShowEnableNotificationsBanner;
