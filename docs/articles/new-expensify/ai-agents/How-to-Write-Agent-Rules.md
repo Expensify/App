@@ -1,7 +1,7 @@
 ---
 title: How to Write Agent Rules
 description: Learn how to write effective Agent Rules using natural-language instructions and examples.
-keywords: [agent rules, rulebot, prompt writing, ai rules, agent rule examples, agent rule best practices]
+keywords: [agent rules, RuleBot, prompt writing, ai rules, agent rule examples, agent rule best practices]
 internalScope: Audience is Workspace Admins. Covers best practices for writing Agent Rules and examples of effective instructions. Does not cover creating Agent Rules or managing Custom Agents.
 ---
 
