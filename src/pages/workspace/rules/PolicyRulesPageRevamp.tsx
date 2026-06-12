@@ -272,11 +272,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled;
 
     const emptyStateContainerStyle = [styles.alignItemsCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth), styles.overflowHidden];
-    const emptyStateIllustrationStyle = {
-        width: '100%' as const,
-        maxWidth: variables.cardRulesEmptyStateIllustrationWidth,
-        aspectRatio: variables.cardRulesEmptyStateIllustrationWidth / variables.cardRulesEmptyStateIllustrationHeight,
-    };
 
     const cardRulesEmptyState = useMemo(
         () => (
@@ -285,7 +280,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     <ImageSVG
                         src={illustrations.ExpensifyCardCoins}
                         contentFit="contain"
-                        style={emptyStateIllustrationStyle}
+                        style={styles.cardRulesEmptyStateIllustration}
                     />
                     <Text style={[styles.textHeadlineH1, styles.mt5, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.title')}</Text>
                     <Text style={[styles.textLabel, styles.textSupporting, styles.mt2, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}</Text>
@@ -298,7 +293,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 </View>
             </View>
         ),
-        [illustrations.ExpensifyCardCoins, styles, translate, policyID, emptyStateContainerStyle, emptyStateIllustrationStyle],
+        [illustrations.ExpensifyCardCoins, styles, translate, policyID, emptyStateContainerStyle],
     );
 
     const renderExpenseDefaultsContent = () => (
@@ -368,7 +363,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 addBottomSafeAreaPadding
                 headerContent={getHeaderContent()}
             >
-                <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, activeTab !== RULES_TAB.GENERAL && [styles.flex1, {maxWidth: '100%'}]]}>
+                <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, activeTab !== RULES_TAB.GENERAL && [styles.flex1, styles.mw100]]}>
                     <View style={[styles.flexRow, styles.mb1]}>
                         <TabSelectorBase
                             tabs={tabs}

@@ -5465,6 +5465,12 @@ const staticStyles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
+        cardRulesEmptyStateIllustration: {
+            width: '100%',
+            maxWidth: variables.cardRulesEmptyStateIllustrationWidth,
+            aspectRatio: variables.cardRulesEmptyStateIllustrationWidth / variables.cardRulesEmptyStateIllustrationHeight,
+        },
+
         emptyStateSamlIllustration: {
             width: 183,
             height: 160,

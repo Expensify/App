@@ -661,7 +661,7 @@ function MenuItem({
     });
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
 
-    // eslint-disable-next-line no-nested-ternary
+    // eslint-disable-next-line no-nested-ternary -- Selects ml2/ml3/empty based on icon presence and avatar size
     const iconLeftPadding = shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {};
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
