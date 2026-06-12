@@ -138,7 +138,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         if (!isConciergeMainDM || !canStartConciergeSession) {
             return;
         }
-        startSession(oldestUnreadReportAction ? report?.lastReadTime : undefined);
+        startSession(oldestUnreadReportAction?.created ?? undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- startSession is stable; captured values at mount only
     }, [isConciergeMainDM, startSession, canStartConciergeSession]);
 
@@ -150,7 +150,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         if (!isConciergeMainDM || !canStartConciergeSession || currentReportID !== reportID) {
             return;
         }
-        startSession(oldestUnreadReportAction ? report?.lastReadTime : undefined);
+        startSession(oldestUnreadReportAction?.created ?? undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to currentReportID returning to this report
     }, [currentReportID, reportID, isConciergeMainDM, canStartConciergeSession, startSession]);
 
