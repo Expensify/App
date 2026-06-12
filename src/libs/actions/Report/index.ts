@@ -88,6 +88,8 @@ import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
+import {getGroupChatName} from '@libs/ReportNameUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {
     getDefaultApprover,
@@ -2336,8 +2338,17 @@ function navigateToAndCreateGroupChat(
 ) {
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
 
+    // Build a safe default group name (capped to REPORT_NAME_LIMIT) when the user didn't type a custom one.
+    // Without this, passing '' to the server causes Auth to auto-generate a name that can exceed the limit
+    // with 9+ members, making OpenReport fail with "Auth OpenReport returned an error".
+    const participants = userLogins.map((login, index) => ({
+        login,
+        accountID: participantAccountIDs.at(index) ?? CONST.DEFAULT_NUMBER_ID,
+    }));
+    const groupReportName = reportName || getGroupChatName(formatPhoneNumberPhoneUtils, participants) || CONST.REPORT.DEFAULT_REPORT_NAME;
+
     // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
-    const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', currentUserAccountID, optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+    const newChat = buildOptimisticGroupChatReport(participantAccountIDs, groupReportName, avatarUri ?? '', currentUserAccountID, optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
     createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, isSelfTourViewed, betas, avatarFile);
 
     navigateToReport(newChat.reportID);
