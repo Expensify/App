@@ -307,7 +307,32 @@ function ReportActionsList({
     const draftAutoScrollKey = isSyntheticDraftVisible ? `${draftReportAction.reportActionID}:${draftMessageHTML ?? ''}` : '';
     const previousDraftAutoScrollKey = usePrevious(draftAutoScrollKey);
 
-    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
+    // Keep MVCP enabled while deep linking so it locks onto the offset initial scroll position (see initialScrollIndex below) and holds the sliver of revealed content.
+    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount || !!initialScrollKey;
+
+    // Drive the initial scroll position from the deep-link/unread target. Pointing initialScrollIndex at the anchor in the full data and
+    // applying a small negative viewOffset reveals a sliver (~100px) of later content beneath it, hinting there is more below.
+    const initialScrollIndex = useMemo(() => {
+        if (shouldFocusToTopOnMount) {
+            return renderedVisibleReportActions.length - 1;
+        }
+        if (!initialScrollKey) {
+            return undefined;
+        }
+        const anchorIndex = renderedVisibleReportActions.findIndex((action) => keyExtractor(action) === initialScrollKey);
+        return anchorIndex < 0 ? undefined : anchorIndex;
+    }, [shouldFocusToTopOnMount, initialScrollKey, renderedVisibleReportActions]);
+
+    const initialScrollIndexParams = useMemo(() => {
+        if (shouldFocusToTopOnMount) {
+            return {viewOffset: windowHeight};
+        }
+        if (initialScrollKey) {
+            // A negative viewOffset on the inverted list shifts the visible window toward newer content, revealing the offset px below the anchor.
+            return {viewOffset: -CONST.REPORT.ACTIONS.INITIAL_LINKED_ACTION_SCROLL_OFFSET};
+        }
+        return undefined;
+    }, [shouldFocusToTopOnMount, initialScrollKey, windowHeight]);
 
     useEffect(() => {
         if (!draftReportAction || isSyntheticDraftVisible) {
@@ -539,9 +564,8 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            // Use the action's actual index in sortedVisibleReportActions rather than the FlashList-provided index,
-            // because useFlashListScrollKey may slice the data for deep-link scroll positioning, making the
-            // FlashList index offset from the full array and causing wrong displayAsGroup computation.
+            // Resolve the action's real index in renderedVisibleReportActions from a precomputed id->index map
+            // so displayAsGroup grouping stays correct even if the list-provided index ever diverges from the data order.
             const safeIndex = actionIndexMap.get(reportAction.reportActionID) ?? index;
             const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
 
@@ -745,13 +769,12 @@ function ReportActionsList({
                     }}
                     getItemType={(item) => item.actionName}
                     shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition}
-                    initialScrollIndex={shouldFocusToTopOnMount ? renderedVisibleReportActions.length - 1 : undefined}
-                    initialScrollIndexParams={shouldFocusToTopOnMount ? {viewOffset: windowHeight} : undefined}
+                    initialScrollIndex={initialScrollIndex}
+                    initialScrollIndexParams={initialScrollIndexParams}
                     maintainVisibleContentPosition={
                         shouldAutoscrollToBottom ? {autoscrollToBottomThreshold: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD, animateAutoScrollToBottom: false} : undefined
                     }
                     onLoad={onLoad}
-                    initialScrollKey={initialScrollKey}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}

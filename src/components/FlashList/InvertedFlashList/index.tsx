@@ -1,14 +1,10 @@
 import type {FlashListProps} from '@shopify/flash-list';
 import React from 'react';
-import useFlashListScrollKey from '@components/FlashList/useFlashListScrollKey';
 import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
 import FlashList from '..';
 import CellRendererComponent from './CellRendererComponent';
 
 type InvertedFlashListProps<T> = FlashListProps<T> & {
-    /** Key of the item to initially scroll to when the list first renders. */
-    initialScrollKey?: string | null;
-
     /** The array of items to render in the list. */
     data: T[];
 
@@ -22,41 +18,15 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
     shouldMaintainVisibleContentPosition?: boolean;
 };
 
-function InvertedFlashList<T>({
-    data,
-    keyExtractor,
-    initialScrollKey,
-    onStartReached: onStartReachedProp,
-    maintainVisibleContentPosition: maintainVisibleContentPositionProp,
-    shouldMaintainVisibleContentPosition,
-    ...restProps
-}: InvertedFlashListProps<T>) {
-    const {
-        displayedData,
-        onStartReached,
-        maintainVisibleContentPosition: maintainVisibleContentPositionForScrollKey,
-    } = useFlashListScrollKey<T>({
-        data,
-        keyExtractor,
-        initialScrollKey,
-        onStartReached: onStartReachedProp,
-        shouldMaintainVisibleContentPosition,
-    });
-
+function InvertedFlashList<T>({maintainVisibleContentPosition: maintainVisibleContentPositionProp, shouldMaintainVisibleContentPosition, ...restProps}: InvertedFlashListProps<T>) {
     const maintainVisibleContentPosition = maintainVisibleContentPositionProp
-        ? {
-              ...maintainVisibleContentPositionForScrollKey,
-              ...maintainVisibleContentPositionProp,
-          }
-        : maintainVisibleContentPositionForScrollKey;
+        ? {disabled: !shouldMaintainVisibleContentPosition, ...maintainVisibleContentPositionProp}
+        : {disabled: !shouldMaintainVisibleContentPosition};
 
     return (
         <FlashList<T>
             {...restProps}
             inverted
-            onStartReached={onStartReached}
-            data={displayedData}
-            keyExtractor={keyExtractor}
             CellRendererComponent={CellRendererComponent}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
         />

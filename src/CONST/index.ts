@@ -1817,6 +1817,8 @@ const CONST = {
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
+            // When deep linking to a linked/unread action, reveal this many pixels of later content beneath the anchor so it doesn't look like the last message.
+            INITIAL_LINKED_ACTION_SCROLL_OFFSET: 100,
             MAX_GROUPING_TIME: 300000,
         },
         CANCEL_PAYMENT_REASONS: {
