@@ -10,6 +10,9 @@ type UseSelectionProps<DataType extends TableData> = {
     /** The data being used in the table */
     data: DataType[];
 
+    /** Whether the data is currently reduced by an active search or filter */
+    isDataFiltered: boolean;
+
     /** The list of selected keys */
     selectedKeys: string[];
 
@@ -39,7 +42,7 @@ type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataT
     mobileSelectionModalRowKey: string | null;
 };
 
-export default function useSelection<DataType extends TableData>({data, selectedKeys, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
+export default function useSelection<DataType extends TableData>({data, isDataFiltered, selectedKeys, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isSelectionModeEnabled = useMobileSelectionMode();
     const lastSelectedRowKeyRef = useRef<string | null>(null);
@@ -61,14 +64,15 @@ export default function useSelection<DataType extends TableData>({data, selected
         }
     }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length]);
 
-    // When there are no more items to be selected, turn off selection mode on mobile
+    // When there are genuinely no selectable items left, turn off selection mode on mobile.
+    // Skip when data is reduced by search/filter — the items still exist, they're just hidden.
     useEffect(() => {
-        if (selectableKeys.length || !isSelectionModeEnabled) {
+        if (selectableKeys.length || !isSelectionModeEnabled || isDataFiltered) {
             return;
         }
 
         turnOffMobileSelectionMode();
-    }, [selectableKeys.length, isSelectionModeEnabled]);
+    }, [selectableKeys.length, isSelectionModeEnabled, isDataFiltered]);
 
     const prevSelectionModeEnabledRef = useRef(isSelectionModeEnabled);
     useEffect(() => {
