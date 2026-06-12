@@ -31,7 +31,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {getSubmitReportManagerAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
+import {getSubmitReportManagerAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled, isSubmitAndClose} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
@@ -840,12 +840,23 @@ function search({
 
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
+    const isSubmitAndClosePolicy = isSubmitAndClose(policy.at(0));
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
             value: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.reportID}`, {isActionLoading: true}])),
         },
+        ...reportList.map((report) => ({
+            onyxMethod: Onyx.METHOD.MERGE as const,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            value: {
+                stateNum: isSubmitAndClosePolicy ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED,
+            },
+        })),
     ];
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
