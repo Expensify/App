@@ -176,7 +176,7 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
                     }}
                     shouldUseHapticsOnLongPress
                     sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.CARD}
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, styles.borderedContentCardLarge]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
