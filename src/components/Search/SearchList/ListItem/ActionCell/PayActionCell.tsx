@@ -7,6 +7,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
@@ -64,6 +65,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
         invoiceReceiverPolicyID,
     });
 
+    const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
+
     const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, false, undefined, invoiceReceiverPolicy);
     const shouldOnlyShowElsewhere =
         !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, true, undefined, invoiceReceiverPolicy);
@@ -101,6 +104,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
                 isSelfTourViewed,
                 defaultWorkspaceName,
                 additionalOnyxData,
+                chatReportActions: getChatReportActions(payAsBusiness),
             });
             return;
         }
@@ -123,6 +127,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
             ownerBillingGracePeriodEnd,
             methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
             additionalOnyxData,
+            chatReportActions: getChatReportActions(false),
         });
     };
 

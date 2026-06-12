@@ -1071,6 +1071,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         defaultWorkspaceName,
                         additionalOnyxData,
                         shouldPlaySuccessSound: false,
+                        chatReportActions: undefined,
                     });
                     paidReportCount += 1;
                     continue;
@@ -1097,6 +1098,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined,
                     additionalOnyxData,
                     shouldPlaySuccessSound: false,
+                    chatReportActions: undefined,
                 });
                 paidReportCount += 1;
             }

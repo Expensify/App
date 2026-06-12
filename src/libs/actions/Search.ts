@@ -513,6 +513,7 @@ function getPayActionCallback({
         ownerBillingGracePeriodEnd,
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
+        chatReportActions: undefined,
     });
 }
 
