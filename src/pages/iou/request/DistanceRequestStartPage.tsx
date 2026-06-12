@@ -8,9 +8,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import type {TabSelectorProps} from '@components/TabSelector/types';
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -19,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import goForwardInBrowserHistory from '@libs/Navigation/goForwardInBrowserHistory';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getPayeeName} from '@libs/ReportUtils';
@@ -41,48 +38,6 @@ import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportO
 type DistanceRequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
     defaultSelectedTab: SelectedTabRequest;
 };
-
-/**
- * Page-level discard confirmation for whichever distance tab is currently active. Reads the registered tab
- * guard (`activeGuardRef`) so leaving via header / hardware / web browser back shows the discard modal,
- * discards the guard's changes on confirm, and replays the navigation - the modal is the only added step.
- */
-function useActiveTabGuardDiscardConfirmation(activeGuardRef: React.RefObject<DistanceTabGuard | null>, isDiscardModalOpenRef: React.RefObject<boolean>) {
-    const getActiveGuardHasUnsavedChanges = useCallback(() => activeGuardRef.current?.getHasUnsavedChanges() ?? false, [activeGuardRef]);
-    const discardActiveGuardChanges = useCallback(() => activeGuardRef.current?.onDiscard(), [activeGuardRef]);
-    const cancelActiveGuardDiscard = useCallback(() => activeGuardRef.current?.onCancel?.(), [activeGuardRef]);
-    const setDiscardModalVisibility = useCallback(
-        (visible: boolean) => {
-            // eslint-disable-next-line no-param-reassign
-            isDiscardModalOpenRef.current = visible;
-        },
-        [isDiscardModalOpenRef],
-    );
-
-    useDiscardChangesConfirmation({
-        getHasUnsavedChanges: getActiveGuardHasUnsavedChanges,
-        onConfirm: discardActiveGuardChanges,
-        onCancel: cancelActiveGuardDiscard,
-        onVisibilityChange: setDiscardModalVisibility,
-    });
-
-    // Web browser-BACK moves the history pointer (popstate) before JS runs, so `beforeRemove` keeps the screen
-    // mounted but can't undo the URL - and since the transition is blocked, the hook's own `transitionStart`
-    // resync never fires. react-navigation then re-dispatches the blocked RESET, re-opening the modal on every
-    // cancel. Only browser-back produces a RESET here (header back = POP), so going forward on a
-    // RESET-with-unsaved-changes resyncs the URL and stops the loop. No-op on native.
-    useBeforeRemove(
-        useCallback(
-            (event) => {
-                if (event.data.action?.type !== CONST.NAVIGATION.ACTION_TYPE.RESET || !getActiveGuardHasUnsavedChanges()) {
-                    return;
-                }
-                goForwardInBrowserHistory();
-            },
-            [getActiveGuardHasUnsavedChanges],
-        ),
-    );
-}
 
 function DistanceRequestStartPage({
     route,
@@ -223,9 +178,6 @@ function DistanceRequestStartPage({
         }),
         [showConfirmModal, translate],
     );
-
-    // Discard modal + browser-back resync for whichever distance tab is active (header / hardware / browser back).
-    useActiveTabGuardDiscardConfirmation(activeGuardRef, isDiscardModalOpenRef);
 
     return (
         <AccessOrNotFoundWrapper

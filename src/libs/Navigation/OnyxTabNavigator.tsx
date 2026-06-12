@@ -15,7 +15,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import getTabHistoryReplacementRouter from './getTabHistoryReplacementRouter';
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
 type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = ChildrenProps & {
@@ -108,11 +107,6 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
 
     const tabNames = useMemo(() => getTabNames(children), [children]);
 
-    // On web, opts the allowlisted navigators into replacing (instead of pushing) browser history on tab
-    // switches, so the browser BACK button leaves the flow and fires the existing discard guards rather
-    // than silently popping a nested-tab URL. `undefined` (native / non-allowlisted) keeps the stock router.
-    const tabHistoryRouter = useMemo(() => getTabHistoryReplacementRouter(id), [id]);
-
     const validInitialTab = selectedTab && tabNames.includes(selectedTab) ? selectedTab : defaultSelectedTab;
 
     const LazyPlaceholder = useCallback(() => {
@@ -171,7 +165,6 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
             <TopTab.Navigator
                 {...rest}
                 id={id}
-                UNSTABLE_router={tabHistoryRouter}
                 initialRouteName={validInitialTab}
                 backBehavior="initialRoute"
                 keyboardDismissMode="none"

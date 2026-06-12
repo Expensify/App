@@ -72,23 +72,6 @@ type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
         transaction: OnyxEntry<Transaction>;
     };
 
-type StandaloneDiscardGuardProps = {
-    getHasUnsavedChanges: () => boolean;
-    onCancel: () => void;
-    onConfirm?: () => Promise<void>;
-    onVisibilityChange: (visible: boolean) => void;
-};
-
-/**
- * A component (not an inline hook) so the discard hook runs only on the standalone screen - in the
- * `DISTANCE_CREATE` tab flow `DistanceRequestStartPage` owns discard, and running it here too would
- * register a second `beforeRemove` listener and show the discard modal twice.
- */
-function StandaloneDiscardGuard({getHasUnsavedChanges, onCancel, onConfirm, onVisibilityChange}: StandaloneDiscardGuardProps) {
-    useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onConfirm, onVisibilityChange});
-    return null;
-}
-
 function IOURequestStepDistanceOdometer({
     report,
     route: {
@@ -589,7 +572,19 @@ function IOURequestStepDistanceOdometer({
         });
     }, []);
 
-    useRegisterDistanceTabGuard(CONST.TAB_REQUEST.DISTANCE_ODOMETER, getHasUnsavedChanges, handleTabSwitchDiscard, restoreLastInputFocus);
+    useRegisterDistanceTabGuard(CONST.TAB_REQUEST.DISTANCE_ODOMETER, getHasUnsavedChanges, handleTabSwitchDiscard);
+
+    useDiscardChangesConfirmation({
+        getHasUnsavedChanges,
+        onCancel: restoreLastInputFocus,
+        onConfirm: isEditingConfirmation
+            ? async () => {
+                  await restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
+                  backupHandledManually.current = true;
+              }
+            : undefined,
+        onVisibilityChange: setIsDiscardModalVisible,
+    });
 
     const handleSaveForLater = useCallback(async () => {
         shouldBypassDiscardConfirmationRef.current = true;
@@ -624,10 +619,6 @@ function IOURequestStepDistanceOdometer({
         Navigation.closeRHPFlow();
     }, [fromLocaleDigit, startReading, endReading, odometerStartImage, odometerEndImage, translate, setFormError]);
 
-    // Standalone screen only (edit / edit-from-confirmation); in the `DISTANCE_CREATE` tab flow `DistanceRequestStartPage`
-    // owns discard, so running it here too would show the modal twice. Rendered as a child since hooks can't be conditional
-    const isStandaloneScreen = routeName !== SCREENS.MONEY_REQUEST.DISTANCE_CREATE;
-
     return (
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
@@ -637,21 +628,6 @@ function IOURequestStepDistanceOdometer({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
-            {isStandaloneScreen && (
-                <StandaloneDiscardGuard
-                    getHasUnsavedChanges={getHasUnsavedChanges}
-                    onCancel={restoreLastInputFocus}
-                    onConfirm={
-                        isEditingConfirmation
-                            ? async () => {
-                                  await restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
-                                  backupHandledManually.current = true;
-                              }
-                            : undefined
-                    }
-                    onVisibilityChange={setIsDiscardModalVisible}
-                />
-            )}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}>
                 <View>
                     {/* Start Reading */}
