@@ -63,6 +63,8 @@ To comply with financial regulations, the following documents are needed:
      - Expensify will send a message to the Director/Senior Officer outlining what's required.
      - They must also provide ID and proof of address.
 
+**Note:** The designated Director or Senior Officer will also see a **Signer info needed** task in the **Time sensitive** section of their **Home** page. They can select **Begin** to enter their information directly from there.
+
 Once you agree to the terms, Expensify’s Compliance Team will review your submission. If any additional documentation is needed, our support team will message you.
 
 ---
