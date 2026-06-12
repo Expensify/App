@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
@@ -16,7 +16,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 import {updateSelectedFeed} from '@libs/actions/Card';
-import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {openPolicyCompanyCardsPage, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,6 +31,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+
+const pendingPlaidImports = new Set<string>();
 
 type BankConnectionProps = {
     /** ID of the policy */
@@ -120,6 +122,14 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
+    const refreshPolicyCompanyCardsPage = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
+
+        openPolicyCompanyCardsPage(policyID, CONST.DEFAULT_NUMBER_ID, [], translate);
+    }, [policyID, translate]);
+
     useEffect(() => {
         if ((!url && !isPlaid) || isNewFeedHasError) {
             return;
@@ -154,7 +164,20 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
             return;
         }
         if (isPlaid) {
-            onImportPlaidAccounts();
+            const plaidImportKey = `${policyID}_${plaidToken}`;
+            if (pendingPlaidImports.has(plaidImportKey)) {
+                return;
+            }
+
+            const importPlaidAccountsPromise = onImportPlaidAccounts();
+            if (!importPlaidAccountsPromise) {
+                return;
+            }
+
+            pendingPlaidImports.add(plaidImportKey);
+            importPlaidAccountsPromise.then(refreshPolicyCompanyCardsPage).catch(() => {
+                pendingPlaidImports.delete(plaidImportKey);
+            });
         }
     }, [
         isNewFeedConnected,
@@ -165,7 +188,9 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isFeedExpired,
         assignCard?.cardToAssign?.dateOption,
         isPlaid,
+        plaidToken,
         onImportPlaidAccounts,
+        refreshPolicyCompanyCardsPage,
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,

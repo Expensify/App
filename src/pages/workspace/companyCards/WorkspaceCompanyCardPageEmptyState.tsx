@@ -40,6 +40,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
 
     const policy = usePolicy(policyID);
     const {showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal: showMoreFeaturesReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(workspaceAccountID, allWorkspaceCards);
     const otherFeeds = useOtherFeedsForFeedSelector(policyID);
@@ -116,7 +117,8 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
                 <WorkspaceCompanyCardExpensifyCardPromotionBanner
                     policy={policy}
                     canWriteCompanyCards={canWriteCompanyCards}
-                    onReadOnlyAction={showReadOnlyModal}
+                    canWriteMoreFeatures={canWriteMoreFeatures}
+                    onReadOnlyAction={policy?.areExpensifyCardsEnabled ? showReadOnlyModal : showMoreFeaturesReadOnlyModal}
                 />
             )}
             <FeatureList

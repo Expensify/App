@@ -17,7 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
-import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {openPolicyCompanyCardsPage, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -35,6 +35,7 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import openBankConnection from './openBankConnection';
 
 let customWindow: Window | null = null;
+const pendingPlaidImports = new Set<string>();
 
 type BankConnectionProps = {
     /** ID of the policy */
@@ -87,6 +88,14 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         }
         customWindow = openBankConnection(url);
     }, [url]);
+
+    const refreshPolicyCompanyCardsPage = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
+
+        openPolicyCompanyCardsPage(policyID, CONST.DEFAULT_NUMBER_ID, [], translate);
+    }, [policyID, translate]);
 
     useEffect(() => {
         if (!policyID || !isBlockedToAddNewFeeds || feed) {
@@ -169,7 +178,20 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         }
         if (!shouldBlockWindowOpen) {
             if (isPlaid) {
-                onImportPlaidAccounts();
+                const plaidImportKey = `${policyID}_${plaidToken}`;
+                if (pendingPlaidImports.has(plaidImportKey)) {
+                    return;
+                }
+
+                const importPlaidAccountsPromise = onImportPlaidAccounts();
+                if (!importPlaidAccountsPromise) {
+                    return;
+                }
+
+                pendingPlaidImports.add(plaidImportKey);
+                importPlaidAccountsPromise.then(refreshPolicyCompanyCardsPage).catch(() => {
+                    pendingPlaidImports.delete(plaidImportKey);
+                });
                 return;
             }
             if (url) {
@@ -189,7 +211,9 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isOffline,
         assignCard?.cardToAssign?.dateOption,
         isPlaid,
+        plaidToken,
         onImportPlaidAccounts,
+        refreshPolicyCompanyCardsPage,
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
