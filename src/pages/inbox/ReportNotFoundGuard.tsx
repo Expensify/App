@@ -48,7 +48,8 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const isInvalidReportPath = !!routeParams?.reportID && !isValidReportIDFromPath(routeParams.reportID);
     const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
-    const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
+    const isOptimisticCreate = report?.pendingFields?.createReport === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    const reportExists = !!reportID || isOptimisticDelete || isOptimisticCreate || userLeavingStatus;
 
     const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && !reportExists));
 
