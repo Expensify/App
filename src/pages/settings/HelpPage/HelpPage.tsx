@@ -15,6 +15,7 @@ import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {PersonalDetails} from '@src/types/onyx';
 import {openHelpPage} from '@libs/actions/Help';
 import {openExternalLink} from '@libs/actions/Link';
 import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
@@ -36,9 +37,16 @@ function HelpPage() {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const isPaidPolicyAdmin = useIsPaidPolicyAdmin();
     const isApprovedAccountant = !!account?.isApprovedAccountant;
-    const accountManagerDetails = account?.accountManagerAccountID ? personalDetails?.[account.accountManagerAccountID] : null;
-    const partnerManagerDetails = account?.partnerManagerAccountID ? personalDetails?.[account.partnerManagerAccountID] : null;
-    const guideDetails = account?.guideDetails?.email ? getPersonalDetailByEmail(account.guideDetails.email) : null;
+    // Concierge has its own dedicated button below, so hide any RM/AM/Guide slot that resolves to
+    // Concierge to avoid rendering it twice (https://github.com/Expensify/App/issues/92727).
+    const isConciergePersonalDetail = (details: PersonalDetails | null | undefined) =>
+        details?.login === CONST.EMAIL.CONCIERGE || details?.accountID === CONST.ACCOUNT_ID.CONCIERGE;
+    const resolvedAccountManagerDetails = account?.accountManagerAccountID ? personalDetails?.[account.accountManagerAccountID] : null;
+    const resolvedPartnerManagerDetails = account?.partnerManagerAccountID ? personalDetails?.[account.partnerManagerAccountID] : null;
+    const resolvedGuideDetails = account?.guideDetails?.email ? getPersonalDetailByEmail(account.guideDetails.email) : null;
+    const accountManagerDetails = isConciergePersonalDetail(resolvedAccountManagerDetails) ? null : resolvedAccountManagerDetails;
+    const partnerManagerDetails = isConciergePersonalDetail(resolvedPartnerManagerDetails) ? null : resolvedPartnerManagerDetails;
+    const guideDetails = isConciergePersonalDetail(resolvedGuideDetails) ? null : resolvedGuideDetails;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
