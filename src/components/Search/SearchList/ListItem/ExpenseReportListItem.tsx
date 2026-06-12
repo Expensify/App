@@ -105,6 +105,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     }, [searchData, reportItem.reportID]);
 
     const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? reportItem.parentReportID)}`);
+    const [chatReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? reportItem.parentReportID)}`);
 
     const snapshotChatReport = useMemo(() => {
         const chatReportID = snapshotReport?.chatReportID ?? reportItem.parentReportID;
@@ -233,6 +234,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             chatReportPolicy,
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData,
+            chatReportActions,
         });
     }, [
         currentSearchHash,
@@ -265,6 +267,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         activePolicy,
         chatReportPolicy,
         nextStep,
+        chatReportActions,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

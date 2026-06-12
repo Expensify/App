@@ -341,6 +341,7 @@ describe('handleActionButtonPress', () => {
             userBillingGracePeriodEnds: undefined,
             onHoldMenuOpen: jest.fn(),
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -360,6 +361,7 @@ describe('handleActionButtonPress', () => {
             amountOwed: undefined,
             onHoldMenuOpen,
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
         });
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -379,6 +381,7 @@ describe('handleActionButtonPress', () => {
             amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
