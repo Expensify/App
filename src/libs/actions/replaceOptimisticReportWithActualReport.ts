@@ -37,7 +37,6 @@ let allReportDraftComments: Record<string, string | undefined> = {};
 // Draft comments are cached only for transferring to the preexisting report; no UI subscribes, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    waitForCollectionCallback: true,
     callback: (value) => (allReportDraftComments = value ?? {}),
 });
 
@@ -56,7 +55,7 @@ Onyx.connectWithoutView({
         // shares its reference with the snapshot, preserving structural-sharing
         // ref-stability for unchanged members.
         const next: OnyxCollection<ReportActions> = {};
-        for (const [k, v] of Object.entries(snapshot as unknown as Record<string, ReportActions | undefined>)) {
+        for (const [k, v] of Object.entries(snapshot)) {
             next[k.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')] = v;
         }
         allReportActions = next;
@@ -244,7 +243,6 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
 // Reports are observed only to detect preexistingReportID and run replacement; no UI subscribes, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value: OnyxCollection<Report>) => {
         allReports = value;
 

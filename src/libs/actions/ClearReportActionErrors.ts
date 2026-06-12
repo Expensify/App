@@ -15,14 +15,12 @@ type IgnoreDirection = 'parent' | 'child';
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (value) => (allReportActions = value),
 });
 
 let allReports: OnyxCollection<OnyxTypes.Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },

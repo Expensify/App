@@ -59,7 +59,6 @@ import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisi
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as Browser from '@libs/Browser';
-import * as CollectionUtils from '@libs/CollectionUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as Environment from '@libs/Environment/Environment';
@@ -461,8 +460,8 @@ Onyx.connect({
         // shares its reference with the snapshot, so downstream consumers still
         // benefit from structural-sharing ref-stability for unchanged members.
         const next: OnyxCollection<ReportActions> = {};
-        for (const [k, v] of Object.entries(snapshot as unknown as Record<string, ReportActions | undefined>)) {
-            next[CollectionUtils.extractCollectionItemID(k as `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`)] = v;
+        for (const [k, v] of Object.entries(snapshot)) {
+            next[k.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')] = v;
         }
         allReportActions = next;
     },
@@ -471,7 +470,6 @@ Onyx.connect({
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -525,7 +523,6 @@ Onyx.connect({
 let allAttachments: OnyxCollection<Attachment> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.ATTACHMENT,
-    waitForCollectionCallback: true,
     callback: (value) => (allAttachments = value),
 });
 

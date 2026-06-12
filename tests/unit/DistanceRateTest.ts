@@ -85,7 +85,6 @@ describe('DistanceRate', () => {
                 Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
                     callback: resolve,
-                    waitForCollectionCallback: true,
                 });
             });
 

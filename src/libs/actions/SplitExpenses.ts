@@ -22,7 +22,6 @@ import {initDraftSplitExpenseDataForEdit, initSplitExpenseItemData, resolveSplit
 let allTransactions: OnyxCollection<Transaction>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
     callback: (value) => (allTransactions = value),
 });
 
@@ -32,7 +31,6 @@ Onyx.connectWithoutView({
 let allReports: OnyxCollection<Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
 });
 
@@ -42,7 +40,6 @@ Onyx.connectWithoutView({
 let allPolicies: OnyxCollection<Policy>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
 });
 
@@ -70,7 +67,6 @@ let userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
 // be used for `initSplitExpense`
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
-    waitForCollectionCallback: true,
     callback: (value) => (userBillingGracePeriodEnds = value),
 });
 

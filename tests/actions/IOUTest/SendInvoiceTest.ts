@@ -651,7 +651,6 @@ describe('actions/SendInvoice', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (allTransactions) => {
                         Onyx.disconnect(connection);
                         const transactionValue = Object.values(allTransactions).at(0);

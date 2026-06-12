@@ -280,7 +280,6 @@ type SetWorkspaceApprovalModeAdditionalData = {
 let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (actions) => {
         deprecatedAllReportActions = actions;
     },
