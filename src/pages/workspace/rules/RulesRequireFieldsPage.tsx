@@ -5,17 +5,20 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
 import {setPolicyRequiresTag} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 type RulesRequireFieldsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS>;
@@ -29,6 +32,14 @@ function RulesRequireFieldsPage({
     const {policy} = policyData;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+
+    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const hasEnabledCategories = hasEnabledOptions(policyData.categories);
+    const isCategoryToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
+
+    const hasEnabledTags = hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
+    const isTagToggleDisabled = !policy?.areTagsEnabled || !hasEnabledTags;
 
     const initialCategoryRequired = !!policy?.requiresCategory;
     const initialTagRequired = !!policy?.requiresTag;
@@ -82,6 +93,8 @@ function RulesRequireFieldsPage({
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={styles.pv3}
                         isActive={categoryRequired}
+                        disabled={isCategoryToggleDisabled}
+                        showLockIcon={isCategoryToggleDisabled}
                         pendingAction={policy?.pendingFields?.requiresCategory}
                         errors={policy?.errorFields?.requiresCategory ?? undefined}
                         onCloseError={() => clearPolicyErrorField(policyID, 'requiresCategory')}
@@ -94,6 +107,8 @@ function RulesRequireFieldsPage({
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={styles.pv3}
                         isActive={tagRequired}
+                        disabled={isTagToggleDisabled}
+                        showLockIcon={isTagToggleDisabled}
                         pendingAction={policy?.pendingFields?.requiresTag}
                         errors={policy?.errorFields?.requiresTag ?? undefined}
                         onCloseError={() => clearPolicyErrorField(policyID, 'requiresTag')}
