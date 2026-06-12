@@ -109,7 +109,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Wielokrotny wybór',
         saveChanges: 'Zapisz zmiany',
         submit: 'Wyślij',
+        markAsDone: 'Oznacz jako wykonane',
         submitted: 'Przesłano',
+        markedAsDoneStatus: 'Oznaczone jako ukończone',
         rotate: 'Obróć',
         zoom: 'Powiększenie',
         password: 'Hasło',
@@ -294,7 +296,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Opis',
         title: 'Tytuł',
         assignee: 'Osoba przypisana',
-        createdBy: 'Utworzone przez',
         with: 'z',
         shareCode: 'Udostępnij kod',
         share: 'Udostępnij',
@@ -357,6 +358,10 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Znajdź czat za pomocą',
             subtitleText2: 'przycisk powyżej lub utwórz coś za pomocą',
             subtitleText3: 'przycisk poniżej.',
+            noUnreadChats: 'Brak nieprzeczytanych czatów',
+            noTodos: 'Brak zadań',
+            caughtUp: 'Ze wszystkim już się uporałeś. Dobra robota!',
+            seeAllChats: 'Zobacz wszystkie czaty',
         },
         businessName: 'Nazwa firmy',
         clear: 'Wyczyść',
@@ -856,6 +861,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Ten czat jest z ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `Tutaj <strong>${submitterDisplayName}</strong> będzie przesyłać wydatki do <strong>${workspaceName}</strong>. Po prostu użyj przycisku +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Tutaj będziesz śledzić wydatki',
         beginningOfChatHistorySelfDM: 'To Twoja osobista przestrzeń. Używaj jej na notatki, zadania, szkice i przypomnienia.',
         beginningOfChatHistorySystemDM: 'Witamy! Zacznijmy konfigurację.',
         chatWithAccountManager: 'Porozmawiaj tutaj z opiekunem konta',
@@ -1017,6 +1023,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Wszystko nadrobione',
                 f1FlagsDescription: 'Ukończyłeś wszystkie zaległe zadania.',
             },
+            reviewExpenses: ({count}: {count: number}) => `Przejrzyj ${count} ${count === 1 ? 'wydatek' : 'wydatki'}`,
         },
         upcomingTravel: 'Nadchodząca podróż',
         upcomingTravelSection: {
@@ -1350,6 +1357,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `Wyślij fakturę na ${amount}`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `za ${comment}` : ''}`,
         submitted: (memo?: string) => `przesłano${memo ? `, wpisując ${memo}` : ''}`,
+        markedAsDone: (memo) => `oznaczono jako zakończone${memo ? `, z adnotacją: ${memo}` : ''}`,
         automaticallySubmitted: `przesłano przez <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnianie wysyłania</a>`,
         queuedToSubmitViaDEW: 'w kolejce do przesłania przez niestandardowy proces zatwierdzania',
         queuedToApproveViaDEW: 'oczekuje na zatwierdzenie w niestandardowym procesie akceptacji',
@@ -1562,6 +1570,9 @@ const translations: TranslationDeepObject<typeof en> = {
         removed: 'usunięto',
         transactionPending: 'Transakcja w toku.',
         chooseARate: 'Wybierz stawkę zwrotu kosztów za milę lub kilometr dla przestrzeni roboczej',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} do ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Ważne od ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Ważne do ${endDate}`,
         unapprove: 'Cofnij zatwierdzenie',
         unapproveReport: 'Cofnij zatwierdzenie raportu',
         headsUp: 'Uwaga!',
@@ -1790,6 +1801,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Oczekiwanie, aż <strong>${actor}</strong> prześle wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Oczekiwanie, aż administrator złoży wydatki.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Czekamy, aż <strong>Ty</strong> oznaczysz to jako wykonane.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Oczekiwanie, aż <strong>${actor}</strong> oznaczy to jako wykonane.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Oczekiwanie, aż administrator oznaczy to jako wykonane.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2592,13 +2618,10 @@ ${amount} dla ${merchant} - ${date}`,
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `wydatki od ${members}, a zatwierdzającym jest ${approvers}`,
         addApprovalButton: 'Dodaj proces akceptacji',
         editWorkflowAction: 'Edytuj',
-        addAgentAction: 'Dodaj agenta',
         findWorkflow: 'Znajdź przepływ pracy',
         addApprovalTip: 'Domyślny proces pracy ma zastosowanie do wszystkich członków, chyba że istnieje bardziej szczegółowy proces pracy.',
         approver: 'Osoba zatwierdzająca',
         addApprovalsDescription: 'Wymagaj dodatkowej akceptacji przed autoryzacją płatności.',
-        automateApprovalsWithAgentsTitle: 'Automatyzuj zatwierdzanie z agentami',
-        automateApprovalsWithAgentsSubtitle: 'Dodaj agenta poniżej do przepływu pracy, aby zautomatyzować zatwierdzanie.',
         makeOrTrackPaymentsTitle: 'Płatności',
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika dla płatności dokonywanych w Expensify lub śledź płatności wykonywane gdzie indziej.',
         customApprovalWorkflowEnabled:
@@ -2892,6 +2915,12 @@ ${amount} dla ${merchant} - ${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: 'Witaj w trybie #focus!',
+        prompt: (priorityModePageUrl: string) =>
+            `Bądź na bieżąco, widząc tylko nieprzeczytane czaty lub czaty wymagające twojej uwagi. Spokojnie, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
+    },
+    inboxTabs: {all: 'Wszystko', todo: 'Zadania do wykonania', unread: 'Nieprzeczytane'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `w ${policyName}`,
         generatingPDF: 'Wygeneruj PDF',
@@ -3450,11 +3479,6 @@ ${amount} dla ${merchant} - ${date}`,
     yearPickerPage: {
         year: 'Rok',
         selectYear: 'Wybierz rok',
-    },
-    focusModeUpdateModal: {
-        title: 'Witamy w trybie #focus!',
-        prompt: (priorityModePageUrl: string) =>
-            `Miej wszystko pod kontrolą, wyświetlając tylko nieprzeczytane czaty lub czaty wymagające Twojej uwagi. Nie martw się, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'Nie można znaleźć czatu, którego szukasz.',
@@ -6665,6 +6689,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             }),
             enableRate: 'Włącz stawkę',
             status: 'Status',
+            statusActive: 'Aktywna',
+            statusFuture: 'Przyszła',
+            statusExpired: 'Wygasła',
+            statusInactive: 'Nieaktywna',
             unit: 'Jednostka',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Aby korzystać z tej funkcji, włącz podatki w przestrzeni roboczej. Przejdź do sekcji <a href="#">Więcej funkcji</a>, aby to zmienić.</muted-text>',
@@ -7325,6 +7353,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 deleteRuleConfirmation: 'Na pewno chcesz usunąć tę regułę?',
                 describeRuleTitle: 'Opisz swoją regułę',
                 describeRuleSubtitle: 'Opisz swoją regułę, a Concierge ją utworzy',
+                disclaimer: 'Agenci AI mogą popełniać błędy.',
             },
         },
         planTypePage: {
@@ -8002,22 +8031,20 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} z ${cards}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `zmienił(a) domyślną stawkę podatku dla kategorii „${categoryName}” na „${newTax}” (wcześniej „${oldTax}”)`,
         addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `dodano stawkę „${rateName}” w wysokości ${rateValue}`,
         addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) =>
             `dodano stawkę „${rateName}” w wysokości ${rateValue}, obowiązującą od ${startDate}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `dodano stawkę „${rateName}” w wysokości ${rateValue}, obowiązującą do ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `dodano stawkę „${rateName}” w wysokości ${rateValue}, obowiązującą od ${startDate} do ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `zaktualizowano datę rozpoczęcia stawki „${rateName}” na ${newDate} (wcześniej ${oldDate})` : `ustaw datę rozpoczęcia stawki „${rateName}” na ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `zaktualizowano datę końcową stawki „${rateName}” na ${newDate} (wcześniej ${oldDate})` : `ustaw datę zakończenia stawki „${rateName}” na ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `zaktualizowano datę początkową i końcową stawki „${rateName}” na ${newStartDate} – ${newEndDate} (wcześniej ${oldStartDate} – ${oldEndDate})`
-                : `ustaw początkową i końcową datę stawki „${rateName}” na ${newStartDate} – ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `usunięto datę początkową ze stawki „${rateName}” (wcześniej ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `usunięto datę zakończenia ze stawki „${rateName}” (wcześniej ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `zaktualizowano stawkę za dystans „${rateName}”, aby obowiązywała ${newDateRange} (wcześniej ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `od ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `do ${date}`,
+        customUnitRateDateRangeAllDates: () => `dla wszystkich dat`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',

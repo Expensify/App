@@ -109,7 +109,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Mehrfachauswahl',
         saveChanges: 'Änderungen speichern',
         submit: 'Senden',
+        markAsDone: 'Als erledigt markieren',
         submitted: 'Übermittelt',
+        markedAsDoneStatus: 'Als erledigt markiert',
         rotate: 'Drehen',
         zoom: 'Zoom',
         password: 'Passwort',
@@ -294,7 +296,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Beschreibung',
         title: 'Titel',
         assignee: 'Zuständige Person',
-        createdBy: 'Erstellt von',
         with: 'mit',
         shareCode: 'Code teilen',
         share: 'Teilen',
@@ -358,6 +359,10 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Finde einen Chat über die',
             subtitleText2: 'Schaltfläche oben oder erstellen Sie etwas mit der',
             subtitleText3: 'Schaltfläche unten.',
+            noUnreadChats: 'Keine ungelesenen Chats',
+            noTodos: 'Keine To-dos',
+            caughtUp: 'Sie sind auf dem neuesten Stand. Gut gemacht!',
+            seeAllChats: 'Alle Chats anzeigen',
         },
         businessName: 'Firmenname',
         clear: 'Löschen',
@@ -856,6 +861,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Dieser Chat ist mit ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `Hier reicht <strong>${submitterDisplayName}</strong> Auslagen bei <strong>${workspaceName}</strong> ein. Nutze einfach die +-Taste.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Hier können Sie Ausgaben nachverfolgen',
         beginningOfChatHistorySelfDM: 'Dies ist dein persönlicher Bereich. Nutze ihn für Notizen, Aufgaben, Entwürfe und Erinnerungen.',
         beginningOfChatHistorySystemDM: 'Willkommen! Lassen Sie uns Ihre Einrichtung vornehmen.',
         chatWithAccountManager: 'Chatte hier mit deiner/deinem Account Manager',
@@ -1016,6 +1022,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Alles erledigt',
                 f1FlagsDescription: 'Sie haben alle offenen Aufgaben abgeschlossen.',
             },
+            reviewExpenses: ({count}: {count: number}) => `Überprüfen Sie ${count} ${count === 1 ? 'Ausgabe' : 'Spesen'}`,
         },
         upcomingTravel: 'Bevorstehende Reisen',
         upcomingTravelSection: {
@@ -1352,6 +1359,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `${amount}-Rechnung senden`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `für ${comment}` : ''}`,
         submitted: (memo?: string) => `eingereicht${memo ? `, mit dem Vermerk ${memo}` : ''}`,
+        markedAsDone: (memo) => `als erledigt markiert${memo ? `, mit dem Vermerk ${memo}` : ''}`,
         automaticallySubmitted: `eingereicht über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">Einreichungen verzögern</a>`,
         queuedToSubmitViaDEW: 'zur Einreichung über benutzerdefinierten Genehmigungsworkflow eingereiht',
         queuedToApproveViaDEW: 'Zur Genehmigung über benutzerdefinierten Genehmigungsworkflow eingereiht',
@@ -1568,6 +1576,9 @@ const translations: TranslationDeepObject<typeof en> = {
         removed: 'entfernt',
         transactionPending: 'Transaktion ausstehend.',
         chooseARate: 'Wähle einen Rückerstattungssatz pro Meile oder Kilometer für den Workspace aus',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} bis ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Gültig ab ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Gültig bis ${endDate}`,
         unapprove: 'Genehmigung aufheben',
         unapproveReport: 'Bericht ablehnen',
         headsUp: 'Achtung!',
@@ -1796,6 +1807,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten darauf, dass <strong>${actor}</strong> Ausgaben einreicht.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Warten darauf, dass ein Admin Spesen einreicht.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Wartet darauf, dass <strong>Sie</strong> dies als erledigt markieren.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Warten darauf, dass <strong>${actor}</strong> dies als erledigt markiert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Warten darauf, dass ein Admin dies als erledigt markiert.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2603,13 +2629,10 @@ ${amount} für ${merchant} – ${date}`,
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `Ausgaben von ${members} und die genehmigende Person ist ${approvers}`,
         addApprovalButton: 'Genehmigungsablauf hinzufügen',
         editWorkflowAction: 'Bearbeiten',
-        addAgentAction: 'Agent hinzufügen',
         findWorkflow: 'Workflow suchen',
         addApprovalTip: 'Dieser Standard-Workflow gilt für alle Mitglieder, sofern kein spezifischerer Workflow vorhanden ist.',
         approver: 'Genehmiger',
         addApprovalsDescription: 'Zusätzliche Genehmigung einholen, bevor eine Zahlung autorisiert wird.',
-        automateApprovalsWithAgentsTitle: 'Genehmigungen mit Agenten automatisieren',
-        automateApprovalsWithAgentsSubtitle: 'Fügen Sie die untenstehende Person zum Workflow hinzu, um Genehmigungen zu automatisieren.',
         makeOrTrackPaymentsTitle: 'Zahlungen',
         makeOrTrackPaymentsDescription:
             'Fügen Sie eine bevollmächtigte zahlende Person für in Expensify getätigte Zahlungen hinzu oder verfolgen Sie Zahlungen, die andernorts getätigt wurden.',
@@ -2905,6 +2928,12 @@ ${amount} für ${merchant} – ${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: 'Willkommen im #Focus-Modus!',
+        prompt: (priorityModePageUrl: string) =>
+            `Behalten Sie den Überblick, indem Sie nur ungelesene Chats oder Chats sehen, die Ihre Aufmerksamkeit erfordern. Keine Sorge, Sie können dies jederzeit in den <a href="${priorityModePageUrl}">Einstellungen</a> ändern.`,
+    },
+    inboxTabs: {all: 'Alle', todo: 'Aufgaben', unread: 'Ungelesen'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'PDF erstellen',
@@ -3471,11 +3500,6 @@ ${amount} für ${merchant} – ${date}`,
     yearPickerPage: {
         year: 'Jahr',
         selectYear: 'Bitte ein Jahr auswählen',
-    },
-    focusModeUpdateModal: {
-        title: 'Willkommen im #Fokusmodus!',
-        prompt: (priorityModePageUrl: string) =>
-            `Behalte den Überblick, indem du nur ungelesene Chats oder Chats siehst, die deine Aufmerksamkeit benötigen. Keine Sorge, du kannst das jederzeit in den <a href="${priorityModePageUrl}">Einstellungen</a> ändern.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'Der Chat, den du suchst, kann nicht gefunden werden.',
@@ -6707,6 +6731,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             }),
             enableRate: 'Kurs aktivieren',
             status: 'Status',
+            statusActive: 'Aktiv',
+            statusFuture: 'Zukünftig',
+            statusExpired: 'Abgelaufen',
+            statusInactive: 'Inaktiv',
             unit: 'Einheit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Steuern müssen im Workspace aktiviert sein, um diese Funktion zu verwenden. Gehe zu <a href="#">Weitere Funktionen</a>, um das zu ändern.</muted-text>',
@@ -7373,6 +7401,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
                 describeRuleTitle: 'Beschreiben Sie Ihre Regel',
                 describeRuleSubtitle: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
+                disclaimer: 'KI-Agenten können Fehler machen.',
             },
         },
         planTypePage: {
@@ -8053,21 +8082,19 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} von ${cards}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `hat den Standardsteuersatz der Kategorie „${categoryName}“ auf „${newTax}“ geändert (zuvor „${oldTax}“)`,
         addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `„${rateName}“-Satz von ${rateValue} hinzugefügt`,
         addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) => `„${rateName}“-Satz von ${rateValue} hinzugefügt, gültig ab ${startDate}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `„${rateName}“-Satz von ${rateValue} hinzugefügt, gültig bis ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `hat den Tarif „${rateName}“ mit ${rateValue} hinzugefügt, gültig vom ${startDate} bis ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `Startdatum des Tarifs „${rateName}“ auf ${newDate} aktualisiert (zuvor ${oldDate})` : `Startdatum des Tarifs „${rateName}“ auf ${newDate} festlegen`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `Enddatum des Tarifs „${rateName}“ auf ${newDate} aktualisiert (zuvor ${oldDate})` : `Enddatum des Tarifs „${rateName}“ auf ${newDate} setzen`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `Start- und Enddatum des Tarifs „${rateName}“ auf ${newStartDate} - ${newEndDate} aktualisiert (zuvor ${oldStartDate} - ${oldEndDate})`
-                : `Start- und Enddatum des Tarifs „${rateName}“ auf ${newStartDate} – ${newEndDate} festlegen`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `Startdatum aus Tarif „${rateName}“ entfernt (zuvor ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `Enddatum aus dem Tarif „${rateName}“ entfernt (zuvor ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `hat den Entfernungs­tarif „${rateName}“ aktualisiert, sodass er für ${newDateRange} gilt (zuvor ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `ab dem ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `bis ${date}`,
+        customUnitRateDateRangeAllDates: () => `für alle Daten`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
