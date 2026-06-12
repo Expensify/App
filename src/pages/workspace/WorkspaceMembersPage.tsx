@@ -605,11 +605,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     };
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers, rolePreFilter);
 
-    const handleSearchChange = (value: string) => {
-        setSelectedEmployees([]);
-        setInputValue(value);
-    };
-
     useEffect(() => {
         if (!isFocused) {
             return;
@@ -1005,7 +1000,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         {shouldShowSearchBar && (
                             <SearchBar
                                 inputValue={inputValue}
-                                onChangeText={handleSearchChange}
+                                onChangeText={setInputValue}
                                 label={translate('workspace.people.findMember')}
                                 shouldShowEmptyState={false}
                                 style={[styles.flex1, styles.mh0, styles.mb0]}
