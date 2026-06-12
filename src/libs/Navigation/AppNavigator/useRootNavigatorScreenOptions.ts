@@ -28,8 +28,8 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
 };
 
 const useRootNavigatorScreenOptions = () => {
-    const StyleUtils = useStyleUtils();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const themeStyles = useThemeStyles();
@@ -75,14 +75,8 @@ const useRootNavigatorScreenOptions = () => {
                 contentStyle: {
                     ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
                 },
-                animation: InternalPlatformAnimations.FADE,
             },
-            web: {
-                cardStyle: {
-                    ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
-                },
-                animation: InternalPlatformAnimations.FADE,
-            },
+            animation: InternalPlatformAnimations.FADE,
         },
         splitNavigator: {
             ...commonScreenOptions,

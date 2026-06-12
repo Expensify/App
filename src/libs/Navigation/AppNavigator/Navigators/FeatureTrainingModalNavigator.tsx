@@ -1,7 +1,7 @@
 import React from 'react';
-import {View} from 'react-native';
 import AutoSubmitModal from '@components/AutoSubmitModal';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import ExplanationModalScreen from '@components/ExplanationModalScreen';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {FeatureTrainingNavigatorParamList} from '@libs/Navigation/types';
@@ -14,22 +14,31 @@ const Stack = createPlatformStackNavigator<FeatureTrainingNavigatorParamList>();
 function FeatureTrainingModalNavigator() {
     return (
         <NoDropZone>
-            <View>
-                <Stack.Navigator screenOptions={{headerShown: false, animation: Animations.SLIDE_FROM_RIGHT}}>
-                    <Stack.Screen
-                        name={SCREENS.FEATURE_TRAINING_ROOT}
-                        component={TrackTrainingPage}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT}
-                        component={ChangePolicyEducationalModal}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.AUTO_SUBMIT_ROOT}
-                        component={AutoSubmitModal}
-                    />
-                </Stack.Navigator>
-            </View>
+            <Stack.Navigator
+                screenOptions={{
+                    headerShown: false,
+                    animation: Animations.FADE,
+                    native: {contentStyle: {backgroundColor: 'transparent'}},
+                    web: {cardStyle: {backgroundColor: 'transparent'}},
+                }}
+            >
+                <Stack.Screen
+                    name={SCREENS.FEATURE_TRAINING_ROOT}
+                    component={TrackTrainingPage}
+                />
+                <Stack.Screen
+                    name={SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT}
+                    component={ChangePolicyEducationalModal}
+                />
+                <Stack.Screen
+                    name={SCREENS.AUTO_SUBMIT_ROOT}
+                    component={AutoSubmitModal}
+                />
+                <Stack.Screen
+                    name={SCREENS.EXPLANATION_MODAL_ROOT}
+                    component={ExplanationModalScreen}
+                />
+            </Stack.Navigator>
         </NoDropZone>
     );
 }
