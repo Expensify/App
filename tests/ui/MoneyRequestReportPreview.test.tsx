@@ -10,6 +10,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
+import type ReportPreviewActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton';
 import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
@@ -71,14 +72,19 @@ type OnHoldMenuOpen = (requestType: string, paymentType?: PaymentMethodType, can
 
 // Capture the onHoldMenuOpen callback the preview passes to the pay button so a held-expense payment can be triggered
 // directly with a selected bank account, mirroring a user picking an account in the dropdown for a held report.
+// The wrapper still renders the real component so these tests keep exercising it.
 const mockOnHoldMenuOpenHolder: {current?: OnHoldMenuOpen} = {current: undefined};
-jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton', () => ({
-    __esModule: true,
-    default: (props: {onHoldMenuOpen?: OnHoldMenuOpen}) => {
-        mockOnHoldMenuOpenHolder.current = props.onHoldMenuOpen;
-        return null;
-    },
-}));
+jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton', () => {
+    const actualReact = jest.requireActual<typeof React>('react');
+    const actualModule = jest.requireActual<{default: typeof ReportPreviewActionButton}>('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton');
+    return {
+        __esModule: true,
+        default: (props: Parameters<typeof actualModule.default>[0]) => {
+            mockOnHoldMenuOpenHolder.current = props.onHoldMenuOpen;
+            return actualReact.createElement(actualModule.default, props);
+        },
+    };
+});
 
 // Capture the props the preview forwards to the hold menu so the selected bank account that reaches it can be asserted.
 const mockHoldMenuPropsHolder: {current?: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number}} = {current: undefined};
