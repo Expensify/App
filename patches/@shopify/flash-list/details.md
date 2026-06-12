@@ -61,11 +61,12 @@
 
 ### [@shopify+flash-list+2.3.0+008+increase-timeout.patch](@shopify+flash-list+2.3.0+008+increase-timeout.patch)
 
-- Reason: Fixes an initial-render scroll jump on iOS for inverted lists using `initialScrollIndex`. The existing 100 ms `pauseOffsetCorrection` window in `applyInitialScrollIndex` wasn't long enough — MVCP resumed before the corrective `scrollToOffset` had settled, exposing the jump. Bumped to 500 ms.
+- Reason: Fixes an initial-render scroll jump on iOS for inverted lists using `initialScrollIndex`. The existing 100 ms `pauseOffsetCorrection` window in `applyInitialScrollIndex` wasn't long enough — MVCP resumed before the corrective `scrollToOffset` had settled, exposing the jump. Originally bumped to 500 ms.
+- Update: Bumped further to 1000 ms for centered deep-link scrolling (see patch 013).
 - Files changed: `dist/recyclerview/hooks/useRecyclerViewController.js` only.
 - Upstream PR/issue: TBD
 - E/App issue: https://github.com/Expensify/App/issues/89768
-- PR introducing patch: https://github.com/Expensify/App/pull/90218
+- PR introducing patch: https://github.com/Expensify/App/pull/90218 (original), TBD (1000 ms update)
 
 ### [@shopify+flash-list+2.3.0+009+ignore-stale-viewholder-layout.patch](@shopify+flash-list+2.3.0+009+ignore-stale-viewholder-layout.patch)
 
@@ -140,4 +141,15 @@
 - Files changed: `dist/recyclerview/layout-managers/LinearLayoutManager.js` only.
 - Upstream PR/issue: TBD
 - E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263
+- PR introducing patch: TBD
+
+### [@shopify+flash-list+2.3.0+013+improve-scroll-key-handling.patch](@shopify+flash-list+2.3.0+013+improve-scroll-key-handling.patch)
+
+- Reason: Adds `viewPosition` support to `initialScrollIndexParams` (0 = start, 0.5 = center, 1 = end — same semantics as `scrollToIndex`'s `viewPosition`), so a chat opened via deep link or unread marker can show the target message centered in the viewport instead of pinned to an edge. Two changes:
+  1. **`applyInitialScrollIndex`** in `useRecyclerViewController.js`: the corrective scroll for `initialScrollIndex` now shifts the target offset by `(containerSize - itemSize) * viewPosition` (clamped to ≥ 0, and skipped while the container is unmeasured), mirroring `scrollToIndex`'s math. Because this re-applies on every commit until the pause window from patch 008 closes, the target is progressively re-centered as estimated item layouts get measured and as nearby items resize.
+  2. **`applyInitialScrollAdjustment`** in `RecyclerViewManager.js`: the initial render window is anchored with the same `viewPosition` adjustment, so the very first painted frame already renders the items around the centered position — without this, the first frame renders items from the target's raw offset (target at the viewport edge) and visibly jumps once the first corrective scroll lands.
+  `viewOffset` handling is untouched and `viewPosition` is opt-in, so existing `initialScrollIndex` consumers (e.g. the top-aligned money report flow, which uses `viewOffset`) are unaffected. Consumed by `useFlashListScrollKey` via `InvertedFlashList`'s `initialScrollKey` for deep-linked messages and the unread marker.
+- Files changed: `dist/FlashListProps.d.ts`, `dist/recyclerview/hooks/useRecyclerViewController.js`, `dist/recyclerview/RecyclerViewManager.js`.
+- Upstream PR/issue: TBD
+- E/App issue: TBD
 - PR introducing patch: TBD
