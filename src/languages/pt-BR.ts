@@ -4428,17 +4428,17 @@ ${amount} para ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Admin';
+                        return 'Admin. do workspace';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Admin. do Cartão';
+                        return 'Admin. de Cartão';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administração de pessoas';
+                        return 'Administração de Pessoas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'Admin de pagamentos';
+                        return 'Admin de Pagamentos';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membro';
                     default:
@@ -6243,8 +6243,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 other: 'Tornar membros',
             }),
             makeAdmin: () => ({
-                one: 'Tornar admin',
-                other: 'Tornar admins',
+                one: 'Tornar admin do workspace',
+                other: 'Tornar admins do workspace',
             }),
             makeAuditor: () => ({
                 one: 'Tornar auditor',
@@ -6273,12 +6273,14 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} tem um relatório pendente de processamento que requer ação. Peça para que concluam a ação necessária antes de removê-los do workspace.`,
             allMembers: 'Todos os membros',
-            admins: 'Administradores',
+            admins: 'Admins do workspace',
             approvers: 'Aprovadores',
             auditors: 'Auditores',
             emptyRoleFilter: {title: 'Nenhum membro corresponde a este filtro', subtitle: 'Convide um membro ou altere o filtro acima.'},
             configureHRSync: (providerName: string) => `Configurar a sincronização do ${providerName}.`,
             syncWithHR: (providerName: string) => `Sincronizar com ${providerName}`,
+            makeCardAdmin: () => ({one: 'Tornar admin do cartão', other: 'Tornar administradores do cartão'}),
+            cardAdmins: 'Administradores de cartões',
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -6924,12 +6926,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Tarifas por distância estão disponíveis no plano Collect, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
-            auditor: {
-                title: 'Auditor',
-                description: 'Auditores têm acesso somente leitura a todos os relatórios para total visibilidade e monitoramento de conformidade.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Auditores estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
-            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Múltiplos níveis de aprovação',
                 description:
@@ -7026,6 +7022,12 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 description: 'Crie, envie e acompanhe faturas profissionais, tudo dentro do Expensify. Receba mais rápido com pagamentos integrados e visibilidade em tempo real.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>O faturamento está disponível nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            controlPolicyRoles: {
+                title: 'Funções da política de controle',
+                description: 'Use funções especializadas como Auditor e Administrador de Cartão para conceder aos membros acesso apenas ao que precisam.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Funções especializadas no espaço de trabalho estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
         },
         downgrade: {
@@ -8490,8 +8492,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     `A conexão de ${feedName} está interrompida. Para restaurar as importações do cartão, <a href='${workspaceCompanyCardRoute}'>faça login no seu banco</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `a conexão Plaid com a sua conta bancária empresarial foi interrompida. Por favor, <a href='${walletRoute}'>reconecte sua conta bancária ${maskedAccountNumber}</a> para continuar usando seus Cartões Expensify.`,
-                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} entrou pelo link de convite do workspace` : `adicionou ${email} como ${role === 'member' ? 'a' : 'um'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
+                    const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'um' : 'um';
+                    return didJoinPolicy ? `${email} entrou pelo link de convite do workspace` : `adicionou ${email} como ${article} ${translatedRole}`;
+                },
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `atualizou a função de ${email} para ${newRole} (anteriormente ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
