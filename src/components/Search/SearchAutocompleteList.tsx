@@ -243,6 +243,7 @@ function SearchAutocompleteList({
         personalDetails,
         sortedActions,
         conciergeReportID,
+        isTrackIntentUser,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
