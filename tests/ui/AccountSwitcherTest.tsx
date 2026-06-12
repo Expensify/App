@@ -30,9 +30,9 @@ jest.mock('@components/ProductTrainingContext', () => ({
 // This mock renders visible modal content synchronously instead.
 jest.mock('@components/Modal/ReanimatedModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
+    const {useEffect, useRef, createElement, Fragment}: typeof React = require('react');
 
-    return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
+    function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
         const wasVisible = useRef<boolean>(isVisible);
 
         useEffect(() => {
@@ -46,8 +46,10 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
             return null;
         }
 
-        return children as React.ReactElement;
-    };
+        return createElement(Fragment, null, children);
+    }
+    MockReanimatedModal.displayName = 'ReanimatedModal';
+    return MockReanimatedModal;
 });
 
 TestHelper.setupGlobalFetchMock();
