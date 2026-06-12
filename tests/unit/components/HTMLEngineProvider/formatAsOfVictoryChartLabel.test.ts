@@ -17,6 +17,11 @@ describe('formatAsOfVictoryChartLabel', () => {
         expect(utcDate?.toISOString()).toBe('2026-06-05T18:47:00.000Z');
     });
 
+    it('parses ISO UTC chart timestamps', () => {
+        const utcDate = parseUtcAsOfDateTime('2026-06-05T18:47:00Z');
+        expect(utcDate?.toISOString()).toBe('2026-06-05T18:47:00.000Z');
+    });
+
     it('strips an existing timezone abbreviation before parsing', () => {
         const utcDate = parseUtcAsOfDateTime('May 6, 12:49 PM PT');
         expect(utcDate?.getUTCHours()).toBe(12);
