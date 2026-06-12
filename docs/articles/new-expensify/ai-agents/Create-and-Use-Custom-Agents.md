@@ -1,199 +1,129 @@
 ---
-title: Create and Use Custom Agents
-description: Create, configure, and manage AI-powered agents that act as approvers in your workspace approval workflows.
-keywords: [custom agents, AI agent, workflow agent, approval agent, agent approver, automated approval, AI approver, workspace approver, custom approver, agent prompt, agent copilot]
-internalScope: Audience is Workspace Admins and account owners. Covers how to create, configure, chat with, and delete custom agents, and how to add an agent as an approver in a workspace approval workflow. Does not cover Concierge AI, billing for agent credits, or personal agent usage in DMs.
+title: Create Agent Rules
+description: Create AI-powered workspace rules using natural-language instructions to automate report reviews, routing, approvals, and other actions.
+keywords: [agent rules, RuleBot, AI rules, automated approvals, report routing, workspace automation, approval automation]
+internalScope: Audience is Workspace Admins. Covers creating, managing, and understanding Agent Rules and how RuleBot enforces them. Does not cover Custom Agent management, personal AI features, or Concierge AI.
 ---
 
-# Create and Use Custom Agents
+# Create Agent Rules 
 
-Custom Agents are AI-powered virtual members of your Expensify account that can act as approvers in your workspace approval workflows. They follow instructions you write to evaluate reports and approve or reject them according to your company's rules. This allows you to automate approval decisions that may be too complex for standard workflow rules.
+Agent Rules are AI-powered rules that let Workspace Admins automate report reviews, routing, approvals, and other workspace actions using natural-language instructions. Write a description of the behavior you want, and RuleBot automatically evaluates reports and enforces your Agent Rules.
 
-Each agent has its own Expensify account with a profile, display name, and instructions you control. You can chat with an agent, copilot into its account to review what it's doing, and add it to a workspace as an approver.
+Agent Rules are useful when approval requirements can't be handled using standard workspace rules alone.
 
 ---
 
-## Who can use Custom Agents
+## Who can use Agent Rules
 
-Custom Agents are currently available through an open beta program. If you'd like to try Custom Agents and provide feedback, contact Concierge to request access.
+Agent Rules are currently available through an open beta program. If you'd like to try Agent Rules and provide feedback, contact Concierge to request access.
 
-Anyone with an Expensify account can create a Custom Agent once beta access is enabled on their account.
-
-To add a Custom Agent as an approver on a workspace:
+To create an Agent Rule: 
 
  - You must be a Workspace Admin.
- - **Workflows** must be enabled.
- - The Custom Agent must be a member of the workspace.
+ - The workspace must have access to the Agent Rules beta.
+ - **Rules** must be enabled on the workspace.
 
 ---
 
-## How to create a Custom Agent
+## How to create an Agent Rule
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
-2. Click **Agents**.
-3. Click **New agent**.
-4. Review the auto-generated profile image and display name. If needed, you can edit these later.
-5. In the **Write custom instructions** field, enter the prompt, or instructions the agent should follow. 
-6. Click **Create agent**.
-
-<!-- Screenshot: Account > Agents | Section: | Feature: New Agent -->
-
-![Agents page showing New Agent button]({{site.url}}/assets/images/ExpensiHelp-CustomAgents-1.png){:width="100%"}
-
-You can also create a Custom Agent from the **Set Approver** page by clicking **Create an agent**. Expensify automatically adds the new agent to the workspace as a member and assigns it as an approver.
-
-After saving, the new agent appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** buttons.
-
----
-
-## How to write instructions for a Custom Agent
-
-The prompt you share in the **Write custom instructions** field tells the agent what to do with each incoming report or chat message. Clear instructions help the agent approve or reject reports consistently.
-
-Useful things to include in an agent's instructions:
-
-- The agent's role (for example, "You review marketing team travel reports.").
-- The conditions under which the agent should **Approve** a report.
-- The conditions under which the agent should **Reject** a report and what feedback to leave.
-- Any escalation rules — for example, "Approve reports under $500; for anything higher, leave a comment asking the submitter to confirm the business purpose."
-
-Instructions are stored in Markdown, so you can use headings, bullets, and bold text to organize complex guidance.
-
-**Example approval prompt:**
-
-```
-# Role
-
-You review Marketing team travel reports.
-
-# Approve when
-
-- The report includes a business purpose.
-- Each expense has a receipt.
-- The total report amount is under $500.
-
-# Reject when
-
-- A receipt is missing.
-- The business purpose is unclear.
-
-When rejecting a report, leave a comment explaining what information is missing.
-```
----
-
-## How to chat with a Custom Agent
-
-To open a direct conversation with a Custom Agent:
-
-1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
-2. Click **Agents**.
-3. Find the agent in the list and click **Chat**.
-
-The agent will respond using its current instructions. Use this to test how the agent reacts to different scenarios before adding it to a workflow.
-
----
-
-## How to Copilot into a Custom Agent account
-
-Each Custom Agent is its own Expensify account with a profile, inbox, chats, and activity history. When you create a Custom Agent, you become its owner and are automatically added as a full-access Copilot.
-
-Use Copilot to see what the agent has done, review its activity, and inspect any actions it has taken on reports.
-
-1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
-2. Click **Agents**.
-3. Find the agent in the list and click **Copilot**.
-
-[Learn more about Copilot](/articles/new-expensify/settings/Copilot-Access.md).
-
----
-
-## How to edit a Custom Agent's instructions
-
-You can edit an agent's profile image, display name, and instructions at any time.
-
-1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
-2. Click **Agents**.
-3. Click **Edit** on the agent you want to update.
-4. Update the profile image, display name, or instructions.
-5. Click **Save**.
-
-Updated instructions apply to all future reports and chat messages the agent receives.
-
----
-
-## How to delete a Custom Agent
-
-Deleting a Custom Agent closes its Expensify account. 
-
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account**.
-2. Click **Agents**.
-3. On the agent you want to remove, click **Delete**.
-4. Confirm the deletion.
-
-If the agent is currently set as an approver on any workflow, remove it from those workflows first. [Learn how to edit or delete a workflow](/articles/new-expensify/workspaces/Add-Approvals#edit-or-delete-approval-workflows). 
-
----
-
-## How to use a Custom Agent as an approver
-
-Before you can select a Custom Agent as an approver, the agent must be a member of the workspace.
-
-If the agent was created from a workflow setup flow, Expensify automatically adds it to the workspace. Otherwise, add the agent as a workspace member first.
-
-[Learn how to add a Custom Agent to a Workspace](/articles/new-expensify/workspaces/Managing-Workspace-Members#invite-members-to-a-workspace).
-
-Once an agent is added to a workspace as a member, you can select it as an approver anywhere you'd choose a person:
-
-1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Workspaces**.
-2. Click your workspace name.
-3. Click **Workflows**.
-4. Click the workflow you want to edit, or click **Add approval workflow** to create a new one.
-5. Click **Approver**.
-6. Choose the agent from the list of workspace members.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Your Workspace]**
+2. Click **Rules**.
+3. In the **Agent Rules** section, click **Add AI Rule**.
+5. Enter a natural-language description of the behavior you want.
 7. Click **Save**.
 
-The agent will receive each report submitted into the workflow and decide whether to **Approve** or **Reject** it based on its instructions.
+---
 
-For details on configuring approval workflows generally, [learn how to add approvals to a workspace](/articles/new-expensify/workspaces/Add-Approvals).
+## How to write Agent Rules
 
-<!-- Screenshot: Workspaces > Workspace Name > Workflows | Section: Approvals | Feature: Approver -->
+Agent Rules are written in natural language. Describe the outcome you want, and RuleBot will monitor reports and take action when the rule applies.
 
-![Workspace Workflows page showing Approvals section with a workflow configured]({{site.url}}/assets/images/ExpensiHelp-CustomAgents-2.png){:width="100%"}
+Examples:
 
-## What happens after a Custom Agent reviews a report
+ - "Forward reports over $500 to Alice and all other reports to Bob."
+ - "Ask the submitter to justify any meal expense over $75."
+ - "Approve reports under $100 that contain no policy violations."
+ - "Add a 2% FX surcharge to all non-USD reimbursable expenses."
+ - "Forward reports containing hardware purchases to Alice. Route all other reports randomly between Bob and Cathy."
 
- - The agent receives reports assigned to its approval step and evaluates them using its current instructions.
- - When the agent approves a report, the workflow continues to the next approval step.
- - When the agent rejects a report, the submitter receives the agent's feedback and can update and resubmit the report.
+---
 
-Changes you make to the agent's instructions apply to future reports and conversations. You can chat with the agent to test updated instructions before using them in a workflow.
+## What happens after an Agent Rule is created 
+
+When you create your first Agent Rule, Expensify automatically creates RuleBot and adds it to the workspace as a Workspace Admin.
+
+RuleBot immediately begins monitoring report activity and evaluating reports against all configured Agent Rules.
+
+Agent Rules apply to future report activity, but not existing Paid or Done reports. 
+
+## How RuleBot enforces Agent Rules
+
+RuleBot is an AI-powered workspace agent that enforces Agent Rules. 
+
+RuleBot can operate as a workspace observer that monitors reports and applies Agent Rules, and as the designated approver in a workflow
+
+Whenever report activity occurs, RuleBot evaluates the report using:
+
+ - Workspace details
+ - All expenses on the report
+ - Recent report activity 
+
+Report activity includes actions such as:
+
+ - Adding an expense
+ - Submitting a report
+ - Posting a comment
+ - Editing report details
+
+---
+
+## What actions RuleBot can perform
+
+Depending on the Agent Rules you configure, RuleBot can:
+
+ - Ask the submitter a question
+ - Edit an expense
+ - Forward a report
+ - Approve a report
+
+For example, RuleBot might:
+
+ - Request additional information from a submitter
+ - Automatically adjust expenses
+ - Route reports to specific approvers
+ - Approve certain reports automatically 
+   
+
+---
+
+## How to delete an Agent Rule
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Your Workspace]**
+2. Click **Rules**.
+3. In the **Agent Rules** section, select the AI rule you want to remove.
+4. Click **Delete**.
+
+Deleting an Agent Rule stops RuleBot from enforcing that rule on future report activity.
 
 ---
 
 # FAQ
 
-## Who can edit or delete a Custom Agent?
+## Can Agent Rules make mistakes?
 
-Only the agent's owner can edit its instructions or delete it. The owner is the account that created the agent.
+Yes. Agent Rules are evaluated by an LLM and may occasionally behave unexpectedly.
 
-## Are Custom Agents billed?
+Review AI-generated actions and instructions carefully. The Agent Rules page includes a reminder that AI-generated decisions may not always be correct.
 
-An agent is a member of any workspace it's added to and is billed as a workspace member like any other member. Usage-based billing for agent activity is not yet in effect at this release.
+## Do Agent Rules apply to existing reports?
 
-## Can I remove myself as a Copilot from a Custom Agent I created?
+No. Agent Rules are not retroactively applied to existing **Paid** or **Done** reports. 
 
-No. The owner is permanently added as a full-access Copilot on the agent's account so you always retain access to review and update the agent.
+## How much report history can RuleBot review?
 
-## What happens if my agent approves or rejects a report unexpectedly?
+When evaluating a report, RuleBot can review the 50 most recent report actions, including system messages describing previous actions it has taken on the report.
 
-Copilot into the agent's account, open the **AI Prompt** page, and review the current instructions. Adjust the instructions so the agent handles that scenario the way you want, then click **Save**.
+## Do I need to create or manage RuleBot?
 
-## Can a Custom Agent be added to multiple workspaces?
-
-Yes. An agent is a member like any other and can be added to as many workspaces as you'd like, and selected as an approver in each of their workflows.
-
-## Can I use a Custom Agent in multi-step approval workflows?
-
-Yes. On Control plans, Custom Agents can be used anywhere an approver can be selected, including multi-step approval workflows.
-
-On Collect plans, workspaces support a single approver. A Custom Agent can be used as that approver.
+No. RuleBot is created automatically when you add your first AI Rule and is managed by Expensify.
