@@ -39,12 +39,17 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
     const {getCurrencySymbol} = useCurrencyListActions();
     const currencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
 
-    const currencyItems: CurrencyListItem[] = currencyOptions.map((currencyDetails) => ({
-        keyForList: currencyDetails.value,
-        text: currencyDetails.text,
-        value: currencyDetails.value,
-        isSelected: selectedCurrencies.includes(currencyDetails.value),
-    }));
+    const currencyItems: CurrencyListItem[] = currencyOptions
+        .filter((currencyDetails) => currencyDetails.value !== settlementCurrency)
+        .map((currencyDetails) => ({
+            keyForList: currencyDetails.value,
+            text: currencyDetails.text,
+            value: currencyDetails.value,
+            isSelected: selectedCurrencies.includes(currencyDetails.value),
+        }));
+
+    const areAllCurrenciesSelected = currencyItems.every((option) => option.isSelected);
+    const settlementCurrencyLabel = currencyOptions.find((option) => option.value === settlementCurrency)?.text ?? settlementCurrency;
 
     const filterCurrency = (item: CurrencyListItem, searchInput: string) => {
         return (item.text ?? '').toLowerCase().includes(searchInput.toLowerCase());
@@ -86,21 +91,27 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
     };
 
     const handleSave = () => {
-        onCurrenciesChange(selectedCurrencies);
+        onCurrenciesChange([...selectedCurrencies, settlementCurrency]);
         goBack();
     };
 
     const ListHeaderContent = (
-        <View style={[styles.flexColumn, styles.ph5]}>
-            <View style={[styles.borderBottom]} />
-
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv5]}>
-                <View style={styles.flex1}>
+        <View style={[styles.flexColumn]}>
+            <MultiSelectListItem
+                isFocused={false}
+                showTooltip={false}
+                keyForList="select-all"
+                item={{keyForList: 'select-all', text: 'All currencies', isSelected: areAllCurrenciesSelected}}
+                onSelectRow={toggleSelectAll}
+            />
+            <View style={[styles.borderBottom, styles.mh5, styles.mv2]} />
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv4, styles.mh5]}>
+                <View style={[styles.flex1, styles.gap1]}>
                     <Text
                         style={styles.textStrong}
                         numberOfLines={1}
                     >
-                        USD - $
+                        {settlementCurrencyLabel}
                     </Text>
                     <Text
                         style={[styles.textLabel, styles.textSupporting]}
@@ -110,9 +121,9 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                     </Text>
                 </View>
                 <Icon
+                    medium
                     src={icons.Lock}
                     fill={theme.icon}
-                    medium
                 />
             </View>
         </View>
@@ -122,17 +133,19 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
         <ScreenWrapper
             testID="SpendRuleCurrenciesPage"
             shouldEnableMaxHeight
-            offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
+            offlineIndicatorStyle={styles.mtAuto}
         >
             <HeaderWithBackButton
                 title={translate('workspace.rules.spendRules.permittedCurrencies')}
                 onBackButtonPress={goBack}
             />
+
+            <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pb4]}>Choose to allow all or specific currencies.</Text>
+
             <SelectionList
                 canSelectMultiple
                 shouldUpdateFocusedIndex
-                customListHeader={<Text style={[styles.textLabel, styles.textSupporting]}>Choose to allow all or specific currencies.</Text>}
                 customListHeaderContent={ListHeaderContent}
                 ListItem={MultiSelectListItem}
                 data={filteredCurrencyItems}
