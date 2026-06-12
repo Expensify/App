@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
-import useLocalize from '@hooks/useLocalize';
 import {
     arePersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
@@ -730,7 +729,7 @@ describe('PersonalDetailsUtils', () => {
     });
 
     describe('temporaryGetDisplayNameOrDefault', () => {
-        const {translate} = useLocalize();
+        const translate = translateLocal;
 
         test('should return displayName when present', () => {
             expect(
