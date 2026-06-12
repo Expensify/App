@@ -23,13 +23,14 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
+    isGroupPolicy,
     isInstantSubmitEnabled,
-    isPaidGroupPolicy,
     isPolicyAdmin,
     isPolicyApprover,
     isPolicyMember,
     isPreferredExporter,
     isSubmitAndClose,
+    isSubmitPolicy,
 } from './PolicyUtils';
 import {
     getAllReportActions,
@@ -239,7 +240,7 @@ function isSubmitAction({
 
     const isExpenseReport = isExpenseReportUtils(report);
 
-    if (!isExpenseReport || (report?.total === 0 && reportTransactions.length === 0) || !isPaidGroupPolicy(policy)) {
+    if (!isExpenseReport || (report?.total === 0 && reportTransactions.length === 0) || !isGroupPolicy(policy)) {
         return false;
     }
 
@@ -445,7 +446,16 @@ function isReceivedPaymentAction(report: Report, reportTransactions: Transaction
         return false;
     }
 
-    if (policy?.role === CONST.POLICY.ROLE.ADMIN || report.isWaitingOnBankAccount || hasHeldExpensesFromTransactions(reportTransactions)) {
+    if (report.isWaitingOnBankAccount || hasHeldExpensesFromTransactions(reportTransactions)) {
+        return false;
+    }
+
+    // Submit workspaces allow submitters to mark Outstanding (processing) reports as paid without requiring manager approval.
+    if (isSubmitPolicy(policy) && isProcessingReportUtils(report)) {
+        return true;
+    }
+
+    if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
         return false;
     }
 
@@ -1173,7 +1183,13 @@ function getSecondaryTransactionThreadActions({
     if (
         reportTransaction?.transactionID &&
         reportAction &&
-        canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, isChatReportArchived, outstandingReportsByPolicyID, transaction: reportTransaction}) &&
+        canEditFieldOfMoneyRequest({
+            reportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+            isChatReportArchived,
+            outstandingReportsByPolicyID,
+            transaction: reportTransaction,
+        }) &&
         canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);

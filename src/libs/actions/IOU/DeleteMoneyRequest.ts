@@ -1,6 +1,4 @@
 import cloneDeep from 'lodash/cloneDeep';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -479,13 +477,13 @@ function cleanUpMoneyRequest(
 
     // First, update the reportActions to ensure related actions are not displayed.
     Onyx.update(reportActionsOnyxUpdates).then(() => {
-        Navigation.goBack(urlToNavigateBack);
-        InteractionManager.runAfterInteractions(() => {
-            if (shouldDeleteIOUReport) {
-                clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
-            }
-            // After navigation, update the remaining data.
-            Onyx.update(onyxUpdates);
+        Navigation.goBack(urlToNavigateBack, {
+            afterTransition: () => {
+                if (shouldDeleteIOUReport) {
+                    clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
+                }
+                Onyx.update(onyxUpdates);
+            },
         });
     });
 }
