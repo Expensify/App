@@ -52,7 +52,7 @@ function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSec
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.aiRules.title')}</Text>
             <Badge
-                text={translate('common.newFeature')}
+                text={translate('common.beta')}
                 isCondensed
                 success
             />
@@ -78,7 +78,7 @@ function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSec
                                     onClose={() => clearPolicyAIRuleErrors(policyID, rule.ruleID, rule)}
                                 >
                                     <MenuItemWithTopDescription
-                                        title={rule.prompt.replaceAll(/\s+/g, ' ').trim()}
+                                        title={(rule.title ?? rule.prompt).replaceAll(/\s+/g, ' ').trim()}
                                         numberOfLinesTitle={1}
                                         wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
                                         shouldShowRightIcon

@@ -104,6 +104,7 @@ function AddAIRulePage({
                             textInputContainerStyles={[styles.flex1]}
                             inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                         />
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.aiRules.disclaimer')}</Text>
                     </View>
                 </FormProvider>
             </ScreenWrapper>

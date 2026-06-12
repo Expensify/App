@@ -149,6 +149,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     isItemInFilter,
     isItemInSearch,
     initialSortColumn,
+    narrowLayoutSortColumn,
     children,
     selectionEnabled,
     onRowSelectionChange,
@@ -163,6 +164,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     }
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const {middleware: filterMiddleware, currentFilters, methods: filterMethods} = useFiltering<DataType, FilterKey>({filters, isItemInFilter});
     const filteredData = filterMiddleware(data);
@@ -170,7 +172,16 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const {middleware: searchMiddleware, activeSearchString, methods: searchMethods} = useSearching<DataType>({isItemInSearch});
     const searchedData = searchMiddleware(filteredData);
 
-    const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<DataType, ColumnKey>({compareItems, initialSortColumn});
+    const {
+        middleware: sortMiddleware,
+        activeSorting,
+        methods: sortMethods,
+    } = useSorting<DataType, ColumnKey>({
+        compareItems,
+        initialSortColumn,
+        narrowLayoutSortColumn,
+        shouldUseNarrowTableLayout,
+    });
     const sortedData = sortMiddleware(searchedData);
 
     const {middleware: selectionMiddleware, methods: selectionMethods, mobileSelectionModalRowKey} = useSelection<DataType>({data: sortedData, selectedKeys, onRowSelectionChange});
@@ -206,7 +217,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     });
 
     const originalDataLength = data?.length ?? 0;
-    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     // Check if filters are applied (not default values)
     const hasActiveFilters = filters

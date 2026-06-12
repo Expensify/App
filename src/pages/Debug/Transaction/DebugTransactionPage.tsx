@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -53,11 +52,12 @@ function DebugTransactionPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, data);
                 }}
                 onDelete={() => {
-                    Navigation.goBack();
-                    // We need to wait for navigation animations to finish before deleting a transaction,
-                    // otherwise the user will see a not found page briefly.
-                    InteractionManager.runAfterInteractions(() => {
-                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
+                    Navigation.goBack(undefined, {
+                        // We need to wait for navigation animations to finish before deleting a transaction,
+                        // otherwise the user will see a not found page briefly.
+                        afterTransition: () => {
+                            Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
+                        },
                     });
                 }}
                 validate={DebugUtils.validateTransactionDraftProperty}
