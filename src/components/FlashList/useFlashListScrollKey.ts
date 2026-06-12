@@ -29,6 +29,9 @@ type FlashListScrollKeyProps<T> = {
 export default function useFlashListScrollKey<T>({data, keyExtractor, initialScrollKey, onStartReached, shouldMaintainVisibleContentPosition}: FlashListScrollKeyProps<T>) {
     const [isInitialRender, setIsInitialRender] = useState(!!initialScrollKey);
     const [hasLinkingSettled, setHasLinkingSettled] = useState(!initialScrollKey);
+    // Whether this mount started as a deep-link. A key that appears later (e.g. marking a message
+    // unread) must not engage the initial-scroll machinery, which only works around the first layout.
+    const [isLinkingFlow] = useState(!!initialScrollKey);
     const reportScrollManager = useReportScrollManager();
     const {windowHeight} = useWindowDimensions();
     const hasAppliedCenteringCorrection = useRef(false);
@@ -75,14 +78,15 @@ export default function useFlashListScrollKey<T>({data, keyExtractor, initialScr
 
     const maintainVisibleContentPosition: FlashListProps<T>['maintainVisibleContentPosition'] = {disabled: !shouldMaintainVisibleContentPosition && hasLinkingSettled};
 
-    const targetIndex = initialScrollKey && !hasLinkingSettled ? data.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey) : -1;
+    const targetIndex = isLinkingFlow && initialScrollKey ? data.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey) : -1;
     if (targetIndex <= 0) {
         return {displayedData: data, onStartReached, maintainVisibleContentPosition, initialScrollIndex: undefined, initialScrollIndexParams: undefined};
     }
 
-    // Keep targeting the item until linking settles: FlashList re-applies the initial scroll on
-    // every commit for a short window after the first layout, so the index must stay correct
-    // across the sliced→full data swap.
+    // Keep targeting the item for the whole linking flow: FlashList re-applies the initial scroll
+    // on every commit for a short window after the first layout (and ignores the prop afterwards),
+    // so it can re-center the target when nearby items resize (e.g. expense previews swapping from
+    // their loading to loaded state). The index must also stay correct across the sliced→full data swap.
     const initialScrollIndexParams = {viewPosition: CENTER_VIEW_POSITION};
 
     if (!isInitialRender) {
