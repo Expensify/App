@@ -158,11 +158,6 @@ const restrictedImportPaths = [
 
 const restrictedImportPatterns = [
     {
-        group: ['**/TransitionTracker', './TransitionTracker', '../TransitionTracker'],
-        message:
-            "TransitionTracker is an internal primitive. Please use higher-level APIs (Navigation with 'afterTransition'/'waitForTransition', KeyboardUtils, useConfirmModal). See contributingGuides/INTERACTION_MANAGER.md.",
-    },
-    {
         group: ['**/assets/animations/**/*.json'],
         message: "Do not import animations directly. Please use the '@components/LottieAnimations' import instead.",
     },
