@@ -2,9 +2,9 @@ import {
     formatAsOfDateTimeForTimezone,
     getLocalizedVictoryChartLabelText,
     parseUtcAsOfDateTime,
-} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/formatAsOfVictoryChartLabel';
+} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/localizeVictoryChartLabelText';
 
-describe('formatAsOfVictoryChartLabel', () => {
+describe('localizeVictoryChartLabelText', () => {
     it('parses server UTC chart timestamps', () => {
         const utcDate = parseUtcAsOfDateTime('Jun 5, 2026 at 06:47 PM');
         expect(utcDate?.toISOString()).toBe('2026-06-05T18:47:00.000Z');
