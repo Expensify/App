@@ -248,17 +248,13 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 icon={icons.CreditCardHourglass}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                             />
-                            <View style={[styles.mh5, styles.pv3]}>
-                                <View style={[styles.borderTop]} />
-                            </View>
+                            <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                             <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>
                                 {translate('workspace.rules.spendRules.thenDoThisAtPointOfSale')}
                             </Text>
                             <MenuItemWithTopDescription
                                 description={translate('workspace.rules.spendRules.permittedCurrencies')}
-                                onPress={canWriteRules ? () => clearError() : undefined}
-                                shouldShowRightIcon={canWriteRules}
-                                interactive={canWriteRules}
+                                interactive={false}
                                 title={selectedCurrency ?? ''}
                                 titleStyle={styles.flex1}
                                 icon={icons.Coins}
@@ -280,7 +276,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 }
                                 shouldShowRightIcon={canWriteRules}
                                 interactive={canWriteRules}
-                                title={maxAmountMenuTitle ? `above ${maxAmountMenuTitle}` : ''}
+                                title={maxAmountMenuTitle ? translate('workspace.rules.spendRules.maxAmountAbove', {amount: maxAmountMenuTitle}) : ''}
                                 titleStyle={styles.flex1}
                                 icon={icons.CoinsButton}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}

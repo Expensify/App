@@ -7470,6 +7470,7 @@ const translations = {
                 merchantRestrictions: 'Merchant restrictions',
                 blockedMerchant: 'Blocked merchant',
                 blockedMerchantTypes: 'Blocked merchant types',
+                maxAmountAbove: ({amount}: {amount: string}) => `above ${amount}`,
                 cardPageTitle: 'Card',
                 cardsSectionTitle: 'Cards',
                 chooseCards: 'Choose cards',
