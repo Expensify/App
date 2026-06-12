@@ -1687,9 +1687,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `一度に複製できる経費は最大で ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 件です。経費の数を減らして、もう一度お試しください。`,
         deleted: '削除済み',
-        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} 〜 ${endDate}`,
-        rateValidFrom: ({startDate}: {startDate: string}) => `有効期間：${startDate}`,
-        rateValidUntil: ({endDate}: {endDate: string}) => `${endDate} まで有効`,
     },
     transactionMerge: {
         listPage: {

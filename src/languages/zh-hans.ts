@@ -1648,9 +1648,6 @@ const translations: TranslationDeepObject<typeof en> = {
         taxDisabledAlert: {title: '税费已禁用', prompt: '请在工作区中启用税费跟踪，以便编辑此报销的详细信息或从该报销中删除税费。', confirmText: '删除税费'},
         bulkDuplicateLimit: `您一次最多可以复制 ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 笔报销。请减少选择的报销数量后重试。`,
         deleted: '已删除',
-        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} 至 ${endDate}`,
-        rateValidFrom: ({startDate}: {startDate: string}) => `有效期自 ${startDate}`,
-        rateValidUntil: ({endDate}: {endDate: string}) => `有效期至 ${endDate}`,
     },
     transactionMerge: {
         listPage: {

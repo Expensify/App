@@ -1697,9 +1697,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Você pode duplicar até ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} despesas por vez. Selecione menos despesas e tente novamente.`,
         deleted: 'Excluído',
-        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} a ${endDate}`,
-        rateValidFrom: ({startDate}: {startDate: string}) => `Válido a partir de ${startDate}`,
-        rateValidUntil: ({endDate}: {endDate: string}) => `Válido até ${endDate}`,
     },
     transactionMerge: {
         listPage: {

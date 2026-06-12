@@ -1664,9 +1664,6 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Habilita el seguimiento de impuestos en el espacio de trabajo para editar los detalles del gasto o eliminar el impuesto de este gasto.',
             confirmText: 'Eliminar impuesto',
         },
-        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} a ${endDate}`,
-        rateValidFrom: ({startDate}: {startDate: string}) => `Válido desde ${startDate}`,
-        rateValidUntil: ({endDate}: {endDate: string}) => `Válido hasta ${endDate}`,
     },
     transactionMerge: {
         listPage: {
