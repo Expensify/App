@@ -296,7 +296,6 @@
 "../../src/components/MultifactorAuthentication/config/scenarios/ChangePIN.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MultifactorAuthentication/config/scenarios/DefaultUserInterface.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Navigation/NavigationTabBar/SearchTabButton.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Navigation/NavigationTabBar/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"no-restricted-imports"	1
 "../../src/components/Navigation/TopLevelNavigationTabBar/index.tsx"	"react-hooks/set-state-in-effect"	1
