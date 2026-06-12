@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -48,13 +47,10 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const isDowngraded = isCollectPolicy(policy);
 
     const dismissModalAndNavigate = (targetPolicyID: string) => {
-        Navigation.dismissModal();
+        Navigation.dismissModal({waitForTransition: true});
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(targetPolicyID));
-
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
-            });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
         });
     };
 
@@ -63,8 +59,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             return;
         }
         closeModal();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
+        dismissModalAndNavigate(policyID);
     };
 
     const onDowngradeToTeam = async () => {
