@@ -4051,27 +4051,30 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         verificationFailed: '验证失败，因此我们需要额外的文件来验证你及你的企业',
         taxIDVerification: '税务识别号验证',
         taxIDVerificationDescription: dedent(`
-        请上传以下任一文件：
-        • IRS TIN/EIN 分配函
-        • IRS TIN/EIN 申请确认函（通常包含“Congratulations! The EIN has been successfully assigned”）
-        • 显示公司名称和 EIN 的 IRS 免税函`),
+            请上传以下任一文件：
+            • IRS TIN/EIN 分配函
+            • IRS TIN/EIN 申请确认函（通常包含“Congratulations! The EIN has been successfully assigned”）
+            • 显示公司名称和 EIN 的 IRS 免税函
+        `),
         nameChangeDocument: '名称变更文件',
         nameChangeDocumentDescription: '如果你的公司名称在申请 TIN/EIN 后发生更改，我们需要此文件来验证你提供的税务识别号',
         companyAddressVerification: '公司地址验证',
         companyAddressVerificationDescription: dedent(`
-        请上传以下任一文件：
-        • 显示公司名称和地址的近期水电账单
-        • 显示公司名称和地址的银行对账单
-        • 包含签字页的有效租赁协议，显示公司名称和当前地址
-        • 显示公司名称和地址的保险声明
-        • 显示公司名称和地址的 TIN 分配文件`),
+            请上传以下任一文件：
+            • 显示公司名称和地址的近期水电账单
+            • 显示公司名称和地址的银行对账单
+            • 包含签字页的有效租赁协议，显示公司名称和当前地址
+            • 显示公司名称和地址的保险声明
+            • 显示公司名称和地址的 TIN 分配文件
+        `),
         userAddressVerification: '地址验证',
         userAddressVerificationDescription: dedent(`
-        请上传以下任一文件：
-        • 选民登记卡
-        • 驾驶证
-        • 银行对账单
-        • 水电账单`),
+            请上传以下任一文件：
+            • 选民登记卡
+            • 驾驶证
+            • 银行对账单
+            • 水电账单
+        `),
         userDOBVerification: '出生日期验证',
         userDOBVerificationDescription: '请上传美国签发的身份证件',
         finishViaChat: '通过聊天完成',
@@ -4330,15 +4333,15 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return '管理员';
+                        return '工作区管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
                     case CONST.POLICY.ROLE.EDITOR:
-                        return '编辑';
+                        return '编辑器';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return '卡片管理员';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return '人员管理';
+                        return '人员管理员';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '付款管理员';
                     case CONST.POLICY.ROLE.USER:
@@ -6083,8 +6086,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 other: '设为成员',
             }),
             makeAdmin: () => ({
-                one: '设为管理员',
-                other: '设为管理员',
+                one: '设为工作区管理员',
+                other: '设为工作区管理员',
             }),
             makeAuditor: () => ({
                 one: '设为审计员',
@@ -6109,12 +6112,14 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 `如果您将 ${memberName} 从此工作区中移除，我们会将其技术联系人替换为工作区所有者 ${workspaceOwner}。`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) => `${memberName} 还有一份待处理报告需要处理。请在将其从工作区中移除之前，先让 TA 完成所需操作。`,
             allMembers: '所有成员',
-            admins: '管理员',
+            admins: '工作区管理员',
             approvers: '审批人',
             auditors: '审计员',
             emptyRoleFilter: {title: '没有成员符合此筛选条件', subtitle: '邀请成员或更改上方的筛选条件。'},
             configureHRSync: (providerName: string) => `配置 ${providerName} 同步。`,
             syncWithHR: (providerName: string) => `与 ${providerName} 同步`,
+            makeCardAdmin: () => ({one: '设为卡片管理员', other: '设为卡管理员'}),
+            cardAdmins: '卡片管理员',
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -6746,12 +6751,6 @@ ${reportName}
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>里程费率适用于 Collect 方案，起始价格为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
-            auditor: {
-                title: '审计员',
-                description: '审计员将获得所有报表的只读访问权限，以实现全面可见性和合规监控。',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>审核员仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
-            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '多级审批',
                 description: '多级审批是一个工作流程工具，适用于在报销前需要多个人批准报销单的公司。',
@@ -6844,6 +6843,12 @@ ${reportName}
                 description: '在 Expensify 中创建、发送并跟踪专业发票。通过集成付款和实时可见性，让收款更快捷。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>开票功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            controlPolicyRoles: {
+                title: '控制策略角色',
+                description: '使用审计员、卡片管理员等专门角色，只授予成员完成工作所需的访问权限。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>专用工作区角色仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
         },
         downgrade: {
@@ -8246,8 +8251,11 @@ ${reportName}
                     `${feedName} 连接已中断。要恢复银行卡导入，请<a href='${workspaceCompanyCardRoute}'>登录您的银行账户</a>。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您与企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用 Expensify 卡。`,
-                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} 通过工作区邀请链接加入` : `已将 ${email} 添加为 ${role === 'member' ? '一个' : '一个'} 的 ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
+                    const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? '一个' : 'a';
+                    return didJoinPolicy ? `${email} 通过工作区邀请链接加入` : `已将 ${email} 添加为 ${article} ${translatedRole}`;
+                },
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `已将 ${email} 的角色更新为 ${newRole}（先前为 ${currentRole}）`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {

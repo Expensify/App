@@ -4041,27 +4041,30 @@ ${amount} para ${merchant} - ${date}`,
         verificationFailed: 'La verificación falló, por lo que necesitaremos documentos adicionales para verificarte a ti y a tu empresa',
         taxIDVerification: 'Verificación del ID fiscal',
         taxIDVerificationDescription: dedent(`
-        Por favor, sube uno de los siguientes archivos:
-        • Carta de asignación de TIN/EIN del IRS
-        • Confirmación de solicitud de TIN/EIN del IRS (normalmente indica "Congratulations! The EIN has been successfully assigned")
-        • Carta de exención fiscal del IRS que incluya el nombre de la empresa y el EIN`),
+            Por favor, sube uno de los siguientes archivos:
+            • Carta de asignación de TIN/EIN del IRS
+            • Confirmación de solicitud de TIN/EIN del IRS (normalmente indica "Congratulations! The EIN has been successfully assigned")
+            • Carta de exención fiscal del IRS que incluya el nombre de la empresa y el EIN
+        `),
         nameChangeDocument: 'Documento de cambio de nombre',
         nameChangeDocumentDescription: 'Si el nombre de tu empresa cambió desde que solicitaste el TIN/EIN, necesitamos este documento para verificar el número de ID fiscal proporcionado',
         companyAddressVerification: 'Verificación de la dirección de la empresa',
         companyAddressVerificationDescription: dedent(`
-        Por favor, sube uno de los siguientes archivos:
-        • Factura reciente de servicios públicos con nombre y dirección de la empresa
-        • Estado de cuenta bancario con nombre y dirección de la empresa
-        • Contrato de arrendamiento vigente con página de firmas que muestre el nombre y la dirección actual de la empresa
-        • Estado de seguro con nombre y dirección de la empresa
-        • Documento de asignación de TIN con nombre y dirección de la empresa`),
+            Por favor, sube uno de los siguientes archivos:
+            • Factura reciente de servicios públicos con nombre y dirección de la empresa
+            • Estado de cuenta bancario con nombre y dirección de la empresa
+            • Contrato de arrendamiento vigente con página de firmas que muestre el nombre y la dirección actual de la empresa
+            • Estado de seguro con nombre y dirección de la empresa
+            • Documento de asignación de TIN con nombre y dirección de la empresa
+        `),
         userAddressVerification: 'Verificación de dirección',
         userAddressVerificationDescription: dedent(`
-        Por favor, sube uno de los siguientes archivos:
-        • Tarjeta de registro de votante
-        • Licencia de conducir
-        • Estado de cuenta bancario
-        • Factura de servicios públicos`),
+            Por favor, sube uno de los siguientes archivos:
+            • Tarjeta de registro de votante
+            • Licencia de conducir
+            • Estado de cuenta bancario
+            • Factura de servicios públicos
+        `),
         userDOBVerification: 'Verificación de fecha de nacimiento',
         userDOBVerificationDescription: 'Por favor, sube una identificación emitida en EE. UU.',
         finishViaChat: 'Finalizar por chat',
@@ -4336,13 +4339,13 @@ ${amount} para ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrador';
+                        return 'Administrador del espacio de trabajo';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Administrador de tarjeta';
+                        return 'Administrador de tarjetas';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
                         return 'Administrador de personas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
@@ -6108,8 +6111,8 @@ ${amount} para ${merchant} - ${date}`,
                 other: 'Convertir en miembros',
             }),
             makeAdmin: () => ({
-                one: 'Hacer administrador',
-                other: 'Convertir en administradores',
+                one: 'Hacer administrador del espacio de trabajo',
+                other: 'Convertir en administradores del espacio de trabajo',
             }),
             makeAuditor: () => ({
                 one: 'Convertir en auditor',
@@ -6125,7 +6128,7 @@ ${amount} para ${merchant} - ${date}`,
             invitedBySecondaryLogin: (secondaryLogin) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             workspaceMembersCount: (count) => `Total de miembros del espacio de trabajo: ${count}`,
             allMembers: 'Todos los miembros',
-            admins: 'Administradores',
+            admins: 'Administradores del espacio de trabajo',
             approvers: 'Aprobadores',
             auditors: 'Auditores',
             emptyRoleFilter: {
@@ -6147,6 +6150,8 @@ ${amount} para ${merchant} - ${date}`,
                 `${memberName} tiene un informe en proceso pendiente de acción. Pídele que complete la acción requerida antes de eliminarlo del espacio de trabajo.`,
             configureHRSync: (providerName: string) => `Configura la sincronización de ${providerName}.`,
             syncWithHR: (providerName: string) => `Sincronizar con ${providerName}`,
+            makeCardAdmin: () => ({one: 'Hacer administrador de tarjetas', other: 'Hacer administradores de tarjetas'}),
+            cardAdmins: 'Administradores de tarjetas',
         },
         accounting: {
             settings: 'configuración',
@@ -6910,12 +6915,6 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Las tasas de distancia están disponibles en el plan Recopilar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
-            auditor: {
-                title: 'Auditor',
-                description: 'Los auditores tienen acceso de lectura a todos los informes para una visibilidad completa y la supervisión del cumplimiento.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Los auditores solo están disponibles con el plan Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
-            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Múltiples niveles de aprobación',
                 description:
@@ -6988,6 +6987,12 @@ ${amount} para ${merchant} - ${date}`,
                 upgradeWorkspaceWarning: 'No se puede actualizar el espacio de trabajo',
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Su empresa ha restringido la creación de espacios de trabajo. Por favor, contacte a un administrador para obtener ayuda.',
+            },
+            controlPolicyRoles: {
+                title: 'Controlar roles de la política',
+                description: 'Usa roles especializados como Auditor y Administrador de tarjetas para dar a los miembros acceso solo a lo que necesitan.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Los roles especializados del espacio de trabajo solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
         },
         downgrade: {
@@ -8315,8 +8320,11 @@ ${amount} para ${merchant} - ${date}`,
                     `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${workspaceCompanyCardRoute}'>inicia sesión en tu banco</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
-                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} se unió mediante el enlace de invitación del espacio de trabajo` : `se añadió ${email} como ${role === 'member' ? 'a' : 'a un'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
+                    const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'un' : 'a';
+                    return didJoinPolicy ? `${email} se unió mediante el enlace de invitación del espacio de trabajo` : `añadió ${email} como ${article} ${translatedRole}`;
+                },
                 updateRole: ({email, currentRole, newRole}) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
                 updatedCustomField1: (email, newValue, previousValue) => {
                     if (!newValue) {
