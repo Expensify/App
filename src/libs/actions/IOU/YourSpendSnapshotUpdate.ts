@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getAmount, getCurrency} from '@libs/TransactionUtils';
+import {getAmount, getConvertedAmount, getCurrency} from '@libs/TransactionUtils';
 import {buildAwaitingApprovalQuery, buildRepaidLast30DaysQuery, get30DaysAgoDateString} from '@libs/YourSpendQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -195,10 +195,34 @@ function reportInRepaidScope(iouReport: OnyxEntry<Report>, accountID: number): b
     return !!iouReport && iouReport.ownerAccountID === accountID;
 }
 
-/** Sums the absolute reimbursable amount of a report's transactions, optionally restricted to the last 30 days. */
-function getReportReimbursableTotal(iouReport: OnyxEntry<Report>, reportTransactions: Transaction[], onlyWithinLast30Days: boolean): number {
+function getSnapshotSearchResults(snapshotHash: number | undefined) {
+    if (!snapshotHash) {
+        return undefined;
+    }
+    const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
+    return allSnapshots?.[snapshotKey]?.search;
+}
+
+/** Returns a transaction's reimbursable amount in the snapshot currency, or null when conversion is unavailable offline. */
+function getReimbursableTransactionAmountInCurrency(transaction: Transaction, iouReport: OnyxEntry<Report>, targetCurrency: string): number | null {
     const isExpenseReportLocal = isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport);
+    const transactionCurrency = getCurrency(transaction);
+
+    if (transactionCurrency === targetCurrency) {
+        return Math.abs(getAmount(transaction, isExpenseReportLocal));
+    }
+    if (transaction.convertedAmount != null) {
+        return Math.abs(getConvertedAmount(transaction, isExpenseReportLocal));
+    }
+
+    return null;
+}
+
+/** Sums reimbursable transactions in the snapshot currency, optionally restricted to the last 30 days. */
+function getReportReimbursableTotal(iouReport: OnyxEntry<Report>, reportTransactions: Transaction[], onlyWithinLast30Days: boolean, targetCurrency: string): number | null {
     let total = 0;
+    let hasReimbursableTransaction = false;
+
     for (const reportTransaction of reportTransactions) {
         if (!reportTransaction || reportTransaction.reimbursable === false) {
             continue;
@@ -209,9 +233,16 @@ function getReportReimbursableTotal(iouReport: OnyxEntry<Report>, reportTransact
                 continue;
             }
         }
-        total += Math.abs(getAmount(reportTransaction, isExpenseReportLocal));
+
+        hasReimbursableTransaction = true;
+        const amount = getReimbursableTransactionAmountInCurrency(reportTransaction, iouReport, targetCurrency);
+        if (amount === null) {
+            return null;
+        }
+        total += amount;
     }
-    return total;
+
+    return hasReimbursableTransaction ? total : 0;
 }
 
 /**
@@ -231,24 +262,31 @@ function getYourSpendSnapshotReportMoveUpdates({
         return result;
     }
 
-    const currency = iouReport.currency ?? CONST.CURRENCY.USD;
     const paidGroupPolicyIDs = getPaidGroupPolicyIDs();
+    const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(currentUserAccountID, paidGroupPolicyIDs));
+    const approvalSnapshotCurrency = getSnapshotSearchResults(approvalQueryJSON?.hash)?.currency;
 
-    if (reportInAwaitingApprovalScope(iouReport, currentUserAccountID, paidGroupPolicyIDs)) {
-        const total = getReportReimbursableTotal(iouReport, reportTransactions, false);
-        const diff = (isAwaitingApprovalStatus(toStatus) ? total : 0) - (isAwaitingApprovalStatus(fromStatus) ? total : 0);
-        if (diff !== 0) {
-            const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(currentUserAccountID, paidGroupPolicyIDs));
-            mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, diff, currency));
+    if (reportInAwaitingApprovalScope(iouReport, currentUserAccountID, paidGroupPolicyIDs) && approvalSnapshotCurrency) {
+        const total = getReportReimbursableTotal(iouReport, reportTransactions, false, approvalSnapshotCurrency);
+        if (total !== null) {
+            const diff = (isAwaitingApprovalStatus(toStatus) ? total : 0) - (isAwaitingApprovalStatus(fromStatus) ? total : 0);
+            if (diff !== 0) {
+                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, diff, approvalSnapshotCurrency));
+            }
         }
     }
 
     if (reportInRepaidScope(iouReport, currentUserAccountID)) {
-        const total = getReportReimbursableTotal(iouReport, reportTransactions, true);
-        const diff = (isRepaidStatus(toStatus) ? total : 0) - (isRepaidStatus(fromStatus) ? total : 0);
-        if (diff !== 0) {
-            const paymentQueryJSON = buildSearchQueryJSON(buildRepaidLast30DaysQuery(currentUserAccountID));
-            mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, diff, currency));
+        const paymentQueryJSON = buildSearchQueryJSON(buildRepaidLast30DaysQuery(currentUserAccountID));
+        const paymentSnapshotCurrency = getSnapshotSearchResults(paymentQueryJSON?.hash)?.currency;
+        if (paymentSnapshotCurrency) {
+            const total = getReportReimbursableTotal(iouReport, reportTransactions, true, paymentSnapshotCurrency);
+            if (total !== null) {
+                const diff = (isRepaidStatus(toStatus) ? total : 0) - (isRepaidStatus(fromStatus) ? total : 0);
+                if (diff !== 0) {
+                    mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, diff, paymentSnapshotCurrency));
+                }
+            }
         }
     }
 
@@ -271,24 +309,28 @@ function getYourSpendSnapshotTransactionRemovalUpdates({transaction, iouReport, 
         return result;
     }
 
-    const isExpenseReportLocal = isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport);
-    const amount = Math.abs(getAmount(transaction, isExpenseReportLocal));
-    if (amount === 0) {
-        return result;
-    }
-
-    const diff = -amount;
-    const currency = getCurrency(transaction);
     const paidGroupPolicyIDs = getPaidGroupPolicyIDs();
 
     if (transactionMatchesAwaitingApprovalQuery(iouReport, transaction, currentUserAccountID, paidGroupPolicyIDs)) {
         const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(currentUserAccountID, paidGroupPolicyIDs));
-        mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, diff, currency));
+        const approvalSnapshotCurrency = getSnapshotSearchResults(approvalQueryJSON?.hash)?.currency;
+        if (approvalSnapshotCurrency) {
+            const amount = getReimbursableTransactionAmountInCurrency(transaction, iouReport, approvalSnapshotCurrency);
+            if (amount !== null && amount !== 0) {
+                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, -amount, approvalSnapshotCurrency));
+            }
+        }
     }
 
     if (transactionMatchesRepaidLast30DaysQuery(iouReport, transaction, currentUserAccountID)) {
         const paymentQueryJSON = buildSearchQueryJSON(buildRepaidLast30DaysQuery(currentUserAccountID));
-        mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, diff, currency));
+        const paymentSnapshotCurrency = getSnapshotSearchResults(paymentQueryJSON?.hash)?.currency;
+        if (paymentSnapshotCurrency) {
+            const amount = getReimbursableTransactionAmountInCurrency(transaction, iouReport, paymentSnapshotCurrency);
+            if (amount !== null && amount !== 0) {
+                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, -amount, paymentSnapshotCurrency));
+            }
+        }
     }
 
     return result;

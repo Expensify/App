@@ -265,7 +265,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         expect(optimisticData).toHaveLength(0);
     });
 
-    it('does not patch when the snapshot currency differs from the report currency', async () => {
+    it('does not patch when the transaction cannot be converted into the snapshot currency', async () => {
         await seedAwaitingApprovalSnapshot(10000, CONST.CURRENCY.EUR);
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
@@ -277,5 +277,24 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         });
 
         expect(optimisticData).toHaveLength(0);
+    });
+
+    it('patches using convertedAmount when the snapshot currency differs from the transaction currency', async () => {
+        const snapshotKey = await seedAwaitingApprovalSnapshot(10000);
+
+        const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
+            iouReport: buildExpenseReport({...SUBMITTED_STATUS, currency: CONST.CURRENCY.EUR}),
+            reportTransactions: [buildTransaction({currency: CONST.CURRENCY.EUR, amount: -10000, convertedAmount: -5000})],
+            fromStatus: OPEN_STATUS,
+            toStatus: SUBMITTED_STATUS,
+            currentUserAccountID: ACCOUNT_ID,
+        });
+
+        expect(optimisticData).toEqual([
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {search: {total: 15000, currency: CONST.CURRENCY.USD}},
+            }),
+        ]);
     });
 });
