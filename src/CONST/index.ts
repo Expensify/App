@@ -5989,6 +5989,7 @@ const CONST = {
         DEFAULT_COORDINATE: [-122.4021, 37.7911] as [number, number],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
         ANIMATION_DURATION_ON_CENTER_ME: 1000,
+        GPS_ROUTE_ANIMATION_DURATION_MS: 1000,
         CENTER_BUTTON_FADE_DURATION: 300,
     },
     ONYX_UPDATE_TYPES: {
@@ -9493,6 +9494,8 @@ const CONST = {
         ROUTE_SOURCE: 'route-source',
         ROUTE_FILL: 'route-fill',
         ROUTE_BORDER: 'route-border',
+        WAYPOINTS_SOURCE: 'waypoints-source',
+        WAYPOINTS: 'waypoints',
     },
 
     PARTNER_ID: {

@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import type {Unit} from '@src/types/onyx/Policy';
 
 type Coordinate = [number, number];
@@ -39,12 +40,36 @@ type MapViewProps = {
     shouldDisplayCurrentLocation?: boolean;
 };
 
+type GPSMapViewProps = Omit<MapViewProps, 'directionCoordinates'> & {
+    // Whether to render the native, smoothly-interpolated Mapbox location puck and let the camera
+    // follow it natively (instead of the custom marker + JS-driven camera). Opt-in per screen.
+    shouldUseAnimatedUserLocation?: boolean;
+
+    // Whether to keep the camera natively following the user even when a route/waypoints are present
+    // (e.g. during an active GPS trip). Requires shouldUseAnimatedUserLocation.
+    shouldForceFollowUserLocation?: boolean;
+
+    // Whether the GPS trip is active
+    isTrackingGPS?: boolean;
+
+    // List of coordinates which together forms a direction.
+    directionCoordinates: Coordinate[][];
+};
+
 type DirectionProps = {
     // Coordinates of points that constitute the direction
     coordinates: Coordinate[] | Coordinate[][];
 
     // ID of the layer to place the line layer below
     belowLayerID?: string;
+};
+
+type GPSDirectionProps = DirectionProps & {
+    // Current user location used to animate the trailing route segment
+    lastLocation: {
+        longitude: number;
+        latitude: number;
+    };
 };
 
 type PendingMapViewProps = {
@@ -73,6 +98,7 @@ type WayPoint = {
     id: string;
     coordinate: Coordinate;
     markerComponent: () => ReactNode;
+    markerType?: MapMarkerType;
 };
 
 // Represents a handle to interact with a map view.
@@ -83,4 +109,4 @@ type MapViewHandle = {
     fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type {WayPoint, MapViewProps, DirectionProps, PendingMapViewProps, MapViewHandle, Coordinate};
+export type {WayPoint, MapViewProps, GPSMapViewProps, DirectionProps, GPSDirectionProps, PendingMapViewProps, MapViewHandle, Coordinate};

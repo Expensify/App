@@ -1,10 +1,8 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {getCurrentPositionAsync} from 'expo-location';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import DistanceMapView from '@components/DistanceMapView';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import type {Coordinate, MapViewHandle} from '@components/MapView/MapViewTypes';
+import GPSMapView from '@components/MapView/GPSMapView';
+import type {Coordinate} from '@components/MapView/MapViewTypes';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -21,9 +19,8 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
-import {setUserLocation} from '@libs/actions/UserLocation';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getLastGpsPoint, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
+import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
@@ -37,7 +34,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import {FOREGROUND_LOCATION_TRACKING_INTERVAL_MS} from './const';
 import GPSButtons from './GPSButtons';
 import type IOURequestStepDistanceGPSProps from './types';
 import useGPSWaypointMarkers from './useGPSWaypointMarkers';
@@ -56,8 +52,6 @@ function IOURequestStepDistanceGPS({
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isInLandscapeMode = useIsInLandscapeMode();
-
-    const mapRef = useRef<MapViewHandle>(null);
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isArchived = useReportIsArchived(report?.reportID);
@@ -184,52 +178,6 @@ function IOURequestStepDistanceGPS({
         return stopMapboxToken;
     }, []);
 
-    // Fly to the latest point on location updates when the trip is ongoing
-    useEffect(() => {
-        if (!gpsDraftDetails?.isTracking) {
-            return;
-        }
-        const latestPoint = getLastGpsPoint(gpsDraftDetails);
-        if (!latestPoint) {
-            return;
-        }
-        mapRef.current?.flyTo([latestPoint.long, latestPoint.lat], CONST.MAPBOX.DEFAULT_ZOOM, 1000);
-    }, [gpsDraftDetails]);
-
-    // Poll foreground location every 5 seconds when there is no ongoing GPS trip to keep the user location updated
-    useFocusEffect(
-        useCallback(() => {
-            // If there is an ongoing GPS trip, do not poll foreground location
-            if (gpsDraftDetails?.isTracking) {
-                return;
-            }
-
-            let cancelled = false;
-
-            const intervalId = setInterval(() => {
-                // We do not check foreground location permissions here because
-                // it's already checked in DistanceMapView to get initial user's location
-                getCurrentPositionAsync()
-                    .then((params) => {
-                        if (cancelled) {
-                            return;
-                        }
-
-                        const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                        setUserLocation(currentCoords);
-                    })
-                    .catch(() => {
-                        // Silently fail if location unavailable or permission denied
-                    });
-            }, FOREGROUND_LOCATION_TRACKING_INTERVAL_MS);
-
-            return () => {
-                cancelled = true;
-                clearInterval(intervalId);
-            };
-        }, [gpsDraftDetails?.isTracking]),
-    );
-
     const waypointMarkers = useGPSWaypointMarkers();
 
     const directionCoordinates: Coordinate[][] = getGpsPoints(gpsDraftDetails).map((points): Coordinate[] => points.map(({lat, long}) => [long, lat]));
@@ -244,7 +192,7 @@ function IOURequestStepDistanceGPS({
         >
             <View style={[styles.flex1, isInLandscapeMode && styles.flexRow, styles.w100]}>
                 <View style={[styles.mapViewContainer, {minHeight: undefined}]}>
-                    <DistanceMapView
+                    <GPSMapView
                         accessToken={mapboxAccessToken?.token ?? ''}
                         mapPadding={CONST.MAPBOX.PADDING}
                         pitchEnabled={false}
@@ -253,11 +201,10 @@ function IOURequestStepDistanceGPS({
                             location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
                         }}
                         style={[styles.mapView, styles.mapEditView]}
-                        overlayStyle={styles.mapEditView}
                         styleURL={CONST.MAPBOX.STYLE_URL}
                         waypoints={waypointMarkers}
                         directionCoordinates={directionCoordinates}
-                        ref={mapRef}
+                        isTrackingGPS={!!gpsDraftDetails?.isTracking}
                     />
                 </View>
 
