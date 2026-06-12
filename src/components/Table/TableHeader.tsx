@@ -71,7 +71,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
-    const selectableRows = processedData.filter((row) => !row.disabled);
+    const selectableRows = processedData.filter((row) => !row.disabled && !row.isSelectionDisabled);
     let isSelectionIndeterminate = false;
     let isEverySelectableRowSelected = selectableRows.length > 0;
 
