@@ -4,8 +4,8 @@
  *
  * That effect keeps the local readings in sync with the transaction without clobbering in-progress typing, and
  * slides the discard-changes baseline when the transaction is changed elsewhere (e.g. an edit saved from the
- * confirmation step). The branching is subtle and easy to regress, so it lives here as small pure predicates
- * that can be unit-tested in isolation from the effect's ref mutations
+ * confirmation step). The branching lives here as small pure predicates that can be unit-tested in isolation 
+ * from the effect's ref mutations
  */
 
 type OdometerResyncState = {
@@ -60,14 +60,18 @@ function isExternalOdometerResync(state: OdometerResyncState): boolean {
  * Whether the local readings should be (re)initialized from the transaction:
  * 1. first mount with transaction data, or
  * 2. editing with transaction data and no local state yet, or
- * 3. transaction has data but local state is empty (user navigated back from another page), or
- * 4. an external resync arrived (the typing guard inside it avoids clobbering in-progress keystrokes)
+ * 3. transaction has data but local state is empty (navigated back from another page), or
+ * 4. an external resync arrived
+ *
+ * Branches 2-4 carry a `!isUserTyping` guard (inside `isExternalOdometerResync` for branch 4) so they don't
+ * re-hydrate readings the user intentionally cleared - which leaves local state empty without writing the
+ * transaction, looking identical to "navigated back". Branch 1 is unguarded: a fresh mount must hydrate the baseline.
  */
 function shouldInitializeOdometerFromTransaction(state: OdometerResyncState, isExternalResync: boolean): boolean {
     return (
         (!state.hasInitialized && state.hasTransactionData) ||
-        (state.isEditing && state.hasTransactionData && !state.hasLocalState) ||
-        (state.hasTransactionData && !state.hasLocalState && state.hasInitialized) ||
+        (state.isEditing && state.hasTransactionData && !state.hasLocalState && !state.isUserTyping) ||
+        (state.hasTransactionData && !state.hasLocalState && state.hasInitialized && !state.isUserTyping) ||
         isExternalResync
     );
 }

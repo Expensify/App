@@ -57,8 +57,22 @@ describe('shouldInitializeOdometerFromTransaction', () => {
         expect(shouldInitializeOdometerFromTransaction(buildState({isEditing: true, hasLocalState: false}), false)).toBe(true);
     });
 
+    it('does not re-initialize when editing with empty local state while the user is typing (intentional clear)', () => {
+        expect(shouldInitializeOdometerFromTransaction(buildState({isEditing: true, hasLocalState: false, isUserTyping: true}), false)).toBe(false);
+    });
+
     it('initializes when transaction has data but local state is empty (navigated back)', () => {
         expect(shouldInitializeOdometerFromTransaction(buildState({hasLocalState: false}), false)).toBe(true);
+    });
+
+    it('still reloads when local state is empty and the user is not typing (navigated back, fresh ref)', () => {
+        expect(shouldInitializeOdometerFromTransaction(buildState({hasLocalState: false, isUserTyping: false}), false)).toBe(true);
+    });
+
+    it('does not re-hydrate cleared readings while the user is typing (clear-then-delete-image regression)', () => {
+        // User cleared both inputs (local state empty, typing flag set) then deleted an image; the
+        // transaction still holds the old readings. The third branch must NOT reload them.
+        expect(shouldInitializeOdometerFromTransaction(buildState({hasLocalState: false, isUserTyping: true}), false)).toBe(false);
     });
 
     it('initializes when an external resync arrived', () => {

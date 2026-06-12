@@ -9,19 +9,19 @@ type UseOdometerReadingsStateParams = {
     /** The transaction whose odometer values seed and re-sync the local form state. */
     currentTransaction: OnyxEntry<Transaction>;
 
-    /** True when editing an existing odometer expense — re-sync runs whenever transaction values change. */
+    /** True when editing an existing odometer expense - re-sync runs whenever transaction values change. */
     isEditing: boolean;
 
     /** The currently selected distance-request-type tab; used to detect "switched away from odometer". */
     selectedTab: string | undefined;
 
-    /** True while the selected-tab Onyx key is still loading — suppresses the tab-reset effect. */
+    /** True while the selected-tab Onyx key is still loading - suppresses the tab-reset effect. */
     isLoadingSelectedTab: boolean;
 
     /** True once `useRestartOnOdometerImagesFailure` has finished verifying any blob URIs in the transaction (gates the initial-refs snapshot). */
     hasVerifiedBlobs: boolean;
 
-    /** Save-for-later draft, if any — used to defer the initial-refs snapshot until the draft has hydrated into the transaction. */
+    /** Save-for-later draft, if any - used to defer the initial-refs snapshot until the draft has hydrated into the transaction. */
     odometerDraft: OnyxEntry<OdometerDraft>;
 };
 
@@ -53,22 +53,22 @@ type UseOdometerReadingsStateResult = {
     /** Tracks the latest `endReading`. */
     endReadingRef: React.RefObject<string>;
 
-    /** The start-reading value captured at mount — used by discard-changes confirmation. */
+    /** The start-reading value captured at mount - used by discard-changes confirmation. */
     initialStartReadingRef: React.RefObject<string>;
 
-    /** The end-reading value captured at mount — used by discard-changes confirmation. */
+    /** The end-reading value captured at mount - used by discard-changes confirmation. */
     initialEndReadingRef: React.RefObject<string>;
 
-    /** The start-odometer image captured at mount — used by discard-changes confirmation. */
+    /** The start-odometer image captured at mount - used by discard-changes confirmation. */
     initialStartImageRef: React.RefObject<FileObject | string | undefined>;
 
-    /** The end-odometer image captured at mount — used by discard-changes confirmation. */
+    /** The end-odometer image captured at mount - used by discard-changes confirmation. */
     initialEndImageRef: React.RefObject<FileObject | string | undefined>;
 
     /** Resets local form state and the initial refs back to their defaults. */
     resetOdometerLocalState: () => void;
 
-    /** True once the initial baseline has been captured — gates discard-changes detection. */
+    /** True once the initial baseline has been captured - gates discard-changes detection. */
     hasInitializedRefs: React.RefObject<boolean>;
 };
 
@@ -137,7 +137,7 @@ function useOdometerReadingsState({
         if (!isEditing && !isOdometerTransaction) {
             return;
         }
-        // Wait for blob verification — otherwise Cmd+R would snapshot a stale blob URI before
+        // Wait for blob verification - otherwise Cmd+R would snapshot a stale blob URI before
         // useRestartOnOdometerImagesFailure swaps in a fresh one, and the diff would look like an edit.
         if (!hasVerifiedBlobs) {
             return;
@@ -151,12 +151,21 @@ function useOdometerReadingsState({
         const currentEnd = currentTransaction?.comment?.odometerEnd;
         const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
         const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
+        // Snapshot the transaction as the baseline; the discard guard then diffs current-vs-baseline. No "user
+        // edited" tracking is needed:
+        //  - Create: this runs at the (empty) mount before the user types, and the screen stays mounted across
+        //    Next -> back, so the empty baseline survives and a committed-but-unsaved reading reads as a change
+        //  - SFL-resume / reload: the fresh mount absorbs the hydrated value (= the saved state), so a clean resume
+        //    stays silent
+        //  - Images use a re-mint-invariant identity in the diff (getOdometerImageIdentity), so a non-user blob
+        //    re-mint is absorbed while a genuine add/swap/remove is caught - no need to special-case the baseline
         initialStartReadingRef.current = startValue;
         initialEndReadingRef.current = endValue;
         initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
         initialEndImageRef.current = currentTransaction?.comment?.odometerEndImage;
         hasInitializedRefs.current = true;
     }, [
+        currentTransaction?.transactionID,
         currentTransaction?.iouRequestType,
         currentTransaction?.comment,
         currentTransaction?.comment?.odometerStart,
@@ -168,8 +177,11 @@ function useOdometerReadingsState({
         odometerDraft,
     ]);
 
-    // Initialize values from transaction when editing or when transaction has data (but not when switching tabs)
-    // This updates the current state, but NOT the initial refs (those are set only once on mount)
+    // Initialize current state (NOT the initial refs, which are set once on mount) from the transaction when editing
+    // or when it has data - but not on tab switch. Mirrors the first three branches of
+    // `shouldInitializeOdometerFromTransaction` (odometerResync.ts is the source of truth), minus its `!isUserTyping`
+    // guard: the typing ref lives in the component, and this effect's deps are only readings + isEditing (no image
+    // deps), so it can't hit the clear-then-delete-image bug the guard fixes. Keep in sync.
     useEffect(() => {
         const currentStart = currentTransaction?.comment?.odometerStart;
         const currentEnd = currentTransaction?.comment?.odometerEnd;

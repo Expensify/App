@@ -39,7 +39,7 @@ describe('useOdometerReadingsState', () => {
     it('starts with empty form state, then hydrates startReading/endReading from the transaction', () => {
         const {result} = renderHook(() => useOdometerReadingsState(baseParams));
 
-        // The sync-from-transaction effect runs synchronously after mount.
+        // The sync-from-transaction effect runs synchronously after mount
         expect(result.current.startReading).toBe('100');
         expect(result.current.endReading).toBe('250');
         expect(result.current.formError).toBe('');
@@ -72,6 +72,76 @@ describe('useOdometerReadingsState', () => {
         );
 
         expect(result.current.hasInitializedRefs.current).toBe(false);
+    });
+
+    // After Next the transaction holds new readings but the draft is staler. The directional check reports NOT
+    // pending, so the baseline snapshots from the transaction - re-entering no longer looks like an unsaved change
+    it('captures the baseline from the transaction when the (staler) draft is not pending hydration', () => {
+        mockIsOdometerDraftPendingHydration.mockReturnValue(false);
+        const {result} = renderHook(() =>
+            useOdometerReadingsState({
+                ...baseParams,
+                currentTransaction: buildOdometerTransaction({odometerStart: 120, odometerEnd: 300}),
+                odometerDraft: {odometerStartReading: 100, odometerEndReading: 250} as unknown as OnyxTypes.OdometerDraft,
+            }),
+        );
+
+        expect(result.current.hasInitializedRefs.current).toBe(true);
+        expect(result.current.initialStartReadingRef.current).toBe('120');
+        expect(result.current.initialEndReadingRef.current).toBe('300');
+    });
+
+    // Transaction has readings but no image (user deleted it) while the draft still holds the image. The directional
+    // check reports NOT pending, so the baseline snapshots the transaction's true no-image state, not an empty one
+    it('captures a no-image baseline when a readings draft is hydrated but its image was removed', () => {
+        mockIsOdometerDraftPendingHydration.mockReturnValue(false);
+        const {result} = renderHook(() =>
+            useOdometerReadingsState({
+                ...baseParams,
+                currentTransaction: buildOdometerTransaction(),
+                odometerDraft: {odometerStartReading: 100, odometerEndReading: 250, odometerStartImage: 'data:image/png;base64,xxx'} as unknown as OnyxTypes.OdometerDraft,
+            }),
+        );
+
+        expect(result.current.hasInitializedRefs.current).toBe(true);
+        expect(result.current.initialStartImageRef.current).toBeUndefined();
+        expect(result.current.initialEndImageRef.current).toBeUndefined();
+    });
+
+    // The ADD-image flow relies on an EMPTY image baseline: neither draft nor transaction has an image at mount, so
+    // a later add differs from this empty baseline (hasImageChanges => true) and lets the discard modal fire
+    it('captures an empty image baseline when neither the draft nor the transaction has an image', () => {
+        mockIsOdometerDraftPendingHydration.mockReturnValue(false);
+        const {result} = renderHook(() =>
+            useOdometerReadingsState({
+                ...baseParams,
+                currentTransaction: buildOdometerTransaction(),
+                odometerDraft: {odometerStartReading: 100, odometerEndReading: 250} as unknown as OnyxTypes.OdometerDraft,
+            }),
+        );
+
+        expect(result.current.hasInitializedRefs.current).toBe(true);
+        expect(result.current.initialStartImageRef.current).toBeUndefined();
+        expect(result.current.initialEndImageRef.current).toBeUndefined();
+    });
+
+    // The SWAP-image flow relies on the baseline capturing the transaction's CURRENT image, so a later swap is
+    // detected as a change. When the transaction already holds an image, the baseline must snapshot it, not undefined
+    it('captures the transaction image into the baseline when the transaction already has one', () => {
+        mockIsOdometerDraftPendingHydration.mockReturnValue(false);
+        const startImage = {uri: 'start.jpg'};
+        const endImage = {uri: 'end.jpg'};
+        const {result} = renderHook(() =>
+            useOdometerReadingsState({
+                ...baseParams,
+                currentTransaction: buildOdometerTransaction({odometerStartImage: startImage, odometerEndImage: endImage}),
+                odometerDraft: {odometerStartReading: 100, odometerEndReading: 250} as unknown as OnyxTypes.OdometerDraft,
+            }),
+        );
+
+        expect(result.current.hasInitializedRefs.current).toBe(true);
+        expect(result.current.initialStartImageRef.current).toEqual(startImage);
+        expect(result.current.initialEndImageRef.current).toEqual(endImage);
     });
 
     it('skips initialization on a non-odometer transaction unless we are editing', () => {
@@ -126,5 +196,22 @@ describe('useOdometerReadingsState', () => {
         rerender({...baseParams, isLoadingSelectedTab: true, selectedTab: CONST.TAB_REQUEST.DISTANCE});
 
         expect(result.current.inputKey).toBe(initialKey);
+    });
+
+    // Create flow at the unit level: a fresh mount snapshots an EMPTY baseline, so readings typed + committed
+    // via Next later differ from it and leaving prompts. The screen stays mounted across Next -> back, so it survives
+    it('captures an empty baseline on a fresh create mount with no readings yet', () => {
+        const emptyTransaction = {
+            transactionID: 't1',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+            comment: {},
+        } as unknown as OnyxTypes.Transaction;
+        const {result} = renderHook(() => useOdometerReadingsState({...baseParams, currentTransaction: emptyTransaction}));
+
+        expect(result.current.hasInitializedRefs.current).toBe(true);
+        expect(result.current.initialStartReadingRef.current).toBe('');
+        expect(result.current.initialEndReadingRef.current).toBe('');
+        expect(result.current.initialStartImageRef.current).toBeUndefined();
+        expect(result.current.initialEndImageRef.current).toBeUndefined();
     });
 });
