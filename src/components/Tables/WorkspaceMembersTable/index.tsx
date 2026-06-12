@@ -194,7 +194,7 @@ export default function WorkspaceMembersTable({
     if (isControlPolicy(policy)) {
         filterConfig.status.options.push({
             label: translate('workspace.people.cardAdmins'),
-            value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS,
+            value: WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS,
         });
 
         filterConfig.status.options.push({
