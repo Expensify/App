@@ -28,6 +28,7 @@ import {
 import {ONBOARDING_FEATURES} from '@libs/actions/Welcome/OnboardingFeatures';
 import type {OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFeatures';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
