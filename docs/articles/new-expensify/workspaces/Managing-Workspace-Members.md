@@ -1,7 +1,7 @@
 ---
 title: Managing Workspace Members in New Expensify
 description: Learn how to add, remove, filter, and manage user roles in a New Expensify workspace.
-keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, invite users, filter members, role filter]
+keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, auditor, invite users, filter members, role filter]
 ---
 
 
@@ -10,8 +10,9 @@ Managing members in a workspace helps ensure that the right people can submit, a
 A **Workspace member** is anyone added to a workspace with one of the following roles:
 
 - **Member** – Can submit and/or approve expenses.
-- **Admin** – Can manage members, roles, workflows, and settings.
-- **Auditor** – Can view and comment on reports but cannot make changes.
+- **Workspace Admin** – Can manage members, roles, workflows, and settings.
+- **Auditor** – Can view and comment on reports but cannot make changes (Control workspaces only).
+- **Card Admin** – Can manage workspace cards, including the Expensify Card and Company Cards, but cannot change other workspace settings (Control workspaces only).
 
 ---
 
@@ -38,9 +39,10 @@ You can filter the member list by role to quickly find specific groups of member
 2. Click the role filter dropdown at the top of the member list.
 3. Select one of the available roles:
    - **All members** – Shows all workspace members (default).
-   - **Admins** – Shows only members with the Admin role.
+   - **Workspace Admins** – Shows only members with the Workspace Admin role.
    - **Approvers** – Shows only members who are designated approvers.
    - **Auditors** – Shows only members with the Auditor role (Control workspaces only).
+   - **Card Admins** – Shows only members with the Card Admin role (Control workspaces only).
 
 The member list updates immediately to show only members matching the selected role. You can also combine the role filter with the search bar to narrow results further.
 
@@ -80,7 +82,7 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 # Transfer Workspace Ownership
 
-To transfer ownership to another Admin:
+To transfer ownership to another Workspace Admin:
 
 1. Go to **Workspaces > Members**.
 2. Click the current **Owner** (identified with a tag).
