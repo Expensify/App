@@ -1261,12 +1261,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
-            const selectedPolicyID = selectedPolicyIDs.length === 1 ? selectedPolicyIDs.at(0) : undefined;
-            // Prefer the Search snapshot, which carries `policy.connections`. The live policy collection can lack
-            // `connections` on a fresh load (until a report is opened), which is what hid the export options.
-            const policy = selectedPolicyID
-                ? (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`] ?? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`])
-                : undefined;
+            const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
             const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
 
             const exportOptions: PopoverMenuItem[] = [];
@@ -1282,7 +1277,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return false;
                 }
 
-                const reportPolicy = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const completeReport = getReportFromSearchSnapshot(report.reportID, currentSearchResults?.data, allReports);
 
                 if (!completeReport) {
