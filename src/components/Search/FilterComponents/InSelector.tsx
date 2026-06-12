@@ -25,10 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import ListFilterView from './ListFilterViewWrapper';
 
-type InSelectorProps = SearchFilterCommonProps & {
-    value: string[] | undefined;
-    onChange: (ins: string[]) => void;
-};
+type InSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 const defaultListOptions = {
     recentReports: [],

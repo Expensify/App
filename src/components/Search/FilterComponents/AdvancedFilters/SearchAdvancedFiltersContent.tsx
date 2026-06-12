@@ -1,5 +1,4 @@
 import React from 'react';
-import type {SearchFilterCommonProps} from '@components/Search/types';
 import {isAmountFilterKey, isDateFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -15,11 +14,12 @@ type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'fil
 type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'filterKey' | 'value' | 'onChange'>;
 type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'filterKey' | 'value' | 'hasFeed' | 'onChange'>;
 type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'>;
-type CommonFilterContentWrapperProps = Omit<CommonFilterContentProps, keyof SearchFilterCommonProps> & Pick<SearchFilterCommonProps, 'ready'>;
-type SearchAdvancedFiltersContentProps = Pick<SearchFilterCommonProps, 'ready'> & {
+type CommonFilterContentWrapperProps = Omit<CommonFilterContentProps, 'selectionListTextInputStyle' | 'selectionListStyle' | 'autoFocus' | 'footer'>;
+type SearchAdvancedFiltersContentProps = {
     filterKey: SearchFilter['key'];
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     policyIDQuery: string[] | undefined;
+    ready?: boolean;
     components: {
         Text: React.ComponentType<TextInputFilterContentWrapperProps>;
         Amount: React.ComponentType<AmountFilterContentWrapperProps>;

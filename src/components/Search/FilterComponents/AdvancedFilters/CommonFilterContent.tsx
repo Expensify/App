@@ -4,13 +4,11 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {FilterComponentsProps} from '..';
 import FilterComponents from '..';
 
-type CommonFilterContentProps = SearchFilterCommonProps & {
+type CommonFilterContentProps = SearchFilterCommonProps<FilterComponentsProps['value']> & {
     filterKey: FilterComponentsProps['filterKey'];
-    value: FilterComponentsProps['value'];
     type: SearchDataTypes | undefined;
     policyIDs: string[] | undefined;
     policyIDQuery: string[] | undefined;
-    onChange: (value: FilterComponentsProps['value']) => void;
 };
 
 function CommonFilterContent({

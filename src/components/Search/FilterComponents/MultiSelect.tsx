@@ -24,15 +24,9 @@ type MultiSelectItem<T> = {
     searchableText?: string;
 };
 
-type MultiSelectProps<T> = SearchFilterCommonProps & {
+type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & {
     /** The list of all items to show up in the list */
     items: Array<MultiSelectItem<T>>;
-
-    /** The currently selected items */
-    value: Array<MultiSelectItem<T>>;
-
-    /** Function to call when changes are applied */
-    onChange: (item: Array<MultiSelectItem<T>>) => void;
 
     /** Whether the search input should be displayed. */
     isSearchable?: boolean;
