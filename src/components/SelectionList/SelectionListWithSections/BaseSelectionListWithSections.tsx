@@ -224,6 +224,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const selectFocusedItem = () => {
         const focusedItem = getFocusedItem();
         if (!focusedItem || focusedItem.isInteractive === false) {
+            if (!focusedItem && canSelectMultiple && confirmButtonOptions?.onConfirm && !confirmButtonOptions?.isDisabled) {
+                confirmButtonOptions.onConfirm();
+            }
             return;
         }
         selectRow(focusedItem);
