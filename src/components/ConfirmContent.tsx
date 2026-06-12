@@ -1,7 +1,8 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
+import ScrollView from '@components/ScrollView';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
