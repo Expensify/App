@@ -27,7 +27,6 @@ function SearchFiltersReportFieldPage() {
     const {translate, localeCompare} = useLocalize();
 
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
-    // Stays true until this screen unmounts on navigation, keeping the spinner visible through the go-back transition.
     const [isSaving, setIsSaving] = useState(false);
 
     const [advancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);

@@ -29,7 +29,6 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const [selectedModifier, setSelectedModifier] = useState<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | null>(null);
-    // Stays true until this screen unmounts on navigation, keeping the spinner visible through the go-back transition.
     const [isSaving, setIsSaving] = useState(false);
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);

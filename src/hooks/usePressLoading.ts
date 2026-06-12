@@ -12,7 +12,6 @@ function usePressLoading() {
 
     const startPressLoading = useCallback((onPress: () => void) => {
         setIsPressed(true);
-        // Defer so React commits isPressed=true (and paints the spinner) before consumer code blocks the main thread.
         setTimeout(() => {
             onPress();
             setIsPressed(false);
