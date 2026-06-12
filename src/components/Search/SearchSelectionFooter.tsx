@@ -1,6 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import {isGroupEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchResults} from '@src/types/onyx';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
@@ -32,8 +33,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
     const count = shouldUseClientTotal
         ? selectedTransactionsKeys.reduce((acc, key) => {
-              if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-                  const group = currentSearchResults?.data?.[key as keyof typeof currentSearchResults.data] as {count?: number} | undefined;
+              if (isGroupEntry(key)) {
+                  const group = currentSearchResults?.data?.[key];
                   return acc + (group?.count ?? 0);
               }
               const item = selectedTransactions[key];

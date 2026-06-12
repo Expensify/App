@@ -6236,6 +6236,7 @@ export {
     isTransactionYearGroupListItemType,
     isTransactionQuarterGroupListItemType,
     isGroupedItemArray,
+    isGroupEntry,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,

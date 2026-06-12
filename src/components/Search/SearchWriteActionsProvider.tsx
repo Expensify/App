@@ -10,7 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canRejectReportAction} from '@libs/ReportUtils';
-import {isReportActionListItemType, isTaskListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
+import {isGroupedItemArray, isReportActionListItemType, isTaskListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -20,7 +20,6 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchRowSelectionActionsContext} from './SearchContextDefinitions';
-import type {TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
 import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
@@ -349,10 +348,8 @@ function SearchWriteActionsProvider({
                     });
 
                     // Tag individual transactions with their parent group key so export filtering can derive the group when needed.
-                    if (areItemsGrouped) {
-                        const parentGroup = (filteredData as TransactionGroupListItemType[]).find((group) =>
-                            group.transactions.some((transaction) => transaction.keyForList === item.keyForList),
-                        );
+                    if (areItemsGrouped && isGroupedItemArray(filteredData)) {
+                        const parentGroup = filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList));
                         if (parentGroup?.keyForList && updatedTransactions[item.keyForList]) {
                             updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey: parentGroup.keyForList};
                         }
@@ -435,8 +432,8 @@ function SearchWriteActionsProvider({
                     return {};
                 }
 
-                if (areItemsGrouped) {
-                    const allSelections: Array<[string, SelectedTransactionInfo]> = (filteredData as TransactionGroupListItemType[]).flatMap((item) => {
+                if (areItemsGrouped && isGroupedItemArray(filteredData)) {
+                    const allSelections: Array<[string, SelectedTransactionInfo]> = filteredData.flatMap((item) => {
                         if (item.transactions.length === 0 && item.keyForList) {
                             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                                 return [];
@@ -470,7 +467,8 @@ function SearchWriteActionsProvider({
 
                 // When items are not grouped, data is TransactionListItemType[] not TransactionGroupListItemType[]
                 return Object.fromEntries(
-                    (filteredData as TransactionListItemType[])
+                    filteredData
+                        .filter(isTransactionListItemType)
                         .filter((t) => !isTransactionPendingDelete(t))
                         .map((transactionItem) => {
                             const itemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
