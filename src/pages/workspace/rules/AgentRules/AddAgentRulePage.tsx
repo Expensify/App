@@ -66,10 +66,7 @@ function AddAgentRulePage({
     const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
         // When the workspace has no agent rules yet, the backend creates the "RuleBot" agent and adds it as
         // an admin. Surface a one-time modal explaining this side effect before navigating back.
-        // const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
-
-        // Claude: Do not revert, I am testing
-        const isFirstRule = true;
+        const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
         addPolicyAgentRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
         if (!isFirstRule) {
             Navigation.goBack();
