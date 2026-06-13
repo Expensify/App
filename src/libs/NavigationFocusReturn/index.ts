@@ -7,7 +7,6 @@ import hasFocusableAttributes from '@libs/focusGuards';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from '@libs/LauncherStack';
 import navigationRef from '@libs/Navigation/navigationRef';
-// eslint-disable-next-line no-restricted-imports -- sibling primitive to TransitionTracker; needs the exact transitionEnd signal to defer past the navigation transition.
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {collectRouteKeys, diffNavigationState} from '@libs/navigationStateDiff';
 import {isCycleIdle, Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';

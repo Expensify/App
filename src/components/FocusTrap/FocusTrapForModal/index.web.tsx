@@ -2,6 +2,7 @@ import {FocusTrap} from 'focus-trap-react';
 import React, {useRef} from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+import getHadTabNavigation from '@libs/hadTabNavigation';
 import {scheduleClearActivePopoverLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
@@ -28,6 +29,9 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                     if (!launcher) {
                         return;
                     }
+                    if (shouldReturnFocus && !ReportActionComposeFocusManager.isFocused() && document.contains(launcher)) {
+                        launcher.focus({preventScroll: true, focusVisible: getHadTabNavigation()});
+                    }
                     // Deferred so popover paths that navigate after modal-hide can still consume.
                     scheduleClearActivePopoverLauncher(launcher);
                 },
@@ -37,15 +41,7 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                 initialFocus,
                 // Lazy so document.body isn't evaluated at render time (SSR-safe).
                 fallbackFocus: () => document.body,
-                setReturnFocus: (element) => {
-                    if (ReportActionComposeFocusManager.isFocused()) {
-                        return false;
-                    }
-                    if (shouldReturnFocus) {
-                        return element;
-                    }
-                    return false;
-                },
+                setReturnFocus: false,
             }}
         >
             {children}

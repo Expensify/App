@@ -6,7 +6,6 @@ import fireFocusEvent from '@libs/Accessibility/fireFocusEvent';
 import scheduleRefocus from '@libs/Accessibility/scheduleRefocus';
 import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from '@libs/compoundParamsKey';
 import navigationRef from '@libs/Navigation/navigationRef';
-// eslint-disable-next-line no-restricted-imports -- sibling primitive to TransitionTracker; needs the exact transitionEnd signal to avoid OS focus-restore races.
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {diffNavigationState} from '@libs/navigationStateDiff';
 

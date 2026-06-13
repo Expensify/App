@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import {accountGuideDetailsSelector} from '@selectors/Account';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {isPast} from 'date-fns';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {Keyboard, View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
@@ -32,10 +32,12 @@ import usePolicy from '@hooks/usePolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScreenInitialFocus from '@hooks/useScreenInitialFocus';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isHTMLElement from '@libs/isHTMLElement';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
@@ -124,6 +126,11 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const backButtonRef = useRef<HTMLElement | null>(null);
+    const setBackButtonRef = useCallback((node: unknown) => {
+        backButtonRef.current = isHTMLElement(node) ? node : null;
+    }, []);
+    useScreenInitialFocus(backButtonRef);
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
@@ -290,6 +297,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                         <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && !isLoading && styles.pl5]}>
                             {shouldShowBackButton && (
                                 <PressableWithoutFeedback
+                                    ref={setBackButtonRef}
                                     onPress={onNavigationMenuButtonClicked}
                                     style={[styles.LHNToggle, shouldUseNarrowLayout && styles.pl5]}
                                     accessibilityHint={translate('accessibilityHints.navigateToChatsList')}

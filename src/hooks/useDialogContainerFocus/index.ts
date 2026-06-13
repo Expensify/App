@@ -4,7 +4,6 @@ import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import isHTMLElement from '@libs/isHTMLElement';
-// eslint-disable-next-line no-restricted-imports -- sibling primitive to TransitionTracker; needs the exact transitionEnd signal.
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type UseDialogContainerFocus from './types';
 
