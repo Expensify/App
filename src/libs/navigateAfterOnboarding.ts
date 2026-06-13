@@ -27,15 +27,6 @@ type NavigateAfterOnboardingOptions = {
     variantOverride?: OnboardingRHPVariant | null;
 };
 
-function navigateWithOptions(route: Route, options?: Pick<NavigateAfterOnboardingOptions, 'afterTransition'>) {
-    if (options) {
-        Navigation.navigate(route, options);
-        return;
-    }
-
-    Navigation.navigate(route);
-}
-
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
  * On large screens, navigates to the admins chat if available. On small screens, finds the last
@@ -92,12 +83,12 @@ function navigateAfterOnboarding(
     const variantOverride = options?.variantOverride;
     const variant = variantOverride ?? onboardingRHPVariant;
     if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        navigateWithOptions(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), navigationOptions);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), navigationOptions);
         return;
     }
 
     if (shouldOpenRHPVariant(variantOverride)) {
-        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, (route) => navigateWithOptions(route, navigationOptions));
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, (route) => Navigation.navigate(route, navigationOptions));
         return;
     }
 
@@ -111,10 +102,10 @@ function navigateAfterOnboarding(
         shouldPreventOpenAdminRoom,
     );
     if (reportID) {
-        navigateWithOptions(ROUTES.REPORT_WITH_ID.getRoute(reportID), navigationOptions);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), navigationOptions);
     } else {
         // Navigate to home to trigger guard evaluation
-        navigateWithOptions(ROUTES.HOME, navigationOptions);
+        Navigation.navigate(ROUTES.HOME, navigationOptions);
     }
 }
 
