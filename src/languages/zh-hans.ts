@@ -6133,7 +6133,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             issueNewCard: {
                 whoNeedsCard: '谁需要一张卡？',
                 inviteNewMember: '邀请新成员',
-                inviteMemberNotAllowed: '请先让工作区管理员邀请此人。',
+                inviteMemberNotAllowed: '请先让工作区管理员邀请此人',
                 findMember: '查找成员',
                 chooseCardType: '选择卡片类型',
                 physicalCard: '实体卡',

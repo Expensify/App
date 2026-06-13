@@ -6244,7 +6244,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             issueNewCard: {
                 whoNeedsCard: '誰がカードを必要としていますか？',
                 inviteNewMember: '新しいメンバーを招待',
-                inviteMemberNotAllowed: 'まずワークスペース管理者にこのユーザーを招待してもらってください。',
+                inviteMemberNotAllowed: 'まずワークスペース管理者にこのユーザーを招待してもらってください',
                 findMember: 'メンバーを検索',
                 chooseCardType: 'カードの種類を選択',
                 physicalCard: '物理カード',
