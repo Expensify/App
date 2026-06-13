@@ -3258,9 +3258,9 @@ const translations = {
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Submit an expense',
+                title: 'Create an expense',
                 description: dedent(`
-                    *Submit an expense* by entering an amount or scanning a receipt.
+                    *Create an expense* by entering an amount or scanning a receipt.
 
                     1. Click the *+* button.
                     2. Choose *Create expense*.
@@ -3272,9 +3272,9 @@ const translations = {
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Submit an expense',
+                title: 'Create an expense',
                 description: dedent(`
-                    *Submit an expense* by entering an amount or scanning a receipt.
+                    *Create an expense* by entering an amount or scanning a receipt.
 
                     1. Click the *+* button.
                     2. Choose *Create expense*.
