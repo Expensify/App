@@ -97,6 +97,7 @@ function ProfilePage() {
             description: translate('displayNamePage.headerTitle'),
             title: formatPhoneNumber(getDisplayNameOrDefault(currentUserPersonalDetails)),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
+            testID: 'display-name-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
         },
         {
@@ -115,6 +116,7 @@ function ProfilePage() {
             title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
             brickRoadIndicator: isEmptyObject(vacationDelegate?.errors) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            testID: 'status-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.STATUS,
         },
         ...(!isAgentAccount
@@ -149,18 +151,21 @@ function ProfilePage() {
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
+            testID: 'legal-name-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.LEGAL_NAME,
             action: () => navigateToPrivateDetails(INPUT_IDS.LEGAL_FIRST_NAME),
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
+            testID: 'dob-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DATE_OF_BIRTH,
             action: () => navigateToPrivateDetails(INPUT_IDS.DATE_OF_BIRTH),
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
+            testID: 'phone-number-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PHONE_NUMBER,
             action: () => navigateToPrivateDetails(INPUT_IDS.PHONE_NUMBER),
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -168,6 +173,7 @@ function ProfilePage() {
         {
             description: translate('privatePersonalDetails.address'),
             title: getFormattedAddress(privateDetails),
+            testID: 'address-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
             action: () => navigateToPrivateDetails(INPUT_IDS.ADDRESS_LINE_1),
         },
@@ -305,6 +311,7 @@ function ProfilePage() {
                                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                                 onPress={detail.action}
                                                 brickRoadIndicator={detail.brickRoadIndicator}
+                                                pressableTestID={detail?.testID}
                                                 sentryLabel={detail.sentryLabel}
                                             />
                                         ))}

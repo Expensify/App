@@ -21,6 +21,7 @@ type SummaryItem = {
     onPress: () => void;
     brickRoadIndicator?: BrickRoad;
     errorText?: string;
+    testID?: string;
 };
 
 type ConfirmationStepProps = SubStepProps &
@@ -70,9 +71,10 @@ function ConfirmationStep({
             contentContainerStyle={[styles.flexGrow1, shouldApplySafeAreaPaddingBottom && {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
-            {summaryItems.map(({description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText}) => (
+            {summaryItems.map(({description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}) => (
                 <MenuItemWithTopDescription
                     key={description}
+                    pressableTestID={testID}
                     description={description}
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}
