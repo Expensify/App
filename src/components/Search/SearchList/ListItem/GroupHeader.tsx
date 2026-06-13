@@ -162,7 +162,7 @@ function GroupHeader({
         return {isSubHeaderAmountColumnWide: amountWide, isSubHeaderTaxAmountColumnWide: taxWide, shouldSubHeaderShowYear: showYear, isSubHeaderActionColumnWide: actionWide};
     }, [groupItem.transactions]);
 
-    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, true);
+    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded);
 
     const hasSnapshotTransactions = !isExpenseReportType && !!snapshotData && Object.keys(snapshotData).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
     const isEmpty = groupItem.transactions.length === 0 && !hasSnapshotTransactions && !groupItem.transactionsQueryJSON;
