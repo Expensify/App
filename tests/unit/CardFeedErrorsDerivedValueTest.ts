@@ -160,6 +160,55 @@ describe('CardFeedErrors Derived Value', () => {
 
                 expect(result.all.isFeedConnectionBroken).toBe(false);
             });
+
+            it('should NOT surface a broken company card connection once it is unresolved past the grace period', () => {
+                const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: cardFeed.feedName,
+                    fundID: String(cardFeed.policyAccountID),
+                    lastScrapeResult: 403, // Broken connection
+                    lastScrape: '2020-01-01', // Last successful scrape is well beyond the grace period
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+
+                expect(result.all.isFeedConnectionBroken).toBe(false);
+                expect(result.all.shouldShowRBR).toBe(false);
+                expect(result.cardsWithBrokenFeedConnection).toEqual({});
+            });
+
+            it('should surface a broken personal card connection when there is no last successful scrape (fail safe)', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403, // Broken connection
+                    lastScrape: '', // No successful scrape recorded — keep prompting
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.isFeedConnectionBroken).toBe(true);
+                expect(result.personalCardsWithBrokenConnection[CARD_IDS.card1]).toEqual(card);
+            });
+
+            it('should NOT surface a broken personal card connection once it is unresolved past the grace period', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403, // Broken connection
+                    lastScrape: '2020-01-01', // Last successful scrape is well beyond the grace period
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.isFeedConnectionBroken).toBe(false);
+                expect(result.personalCardsWithBrokenConnection).toEqual({});
+            });
         });
 
         describe('processing cards from workspace cards collection', () => {
