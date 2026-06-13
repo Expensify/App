@@ -56,7 +56,7 @@ describe('getImageSource', () => {
         });
     });
 
-    it('returns an authenticated source offline even when the session is expired', () => {
+    it('returns the source without auth headers when offline so the browser cache can serve the image', () => {
         const propsSource = {uri: MOCK_URI};
         const session: Session = {
             encryptedAuthToken: MOCK_TOKEN,
@@ -71,13 +71,7 @@ describe('getImageSource', () => {
                 isOffline: true,
             }),
         ).toEqual({
-            source: {
-                ...propsSource,
-                cacheKey: MOCK_URI,
-                headers: {
-                    [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: MOCK_TOKEN,
-                },
-            },
+            source: propsSource,
             shouldReauthenticate: false,
         });
     });
