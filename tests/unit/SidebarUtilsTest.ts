@@ -1213,7 +1213,7 @@ describe('SidebarUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 visibility,
-                reportName: '#publicroom',
+                reportName: '#public-room',
                 policyID: '1',
                 lastMessageText: 'hello',
                 lastVisibleActionCreated: DateUtils.getDBTime(),
@@ -1222,7 +1222,7 @@ describe('SidebarUtils', () => {
 
             it('keeps a hidden public room in the LHN when it is not the focused report', async () => {
                 const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
-                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}` as const;
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
                 const reports: OnyxCollection<Report> = {[reportKey]: report};
 
                 await act(async () => {
@@ -1252,7 +1252,7 @@ describe('SidebarUtils', () => {
 
             it('drops the same hidden public room for an authenticated (non-anonymous) user', async () => {
                 const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
-                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}` as const;
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
                 const reports: OnyxCollection<Report> = {[reportKey]: report};
 
                 await act(async () => {
@@ -1282,7 +1282,7 @@ describe('SidebarUtils', () => {
 
             it('does not apply the override to a non-public hidden room for an anonymous user', async () => {
                 const report = buildPublicRoom(undefined);
-                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}` as const;
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
                 const reports: OnyxCollection<Report> = {[reportKey]: report};
 
                 await act(async () => {

@@ -1057,7 +1057,8 @@
         "Prefetcher",
         "knip",
         "lottiefiles",
-        "jsitooling"
+        "jsitooling",
+        "Refetched"
     ],
     "ignorePaths": [
         ".gitignore",
