@@ -146,9 +146,7 @@ function Composer({
 
     const handleChangeText = useCallback(
         (text: string) => {
-            // If native applies the raw paste after onPaste, replace that one change with the converted emoji text.
-            if (pendingPastedTextRef.current?.rawText === text) {
-                onChangeText(pendingPastedTextRef.current.convertedText);
+            if (pendingPastedTextRef.current?.rawText === text || pendingPastedTextRef.current?.convertedText === text) {
                 pendingPastedTextRef.current = null;
                 return;
             }
