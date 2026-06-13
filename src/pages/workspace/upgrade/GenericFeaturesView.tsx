@@ -43,6 +43,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
     const startsAtFull = isCollectUpgrade
         ? translate('workspace.upgrade.commonFeatures.collect.startsAtFull', learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing)
         : translate('workspace.upgrade.commonFeatures.benefits.startsAtFull', learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing);
+    const note = isCollectUpgrade ? translate('workspace.upgrade.commonFeatures.collect.note') : translate('workspace.upgrade.commonFeatures.note');
 
     const benefits = isCollectUpgrade
         ? [
@@ -69,7 +70,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
             </View>
             <View style={policyID ? styles.mb5 : styles.mb4}>
                 <Text style={[styles.textHeadlineH1, styles.mb4]}>{title}</Text>
-                <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate('workspace.upgrade.commonFeatures.note')}</Text>
+                <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{note}</Text>
                 {benefits.map((benefit) => (
                     <View
                         key={benefit}

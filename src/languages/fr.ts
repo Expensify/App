@@ -7023,6 +7023,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     title: 'Passer au forfait Collect',
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
                         `<muted-text>Le plan Collect commence à <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`} <a href="${learnMoreMethodsRoute}">En savoir plus</a> sur nos plans et nos tarifs.</muted-text>`,
+                    note: 'Débloquez les fonctionnalités essentielles pour votre entreprise, notamment :',
                 },
                 note: 'Débloquez nos fonctionnalités les plus puissantes, notamment :',
                 benefits: {

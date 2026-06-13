@@ -6960,6 +6960,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     title: 'Upgrade naar het Collect-abonnement',
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
                         `<muted-text>Het Collect-abonnement begint bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`} <a href="${learnMoreMethodsRoute}">Meer informatie</a> over onze abonnementen en prijzen.</muted-text>`,
+                    note: 'Ontgrendel essentiële functies voor je bedrijf, waaronder:',
                 },
                 note: 'Ontgrendel onze krachtigste functies, waaronder:',
                 benefits: {

@@ -80,7 +80,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const canAccessSubmitWorkspaceFeatures = canAccessSubmitWorkspaceFeaturesUtils(policy, isSubmit2026BetaEnabled);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
-    const upgradePlanType = route.params?.upgradePlanType;
+    // upgradePlanType comes from the URL, so only honor the plans we explicitly support upgrading to.
+    const rawUpgradePlanType = route.params?.upgradePlanType;
+    const upgradePlanType = rawUpgradePlanType === CONST.POLICY.TYPE.TEAM || rawUpgradePlanType === CONST.POLICY.TYPE.CORPORATE ? rawUpgradePlanType : undefined;
     const [upgradingFromSubmit, setUpgradingFromSubmit] = useState<boolean | undefined>(undefined);
 
     useEffect(() => {
