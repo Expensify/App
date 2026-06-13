@@ -2,7 +2,6 @@ import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
-import Onyx from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -30,6 +29,7 @@ import {
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
+import {clearPendingPublicRoomDeepLink} from '@userActions/Link';
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
@@ -112,7 +112,7 @@ function ReportFetchHandler() {
         if (!pendingPublicRoomReportID || isAnonymousUser) {
             return;
         }
-        Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID, null);
+        clearPendingPublicRoomDeepLink();
     }, [pendingPublicRoomReportID, isAnonymousUser]);
 
     const {reportActions: unfilteredReportActions, linkedAction} = usePaginatedReportActions(reportID, reportActionIDFromRoute);

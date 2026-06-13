@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Session} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 // In this file we manage a queue of Onyx updates while the SequentialQueue is processing. There are functions to get the updates and clear the queue after saving the updates in Onyx.
@@ -43,8 +42,19 @@ function flushQueue(): Promise<void> {
         // report data is filtered out and deeplink navigation hangs. We gate on the anonymous authTokenType
         // (not just any authToken) so the stale-data protection stays intact for every other flow.
         const establishesAnonymousSession = copyUpdates.some((update) => {
-            const sessionValue = update.value as Session | undefined;
-            return update.key === ONYXKEYS.SESSION && !!sessionValue?.authToken && sessionValue.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+            if (update.key !== ONYXKEYS.SESSION) {
+                return false;
+            }
+            // `update.value` is typed as `any`; narrow through `unknown` so we avoid an unsafe assertion.
+            const sessionValue: unknown = update.value;
+            return (
+                typeof sessionValue === 'object' &&
+                sessionValue !== null &&
+                'authToken' in sessionValue &&
+                !!sessionValue.authToken &&
+                'authTokenType' in sessionValue &&
+                sessionValue.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS
+            );
         });
 
         if (!establishesAnonymousSession) {

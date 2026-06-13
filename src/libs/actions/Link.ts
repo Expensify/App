@@ -245,7 +245,7 @@ function openReportFromDeepLink(
     if (reportID && !isAuthenticated) {
         // FIX #82013: Remember the public-room deeplink reportID so the ReportsSplitNavigator keeps this
         // room focused (instead of defaulting to the last-accessed = Concierge report) once the anonymous
-        // session + OpenApp settle. Cleared by ReportFetchHandler when the room is loaded and focused.
+        // session + OpenApp settle. Cleared by ReportFetchHandler once the user signs in to a real account.
         Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID, reportID);
 
         // Start span for public room API call
@@ -444,6 +444,14 @@ function getShortLivedAuthTokenURL(setupLink: string): Promise<string> {
         });
 }
 
+/**
+ * Clear the pending signed-out public-room deeplink reportID (#82013). Lives here (an action) so
+ * components mutate this Onyx key through the action layer instead of calling Onyx.set directly.
+ */
+function clearPendingPublicRoomDeepLink() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID, null);
+}
+
 export {
     openOldDotLink,
     openExternalLink,
@@ -456,4 +464,5 @@ export {
     buildOldDotURL,
     openReportFromDeepLink,
     getShortLivedAuthTokenURL,
+    clearPendingPublicRoomDeepLink,
 };
