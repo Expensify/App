@@ -6469,6 +6469,21 @@ function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, 
  * @param policy
  */
 function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, betas: OnyxEntry<Beta[]>, isEmptyOptimisticReport = false) {
+    // If both approvals and payments are disabled, an expense is effectively
+    // "Done" immediately — there is no submit, approve, or pay step remaining.
+    // This check runs before the ASAP_SUBMIT beta short‑circuit and does not
+    // depend on isInstantSubmitEnabled (which can be false when disableWorkflows
+    // has set autoReporting: false).
+    const isSubmitAndCloseLocal = isSubmitAndClose(policy);
+    const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
+    if (isSubmitAndCloseLocal && arePaymentsDisabled && !isEmptyOptimisticReport) {
+        return {
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+        };
+    }
+
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
     if (isASAPSubmitBetaEnabled) {
         return {
@@ -6477,8 +6492,6 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, betas: OnyxEn
         };
     }
     const isInstantSubmitEnabledLocal = isInstantSubmitEnabled(policy);
-    const isSubmitAndCloseLocal = isSubmitAndClose(policy);
-    const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     if (isInstantSubmitEnabledLocal && arePaymentsDisabled && isSubmitAndCloseLocal && !isEmptyOptimisticReport) {
         return {
