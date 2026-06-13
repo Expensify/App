@@ -10,8 +10,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 
 type ReceiptScanFailedContentProps = {
     reportID: string | undefined;
@@ -19,7 +18,7 @@ type ReceiptScanFailedContentProps = {
     parentReportID: string | undefined;
     parentReportActionID: string | undefined;
     reportType: string | undefined;
-    action: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED>;
+    action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED>;
 
     /** Original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;
@@ -32,7 +31,7 @@ function ReceiptScanFailedContent({reportID, actionReportID, parentReportID, par
     const isIOUReport = reportType === CONST.REPORT.TYPE.IOU || reportType === CONST.REPORT.TYPE.EXPENSE || reportType === CONST.REPORT.TYPE.INVOICE;
     const IOUReportID = isIOUReport ? reportID : parentReportID;
 
-    const receiptScanFailedIOUActionDataSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
+    const receiptScanFailedIOUActionDataSelector = (reportActions: OnyxEntry<ReportActions>) =>
         getReceiptScanFailedIOUActionDataSelector(reportActions, isIOUReport, parentReportActionID, actionReportID);
     const [receiptScanFailedIOUActionData] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(IOUReportID)}`, {
         selector: receiptScanFailedIOUActionDataSelector,
