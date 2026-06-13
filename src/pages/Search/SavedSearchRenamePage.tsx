@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TextInput from '@components/TextInput';
@@ -23,28 +22,28 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
     const {q, name} = route.params;
     const [newName, setNewName] = useState(name);
     const {inputCallbackRef} = useAutoFocusInput();
-    const {endPeek} = useSearchSidebarCollapse();
 
-    const applyFiltersAndNavigate = (trimmedName: string) => {
-        endPeek();
-        Navigation.dismissModal({
-            afterTransition: () => {
-                Navigation.navigate(
-                    ROUTES.SEARCH_ROOT.getRoute({
-                        query: q,
-                        name: trimmedName,
-                    }),
-                );
-            },
+    const applyFiltersAndNavigate = () => {
+        Navigation.dismissModal();
+        Navigation.isNavigationReady().then(() => {
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: q,
+                    name: newName?.trim(),
+                }),
+            );
         });
     };
 
     const onSaveSearch = () => {
         const queryJSON = buildSearchQueryJSON(q || buildCannedSearchQuery()) ?? ({} as SearchQueryJSON);
-        const trimmedName = newName?.trim() || q;
 
-        saveSearch({queryJSON, newName: trimmedName});
-        applyFiltersAndNavigate(trimmedName);
+        saveSearch({
+            queryJSON,
+            newName: newName?.trim() || q,
+        });
+
+        applyFiltersAndNavigate();
     };
 
     return (

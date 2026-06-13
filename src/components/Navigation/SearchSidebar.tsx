@@ -1,6 +1,5 @@
 import type {ParamListBase} from '@react-navigation/native';
-import {isModalActiveSelector} from '@selectors/Modal';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useEffectEvent, useRef} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import SidebarLeftIcon from '@assets/images/sidebar-left.svg';
@@ -13,7 +12,6 @@ import Tooltip from '@components/Tooltip';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +19,6 @@ import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackN
 import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {
     useSearchSidebarCollapse,
@@ -49,9 +46,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isCollapsed, isPeeking, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
-    const [isAnyModalActive = false] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
-    const isAnyModalActiveRef = useRef(false);
-    const wasAnyModalActiveRef = useRef(false);
     const isSidebarHoveredRef = useRef(false);
     const latestPointerPositionRef = useRef<PointerPosition | null>(null);
     const sidebarElementRef = useRef<HTMLElement | null>(null);
@@ -84,7 +78,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
         return endPeek;
     }, [endPeek, shouldUseNarrowLayout]);
 
-    const updateLatestPointerPosition = (event?: PointerEvent) => {
+    const updateLatestPointerPosition = (event?: MouseEvent) => {
         if (!event) {
             return;
         }
@@ -104,7 +98,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
         const latestPointerPosition = latestPointerPositionRef.current;
         if (!latestPointerPosition) {
-            return sidebarElement.matches(':hover');
+            return isSidebarHoveredRef.current;
         }
 
         const sidebarBounds = sidebarElement.getBoundingClientRect();
@@ -116,14 +110,14 @@ function SearchSidebar({state}: SearchSidebarProps) {
         );
     };
 
-    const endPeekIfPointerIsOutsideSidebar = (event?: PointerEvent) => {
+    const queueEndPeekIfPointerIsOutsideSidebar = useEffectEvent((event?: MouseEvent) => {
         updateLatestPointerPosition(event);
 
         const hasDocument = typeof document !== 'undefined';
         const isPointerInside = hasDocument ? isPointerInsideSidebar() : isSidebarHoveredRef.current;
         isSidebarHoveredRef.current = isPointerInside;
 
-        if (!isPeeking || isAnyModalActiveRef.current || !hasDocument) {
+        if (!isPeeking || !hasDocument) {
             return;
         }
 
@@ -131,57 +125,31 @@ function SearchSidebar({state}: SearchSidebarProps) {
             return;
         }
 
-        endPeek();
-    };
+        // The saved-search popover is rendered from the peeking sidebar. Defer the cleanup until after the current press
+        // finishes so selecting a popover item is not canceled by unmounting the peeking sidebar subtree.
+        window.setTimeout(endPeek, 0);
+    });
 
     const markSidebarHovered = () => {
         isSidebarHoveredRef.current = true;
     };
 
-    const endPeekWhenNoModalIsActive = () => {
+    const handleSidebarHoverOut = () => {
         isSidebarHoveredRef.current = false;
-
-        if (isAnyModalActiveRef.current) {
-            return;
-        }
-
         endPeek();
     };
-
-    useEffect(() => {
-        isAnyModalActiveRef.current = isAnyModalActive;
-    }, [isAnyModalActive]);
 
     useEffect(() => {
         if (!isPeeking || typeof document === 'undefined') {
             return;
         }
 
-        document.addEventListener('pointermove', endPeekIfPointerIsOutsideSidebar);
-        document.addEventListener('pointerdown', endPeekIfPointerIsOutsideSidebar);
-        document.addEventListener('pointerup', endPeekIfPointerIsOutsideSidebar);
+        document.addEventListener('click', queueEndPeekIfPointerIsOutsideSidebar, true);
 
         return () => {
-            document.removeEventListener('pointermove', endPeekIfPointerIsOutsideSidebar);
-            document.removeEventListener('pointerdown', endPeekIfPointerIsOutsideSidebar);
-            document.removeEventListener('pointerup', endPeekIfPointerIsOutsideSidebar);
+            document.removeEventListener('click', queueEndPeekIfPointerIsOutsideSidebar, true);
         };
-    }, [endPeekIfPointerIsOutsideSidebar, isPeeking]);
-
-    useEffect(() => {
-        const wasAnyModalActive = wasAnyModalActiveRef.current;
-        wasAnyModalActiveRef.current = isAnyModalActive;
-
-        if (!wasAnyModalActive || isAnyModalActive || typeof window === 'undefined') {
-            return;
-        }
-
-        const animationFrame = window.requestAnimationFrame(() => endPeekIfPointerIsOutsideSidebar());
-
-        return () => {
-            window.cancelAnimationFrame(animationFrame);
-        };
-    }, [endPeekIfPointerIsOutsideSidebar, isAnyModalActive, isPeeking]);
+    }, [isPeeking]);
 
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
@@ -215,7 +183,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
             <Hoverable
                 ref={sidebarElementRef}
                 onHoverIn={markSidebarHovered}
-                onHoverOut={endPeekWhenNoModalIsActive}
+                onHoverOut={handleSidebarHoverOut}
             >
                 <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
                     <View style={styles.flex1}>
