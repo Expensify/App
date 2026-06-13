@@ -1126,6 +1126,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             policies,
             showDelegateNoAccessModal,
             allReports,
+            allReportActions,
             allNextSteps,
             personalPolicyID,
             lastPaymentMethods,

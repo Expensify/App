@@ -3,7 +3,8 @@ import Onyx from 'react-native-onyx';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
+import createRandomReportAction from '../../utils/collections/reportActions';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const INITIAL_CHAT_REPORT_ID = '1';
@@ -27,12 +28,8 @@ function buildIndividualInvoiceRoom(reportID: string): Report {
     });
 }
 
-function buildReportAction(id: string): ReportAction {
-    return {reportActionID: id} as ReportAction;
-}
-
-const initialChatReportActions = {a1: buildReportAction('a1')};
-const b2bInvoiceReportActions = {b1: buildReportAction('b1')};
+const initialChatReportActions = {a1: {...createRandomReportAction(1), reportActionID: 'a1'}};
+const b2bInvoiceReportActions = {b1: {...createRandomReportAction(2), reportActionID: 'b1'}};
 
 async function seedReportActions() {
     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${INITIAL_CHAT_REPORT_ID}`, initialChatReportActions);
