@@ -79,6 +79,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
             previewSourceURL={processedPreviewSource}
             style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
+            attachmentID={attachmentID}
             fallbackIcon={fallbackIcon}
             imageWidth={imageWidth}
             imageHeight={imageHeight}

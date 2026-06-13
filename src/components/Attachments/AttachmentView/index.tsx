@@ -20,6 +20,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useResolvedAttachmentSource from '@hooks/useResolvedAttachmentSource';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -283,6 +284,12 @@ function AttachmentView({
     const isFileImage = checkIsFileImage(source, file?.name);
     const isLocalSourceImage = typeof source === 'string' && source.startsWith('blob:');
 
+    // Resolve stale blob: URLs from the attachment cache after page refresh
+    const resolvedAttachmentSource = useResolvedAttachmentSource({
+        attachmentID: attachmentID && typeof source === 'string' && source.startsWith('blob:') ? attachmentID : undefined,
+        source,
+    });
+
     const isImage = isFileImage ?? isLocalSourceImage;
 
     if (isImage) {
@@ -313,7 +320,7 @@ function AttachmentView({
             );
         }
 
-        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
+        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (resolvedAttachmentSource.resolvedSource as string);
 
         if (isHighResolution) {
             if (!isUploaded) {

@@ -1,8 +1,9 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
+import useResolvedAttachmentSource from '@hooks/useResolvedAttachmentSource';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,6 +36,9 @@ type ThumbnailImageProps = {
 
     /** Whether the image requires an authToken */
     isAuthTokenRequired: boolean;
+
+    /** Attachment ID from data-attachment-id attribute, used to recover from stale blob: URLs after page refresh */
+    attachmentID?: string;
 
     /** Width of the thumbnail image */
     imageWidth?: number;
@@ -93,6 +97,7 @@ function ThumbnailImage({
     altText,
     style,
     isAuthTokenRequired,
+    attachmentID,
     imageWidth = 200,
     imageHeight = 200,
     shouldDynamicallyResize = true,
@@ -115,6 +120,7 @@ function ThumbnailImage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
+    const {resolvedSource} = useResolvedAttachmentSource({attachmentID, source: previewSourceURL});
     const [failedLoadKey, setFailedLoadKey] = useState<{url: string | ImageSourcePropType; isOffline: boolean} | null>(null);
     const failedToLoad = failedLoadKey !== null && failedLoadKey.url === previewSourceURL && failedLoadKey.isOffline === isOffline;
 
@@ -159,7 +165,7 @@ function ThumbnailImage({
             {!!isDeleted && <AttachmentDeletedIndicator containerStyles={[...sizeStyles]} />}
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
-                    url={previewSourceURL}
+                    url={resolvedSource}
                     altText={altText}
                     onMeasure={(args) => {
                         updateImageSize(args);
