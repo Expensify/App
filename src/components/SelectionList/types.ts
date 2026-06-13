@@ -47,9 +47,6 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Called when a selection button is pressed */
     onSelectionButtonPress?: (item: TItem, itemTransactions?: unknown, options?: Partial<Modifiers>) => void;
 
-    /** Apply a shift+click range batch atomically. Without this, shift+click falls through to per-item toggle. */
-    onShiftRangeApply?: (batch: ShiftRangeBatch<TItem>) => void;
-
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
@@ -153,6 +150,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Called when "Select All" button is pressed */
         onSelectAll?: () => void;
+
+        /** Apply a shift+click range batch. Flat lists only — sectioned lists don't implement range selection. */
+        onShiftRangeApply?: (batch: ShiftRangeBatch<TItem>) => void;
 
         /** Callback to fire when the item is long pressed */
         onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
