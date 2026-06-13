@@ -152,7 +152,6 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
         readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
         userActiveSince.current = DateUtils.getDBTime();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         currentUserAccountID,
         isFocused,
