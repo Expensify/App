@@ -23,7 +23,13 @@ export default function getImageSource({propsSource, session, isAuthTokenRequire
 
         const authToken = session?.encryptedAuthToken ?? null;
         if (isAuthTokenRequired && authToken) {
-            if (isOffline || (!!session?.creationDate && !isExpiredSession(session.creationDate))) {
+            if (isOffline) {
+                // When offline, don't add auth headers so the browser can use its HTTP cache
+                // to serve the image if it was previously loaded. Without headers, the browser
+                // can serve from disk cache even without connectivity.
+                return {source: propsSource, shouldReauthenticate: false};
+            }
+            if (!!session?.creationDate && !isExpiredSession(session.creationDate)) {
                 return {
                     source: {
                         ...propsSource,
