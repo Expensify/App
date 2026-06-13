@@ -88,6 +88,9 @@ function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
     skipNextRestore = false;
     cancelPendingFocusRestore();
     captureTriggerForRoute(compoundParamsKey(routeKey, prevParams));
+    lastInteractiveElement = null;
+    lastMouseTrigger = null;
+    lastMouseTriggerAt = 0;
 }
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {

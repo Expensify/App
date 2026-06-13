@@ -1,4 +1,5 @@
 import {useContext, useEffect, useRef} from 'react';
+import {useDialogLabelData} from '@components/DialogLabelContext';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import claimInitialFocus from '@libs/claimInitialFocus';
 import hasHoverSupport from '@libs/DeviceCapabilities/hasHoverSupport';
@@ -30,10 +31,18 @@ const MAX_INITIAL_FOCUS_FRAMES = 5;
  */
 const useScreenInitialFocus: UseScreenInitialFocus = (ref) => {
     const status = useContext(ScreenWrapperStatusContext);
+    const {isInsideDialog} = useDialogLabelData();
     const claimedRef = useRef(false);
 
     useEffect(() => {
-        if (!status?.didScreenTransitionEnd || claimedRef.current) {
+        if (isInsideDialog) {
+            return;
+        }
+        if (!status?.didScreenTransitionEnd) {
+            claimedRef.current = false;
+            return;
+        }
+        if (claimedRef.current) {
             return;
         }
         if (hasHoverSupport() && !getHadTabNavigation()) {
@@ -61,7 +70,7 @@ const useScreenInitialFocus: UseScreenInitialFocus = (ref) => {
             }
             cancelAnimationFrame(rafId);
         };
-    }, [status?.didScreenTransitionEnd, ref]);
+    }, [isInsideDialog, status?.didScreenTransitionEnd, ref]);
 };
 
 export default useScreenInitialFocus;
