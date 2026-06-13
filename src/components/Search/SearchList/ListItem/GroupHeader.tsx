@@ -225,8 +225,8 @@ function GroupHeader({
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             : undefined);
 
-    const handleSelectRow = (rowItem: SearchListItem, event?: ModifiedMouseEvent) => {
-        onSelectRow(rowItem, transactionPreviewData, event);
+    const handleSelectRow = (event?: ModifiedMouseEvent) => {
+        onSelectRow(groupItem, transactionPreviewData, event);
     };
 
     const renderHeader = (hovered: boolean) => {
