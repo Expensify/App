@@ -26,14 +26,14 @@ jest.mock('@rnmapbox/maps', () => {
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS) => {
+const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ADDRESS) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer ref={navigationRef}>
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
-                            name={SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS}
+                            name={SCREENS.SETTINGS.PROFILE.ADDRESS}
                             component={PersonalAddressPage}
                         />
                     </Stack.Navigator>
@@ -71,7 +71,7 @@ describe('AddressPageTest', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        renderPage(SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS);
+        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
 
         await waitForBatchedUpdatesWithAct();
         const stateInput = screen.getByLabelText('State / Province');
@@ -101,7 +101,7 @@ describe('AddressPageTest', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        renderPage(SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS);
+        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
 
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByDisplayValue('Suite 500')).toBeDefined();
@@ -123,7 +123,7 @@ describe('AddressPageTest', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        renderPage(SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS);
+        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
 
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByDisplayValue('Legacy Suite')).toBeDefined();

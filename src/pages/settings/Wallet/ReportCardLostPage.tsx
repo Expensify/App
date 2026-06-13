@@ -146,7 +146,7 @@ function ReportCardLostPage({
                                 title={formattedAddress}
                                 description={translate('reportCardLostOrDamaged.address')}
                                 shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute('addressLine1'))}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADDRESS)}
                                 numberOfLinesTitle={2}
                             />
                             {isDamaged ? (

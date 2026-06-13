@@ -461,6 +461,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: {
                             path: ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.route,
                         },
+                        [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
+                            path: ROUTES.SETTINGS_ADDRESS,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
                             path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route,
                             exact: true,
