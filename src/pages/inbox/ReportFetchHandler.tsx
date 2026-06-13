@@ -2,6 +2,7 @@ import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
+import Onyx from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -95,11 +96,21 @@ function ReportFetchHandler() {
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [pendingPublicRoomReportID] = useOnyx(ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID);
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
     const [viewingPublicRoomReportID] = useOnyx(ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID);
 
     const reportID = reportOnyx?.reportID;
     const report = reportOnyx;
+
+    // FIX #82013: Once the deeplinked public room is loaded and focused, clear the pending reportID so it
+    // no longer overrides the default (last-accessed) report selection for later navigations.
+    useEffect(() => {
+        if (!pendingPublicRoomReportID || pendingPublicRoomReportID !== reportIDFromRoute || isLoadingReportData !== false || !reportID) {
+            return;
+        }
+        Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID, null);
+    }, [pendingPublicRoomReportID, reportIDFromRoute, isLoadingReportData, reportID]);
 
     const {reportActions: unfilteredReportActions, linkedAction} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
