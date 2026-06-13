@@ -16,7 +16,6 @@ import type {Policy} from '@src/types/onyx';
 type WorkspaceCompanyCardExpensifyCardPromotionBannerProps = {
     policy: OnyxEntry<Policy>;
     canWriteCompanyCards: boolean;
-    canWriteMoreFeatures: boolean;
     onReadOnlyAction: () => void;
 };
 
