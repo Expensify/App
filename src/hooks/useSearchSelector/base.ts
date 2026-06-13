@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
@@ -211,6 +212,7 @@ function useSearchSelectorBase({
     const personalDetails = usePersonalDetails();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const computedSearchTerm = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     const trimmedSearchInput = debouncedSearchTerm.trim();
@@ -240,6 +242,7 @@ function useSearchSelectorBase({
                     personalDetails,
                     sortedActions,
                     conciergeReportID,
+                    isTrackIntentUser,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
@@ -262,6 +265,7 @@ function useSearchSelectorBase({
                     reportAttributesDerived: reportAttributesDerived?.reports,
                     allPolicyTags,
                     sortedActions,
+                    isTrackIntentUser,
                     ...getValidOptionsConfig,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
@@ -287,6 +291,7 @@ function useSearchSelectorBase({
                     reportAttributesDerived: reportAttributesDerived?.reports,
                     allPolicyTags,
                     sortedActions,
+                    isTrackIntentUser,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
@@ -309,6 +314,7 @@ function useSearchSelectorBase({
                     reportAttributesDerived: reportAttributesDerived?.reports,
                     allPolicyTags,
                     sortedActions,
+                    isTrackIntentUser,
                     ...getValidOptionsConfig,
                 });
             default:
