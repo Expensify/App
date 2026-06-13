@@ -1,3 +1,4 @@
+import {policyTypeSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -63,9 +64,12 @@ import {
     getLengthOfTag,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
+    getQBOVendorByID,
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
+    hasVendorFeature,
     isAttendeeTrackingEnabled,
+    isGroupPolicyByType,
     isPolicyAccessible,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
@@ -82,7 +86,6 @@ import {
     isExpenseReport,
     isInvoiceReport,
     isOpenReport,
-    isPaidGroupPolicy,
     isReportApproved,
     isReportInGroupPolicy,
     isSettled as isSettledReportUtils,
@@ -421,7 +424,10 @@ function MoneyRequestView({
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
-    const isPolicyExpenseChat = isReportInGroupPolicy(moneyRequestReport);
+    const [moneyRequestReportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {
+        selector: policyTypeSelector,
+    });
+    const isPolicyExpenseChat = isGroupPolicyByType(moneyRequestReportPolicyType);
     const policyTagLists = getTagLists(policyTagList);
 
     const category = transactionCategory ?? '';
@@ -456,6 +462,10 @@ function MoneyRequestView({
         });
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
+    const transactionVendor = transaction?.comment?.vendor;
+    const transactionVendorName = getQBOVendorByID(policy, transactionVendor?.externalID)?.name ?? '';
+    const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
+
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
@@ -483,7 +493,7 @@ function MoneyRequestView({
     const tripRoomName = tripRoomInfo?.name;
     const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;
 
-    const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isPaidGroupPolicy(transactionThreadReport));
+    const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isReportInGroupPolicy(transactionThreadReport));
     const hasViolations = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
         getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0;
     const isMarkAsCash = parentReport && currentUserEmailParam ? isMarkAsCashActionForTransaction(currentUserEmailParam, parentReport, transactionViolations, policy) : false;
@@ -1157,6 +1167,26 @@ function MoneyRequestView({
                             errorText={getErrorForField('category')}
                             copyValue={categoryCopyValue}
                             copyable={!!categoryCopyValue}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {shouldShowVendor && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
+                        <MenuItemWithTopDescription
+                            description={translate('common.vendor')}
+                            title={transactionVendorName}
+                            numberOfLinesTitle={2}
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
+                            titleStyle={styles.flex1}
+                            onPress={() => {
+                                if (!transactionThreadReport?.reportID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_VENDOR.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID));
+                            }}
+                            brickRoadIndicator={getErrorForField('vendor') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('vendor')}
                         />
                     </OfflineWithFeedback>
                 )}
