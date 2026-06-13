@@ -120,7 +120,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     // Global collections
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
@@ -149,7 +148,11 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     // Default expense policy / chat
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id, allReports);
+    const [activePolicyExpenseChat] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {selector: (reports) => getPolicyExpenseChat(accountID, defaultExpensePolicy?.id, reports)},
+        [accountID, defaultExpensePolicy?.id],
+    );
 
     // Duplicate detection
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));

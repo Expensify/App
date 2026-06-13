@@ -39,7 +39,11 @@ function useReceiptScanDrop() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [activePolicyExpenseChat] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {selector: (reports) => getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id, reports)},
+        [currentUserPersonalDetails.accountID, activePolicy?.id],
+    );
 
     // Memoize the new report ID to avoid re-generating it on every render and cause the hook to change, which leads to performance issues.
     const newReportID = useMemo(() => generateReportID(), []);
@@ -86,7 +90,7 @@ function useReceiptScanDrop() {
             !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
         ) {
             const shouldAutoReport = !!activePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-            const report = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id, allReports) : selfDMReport;
+            const report = shouldAutoReport ? activePolicyExpenseChat : selfDMReport;
             const transactionReportID = isSelfDM(report) ? CONST.REPORT.UNREPORTED_REPORT_ID : report?.reportID;
             const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
             const setParticipantsPromises = newReceiptFiles.map((receiptFile) => {
