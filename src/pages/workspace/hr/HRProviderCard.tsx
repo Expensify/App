@@ -6,9 +6,11 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -30,13 +32,20 @@ type HRProviderCardProps = {
 
     /** Callback invoked when the user taps the "Connect" button for an unconnected provider. */
     handleConnect: () => void;
+
+    /** Whether the current user can edit this HR connection. */
+    canWriteMoreFeatures: boolean;
+
+    /** Shows the read-only action modal. */
+    showReadOnlyModal: () => void;
 };
 
-function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
+function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, showReadOnlyModal}: HRProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
+    const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['Sync', 'Trashcan', 'Building']);
+    const icons = useMemoizedLazyExpensifyIcons(['Sync', 'Trashcan', 'Building', 'CheckCircle']);
     const {showConfirmModal} = useConfirmModal();
 
     const fallbackIcon = icons.Building;
@@ -57,12 +66,27 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
     }
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = [
-        {
-            icon: icons.Sync,
-            text: translate('workspace.hr.syncNow'),
-            onSelected: () => syncConnection(policy, card.connectionName),
-            disabled: isOffline,
-        },
+        card.completeSetupRoute
+            ? {
+                  icon: icons.CheckCircle,
+                  text: translate('workspace.hr.mergeHR.completeSetup'),
+                  onSelected: () => {
+                      if (!canWriteMoreFeatures) {
+                          showReadOnlyModal();
+                          return;
+                      }
+                      if (card.completeSetupRoute) {
+                          Navigation.navigate(card.completeSetupRoute);
+                      }
+                  },
+                  disabled: isOffline,
+              }
+            : {
+                  icon: icons.Sync,
+                  text: translate('workspace.hr.syncNow'),
+                  onSelected: () => syncConnection(policy, card.connectionName),
+                  disabled: isOffline,
+              },
         {
             icon: icons.Trashcan,
             text: translate('workspace.hr.disconnect'),
@@ -84,13 +108,22 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
         },
     ];
 
-    let rightInset;
+    let rightInset: React.ReactNode;
     if (!card.isConnected) {
         rightInset = (
             <Button
                 small
                 text={translate('workspace.hr.connect')}
-                onPress={handleConnect}
+                onPress={() => {
+                    if (!canWriteMoreFeatures) {
+                        showReadOnlyModal();
+                        return;
+                    }
+                    handleConnect();
+                }}
+                innerStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                hoverStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                isDisabled={isOffline}
             />
         );
     } else if (card.isSyncInProgress) {
@@ -115,8 +148,6 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
 
     const rightComponent = <View style={styles.alignSelfCenter}>{rightInset}</View>;
 
-    const {approvalModeRoute, finalApproverRoute} = card;
-
     return (
         <>
             <MenuItem
@@ -125,45 +156,43 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                 iconType={CONST.ICON_TYPE_AVATAR}
                 wrapperStyle={[styles.ph0, styles.pv2, !!lastSyncErrorMessage && styles.pb0]}
                 interactive={false}
-                description={connectionDescription}
+                description={!card.completeSetupRoute && card.isConnected ? connectionDescription : undefined}
+                descriptionAddon={
+                    card.completeSetupRoute ? (
+                        <RenderHTML html={translate('workspace.hr.mergeHR.setupIncomplete', canWriteMoreFeatures ? `${environmentURL}/${card.completeSetupRoute}` : undefined)} />
+                    ) : undefined
+                }
                 errorText={lastSyncErrorMessage}
                 errorTextStyle={styles.mt5}
                 shouldShowRedDotIndicator
-                shouldShowRightComponent
+                shouldShowRightComponent={!!rightInset}
+                brickRoadIndicator={card.completeSetupRoute ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined}
                 rightComponent={rightComponent}
                 fallbackIcon={fallbackIcon}
             />
-            {card.isConnected && !card.isInitialSyncInProgress && !!approvalModeRoute && (
-                <OfflineWithFeedback
-                    pendingAction={card.config?.pendingFields?.approvalMode}
-                    errors={card.config?.errorFields?.approvalMode}
-                    onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, 'approvalMode')}
-                >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.hr.approvalMode')}
-                        title={card.approvalModeLabel}
-                        style={[styles.sectionMenuItemTopDescription, styles.mt2]}
-                        shouldShowRightIcon
-                        brickRoadIndicator={card.config?.errorFields?.approvalMode ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={() => Navigation.navigate(approvalModeRoute)}
-                    />
-                </OfflineWithFeedback>
-            )}
-            {card.isConnected && !card.isInitialSyncInProgress && !!finalApproverRoute && (
-                <OfflineWithFeedback
-                    pendingAction={card.config?.pendingFields?.finalApprover}
-                    errors={card.config?.errorFields?.finalApprover}
-                    onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, 'finalApprover')}
-                >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.hr.finalApprover')}
-                        title={card.finalApproverDisplayName}
-                        style={styles.sectionMenuItemTopDescription}
-                        shouldShowRightIcon
-                        brickRoadIndicator={card.config?.errorFields?.finalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={() => Navigation.navigate(finalApproverRoute)}
-                    />
-                </OfflineWithFeedback>
+            {card.isConnected && !card.isInitialSyncInProgress && !!card.configRows?.some((row) => !card.completeSetupRoute || !!row.errors) && (
+                <View style={styles.mt2}>
+                    {card.configRows
+                        .filter((row) => !card.completeSetupRoute || !!row.errors)
+                        .map((row) => (
+                            <OfflineWithFeedback
+                                key={row.field}
+                                pendingAction={row.pendingAction}
+                                errors={row.errors}
+                                onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, row.field)}
+                            >
+                                <MenuItemWithTopDescription
+                                    description={row.description}
+                                    title={row.title}
+                                    style={styles.sectionMenuItemTopDescription}
+                                    shouldShowRightIcon={canWriteMoreFeatures}
+                                    brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    onPress={() => Navigation.navigate(row.route)}
+                                    interactive={canWriteMoreFeatures}
+                                />
+                            </OfflineWithFeedback>
+                        ))}
+                </View>
             )}
         </>
     );

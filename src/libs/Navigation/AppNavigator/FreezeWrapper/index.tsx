@@ -22,18 +22,9 @@ function FreezeWrapper({children, freezeWhenInTabBackground = true}: FreezeWrapp
     }, [currentRoute.key, freezeWhenInTabBackground, navigation]);
 
     // Decouple the Suspense render task so it won't be interrupted by React's concurrent mode
-    // and stuck in an infinite loop.
-    // Unfreezing happens immediately so the screen has content during the transition back in.
-    // Freezing is deferred to the next frame so pending pointer events (e.g. onPressOut) can flush
-    // first — otherwise a row that was pressed gets frozen mid-press and reappears stuck in its
-    // pressed/hovered visual state when the screen is later unfrozen.
+    // and stuck in an infinite loop
     useLayoutEffect(() => {
-        if (!isScreenBlurred) {
-            setFreezed(false);
-            return;
-        }
-        const handle = requestAnimationFrame(() => setFreezed(true));
-        return () => cancelAnimationFrame(handle);
+        setFreezed(isScreenBlurred);
     }, [isScreenBlurred]);
 
     return <Freeze freeze={freezed}>{children}</Freeze>;

@@ -1,10 +1,10 @@
 import {Group, Paragraph, vec} from '@shopify/react-native-skia';
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React from 'react';
-import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
 import {useChartParagraphs} from '@components/Charts/hooks';
 import type {LabelRotation} from '@components/Charts/types';
 import {getFontLineMetrics, rotatedLabelCenterCorrection, rotatedLabelYOffset, truncateLabel} from '@components/Charts/utils';
+import VictoryTheme, {GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 type ChartXAxisLabelsProps = {
     /** Original (non-truncated) label strings from the data. */
@@ -82,7 +82,7 @@ function ChartXAxisLabels({
     const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
 
     const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
-    const labelY = chartBoundsBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad);
+    const labelY = chartBoundsBottom + VictoryTheme.axis.labelGap + rotatedLabelYOffset(ascent, descent, angleRad);
 
     return truncatedLabels.map((label, i) => {
         if (i % labelSkipInterval !== 0 || label.length === 0) {

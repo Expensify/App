@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 // We need direct access to useOnyx to fetch live policy data at render time
@@ -7,16 +8,19 @@ import {View} from 'react-native';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -26,8 +30,8 @@ import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
-import {isOnHold, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +39,7 @@ import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
+import useLiveRowCapabilities from './useLiveRowCapabilities';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 /**
@@ -63,18 +68,35 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+    const {isSelected: liveRowSelected} = useRowSelection(item.keyForList);
+    const {selectedTransactions} = useSearchSelectionContext();
+
+    // For non-empty expense reports, `toggleTransaction` keys selection by child transaction ID, not the
+    // report row key, so `useRowSelection(reportID)` alone never reflects selection. Derive the row state
+    // from its transactions (all-or-nothing for expense reports), as the removed `applySelectionToItem` did.
+    const transactionsWithoutPendingDelete = (reportItem.transactions ?? []).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const areAllReportTransactionsSelected =
+        transactionsWithoutPendingDelete.length > 0 && transactionsWithoutPendingDelete.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
+    const isSelected = liveRowSelected || areAllReportTransactionsSelected;
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Fetch live policy categories from Onyx to sync violations at render time
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
-    const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.parentReportID)}`);
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
+
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy: parentPolicy,
+        report: parentReport,
+        isTrackIntentUser,
+    });
 
     const searchData = currentSearchResults?.data;
 
@@ -82,9 +104,14 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return (searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
     }, [searchData, reportItem.reportID]);
 
+    const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? reportItem.parentReportID)}`);
+
     const snapshotChatReport = useMemo(() => {
-        return searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.parentReportID}`];
-    }, [searchData, reportItem.parentReportID]);
+        const chatReportID = snapshotReport?.chatReportID ?? reportItem.parentReportID;
+        return chatReportID ? searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+    }, [searchData, snapshotReport?.chatReportID, reportItem.parentReportID]);
+
+    const chatReport = parentChatReport ?? snapshotChatReport;
 
     const snapshotPolicy = useMemo(() => {
         return (searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
@@ -94,6 +121,15 @@ function ExpenseReportListItem<TItem extends ListItem>({
         const actionsData = searchData?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`];
         return actionsData ? Object.values(actionsData) : [];
     }, [searchData, reportItem.reportID]);
+
+    const liveReportItem = useLiveRowCapabilities<ExpenseReportListItemType>({
+        item: reportItem,
+        reportID: reportItem.reportID,
+        itemKey: `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`,
+        snapshotData: searchData,
+        snapshotActions: reportActions,
+        enabled: !!searchData,
+    });
 
     const isDisabledCheckbox = useMemo(() => {
         return reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
@@ -141,15 +177,19 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const {showConfirmModal} = useConfirmModal();
     const {showHoldMenu} = useHoldMenuModal();
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext({
+        reportID: reportItem.reportID,
+        chatReportPolicyID: chatReport?.policyID,
+    });
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
             hash: currentSearchHash,
-            item: reportItem,
+            item: liveReportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
@@ -164,13 +204,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 // Search rows render from a snapshot; the report may not exist in the main
                 // collection yet. Fall back to the snapshot so the modal can submit.
                 const moneyRequestReport = parentReport ?? snapshotReport;
-                const chatReport = parentChatReport ?? snapshotChatReport;
                 const transactionsForHoldMenu = liveReportTransactions.length > 0 ? liveReportTransactions : holdItem.transactions;
-                const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(
-                    moneyRequestReport,
-                    holdItem.allActions?.includes(CONST.SEARCH.ACTION_TYPES.PAY) ?? false,
-                    transactionsForHoldMenu,
-                );
+                const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, holdItem.canPay ?? false, transactionsForHoldMenu);
                 const hasNonHeldExpenses = transactionsForHoldMenu.some((t) => !isOnHold(t));
                 showHoldMenu({
                     reportID: holdItem.reportID,
@@ -187,17 +222,29 @@ function ExpenseReportListItem<TItem extends ListItem>({
             },
             ownerBillingGracePeriodEnd,
             amountOwed,
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
+            currentUserAccountID,
+            currentUserLogin,
+            introSelected,
+            betas,
+            isSelfTourViewed,
+            activePolicy,
+            chatReport,
+            chatReportPolicy,
+            iouReportCurrentNextStepDeprecated: nextStep,
+            searchData,
         });
     }, [
         currentSearchHash,
         reportItem,
+        liveReportItem,
         onSelectRow,
+        searchData,
         snapshotReport,
-        snapshotChatReport,
+        chatReport,
         snapshotPolicy,
         parentPolicy,
         parentReport,
-        parentChatReport,
         lastPaymentMethod,
         userBillingGracePeriodEnds,
         personalPolicyID,
@@ -208,6 +255,16 @@ function ExpenseReportListItem<TItem extends ListItem>({
         liveReportTransactions,
         ownerBillingGracePeriodEnd,
         amountOwed,
+        showConfirmModal,
+        translate,
+        currentUserAccountID,
+        currentUserLogin,
+        introSelected,
+        betas,
+        isSelfTourViewed,
+        activePolicy,
+        chatReportPolicy,
+        nextStep,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {
@@ -221,14 +278,14 @@ function ExpenseReportListItem<TItem extends ListItem>({
             isLargeScreenWidth && styles.ph3,
             // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
-            item.isSelected && styles.activeComponentBG,
+            isSelected && styles.activeComponentBG,
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
-            isLargeScreenWidth ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}) : styles.noBorderRadius,
+            isLargeScreenWidth ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, isSelected, {vertical: variables.tableRowPaddingVertical}) : styles.noBorderRadius,
             !isLargeScreenWidth && isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
             !isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
         ],
-        [styles, item.isSelected, isLargeScreenWidth, isFirstItem, isLastItem, isPendingDelete, StyleUtils],
+        [styles, isSelected, isLargeScreenWidth, isFirstItem, isLastItem, isPendingDelete, StyleUtils],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -244,7 +301,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.highlightBG,
+        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
         shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
@@ -320,7 +377,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onFocus={onFocus}
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
-            hoverStyle={item.isSelected && styles.activeComponentBG}
+            hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
                 styles.mh5,
                 animatedHighlightStyle,
@@ -328,7 +385,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                 !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,
                 !isLargeScreenWidth && isLastItem && styles.tableBottomRadius,
-                !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
+                !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
             ]}
             accessible={false}
             shouldShowRightCaret={false}
@@ -339,15 +396,15 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 <View style={[styles.flex1]}>
                     {!isLargeScreenWidth && (
                         <UserInfoAndActionButtonRow
-                            item={reportItem}
+                            item={liveReportItem}
                             shouldShowUserInfo={!!reportItem?.from}
                             stateNum={reportItem.stateNum}
                             statusNum={reportItem.statusNum}
-                            isSelected={!!reportItem.isSelected}
+                            isSelected={isSelected}
                         />
                     )}
                     <ExpenseReportListItemRow
-                        item={reportItem}
+                        item={liveReportItem}
                         columns={columns}
                         reportActions={reportActions}
                         isActionLoading={isActionLoading ?? isLoading}
@@ -355,12 +412,14 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         canSelectMultiple={canSelectMultiple}
                         onCheckboxPress={handleSelectionButtonPress}
                         onButtonPress={handleOnButtonPress}
-                        isSelectAllChecked={!!reportItem.isSelected}
+                        chatReport={chatReport}
+                        isSelectAllChecked={isSelected}
                         isIndeterminate={false}
                         isDisabledCheckbox={isDisabledCheckbox}
                         isHovered={hovered}
                         isFocused={isFocused}
                         isPendingDelete={isPendingDelete}
+                        isMarkAsDone={shouldUseMarkAsDoneCopy}
                     />
                     {getDescription}
                 </View>

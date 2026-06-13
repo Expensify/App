@@ -4,7 +4,6 @@ import {emailSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
@@ -81,9 +80,8 @@ function useOnboardingFlowRouter() {
 
                 const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
-                // OD signup sets inviteType + creates a workspace, so invited/group members can still need NewDot onboarding.
-                if (isMigratedUser || (isInvitedOrGroupMember && isOnboardingCompleted)) {
+                const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
+                if (isMigratedUser || isInvitedOrGroupMember) {
                     return;
                 }
 
@@ -102,6 +100,7 @@ function useOnboardingFlowRouter() {
                             currentOnboardingPurposeSelected: onboardingPurposeSelected,
                             onboardingInitialPath,
                             onboardingValues,
+                            isAccountValidated: !!account?.validated,
                         });
                     });
                 }
@@ -125,6 +124,7 @@ function useOnboardingFlowRouter() {
         onboardingValues,
         account?.isFromPublicDomain,
         account?.hasAccessibleDomainPolicies,
+        account?.validated,
         onboardingCompanySize,
         onboardingPurposeSelected,
         onboardingInitialPath,

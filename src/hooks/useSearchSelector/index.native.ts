@@ -1,6 +1,4 @@
-import {useCallback, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
+import {useMemo} from 'react';
 import {RESULTS} from 'react-native-permissions';
 import useContactImport from '@hooks/useContactImport';
 import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
@@ -22,11 +20,6 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
     const memoizedContacts = useMemo(() => (contacts.length ? contacts : []), [contacts]);
     const showImportContacts = enablePhoneContacts && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
 
-    const initiateContactImportAndSetState = useCallback(() => {
-        setContactPermissionState(RESULTS.GRANTED);
-        InteractionManager.runAfterInteractions(importAndSaveContacts);
-    }, [importAndSaveContacts, setContactPermissionState]);
-
     // Use base hook with contact options
     const baseResult = useSearchSelectorBase({
         ...config,
@@ -40,7 +33,6 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
               contactOptions: contacts,
               showImportUI: showImportContacts,
               importContacts: importAndSaveContacts,
-              initiateContactImportAndSetState,
               setContactPermissionState,
           }
         : undefined;

@@ -1,5 +1,7 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -33,7 +35,7 @@ import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
+import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
 import {clearAgentAvatarUpdateError} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -41,7 +43,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import AgentAIPromptSection from './AgentAIPromptSection';
 
 function ProfilePage() {
     const theme = useTheme();
@@ -51,7 +55,8 @@ function ProfilePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const scrollViewRef = useRef<RNScrollView>(null);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -132,55 +137,39 @@ function ProfilePage() {
             : []),
     ];
 
+    const navigateToPrivateDetails = (fieldToFocus?: string) => {
+        if (isActingAsDelegate) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(fieldToFocus));
+    };
+
     const privateOptions = [
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.LEGAL_NAME,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_LEGAL_NAME);
-            },
+            action: () => navigateToPrivateDetails(INPUT_IDS.LEGAL_FIRST_NAME),
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DATE_OF_BIRTH,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH);
-            },
+            action: () => navigateToPrivateDetails(INPUT_IDS.DATE_OF_BIRTH),
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PHONE_NUMBER,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_PHONE_NUMBER);
-            },
+            action: () => navigateToPrivateDetails(INPUT_IDS.PHONE_NUMBER),
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             description: translate('privatePersonalDetails.address'),
             title: getFormattedAddress(privateDetails),
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
-            },
+            action: () => navigateToPrivateDetails(INPUT_IDS.ADDRESS_LINE_1),
         },
     ];
 
@@ -211,9 +200,11 @@ function ProfilePage() {
                 shouldUseHeadlineHeader
             />
             <ScrollView
+                ref={scrollViewRef}
                 style={styles.pt3}
                 contentContainerStyle={safeAreaPaddingBottomStyle}
                 scrollEnabled={scrollEnabled}
+                keyboardShouldPersistTaps="handled"
             >
                 <MenuItemGroup>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -320,6 +311,12 @@ function ProfilePage() {
                                     </MenuItemGroup>
                                 )}
                             </Section>
+                        )}
+                        {isAgentAccount && (
+                            <AgentAIPromptSection
+                                accountID={accountID}
+                                parentScrollViewRef={scrollViewRef}
+                            />
                         )}
                     </View>
                 </MenuItemGroup>

@@ -21,6 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resolveReportFieldValue} from '@libs/Formula';
 import {isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {
@@ -32,8 +33,8 @@ import {
     getReportFieldMaps,
     hasUpdatedTotal,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
+    isGroupPolicyExpenseReport as isGroupPolicyExpenseReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
-    isPaidGroupPolicyExpenseReport as isPaidGroupPolicyExpenseReportUtils,
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
@@ -47,7 +48,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -148,12 +149,12 @@ function MoneyReportView({
     );
     const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && isReportFieldOfTypeTitle(enabledReportFields.at(0));
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
-    const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
+    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
     const shouldShowReportField =
         !isClosedExpenseReportWithNoExpenses &&
-        (isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
+        (isGroupPolicyExpenseReport || isInvoiceReport) &&
         (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
         !sortedPolicyReportFields.every(shouldHideSingleReportField);
 
@@ -182,7 +183,7 @@ function MoneyReportView({
                 {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
-                        {(isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
+                        {(isGroupPolicyExpenseReport || isInvoiceReport) &&
                             !!policy?.areReportFieldsEnabled &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
@@ -210,9 +211,11 @@ function MoneyReportView({
                                             description={Str.UCFirst(reportField.name)}
                                             title={fieldValue}
                                             onPress={() => {
-                                                Navigation.navigate(
-                                                    ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, reportField.fieldID, Navigation.getReportRHPActiveRoute()),
-                                                );
+                                                if (!report?.policyID) {
+                                                    return;
+                                                }
+
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, reportField.fieldID)));
                                             }}
                                             shouldShowRightIcon={!isFieldDisabled}
                                             wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
