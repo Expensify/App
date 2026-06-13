@@ -358,6 +358,8 @@ export default {
     hasFilterNegationTooltipShiftHorizontal: -16,
     hasFilterNegationTooltipShiftVertical: 40,
     hasFilterNegationTooltipMaxWidth: 260,
+    mileageRateTooltipShiftHorizontal: 12,
+    mileageRateTooltipShiftVertical: 4,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
