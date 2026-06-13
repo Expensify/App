@@ -2,7 +2,6 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import ScrollView from '@components/ScrollView';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -17,6 +16,7 @@ import Header from './Header';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
 import {PressableWithoutFeedback} from './Pressable';
+import ScrollView from './ScrollView';
 import Text from './Text';
 import Tooltip from './Tooltip';
 
