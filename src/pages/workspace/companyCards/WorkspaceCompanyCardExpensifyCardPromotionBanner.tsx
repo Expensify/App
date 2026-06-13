@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -11,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {enableExpensifyCard} from '@libs/actions/Policy/Policy';
 import {navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
+import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 
 type WorkspaceCompanyCardExpensifyCardPromotionBannerProps = {
@@ -19,15 +21,17 @@ type WorkspaceCompanyCardExpensifyCardPromotionBannerProps = {
     onReadOnlyAction: () => void;
 };
 
-function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompanyCards, canWriteMoreFeatures, onReadOnlyAction}: WorkspaceCompanyCardExpensifyCardPromotionBannerProps) {
+function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompanyCards, onReadOnlyAction}: WorkspaceCompanyCardExpensifyCardPromotionBannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal: showMoreFeaturesReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const policyID = policy?.id;
     const areExpensifyCardsEnabled = policy?.areExpensifyCardsEnabled;
-    const canUseLearnMore = areExpensifyCardsEnabled && canWriteCompanyCards;
+    const canUseLearnMore = areExpensifyCardsEnabled ? canWriteCompanyCards : canWriteMoreFeatures;
+    const handleReadOnlyAction = areExpensifyCardsEnabled ? onReadOnlyAction : showMoreFeaturesReadOnlyModal;
 
     const illustrations = useMemoizedLazyIllustrations(['CreditCardsNewGreen']);
 
@@ -50,7 +54,7 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompa
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
                 <Button
                     success
-                    onPress={canUseLearnMore ? handleLearnMore : onReadOnlyAction}
+                    onPress={canUseLearnMore ? handleLearnMore : handleReadOnlyAction}
                     style={shouldUseNarrowLayout && !isInLandscapeMode && styles.flex1}
                     innerStyles={!canUseLearnMore ? styles.buttonOpacityDisabled : undefined}
                     hoverStyles={!canUseLearnMore ? styles.buttonOpacityDisabled : undefined}
@@ -59,7 +63,7 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompa
                 />
             </View>
         );
-    }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, canUseLearnMore, handleLearnMore, onReadOnlyAction]);
+    }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, canUseLearnMore, handleLearnMore, handleReadOnlyAction]);
 
     return (
         <View style={[styles.ph4, styles.mb4]}>
