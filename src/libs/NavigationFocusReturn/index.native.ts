@@ -8,6 +8,7 @@ import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from '@libs/compoundParamsKey
 import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {diffNavigationState} from '@libs/navigationStateDiff';
+import CONST from '@src/CONST';
 
 type TriggerEntry = {ref: RefObject<View | null>; identifier?: string};
 
@@ -114,8 +115,9 @@ function restoreTriggerForRoute(routeKey: string): RefObject<View | null> | null
         // Pressables register under the raw route key; PUSH_PARAMS restores arrive under the compound key, so strip the suffix to match.
         const rawRouteKey = routeKey.split(COMPOUND_KEY_DELIMITER).at(0) ?? routeKey;
         const liveRefs = Array.from(pressableRegistry.get(rawRouteKey)?.get(entry.identifier) ?? []).filter((candidate) => candidate.current);
-        // A colliding label (e.g. every row's "Edit") is ambiguous — decline rather than focus the wrong row.
-        const liveRef = liveRefs.length === 1 ? liveRefs.at(0) : undefined;
+        // Decline on row collision (would focus wrong row); accept on back-button collision (dual-header — any is correct).
+        const acceptCollision = entry.identifier === CONST.BACK_BUTTON_NATIVE_ID;
+        const liveRef = liveRefs.length === 1 || (acceptCollision && liveRefs.length > 1) ? liveRefs.at(0) : undefined;
         if (liveRef) {
             ref = liveRef;
             view = liveRef.current;

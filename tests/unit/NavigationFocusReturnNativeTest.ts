@@ -734,6 +734,31 @@ describe('pressable registry — identifier-based fallback', () => {
         expect(getTriggerMapSizeForTests()).toBe(0);
     });
 
+    it('back button tie-breaks on collision (dual-header layout) — any backButton in the same route is a correct target', () => {
+        const detachedRef = fakeRef(fakeView('back-pressed'));
+        notifyPressedTrigger(detachedRef, 'backButton');
+
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'A'},
+                {key: 'B', name: 'B'},
+            ]),
+        );
+
+        // Captured ref dies, dual-header layout registers two back buttons under one route.
+        detachedRef.current = null;
+        const liveView = fakeView('backButton-1');
+        registerPressable('A', 'backButton', fakeRef(liveView));
+        registerPressable('A', 'backButton', fakeRef(fakeView('backButton-2')));
+
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        flushTransitions();
+
+        // Tie-break: the first live ref is focused (not declined like row-level collisions).
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(liveView);
+    });
+
     it('clears the registry for a route key when that route is removed from the navigation tree', () => {
         registerPressable('B', 'row', fakeRef(fakeView('row')));
         expect(getRegistrySizeForTests()).toBe(1);
