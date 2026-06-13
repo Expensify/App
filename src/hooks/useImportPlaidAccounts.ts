@@ -18,6 +18,6 @@ export default function useImportPlaidAccounts(policyID?: string) {
         if (!policyID || !plaidToken || !plaidFeed || !plaidFeedName || !country || !plaidAccounts?.length) {
             return;
         }
-        return importPlaidAccounts(plaidToken, plaidFeed, plaidFeedName, country, getDomainNameForPolicy(policyID), JSON.stringify(plaidAccounts), '');
+        importPlaidAccounts(plaidToken, plaidFeed, plaidFeedName, country, getDomainNameForPolicy(policyID), JSON.stringify(plaidAccounts), '');
     }, [country, plaidAccounts, plaidFeed, plaidFeedName, plaidToken, policyID]);
 }

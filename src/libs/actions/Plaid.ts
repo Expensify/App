@@ -176,7 +176,7 @@ function importPlaidAccounts(
         ],
     };
 
-    return API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters, onyxData);
+    API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters, onyxData);
 }
 
 function addPersonalPlaidCard(publicToken: string, feed: string, country: string, plaidAccounts: string) {
