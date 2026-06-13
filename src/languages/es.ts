@@ -6452,6 +6452,7 @@ ${amount} para ${merchant} - ${date}`,
             issueNewCard: {
                 whoNeedsCard: '¿Quién necesita una tarjeta?',
                 inviteNewMember: 'Invitar nuevo miembro',
+                inviteMemberNotAllowed: 'Pide a un administrador del espacio de trabajo que invite primero a esta persona.',
                 findMember: 'Buscar miembro',
                 chooseCardType: 'Elegir un tipo de tarjeta',
                 physicalCard: 'Tarjeta física',
