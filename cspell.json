@@ -1009,6 +1009,7 @@
         "NitroFetch",
         "Prefetch",
         "Prefetcher",
+        "Refetched",
         "knip"
     ],
     "ignorePaths": [

@@ -73,7 +73,7 @@ describe('DeepLinkHandler', () => {
                 [ONYXKEYS.CONCIERGE_REPORT_ID]: '',
                 [ONYXKEYS.NVP_INTRO_SELECTED]: {},
                 [ONYXKEYS.BETAS]: [],
-                [`${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}`]: {reportID: PUBLIC_ROOM_ID},
+                [`${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const]: {reportID: PUBLIC_ROOM_ID},
             });
         });
 
