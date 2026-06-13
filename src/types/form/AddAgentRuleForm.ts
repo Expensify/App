@@ -7,12 +7,12 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type EditAIRuleForm = Form<
+type AddAgentRuleForm = Form<
     InputID,
     {
         [INPUT_IDS.PROMPT]: string;
     }
 >;
 
-export type {EditAIRuleForm};
+export type {AddAgentRuleForm};
 export default INPUT_IDS;

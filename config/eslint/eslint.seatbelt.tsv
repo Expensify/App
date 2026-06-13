@@ -143,7 +143,6 @@
 "../../src/components/ContactPermissionModal/index.native.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
 "../../src/components/CountryPicker/CountrySelectorModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/CountryPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/CurrentUserPersonalDetailsProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/DatePicker/CalendarPicker/MonthPickerModal.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/DatePicker/CalendarPicker/YearPickerModal.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/DatePicker/DatePickerModal.tsx"	"react-hooks/set-state-in-effect"	1
@@ -296,7 +295,6 @@
 "../../src/components/MultifactorAuthentication/config/scenarios/ChangePIN.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MultifactorAuthentication/config/scenarios/DefaultUserInterface.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Navigation/NavigationTabBar/SearchTabButton.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Navigation/NavigationTabBar/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"no-restricted-imports"	1
 "../../src/components/Navigation/TopLevelNavigationTabBar/index.tsx"	"react-hooks/set-state-in-effect"	1
@@ -378,6 +376,8 @@
 "../../src/components/Search/SearchList/ListItem/ChatListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchList/ListItem/ExpenseReportListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/components/Search/SearchList/ListItem/ExpenseReportListItemRow/ExpenseReportListItemRowWide.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/components/Search/SearchList/ListItem/GroupChildrenContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/components/Search/SearchList/ListItem/GroupHeader.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/Search/SearchList/ListItem/MemberListItemHeader.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Search/SearchList/ListItem/ReportListItemHeader.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/components/Search/SearchList/ListItem/TaskListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -447,7 +447,7 @@
 "../../src/components/Table/TableContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/Table/TableFilterButtons/buildFilterItems.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Table/middlewares/filtering.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableRow.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableRow.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TagPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TaxPicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TestDrive/Modal/AdminTestDriveModal.tsx"	"no-restricted-imports"	1
