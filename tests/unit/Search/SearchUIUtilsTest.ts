@@ -9110,6 +9110,37 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getCustomColumns', () => {
+        it('should keep report details custom columns derived from explicit expense column availability', () => {
+            const expenseColumnKeys = Object.keys(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
+            const reportDetailsAvailabilityKeys = Object.keys(CONST.SEARCH.REPORT_DETAILS_EXPENSE_CUSTOM_COLUMNS_AVAILABILITY);
+            expect(reportDetailsAvailabilityKeys).toEqual(expenseColumnKeys);
+
+            expect(Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS)).toEqual([
+                CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.POSTED,
+                CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+                CONST.SEARCH.TABLE_COLUMNS.CARD,
+                CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+                CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
+                CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
+                CONST.SEARCH.TABLE_COLUMNS.TAG,
+                CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
+                CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+                CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
+                CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
+                CONST.SEARCH.TABLE_COLUMNS.MCC,
+                CONST.SEARCH.TABLE_COLUMNS.TAX_CODE,
+                CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
+                CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+                CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            ]);
+        });
+
         it('should return custom columns for EXPENSE type', () => {
             const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE);
             expect(columns).toEqual(Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE));

@@ -6659,26 +6659,50 @@ const CONST = {
             };
         },
         get REPORT_DETAILS_CUSTOM_COLUMNS() {
+            const reportDetailsExpenseCustomColumnsAvailability = this.REPORT_DETAILS_EXPENSE_CUSTOM_COLUMNS_AVAILABILITY;
+            const reportDetailsExpenseCustomColumns = Object.entries(this.TYPE_CUSTOM_COLUMNS.EXPENSE).filter(([column]) => {
+                const reportDetailsColumn = column as keyof typeof reportDetailsExpenseCustomColumnsAvailability;
+                return reportDetailsExpenseCustomColumnsAvailability[reportDetailsColumn];
+            });
             return {
-                RECEIPT: this.TABLE_COLUMNS.RECEIPT,
-                DATE: this.TABLE_COLUMNS.DATE,
-                MERCHANT: this.TABLE_COLUMNS.MERCHANT,
-                DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
-                CARD: this.TABLE_COLUMNS.CARD,
-                CATEGORY: this.TABLE_COLUMNS.CATEGORY,
-                CATEGORY_GL_CODE: this.TABLE_COLUMNS.CATEGORY_GL_CODE,
-                TAG: this.TABLE_COLUMNS.TAG,
-                EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
-                REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
-                BILLABLE: this.TABLE_COLUMNS.BILLABLE,
-                MCC: this.TABLE_COLUMNS.MCC,
-                TAX_CODE: this.TABLE_COLUMNS.TAX_CODE,
-                TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
-                TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
-                AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
+                ...Object.fromEntries(reportDetailsExpenseCustomColumns),
                 TOTAL: this.TABLE_COLUMNS.TOTAL,
-                WITHDRAWAL_ID: this.TABLE_COLUMNS.WITHDRAWAL_ID,
             };
+        },
+        REPORT_DETAILS_EXPENSE_CUSTOM_COLUMNS_AVAILABILITY: {
+            RECEIPT: true,
+            DATE: true,
+            STATUS: false,
+            SUBMITTED: false,
+            APPROVED: false,
+            POSTED: true,
+            EXPORTED: false,
+            MERCHANT: true,
+            DESCRIPTION: true,
+            FROM: false,
+            TO: false,
+            POLICY_NAME: false,
+            CARD: true,
+            CATEGORY: true,
+            CATEGORY_GL_CODE: true,
+            ATTENDEES: true,
+            TOTAL_PER_ATTENDEE: true,
+            TAG: true,
+            EXCHANGE_RATE: true,
+            ORIGINAL_AMOUNT: true,
+            REPORT_ID: false,
+            BASE_62_REPORT_ID: false,
+            REIMBURSABLE: true,
+            BILLABLE: true,
+            MCC: true,
+            TAX_CODE: true,
+            TAX_RATE: true,
+            TAX_AMOUNT: true,
+            TITLE: false,
+            AMOUNT: true,
+            EXPORTED_TO: false,
+            ACTION: false,
+            WITHDRAWAL_ID: true,
         },
         get GROUP_CUSTOM_COLUMNS() {
             return {
