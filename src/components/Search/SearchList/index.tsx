@@ -661,7 +661,6 @@ function SearchList({
                     )}
 
                     {SearchTableHeader}
-                    {isLargeScreenWidth && shouldSplitGroups && <View style={styles.searchListHeaderBorderCover} />}
                 </View>
             )}
             <BaseSearchList
