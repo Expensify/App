@@ -61,6 +61,17 @@ function createCompletedTransaction(): Transaction {
     });
 }
 
+function createScanningTransactionWithCategory(category: string): Transaction {
+    return createTransaction({
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        modifiedMerchant: '',
+        amount: 0,
+        modifiedAmount: '',
+        category,
+        receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+    });
+}
+
 function renderTransactionItemRow(transactionItem: Transaction, shouldUseNarrowLayout: boolean, columns: SearchColumnType[]) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
@@ -112,6 +123,14 @@ describe('TransactionItemRow scanning date', () => {
         // when the formatted date no longer renders alongside them
         expect(screen.getAllByText(SCANNING_TEXT).length).toBeGreaterThan(1);
         expect(screen.queryByText(FORMATTED_CREATED_DATE)).not.toBeOnTheScreen();
+    });
+
+    it('keeps the category suffix alongside Scanning… in the date cell on the narrow layout', async () => {
+        renderTransactionItemRow(createScanningTransactionWithCategory('Office Supplies'), true, dateOnlyColumns);
+        await waitForBatchedUpdates();
+
+        // On narrow layout the category renders only as the date-cell suffix, so the scanning override must keep it.
+        expect(screen.getByText('Scanning… • Office Supplies')).toBeOnTheScreen();
     });
 
     it('shows the formatted date when the receipt is not being scanned on the narrow layout', async () => {

@@ -26,11 +26,10 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, displayTex
         onSave,
     });
 
-    let displayText = displayTextOverride;
-    if (displayText === undefined) {
-        const formattedDate = DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
-    }
+    // The override (e.g. "Scanning…") replaces only the date; any suffix (the narrow layout's category) is still appended.
+    const datePart =
+        displayTextOverride ?? DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const displayText = suffixText ? `${datePart} • ${suffixText}` : datePart;
 
     const displayContent = (
         <TextWithTooltip
