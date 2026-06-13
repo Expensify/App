@@ -916,6 +916,7 @@ describe('Table', () => {
                 rowIndex={index}
                 disabled={item.disabled}
                 accessibilityLabel={item.name}
+                skeletonReasonAttributes={{context: 'tableTestRow'}}
             >
                 <Text testID={`name-${item.id}`}>{item.name}</Text>
             </Table.Row>
@@ -943,7 +944,7 @@ describe('Table', () => {
             );
         }
 
-        const pressRow = (index: number, shiftKey = false) => fireEvent.press(screen.getAllByLabelText('common.select').at(index), shiftKey ? {shiftKey: true} : undefined);
+        const pressRow = (index: number, shiftKey = false) => fireEvent.press(screen.getAllByLabelText('common.select')[index], shiftKey ? {shiftKey: true} : undefined);
 
         it('should select the range between a clicked anchor and a shift+clicked row', () => {
             render(<ControlledSelectableTable />);

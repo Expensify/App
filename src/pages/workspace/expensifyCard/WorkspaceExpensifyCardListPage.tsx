@@ -141,13 +141,21 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         if (selectableCardIDs.length === 0) {
             return;
         }
+        const willSelectAll = selectedCardIDs.length === 0;
         setSelectedCardIDs((prev) => {
             if (prev.length > 0) {
                 return [];
             }
             return [...selectableCardIDs];
         });
-        rangeApi.clearAnchor();
+        const firstSelectable = filteredSortedCards.at(0);
+        const lastSelectable = filteredSortedCards.at(-1);
+        if (willSelectAll && firstSelectable && lastSelectable) {
+            // Mark a virtual range spanning the whole list so the next shift+click deselects items outside the new range.
+            rangeApi.notifyRange(firstSelectable, lastSelectable);
+        } else {
+            rangeApi.clearAnchor();
+        }
     };
     const isSelectAllChecked = selectedCardIDs.length > 0 && selectedCardIDs.length === selectableCardIDs.length;
     const isSelectAllIndeterminate = selectedCardIDs.length > 0 && selectedCardIDs.length < selectableCardIDs.length;
