@@ -48,11 +48,10 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const accountID = currentUserPersonalDetails.accountID;
-    const [activePolicyExpenseChat] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {selector: (reports) => getPolicyExpenseChat(accountID, defaultExpensePolicy?.id, reports)},
-        [accountID, defaultExpensePolicy?.id],
-    );
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(accountID, defaultExpensePolicy?.id, reports)}, [
+        accountID,
+        defaultExpensePolicy?.id,
+    ]);
 
     return useMemo(() => {
         if (!isNewManualExpenseFlowEnabled) {

@@ -170,11 +170,10 @@ function useSelectedTransactionsActions({
         return map;
     }, [selectedTransactionIDs, allTransactions]);
 
-    const [activePolicyExpenseChat] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {selector: (reports) => getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id, reports)},
-        [currentUserAccountID, defaultExpensePolicy?.id],
-    );
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id, reports)}, [
+        currentUserAccountID,
+        defaultExpensePolicy?.id,
+    ]);
 
     const isDuplicateOptionVisible = useMemo(
         () =>
