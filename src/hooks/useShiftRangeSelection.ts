@@ -202,6 +202,16 @@ function resolveAnchor<TItem>(params: Params<TItem>, source: string | null): str
             }
         }
     }
+    // A first shift+click with no prior anchor and no selection ranges from the first selectable row (Excel/Sheets/Finder).
+    for (const row of params.items) {
+        if (isExcluded(params, row)) {
+            continue;
+        }
+        const key = keyOf(params, row);
+        if (key) {
+            return key;
+        }
+    }
     return null;
 }
 

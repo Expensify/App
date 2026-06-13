@@ -501,7 +501,7 @@ function SearchList({
                         isExpanded={expandedGroups.has(originalKey)}
                         onToggle={() => onToggleGroup(originalKey)}
                         onSelectRow={(rowItem, previewData, event) => onSelectRow({...rowItem, keyForList: originalKey}, previewData, event)}
-                        onCheckboxPress={(val, itemTransactions) => onCheckboxPress({...val, keyForList: originalKey} as SearchListItem, itemTransactions)}
+                        onCheckboxPress={(val, itemTransactions, options) => onCheckboxPress({...val, keyForList: originalKey}, itemTransactions, options)}
                         onLongPressRow={(rowItem, itemTransactions) => {
                             const fixedItem = {...rowItem, keyForList: originalKey} as SearchListItem;
                             if (isMobileSelectionModeEnabled) {

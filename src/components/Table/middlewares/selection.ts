@@ -3,7 +3,9 @@ import {useEffect, useRef, useState} from 'react';
 import type {TableData, TableRow} from '@components/Table/types';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import type {MiddlewareHookResult} from './types';
 
 type UseSelectionProps<DataType extends TableData> = {
@@ -50,8 +52,6 @@ export default function useSelection<DataType extends TableData>({
 }: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isSelectionModeEnabled = useMobileSelectionMode();
-    const lastSelectedRowKeyRef = useRef<string | null>(null);
-    const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
 
     // When a user long-presses a row on mobile, store the key of the row that will be selected if
     // the user confirms the selection
@@ -59,6 +59,23 @@ export default function useSelection<DataType extends TableData>({
 
     const selectableKeys = data.filter((item) => !item.disabled).map((item) => item.keyForList);
     const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
+
+    // Shift+click range selection shares the app-wide hook so every Table matches the SelectionList surfaces.
+    const rangeApi = useShiftRangeSelection<DataType>({
+        items: data,
+        getItemKey: (item) => item.keyForList,
+        getSelectedKeys: () => selectedKeys,
+        isDisabledItem: (item) => !!item.disabled,
+        onApplyRange: (batch) =>
+            onRowSelectionChange?.(
+                applyShiftRangeBatchToKeySet(
+                    batch,
+                    selectedKeys,
+                    (item) => item.keyForList,
+                    (item) => !item.disabled,
+                ),
+            ),
+    });
 
     // Automatically disable selection mode when switching to desktop, or enable it when switching to mobile if there are selected rows
     useEffect(() => {
@@ -92,6 +109,7 @@ export default function useSelection<DataType extends TableData>({
      */
     const clearSelection = () => {
         onRowSelectionChange?.([]);
+        rangeApi.clearAnchor();
     };
 
     /**
@@ -107,8 +125,17 @@ export default function useSelection<DataType extends TableData>({
 
         if (isSelectionEmpty) {
             onRowSelectionChange?.(selectableKeys);
+            // Mark a virtual range spanning the whole list so the next shift+click deselects items outside the new range.
+            const firstSelectable = data.find((item) => !item.disabled);
+            const lastSelectable = data.findLast((item) => !item.disabled);
+            if (firstSelectable && lastSelectable) {
+                rangeApi.notifyRange(firstSelectable, lastSelectable);
+            } else {
+                rangeApi.clearAnchor();
+            }
         } else if (isSelectionFull || isSelectionIndeterminate) {
             onRowSelectionChange?.([]);
+            rangeApi.clearAnchor();
         }
     };
 
@@ -120,8 +147,10 @@ export default function useSelection<DataType extends TableData>({
         const keyIndex = selectedKeys.indexOf(keyForList);
         const isCurrentlySelected = keyIndex !== -1;
 
-        lastSelectedRowKeyRef.current = keyForList;
-        lastSelectedRowIsSelectedRef.current = !isCurrentlySelected;
+        const item = data.find((row) => row.keyForList === keyForList);
+        if (item) {
+            rangeApi.notifyAnchor(item);
+        }
 
         if (isCurrentlySelected) {
             onRowSelectionChange?.([...selectedKeys.slice(0, keyIndex), ...selectedKeys.slice(keyIndex + 1)]);
@@ -132,57 +161,20 @@ export default function useSelection<DataType extends TableData>({
     };
 
     /**
-     * When a row is selected, while holding shift, select all of the rows in-between
-     * the last selected row and the current row
+     * When a row is selected while holding shift, select the range between the anchor and this row.
      */
     const handleMultipleRowSelection = (keyForList: string) => {
-        const keyForListExists = selectableKeys.includes(keyForList);
+        const item = data.find((row) => row.keyForList === keyForList);
 
-        if (!keyForListExists) {
+        if (!item || item.disabled) {
             return;
         }
 
-        const lastSelectedRowKey = lastSelectedRowKeyRef.current;
-        const lastSelectedRowIsSelected = lastSelectedRowIsSelectedRef.current;
-
-        if (!lastSelectedRowKey) {
-            handleSingleRowSelection(keyForList);
+        if (rangeApi.applyShiftClick(item, {shiftKey: true})) {
             return;
         }
 
-        const currentSelectedRowIndex = selectableKeys.indexOf(keyForList);
-        const lastSelectedRowIndex = selectableKeys.indexOf(lastSelectedRowKey);
-
-        if (currentSelectedRowIndex === -1 || lastSelectedRowIndex === -1) {
-            handleSingleRowSelection(keyForList);
-            return;
-        }
-
-        const endIndex = Math.max(currentSelectedRowIndex, lastSelectedRowIndex);
-        const startIndex = Math.min(currentSelectedRowIndex, lastSelectedRowIndex);
-
-        const newSelectedKeys = [...selectedKeys];
-
-        for (let i = startIndex; i <= endIndex; i++) {
-            const key = selectableKeys.at(i);
-
-            if (!key) {
-                continue;
-            }
-
-            if (lastSelectedRowIsSelected) {
-                if (!newSelectedKeys.includes(key)) {
-                    newSelectedKeys.push(key);
-                }
-            } else {
-                const index = newSelectedKeys.indexOf(key);
-                if (index !== -1) {
-                    newSelectedKeys.splice(index, 1);
-                }
-            }
-        }
-
-        onRowSelectionChange?.(newSelectedKeys);
+        handleSingleRowSelection(keyForList);
     };
 
     const middleware = () => {

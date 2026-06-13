@@ -27,6 +27,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
+import type {Modifiers} from '@libs/shiftRangeSelection';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,7 +55,7 @@ type GroupHeaderProps = SearchListActionProps & {
     isExpanded: boolean;
     onToggle: () => void;
     onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-    onCheckboxPress: (item: GroupHeaderItemType, itemTransactions?: TransactionListItemType[]) => void;
+    onCheckboxPress: (item: GroupHeaderItemType, itemTransactions?: TransactionListItemType[], options?: Partial<Modifiers>) => void;
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
     shouldSyncFocus?: boolean;
@@ -214,8 +215,8 @@ function GroupHeader({
         shouldApplyOtherStyles: false,
     });
 
-    const handleSelectionButtonPress = () => {
-        onCheckboxPress(item, isExpenseReportType ? undefined : effectiveTransactions);
+    const handleSelectionButtonPress = (options?: Partial<Modifiers>) => {
+        onCheckboxPress(item, isExpenseReportType ? undefined : effectiveTransactions, options);
     };
 
     const pendingAction =
