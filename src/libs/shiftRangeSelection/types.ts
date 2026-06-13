@@ -1,10 +1,8 @@
 import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
-/** Keys pressed during a click — shift extends the range, additive stacks ranges (Cmd on Mac, Ctrl elsewhere). */
-type Modifiers = {shiftKey: boolean; additive: boolean};
+type Modifiers = {shiftKey: boolean};
 
-/** Atomic batch the hook emits when shift+click changes the selection. */
 type ShiftRangeBatch<TItem> = {
     toSelect: TItem[];
     toDeselect: TItem[];

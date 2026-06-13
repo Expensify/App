@@ -51,7 +51,7 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             if (!options?.shiftKey) {
                 return false;
             }
-            const result = computeShiftRange(params, sessionRef.current, target, !!options.additive);
+            const result = computeShiftRange(params, sessionRef.current, target);
             if (!result) {
                 return false;
             }
@@ -87,7 +87,7 @@ type ShiftRangeResult<TItem> = {
     prevEnd: string;
 };
 
-function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, target: TItem, additive: boolean): ShiftRangeResult<TItem> | null {
+function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, target: TItem): ShiftRangeResult<TItem> | null {
     const targetKey = keyOf(params, target);
     if (!targetKey || isExcluded(params, target)) {
         return null;
@@ -119,8 +119,7 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
     }
 
     const newRange = orderedRange(anchorIdx, targetIdx);
-    // Additive preserves the prior range; otherwise prevEndIdx is -1 when prevEnd has been removed.
-    const prevEndIdx = !additive && prevEnd != null ? indexOfKey(params, prevEnd) : -1;
+    const prevEndIdx = prevEnd != null ? indexOfKey(params, prevEnd) : -1;
     const prevRange = prevEndIdx >= 0 ? orderedRange(anchorIdx, prevEndIdx) : null;
 
     const toSelect: TItem[] = [];
@@ -201,15 +200,6 @@ function resolveAnchor<TItem>(params: Params<TItem>, source: string | null): str
                     return key;
                 }
             }
-        }
-    }
-    for (const row of params.items) {
-        if (isExcluded(params, row)) {
-            continue;
-        }
-        const key = keyOf(params, row);
-        if (key) {
-            return key;
         }
     }
     return null;

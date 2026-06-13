@@ -191,7 +191,7 @@ describe('MonthListItemHeader', () => {
             const checkbox = screen.getByRole('checkbox');
             fireEvent.press(checkbox);
 
-            expect(onCheckboxPress).toHaveBeenCalledWith({shiftKey: false, additive: false});
+            expect(onCheckboxPress).toHaveBeenCalledWith({shiftKey: false});
         });
 
         it('should show checkbox as checked when isSelectAllChecked is true', async () => {

@@ -47,9 +47,9 @@ function nthBatchKeys(mockFn: ReturnType<typeof makeApplyMock>, n: number): {toS
 
 describe('useShiftRangeSelection', () => {
     describe('getAnchorKey', () => {
-        it('falls back to the first selectable row when no session and no prior anchor', () => {
+        it('returns null when no session and no prior anchor', () => {
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
-            expect(result.current.getAnchorKey()).toBe('a');
+            expect(result.current.getAnchorKey()).toBeNull();
         });
 
         it('falls back to the first selected row when no session', () => {
@@ -62,7 +62,7 @@ describe('useShiftRangeSelection', () => {
             expect(result.current.getAnchorKey()).toBeNull();
         });
 
-        it('returns the last notifyAnchor key', () => {
+        it('returns the key of the most recent notifyAnchor call', () => {
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
             act(() => result.current.notifyAnchor(ROWS[2]));
             expect(result.current.getAnchorKey()).toBe('c');
@@ -77,14 +77,14 @@ describe('useShiftRangeSelection', () => {
             expect(result.current.getAnchorKey()).toBe('b');
         });
 
-        it('clearAnchor resets the session so the next anchor query falls back to the first selectable row', () => {
+        it('clearAnchor resets the session so the next anchor query returns null', () => {
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
             act(() => result.current.notifyAnchor(ROWS[0]));
             act(() => {
                 result.current.applyShiftClick(ROWS[2], {shiftKey: true});
             });
             act(() => result.current.clearAnchor());
-            expect(result.current.getAnchorKey()).toBe('a');
+            expect(result.current.getAnchorKey()).toBeNull();
         });
     });
 
@@ -103,61 +103,24 @@ describe('useShiftRangeSelection', () => {
             expect(applied).toBe(false);
         });
 
-        it('returns false when additive is true but shiftKey is false', () => {
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
-            act(() => result.current.notifyAnchor(ROWS[0]));
-            let applied = true;
-            act(() => {
-                applied = result.current.applyShiftClick(ROWS[2], {shiftKey: false, additive: true});
-            });
-            expect(applied).toBe(false);
-        });
-
-        it('returns true when a shift+click successfully extends a range', () => {
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams()));
-            act(() => result.current.notifyAnchor(ROWS[0]));
-            let applied = false;
-            act(() => {
-                applied = result.current.applyShiftClick(ROWS[2], {shiftKey: true});
-            });
-            expect(applied).toBe(true);
-        });
-
-        it('returns false when the target row is a header', () => {
+        it.each([
+            {kind: 'header', items: GROUPED, anchor: GROUPED[1], target: GROUPED[3], excludeKey: 'isHeaderItem' as const},
+            {kind: 'disabled', items: MIXED, anchor: MIXED[0], target: MIXED[1], excludeKey: 'isDisabledItem' as const},
+        ])('returns false when the target row is $kind', ({items, anchor, target, excludeKey}) => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() =>
                 useShiftRangeSelection<Row>(
                     makeParams({
-                        items: GROUPED,
-                        isHeaderItem: (r) => !!r.isHeader,
+                        items,
+                        [excludeKey]: (r: Row) => !!r.isHeader || !!r.isDisabled,
                         onApplyRange,
                     }),
                 ),
             );
-            act(() => result.current.notifyAnchor(GROUPED[1]));
+            act(() => result.current.notifyAnchor(anchor));
             let applied = true;
             act(() => {
-                applied = result.current.applyShiftClick(GROUPED[3], {shiftKey: true});
-            });
-            expect(applied).toBe(false);
-            expect(onApplyRange).not.toHaveBeenCalled();
-        });
-
-        it('returns false when the target row is disabled', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() =>
-                useShiftRangeSelection<Row>(
-                    makeParams({
-                        items: MIXED,
-                        isDisabledItem: (r) => !!r.isDisabled,
-                        onApplyRange,
-                    }),
-                ),
-            );
-            act(() => result.current.notifyAnchor(MIXED[0]));
-            let applied = true;
-            act(() => {
-                applied = result.current.applyShiftClick(MIXED[1], {shiftKey: true});
+                applied = result.current.applyShiftClick(target, {shiftKey: true});
             });
             expect(applied).toBe(false);
             expect(onApplyRange).not.toHaveBeenCalled();
@@ -172,25 +135,6 @@ describe('useShiftRangeSelection', () => {
             let applied = true;
             act(() => {
                 applied = result.current.applyShiftClick(missingKeyRow, {shiftKey: true});
-            });
-            expect(applied).toBe(false);
-        });
-
-        it('returns false when the target row cannot be keyed', () => {
-            const onApplyRange = makeApplyMock();
-            const items: Tuple2<Row> = [{keyForList: 'a'}, {keyForList: 'b'}];
-            const {result} = renderHook(() =>
-                useShiftRangeSelection<Row>(
-                    makeParams({
-                        items,
-                        getItemKey: () => null,
-                        onApplyRange,
-                    }),
-                ),
-            );
-            let applied = true;
-            act(() => {
-                applied = result.current.applyShiftClick(items[1], {shiftKey: true});
             });
             expect(applied).toBe(false);
         });
@@ -240,30 +184,15 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd', 'e'], toDeselect: []});
         });
 
-        it('uses the first selectable row as anchor when nothing is selected', () => {
+        it('returns false when nothing is selected and no prior anchor', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            let consumed = false;
             act(() => {
-                result.current.applyShiftClick(ROWS[2], {shiftKey: true});
+                consumed = result.current.applyShiftClick(ROWS[2], {shiftKey: true});
             });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
-        });
-
-        it('the row-fallback anchor skips header rows', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() =>
-                useShiftRangeSelection<Row>(
-                    makeParams({
-                        items: GROUPED,
-                        isHeaderItem: (r) => !!r.isHeader,
-                        onApplyRange,
-                    }),
-                ),
-            );
-            act(() => {
-                result.current.applyShiftClick(GROUPED[2], {shiftKey: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b'], toDeselect: []});
+            expect(consumed).toBe(false);
+            expect(onApplyRange).not.toHaveBeenCalled();
         });
 
         it('ignores a header passed to notifyAnchor and falls back to the selected row', () => {
@@ -285,7 +214,7 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd'], toDeselect: []});
         });
 
-        it('ignores a disabled row passed to notifyAnchor and falls back to the first selectable row', () => {
+        it('ignores a disabled row passed to notifyAnchor and emits nothing when no selection exists', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() =>
                 useShiftRangeSelection<Row>(
@@ -297,10 +226,12 @@ describe('useShiftRangeSelection', () => {
                 ),
             );
             act(() => result.current.notifyAnchor(MIXED[1]));
+            let consumed = false;
             act(() => {
-                result.current.applyShiftClick(MIXED[4], {shiftKey: true});
+                consumed = result.current.applyShiftClick(MIXED[4], {shiftKey: true});
             });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'c', 'e'], toDeselect: []});
+            expect(consumed).toBe(false);
+            expect(onApplyRange).not.toHaveBeenCalled();
         });
     });
 
@@ -325,40 +256,25 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd', 'e'], toDeselect: []});
         });
 
-        it('headers between anchor and target are excluded from the batch', () => {
+        it.each([
+            {kind: 'headers', items: GROUPED, anchor: GROUPED[1], target: GROUPED[5], excludeKey: 'isHeaderItem' as const, expected: ['a', 'b', 'c', 'd']},
+            {kind: 'disabled rows', items: MIXED, anchor: MIXED[0], target: MIXED[4], excludeKey: 'isDisabledItem' as const, expected: ['a', 'c', 'e']},
+        ])('excludes $kind between anchor and target from the batch', ({items, anchor, target, excludeKey, expected}) => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() =>
                 useShiftRangeSelection<Row>(
                     makeParams({
-                        items: GROUPED,
-                        isHeaderItem: (r) => !!r.isHeader,
+                        items,
+                        [excludeKey]: (r: Row) => !!r.isHeader || !!r.isDisabled,
                         onApplyRange,
                     }),
                 ),
             );
-            act(() => result.current.notifyAnchor(GROUPED[1]));
+            act(() => result.current.notifyAnchor(anchor));
             act(() => {
-                result.current.applyShiftClick(GROUPED[5], {shiftKey: true});
+                result.current.applyShiftClick(target, {shiftKey: true});
             });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c', 'd'], toDeselect: []});
-        });
-
-        it('disabled rows between anchor and target are excluded from the batch', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() =>
-                useShiftRangeSelection<Row>(
-                    makeParams({
-                        items: MIXED,
-                        isDisabledItem: (r) => !!r.isDisabled,
-                        onApplyRange,
-                    }),
-                ),
-            );
-            act(() => result.current.notifyAnchor(MIXED[0]));
-            act(() => {
-                result.current.applyShiftClick(MIXED[4], {shiftKey: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'c', 'e'], toDeselect: []});
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: expected, toDeselect: []});
         });
 
         it('emits a single-row batch when the target equals the anchor', () => {
@@ -369,16 +285,6 @@ describe('useShiftRangeSelection', () => {
                 result.current.applyShiftClick(ROWS[2], {shiftKey: true});
             });
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c'], toDeselect: []});
-        });
-
-        it('always includes the anchor row in the emitted toSelect batch', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.notifyAnchor(ROWS[2]));
-            act(() => {
-                result.current.applyShiftClick(ROWS[4], {shiftKey: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 0).toSelect).toContain('c');
         });
     });
 
@@ -471,7 +377,7 @@ describe('useShiftRangeSelection', () => {
     });
 
     describe('notifyRange', () => {
-        it('lets the next shift+click collapse the range Excel-style', () => {
+        it('deselects items outside the new range on a subsequent shift+click', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
             act(() => result.current.notifyRange(ROWS[0], ROWS[4]));
@@ -487,7 +393,7 @@ describe('useShiftRangeSelection', () => {
             expect(result.current.getAnchorKey()).toBe('b');
         });
 
-        it('falls back to a fresh range when a follow-up notifyAnchor lands inside', () => {
+        it('notifyAnchor after notifyRange clears the prior range so no deselect is emitted', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
             act(() => result.current.notifyRange(ROWS[0], ROWS[4]));
@@ -497,75 +403,6 @@ describe('useShiftRangeSelection', () => {
             });
             // notifyAnchor resets prevEnd, so no Excel collapse from the prior range.
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd'], toDeselect: []});
-        });
-    });
-
-    describe('additive shift+click', () => {
-        it('extends without emitting toDeselect when the additive modifier is set', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.notifyAnchor(ROWS[0]));
-            act(() => {
-                result.current.applyShiftClick(ROWS[2], {shiftKey: true, additive: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
-        });
-
-        it('preserves the previous range when a second additive shift+click lands inside it', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.notifyAnchor(ROWS[0]));
-            act(() => {
-                result.current.applyShiftClick(ROWS[4], {shiftKey: true, additive: true});
-            });
-            act(() => {
-                result.current.applyShiftClick(ROWS[2], {shiftKey: true, additive: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
-        });
-
-        it('lets a subsequent non-additive shift+click replace the additive range', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.notifyAnchor(ROWS[0]));
-            act(() => {
-                result.current.applyShiftClick(ROWS[4], {shiftKey: true, additive: true});
-            });
-            act(() => {
-                result.current.applyShiftClick(ROWS[2], {shiftKey: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: ['d', 'e']});
-        });
-
-        it('uses the selected-row fallback when no prior notify happened', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange, getSelectedKeys: () => ['b']})));
-            act(() => {
-                result.current.applyShiftClick(ROWS[3], {shiftKey: true, additive: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
-        });
-
-        it('uses the first selectable row when additive shift+click has no anchor and no selection', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => {
-                result.current.applyShiftClick(ROWS[2], {shiftKey: true, additive: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
-        });
-
-        it('extends additively after a non-additive range was emitted', () => {
-            const onApplyRange = makeApplyMock();
-            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
-            act(() => result.current.notifyAnchor(ROWS[0]));
-            act(() => {
-                result.current.applyShiftClick(ROWS[2], {shiftKey: true});
-            });
-            act(() => {
-                result.current.applyShiftClick(ROWS[4], {shiftKey: true, additive: true});
-            });
-            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a', 'b', 'c', 'd', 'e'], toDeselect: []});
         });
     });
 
@@ -600,9 +437,10 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
         });
 
-        it('falls back through resolveAnchor when the ranging anchor disappears between shift+clicks', () => {
+        it('falls back to a selected row when the ranging anchor disappears between shift+clicks', () => {
             const onApplyRange = makeApplyMock();
-            const {result, rerender} = renderHook(({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange})), {
+            // Selection includes 'c' which survives the items change — that becomes the fresh anchor.
+            const {result, rerender} = renderHook(({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange, getSelectedKeys: () => ['c']})), {
                 initialProps: {items: [...ROWS]},
             });
             act(() => result.current.notifyAnchor(ROWS[0]));
@@ -615,8 +453,26 @@ describe('useShiftRangeSelection', () => {
             act(() => {
                 result.current.applyShiftClick(ROWS[4], {shiftKey: true});
             });
-            // Falls back to first selectable row ('b') as the new anchor; emits a fresh range from there to the target.
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd', 'e'], toDeselect: []});
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c', 'd', 'e'], toDeselect: []});
+        });
+
+        it('returns false when the ranging anchor disappears and nothing is selected', () => {
+            const onApplyRange = makeApplyMock();
+            const {result, rerender} = renderHook(({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange})), {
+                initialProps: {items: [...ROWS]},
+            });
+            act(() => result.current.notifyAnchor(ROWS[0]));
+            act(() => {
+                result.current.applyShiftClick(ROWS[2], {shiftKey: true});
+            });
+            rerender({items: ROWS.slice(1)});
+            onApplyRange.mockClear();
+            let consumed = false;
+            act(() => {
+                consumed = result.current.applyShiftClick(ROWS[4], {shiftKey: true});
+            });
+            expect(consumed).toBe(false);
+            expect(onApplyRange).not.toHaveBeenCalled();
         });
     });
 
@@ -661,9 +517,9 @@ describe('useShiftRangeSelection', () => {
 });
 
 describe('getModifierKeysFromEvent', () => {
-    it('returns shiftKey false and additive false for nullish input', () => {
-        expect(getModifierKeysFromEvent(undefined)).toEqual({shiftKey: false, additive: false});
-        expect(getModifierKeysFromEvent(null)).toEqual({shiftKey: false, additive: false});
+    it('returns shiftKey false for nullish input', () => {
+        expect(getModifierKeysFromEvent(undefined)).toEqual({shiftKey: false});
+        expect(getModifierKeysFromEvent(null)).toEqual({shiftKey: false});
     });
 
     it('reads shiftKey from the outer event when present', () => {
@@ -678,20 +534,6 @@ describe('getModifierKeysFromEvent', () => {
 
     it('outer shiftKey false takes precedence over nativeEvent shiftKey true', () => {
         expect(getModifierKeysFromEvent({shiftKey: false, nativeEvent: {shiftKey: true}}).shiftKey).toBe(false);
-    });
-
-    it('marks additive when either modifier key is set', () => {
-        expect(getModifierKeysFromEvent({metaKey: true}).additive).toBe(true);
-        expect(getModifierKeysFromEvent({ctrlKey: true}).additive).toBe(true);
-    });
-
-    it('reads metaKey and ctrlKey from nativeEvent as a fallback', () => {
-        expect(getModifierKeysFromEvent({nativeEvent: {metaKey: true}}).additive).toBe(true);
-        expect(getModifierKeysFromEvent({nativeEvent: {ctrlKey: true}}).additive).toBe(true);
-    });
-
-    it('reports additive false when neither modifier key is set', () => {
-        expect(getModifierKeysFromEvent({shiftKey: true}).additive).toBe(false);
     });
 });
 

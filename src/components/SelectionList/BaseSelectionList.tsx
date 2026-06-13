@@ -626,7 +626,7 @@ function BaseSelectionList<TItem extends ListItem>({
         const willSelectAll = !dataDetails.allSelected;
         onSelectAll?.();
         if (willSelectAll) {
-            // Mark a virtual range spanning the whole list so the next shift+click collapses Excel-style.
+            // Mark a virtual range spanning the whole list so the next shift+click deselects items outside the new range.
             const isSelectable = (item: TItem) => !item.isDisabled && !item.isDisabledCheckbox;
             const firstSelectable = data.find(isSelectable);
             const lastSelectable = data.findLast(isSelectable);

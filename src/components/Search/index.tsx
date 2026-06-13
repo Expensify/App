@@ -1219,7 +1219,6 @@ function Search({
 
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(sortedData, searchResults, optimisticTrackingState);
 
-    // Children must be in the range items; header exclusion is gated on validGroupBy separately.
     const flattenedShiftRangeItems = useMemo<SearchListItem[]>(() => {
         if (!areItemsGrouped) {
             return stableSortedData;
@@ -1732,7 +1731,7 @@ function Search({
         }
         setSelectedTransactions(updatedTransactions, filteredData);
         updateSelectAllMatchingItemsState(updatedTransactions);
-        // Mark a virtual range spanning the whole list so the next shift+click collapses Excel-style.
+        // Mark a virtual range spanning the whole list so the next shift+click deselects items outside the new range.
         const firstSelectable = flattenedShiftRangeItems.find((it) => !isShiftRangeHeaderItem(it));
         const lastSelectable = flattenedShiftRangeItems.findLast((it) => !isShiftRangeHeaderItem(it));
         if (firstSelectable && lastSelectable) {
