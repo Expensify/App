@@ -236,11 +236,11 @@ function SearchList({
         return data;
     }, [data, groupBy, type]);
     const emptyReports = useMemo(() => {
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
-            return data.filter((item) => item.transactions.length === 0);
+        if (isTransactionGroupListItemArray(data)) {
+            return data.filter((item) => item.transactions.length === 0 && item.keyForList);
         }
         return [];
-    }, [data, type]);
+    }, [data]);
 
     const selectedItemsLength = useMemo(() => {
         const selectedTransactionsCount = flattenedItems.reduce((acc, item) => {
@@ -248,7 +248,7 @@ function SearchList({
             return acc + (isTransactionSelected ? 1 : 0);
         }, 0);
 
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
+        if (isTransactionGroupListItemArray(data)) {
             const selectedEmptyReports = emptyReports.reduce((acc, item) => {
                 const isEmptyReportSelected = !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
                 return acc + (isEmptyReportSelected ? 1 : 0);
@@ -258,10 +258,10 @@ function SearchList({
         }
 
         return selectedTransactionsCount;
-    }, [flattenedItems, type, data, emptyReports, selectedTransactions]);
+    }, [flattenedItems, data, emptyReports, selectedTransactions]);
 
     const totalItems = useMemo(() => {
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
+        if (isTransactionGroupListItemArray(data)) {
             const selectableEmptyReports = emptyReports.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             const selectableTransactions = flattenedItems.filter((item) => {
                 if ('pendingAction' in item) {
@@ -279,7 +279,7 @@ function SearchList({
             return true;
         });
         return selectableTransactions.length;
-    }, [data, type, flattenedItems, emptyReports]);
+    }, [data, flattenedItems, emptyReports]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -319,13 +319,8 @@ function SearchList({
             return {splitData: data, stickyHeaderIndices: undefined};
         }
         const {splitData, stickyHeaderIndices: allIndices} = splitGroupsIntoPairs(data);
-        const activeIndices = allIndices.filter((idx) => {
-            const item = splitData.at(idx);
-            const originalKey = item?.keyForList?.replace('header_', '') ?? '';
-            return expandedGroups.has(originalKey);
-        });
-        return {splitData, stickyHeaderIndices: activeIndices.length > 0 ? activeIndices : undefined};
-    }, [data, shouldSplitGroups, expandedGroups]);
+        return {splitData, stickyHeaderIndices: allIndices.length > 0 ? allIndices : undefined};
+    }, [data, shouldSplitGroups]);
 
     const getItemType = useCallback(
         (item: SearchListItem) => {
