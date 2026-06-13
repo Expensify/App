@@ -7,7 +7,7 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/acti
 import type {OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFeatures';
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
-import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,7 +52,7 @@ function useCompleteOnboarding() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isLoading, setIsLoading] = useState(false);
 
-    const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
+    const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
 
     const completeOnboardingFlow = async ({featuresMap, userReportedIntegration}: CompleteOnboardingParams) => {
         if (!onboardingPurposeSelected || !onboardingCompanySize) {
@@ -62,7 +62,7 @@ function useCompleteOnboarding() {
         try {
             setIsLoading(true);
 
-            const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
+            const shouldCreateWorkspace = !onboardingPolicyID && !groupPolicy;
             const isAccountingEnabled = featuresMap.some((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && feature.enabled);
             const resolvedIntegration = isAccountingEnabled ? userReportedIntegration : undefined;
             const email = currentUserPersonalDetails.email ?? '';
