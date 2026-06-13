@@ -9044,6 +9044,55 @@ describe('SearchUIUtils', () => {
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
         });
 
+        test('Should keep selected report detail columns when transaction data supports them', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                posted: '2025-01-01',
+                currency: 'EUR',
+                groupCurrency: 'USD',
+                groupExchangeRate: 1.1,
+                convertedAmount: 2500,
+            };
+
+            const visibleColumns = [
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.POSTED,
+                CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
+                CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            ];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.POSTED);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+        });
+
+        test('Should hide selected report detail columns when transaction data does not support them', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                posted: '',
+                groupExchangeRate: undefined,
+                convertedAmount: undefined,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.POSTED, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.POSTED);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
+        });
+
         test('Should show column if at least one transaction has data for it', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const emptyTransaction = {
@@ -9113,6 +9162,17 @@ describe('SearchUIUtils', () => {
         it('should return custom columns for EXPENSE type', () => {
             const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE);
             expect(columns).toEqual(Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE));
+        });
+
+        it('should keep expense search and report details columns aligned with availability config', () => {
+            const availabilityEntries = Object.entries(CONST.SEARCH.EXPENSE_CUSTOM_COLUMN_AVAILABILITY);
+            const searchColumnEntries = availabilityEntries.filter(([, config]) => config.search);
+            const reportDetailsColumnEntries = availabilityEntries.filter(([, config]) => config.reportDetails);
+
+            expect(Object.keys(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE)).toEqual(searchColumnEntries.map(([key]) => key));
+            expect(Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE)).toEqual(searchColumnEntries.map(([, config]) => config.column));
+            expect(Object.keys(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS)).toEqual(reportDetailsColumnEntries.map(([key]) => key));
+            expect(Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS)).toEqual(reportDetailsColumnEntries.map(([, config]) => config.column));
         });
 
         it('should return custom columns for CATEGORY groupBy', () => {
