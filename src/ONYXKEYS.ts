@@ -1182,10 +1182,10 @@ const ONYXKEYS = {
         EDIT_AGENT_NAME_FORM_DRAFT: 'editAgentNameFormDraft',
         EDIT_AGENT_PROMPT_FORM: 'editAgentPromptForm',
         EDIT_AGENT_PROMPT_FORM_DRAFT: 'editAgentPromptFormDraft',
-        ADD_AI_RULE_FORM: 'addAIRuleForm',
-        ADD_AI_RULE_FORM_DRAFT: 'addAIRuleFormDraft',
-        EDIT_AI_RULE_FORM: 'editAIRuleForm',
-        EDIT_AI_RULE_FORM_DRAFT: 'editAIRuleFormDraft',
+        ADD_AGENT_RULE_FORM: 'addAgentRuleForm',
+        ADD_AGENT_RULE_FORM_DRAFT: 'addAgentRuleFormDraft',
+        EDIT_AGENT_RULE_FORM: 'editAgentRuleForm',
+        EDIT_AGENT_RULE_FORM_DRAFT: 'editAgentRuleFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1198,6 +1198,7 @@ const ONYXKEYS = {
         TODOS: 'todos',
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
         OPEN_AND_SUBMITTED_REPORTS_BY_POLICY_ID: 'openAndSubmittedReportsByPolicyID',
+        FLAGGED_EXPENSES: 'flaggedExpenses',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1336,8 +1337,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.CREATE_DOMAIN_GROUP_FORM]: FormTypes.DomainGroupCreateForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM]: FormTypes.EditAgentNameForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM]: FormTypes.EditAgentPromptForm;
-    [ONYXKEYS.FORMS.ADD_AI_RULE_FORM]: FormTypes.AddAIRuleForm;
-    [ONYXKEYS.FORMS.EDIT_AI_RULE_FORM]: FormTypes.EditAIRuleForm;
+    [ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM]: FormTypes.AddAgentRuleForm;
+    [ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM]: FormTypes.EditAgentRuleForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1690,6 +1691,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.TODOS]: OnyxTypes.TodosDerivedValue;
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
     [ONYXKEYS.DERIVED.OPEN_AND_SUBMITTED_REPORTS_BY_POLICY_ID]: OnyxTypes.OpenAndSubmittedReportsByPolicyIDDerivedValue;
+    [ONYXKEYS.DERIVED.FLAGGED_EXPENSES]: OnyxTypes.FlaggedExpensesDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;
