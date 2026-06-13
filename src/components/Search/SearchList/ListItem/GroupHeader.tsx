@@ -162,7 +162,7 @@ function GroupHeader({
         return {isSubHeaderAmountColumnWide: amountWide, isSubHeaderTaxAmountColumnWide: taxWide, shouldSubHeaderShowYear: showYear, isSubHeaderActionColumnWide: actionWide};
     }, [groupItem.transactions]);
 
-    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded);
+    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, true);
 
     const hasSnapshotTransactions = !isExpenseReportType && !!snapshotData && Object.keys(snapshotData).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
     const isEmpty = groupItem.transactions.length === 0 && !hasSnapshotTransactions && !groupItem.transactionsQueryJSON;
@@ -442,10 +442,7 @@ function GroupHeader({
                                         style={styles.stickToTop}
                                         onLayout={onSubHeaderLayout}
                                     >
-                                        <View style={[styles.ph3, styles.pb1]}>
-                                            <View style={[styles.borderBottom, styles.borderNone]} />
-                                        </View>
-                                        <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.borderNone]}>
+                                        <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8]}>
                                             <SearchTableHeader
                                                 canSelectMultiple
                                                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -462,9 +459,7 @@ function GroupHeader({
                                                 isActionColumnWide={isSubHeaderActionColumnWide}
                                             />
                                         </View>
-                                        <View style={[styles.ph3, styles.groupSubHeaderBorderOverlap]}>
-                                            <View style={StyleUtils.getSelectedBorderBottomStyle(isItemSelected)} />
-                                        </View>
+                                        <View style={[StyleUtils.getSelectedBorderBottomStyle(isItemSelected), styles.ml3, styles.mr3]} />
                                     </View>
                                 )}
                             </Animated.View>

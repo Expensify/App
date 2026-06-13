@@ -33,7 +33,7 @@ function GroupChildrenContainer({
 }: GroupChildrenContainerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded);
+    const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false);
 
     if (!isExpanded && !isRendered) {
         return null;

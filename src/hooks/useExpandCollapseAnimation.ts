@@ -6,7 +6,7 @@ import {easing} from '@components/Modal/ReanimatedModal/utils';
 
 const EXPAND_COLLAPSE_DURATION = 300;
 
-function useExpandCollapseAnimation(isExpanded: boolean) {
+function useExpandCollapseAnimation(isExpanded: boolean, shouldAddBorderHeight: boolean) {
     const contentHeight = useSharedValue(0);
     const hasExpanded = useSharedValue(isExpanded);
     const [isRendered, setIsRendered] = useState(isExpanded);
@@ -32,7 +32,7 @@ function useExpandCollapseAnimation(isExpanded: boolean) {
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => ({
-        height: animatedHeight.get(),
+        height: animatedHeight.get() + (shouldAddBorderHeight ? 1 : 0),
         overflow: 'hidden',
     }));
 
