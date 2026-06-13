@@ -12,6 +12,7 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 - **Member** – Can submit and/or approve expenses.
 - **Admin** – Can manage members, roles, workflows, and settings.
 - **Auditor** – Can view and comment on reports but cannot make changes.
+- **Editor** – Available only in Submit workspaces. Can change any workspace setting, such as categories and tags, but cannot see other members' reports, change member roles, or invite admins.
 
 ---
 
@@ -115,4 +116,8 @@ You must be a **Workspace Admin**, and the email or phone number of the individu
 ## Can I invite multiple members to a workspace at the same time?
 
 Yes. Use the search tool during invite or import members using a spreadsheet (see the **Invite Multiple Members via Spreadsheet** section above.
+
+## Why is everyone added as an Editor in my Submit workspace?
+
+In a Submit workspace, all members are added as Editors so the group can collaborate on the workspace configuration, such as categories and tags, without anyone being able to see other members' reports. The Editor role is only available in Submit workspaces. To learn more, see [how to use a Submit workspace](/articles/new-expensify/getting-started/Submit-Workspace).
 

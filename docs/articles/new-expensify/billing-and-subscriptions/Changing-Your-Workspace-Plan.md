@@ -16,6 +16,9 @@ To switch to a different plan:
 1. Use the **navigation tabs** (on the left on web, and at the bottom on mobile) to go to **Account > Subscription**.
 2. Click **Explore all plans**.
 3. Choose the plan that best fits your needs.
+
+**Note:** A Submit workspace can be upgraded to Collect or Control, but it can't be downgraded back to Submit. To use a Submit workspace again, delete the upgraded workspace and create a new one. Upgrading can also happen automatically when someone enables a paid feature or when an approver approves a report — the person who upgrades becomes the workspace owner and admin, all other members are set to the Member role, and a 30-day free trial begins. To learn more, see [how to use a Submit workspace](/articles/new-expensify/getting-started/Submit-Workspace).
+
 ---
 
 # How to downgrade an Annual Subscription to a free account 
