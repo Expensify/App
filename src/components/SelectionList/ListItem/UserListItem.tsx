@@ -30,6 +30,8 @@ function UserListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldHighlightSelectedItem,
     selectionButtonPosition,
+    isAlternateTextMultilineSupported,
+    alternateTextNumberOfLines,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -74,6 +76,8 @@ function UserListItem<TItem extends ListItem>({
                     isFocused={isFocused}
                     showTooltip={showTooltip}
                     isDisabled={isDisabled}
+                    isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
+                    alternateTextNumberOfLines={alternateTextNumberOfLines}
                     shouldDisableHoverStyle={shouldDisableHoverStyle}
                     shouldDisableAccessibleGrouping={shouldDisableAccessibleGrouping}
                     forwardedFSClass={forwardedFSClass}

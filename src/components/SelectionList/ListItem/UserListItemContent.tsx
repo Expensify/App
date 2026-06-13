@@ -27,6 +27,8 @@ type UserListItemContentProps<TItem extends ListItem> = {
     isFocused?: boolean;
     showTooltip: boolean;
     isDisabled?: boolean | null;
+    isAlternateTextMultilineSupported?: boolean;
+    alternateTextNumberOfLines?: number;
     shouldDisableHoverStyle?: boolean;
     /** Pre-computed flag: true when a separate right-side interactive element exists that VoiceOver should focus independently. */
     shouldDisableAccessibleGrouping: boolean;
@@ -45,6 +47,8 @@ function UserListItemContent<TItem extends ListItem>({
     isFocused,
     showTooltip,
     isDisabled,
+    isAlternateTextMultilineSupported,
+    alternateTextNumberOfLines,
     shouldDisableHoverStyle,
     shouldDisableAccessibleGrouping,
     forwardedFSClass,
@@ -119,7 +123,8 @@ function UserListItemContent<TItem extends ListItem>({
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
                         text={Str.removeSMSDomain(item.alternateText ?? '')}
-                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                        style={[styles.textLabelSupporting, styles.lh16, isAlternateTextMultilineSupported ? styles.preWrap : styles.pre]}
+                        numberOfLines={isAlternateTextMultilineSupported ? alternateTextNumberOfLines : 1}
                         forwardedFSClass={forwardedFSClass}
                     />
                 )}
