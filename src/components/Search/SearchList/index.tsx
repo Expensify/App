@@ -314,12 +314,22 @@ function SearchList({
 
     const shouldSplitGroups = !!groupBy && isLargeScreenWidth;
 
-    const {splitData: listData, stickyHeaderIndices} = useMemo(() => {
+    const {
+        splitData: listData,
+        stickyHeaderIndices,
+        childrenContainerIndices,
+    } = useMemo(() => {
         if (!shouldSplitGroups) {
-            return {splitData: data, stickyHeaderIndices: undefined};
+            return {splitData: data, stickyHeaderIndices: undefined, childrenContainerIndices: CONST.EMPTY_ARRAY as readonly number[]};
         }
         const {splitData, stickyHeaderIndices: allIndices} = splitGroupsIntoPairs(data);
-        return {splitData, stickyHeaderIndices: allIndices.length > 0 ? allIndices : undefined};
+        const childrenIndices = splitData.reduce<number[]>((acc, item, idx) => {
+            if (isGroupChildrenContainerItem(item)) {
+                acc.push(idx);
+            }
+            return acc;
+        }, []);
+        return {splitData, stickyHeaderIndices: allIndices.length > 0 ? allIndices : undefined, childrenContainerIndices: childrenIndices};
     }, [data, shouldSplitGroups]);
 
     const getItemType = useCallback(
@@ -677,6 +687,7 @@ function SearchList({
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                 stickyHeaderIndices={stickyHeaderIndices}
                 getItemType={getItemType}
+                disabledIndexes={childrenContainerIndices}
             />
             <Modal
                 isVisible={isModalVisible}

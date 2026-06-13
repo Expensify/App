@@ -64,6 +64,7 @@ function BaseSearchList({
     nonPersonalAndWorkspaceCards,
     stickyHeaderIndices,
     getItemType,
+    disabledIndexes,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
@@ -83,6 +84,7 @@ function BaseSearchList({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
         maxIndex: flattenedItemsLength - 1,
+        disabledIndexes,
         isActive: isFocused && !isModalVisible,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
