@@ -1,7 +1,5 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports -- type-only; matches PressableRef's host-instance union for the back-button callback ref.
-import type {Text as RNText} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
@@ -15,16 +13,15 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
+import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useScreenInitialFocus from '@hooks/useScreenInitialFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
-import isHTMLElement from '@libs/isHTMLElement';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
@@ -93,11 +90,7 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const backButtonRef = useRef<HTMLElement | null>(null);
-    const setBackButtonRef = useCallback((node: HTMLDivElement | View | RNText | null | undefined) => {
-        backButtonRef.current = isHTMLElement(node) ? node : null;
-    }, []);
-    useScreenInitialFocus(backButtonRef);
+    const setBackButtonRef = useInitialFocusRef();
 
     const downloadReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
         () => ({

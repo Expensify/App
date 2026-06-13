@@ -9,6 +9,7 @@ import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from '@libs/L
 import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {collectRouteKeys, diffNavigationState} from '@libs/navigationStateDiff';
+import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 import {isCycleIdle, Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';
 
 /** focusin tracks the last keyboard-focused element; a nav state listener captures it against the outgoing route and restores it on backward nav. */
@@ -237,12 +238,11 @@ function restoreTriggerForRoute(routeKey: string, restoreBaseline: Element | nul
         candidates.push(entry.fallback);
     }
 
-    const focusOptions: FocusOptions = {preventScroll: true, focusVisible: getHadTabNavigation()};
     for (const candidate of candidates) {
         const before = document.activeElement;
         isRestoringFocus = true;
         try {
-            candidate.focus(focusOptions);
+            restoreFocusWithModality(candidate);
         } finally {
             isRestoringFocus = false;
         }
