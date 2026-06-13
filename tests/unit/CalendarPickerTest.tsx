@@ -26,6 +26,13 @@ jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: jest.fn(),
 }));
 
+// CalendarPicker reads useRootNavigationState (via useIsYearSelectorOpen); the bare navigationRef mock above
+// has no isReady(), so stub the hook to resolve its selector against an undefined navigation state.
+jest.mock('@hooks/useRootNavigationState', () => ({
+    __esModule: true,
+    default: (selector: (state: undefined) => unknown) => selector(undefined),
+}));
+
 jest.mock('../../src/hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn(),

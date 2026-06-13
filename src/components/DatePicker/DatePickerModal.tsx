@@ -72,7 +72,7 @@ function DatePickerModal({
             anchorRef={anchorRef}
             // While the year-selector route is focused (wide-screen hide-in-place), hide the whole popover frame —
             // not just the inner CalendarPicker — so the year-selector RHP isn't painted over the date popover.
-            isVisible={isVisible && !(isDesktopWeb && isYearSelectorOpen)}
+            isVisible={isVisible}
             onClose={onClose}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}

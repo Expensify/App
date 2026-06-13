@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import useIsYearSelectorOpen from '@components/DatePicker/useIsYearSelectorOpen';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCalendarPickerSelectedYear} from '@libs/actions/CalendarPicker';
 import {closeTop} from '@libs/actions/Modal';
 import DateUtils from '@libs/DateUtils';
+import getPlatform from '@libs/getPlatform';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -119,6 +121,12 @@ function CalendarPicker({
 
     const minYear = CONST.CALENDAR_PICKER.MIN_YEAR;
     const maxYear = CONST.CALENDAR_PICKER.MAX_YEAR;
+
+    const isYearSelectorOpen = useIsYearSelectorOpen();
+    // On wide-screen web the date popover stays mounted while the @react-navigation year-selector RHP is open
+    // (so the picker context is preserved); hide this CalendarPicker — a z-index-9996 portal that would otherwise
+    // paint over the RHP — and disable its pointer events until the user returns. Narrow/native dismiss the host instead.
+    const shouldHideForYearSelector = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth && isYearSelectorOpen;
 
     // When the year picker screen writes back a selection for this CalendarPicker instance,
     // apply it to the displayed date and clear the transient result so it isn't re-applied.
@@ -241,7 +249,10 @@ function CalendarPicker({
     const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
 
     return (
-        <View style={[themeStyles.pb4, themeStyles.pt1]}>
+        <View
+            style={[themeStyles.pb4, themeStyles.pt1, shouldHideForYearSelector && {opacity: 0}]}
+            pointerEvents={shouldHideForYearSelector ? 'none' : undefined}
+        >
             <View
                 style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.gap3, headerPaddingStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
