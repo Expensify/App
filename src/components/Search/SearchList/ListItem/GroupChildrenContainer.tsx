@@ -1,6 +1,6 @@
 import React from 'react';
-import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,12 +35,19 @@ function GroupChildrenContainer({
     const styles = useThemeStyles();
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false);
 
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
+        shouldApplyOtherStyles: false,
+    });
+
     if (!isExpanded && !isRendered) {
         return null;
     }
 
     return (
-        <View style={[styles.mh5, {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG}, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}>
+        <Animated.View style={[styles.mh5, {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG}, animatedHighlightStyle, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}>
             <Animated.View style={animatedStyle}>
                 <Animated.View
                     style={[styles.stickToTop, styles.pb1]}
@@ -65,7 +72,7 @@ function GroupChildrenContainer({
                     />
                 </Animated.View>
             </Animated.View>
-        </View>
+        </Animated.View>
     );
 }
 
