@@ -103,14 +103,17 @@ function ReportFetchHandler() {
     const reportID = reportOnyx?.reportID;
     const report = reportOnyx;
 
-    // FIX #82013: Once the deeplinked public room is loaded and focused, clear the pending reportID so it
-    // no longer overrides the default (last-accessed) report selection for later navigations.
+    // FIX #82013: Keep the pending public-room deeplink reportID for the whole anonymous session so the
+    // deeplinked room stays focused through the auth/OpenApp re-resolutions that would otherwise let
+    // ReportsSplitNavigator default to the last-accessed (Concierge) report. Clear it only once the user
+    // signs in to a real (non-anonymous) account, so it no longer affects their default report selection.
+    // (It is RAM-only, so it is also dropped on app restart.)
     useEffect(() => {
-        if (!pendingPublicRoomReportID || pendingPublicRoomReportID !== reportIDFromRoute || isLoadingReportData !== false || !reportID) {
+        if (!pendingPublicRoomReportID || isAnonymousUser) {
             return;
         }
         Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID, null);
-    }, [pendingPublicRoomReportID, reportIDFromRoute, isLoadingReportData, reportID]);
+    }, [pendingPublicRoomReportID, isAnonymousUser]);
 
     const {reportActions: unfilteredReportActions, linkedAction} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
