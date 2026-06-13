@@ -28,7 +28,7 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompa
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const policyID = policy?.id;
     const areExpensifyCardsEnabled = policy?.areExpensifyCardsEnabled;
-    const canUseLearnMore = areExpensifyCardsEnabled ? canWriteCompanyCards : canWriteMoreFeatures;
+    const canUseLearnMore = areExpensifyCardsEnabled && canWriteCompanyCards;
 
     const illustrations = useMemoizedLazyIllustrations(['CreditCardsNewGreen']);
 
