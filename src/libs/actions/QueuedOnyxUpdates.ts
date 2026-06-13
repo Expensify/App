@@ -1,7 +1,9 @@
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Session} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 // In this file we manage a queue of Onyx updates while the SequentialQueue is processing. There are functions to get the updates and clear the queue after saving the updates in Onyx.
@@ -33,25 +35,39 @@ function flushQueue(): Promise<void> {
     queuedOnyxUpdates = [];
 
     if (!currentAccountID && !CONFIG.IS_TEST_ENV) {
-        const preservedKeys = new Set<OnyxKey>([
-            ONYXKEYS.NVP_TRY_NEW_DOT,
-            ONYXKEYS.NVP_TRY_FOCUS_MODE,
-            ONYXKEYS.PREFERRED_THEME,
-            ONYXKEYS.NVP_PREFERRED_LOCALE,
-            ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
-            ONYXKEYS.SESSION,
-            ONYXKEYS.IS_LOADING_APP,
-            ONYXKEYS.HAS_LOADED_APP,
-            ONYXKEYS.CREDENTIALS,
-            ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
-            ONYXKEYS.ACCOUNT,
-            ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
-            ONYXKEYS.MODAL,
-            ONYXKEYS.NETWORK,
-            ONYXKEYS.PRESERVED_USER_SESSION,
-        ]);
+        // FIX #82013: If this queued batch itself establishes the ANONYMOUS session (it contains a SESSION
+        // update carrying an authToken whose authTokenType is anonymous), every other update in the batch
+        // belongs to that newly-established session and cannot be the stale cross-account replay that
+        // #48427/#52822 guard against. This is the signed-out public-room deeplink flow: OpenReport returns
+        // the anonymous SESSION and the report_* collection data in the same batch. Without this bypass the
+        // report data is filtered out and deeplink navigation hangs. We gate on the anonymous authTokenType
+        // (not just any authToken) so the stale-data protection stays intact for every other flow.
+        const establishesAnonymousSession = copyUpdates.some((update) => {
+            const sessionValue = update.value as Session | undefined;
+            return update.key === ONYXKEYS.SESSION && !!sessionValue?.authToken && sessionValue.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+        });
 
-        copyUpdates = copyUpdates.filter((update) => preservedKeys.has(update.key as OnyxKey));
+        if (!establishesAnonymousSession) {
+            const preservedKeys = new Set<OnyxKey>([
+                ONYXKEYS.NVP_TRY_NEW_DOT,
+                ONYXKEYS.NVP_TRY_FOCUS_MODE,
+                ONYXKEYS.PREFERRED_THEME,
+                ONYXKEYS.NVP_PREFERRED_LOCALE,
+                ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
+                ONYXKEYS.SESSION,
+                ONYXKEYS.IS_LOADING_APP,
+                ONYXKEYS.HAS_LOADED_APP,
+                ONYXKEYS.CREDENTIALS,
+                ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
+                ONYXKEYS.ACCOUNT,
+                ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
+                ONYXKEYS.MODAL,
+                ONYXKEYS.NETWORK,
+                ONYXKEYS.PRESERVED_USER_SESSION,
+            ]);
+
+            copyUpdates = copyUpdates.filter((update) => preservedKeys.has(update.key as OnyxKey));
+        }
     }
     return Onyx.update(copyUpdates);
 }
