@@ -1,4 +1,3 @@
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {
     areAllTargetsAccountingCompatible,
     areAllTargetsCompatibleForAccountingPart,
@@ -12,14 +11,12 @@ import {
     isTargetCompatibleForAccountingPart,
 } from '@libs/CopyPolicySettingsUtils';
 import type {CopyPolicySettingsSourceFeatureContext} from '@libs/CopyPolicySettingsUtils';
-import {translate} from '@libs/Localize';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import createRandomPolicy from '../utils/collections/policies';
-
-const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
+import {translateLocal} from '../utils/TestHelper';
 
 function makePolicyWithConnection(connectionName: ConnectionName, connectionPayload: Record<string, unknown>): Policy {
     const base = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
@@ -211,7 +208,7 @@ describe('CopyPolicySettingsUtils', () => {
             const policy = createRandomPolicy(11);
             policy.receiptPartners = {enabled: true, uber: {organizationName: 'Acme Uber Org'}};
 
-            expect(getReceiptPartnersCopySettingsDescription(policy, mockTranslate)).toBe('Acme Uber Org');
+            expect(getReceiptPartnersCopySettingsDescription(policy, translateLocal)).toBe('Acme Uber Org');
         });
 
         it('shows time tracking only when the feature is enabled on the source', () => {
@@ -230,8 +227,8 @@ describe('CopyPolicySettingsUtils', () => {
             const policy = createRandomPolicy(7);
             policy.units = {time: {enabled: true, rate: 75}};
 
-            expect(getTimeTrackingCopySettingsDescription(policy, mockTranslate)).toBe(
-                `${mockTranslate('common.enabled')}, ${mockTranslate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}: 75`,
+            expect(getTimeTrackingCopySettingsDescription(policy, translateLocal)).toBe(
+                `${translateLocal('common.enabled')}, ${translateLocal('workspace.moreFeatures.timeTracking.defaultHourlyRate')}: 75`,
             );
         });
 
@@ -239,7 +236,7 @@ describe('CopyPolicySettingsUtils', () => {
             const policy = createRandomPolicy(8);
             policy.units = {time: {enabled: true}};
 
-            expect(getTimeTrackingCopySettingsDescription(policy, mockTranslate)).toBe(mockTranslate('common.enabled'));
+            expect(getTimeTrackingCopySettingsDescription(policy, translateLocal)).toBe(translateLocal('common.enabled'));
         });
 
         it('hides distance rates when the feature flag is off even if rates exist', () => {
