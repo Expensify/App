@@ -168,6 +168,7 @@ import {
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getAmount, getCurrency, getNegatedAmountTransaction, isOnHold, recalculateUnreportedTransactionDetails, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
@@ -4744,7 +4745,11 @@ function leaveGroupChat(
         },
     ];
 
-    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, betas);
+    if (isSearchTopmostFullScreenRoute()) {
+        Navigation.revealRouteBeforeDismissingModal(getReportRouteForCurrentContext({reportID}));
+    } else {
+        navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, betas);
+    }
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
