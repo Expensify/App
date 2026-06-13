@@ -30,7 +30,7 @@ type UseResolvedAttachmentSourceReturn = {
  * that case and re-mints a fresh object URL from the attachment cache.
  */
 function useResolvedAttachmentSource({attachmentID, source}: UseResolvedAttachmentSourceParams): UseResolvedAttachmentSourceReturn {
-    const [attachment] = useOnyx(attachmentID ? `${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}` : undefined);
+    const [attachment] = useOnyx(attachmentID ? `${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}` : ONYXKEYS.SESSION);
     const [resolvedSource, setResolvedSource] = useState<string | ImageSourcePropType>(source);
     const [isLoading, setIsLoading] = useState(false);
 
