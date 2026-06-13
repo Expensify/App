@@ -2788,6 +2788,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         confirmModalPromptScrollable: {
             maxHeight: 300,
+            paddingRight: 8,
         },
 
         modalBackdrop: {
