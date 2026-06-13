@@ -617,6 +617,9 @@ const ONYXKEYS = {
     /** Stores the year selected in the year picker so it can be read back by the CalendarPicker that opened it */
     CALENDAR_PICKER_SELECTED_YEAR: 'calendarPickerSelectedYear',
 
+    /** Stores the active Search date-filter sub-view (Custom date/range modifier) so the date filter can restore it after the year picker screen unmounts and remounts it */
+    CALENDAR_PICKER_SELECTED_DATE_MODIFIER: 'calendarPickerSelectedDateModifier',
+
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
 
@@ -1632,6 +1635,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA]: OnyxTypes.ImportedSpreadsheetMemberData[];
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE]: ValueOf<typeof CONST.POLICY.ROLE>;
     [ONYXKEYS.CALENDAR_PICKER_SELECTED_YEAR]: {contextID: string; year: number};
+    [ONYXKEYS.CALENDAR_PICKER_SELECTED_DATE_MODIFIER]: string;
     [ONYXKEYS.LAST_ROUTE]: string;
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;

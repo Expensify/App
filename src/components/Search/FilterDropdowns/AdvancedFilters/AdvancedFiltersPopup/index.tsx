@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import SafeTriangle from '@components/SafeTriangle';
 import FilterContent from '@components/Search/FilterComponents/AdvancedFilters/FilterContent';
@@ -25,6 +25,19 @@ function AdvancedFiltersPopup({queryJSON}: AdvancedFiltersPopupProps) {
     const [selectedFilter, setSelectedFilter] = useState<SearchFilter['key']>(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE);
     const filterContentRef = useRef<View>(null);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [storedYearSelection] = useOnyx(ONYXKEYS.CALENDAR_PICKER_SELECTED_YEAR);
+    const hasRestoredFilterRef = useRef(false);
+
+    // The year picker is only reached from the Date filter; opening it blurs the Search screen and unmounts
+    // this popover, which would otherwise remount reset to the default Type filter. When returning (a pending
+    // year write-back for a search calendar), reopen to the Date filter so the user lands back on the calendar.
+    useEffect(() => {
+        if (hasRestoredFilterRef.current || !storedYearSelection?.contextID.startsWith('search')) {
+            return;
+        }
+        hasRestoredFilterRef.current = true;
+        requestAnimationFrame(() => setSelectedFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE));
+    }, [storedYearSelection]);
 
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
 

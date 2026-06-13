@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,12 +7,15 @@ import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/Dat
 import useFullscreenAdvancedFilters from '@components/Search/FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
 import type {SearchDateFilterKeys} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setCalendarPickerSelectedDateModifier} from '@libs/actions/CalendarPicker';
 import {getDateModifierTitle} from '@libs/SearchQueryUtils';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 type DateFilterComponentProps = {
@@ -30,6 +33,32 @@ function DateFilterComponent({filterKey, value: initialValue, hasFeed, onChange}
 
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
     const [value, setValue] = useState(initialValue);
+
+    // Opening the year picker blurs the Search screen and unmounts this popover, resetting selectedDateModifier
+    // (the Custom date/range sub-view) back to the top menu on return. Persist it and restore it on return (a
+    // pending year write-back for a search calendar) so the calendar reopens with the picked year applied.
+    const [storedDateModifier] = useOnyx(ONYXKEYS.CALENDAR_PICKER_SELECTED_DATE_MODIFIER);
+    const [storedYearSelection] = useOnyx(ONYXKEYS.CALENDAR_PICKER_SELECTED_YEAR);
+    const hasRestoredDateModifierRef = useRef(false);
+
+    useEffect(() => {
+        if (!selectedDateModifier) {
+            return;
+        }
+        setCalendarPickerSelectedDateModifier(selectedDateModifier);
+    }, [selectedDateModifier]);
+
+    useEffect(() => {
+        if (hasRestoredDateModifierRef.current || selectedDateModifier || !storedDateModifier || !storedYearSelection?.contextID.startsWith('search')) {
+            return;
+        }
+        const dateModifierToRestore = Object.values(CONST.SEARCH.DATE_MODIFIERS).find((modifier) => modifier === storedDateModifier);
+        if (!dateModifierToRestore) {
+            return;
+        }
+        hasRestoredDateModifierRef.current = true;
+        requestAnimationFrame(() => setSelectedDateModifier(dateModifierToRestore));
+    }, [storedDateModifier, storedYearSelection, selectedDateModifier]);
 
     const getDateFormValues = (dateValues: SearchDateValues) => {
         const dateFormValues: Record<string, string | undefined> = {};
