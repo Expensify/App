@@ -1,253 +1,138 @@
-import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
-import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import Icon from '@components/Icon';
-import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import Text from '@components/Text';
-import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useOnyx from '@hooks/useOnyx';
-import usePopoverPosition from '@hooks/usePopoverPosition';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {ButtonComponentProps, FilterPopupButtonProps} from './FilterPopupButton';
+import FilterPopupButton from './FilterPopupButton';
 
-type PopoverComponentProps = {
-    isExpanded: boolean;
-    closeOverlay: () => void;
-    setPopoverWidth?: (width: number | undefined) => void;
-};
+type DropdownButtonComponentProps = ButtonComponentProps;
 
-type DropdownButtonComponentProps = {
-    onPress: () => void;
-    ref: RefObject<View | null>;
-};
+type DropdownButtonProps = WithSentryLabel &
+    Omit<FilterPopupButtonProps, 'renderButton' | 'viewportOffsetTop' | 'popoverAnchorAlignment'> & {
+        /** The label to display on the select */
+        label: string;
 
-type DropdownButtonProps = WithSentryLabel & {
-    children?: (triggerRef: RefObject<View | null>, onPress: () => void) => ReactNode;
+        /** The selected value(s) if any */
+        value: string | string[] | null;
 
-    /** The label to display on the select */
-    label: string;
+        /** The component to render as the button */
+        ButtonComponent?: React.ComponentType<DropdownButtonComponentProps>;
 
-    /** The selected value(s) if any */
-    value: string | string[] | null;
+        /** Whether to use medium size button instead of small */
+        medium?: boolean;
 
-    /** The viewport's offset */
-    viewportOffsetTop: number;
+        /** Button inner styles */
+        innerStyles?: StyleProp<ViewStyle>;
 
-    /** The component to render in the popover */
-    PopoverComponent: (props: PopoverComponentProps) => ReactNode;
+        /** Button label style */
+        labelStyle?: StyleProp<TextStyle>;
 
-    ButtonComponent?: React.ComponentType<DropdownButtonComponentProps>;
+        /** Caret wrapper style */
+        caretWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Whether to use medium size button instead of small */
-    medium?: boolean;
+        /** Popover anchor alignment relative to the trigger */
+        anchorAlignment?: FilterPopupButtonProps['popoverAnchorAlignment'];
 
-    /** Button inner styles */
-    innerStyles?: StyleProp<ViewStyle>;
-
-    /** Button label style */
-    labelStyle?: StyleProp<TextStyle>;
-
-    /** Caret wrapper style */
-    caretWrapperStyle?: StyleProp<ViewStyle>;
-
-    /** Wrapper style for the outer view */
-    wrapperStyle?: StyleProp<ViewStyle>;
-    onClosePress?: () => void;
-
-    /** Popover anchor alignment relative to the trigger */
-    anchorAlignment?: AnchorAlignment;
-};
-
-const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-};
+        onClosePress?: () => void;
+    };
 
 function DropdownButton({
     label,
     value,
-    viewportOffsetTop,
-    PopoverComponent,
     ButtonComponent,
     medium = false,
     labelStyle,
     innerStyles,
     caretWrapperStyle,
-    wrapperStyle,
     sentryLabel,
+    anchorAlignment,
     onClosePress,
-    anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
+    ...props
 }: DropdownButtonProps) {
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const styles = useThemeStyles();
+    const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
-    const {windowHeight} = useWindowDimensions();
-    const triggerRef = useRef<View | null>(null);
-    const anchorRef = useRef<View | null>(null);
-    const [isOverlayVisible, setIsOverlayVisible] = useState(false);
-    const [customPopoverWidth, setCustomPopoverWidth] = useState<number | undefined>(undefined);
-    const {calculatePopoverPosition} = usePopoverPosition();
+    const shouldShowCloseButton = !!onClosePress;
 
-    const [popoverTriggerPosition, setPopoverTriggerPosition] = useState({
-        horizontal: 0,
-        vertical: 0,
-    });
-
-    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
-
-    /**
-     * Toggle the overlay between open & closed
-     */
-    const toggleOverlay = useCallback(() => {
-        setIsOverlayVisible((previousValue) => {
-            if (!previousValue && willAlertModalBecomeVisible) {
-                return false;
-            }
-
-            return !previousValue;
-        });
-    }, [willAlertModalBecomeVisible]);
-
-    /**
-     * Calculate popover position and toggle overlay
-     */
-    const calculatePopoverPositionAndToggleOverlay = useCallback(() => {
-        calculatePopoverPosition(anchorRef, anchorAlignment).then((pos) => {
-            setPopoverTriggerPosition({...pos, vertical: pos.vertical});
-            toggleOverlay();
-        });
-    }, [anchorAlignment, calculatePopoverPosition, toggleOverlay]);
     /**
      * When no items are selected, render the label, otherwise, render the
      * list of selected items as well
      */
-    const buttonText = useMemo(() => {
+    const getButtonText = () => {
         if (!value?.length) {
             return label;
         }
 
         const selectedItems = Array.isArray(value) ? value.join(', ') : value;
         return `${label}: ${selectedItems}`;
-    }, [label, value]);
-
-    const actualPopoverWidth = customPopoverWidth ?? CONST.POPOVER_DROPDOWN_WIDTH;
-
-    const containerStyles = useMemo(() => {
-        if (isSmallScreenWidth) {
-            return styles.w100;
-        }
-        return {width: actualPopoverWidth};
-    }, [isSmallScreenWidth, styles, actualPopoverWidth]);
-
-    const popoverContent = useMemo(() => {
-        return PopoverComponent({closeOverlay: toggleOverlay, isExpanded: isOverlayVisible, setPopoverWidth: setCustomPopoverWidth});
-    }, [PopoverComponent, toggleOverlay, isOverlayVisible]);
-
-    const shouldShowCloseButton = !!onClosePress;
+    };
 
     return (
-        <View
-            ref={anchorRef}
-            style={wrapperStyle}
-        >
-            {/* Dropdown Trigger */}
-            {ButtonComponent ? (
-                <ButtonComponent
-                    ref={triggerRef}
-                    onPress={calculatePopoverPositionAndToggleOverlay}
-                />
-            ) : (
-                <View style={[styles.flexRow]}>
-                    <Button
-                        ref={triggerRef}
-                        innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}, innerStyles, shouldShowCloseButton && styles.pr2]}
-                        onPress={calculatePopoverPositionAndToggleOverlay}
-                        sentryLabel={sentryLabel}
-                        shouldRemoveRightBorderRadius={shouldShowCloseButton}
-                        {...(medium ? {medium: true} : {small: true})}
-                    >
-                        <CaretWrapper
-                            style={[styles.flex1, styles.mw100, caretWrapperStyle]}
-                            caretWidth={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
-                            caretHeight={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
-                            isActive={isOverlayVisible}
-                        >
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.textMicroBold, styles.flexShrink1, labelStyle]}
-                            >
-                                {buttonText}
-                            </Text>
-                        </CaretWrapper>
-                    </Button>
-                    {shouldShowCloseButton && (
-                        <>
-                            <View style={[styles.buttonDivider]} />
-                            <Button
-                                small
-                                shouldRemoveLeftBorderRadius
-                                innerStyles={[styles.pl0, styles.pr0half, styles.filterDropDownCloseIcon]}
-                                onPress={onClosePress}
-                            >
-                                <Icon
-                                    src={icons.Close}
-                                    fill={theme.icon}
-                                    width={variables.iconSizeXXSmall}
-                                    height={variables.iconSizeXXSmall}
-                                />
-                            </Button>
-                        </>
-                    )}
-                </View>
-            )}
+        <FilterPopupButton
+            {...props}
+            popoverAnchorAlignment={anchorAlignment}
+            renderButton={(buttonProps) => {
+                if (ButtonComponent) {
+                    return <ButtonComponent {...buttonProps} />;
+                }
 
-            {/* Dropdown overlay */}
-            <PopoverWithMeasuredContent
-                anchorRef={triggerRef}
-                avoidKeyboard
-                isVisible={isOverlayVisible}
-                onClose={toggleOverlay}
-                anchorPosition={popoverTriggerPosition}
-                anchorAlignment={anchorAlignment}
-                restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-                shouldEnableNewFocusManagement
-                shouldMeasureAnchorPositionFromTop={false}
-                outerStyle={{...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop), ...containerStyles}}
-                // This must be false because we dont want the modal to close if we open the RHP for selections
-                // such as date years
-                shouldCloseWhenBrowserNavigationChanged={false}
-                innerContainerStyle={{...containerStyles, ...styles.p0}}
-                popoverDimensions={{
-                    width: actualPopoverWidth,
-                    height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
-                }}
-                shouldSkipRemeasurement
-                shouldDisplayBelowModals
-                shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
-            >
-                {popoverContent}
-            </PopoverWithMeasuredContent>
-        </View>
+                return (
+                    <View style={[styles.flexRow]}>
+                        <Button
+                            ref={buttonProps.ref}
+                            innerStyles={[buttonProps.isExpanded && styles.buttonHoveredBG, {maxWidth: 256}, innerStyles, shouldShowCloseButton && styles.pr2]}
+                            onPress={buttonProps.onPress}
+                            sentryLabel={sentryLabel}
+                            shouldRemoveRightBorderRadius={shouldShowCloseButton}
+                            {...(medium ? {medium: true} : {small: true})}
+                        >
+                            <CaretWrapper
+                                style={[styles.flex1, styles.mw100, caretWrapperStyle]}
+                                caretWidth={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
+                                caretHeight={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
+                                isActive={buttonProps.isExpanded}
+                            >
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.textMicroBold, styles.flexShrink1, labelStyle]}
+                                >
+                                    {getButtonText()}
+                                </Text>
+                            </CaretWrapper>
+                        </Button>
+                        {shouldShowCloseButton && (
+                            <>
+                                <View style={[styles.buttonDivider]} />
+                                <Button
+                                    small
+                                    shouldRemoveLeftBorderRadius
+                                    innerStyles={[styles.pl0, styles.pr0half, styles.filterDropDownCloseIcon]}
+                                    onPress={onClosePress}
+                                >
+                                    <Icon
+                                        src={icons.Close}
+                                        fill={theme.icon}
+                                        width={variables.iconSizeXXSmall}
+                                        height={variables.iconSizeXXSmall}
+                                    />
+                                </Button>
+                            </>
+                        )}
+                    </View>
+                );
+            }}
+        />
     );
 }
 
-export type {PopoverComponentProps, DropdownButtonComponentProps, DropdownButtonProps};
-export default withViewportOffsetTop(DropdownButton);
+export default DropdownButton;
+export type {DropdownButtonComponentProps, DropdownButtonProps};

@@ -2,7 +2,9 @@ import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Animated from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import {useSearchSidebarContentOffsetStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -96,11 +98,12 @@ function SearchPageWide({
     }, [shouldShowFooter, styles]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    const splitContainerAnimatedStyle = useSearchSidebarContentOffsetStyle();
 
     return (
-        <View
+        <Animated.View
             ref={receiptDropTargetRef}
-            style={styles.searchSplitContainer}
+            style={[styles.searchSplitContainer, splitContainerAnimatedStyle]}
         >
             <ScreenWrapper
                 testID="Search"
@@ -170,7 +173,7 @@ function SearchPageWide({
                 </FullPageNotFoundView>
             </ScreenWrapper>
             {!!queryJSON && <ReceiptScanDropZone targetRef={receiptDropTargetRef} />}
-        </View>
+        </Animated.View>
     );
 }
 

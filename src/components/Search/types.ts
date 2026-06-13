@@ -1,6 +1,8 @@
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {SelectionListStyle} from '@components/SelectionList/types';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
@@ -141,6 +143,7 @@ type BulkPaySelectionData = {
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
+type SearchSortBy = SearchColumnType | ValueOf<typeof CONST.SEARCH.SORT_BY_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
 type ExpenseReportSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE_REPORT>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
@@ -282,6 +285,7 @@ type SearchDateFilterKeys =
 type SearchDateKey = `${SearchDateFilterKeys}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}` | ReportFieldDateKey;
 
 type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
+type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
 
 type SearchCurrencyFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
@@ -320,7 +324,7 @@ type SearchQueryString = string;
 type SearchQueryAST = {
     type: SearchDataTypes;
     status: SearchStatus;
-    sortBy: SearchColumnType;
+    sortBy: SearchSortBy;
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
     view: SearchView;
@@ -408,14 +412,24 @@ type SearchChartProps = {
     unitPosition?: UnitPosition;
 };
 
+type SearchFilterCommonProps = {
+    selectionListTextInputStyle?: StyleProp<ViewStyle>;
+    selectionListStyle?: SelectionListStyle;
+    autoFocus?: boolean;
+    ready?: boolean;
+    footer?: React.ReactNode;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
     SearchColumnType,
+    SearchSortBy,
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchDateKey,
     SearchAmountFilterKeys,
+    SearchAmountValues,
     SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
@@ -460,4 +474,5 @@ export type {
     SearchCustomColumnIds,
     GroupedItem,
     SearchChartProps,
+    SearchFilterCommonProps,
 };
