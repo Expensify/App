@@ -48,7 +48,7 @@ Transactions are evaluated in the following order:
 3. If the transaction passes the default protections and any assigned Spend rules, it is approved.
 
 Cards without Spend rules are governed only by the default protections and any applicable card limits.
-   - In **Allow mode**, a transaction is approved only when it matches an allowed merchant or spend category and remains within the maximum amount.
+
 ---
 
 ## What restriction types are available for Expensify Card Spend rules
