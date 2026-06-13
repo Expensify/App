@@ -1,5 +1,3 @@
-import type {RefObject} from 'react';
-
-type UseScreenInitialFocus = (ref: RefObject<HTMLElement | null>) => void;
+type UseScreenInitialFocus = (node: HTMLElement | null) => void;
 
 export default UseScreenInitialFocus;

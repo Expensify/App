@@ -408,7 +408,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             >
                                                 <MenuItem
                                                     key={memberCard.cardID}
-                                                    pressableTestID={memberCard.cardID}
+                                                    pressableTestID={`card-${memberCard.cardID}`}
                                                     title={cardTitle ?? customCardNames?.[memberCard.cardID] ?? maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
                                                     description={memberCard?.lastFourPAN ?? lastFourNumbersFromCardName(memberCard?.cardName)}
                                                     badgeText={

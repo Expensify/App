@@ -1,15 +1,15 @@
-import {useRef} from 'react';
+import {useState} from 'react';
 import useScreenInitialFocus from '@hooks/useScreenInitialFocus';
 import isHTMLElement from '@libs/isHTMLElement';
 
-/** Returns a ref-callback to attach to the element that should claim focus when its screen mounts (e.g. a back button on a screen header). */
+/** Returns a ref-callback to attach to the element that should claim focus when its screen mounts (e.g. a back button on a screen header). Late attachment re-triggers the claim. */
 function useInitialFocusRef(): (node: unknown) => void {
-    const ref = useRef<HTMLElement | null>(null);
-    const setRef = (node: unknown) => {
-        ref.current = isHTMLElement(node) ? node : null;
+    const [node, setNode] = useState<HTMLElement | null>(null);
+    useScreenInitialFocus(node);
+    return (newNode: unknown) => {
+        const next = isHTMLElement(newNode) ? newNode : null;
+        setNode((prev) => (prev === next ? prev : next));
     };
-    useScreenInitialFocus(ref);
-    return setRef;
 }
 
 export default useInitialFocusRef;

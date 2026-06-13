@@ -26,10 +26,11 @@ function isOnScreen(el: HTMLElement): boolean {
 const MAX_INITIAL_FOCUS_FRAMES = 5;
 
 /*
- * Mobile-web counterpart to `useDialogContainerFocus` (RHP-only): focuses `ref` once after `didScreenTransitionEnd`.
+ * Mobile-web counterpart to `useDialogContainerFocus` (RHP-only): focuses `node` once after `didScreenTransitionEnd`.
+ * Takes the attached node (not a ref) so late attachment — skeleton → real header, Suspense — re-runs the effect.
  * Hover-capable devices gate on Tab (WCAG 2.4.7); touch-primary devices bypass.
  */
-const useScreenInitialFocus: UseScreenInitialFocus = (ref) => {
+const useScreenInitialFocus: UseScreenInitialFocus = (node) => {
     const status = useContext(ScreenWrapperStatusContext);
     const {isInsideDialog} = useDialogLabelData();
     const claimedRef = useRef(false);
@@ -45,18 +46,19 @@ const useScreenInitialFocus: UseScreenInitialFocus = (ref) => {
         if (claimedRef.current) {
             return;
         }
+        if (!node) {
+            return;
+        }
         if (hasHoverSupport() && !getHadTabNavigation()) {
             return;
         }
         let rafId: number | null = null;
         let framesLeft = MAX_INITIAL_FOCUS_FRAMES;
         const attempt = () => {
-            const el = ref.current;
-            if (el && isOnScreen(el) && claimInitialFocus(el, {focusVisible: getHadTabNavigation()})) {
+            if (isOnScreen(node) && claimInitialFocus(node, {focusVisible: getHadTabNavigation()})) {
                 claimedRef.current = true;
                 return;
             }
-            // The target can attach, or its ancestors settle so focus lands, a few frames after the transition ends.
             framesLeft -= 1;
             if (framesLeft <= 0) {
                 return;
@@ -70,7 +72,7 @@ const useScreenInitialFocus: UseScreenInitialFocus = (ref) => {
             }
             cancelAnimationFrame(rafId);
         };
-    }, [isInsideDialog, status?.didScreenTransitionEnd, ref]);
+    }, [isInsideDialog, status?.didScreenTransitionEnd, node]);
 };
 
 export default useScreenInitialFocus;

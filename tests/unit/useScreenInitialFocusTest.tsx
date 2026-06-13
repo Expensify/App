@@ -1,5 +1,5 @@
-import {act, render} from '@testing-library/react-native';
-import React, {useMemo, useRef} from 'react';
+import {render} from '@testing-library/react-native';
+import React, {useMemo} from 'react';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
 let mockHasHoverSupport = true;
@@ -9,7 +9,7 @@ jest.mock('@libs/DeviceCapabilities/hasHoverSupport', () => ({
 }));
 
 /* eslint-disable import/extensions */
-const {default: useScreenInitialFocus} = require<{default: (ref: React.RefObject<HTMLElement | null>) => void}>('../../src/hooks/useScreenInitialFocus/index.ts');
+const {default: useScreenInitialFocus} = require<{default: (node: HTMLElement | null) => void}>('../../src/hooks/useScreenInitialFocus/index.ts');
 const {resetCycle: resetArbiter, tryClaim: arbiterClaim, Priorities: arbiterPriorities} = require<{
     resetCycle: () => void;
     tryClaim: (priority: 1 | 2 | 3) => boolean;
@@ -41,21 +41,7 @@ function MountedHarness({target, didScreenTransitionEnd}: HarnessProps) {
     );
 }
 function Inner({target}: {target: HTMLElement | null}) {
-    const ref = useRef<HTMLElement | null>(target);
-    useScreenInitialFocus(ref);
-    return null;
-}
-
-function MountedHarnessWithRefObject({refObject}: {refObject: React.RefObject<HTMLElement | null>}) {
-    const contextValue = useMemo(() => ({didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}), []);
-    return (
-        <ScreenWrapperStatusContext.Provider value={contextValue}>
-            <InnerWithRefObject refObject={refObject} />
-        </ScreenWrapperStatusContext.Provider>
-    );
-}
-function InnerWithRefObject({refObject}: {refObject: React.RefObject<HTMLElement | null>}) {
-    useScreenInitialFocus(refObject);
+    useScreenInitialFocus(target);
     return null;
 }
 
@@ -212,20 +198,24 @@ describe('useScreenInitialFocus', () => {
         expect(spy).not.toHaveBeenCalled();
     });
 
-    it('retries focus on the next frame when the target ref is not yet attached at transition end', async () => {
+    it('claims focus when the target attaches after transition end (skeleton → real header, Suspense, conditional render)', () => {
         simulateTab();
-        const refObject: React.RefObject<HTMLElement | null> = {current: null};
         const button = makeButton();
         const spy = jest.spyOn(button, 'focus');
-        render(<MountedHarnessWithRefObject refObject={refObject} />);
+        const {rerender} = render(
+            <MountedHarness
+                target={null}
+                didScreenTransitionEnd
+            />,
+        );
         expect(spy).not.toHaveBeenCalled();
 
-        refObject.current = button;
-        await act(async () => {
-            await new Promise<void>((resolve) => {
-                requestAnimationFrame(() => resolve());
-            });
-        });
+        rerender(
+            <MountedHarness
+                target={button}
+                didScreenTransitionEnd
+            />,
+        );
         expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
     });
 
