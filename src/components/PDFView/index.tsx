@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isMobileSafari} from '@libs/Browser';
 import variables from '@styles/variables';
 import {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth} from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
@@ -21,6 +22,55 @@ import type {PDFViewProps} from './types';
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
+const VIEWPORT_META_SELECTOR = 'meta[name="viewport"]';
+const DISABLED_USER_SCALING = 'user-scalable=no';
+const ENABLED_USER_SCALING = 'user-scalable=yes';
+let originalViewportContent: string | null = null;
+let viewportScalingEnableCount = 0;
+
+function enablePDFViewportScaling() {
+    if (viewportScalingEnableCount > 0) {
+        viewportScalingEnableCount++;
+        return;
+    }
+
+    const viewportMeta = document.querySelector<HTMLMetaElement>(VIEWPORT_META_SELECTOR);
+    const viewportContent = viewportMeta?.getAttribute('content');
+
+    if (!viewportMeta || !viewportContent?.includes(DISABLED_USER_SCALING)) {
+        return;
+    }
+
+    originalViewportContent = viewportContent;
+    const nextViewportContent = viewportContent
+        .replace(DISABLED_USER_SCALING, ENABLED_USER_SCALING)
+        .split(',')
+        .map((viewportProperty) => viewportProperty.trim())
+        .filter(Boolean);
+
+    if (!nextViewportContent.some((viewportProperty) => viewportProperty.startsWith('maximum-scale='))) {
+        nextViewportContent.push('maximum-scale=5');
+    }
+
+    viewportMeta.setAttribute('content', nextViewportContent.join(', '));
+    viewportScalingEnableCount++;
+}
+
+function restorePDFViewportScaling() {
+    if (viewportScalingEnableCount === 0) {
+        return;
+    }
+
+    viewportScalingEnableCount--;
+
+    if (viewportScalingEnableCount > 0 || originalViewportContent === null) {
+        return;
+    }
+
+    const viewportMeta = document.querySelector<HTMLMetaElement>(VIEWPORT_META_SELECTOR);
+    viewportMeta?.setAttribute('content', originalViewportContent);
+    originalViewportContent = null;
+}
 
 function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, style, isUsedAsChatAttachment, onLoadError, rotation}: PDFViewProps) {
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
@@ -72,6 +122,15 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
         retrieveCanvasLimits();
         // This rule needs to be applied so that this effect is executed only when the component is mounted
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (!isMobileSafari()) {
+            return;
+        }
+
+        enablePDFViewportScaling();
+        return restorePDFViewportScaling;
     }, []);
 
     useEffect(() => {
