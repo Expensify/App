@@ -178,7 +178,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
 
+    // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
+    const isDisabledOrEmpty = isEmpty || isDisabled;
 
     const refreshTransactions = () => {
         if (!groupItem.transactionsQueryJSON) {
@@ -291,7 +293,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     };
 
     const onPress = (event?: ModifiedMouseEvent) => {
-        if (isExpenseReportType) {
+        if (isExpenseReportType || transactions.length === 0) {
             onSelectRow(item, transactionPreviewData, event);
         }
         if (!isExpenseReportType) {
@@ -327,7 +329,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
                     onCheckboxPress={(options) => handleSelectionButtonPress(item, options)}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -341,7 +343,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <CardListItemHeader
                     card={groupItem as TransactionCardGroupListItemType}
                     onCheckboxPress={(options) => handleSelectionButtonPress(item, options)}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
@@ -355,7 +357,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <WithdrawalIDListItemHeader
                     withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
                     onCheckboxPress={(options) => handleSelectionButtonPress(item, options)}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -368,7 +370,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <CategoryListItemHeader
                     category={groupItem as TransactionCategoryGroupListItemType}
                     onCheckboxPress={(options) => handleSelectionButtonPress(item, options)}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -381,7 +383,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <MerchantListItemHeader
                     merchant={groupItem as TransactionMerchantGroupListItemType}
                     onCheckboxPress={(options) => handleSelectionButtonPress(item, options)}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -394,7 +396,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <TagListItemHeader
                     tag={groupItem as TransactionTagGroupListItemType}
                     onCheckboxPress={(options) => handleSelectionButtonPress(item, options)}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -407,7 +409,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <MonthListItemHeader
                     month={groupItem as TransactionMonthGroupListItemType}
                     onCheckboxPress={(options) => handleSelectionButtonPress(item, options)}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -420,7 +422,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <WeekListItemHeader
                     week={groupItem as TransactionWeekGroupListItemType}
                     onCheckboxPress={(options) => handleSelectionButtonPress(item, options)}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -433,7 +435,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <YearListItemHeader
                     year={groupItem as TransactionYearGroupListItemType}
                     onCheckboxPress={(options) => handleSelectionButtonPress(item, options)}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -446,7 +448,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <QuarterListItemHeader
                     quarter={groupItem as TransactionQuarterGroupListItemType}
                     onCheckboxPress={(options) => handleSelectionButtonPress(item, options)}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
