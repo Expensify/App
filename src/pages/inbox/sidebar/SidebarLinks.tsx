@@ -5,8 +5,6 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import LHNEmptyState from '@components/LHNOptionsList/LHNEmptyState';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
-import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,10 +13,8 @@ import {setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
@@ -41,7 +37,6 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {setStickyReportID} = useSidebarOrderedReportsActions();
-    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
     useEffect(() => {
         ReportActionContextMenu.hideContextMenu(false);
@@ -80,12 +75,6 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
-    const sidebarSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SidebarLinks',
-        isLoadingReportData,
-        optionListItemsCount: optionListItems?.length,
-    };
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
 
@@ -108,14 +97,6 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                         optionMode={viewMode}
                         onFirstItemRendered={setSidebarLoaded}
                     />
-                )}
-                {isLoadingReportData && optionListItems?.length === 0 && (
-                    <View style={[StyleSheet.absoluteFill, styles.appBG, styles.mt3]}>
-                        <OptionsListSkeletonView
-                            shouldAnimate
-                            reasonAttributes={sidebarSkeletonReasonAttributes}
-                        />
-                    </View>
                 )}
             </View>
         </View>
