@@ -7531,7 +7531,7 @@ const CONST = {
             approvalSubmitReport: {
                 id: 'approvalSubmitReport' as const,
                 alias: 'approval-submit-report',
-                name: 'Approve Reports',
+                name: 'Approve reports',
                 title: 'workspace.upgrade.approvalSubmitReport.title' as const,
                 description: 'workspace.upgrade.approvalSubmitReport.description' as const,
                 icon: 'Approval',
