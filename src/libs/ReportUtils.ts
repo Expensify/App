@@ -11495,7 +11495,7 @@ function prepareOnboardingOnyxData({
     };
 
     // Auth needs this ID to post the inboxAdminsBespoke welcome idempotently; the real message comes from the server.
-    const optimisticConciergeReportActionID: string | undefined = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? rand64() : undefined;
+    const optimisticConciergeReportActionID: string | undefined = shouldDeferOptimisticTasks ? rand64() : undefined;
 
     let createWorkspaceTaskReportID;
     let addExpenseApprovalsTaskReportID;
@@ -11766,7 +11766,7 @@ function prepareOnboardingOnyxData({
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
             value: {
                 hasOutstandingChildTask,
-                ...(skipSignOff && !message ? {} : {lastVisibleActionCreated}),
+                ...((skipSignOff && !message) || shouldDeferOptimisticTasks ? {} : {lastVisibleActionCreated}),
                 lastActorAccountID: actorAccountID,
             },
         },
