@@ -6806,6 +6806,33 @@ describe('createDistanceRequest', () => {
         expect(notifyNewAction).toHaveBeenCalledTimes(1);
     });
 
+    it('returns the iou report and the written chatReportID for a non-split distance request', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1}, recentWaypoints),
+            participants: [],
+        });
+
+        expect(result.iouReport).toBeTruthy();
+        expect(result.chatReportID).toBeTruthy();
+        expect(result.iouReport?.chatReportID).toBe(result.chatReportID);
+        expect(result.transactionID).toBeTruthy();
+    });
+
+    it('returns chatReportID with a null iouReport for a split distance request — the UI can only navigate via chatReportID', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams(undefined, {amount: 1000}, recentWaypoints),
+            iouType: CONST.IOU.TYPE.SPLIT,
+        });
+
+        expect(result.iouReport).toBeFalsy();
+        expect(result.chatReportID).toBeTruthy();
+        expect(result.transactionID).toBeTruthy();
+    });
+
     it('correctly sets quickAction', async () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 

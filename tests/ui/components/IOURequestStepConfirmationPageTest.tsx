@@ -69,7 +69,7 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => {
 });
 jest.mock('@libs/actions/IOU/Split', () => {
     return {
-        createDistanceRequest: jest.fn(),
+        createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: undefined})),
         startSplitBill: jest.fn(),
     };
 });
