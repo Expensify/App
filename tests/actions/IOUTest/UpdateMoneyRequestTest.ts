@@ -683,7 +683,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then the recent attendees should be updated with a maximum of 5 attendees
+            // Then all 6 recent attendees should be stored (below the max of 40)
             const recentAttendees = await new Promise<OnyxEntry<Attendee[]>>((resolve) => {
                 const connection = Onyx.connectWithoutView({
                     key: ONYXKEYS.NVP_RECENT_ATTENDEES,
@@ -693,7 +693,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     },
                 });
             });
-            expect(recentAttendees?.length).toBe(CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
+            expect(recentAttendees?.length).toBe(6);
         });
 
         it('should keep displayName-only attendees in recent attendees', async () => {

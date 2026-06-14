@@ -16,20 +16,20 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {addPolicyAIRule} from '@userActions/Policy/Rules';
+import {addPolicyAgentRule} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/AddAIRuleForm';
+import INPUT_IDS from '@src/types/form/AddAgentRuleForm';
 
-type AddAIRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AI_NEW>;
-type AddAIRuleFormID = typeof ONYXKEYS.FORMS.ADD_AI_RULE_FORM;
+type AddAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_NEW>;
+type AddAgentRuleFormID = typeof ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM;
 
-function AddAIRulePage({
+function AddAgentRulePage({
     route: {
         params: {policyID},
     },
-}: AddAIRulePageProps) {
+}: AddAgentRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
@@ -45,16 +45,16 @@ function AddAIRulePage({
         }
     };
 
-    const validate = (values: FormOnyxValues<AddAIRuleFormID>): FormInputErrors<AddAIRuleFormID> => {
-        const errors: FormInputErrors<AddAIRuleFormID> = {};
+    const validate = (values: FormOnyxValues<AddAgentRuleFormID>): FormInputErrors<AddAgentRuleFormID> => {
+        const errors: FormInputErrors<AddAgentRuleFormID> = {};
         if (!values[INPUT_IDS.PROMPT].trim()) {
             errors[INPUT_IDS.PROMPT] = translate('common.error.fieldRequired');
         }
         return errors;
     };
 
-    const saveRule = (values: FormOnyxValues<AddAIRuleFormID>): void => {
-        addPolicyAIRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
+    const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
+        addPolicyAgentRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
         Navigation.goBack();
     };
 
@@ -66,14 +66,14 @@ function AddAIRulePage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
             <ScreenWrapper
-                testID="AddAIRulePage"
+                testID="AddAgentRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton title={translate('workspace.rules.aiRules.addRuleTitle')} />
+                <HeaderWithBackButton title={translate('workspace.rules.agentRules.addRuleTitle')} />
                 <FormProvider
                     ref={formRef}
-                    formID={ONYXKEYS.FORMS.ADD_AI_RULE_FORM}
+                    formID={ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM}
                     validate={validate}
                     onSubmit={saveRule}
                     submitButtonText={translate('common.save')}
@@ -88,14 +88,14 @@ function AddAIRulePage({
                 >
                     <View style={styles.flex1}>
                         <View style={[styles.gap2, styles.mv4]}>
-                            <Text style={[styles.textHeadlineH2]}>{translate('workspace.rules.aiRules.describeRuleTitle')}</Text>
-                            <Text style={[styles.textSupporting]}>{translate('workspace.rules.aiRules.describeRuleSubtitle')}</Text>
+                            <Text style={[styles.textHeadlineH2]}>{translate('workspace.rules.agentRules.describeRuleTitle')}</Text>
+                            <Text style={[styles.textSupporting]}>{translate('workspace.rules.agentRules.describeRuleSubtitle')}</Text>
                         </View>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
-                            label={translate('workspace.rules.aiRules.describeRuleTitle')}
-                            accessibilityLabel={translate('workspace.rules.aiRules.describeRuleTitle')}
+                            label={translate('workspace.rules.agentRules.describeRuleTitle')}
+                            accessibilityLabel={translate('workspace.rules.agentRules.describeRuleTitle')}
                             role={CONST.ROLE.PRESENTATION}
                             onKeyPress={handleKeyPress}
                             multiline
@@ -104,6 +104,7 @@ function AddAIRulePage({
                             textInputContainerStyles={[styles.flex1]}
                             inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                         />
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
                     </View>
                 </FormProvider>
             </ScreenWrapper>
@@ -111,4 +112,4 @@ function AddAIRulePage({
     );
 }
 
-export default AddAIRulePage;
+export default AddAgentRulePage;
