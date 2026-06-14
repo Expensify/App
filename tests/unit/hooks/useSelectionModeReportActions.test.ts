@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, Report, Transaction} from '@src/types/onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -212,14 +213,13 @@ jest.mock('@libs/actions/Search', () => ({
     search: jest.fn(),
 }));
 
-jest.mock('@libs/PolicyUtils', () => {
-    const actual = jest.requireActual('@libs/PolicyUtils');
-    return {
-        ...actual,
-        isSubmitPolicy: jest.fn(() => false),
-        sortPoliciesByName: jest.fn(() => []),
-    };
-});
+jest.mock('@libs/PolicyUtils', () => ({
+    __esModule: true,
+    hasDynamicExternalWorkflow: jest.fn(() => false),
+    getPolicyByCustomUnitID: jest.fn(() => undefined),
+    isSubmitPolicy: jest.fn(() => false),
+    sortPoliciesByName: jest.fn(() => []),
+}));
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     __esModule: true,
@@ -252,7 +252,7 @@ jest.mock('@userActions/Transaction', () => ({
     markPendingRTERTransactionsAsCash: jest.fn(),
 }));
 
-const mockOpenReportSubmitToPopover = jest.fn();
+const mockOpenReportSubmitToPopover = jest.fn<void, [ReportSubmitToPopoverOpenOptions | undefined]>();
 
 jest.mock('@components/ReportSubmitToPopoverAnchor', () => ({
     __esModule: true,
@@ -276,7 +276,7 @@ const PayMoneyRequestActions = require('@libs/actions/IOU/PayMoneyRequest') as R
 
 const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
 
-function isSubmitPolicyType(policy: Policy | undefined): boolean {
+function isSubmitPolicyType(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
@@ -586,9 +586,7 @@ describe('useSelectionModeReportActions', () => {
 
             const lastOpenOptions = mockOpenReportSubmitToPopover.mock.calls.at(-1)?.[0];
             expect(typeof lastOpenOptions?.onSubmitSuccess).toBe('function');
-            if (lastOpenOptions && typeof lastOpenOptions.onSubmitSuccess === 'function') {
-                lastOpenOptions.onSubmitSuccess();
-            }
+            lastOpenOptions?.onSubmitSuccess?.();
 
             expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         });
