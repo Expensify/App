@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useEffect, useRef} from 'react';
-import CONST, {SUBMIT_FEATURE_IDS} from '@src/CONST';
+import {SUBMIT_FEATURE_IDS} from '@src/CONST';
 
 type UseWorkspaceUpgradeConfirmationParams = {
     policyID: string | undefined;
@@ -13,22 +13,49 @@ type UseWorkspaceUpgradeConfirmationParams = {
 };
 
 /**
- * Runs post-upgrade feature confirmation when the user leaves the page, except for Submit-tier features
- * where the backend already enables them. For approvalSubmit (workflows), also confirms
- * immediately after upgrade completes because the blur handler intentionally skips Submit-tier features.
+ * Runs post-upgrade feature confirmation when the user leaves the page.
+ * Submit-tier upgrades confirm immediately after the plan upgrade completes because the blur
+ * handler skips them to avoid duplicate enables for features UpgradeSubmit already handles on the backend.
+ * Other features still confirm on blur when the user navigates away.
  */
 function useWorkspaceUpgradeConfirmation({policyID, isUpgraded, canPerformUpgrade, upgradingFromSubmit, featureID, isPendingUpgrade, confirmUpgrade}: UseWorkspaceUpgradeConfirmationParams) {
     const confirmUpgradeRef = useRef(confirmUpgrade);
-    const hasConfirmedApprovalSubmitUpgradeRef = useRef(false);
+    const hasConfirmedSubmitUpgradeRef = useRef(false);
     const confirmUpgradeOnBlurRef = useRef({
         isUpgraded,
         canPerformUpgrade,
         upgradingFromSubmit,
         featureID,
+        isPendingUpgrade,
     });
 
+    const confirmSubmitUpgradeIfNeeded = useCallback(() => {
+        const {
+            isUpgraded: currentIsUpgraded,
+            canPerformUpgrade: currentCanPerformUpgrade,
+            upgradingFromSubmit: currentUpgradingFromSubmit,
+            featureID: currentFeatureID,
+            isPendingUpgrade: currentIsPendingUpgrade,
+        } = confirmUpgradeOnBlurRef.current;
+
+        if (!currentIsUpgraded || currentIsPendingUpgrade || !currentCanPerformUpgrade || !currentUpgradingFromSubmit) {
+            return;
+        }
+
+        if (!currentFeatureID || !SUBMIT_FEATURE_IDS.has(currentFeatureID)) {
+            return;
+        }
+
+        if (hasConfirmedSubmitUpgradeRef.current) {
+            return;
+        }
+
+        hasConfirmedSubmitUpgradeRef.current = true;
+        confirmUpgradeRef.current();
+    }, []);
+
     useEffect(() => {
-        hasConfirmedApprovalSubmitUpgradeRef.current = false;
+        hasConfirmedSubmitUpgradeRef.current = false;
     }, [policyID]);
 
     useEffect(() => {
@@ -38,11 +65,18 @@ function useWorkspaceUpgradeConfirmation({policyID, isUpgraded, canPerformUpgrad
             canPerformUpgrade,
             upgradingFromSubmit,
             featureID,
+            isPendingUpgrade,
         };
     });
 
+    useEffect(() => {
+        confirmSubmitUpgradeIfNeeded();
+    }, [confirmSubmitUpgradeIfNeeded, isUpgraded, isPendingUpgrade, featureID, upgradingFromSubmit]);
+
     useFocusEffect(
         useCallback(() => {
+            confirmSubmitUpgradeIfNeeded();
+
             return () => {
                 const {
                     isUpgraded: wasUpgraded,
@@ -55,28 +89,15 @@ function useWorkspaceUpgradeConfirmation({policyID, isUpgraded, canPerformUpgrad
                     return;
                 }
 
-                // UpgradeSubmit enables Collect-tier features on the backend; skip the redundant client-side enable.
+                // Submit-tier features are confirmed immediately after upgrade; skip blur to avoid duplicate enables.
                 if (wasUpgradingFromSubmit && currentFeatureID && SUBMIT_FEATURE_IDS.has(currentFeatureID)) {
                     return;
                 }
 
                 confirmUpgradeRef.current();
             };
-        }, []),
+        }, [confirmSubmitUpgradeIfNeeded]),
     );
-
-    useEffect(() => {
-        if (!isUpgraded || isPendingUpgrade || featureID !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id) {
-            return;
-        }
-
-        if (hasConfirmedApprovalSubmitUpgradeRef.current) {
-            return;
-        }
-
-        hasConfirmedApprovalSubmitUpgradeRef.current = true;
-        confirmUpgradeRef.current();
-    }, [featureID, isPendingUpgrade, isUpgraded]);
 }
 
 export default useWorkspaceUpgradeConfirmation;

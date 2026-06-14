@@ -293,7 +293,7 @@ function handleActionButtonPress({
                 return;
             }
             {
-                const policyToUpgrade = snapshotPolicy ?? policy;
+                const policyToUpgrade = policy ?? snapshotPolicy;
                 if (isSubmitPolicy(policyToUpgrade) && policyToUpgrade?.id && item.reportID) {
                     const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias;
                     const backTo = Navigation.getActiveRoute() ?? ROUTES.SEARCH_ROOT;
