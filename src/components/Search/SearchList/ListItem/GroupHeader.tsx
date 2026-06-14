@@ -207,6 +207,11 @@ function GroupHeader({
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
+    const withOriginalKey = (rowItem: SearchListItem): SearchListItem => ({
+        ...rowItem,
+        keyForList: originalKey,
+    });
+
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
@@ -215,7 +220,7 @@ function GroupHeader({
     });
 
     const handleSelectionButtonPress = () => {
-        onCheckboxPress(item, isExpenseReportType ? undefined : effectiveTransactions);
+        onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : effectiveTransactions);
     };
 
     const pendingAction =
@@ -225,7 +230,7 @@ function GroupHeader({
             : undefined);
 
     const handleSelectRow = (rowItem: SearchListItem, event?: ModifiedMouseEvent) => {
-        onSelectRow(rowItem, transactionPreviewData, event);
+        onSelectRow(withOriginalKey(rowItem), transactionPreviewData, event);
     };
 
     const renderHeader = (hovered: boolean) => {
@@ -363,7 +368,7 @@ function GroupHeader({
 
     const handlePress = (event?: ModifiedMouseEvent) => {
         if (isExpenseReportType) {
-            onSelectRow(item, transactionPreviewData, event);
+            onSelectRow(withOriginalKey(item), transactionPreviewData, event);
         }
         if (!isExpenseReportType) {
             onToggle();
@@ -371,7 +376,7 @@ function GroupHeader({
     };
 
     const handleLongPress = () => {
-        onLongPressRow?.(item, isExpenseReportType ? undefined : effectiveTransactions);
+        onLongPressRow?.(withOriginalKey(item), isExpenseReportType ? undefined : effectiveTransactions);
     };
 
     return (

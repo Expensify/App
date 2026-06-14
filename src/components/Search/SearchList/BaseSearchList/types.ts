@@ -2,9 +2,9 @@ import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {RefObject} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
-import type {SearchColumnType, SelectedTransactions} from '@components/Search/types';
+import type {SearchColumnType} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
-import type {CardList, Transaction} from '@src/types/onyx';
+import type {CardList} from '@src/types/onyx';
 
 type BaseSearchListProps = Pick<
     FlashListProps<SearchListItem>,
@@ -18,6 +18,8 @@ type BaseSearchListProps = Pick<
     | 'showsVerticalScrollIndicator'
     | 'onLayout'
     | 'stickyHeaderIndices'
+    | 'stickyHeaderConfig'
+    | 'overrideItemLayout'
 > & {
     /** The data to display in the list */
     data: SearchListItem[];
@@ -28,8 +30,8 @@ type BaseSearchListProps = Pick<
     /** The columns that might change to trigger re-render via extraData */
     columns: SearchColumnType[];
 
-    /** The transactions that might trigger re-render via extraData */
-    newTransactions: Transaction[];
+    /** The count of new transactions that might trigger re-render via extraData */
+    newTransactionsLength: number;
 
     /** The length of the flattened items in the list */
     flattenedItemsLength: number;
@@ -43,8 +45,8 @@ type BaseSearchListProps = Pick<
     /** The function to scroll to an index */
     scrollToIndex?: (index: number, animated?: boolean) => void;
 
-    /** Selected transactions for triggering re-render via extraData */
-    selectedTransactions?: SelectedTransactions;
+    /** Selected items count for triggering re-render via extraData */
+    selectedItemsLength?: number;
 
     /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses) */
     isAttendeesEnabledForMovingPolicy?: boolean;

@@ -1,5 +1,7 @@
 import React from 'react';
+import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
+import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useTheme from '@hooks/useTheme';
@@ -9,7 +11,6 @@ import type {GroupChildrenContentProps} from './types';
 
 type GroupChildrenContainerProps = GroupChildrenContentProps & {
     isLastItem?: boolean;
-    isSelected?: boolean;
 };
 
 function GroupChildrenContainer({
@@ -25,7 +26,6 @@ function GroupChildrenContainer({
     nonPersonalAndWorkspaceCards,
     onUndelete,
     isLastItem,
-    isSelected,
     newTransactionID,
     bankAccountList,
     cardFeeds,
@@ -33,7 +33,10 @@ function GroupChildrenContainer({
 }: GroupChildrenContainerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {selectedTransactions} = useSearchSelectionContext();
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false);
+
+    const isSelected = !!item.isSelected || (item.transactions.length > 0 && item.transactions.every((transaction) => selectedTransactions[transaction.transactionID]?.isSelected));
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -42,8 +45,9 @@ function GroupChildrenContainer({
         shouldApplyOtherStyles: false,
     });
 
+    // Rendering null in FlashList can cause heavy first-render work; use an empty placeholder instead (LHN pattern).
     if (!isExpanded && !isRendered) {
-        return null;
+        return <View />;
     }
 
     return (
@@ -60,23 +64,25 @@ function GroupChildrenContainer({
                     style={[styles.stickToTop, styles.pb1]}
                     onLayout={onLayout}
                 >
-                    <GroupChildrenContent
-                        item={item}
-                        isExpanded={isExpanded}
-                        groupBy={groupBy}
-                        searchType={searchType}
-                        columns={columns}
-                        canSelectMultiple={canSelectMultiple}
-                        onSelectRow={onSelectRow}
-                        onCheckboxPress={onCheckboxPress}
-                        onLongPressRow={onLongPressRow}
-                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                        onUndelete={onUndelete}
-                        newTransactionID={newTransactionID}
-                        bankAccountList={bankAccountList}
-                        cardFeeds={cardFeeds}
-                        conciergeReportID={conciergeReportID}
-                    />
+                    {isRendered && (
+                        <GroupChildrenContent
+                            item={item}
+                            isExpanded={isExpanded}
+                            groupBy={groupBy}
+                            searchType={searchType}
+                            columns={columns}
+                            canSelectMultiple={canSelectMultiple}
+                            onSelectRow={onSelectRow}
+                            onCheckboxPress={onCheckboxPress}
+                            onLongPressRow={onLongPressRow}
+                            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                            onUndelete={onUndelete}
+                            newTransactionID={newTransactionID}
+                            bankAccountList={bankAccountList}
+                            cardFeeds={cardFeeds}
+                            conciergeReportID={conciergeReportID}
+                        />
+                    )}
                 </Animated.View>
             </Animated.View>
         </Animated.View>
