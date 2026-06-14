@@ -261,13 +261,16 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 </View>
                 {!!canSwitchAccounts && (
                     <TooltipToRender {...tooltipProps}>
-                        <Button
-                            small
-                            ref={buttonRef}
-                            text={translate('delegate.switch')}
-                            onPress={onPressSwitcher}
-                            sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
-                        />
+                        {/* View wrapper forwards the hover events Tooltip injects; Button doesn't pass them to its underlying pressable, so the tooltip wouldn't show without it */}
+                        <View>
+                            <Button
+                                small
+                                ref={buttonRef}
+                                text={translate('delegate.switch')}
+                                onPress={onPressSwitcher}
+                                sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
+                            />
+                        </View>
                     </TooltipToRender>
                 )}
             </View>
