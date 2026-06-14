@@ -58,8 +58,8 @@ function BaseSearchList({
     onLayout,
     contentContainerStyle,
     flattenedItemsLength,
-    newTransactionsLength,
-    selectedItemsLength,
+    newTransactions,
+    selectedTransactions,
     isAttendeesEnabledForMovingPolicy,
     nonPersonalAndWorkspaceCards,
     stickyHeaderIndices,
@@ -86,7 +86,6 @@ function BaseSearchList({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
         maxIndex: flattenedItemsLength - 1,
-        disabledIndexes,
         isActive: isFocused && !isModalVisible,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
@@ -97,6 +96,7 @@ function BaseSearchList({
         setHasKeyBeenPressed,
         isFocused,
         captureOnInputs: false,
+        ...(disabledIndexes ? {disabledIndexes} : {}),
     });
 
     const handleFocusByIndex = (index: number, event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
@@ -166,20 +166,8 @@ function BaseSearchList({
     }, [setHasKeyBeenPressed]);
 
     const extraData = useMemo(
-        () => [focusedIndex, columns, newTransactionsLength, selectedItemsLength, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
-        [focusedIndex, columns, newTransactionsLength, selectedItemsLength, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
-    );
-
-    const defaultStickyHeaderConfig = useMemo(
-        () =>
-            stickyHeaderIndices
-                ? {
-                      hideRelatedCell: true,
-                      useNativeDriver: true,
-                      zIndex: 2,
-                  }
-                : undefined,
-        [stickyHeaderIndices],
+        () => [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
+        [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
     );
 
     return (
@@ -202,7 +190,7 @@ function BaseSearchList({
             contentContainerStyle={contentContainerStyle}
             maintainVisibleContentPosition={{disabled: true}}
             stickyHeaderIndices={stickyHeaderIndices}
-            stickyHeaderConfig={stickyHeaderConfig ?? defaultStickyHeaderConfig}
+            stickyHeaderConfig={stickyHeaderConfig}
             getItemType={getItemType}
             overrideItemLayout={overrideItemLayout}
         />

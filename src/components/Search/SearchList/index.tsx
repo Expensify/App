@@ -379,6 +379,18 @@ function SearchList({
         layout.size = variables.tableRowHeight;
     }, []);
 
+    const stickyHeaderConfig = useMemo(
+        () =>
+            shouldSplitGroups
+                ? {
+                      hideRelatedCell: true,
+                      useNativeDriver: true,
+                      zIndex: 2,
+                  }
+                : undefined,
+        [shouldSplitGroups],
+    );
+
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -693,14 +705,15 @@ function SearchList({
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
-                newTransactionsLength={newTransactions.length}
-                selectedItemsLength={selectedItemsLength}
+                newTransactions={newTransactions}
+                selectedTransactions={selectedTransactions}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                 stickyHeaderIndices={stickyHeaderIndices}
                 getItemType={getItemType}
-                disabledIndexes={childrenContainerIndices}
-                overrideItemLayout={overrideItemLayout}
+                stickyHeaderConfig={stickyHeaderConfig}
+                disabledIndexes={shouldSplitGroups ? childrenContainerIndices : undefined}
+                overrideItemLayout={shouldSplitGroups ? overrideItemLayout : undefined}
             />
             <Modal
                 isVisible={isModalVisible}
