@@ -471,12 +471,10 @@ function SearchList({
     }, [longPressedItem, onCheckboxPress, longPressedItemTransactions]);
 
     /**
-     * Scrolls to the desired item index in the section list
-     *
-     * @param index - the index of the item to scroll to
-     * @param animated - whether to animate the scroll
+     * Scrolls to the desired item index in the FlashList (listData coordinates).
+     * Used by keyboard navigation where focused indices map directly to listData rows.
      */
-    const scrollToIndex = useCallback(
+    const scrollToListIndex = useCallback(
         (index: number, animated = true) => {
             const item = listData.at(index);
 
@@ -493,6 +491,35 @@ function SearchList({
         [listData, isEditingCell, wasRecentlyEditingCell],
     );
 
+    /**
+     * Scrolls to the desired item index in the source data array.
+     * Remaps to split listData indices when sticky group headers are active.
+     */
+    const scrollToDataIndex = useCallback(
+        (index: number, animated = true) => {
+            const item = data.at(index);
+
+            if (!listRef.current || !item || index === -1) {
+                return;
+            }
+
+            if (isEditingCell || wasRecentlyEditingCell) {
+                return;
+            }
+
+            let targetIndex = index;
+            if (shouldSplitGroups && item.keyForList) {
+                const splitIndex = listData.findIndex((listItem) => listItem.keyForList === `header_${item.keyForList}`);
+                if (splitIndex !== -1) {
+                    targetIndex = splitIndex;
+                }
+            }
+
+            listRef.current.scrollToIndex({index: targetIndex, animated, viewOffset: -variables.contentHeaderHeight});
+        },
+        [data, listData, shouldSplitGroups, isEditingCell, wasRecentlyEditingCell],
+    );
+
     useFocusEffect(
         useCallback(() => {
             const offset = getScrollOffset(route);
@@ -506,7 +533,7 @@ function SearchList({
         }, [getScrollOffset, route]),
     );
 
-    useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
+    useImperativeHandle(ref, () => ({scrollToIndex: scrollToDataIndex}), [scrollToDataIndex]);
 
     const isItemVisible = useCallback((item: SearchListItem) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline, [isOffline]);
     const firstVisibleIndex = useMemo(() => listData.findIndex(isItemVisible), [listData, isItemVisible]);
@@ -684,7 +711,7 @@ function SearchList({
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 columns={columns}
-                scrollToIndex={scrollToIndex}
+                scrollToIndex={scrollToListIndex}
                 flattenedItemsLength={listData.length}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
