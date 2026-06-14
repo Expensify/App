@@ -129,7 +129,16 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         if (!sourcePolicyID) {
             return;
         }
-        setCopyPolicySettingsData({sourcePolicyID, targetPolicyIDs: resolvedSelectedTargetIDs});
+
+        const previousTargetIDs = copyPolicySettings?.targetPolicyIDs ?? [];
+        const shouldClearParts = previousTargetIDs.length !== resolvedSelectedTargetIDs.length || !previousTargetIDs.every((id) => resolvedSelectedTargetIDs.includes(id));
+
+        setCopyPolicySettingsData({
+            sourcePolicyID,
+            targetPolicyIDs: resolvedSelectedTargetIDs,
+            ...(shouldClearParts ? {parts: []} : {}),
+        });
+
         Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
     };
 
