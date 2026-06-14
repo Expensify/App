@@ -30,8 +30,8 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
     const keywordFilters = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD)?.filters ?? [];
     const keywordQuery = buildFilterValuesString(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, keywordFilters).trim();
 
-    function submitSearch() {
-        const queryWithContext = getKeywordQueryWithCurrentSearchContext(textInputValue, queryJSON);
+    function submitSearch(query: string) {
+        const queryWithContext = getKeywordQueryWithCurrentSearchContext(query, queryJSON);
         const updatedQuery = getQueryWithUpdatedValues(queryWithContext);
 
         if (!updatedQuery) {
@@ -59,10 +59,10 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
             maxLength={CONST.SEARCH_QUERY_LIMIT}
             onSubmitEditing={() => {
                 if (shouldUseNarrowLayout) {
-                    KeyboardUtils.dismiss().then(submitSearch);
+                    KeyboardUtils.dismiss().then(() => submitSearch(textInputValue));
                     return;
                 }
-                submitSearch();
+                submitSearch(textInputValue);
             }}
             containerStyles={[shouldUseNarrowLayout ? styles.flex1 : undefined]}
             textInputContainerStyles={[styles.pb0, shouldUseNarrowLayout ? styles.ph3 : styles.ph2]}
@@ -72,7 +72,10 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
             placeholderTextColor={theme.textSupporting}
             shouldShowClearButton={!!textInputValue}
             shouldHideClearButton={false}
-            onClearInput={() => setTextInputValue('')}
+            onClearInput={() => {
+                setTextInputValue('');
+                submitSearch('');
+            }}
             onFocus={onFocus}
         />
     );
