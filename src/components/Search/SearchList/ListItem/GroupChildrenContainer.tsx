@@ -47,7 +47,14 @@ function GroupChildrenContainer({
     }
 
     return (
-        <Animated.View style={[styles.mh5, {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG}, animatedHighlightStyle, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}>
+        <Animated.View
+            style={[
+                styles.mh5,
+                {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG},
+                animatedHighlightStyle,
+                isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+            ]}
+        >
             <Animated.View style={animatedStyle}>
                 <Animated.View
                     style={[styles.stickToTop, styles.pb1]}
