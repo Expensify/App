@@ -8,6 +8,7 @@ import type {ValueOf} from 'type-fest';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import {isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -121,6 +122,13 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
 
     const currentFocusedRoute = findFocusedRoute(state);
     const targetFocusedRoute = findFocusedRoute(action?.payload as NavigationState);
+
+    // Allow resets that target the 2FA setup flow. A domain-migration user who must set up 2FA is shown the
+    // RequireTwoFactorAuthenticationOverlay on top of onboarding; blocking this reset leaves the "Enable two-factor
+    // authentication" button unresponsive because navigation never reaches the (hidden) 2FA setup screen.
+    if (isTwoFactorSetupScreen(targetFocusedRoute?.name)) {
+        return false;
+    }
 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
