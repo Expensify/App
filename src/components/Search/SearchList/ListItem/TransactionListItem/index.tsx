@@ -178,7 +178,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {isReportSubmitToPopoverVisible, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
     const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
@@ -198,7 +198,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
             openReportSubmitToPopover,
-            isReportSubmitToPopoverVisible,
+            shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
             currentUserAccountID,
@@ -231,7 +231,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         isActionLoading,
         transactionViolations,
         handleActionButtonPress,
-        shouldDisableActionPointerEvents: isReportSubmitToPopoverVisible,
+        shouldDisableActionPointerEvents: shouldDisableSearchSubmitPress,
         transactionPreviewData,
         exportedReportActions,
         policyCategories,

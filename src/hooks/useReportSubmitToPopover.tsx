@@ -54,6 +54,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const pendingSearchSubmitOpenOptionsRef = useRef<ReportSubmitToPopoverOpenOptions | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
     const [isVisible, setIsVisible] = useState(false);
+    const [isDismissGuardActive, setIsDismissGuardActive] = useState(false);
     const [isSearchSubmitFlow, setIsSearchSubmitFlow] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({
         horizontal: 0,
@@ -67,13 +68,18 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
 
     const submitToContentKey = useMemo(() => `${reportID}:${getSubmitToEmail(policy, report)}`, [reportID, policy, report]);
 
+    const clearDismissGuard = useCallback(() => {
+        setIsDismissGuardActive(false);
+        ignoreNextSearchSubmitPressRef.current = false;
+    }, []);
+
     const consumeIgnoreNextSearchSubmitPress = useCallback(() => {
         if (!ignoreNextSearchSubmitPressRef.current) {
             return false;
         }
-        ignoreNextSearchSubmitPressRef.current = false;
+        clearDismissGuard();
         return true;
-    }, []);
+    }, [clearDismissGuard]);
 
     const closeReportSubmitToPopover = useCallback(() => {
         canSubmitRef.current = false;
@@ -81,13 +87,19 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         oneShotOnSubmitSuccessRef.current = undefined;
         pendingSearchSubmitOpenOptionsRef.current = undefined;
         setIsSearchSubmitFlow(false);
-        // Block only a click-through on the row Submit button in the same turn as dismiss; clear before the next user gesture.
+        // Block click-through on the row Submit button after dismiss; pointer-events use isDismissGuardActive until the modal hides.
         ignoreNextSearchSubmitPressRef.current = true;
+        setIsDismissGuardActive(true);
+        // Same-turn guard for narrow layout where a second popover open can fire before pointer-events update.
         queueMicrotask(() => {
             ignoreNextSearchSubmitPressRef.current = false;
         });
         setIsVisible(false);
     }, []);
+
+    const handleReportSubmitToPopoverModalHide = useCallback(() => {
+        clearDismissGuard();
+    }, [clearDismissGuard]);
 
     const handleCombinedSubmitSuccess = useCallback(() => {
         if (!canSubmitRef.current) {
@@ -118,20 +130,24 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const showReportSubmitToPopover = useCallback(
         (options?: ReportSubmitToPopoverOpenOptions) => {
             canSubmitRef.current = true;
-            ignoreNextSearchSubmitPressRef.current = false;
+            clearDismissGuard();
             oneShotOnSubmitSuccessRef.current = options?.onSubmitSuccess;
             onSubmitWithManagerEmailRef.current = options?.onSubmitWithManagerEmail;
             setIsSearchSubmitFlow(!!options?.onSubmitWithManagerEmail);
             const anchorToMeasure = getAnchorRef?.() ?? anchorRef;
-            calculatePopoverPosition(anchorToMeasure, anchorAlignment).then((pos) => {
-                setAnchorPosition({
-                    horizontal: pos.horizontal,
-                    vertical: pos.vertical,
+            calculatePopoverPosition(anchorToMeasure, anchorAlignment)
+                .then((pos) => {
+                    setAnchorPosition({
+                        horizontal: pos.horizontal,
+                        vertical: pos.vertical,
+                    });
+                    setIsVisible(true);
+                })
+                .catch(() => {
+                    clearDismissGuard();
                 });
-                setIsVisible(true);
-            });
         },
-        [calculatePopoverPosition, anchorAlignment, getAnchorRef],
+        [calculatePopoverPosition, anchorAlignment, getAnchorRef, clearDismissGuard],
     );
 
     useEffect(() => {
@@ -168,6 +184,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 anchorRef={anchorRef}
                 isVisible={isVisible}
                 onClose={closeReportSubmitToPopover}
+                onModalHide={handleReportSubmitToPopoverModalHide}
                 anchorPosition={anchorPosition}
                 popoverDimensions={popoverDimensions}
                 anchorAlignment={anchorAlignment}
@@ -209,6 +226,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             isSmallScreenWidth,
             isVisible,
             closeReportSubmitToPopover,
+            handleReportSubmitToPopoverModalHide,
             anchorPosition,
             anchorAlignment,
             anchorRef,
@@ -227,6 +245,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         openReportSubmitToPopover,
         closeReportSubmitToPopover,
         isReportSubmitToPopoverVisible: isVisible,
+        isReportSubmitToDismissGuardActive: isDismissGuardActive,
         consumeIgnoreNextSearchSubmitPress,
         reportSubmitToPopover,
     };

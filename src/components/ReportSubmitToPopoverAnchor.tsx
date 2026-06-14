@@ -29,11 +29,15 @@ const ReportSubmitToPopoverHostContext = createContext<ReportSubmitToPopoverHost
 
 type SearchSubmitPopoverGuardContextValue = {
     isReportSubmitToPopoverVisible: boolean;
+    isReportSubmitToDismissGuardActive: boolean;
+    shouldDisableSearchSubmitPress: boolean;
     consumeIgnoreNextSearchSubmitPress: () => boolean;
 };
 
 const defaultSearchSubmitPopoverGuard: SearchSubmitPopoverGuardContextValue = {
     isReportSubmitToPopoverVisible: false,
+    isReportSubmitToDismissGuardActive: false,
+    shouldDisableSearchSubmitPress: false,
     consumeIgnoreNextSearchSubmitPress: () => false,
 };
 
@@ -106,6 +110,7 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
         reportSubmitToPopover,
         openReportSubmitToPopover: openPopoverForActiveReport,
         isReportSubmitToPopoverVisible,
+        isReportSubmitToDismissGuardActive,
         consumeIgnoreNextSearchSubmitPress,
     } = useReportSubmitToPopover({
         reportID: activeReportID,
@@ -116,9 +121,11 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
     const searchSubmitPopoverGuard = useMemo(
         () => ({
             isReportSubmitToPopoverVisible,
+            isReportSubmitToDismissGuardActive,
+            shouldDisableSearchSubmitPress: isReportSubmitToPopoverVisible || isReportSubmitToDismissGuardActive,
             consumeIgnoreNextSearchSubmitPress,
         }),
-        [isReportSubmitToPopoverVisible, consumeIgnoreNextSearchSubmitPress],
+        [isReportSubmitToPopoverVisible, isReportSubmitToDismissGuardActive, consumeIgnoreNextSearchSubmitPress],
     );
 
     const openReportSubmitToPopoverForHost = useCallback(
@@ -212,18 +219,21 @@ function ReportSubmitToPopoverRootWithHost({reportID, host, children}: {reportID
 }
 
 function ReportSubmitToPopoverRootWithLocalPopover({reportID, onSubmitSuccess, anchorAlignment, children}: ReportSubmitToPopoverAnchorProps) {
-    const {anchorRef, openReportSubmitToPopover, reportSubmitToPopover, isReportSubmitToPopoverVisible, consumeIgnoreNextSearchSubmitPress} = useReportSubmitToPopover({
-        reportID,
-        onSubmitSuccess,
-        anchorAlignment,
-    });
+    const {anchorRef, openReportSubmitToPopover, reportSubmitToPopover, isReportSubmitToPopoverVisible, isReportSubmitToDismissGuardActive, consumeIgnoreNextSearchSubmitPress} =
+        useReportSubmitToPopover({
+            reportID,
+            onSubmitSuccess,
+            anchorAlignment,
+        });
 
     const searchSubmitPopoverGuard = useMemo(
         () => ({
             isReportSubmitToPopoverVisible,
+            isReportSubmitToDismissGuardActive,
+            shouldDisableSearchSubmitPress: isReportSubmitToPopoverVisible || isReportSubmitToDismissGuardActive,
             consumeIgnoreNextSearchSubmitPress,
         }),
-        [isReportSubmitToPopoverVisible, consumeIgnoreNextSearchSubmitPress],
+        [isReportSubmitToPopoverVisible, isReportSubmitToDismissGuardActive, consumeIgnoreNextSearchSubmitPress],
     );
 
     return (

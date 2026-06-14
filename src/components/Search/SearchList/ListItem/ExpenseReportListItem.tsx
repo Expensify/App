@@ -198,7 +198,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {showConfirmModal} = useConfirmModal();
     const {showHoldMenu} = useHoldMenuModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {isReportSubmitToPopoverVisible, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
     const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext({
@@ -243,7 +243,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             openReportSubmitToPopover,
-            isReportSubmitToPopoverVisible,
+            shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
             currentUserAccountID,
@@ -279,7 +279,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         ownerBillingGracePeriodEnd,
         amountOwed,
         openReportSubmitToPopover,
-        isReportSubmitToPopoverVisible,
+        shouldDisableSearchSubmitPress,
         consumeIgnoreNextSearchSubmitPress,
         showConfirmModal,
         translate,
@@ -445,7 +445,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         isHovered={hovered}
                         isFocused={isFocused}
                         isPendingDelete={isPendingDelete}
-                        shouldDisableActionPointerEvents={isReportSubmitToPopoverVisible}
+                        shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
                         isMarkAsDone={shouldUseMarkAsDoneCopy}
                     />
                     {getDescription}

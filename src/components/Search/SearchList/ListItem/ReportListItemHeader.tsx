@@ -276,7 +276,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {isReportSubmitToPopoverVisible, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
@@ -295,7 +295,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             openReportSubmitToPopover,
-            isReportSubmitToPopoverVisible,
+            shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
             currentUserAccountID,
@@ -331,7 +331,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
                 isIndeterminate={isIndeterminate}
                 onDownArrowClick={onDownArrowClick}
                 isExpanded={isExpanded}
-                shouldDisableActionPointerEvents={isReportSubmitToPopoverVisible}
+                shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
             />
         </View>
     ) : (
@@ -347,7 +347,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
                 isIndeterminate={isIndeterminate}
                 onDownArrowClick={onDownArrowClick}
                 isExpanded={isExpanded}
-                shouldDisableActionPointerEvents={isReportSubmitToPopoverVisible}
+                shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
                 chatReport={chatReport}
             />
         </View>

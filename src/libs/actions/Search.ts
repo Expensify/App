@@ -191,7 +191,7 @@ type HandleActionButtonPressParams = {
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
-    isReportSubmitToPopoverVisible?: boolean;
+    shouldDisableSearchSubmitPress?: boolean;
     /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
     consumeIgnoreNextSearchSubmitPress?: () => boolean;
     currentUserAccountID: number;
@@ -226,7 +226,7 @@ function handleActionButtonPress({
     onUndelete,
     currentUserAccountID,
     openReportSubmitToPopover,
-    isReportSubmitToPopoverVisible,
+    shouldDisableSearchSubmitPress,
     consumeIgnoreNextSearchSubmitPress,
     currentUserLogin,
     introSelected,
@@ -304,7 +304,7 @@ function handleActionButtonPress({
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            if (isReportSubmitToPopoverVisible || consumeIgnoreNextSearchSubmitPress?.()) {
+            if (shouldDisableSearchSubmitPress || consumeIgnoreNextSearchSubmitPress?.()) {
                 return;
             }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
