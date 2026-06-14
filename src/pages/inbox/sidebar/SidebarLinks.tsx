@@ -8,6 +8,7 @@ import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSidebarLoaded} from '@libs/actions/App';
@@ -39,6 +40,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {setStickyReportID} = useSidebarOrderedReportsActions();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
     useEffect(() => {
@@ -69,9 +71,11 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                 cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
                 return;
             }
+            // Keep this report visible in the active To-do/Unread tab even after opening it marks it read.
+            setStickyReportID(option.reportID);
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, actionTargetReportActionID));
         },
-        [shouldUseNarrowLayout, isActiveReport],
+        [shouldUseNarrowLayout, isActiveReport, setStickyReportID],
     );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;

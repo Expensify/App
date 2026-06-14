@@ -1,4 +1,4 @@
-import {getAgentAccountIDFlags, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
+import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
 import {getReportChatType, getReportPolicyID} from '@selectors/Report';
 import React, {createContext, useContext} from 'react';
 import useOnyx from '@hooks/useOnyx';
@@ -44,14 +44,14 @@ const ConciergeDraftActionsContext = createContext<ConciergeDraftActions>(defaul
 function ConciergeDraftProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
     const [participantAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParticipantAccountIDs});
-    const [agentAccountIDFlags] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT, {selector: getAgentAccountIDFlags});
+    const [agentParticipantAccountID] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: getCustomAgentParticipantAccountID(participantAccountIDs)});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-    // See AgentZeroStatusContext for the rationale: agentAccountIDFlags reflects agents the
-    // user owns (populated by `OpenAgentsPage`).
-    const isCustomAgentChat = participantAccountIDs?.some((accountID) => !!agentAccountIDFlags?.[accountID]);
+    // See AgentZeroStatusContext for the rationale: `isCustomAgent` lives on the participant's
+    // personalDetails, stamped by Auth in `Account::formatNewDotPersonalDetails`.
+    const isCustomAgentChat = agentParticipantAccountID !== undefined;
     const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
 
     if (!reportID || !isAgentZeroChat) {
