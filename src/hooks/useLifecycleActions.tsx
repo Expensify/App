@@ -1,4 +1,5 @@
 import {delegateEmailSelector} from '@selectors/Account';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {ActionHandledType} from '@components/Modal/Global/HoldMenuModalWrapper';
@@ -19,6 +20,7 @@ import {
     isExported as isExportedUtils,
     isReportOwner,
     shouldBlockSubmitDueToStrictPolicyRules,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
@@ -74,6 +76,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
@@ -256,7 +259,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const actions: Record<string, SecondaryActionEntry> = {
         [CONST.REPORT.SECONDARY_ACTIONS.SUBMIT]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
-            text: translate('common.submit'),
+            text: shouldShowMarkAsDone({policy, report: moneyRequestReport, isTrackIntentUser}) ? translate('common.markAsDone') : translate('common.submit'),
             icon: expensifyIcons.Send,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SUBMIT,
             onSelected: () => {

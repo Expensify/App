@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
@@ -56,6 +57,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
     isSelfDM,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {getSelectedGroupFilterEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
@@ -383,6 +385,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -1257,6 +1260,56 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [isExpenseReportType, defaultExpensePolicy, selectedReports, accountID]);
 
+    const allReportsShouldMarkAsDone = useMemo(() => {
+        if (selectedReports.length > 0) {
+            return selectedReports.every((report) => {
+                const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+
+                return shouldShowMarkAsDone({
+                    isTrackIntentUser,
+                    report: fullReport,
+                    policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
+                });
+            });
+        }
+
+        return Object.values(selectedTransactions).every((transaction) => {
+            const reportID = transaction.reportID;
+            const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+            return shouldShowMarkAsDone({
+                isTrackIntentUser,
+                report: fullReport,
+                policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${transaction.policyID}`],
+            });
+        });
+    }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions]);
+
+    const noReportsShouldMarkAsDone = useMemo(() => {
+        if (selectedReports.length > 0) {
+            return selectedReports.every((report) => {
+                const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+
+                return !shouldShowMarkAsDone({
+                    isTrackIntentUser,
+                    report: fullReport,
+                    policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
+                });
+            });
+        }
+
+        return Object.values(selectedTransactions).every((transaction) => {
+            const reportID = transaction.reportID;
+            const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+            return !shouldShowMarkAsDone({
+                isTrackIntentUser,
+                report: fullReport,
+                policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${transaction.policyID}`],
+            });
+        });
+    }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions]);
+
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
@@ -1597,13 +1650,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             (!doSelectedItemsBelongToSubmitPolicy || (doSelectedItemsBelongToSubmitPolicy && hasSingleSubmitPolicySelection)) &&
             areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.canSubmit)
-                : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT));
+                ? selectedReports.every((report) => report.canSubmit) &&
+                  // Disable for mixed selections: all must be the same submit type
+                  (isTrackIntentUser ? allReportsShouldMarkAsDone || noReportsShouldMarkAsDone : true)
+                : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT) &&
+                  // Disable for mixed selections: all must be the same submit type
+                  (isTrackIntentUser ? allReportsShouldMarkAsDone || noReportsShouldMarkAsDone : true));
 
         if (shouldShowSubmitOption) {
             options.push({
                 icon: expensifyIcons.Send,
-                text: translate('common.submit'),
+                text: allReportsShouldMarkAsDone ? translate('common.markAsDone') : translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
@@ -1987,6 +2044,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
         currentSearchKey,
+        isTrackIntentUser,
         getCurrencyDecimals,
         amountOwed,
         allTransactions,

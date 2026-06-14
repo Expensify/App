@@ -190,11 +190,11 @@ type HandleActionButtonPressParams = {
     amountOwed: OnyxEntry<number>;
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
-    currentUserAccountID?: number;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     isReportSubmitToPopoverVisible?: boolean;
     /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
     consumeIgnoreNextSearchSubmitPress?: () => boolean;
+    currentUserAccountID: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
     betas?: OnyxEntry<Beta[]>;

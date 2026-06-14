@@ -28,6 +28,7 @@ function ExpenseReportListItemRowWide({
     onCheckboxPress = () => {},
     onButtonPress = () => {},
     isActionLoading,
+    chatReport,
     containerStyle,
     showTooltip,
     canSelectMultiple,
@@ -39,6 +40,7 @@ function ExpenseReportListItemRowWide({
     isFocused = false,
     isPendingDelete = false,
     shouldDisableActionPointerEvents = false,
+    isMarkAsDone,
 }: ExpenseReportListItemRowWideProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -202,6 +204,8 @@ function ExpenseReportListItemRowWide({
                         reportID={item.reportID}
                         hash={item.hash}
                         amount={item.total}
+                        chatReport={chatReport}
+                        isMarkAsDone={isMarkAsDone}
                         shouldDisablePointerEvents={isPendingDelete || shouldDisableActionPointerEvents}
                     />
                 </ReportSubmitToPopoverMeasurableAnchor>

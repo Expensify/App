@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 // We need direct access to useOnyx to fetch live policy data at render time
@@ -35,7 +36,7 @@ import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
+import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -102,12 +103,18 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Fetch live policy categories from Onyx to sync violations at render time
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
-    const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.parentReportID)}`);
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
+
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy: parentPolicy,
+        report: parentReport,
+        isTrackIntentUser,
+    });
 
     const searchData = currentSearchResults?.data;
 
@@ -115,9 +122,14 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         return (searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
     }, [searchData, reportItem.reportID]);
 
+    const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? reportItem.parentReportID)}`);
+
     const snapshotChatReport = useMemo(() => {
-        return searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.parentReportID}`];
-    }, [searchData, reportItem.parentReportID]);
+        const chatReportID = snapshotReport?.chatReportID ?? reportItem.parentReportID;
+        return chatReportID ? searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+    }, [searchData, snapshotReport?.chatReportID, reportItem.parentReportID]);
+
+    const chatReport = parentChatReport ?? snapshotChatReport;
 
     const snapshotPolicy = useMemo(() => {
         return (searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
@@ -191,7 +203,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
     const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext({
         reportID: reportItem.reportID,
-        chatReportPolicyID: parentChatReport?.policyID ?? snapshotChatReport?.policyID,
+        chatReportPolicyID: chatReport?.policyID,
     });
 
     const handleOnButtonPress = useCallback(() => {
@@ -212,7 +224,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                 // Search rows render from a snapshot; the report may not exist in the main
                 // collection yet. Fall back to the snapshot so the modal can submit.
                 const moneyRequestReport = parentReport ?? snapshotReport;
-                const chatReport = parentChatReport ?? snapshotChatReport;
                 const transactionsForHoldMenu = liveReportTransactions.length > 0 ? liveReportTransactions : holdItem.transactions;
                 const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, holdItem.canPay ?? false, transactionsForHoldMenu);
                 const hasNonHeldExpenses = transactionsForHoldMenu.some((t) => !isOnHold(t));
@@ -241,7 +252,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             betas,
             isSelfTourViewed,
             activePolicy,
-            chatReport: parentChatReport ?? snapshotChatReport,
+            chatReport,
             chatReportPolicy,
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData,
@@ -253,11 +264,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         onSelectRow,
         searchData,
         snapshotReport,
-        snapshotChatReport,
+        chatReport,
         snapshotPolicy,
         parentPolicy,
         parentReport,
-        parentChatReport,
         lastPaymentMethod,
         userBillingGracePeriodEnds,
         personalPolicyID,
@@ -428,6 +438,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         canSelectMultiple={canSelectMultiple}
                         onCheckboxPress={handleSelectionButtonPress}
                         onButtonPress={handleOnButtonPress}
+                        chatReport={chatReport}
                         isSelectAllChecked={isSelected}
                         isIndeterminate={false}
                         isDisabledCheckbox={isDisabledCheckbox}
@@ -435,6 +446,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         isFocused={isFocused}
                         isPendingDelete={isPendingDelete}
                         shouldDisableActionPointerEvents={isReportSubmitToPopoverVisible}
+                        isMarkAsDone={shouldUseMarkAsDoneCopy}
                     />
                     {getDescription}
                 </View>
