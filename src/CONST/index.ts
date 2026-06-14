@@ -7759,7 +7759,7 @@ const CONST = {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         CONCIERGE_LHN_GBR: 'conciergeLHNGBR',
-        RENAME_SAVED_SEARCH: 'renameSavedSearch',
+
         OUTSTANDING_FILTER: 'outstandingFilter',
         ACCOUNT_SWITCHER: 'accountSwitcher',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',

@@ -45,7 +45,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -616,6 +616,65 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             },
         },
     ];
+    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
+}
+
+function seedMyExpensesSearch(currentUserAccountID: number, searchName: string) {
+    const queryString = `type:expense from:${currentUserAccountID}`;
+    const queryJSON = buildSearchQueryJSON(queryString);
+    if (!queryJSON) {
+        return;
+    }
+
+    const saveSearchName = searchName;
+    const jsonQuery = JSON.stringify(queryJSON);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [queryJSON.hash]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    name: saveSearchName,
+                    query: queryJSON.inputQuery,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH,
+            value: true,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [queryJSON.hash]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH,
+            value: false,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [queryJSON.hash]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
     API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
 }
 
@@ -1603,6 +1662,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 
 export {
     saveSearch,
+    seedMyExpensesSearch,
     search,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,

@@ -1,10 +1,8 @@
-import {useIsFocused} from '@react-navigation/native';
-import {accountIDSelector} from '@selectors/Session';
-import React from 'react';
+import {accountIDSelector, emailSelector} from '@selectors/Session';
+import React, {useEffect} from 'react';
 import MenuItemList from '@components/MenuItemList';
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -14,10 +12,11 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShareSavedSearch from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setSearchContext} from '@libs/actions/Search';
+import {seedMyExpensesSearch, setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates} from '@libs/PolicyUtils';
+// eslint-disable-next-line no-restricted-imports -- "My expenses" seed is intentionally paid-policy-only: free Submit plans have no approval flow, so there is no dual-role use case to seed.
+import {getAllTaxRates, isGroupPolicy, isPaidGroupPolicy, isPolicyApprover} from '@libs/PolicyUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -41,11 +40,7 @@ type SavedSearchMenuItemBuilderParams = {
     hash: number | undefined;
     title: string;
     getOverflowMenu: (itemName: string, itemHash: number, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
-    shouldShowSavedSearchTooltip: boolean;
-    hideSavedSearchTooltip: (() => void) | undefined;
-    renderSavedSearchTooltip: () => React.JSX.Element;
     itemStyle: SavedSearchMenuItem['style'];
-    tooltipWrapperStyle: SavedSearchMenuItem['tooltipWrapperStyle'];
     isCopied: boolean;
 };
 
@@ -56,11 +51,7 @@ function buildSavedSearchMenuItem({
     hash,
     title,
     getOverflowMenu,
-    shouldShowSavedSearchTooltip,
-    hideSavedSearchTooltip,
-    renderSavedSearchTooltip,
     itemStyle,
-    tooltipWrapperStyle,
     isCopied,
 }: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
     const isItemFocused = Number(key) === hash;
@@ -78,32 +69,21 @@ function buildSavedSearchMenuItem({
             <SavedSearchItemThreeDotMenu
                 menuItems={getOverflowMenu(title, Number(key), item.query)}
                 isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                hideProductTrainingTooltip={index === 0 && shouldShowSavedSearchTooltip ? hideSavedSearchTooltip : undefined}
-                shouldRenderTooltip={index === 0 && shouldShowSavedSearchTooltip}
-                renderTooltipContent={renderSavedSearchTooltip}
                 isCopied={isCopied}
             />
         ),
         style: itemStyle,
-        tooltipAnchorAlignment: {
-            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-        },
-        tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
-        tooltipShiftVertical: variables.savedSearchShiftVertical,
-        tooltipWrapperStyle,
-        renderTooltipContent: renderSavedSearchTooltip,
     };
 }
 
-function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
+function SavedSearchList({hash}: SavedSearchListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
-    const isFocused = useIsFocused();
 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [hasSeededMyExpensesSearch] = useOnyx(ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetails = usePersonalDetails();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -112,14 +92,39 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const reportAttributes = useReportAttributes();
 
     const {showDeleteModal} = useDeleteSavedSearch();
-    const {
-        shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
-        renderProductTrainingTooltip: renderSavedSearchTooltip,
-        hideProductTrainingTooltip: hideSavedSearchTooltip,
-    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, isFocused && areAllSectionsExpanded);
+
+    useEffect(() => {
+        if (hasSeededMyExpensesSearch || currentUserAccountID === -1 || !currentUserEmail || savedSearches === undefined) {
+            return;
+        }
+
+        let shouldShowSubmitSuggestion = false;
+        let shouldShowApproveSuggestion = false;
+
+        for (const policy of Object.values(allPolicies ?? {})) {
+            if (!policy) {
+                continue;
+            }
+            shouldShowSubmitSuggestion = shouldShowSubmitSuggestion || isGroupPolicy(policy);
+
+            const isPaidPolicy = isPaidGroupPolicy(policy);
+            const isSubmittedTo = Object.values(policy.employeeList ?? {}).some(
+                (employee) => employee.submitsTo === currentUserEmail || employee.forwardsTo === currentUserEmail,
+            );
+            const isUserApprover = isPolicyApprover(policy, currentUserEmail);
+            const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+            const isPolicyEligibleForApprove = isPaidPolicy && isApprovalEnabled && (isUserApprover || isSubmittedTo);
+            shouldShowApproveSuggestion = shouldShowApproveSuggestion || isPolicyEligibleForApprove;
+        }
+
+        if (shouldShowSubmitSuggestion && shouldShowApproveSuggestion) {
+            seedMyExpensesSearch(currentUserAccountID, translate('search.mySavedSearch'));
+        }
+    }, [hasSeededMyExpensesSearch, currentUserAccountID, currentUserEmail, allPolicies, savedSearches, translate]);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
     const {copiedHash, handleShare} = useShareSavedSearch();
@@ -148,7 +153,6 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
         });
 
     const itemStyle = [styles.alignItemsCenter];
-    const tooltipWrapperStyle = [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper];
 
     const savedSearchesMenuItems = savedSearches
         ? Object.entries(savedSearches).map(([key, item], index) =>
@@ -159,11 +163,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
                   hash,
                   title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
                   getOverflowMenu,
-                  shouldShowSavedSearchTooltip,
-                  hideSavedSearchTooltip,
-                  renderSavedSearchTooltip,
                   itemStyle,
-                  tooltipWrapperStyle,
                   isCopied: copiedHash === Number(key),
               }),
           )

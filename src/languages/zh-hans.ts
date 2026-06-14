@@ -7964,6 +7964,7 @@ ${reportName}
         deleteSavedSearchConfirm: '确定要删除此搜索吗？',
         searchName: '搜索名称',
         savedSearchesMenuItemTitle: '已保存',
+        mySavedSearch: 'My expenses',
         urlCopied: 'URL 已复制',
         groupedExpenses: '已分组的报销费用',
         bulkActions: {
@@ -9241,7 +9242,6 @@ ${reportName}
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',
-        saveSearchTooltip: '<tooltip>在这里<strong>重命名已保存的搜索</strong>！</tooltip>',
         accountSwitcher: '<tooltip>在此访问你的<strong>Copilot 账户</strong></tooltip>',
         outstandingFilter: '<tooltip>筛选<strong>待审批</strong>的报销</tooltip>',
         scanTestDriveTooltip: '<tooltip>发送此收据以\n<strong>完成试用体验！</strong></tooltip>',

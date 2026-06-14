@@ -11,13 +11,10 @@ type ThreeDotsMenuHandle = {hidePopoverMenu: () => void; isPopupMenuVisible: boo
 type SavedSearchItemThreeDotMenuProps = {
     menuItems: PopoverMenuItem[];
     isDisabledItem: boolean;
-    hideProductTrainingTooltip?: () => void;
-    renderTooltipContent: () => React.JSX.Element;
-    shouldRenderTooltip: boolean;
     isCopied?: boolean;
 };
 
-function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrainingTooltip, renderTooltipContent, shouldRenderTooltip, isCopied}: SavedSearchItemThreeDotMenuProps) {
+function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied}: SavedSearchItemThreeDotMenuProps) {
     const styles = useThemeStyles();
     const threeDotsMenuRef = useRef<ThreeDotsMenuHandle | null>(null);
 
@@ -36,14 +33,11 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrai
             <ThreeDotsMenu
                 shouldSelfPosition
                 menuItems={menuItems}
-                renderProductTrainingTooltipContent={renderTooltipContent}
-                shouldShowProductTrainingTooltip={shouldRenderTooltip}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 iconStyles={styles.wAuto}
-                hideProductTrainingTooltip={hideProductTrainingTooltip}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU}
                 threeDotsMenuRef={threeDotsMenuRef}
             />
