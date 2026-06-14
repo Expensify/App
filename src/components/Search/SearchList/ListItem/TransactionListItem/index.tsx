@@ -47,10 +47,10 @@ import TransactionListItemNarrow from './TransactionListItemNarrow';
 import TransactionListItemWide from './TransactionListItemWide';
 
 function TransactionListItem<TItem extends ListItem>(props: TransactionListItemProps<TItem>) {
-    const transactionItem = props.item as unknown as TransactionListItemType;
+    const reportID = 'reportID' in props.item && typeof props.item.reportID === 'string' ? props.item.reportID : undefined;
     return (
         <ReportSubmitToPopoverAnchor
-            reportID={transactionItem.reportID}
+            reportID={reportID}
             anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
         >
             <TransactionListItemInner {...props} />

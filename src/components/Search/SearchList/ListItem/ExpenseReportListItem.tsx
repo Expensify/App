@@ -52,10 +52,10 @@ import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
  * An expense report row in search results, showing status badge, total, and participants.
  */
 function ExpenseReportListItem<TItem extends ListItem>(props: ExpenseReportListItemProps<TItem>) {
-    const reportItem = props.item as unknown as ExpenseReportListItemType;
+    const reportID = 'reportID' in props.item && typeof props.item.reportID === 'string' ? props.item.reportID : undefined;
     return (
         <ReportSubmitToPopoverRoot
-            reportID={reportItem.reportID}
+            reportID={reportID}
             anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
         >
             <ExpenseReportListItemInner {...props} />

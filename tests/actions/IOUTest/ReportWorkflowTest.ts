@@ -1835,8 +1835,13 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             submitMoneyRequestOnSearch(1, [report], [policy]);
 
-            const [, parameters] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number; managerEmail?: string}];
-            expect(parameters.managerAccountID).toBe(correctManagerAccountID);
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                'SubmitReport',
+                expect.objectContaining({
+                    managerAccountID: correctManagerAccountID,
+                }),
+                expect.anything(),
+            );
         });
 
         it('uses the popover-selected manager email for search submit managerAccountID', async () => {
@@ -1881,10 +1886,21 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             submitMoneyRequestOnSearch(1, [report], [policy], undefined, chosenManagerEmail);
 
-            const [, parameters] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number; managerEmail?: string}];
-            expect(parameters.managerEmail).toBe(chosenManagerEmail);
-            expect(parameters.managerAccountID).toBe(chosenManagerAccountID);
-            expect(parameters.managerAccountID).not.toBe(defaultManagerAccountID);
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                'SubmitReport',
+                expect.objectContaining({
+                    managerEmail: chosenManagerEmail,
+                    managerAccountID: chosenManagerAccountID,
+                }),
+                expect.anything(),
+            );
+            expect(apiWriteSpy).not.toHaveBeenCalledWith(
+                'SubmitReport',
+                expect.objectContaining({
+                    managerAccountID: defaultManagerAccountID,
+                }),
+                expect.anything(),
+            );
         });
 
         it('submits from search while a retract update is pending', () => {
