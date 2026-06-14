@@ -221,7 +221,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         });
 
         it('should be true for CREATE when backToReport is the receiving chat (report-preview "Add expense" returns to the chat whose preview card shows the new expense)', () => {
-            (isMoneyRequestReport as jest.Mock).mockReturnValue(false);
+            jest.mocked(isMoneyRequestReport).mockReturnValue(false);
 
             cleanupAndNavigateAfterExpenseCreate({
                 action: CONST.IOU.ACTION.CREATE,
@@ -236,8 +236,8 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         });
 
         it('should be false for CREATE when backToReport points to a money-request (expense) report that highlights via its own live diff', () => {
-            (getReportOrDraftReport as jest.Mock).mockReturnValue({reportID: 'back-expense'} as Report);
-            (isMoneyRequestReport as jest.Mock).mockReturnValue(true);
+            jest.mocked(getReportOrDraftReport).mockReturnValue(expenseReport);
+            jest.mocked(isMoneyRequestReport).mockReturnValue(true);
 
             cleanupAndNavigateAfterExpenseCreate({
                 action: CONST.IOU.ACTION.CREATE,
