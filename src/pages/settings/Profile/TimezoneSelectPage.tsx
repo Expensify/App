@@ -28,13 +28,20 @@ const getUserTimezone = (currentUserPersonalDetails: ValueOf<WithCurrentUserPers
 function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProps) {
     const {translate} = useLocalize();
     const timezone = getUserTimezone(currentUserPersonalDetails);
-    const allTimezones = useInitialValue(() =>
-        TIMEZONES.filter((tz: string) => !tz.startsWith('Etc/GMT')).map((text: string) => ({
+    const allTimezones = useInitialValue(() => {
+        const options = TIMEZONES.filter((tz: string) => !tz.startsWith('Etc/GMT')).map((text: string) => ({
             text,
             keyForList: getKey(text),
             isSelected: text === timezone.selected,
-        })),
-    );
+        }));
+        // Move the currently-selected timezone to the top so it's visible without scrolling when the page opens.
+        const selectedIndex = options.findIndex((option) => option.isSelected);
+        if (selectedIndex > 0) {
+            const [selectedOption] = options.splice(selectedIndex, 1);
+            options.unshift(selectedOption);
+        }
+        return options;
+    });
     const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
