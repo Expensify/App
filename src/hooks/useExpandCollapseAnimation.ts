@@ -58,4 +58,3 @@ function useExpandCollapseAnimation(isExpanded: boolean, shouldAddBorderHeight: 
 }
 
 export default useExpandCollapseAnimation;
-export {EXPAND_COLLAPSE_DURATION};

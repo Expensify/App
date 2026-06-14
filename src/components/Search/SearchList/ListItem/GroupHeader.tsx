@@ -207,7 +207,7 @@ function GroupHeader({
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
-    const withOriginalKey = (rowItem: SearchListItem): SearchListItem => ({
+    const withOriginalKey = <T extends SearchListItem>(rowItem: T): T => ({
         ...rowItem,
         keyForList: originalKey,
     });
