@@ -28,7 +28,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
 // ReanimatedModal animates its content in, which doesn't work in tests because
 // animations are disabled. This mock renders visible modal content synchronously instead.
 jest.mock('@components/Modal/ReanimatedModal', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- require() returns an untyped module; the typeof React annotation on the destructure enforces the expected shape
     const {createElement, Fragment}: typeof React = require('react');
 
     function MockReanimatedModal({isVisible, children}: {isVisible: boolean; children: React.ReactNode}) {
