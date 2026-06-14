@@ -29,6 +29,12 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
 
     const keywordFilters = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD)?.filters ?? [];
     const keywordQuery = buildFilterValuesString(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, keywordFilters).trim();
+    const [prevKeywordQuery, setPrevKeywordQuery] = useState('');
+
+    if (keywordQuery !== prevKeywordQuery) {
+        setTextInputValue(keywordQuery);
+        setPrevKeywordQuery(keywordQuery);
+    }
 
     function submitSearch(query: string) {
         const queryWithContext = getKeywordQueryWithCurrentSearchContext(query, queryJSON);
@@ -40,10 +46,6 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
     }
-
-    useEffect(() => {
-        setTextInputValue(keywordQuery);
-    }, [keywordQuery]);
 
     return (
         <TextInput
