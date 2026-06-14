@@ -1,7 +1,6 @@
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
- * / (_ / -_) _ \/ -_) __/ _ \`/ __/ -_) _  /
  * \___/\__/_//_/\__/_/  \_,_/\__/\__/\_,_/
  *
  * This file was automatically generated. Please consider these alternatives before manually editing it:
@@ -40,6 +39,7 @@ import type {
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
+    RemoveCopilotAccessConfirmationParams,
     RemovedFromApprovalWorkflowParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -108,7 +108,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Sélection multiple',
         saveChanges: 'Enregistrer les modifications',
         submit: 'Soumettre',
+        markAsDone: 'Marquer comme terminé',
         submitted: 'Soumis',
+        markedAsDoneStatus: 'Marqué comme terminé',
         rotate: 'Pivoter',
         zoom: 'Zoom',
         password: 'Mot de passe',
@@ -293,7 +295,6 @@ const translations: TranslationDeepObject<typeof en> = {
         description: 'Description',
         title: 'Titre',
         assignee: 'Attribué',
-        createdBy: 'Créé par',
         with: 'avec',
         shareCode: 'Partager le code',
         share: 'Partager',
@@ -314,6 +315,7 @@ const translations: TranslationDeepObject<typeof en> = {
         merchant: 'Commerçant',
         change: 'Modifier',
         category: 'Catégorie',
+        vendor: 'Fournisseur',
         report: 'Note de frais',
         billable: 'Facturable',
         nonBillable: 'Non refacturable',
@@ -355,6 +357,10 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Recherchez une discussion à l’aide de la',
             subtitleText2: 'bouton ci-dessus, ou créez quelque chose en utilisant le',
             subtitleText3: 'bouton ci-dessous.',
+            noUnreadChats: 'Aucune discussion non lue',
+            noTodos: 'Aucune tâche à faire',
+            caughtUp: 'Vous êtes à jour. Bravo !',
+            seeAllChats: 'Voir toutes les discussions',
         },
         businessName: 'Nom de l’entreprise',
         clear: 'Effacer',
@@ -856,6 +862,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Cette discussion est avec ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `C’est ici que <strong>${submitterDisplayName}</strong> soumettra des dépenses à <strong>${workspaceName}</strong>. Utilisez simplement le bouton +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'C\u2019est ici que vous suivrez vos dépenses',
         beginningOfChatHistorySelfDM: 'Ceci est votre espace personnel. Utilisez-le pour vos notes, tâches, brouillons et rappels.',
         beginningOfChatHistorySystemDM: 'Bienvenue ! Procédons à la configuration.',
         chatWithAccountManager: 'Discutez avec votre gestionnaire de compte ici',
@@ -961,7 +968,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Réparer la connexion de la carte personnelle ${cardName}` : 'Corriger la connexion de la carte personnelle'),
                 subtitle: 'Portefeuille',
             },
-            validateAccount: {title: 'Validez votre compte pour continuer à utiliser Expensify', subtitle: 'Compte', cta: 'Valider'},
+            validateAccount: {title: 'Validez votre compte', subtitle: 'Compte', cta: 'Valider'},
             fixFailedBilling: {title: 'Nous n’avons pas pu débiter votre carte enregistrée', subtitle: 'Abonnement'},
             unlockBankAccount: {
                 workspaceTitle: 'Votre compte bancaire professionnel a été verrouillé',
@@ -1016,6 +1023,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Tout est à jour',
                 f1FlagsDescription: 'Vous avez terminé toutes les tâches en cours.',
             },
+            reviewExpenses: ({count}: {count: number}) => `Examiner ${count} ${count === 1 ? 'dépense' : 'dépenses'}`,
         },
         upcomingTravel: 'Voyages à venir',
         upcomingTravelSection: {
@@ -1354,6 +1362,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `Envoyer la facture de ${amount}`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `pour ${comment}` : ''}`,
         submitted: (memo?: string) => `soumis${memo ? `, indiquant « ${memo} »` : ''}`,
+        markedAsDone: (memo?: string) => `marqué comme terminé${memo ? `, en indiquant « ${memo} »` : ''}`,
         automaticallySubmitted: `soumis via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">soumissions différées</a>`,
         queuedToSubmitViaDEW: 'en file d’attente pour être soumis via le circuit d’approbation personnalisé',
         queuedToApproveViaDEW: 'mis en file d’attente pour approbation via un processus d’approbation personnalisé',
@@ -1570,6 +1579,9 @@ const translations: TranslationDeepObject<typeof en> = {
         removed: 'supprimé',
         transactionPending: 'Transaction en attente.',
         chooseARate: 'Sélectionnez un taux de remboursement par mile ou kilomètre pour l’espace de travail',
+        rateValidDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} au ${endDate}`,
+        rateValidFrom: ({startDate}: {startDate: string}) => `Valide à partir du ${startDate}`,
+        rateValidUntil: ({endDate}: {endDate: string}) => `Valide jusqu’au ${endDate}`,
         unapprove: 'Annuler l’approbation',
         unapproveReport: 'Retirer l’approbation de la note de frais',
         headsUp: 'Attention !',
@@ -1671,6 +1683,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Corrigez l’erreur de taux et réessayez.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Expliquer<sparkles-icon/></a>`,
+        conciergeAutoMatchedVendor: ({vendorName}: {vendorName: string}) => `Concierge a associé cette dépense au fournisseur <strong>${vendorName}</strong>`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Vous ne pouvez pas dupliquer les indemnités journalières entre plusieurs espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
         rulesModifiedFields: {
@@ -1798,6 +1811,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `En attente que <strong>${actor}</strong> soumette des dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `En attente qu’un administrateur soumette des dépenses.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> marquiez ceci comme terminé.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attente que <strong>${actor}</strong> marque ceci comme terminé.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente qu'un administrateur marque ceci comme terminé.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2233,11 +2261,14 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: 'Signaler une activité suspecte',
         lockAccount: 'Verrouiller le compte',
+        lockMyAccount: 'Verrouiller mon compte',
         unlockAccount: 'Déverrouiller le compte',
-        compromisedDescription:
-            'Vous remarquez quelque chose d’inhabituel sur votre compte ? Le signaler bloquera immédiatement votre compte, empêchera les nouvelles transactions avec la Carte Expensify et interdira toute modification du compte.',
-        domainAdminsDescription:
-            "Pour les administrateurs de domaine : cela met également en pause toute l'activité de Carte Expensify et toutes les actions d'administration sur l’ensemble de votre (vos) domaine(s).",
+        findYourSituation: 'La plupart des problèmes ne nécessitent pas de verrouiller votre compte ! Trouvez votre situation ci-dessous :',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Carte perdue ou frais inconnus</a> : Annulez votre carte et contactez Concierge pour contester les transactions inconnues.',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Accès non autorisé au compte</a> : Verrouillez votre compte ci-dessous. Cela bloque les nouvelles transactions Carte Expensify, les commandes de carte et les modifications de compte. Si vous êtes administrateur de domaine, cela met également en pause toute l’activité de carte au niveau du domaine et les actions des administrateurs.',
+        securityTeamFollowUp: 'Notre équipe de sécurité effectuera un suivi depuis <a href="mailto:risk@expensify.com">risk@expensify.com</a> après le verrouillage.',
         areYouSure: 'Voulez-vous vraiment verrouiller votre compte Expensify ?',
         onceLocked: 'Une fois verrouillé, votre compte sera restreint en attendant une demande de déverrouillage et un contrôle de sécurité',
         unlockTitle: 'Nous avons bien reçu votre demande',
@@ -2607,13 +2638,10 @@ ${amount} pour ${merchant} - ${date}`,
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `dépenses de ${members}, et l'approbateur est ${approvers}`,
         addApprovalButton: 'Ajouter un workflow d’approbation',
         editWorkflowAction: 'Modifier',
-        addAgentAction: 'Ajouter un agent',
         findWorkflow: 'Rechercher un flux de travail',
         addApprovalTip: 'Ce workflow par défaut s’applique à tous les membres, sauf si un workflow plus spécifique existe.',
         approver: 'Approbateur',
         addApprovalsDescription: 'Exiger une approbation supplémentaire avant d’autoriser un paiement.',
-        automateApprovalsWithAgentsTitle: 'Automatisez les approbations avec des agents',
-        automateApprovalsWithAgentsSubtitle: 'Ajoutez l’agent ci-dessous au flux de travail pour automatiser les approbations.',
         makeOrTrackPaymentsTitle: 'Paiements',
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
         customApprovalWorkflowEnabled:
@@ -2804,9 +2832,12 @@ ${amount} pour ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agents',
-        subtitle: 'Créez des agents pour gérer votre flux de travail. Évitez le travail manuel et gagnez des heures dans votre journée.',
+        subtitle: `<muted-text>Créez des agents pour gérer votre flux de travail. Évitez le travail manuel et gagnez des heures chaque jour. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">En savoir plus</a>.</muted-text>`,
         newAgent: 'Nouvel agent',
-        emptyAgents: {title: 'Aucun agent créé', subtitle: 'Arrêtez de faire les choses manuellement. Donnez plutôt des instructions à un agent et gagnez beaucoup de temps.'},
+        emptyAgents: {
+            title: 'Aucun agent créé',
+            subtitle: `<muted-text><centered-text>Arrêtez de tout faire manuellement. Donnez plutôt des instructions à un agent et gagnez beaucoup de temps. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">En savoir plus</a>.</centered-text></muted-text>`,
+        },
         error: {
             genericAdd: "Un problème est survenu lors de l'ajout de cet agent",
             genericUpdate: 'Un problème est survenu lors de la mise à jour de cet agent',
@@ -2909,6 +2940,12 @@ ${amount} pour ${merchant} - ${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: 'Bienvenue dans le mode #focus !',
+        prompt: (priorityModePageUrl: string) =>
+            `Gardez le contrôle en n’affichant que les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez modifier ce réglage à tout moment dans les <a href="${priorityModePageUrl}">paramètres</a>.`,
+    },
+    inboxTabs: {all: 'Tout', todo: 'Tâches', unread: 'Non lu'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `dans ${policyName}`,
         generatingPDF: 'Générer le PDF',
@@ -3479,11 +3516,6 @@ ${amount} pour ${merchant} - ${date}`,
     yearPickerPage: {
         year: 'Année',
         selectYear: 'Veuillez sélectionner une année',
-    },
-    focusModeUpdateModal: {
-        title: 'Bienvenue en mode #focus !',
-        prompt: (priorityModePageUrl: string) =>
-            `Gardez le contrôle en affichant uniquement les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez modifier ce paramètre à tout moment dans les <a href="${priorityModePageUrl}">paramètres</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'La discussion que vous recherchez est introuvable.',
@@ -4149,28 +4181,31 @@ ${amount} pour ${merchant} - ${date}`,
         verificationFailed: 'La vérification a échoué, nous aurons donc besoin de documents supplémentaires pour te vérifier ainsi que ton entreprise',
         taxIDVerification: 'Vérification de l’identifiant fiscal',
         taxIDVerificationDescription: dedent(`
-        Veuillez téléverser l’un des fichiers suivants :
-        • Lettre d’attribution TIN/EIN de l’IRS
-        • Confirmation de demande TIN/EIN de l’IRS (indique généralement « Congratulations! The EIN has been successfully assigned »)
-        • Lettre d’exonération fiscale de l’IRS indiquant le nom de l’entreprise et l’EIN`),
+            Veuillez téléverser l’un des fichiers suivants :
+            • Lettre d’attribution TIN/EIN de l’IRS
+            • Confirmation de demande TIN/EIN de l’IRS (indique généralement « Congratulations! The EIN has been successfully assigned »)
+            • Lettre d’exonération fiscale de l’IRS indiquant le nom de l’entreprise et l’EIN
+        `),
         nameChangeDocument: 'Document de changement de nom',
         nameChangeDocumentDescription:
             'Si le nom de ton entreprise a changé depuis la demande du TIN/EIN, ce document est nécessaire pour vérifier le numéro d’identification fiscale fourni',
         companyAddressVerification: 'Vérification de l’adresse de l’entreprise',
         companyAddressVerificationDescription: dedent(`
-        Veuillez téléverser l’un des fichiers suivants :
-        • Facture récente de services publics indiquant le nom et l’adresse de l’entreprise
-        • Relevé bancaire indiquant le nom et l’adresse de l’entreprise
-        • Contrat de location en cours incluant la page de signature avec le nom et l’adresse actuelle de l’entreprise
-        • Attestation d’assurance indiquant le nom et l’adresse de l’entreprise
-        • Document d’attribution TIN indiquant le nom et l’adresse de l’entreprise`),
+            Veuillez téléverser l’un des fichiers suivants :
+            • Facture récente de services publics indiquant le nom et l’adresse de l’entreprise
+            • Relevé bancaire indiquant le nom et l’adresse de l’entreprise
+            • Contrat de location en cours incluant la page de signature avec le nom et l’adresse actuelle de l’entreprise
+            • Attestation d’assurance indiquant le nom et l’adresse de l’entreprise
+            • Document d’attribution TIN indiquant le nom et l’adresse de l’entreprise
+        `),
         userAddressVerification: 'Vérification de l’adresse',
         userAddressVerificationDescription: dedent(`
-        Veuillez téléverser l’un des fichiers suivants :
-        • Carte d’inscription électorale
-        • Permis de conduire
-        • Relevé bancaire
-        • Facture de services publics`),
+            Veuillez téléverser l’un des fichiers suivants :
+            • Carte d’inscription électorale
+            • Permis de conduire
+            • Relevé bancaire
+            • Facture de services publics
+        `),
         userDOBVerification: 'Vérification de la date de naissance',
         userDOBVerificationDescription: 'Veuillez téléverser une pièce d’identité délivrée aux États-Unis',
         finishViaChat: 'Finaliser via le chat',
@@ -4352,7 +4387,6 @@ ${amount} pour ${merchant} - ${date}`,
             customFieldHint: 'Ajoutez un codage personnalisé qui s’applique à toutes les dépenses de ce membre.',
             reports: 'Notes de frais',
             reportFields: 'Champs de note de frais',
-            invoiceFields: 'Champs de facture',
             reportTitle: 'Titre de la note de frais',
             reportField: 'Champ de note de frais',
             taxes: 'Taxes',
@@ -4436,7 +4470,7 @@ ${amount} pour ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrateur';
+                        return 'Administrateur d’espace de travail';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditeur';
                     case CONST.POLICY.ROLE.EDITOR:
@@ -4444,7 +4478,7 @@ ${amount} pour ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrateur de carte';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administration des personnes';
+                        return 'Admin personnes';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrateur des paiements';
                     case CONST.POLICY.ROLE.USER:
@@ -6051,29 +6085,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             reportFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale pour le champ de note de frais',
             genericFailureMessage: 'Une erreur s’est produite lors de la mise à jour du champ de note de frais. Veuillez réessayer.',
         },
-        invoiceFields: {
-            subtitle: 'Les champs de facture peuvent être utiles lorsque vous souhaitez inclure des informations supplémentaires.',
-            importedFromAccountingSoftware: 'Les champs de facture ci-dessous sont importés depuis votre',
-            disableInvoiceFields: 'Désactiver les champs de facture',
-            disableInvoiceFieldsConfirmation: 'Êtes-vous sûr ? Les champs de facture seront désactivés sur les factures.',
-            delete: 'Supprimer le champ de facture',
-            deleteConfirmation: 'Voulez-vous vraiment supprimer ce champ de facture ?',
-            findInvoiceField: 'Trouver un champ de facture',
-            nameInputSubtitle: 'Choisissez un nom pour le champ de facture.',
-            typeInputSubtitle: 'Choisissez le type de champ de facture à utiliser.',
-            initialValueInputSubtitle: 'Saisissez une valeur de départ à afficher dans le champ de facture.',
-            listValuesInputSubtitle: 'Ces valeurs apparaîtront dans la liste déroulante du champ de facture. Les valeurs activées peuvent être sélectionnées par les membres.',
-            listInputSubtitle: 'Ces valeurs apparaîtront dans la liste du champ de facture. Les valeurs activées peuvent être sélectionnées par les membres.',
-            emptyInvoiceFieldsValues: {
-                title: 'Aucune valeur de liste pour le moment',
-                subtitle: 'Ajoutez des valeurs personnalisées à afficher sur les factures.',
-            },
-            existingInvoiceFieldNameError: 'Un champ de facture portant ce nom existe déjà',
-            invoiceFieldNameRequiredError: 'Veuillez saisir un nom de champ de facture',
-            invoiceFieldTypeRequiredError: 'Veuillez choisir un type de champ de facture',
-            invoiceFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale de champ de facture',
-            addField: 'Ajouter un champ',
-        },
         tags: {
             tagName: 'Nom du tag',
             requiresTag: 'Les membres doivent taguer toutes les dépenses',
@@ -6296,8 +6307,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 other: 'Créer des membres',
             }),
             makeAdmin: () => ({
-                one: 'Nommer administrateur',
-                other: 'Nommer des administrateurs',
+                one: 'Nommer administrateur de l’espace de travail',
+                other: 'Nommer des administrateurs de l’espace de travail',
             }),
             makeAuditor: () => ({
                 one: 'Nommer auditeur',
@@ -6326,12 +6337,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} a une note de frais en cours de traitement sur laquelle il doit agir. Veuillez lui demander d’effectuer l’action requise avant de le retirer de l’espace de travail.`,
             allMembers: 'Tous les membres',
-            admins: 'Administrateurs',
+            admins: 'Administrateurs de l’espace de travail',
             approvers: 'Approbateurs',
             auditors: 'Auditeurs',
             emptyRoleFilter: {title: 'Aucun membre ne correspond à ce filtre', subtitle: 'Invitez un membre ou modifiez le filtre ci-dessus.'},
             configureHRSync: (providerName: string) => `Configurer la synchronisation ${providerName}.`,
             syncWithHR: (providerName: string) => `Synchroniser avec ${providerName}`,
+            makeCardAdmin: () => ({one: 'Nommer administrateur de carte', other: 'Nommer des administrateurs de carte'}),
+            cardAdmins: 'Administrateurs de cartes',
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -6751,6 +6764,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             }),
             enableRate: 'Activer le taux',
             status: 'Statut',
+            statusActive: 'Actif',
+            statusFuture: 'Futur',
+            statusExpired: 'Expiré',
+            statusInactive: 'Inactif',
             unit: 'Unité',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Les taxes doivent être activées sur l’espace de travail pour utiliser cette fonctionnalité. Rendez-vous dans <a href="#">Plus de fonctionnalités</a> pour effectuer cette modification.</muted-text>',
@@ -6879,12 +6896,6 @@ Voulez-vous vraiment les exporter à nouveau ?`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les champs de note de frais sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
-            invoiceFields: {
-                title: 'Champs de facture',
-                description: `Les champs de facture vous permettent d'inclure des détails supplémentaires au niveau de la facture.`,
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Les champs de facture sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
-            },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + NetSuite. Obtenez des informations financières détaillées et en temps réel avec la prise en charge des segments natifs et personnalisés, y compris la correspondance des projets et des clients.`,
@@ -6986,12 +6997,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les taux de distance sont disponibles avec l’abonnement Collect, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
-            auditor: {
-                title: 'Auditeur',
-                description: 'Les auditeurs obtiennent un accès en lecture seule à toutes les notes de frais pour une visibilité complète et le suivi de la conformité.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Les auditeurs ne sont disponibles que dans l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
-            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Niveaux d’approbation multiples',
                 description:
@@ -7091,6 +7096,12 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     'Créez, envoyez et suivez des factures professionnelles, le tout dans Expensify. Soyez payé plus rapidement grâce aux paiements intégrés et à la visibilité en temps réel.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La facturation est disponible avec les offres Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            controlPolicyRoles: {
+                title: 'Contrôler les rôles de politique',
+                description: 'Utilisez des rôles spécialisés comme Auditeur et Administrateur de cartes pour donner aux membres accès uniquement à ce dont ils ont besoin.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les rôles spécialisés dans l’espace de travail sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
         },
         downgrade: {
@@ -7407,17 +7418,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
             },
-            aiRules: {
-                title: 'Règles IA',
+            agentRules: {
+                title: 'Règles Agent',
                 subtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin',
-                addRule: 'Ajouter une règle IA',
-                findRule: 'Rechercher une règle d’IA',
+                addRule: 'Ajouter une règle Agent',
+                findRule: 'Rechercher une règle Agent',
                 addRuleTitle: 'Ajouter une règle',
                 editRuleTitle: 'Modifier la règle',
                 deleteRule: 'Supprimer la règle',
                 deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
                 describeRuleTitle: 'Décrivez votre règle',
                 describeRuleSubtitle: 'Décrivez votre règle et Concierge la créera',
+                disclaimer: 'Les agents IA peuvent faire des erreurs.',
             },
         },
         planTypePage: {
@@ -8087,10 +8099,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }),
                 phraseVerb: {added: 'ajouté', removed: 'supprimé', changed: 'modifié', set: 'définir', applied: 'appliqué'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} commerçant « ${value} »` : `commerçant « ${value} »`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `« ${value} »`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} marchand de « ${oldValue} » à « ${newValue} »` : `commerçant de « ${oldValue} » à « ${newValue} »`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `Catégorie de dépense ${adjective} « ${value} »` : `catégorie de dépense « ${value} »`,
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `« ${value} »`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `Catégorie de dépense ${adjective} de « ${oldValue} » à « ${newValue} »` : `catégorie de dépense de « ${oldValue} » à « ${newValue} »`,
                 bodyMaxAmount: 'montant maximal',
@@ -8105,22 +8119,20 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
             },
         },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `a modifié le taux de taxe par défaut de la catégorie « ${categoryName} » en « ${newTax} » (auparavant « ${oldTax} »)`,
         addCustomUnitRateWithAmount: (rateName: string, rateValue: string) => `a ajouté le taux « ${rateName} » de ${rateValue}`,
         addCustomUnitRateWithAmountAndStartDate: (rateName: string, rateValue: string, startDate: string) =>
             `a ajouté le taux « ${rateName} » de ${rateValue}, valable à partir du ${startDate}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `a ajouté le taux « ${rateName} » de ${rateValue}, valable jusqu’au ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `a ajouté le taux « ${rateName} » de ${rateValue}, valable du ${startDate} au ${endDate}`,
-        updatedCustomUnitRateStartDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `a mis à jour la date de début du taux « ${rateName} » à ${newDate} (auparavant ${oldDate})` : `définir la date de début du taux « ${rateName} » sur ${newDate}`,
-        updatedCustomUnitRateEndDate: (rateName: string, newDate: string, oldDate?: string) =>
-            oldDate ? `a mis à jour la date de fin du taux « ${rateName} » à ${newDate} (auparavant ${oldDate})` : `définir la date de fin du taux « ${rateName} » sur ${newDate}`,
-        updatedCustomUnitRateStartAndEndDate: (rateName: string, newStartDate: string, newEndDate: string, oldStartDate?: string, oldEndDate?: string) =>
-            oldStartDate && oldEndDate
-                ? `a mis à jour les dates de début et de fin du taux « ${rateName} » en ${newStartDate} - ${newEndDate} (précédemment ${oldStartDate} - ${oldEndDate})`
-                : `définir les dates de début et de fin du taux « ${rateName} » sur ${newStartDate} - ${newEndDate}`,
-        removedCustomUnitRateStartDate: (rateName: string, oldDate: string) => `a supprimé la date de début du taux « ${rateName} » (précédemment ${oldDate})`,
-        removedCustomUnitRateEndDate: (rateName: string, oldDate: string) => `a supprimé la date de fin du taux « ${rateName} » (auparavant ${oldDate})`,
+        updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
+            `a mis à jour le taux kilométrique « ${rateName} » pour s’appliquer à ${newDateRange} (précédemment ${oldDateRange})`,
+        customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
+        customUnitRateDateRangeFrom: (date: string) => `à partir du ${date}`,
+        customUnitRateDateRangeUntilEnd: (date: string) => `jusqu’au ${date}`,
+        customUnitRateDateRangeAllDates: () => `pour toutes les dates`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -8561,8 +8573,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     `La connexion ${feedName} est interrompue. Pour rétablir l’importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connexion Plaid à votre compte bancaire professionnel est rompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> afin de pouvoir continuer à utiliser vos Cartes Expensify.`,
-                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} a rejoint via le lien d’invitation de l’espace de travail` : `a ajouté ${email} en tant que ${role === 'member' ? 'a' : 'un'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
+                    const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'un' : 'a';
+                    return didJoinPolicy ? `${email} a rejoint via le lien d’invitation de l’espace de travail` : `a ajouté ${email} en tant que ${article} ${translatedRole}`;
+                },
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `a mis à jour le rôle de ${email} en ${newRole} (précédemment ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
@@ -9458,6 +9473,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
             `En tant que <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copilote</a> pour ${accountOwnerEmail}, vous n’avez pas l’autorisation d’effectuer cette action. Désolé !`,
+        removeCopilotAccess: 'Supprimer mon accès copilote',
+        removeCopilotAccessTitle: "Supprimer l'accès copilote ?",
+        removeCopilotAccessConfirmation: ({delegatorName}: RemoveCopilotAccessConfirmationParams) =>
+            `Êtes-vous sûr de vouloir supprimer votre accès copilote au compte Expensify de ${delegatorName} ? Cette action est irréversible.`,
+        removeCopilotAccessConfirm: "Supprimer l'accès",
         copilotAccess: 'Accès Copilot',
     },
     debug: {
@@ -9563,6 +9583,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
         hasFilterNegation: '<tooltip>Recherchez les dépenses sans reçus à l’aide de <strong>-has:receipt</strong>.</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>Nous avons mis à jour le taux en fonction de votre date de voyage.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Ignorer les modifications ?',
