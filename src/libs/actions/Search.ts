@@ -32,7 +32,14 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
-import {getSubmitReportManagerAccountID, getSubmitToAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled, isSubmitPolicy} from '@libs/PolicyUtils';
+import {
+    getAccountIDForSubmitManagerEmail,
+    getSubmitReportManagerAccountID,
+    getSubmitToAccountID,
+    getValidConnectedIntegration,
+    isDelayedSubmissionEnabled,
+    isSubmitPolicy,
+} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
@@ -318,8 +325,8 @@ function handleActionButtonPress({
             const policyForSubmit = policy ?? snapshotPolicy;
             if (isSubmitPolicy(policyForSubmit) && openReportSubmitToPopover) {
                 openReportSubmitToPopover({
-                    onSubmitWithManagerEmail: (managerEmail) => {
-                        submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], currentSearchKey, managerEmail);
+                    onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
+                        submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], currentSearchKey, managerEmail, managerAccountID);
                     },
                 });
                 return;
@@ -858,7 +865,7 @@ function search({
     return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest);
 }
 
-function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey, managerEmail?: string) {
+function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey, managerEmail?: string, managerAccountID?: number) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const firstPolicy = policy.at(0);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
@@ -906,15 +913,15 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
     const trimmedManagerEmail = managerEmail?.trim();
     const submitToAccountID = getSubmitToAccountID(firstPolicy, firstReport);
     const managerIDFromChain = getKnownAccountIDByLogin(getApprovalChain(firstPolicy, firstReport).at(0));
-    const managerAccountIDFromEmail = trimmedManagerEmail ? getKnownAccountIDByLogin(trimmedManagerEmail) : undefined;
+    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList) : undefined;
     const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport);
-    const managerAccountID = trimmedManagerEmail
-        ? (managerAccountIDFromEmail ?? managerIDFromChain ?? firstReport.managerID)
+    const resolvedManagerAccountID = trimmedManagerEmail
+        ? (managerAccountID ?? managerAccountIDFromEmail ?? managerIDFromChain ?? firstReport.managerID)
         : (submitReportManagerAccountID ?? (submitToAccountID > 0 ? submitToAccountID : firstReport.managerID));
 
     const parameters: SubmitReportParams = {
         reportID: firstReport.reportID,
-        managerAccountID,
+        managerAccountID: resolvedManagerAccountID,
         reportActionID: rand64(),
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
     };

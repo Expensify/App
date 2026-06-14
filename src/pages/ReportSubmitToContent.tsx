@@ -24,7 +24,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSearchValueForPhoneOrEmail, getUserToInviteOption, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getKnownAccountIDByLogin, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
-import {getMemberAccountIDsForWorkspace, getSubmitToEmail} from '@libs/PolicyUtils';
+import {getAccountIDForSubmitManagerEmail, getMemberAccountIDsForWorkspace, getSubmitToEmail} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
@@ -49,7 +49,7 @@ type ReportSubmitToContentProps = {
     /** When false, skips closing the RHP stack after submit (e.g. submit-to popover on report screen). */
     shouldDismissRHPAfterSubmit?: boolean;
     /** When set (e.g. Search row submit), called with the selected submit-to email instead of `submitReport`. */
-    onSubmitWithManagerEmail?: (managerEmail: string) => void;
+    onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number) => void;
     /** When set, blocks submit after the popover is dismissed (prevents stale confirm / click-through). */
     canSubmitRef?: RefObject<boolean>;
 };
@@ -214,6 +214,13 @@ function ReportSubmitToContent({
         return [nonWorkspaceInviteRow, ...filteredWorkspaceMembers];
     }, [filteredWorkspaceMembers, nonWorkspaceInviteRow]);
 
+    const selectedSubmitToMember = useMemo((): WorkspaceMemberItem | undefined => {
+        if (nonWorkspaceInviteRow?.isSelected) {
+            return nonWorkspaceInviteRow;
+        }
+        return combinedSubmitToMembers.find((item) => item.isSelected);
+    }, [combinedSubmitToMembers, nonWorkspaceInviteRow]);
+
     const noMatchingMembers = !!searchTerm.trim() && submitToSelectionData.length === 0;
 
     const textInputOptions = useMemo(
@@ -226,7 +233,7 @@ function ReportSubmitToContent({
         [searchTerm, setSearchTerm, translate, noMatchingMembers],
     );
 
-    const hasSelectedSubmitToMember = combinedSubmitToMembers.some((item) => item.isSelected);
+    const hasSelectedSubmitToMember = !!selectedSubmitToMember;
 
     const handleSubmit = useCallback(() => {
         if (canSubmitRef && !canSubmitRef.current) {
@@ -245,11 +252,13 @@ function ReportSubmitToContent({
 
         setHasError(false);
 
+        const resolvedManagerAccountID = selectedSubmitToMember?.accountID ?? getAccountIDForSubmitManagerEmail(trimmed, policy?.employeeList);
+
         if (onSubmitWithManagerEmail) {
             if (canSubmitRef && !canSubmitRef.current) {
                 return;
             }
-            onSubmitWithManagerEmail(trimmed);
+            onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID);
             if (currentSearchQueryJSON && !isOffline) {
                 search({
                     searchKey: currentSearchKey,
@@ -281,6 +290,7 @@ function ReportSubmitToContent({
             ownerBillingGracePeriodEnd,
             delegateEmail,
             managerEmail: trimmed,
+            managerAccountID: resolvedManagerAccountID,
             onSubmitted: () => {
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -301,6 +311,7 @@ function ReportSubmitToContent({
         });
     }, [
         hasSelectedSubmitToMember,
+        selectedSubmitToMember,
         managerEmail,
         report,
         policy,

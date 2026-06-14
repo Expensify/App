@@ -17,7 +17,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
-import {arePaymentsEnabled, getSubmitReportManagerAccountID, getSubmitToAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
+import {
+    arePaymentsEnabled,
+    getAccountIDForSubmitManagerEmail,
+    getSubmitReportManagerAccountID,
+    getSubmitToAccountID,
+    hasDynamicExternalWorkflow,
+    isPaidGroupPolicy,
+    isPolicyAdmin,
+    isSubmitAndClose,
+} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction, isOlderReportAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticApprovedReportAction,
@@ -108,6 +117,8 @@ type SubmitReportFunctionParams = {
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
     managerEmail?: string;
+    /** When provided (e.g. from the submit-to popover selection), used for optimistic managerID before falling back to email resolution. */
+    managerAccountID?: number;
 };
 
 function canApproveIOU(
@@ -1304,6 +1315,7 @@ function submitReport({
     ownerBillingGracePeriodEnd,
     delegateEmail,
     managerEmail,
+    managerAccountID: managerAccountIDFromPopover,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1320,10 +1332,11 @@ function submitReport({
     const approvalChain = getApprovalChain(policy, expenseReport);
     const managerIDFromChain = getKnownAccountIDByLogin(approvalChain.at(0));
     const trimmedManagerEmail = managerEmail?.trim();
-    const managerAccountIDFromEmail = trimmedManagerEmail ? getKnownAccountIDByLogin(trimmedManagerEmail) : undefined;
+    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList) : undefined;
+    const resolvedManagerAccountIDFromEmail = managerAccountIDFromPopover ?? managerAccountIDFromEmail;
     const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport);
     const managerID = trimmedManagerEmail
-        ? (managerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID)
+        ? (resolvedManagerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID)
         : (submitReportManagerAccountID ?? (submitToAccountID > 0 ? submitToAccountID : expenseReport.managerID));
     const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
     const isCurrentUserManager = currentUserAccountIDParam === managerID;

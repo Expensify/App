@@ -51,8 +51,9 @@ import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
-import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getKnownAccountIDByLogin, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
+import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -711,6 +712,56 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | unde
         memberEmailsToAccountIDs[email] = Number(personalDetail.accountID);
     }
     return memberEmailsToAccountIDs;
+}
+
+/**
+ * Resolves the accountID for a submit-to recipient chosen in the submit-to popover.
+ * Uses personal details first, then the workspace employee list (same source as ReportSubmitToContent).
+ * When the member is in employeeList but not yet in personal details, returns a stable optimistic accountID.
+ */
+function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, employeeList: PolicyEmployeeList | undefined): number | undefined {
+    const trimmed = managerEmail?.trim();
+    if (!trimmed) {
+        return undefined;
+    }
+
+    const fromPersonalDetails = getKnownAccountIDByLogin(trimmed);
+    if (fromPersonalDetails !== undefined) {
+        return fromPersonalDetails;
+    }
+
+    if (!employeeList) {
+        return undefined;
+    }
+
+    const normalizedEmail = trimmed.toLowerCase();
+    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
+
+    for (const [email, accountID] of Object.entries(memberAccountIDs)) {
+        if (email.toLowerCase() === normalizedEmail) {
+            return accountID;
+        }
+    }
+
+    for (const [listKey, employee] of Object.entries(employeeList)) {
+        const employeeEmail = (employee.email ?? listKey).trim();
+        const listKeyNormalized = listKey.trim().toLowerCase();
+        const employeeEmailNormalized = employeeEmail.toLowerCase();
+
+        if (employeeEmailNormalized !== normalizedEmail && listKeyNormalized !== normalizedEmail) {
+            continue;
+        }
+
+        const accountIDFromMap = memberAccountIDs[employeeEmail] ?? memberAccountIDs[listKey];
+
+        if (accountIDFromMap !== undefined) {
+            return accountIDFromMap;
+        }
+
+        return generateAccountID(trimmed);
+    }
+
+    return undefined;
 }
 
 /**
@@ -2500,6 +2551,7 @@ export {
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
+    getAccountIDForSubmitManagerEmail,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
     getExpensifyTeamExclusions,

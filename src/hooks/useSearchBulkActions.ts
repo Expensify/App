@@ -1702,8 +1702,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                         if (snapshotReport) {
                             openSearchReportSubmitToPopover(reportIDForSubmit, {
-                                onSubmitWithManagerEmail: (managerEmail) => {
-                                    submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], currentSearchKey, managerEmail);
+                                onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
+                                    submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], currentSearchKey, managerEmail, managerAccountID);
                                     clearSelectedTransactions();
                                 },
                             });
