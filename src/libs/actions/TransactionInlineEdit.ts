@@ -12,7 +12,7 @@ import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
-import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
+import {getTagLists, isGroupPolicy, isMultiLevelTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
@@ -22,7 +22,6 @@ import {
     isArchivedReport,
     isInvoiceReport,
     isIOUReport,
-    isReportInGroupPolicy,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -454,7 +453,7 @@ function getTransactionEditPermissions({
             }
             // Matches MoneyRequestView's shouldShowCategory logic
             // For policy expenses, check if there's a category or enabled options
-            if (isReportInGroupPolicy(parentReport, policy)) {
+            if (isGroupPolicy(policy)) {
                 return !!(transaction?.category ?? '') || hasEnabledOptions(policyCategories ?? {});
             }
             // For unreported expenses, disable inline category editing while workspace selection is required.

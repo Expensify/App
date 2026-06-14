@@ -174,6 +174,7 @@ function cacheCurrentDraftWithPusherPaceState(runtime: PusherDraftPacingRuntime)
 function publishVisibleEvent(
     runtime: PusherDraftPacingRuntime,
     event: ConciergeDraftEvent,
+    isGroupPolicyReport: boolean,
     visibleMarkdown?: ReturnType<typeof getNextVisibleConciergeDraftMarkdown>,
     status?: ConciergeDraftEvent['status'],
     finalRenderedHTML?: string,
@@ -196,12 +197,12 @@ function publishVisibleEvent(
         status: visibleStatus,
     };
     setDraft((currentDraft) => {
-        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID);
+        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID, isGroupPolicyReport);
         return cacheDraftWithPusherPaceState(runtime, next);
     });
 }
 
-function tickPacing(runtime: PusherDraftPacingRuntime) {
+function tickPacing(runtime: PusherDraftPacingRuntime, isGroupPolicyReport: boolean) {
     const {completedPusherDraftEventRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleBodyMarkdownRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
     const latestEvent = latestPusherDraftEventRef.current;
     const targetBodyMarkdown = latestEvent?.bodyMarkdown ?? '';
@@ -219,13 +220,13 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
         const isTargetFullyVisible = nextVisibleMarkdown.sourceOffset >= targetBodyMarkdown.length;
         if (completedEvent?.finalRenderedHTML && !completedEvent.bodyMarkdown && completedEvent.status !== CONCIERGE_DRAFT_STATUS.COMPLETED && !hasQueuedTarget && isTargetFullyVisible) {
             completedPusherDraftEventRef.current = null;
-            publishVisibleEvent(runtime, latestEvent, nextVisibleMarkdown, CONCIERGE_DRAFT_STATUS.UPDATED);
-            startFinalRenderedHTMLReveal(runtime, completedEvent);
+            publishVisibleEvent(runtime, latestEvent, isGroupPolicyReport, nextVisibleMarkdown, CONCIERGE_DRAFT_STATUS.UPDATED);
+            startFinalRenderedHTMLReveal(runtime, completedEvent, isGroupPolicyReport);
             return;
         }
 
         const status = completedEvent && !hasQueuedTarget && isTargetFullyVisible ? CONCIERGE_DRAFT_STATUS.COMPLETED : CONCIERGE_DRAFT_STATUS.UPDATED;
-        publishVisibleEvent(runtime, status === CONCIERGE_DRAFT_STATUS.COMPLETED && completedEvent ? completedEvent : latestEvent, nextVisibleMarkdown, status);
+        publishVisibleEvent(runtime, status === CONCIERGE_DRAFT_STATUS.COMPLETED && completedEvent ? completedEvent : latestEvent, isGroupPolicyReport, nextVisibleMarkdown, status);
 
         if (status === CONCIERGE_DRAFT_STATUS.COMPLETED) {
             completedPusherDraftEventRef.current = null;
@@ -235,19 +236,20 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
     }
 
     if (promoteQueuedPusherDraftTarget(runtime)) {
-        startPusherDraftPace(runtime);
+        startPusherDraftPace(runtime, isGroupPolicyReport);
         return;
     }
 
     if (completedEvent) {
         completedPusherDraftEventRef.current = null;
         if (completedEvent.finalRenderedHTML && !completedEvent.bodyMarkdown && completedEvent.status !== CONCIERGE_DRAFT_STATUS.COMPLETED) {
-            startFinalRenderedHTMLReveal(runtime, completedEvent);
+            startFinalRenderedHTMLReveal(runtime, completedEvent, isGroupPolicyReport);
             return;
         }
         publishVisibleEvent(
             runtime,
             completedEvent,
+            isGroupPolicyReport,
             {bodyMarkdown: targetBodyMarkdown, sourceMarkdown: targetBodyMarkdown, sourceOffset: targetBodyMarkdown.length},
             CONCIERGE_DRAFT_STATUS.COMPLETED,
         );
@@ -256,14 +258,14 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
     stopPusherDraftPace(runtime);
 }
 
-function startPusherDraftPace(runtime: PusherDraftPacingRuntime) {
+function startPusherDraftPace(runtime: PusherDraftPacingRuntime, isGroupPolicyReport: boolean) {
     const {pusherPaceIntervalRef} = runtime;
 
     if (pusherPaceIntervalRef.current) {
         return;
     }
 
-    pusherPaceIntervalRef.current = setInterval(() => tickPacing(runtime), PUSHER_DRAFT_PACE_INTERVAL_MS);
+    pusherPaceIntervalRef.current = setInterval(() => tickPacing(runtime, isGroupPolicyReport), PUSHER_DRAFT_PACE_INTERVAL_MS);
 }
 
 function getRevealStageForCurrentDraft(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, tokens: string[]): number {
@@ -284,7 +286,7 @@ function getRevealStageForCurrentDraft(runtime: PusherDraftPacingRuntime, event:
     );
 }
 
-function tickFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime) {
+function tickFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime, isGroupPolicyReport: boolean) {
     const {finalRenderedHTMLRevealLastStageRef, finalRenderedHTMLRevealStartedAtRef, finalRenderedHTMLRevealTokensRef, latestPusherDraftEventRef} = runtime;
     const event = latestPusherDraftEventRef.current;
     const finalRenderedHTML = event?.finalRenderedHTML ?? '';
@@ -303,7 +305,7 @@ function tickFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime) {
     const shouldComplete = progress >= 1 || elapsed >= TRICKLE_HARD_CAP_MS;
 
     if (shouldComplete) {
-        publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, tokens.at(-1) ?? finalRenderedHTML);
+        publishVisibleEvent(runtime, event, isGroupPolicyReport, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, tokens.at(-1) ?? finalRenderedHTML);
         stopFinalRenderedHTMLReveal(runtime);
         return;
     }
@@ -313,10 +315,10 @@ function tickFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime) {
     }
 
     finalRenderedHTMLRevealLastStageRef.current = stage;
-    publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.UPDATED, tokens.at(stage) ?? '');
+    publishVisibleEvent(runtime, event, isGroupPolicyReport, undefined, CONCIERGE_DRAFT_STATUS.UPDATED, tokens.at(stage) ?? '');
 }
 
-function startFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent) {
+function startFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, isGroupPolicyReport: boolean) {
     const {
         completedPusherDraftEventRef,
         finalRenderedHTMLRevealIntervalRef,
@@ -348,7 +350,7 @@ function startFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime, event: 
         finalRenderedHTMLRevealTokensRef.current = [];
         finalRenderedHTMLRevealStartedAtRef.current = 0;
         finalRenderedHTMLRevealLastStageRef.current = 0;
-        publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, tokens.at(-1) ?? finalRenderedHTML);
+        publishVisibleEvent(runtime, event, isGroupPolicyReport, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, tokens.at(-1) ?? finalRenderedHTML);
         return;
     }
 
@@ -365,6 +367,7 @@ function startFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime, event: 
     publishVisibleEvent(
         runtime,
         event,
+        isGroupPolicyReport,
         undefined,
         event.status === CONCIERGE_DRAFT_STATUS.STARTED ? CONCIERGE_DRAFT_STATUS.STARTED : CONCIERGE_DRAFT_STATUS.UPDATED,
         tokens.at(initialStage) ?? '',
@@ -374,7 +377,7 @@ function startFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime, event: 
         return;
     }
 
-    finalRenderedHTMLRevealIntervalRef.current = setInterval(() => tickFinalRenderedHTMLReveal(runtime), TICK_INTERVAL_MS);
+    finalRenderedHTMLRevealIntervalRef.current = setInterval(() => tickFinalRenderedHTMLReveal(runtime, isGroupPolicyReport), TICK_INTERVAL_MS);
 }
 
 function getNewestPusherDraftTarget(runtime: PusherDraftPacingRuntime): ConciergeDraftEvent | null {
@@ -467,7 +470,7 @@ function isStalePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Conci
     return isStalePusherDraftEventAgainstTarget(runtime, event, getNewestPusherDraftTarget(runtime));
 }
 
-function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent) {
+function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, isGroupPolicyReport: boolean) {
     const {completedPusherDraftEventRef, latestPusherDraftEventRef, visibleBodyMarkdownRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
 
     if (isStalePusherDraftEvent(runtime, event)) {
@@ -476,7 +479,7 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
 
     if (event.status === CONCIERGE_DRAFT_STATUS.FAILED || event.status === CONCIERGE_DRAFT_STATUS.CLEARED) {
         resetPusherDraftPace(runtime);
-        publishVisibleEvent(runtime, event, undefined, event.status);
+        publishVisibleEvent(runtime, event, isGroupPolicyReport, undefined, event.status, undefined);
         return;
     }
 
@@ -491,7 +494,7 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
         }
         const hasBodyTarget = !!latestPusherDraftEventRef.current?.bodyMarkdown || didQueueTarget;
         if (!event.bodyMarkdown && event.finalRenderedHTML && !hasBodyTarget) {
-            startFinalRenderedHTMLReveal(runtime, event);
+            startFinalRenderedHTMLReveal(runtime, event, isGroupPolicyReport);
             return;
         }
         completedPusherDraftEventRef.current = event;
@@ -499,18 +502,18 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
             if (didQueueTarget) {
                 cacheCurrentDraftWithPusherPaceState(runtime);
             }
-            startPusherDraftPace(runtime);
+            startPusherDraftPace(runtime, isGroupPolicyReport);
             if (!didQueueTarget) {
-                tickPacing(runtime);
+                tickPacing(runtime, isGroupPolicyReport);
             }
         } else {
-            publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED);
+            publishVisibleEvent(runtime, event, isGroupPolicyReport, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, undefined);
         }
         return;
     }
 
     if (event.finalRenderedHTML && !event.bodyMarkdown) {
-        startFinalRenderedHTMLReveal(runtime, event);
+        startFinalRenderedHTMLReveal(runtime, event, isGroupPolicyReport);
         return;
     }
 
@@ -522,23 +525,23 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
     const didQueueTarget = setOrQueuePusherDraftTarget(runtime, event);
     if (didQueueTarget) {
         cacheCurrentDraftWithPusherPaceState(runtime);
-        startPusherDraftPace(runtime);
+        startPusherDraftPace(runtime, isGroupPolicyReport);
         return;
     }
 
     const nextVisibleMarkdown = getNextVisibleConciergeDraftMarkdown(visibleBodyMarkdownRef.current, targetBodyMarkdown, visibleSourceOffsetRef.current, visibleSourceMarkdownRef.current);
     if (nextVisibleMarkdown.bodyMarkdown !== visibleBodyMarkdownRef.current || nextVisibleMarkdown.sourceOffset !== visibleSourceOffsetRef.current) {
-        publishVisibleEvent(runtime, event, nextVisibleMarkdown, event.status);
+        publishVisibleEvent(runtime, event, isGroupPolicyReport, nextVisibleMarkdown, event.status, undefined);
     }
 
     if (nextVisibleMarkdown.sourceOffset < targetBodyMarkdown.length) {
-        startPusherDraftPace(runtime);
+        startPusherDraftPace(runtime, isGroupPolicyReport);
     } else {
         stopPusherDraftPace(runtime);
     }
 }
 
-function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: ConciergeDraftEventsEvent) {
+function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: ConciergeDraftEventsEvent, isGroupPolicyReport: boolean) {
     const {completedPusherDraftEventRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleSourceOffsetRef} = runtime;
     const targetEvents: ConciergeDraftEvent[] = [];
     let latestAcceptedEvent: ConciergeDraftEvent | null = null;
@@ -552,7 +555,7 @@ function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: C
 
         if (event.status === CONCIERGE_DRAFT_STATUS.FAILED || event.status === CONCIERGE_DRAFT_STATUS.CLEARED) {
             resetPusherDraftPace(runtime);
-            publishVisibleEvent(runtime, event, undefined, event.status);
+            publishVisibleEvent(runtime, event, isGroupPolicyReport, undefined, event.status, undefined);
             return;
         }
 
@@ -597,7 +600,7 @@ function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: C
         }
 
         const previousVisibleSequence = runtime.visibleSequenceRef.current;
-        handlePusherDraftEvent(runtime, firstVisibleEvent);
+        handlePusherDraftEvent(runtime, firstVisibleEvent, isGroupPolicyReport);
         queuePusherDraftTargets(runtime, queuedTargetEvents);
 
         // publishVisibleEvent persists refs when it runs; otherwise persist the accepted target/queue state here.
@@ -606,12 +609,12 @@ function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: C
         }
     } else if (completedEvent) {
         if (finalRenderedHTMLEvent) {
-            startFinalRenderedHTMLReveal(runtime, finalRenderedHTMLEvent);
+            startFinalRenderedHTMLReveal(runtime, finalRenderedHTMLEvent, isGroupPolicyReport);
             return;
         }
         completedPusherDraftEventRef.current = completedEvent;
     } else if (finalRenderedHTMLEvent) {
-        startFinalRenderedHTMLReveal(runtime, finalRenderedHTMLEvent);
+        startFinalRenderedHTMLReveal(runtime, finalRenderedHTMLEvent, isGroupPolicyReport);
         return;
     }
 
@@ -619,7 +622,7 @@ function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: C
         latestPusherDraftEventRef.current?.bodyMarkdown &&
         (visibleSourceOffsetRef.current < latestPusherDraftEventRef.current.bodyMarkdown.length || queuedPusherDraftEventsRef.current.length > 0 || !!completedPusherDraftEventRef.current)
     ) {
-        startPusherDraftPace(runtime);
+        startPusherDraftPace(runtime, isGroupPolicyReport);
         return;
     }
 
@@ -627,20 +630,20 @@ function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: C
         if (completedPusherDraftEventRef.current.finalRenderedHTML && !completedPusherDraftEventRef.current.bodyMarkdown) {
             const finalRenderedHTMLCompletionEvent = completedPusherDraftEventRef.current;
             completedPusherDraftEventRef.current = null;
-            startFinalRenderedHTMLReveal(runtime, finalRenderedHTMLCompletionEvent);
+            startFinalRenderedHTMLReveal(runtime, finalRenderedHTMLCompletionEvent, isGroupPolicyReport);
             return;
         }
-        publishVisibleEvent(runtime, completedPusherDraftEventRef.current, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED);
+        publishVisibleEvent(runtime, completedPusherDraftEventRef.current, isGroupPolicyReport, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, undefined);
         completedPusherDraftEventRef.current = null;
     }
 }
 
-function resumeCachedPusherDraftPace(runtime: PusherDraftPacingRuntime) {
+function resumeCachedPusherDraftPace(runtime: PusherDraftPacingRuntime, isGroupPolicyReport: boolean) {
     const {completedPusherDraftEventRef, latestPusherDraftEventRef, queuedPusherDraftEventsRef, visibleSourceOffsetRef} = runtime;
     const latestEvent = latestPusherDraftEventRef.current;
     if (!latestEvent?.bodyMarkdown) {
         if (latestEvent?.finalRenderedHTML) {
-            startFinalRenderedHTMLReveal(runtime, latestEvent);
+            startFinalRenderedHTMLReveal(runtime, latestEvent, isGroupPolicyReport);
         }
         return;
     }
@@ -650,11 +653,11 @@ function resumeCachedPusherDraftPace(runtime: PusherDraftPacingRuntime) {
         return;
     }
 
-    startPusherDraftPace(runtime);
-    tickPacing(runtime);
+    startPusherDraftPace(runtime, isGroupPolicyReport);
+    tickPacing(runtime, isGroupPolicyReport);
 }
 
-function usePusherDraftPacing(reportID: string) {
+function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
     // Lazy-init from the module-level cache so a remount (ReportScreen
     // unmount/remount on chat-switch) restores the in-progress draft on the
     // first paint instead of flashing the synthetic bubble away.
@@ -708,7 +711,7 @@ function usePusherDraftPacing(reportID: string) {
             visibleSourceOffsetRef,
         });
         setDraft((currentDraft) => {
-            const next = applyConciergeDraftEvent(currentDraft, event, reportID);
+            const next = applyConciergeDraftEvent(currentDraft, event, reportID, isGroupPolicyReport);
             currentDraftRef.current = next;
             setCachedDraft(reportID, next);
             return next;
@@ -742,13 +745,13 @@ function usePusherDraftPacing(reportID: string) {
             [
                 Pusher.TYPE.CONCIERGE_DRAFT_EVENTS,
                 (eventData) => {
-                    handlePusherDraftEvents(runtime, eventData as ConciergeDraftEventsEvent);
+                    handlePusherDraftEvents(runtime, eventData as ConciergeDraftEventsEvent, isGroupPolicyReport);
                 },
             ],
             ...PUSHER_DRAFT_EVENT_TYPES.map<[string, (eventData: unknown) => void]>((eventType) => [
                 eventType,
                 (eventData) => {
-                    handlePusherDraftEvent(runtime, eventData as ConciergeDraftEvent);
+                    handlePusherDraftEvent(runtime, eventData as ConciergeDraftEvent, isGroupPolicyReport);
                 },
             ]),
         ];
@@ -763,7 +766,7 @@ function usePusherDraftPacing(reportID: string) {
             return listener;
         });
 
-        resumeCachedPusherDraftPace(runtime);
+        resumeCachedPusherDraftPace(runtime, isGroupPolicyReport);
 
         return () => {
             stopPusherDraftPace(runtime);
@@ -772,7 +775,7 @@ function usePusherDraftPacing(reportID: string) {
                 subscription.unsubscribe();
             }
         };
-    }, [reportID]);
+    }, [reportID, isGroupPolicyReport]);
 
     return {clearDraft, dispatchLocalDraftEvent, draft};
 }
