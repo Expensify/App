@@ -16,7 +16,6 @@ import SearchSaveButton from './SearchSaveButton';
 type SearchActionsBarWideProps = {
     queryJSON: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
-    handleSearch: (value: string) => void;
     onSort: () => void;
 };
 
