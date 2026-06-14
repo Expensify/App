@@ -106,7 +106,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 
     /** Whether the action button should be disabled */
     shouldDisableActionPointerEvents?: boolean;
-    
+
     /** Parent chat report resolved from live Onyx with search snapshot fallback */
     chatReport?: OnyxEntry<Report>;
 };

@@ -113,7 +113,7 @@ function SubmitActionButtonContent({iouReportID, isSubmittingAnimationRunning, s
         });
     };
 
-        const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         isTrackIntentUser,
         report: iouReport,
         policy,
