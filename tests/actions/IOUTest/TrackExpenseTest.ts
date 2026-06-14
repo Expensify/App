@@ -279,6 +279,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
+                policies: {},
             });
             await waitForBatchedUpdates();
 
@@ -1281,6 +1282,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
+                policies: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy},
             });
             await waitForBatchedUpdates();
 

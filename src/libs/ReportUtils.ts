@@ -11089,6 +11089,7 @@ type CreateDraftTransactionParams = {
     currentUserAccountID: number;
     currentUserEmail: string;
     currentUserLocalCurrency: string;
+    policies: OnyxCollection<Policy>;
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
@@ -11107,6 +11108,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     currentUserAccountID,
     currentUserEmail,
     currentUserLocalCurrency,
+    policies,
 }: CreateDraftTransactionParams): void {
     const transactionID = transaction?.transactionID;
     if (!transactionID || !reportID) {
@@ -11155,9 +11157,10 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         participants: [],
     } as Transaction);
 
+    const policiesEntries = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy);
     let firstPolicy: Policy | undefined;
     let filteredPoliciesCount = 0;
-    for (const policy of policiesArray) {
+    for (const policy of policiesEntries) {
         if (!shouldShowPolicy(policy, false, deprecatedCurrentUserEmail)) {
             continue;
         }
@@ -11238,7 +11241,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         return;
     }
 
-    if (actionName === CONST.IOU.ACTION.SUBMIT || (allPolicies && filteredPoliciesCount > 0)) {
+    if (actionName === CONST.IOU.ACTION.SUBMIT || (policies && filteredPoliciesCount > 0)) {
         // Check if user is restricted to preferred workspace for submit tracked expenses
         if (isRestrictedToPreferredPolicy && preferredPolicyID) {
             const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, preferredPolicyID);
