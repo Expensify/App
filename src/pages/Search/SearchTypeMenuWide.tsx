@@ -14,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
@@ -143,7 +142,6 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
 
     const handleTypeMenuItemPress = singleExecution((searchQuery: string) => {
         clearSelectedTransactions();
-        setSearchContext(false);
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
     });
 

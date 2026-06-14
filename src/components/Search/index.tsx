@@ -1487,11 +1487,7 @@ function Search({
         if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
             // Use requestAnimationFrame to safely update navigation params without overriding the current route
             requestAnimationFrame(() => {
-                // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
-                Navigation.setParams({
-                    q: buildCannedSearchQuery(),
-                    rawQuery: undefined,
-                });
+                Navigation.setParams({q: buildCannedSearchQuery()});
             });
             if (shouldResetSearchQuery) {
                 setShouldResetSearchQuery(false);
@@ -1743,7 +1739,7 @@ function Search({
                 sortOrder: order,
             });
             onSortPressedCallback?.();
-            navigation.setParams({q: newQuery, rawQuery: undefined});
+            navigation.setParams({q: newQuery});
         },
         [clearSelectedTransactions, queryJSON, onSortPressedCallback, navigation],
     );

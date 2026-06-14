@@ -8,12 +8,10 @@ import type {
     ASTNode,
     QueryFilter,
     QueryFilters,
-    RawQueryFilter,
     ReportFieldDateKey,
     ReportFieldNegatedKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
-    SearchAutocompleteResult,
     SearchDateFilterKeys,
     SearchDateKey,
     SearchDatePreset,
@@ -460,14 +458,6 @@ function wasViewExplicitlySet(queryJSON?: SearchQueryJSON | Readonly<SearchQuery
         return false;
     }
 
-    if (queryJSON.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW)) {
-        return true;
-    }
-
-    if (queryJSON.isViewExplicitlySet) {
-        return true;
-    }
-
     if (queryJSON.view !== getDefaultSearchQueryJSON()?.view) {
         return true;
     }
@@ -564,38 +554,16 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
     return false;
 }
 
-/**
- * Parses a given search query string into a structured `SearchQueryJSON` format.
- * This format of query is most commonly shared between components and also sent to backend to retrieve search results.
- *
- * In a way this is the reverse of buildSearchQueryString()
- */
-function getRawFilterListFromQuery(rawQuery: SearchQueryString) {
-    try {
-        const rawResult = parseSearchQuery(rawQuery) as SearchQueryJSON;
-        const sanitizedFilters = getSanitizedRawFilters(rawResult);
-        return sanitizedFilters;
-    } catch (error) {
-        Log.warn('[Search] Failed to parse raw query for raw filters', {error, rawQuery});
-    }
-
-    return undefined;
-}
-
 // Cache for buildSearchQueryJSON to avoid re-running the PEG parser for identical queries.
 // Cached values are shallow-frozen; callers needing to change fields must spread into a new object first.
 // This is a pure function called from 64+ sites — many fire during the same render cycle
 // with identical query strings, each running the full parser from scratch.
 const buildSearchQueryJSONCache = new Map<string, Readonly<SearchQueryJSON> | undefined>();
 const BUILD_SEARCH_QUERY_JSON_CACHE_MAX_SIZE = 50;
-const BUILD_SEARCH_QUERY_JSON_CACHE_KEY_SEPARATOR = '\x00'; // Null byte prevents collisions if query/rawQuery contain arbitrary strings
 
-function getBuildSearchQueryJSONCacheKey(query: SearchQueryString, rawQuery?: SearchQueryString) {
-    return rawQuery ? `${query}${BUILD_SEARCH_QUERY_JSON_CACHE_KEY_SEPARATOR}${rawQuery}` : query;
-}
-
-function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString): Readonly<SearchQueryJSON> | undefined {
-    const cacheKey = getBuildSearchQueryJSONCacheKey(query, rawQuery);
+/** Parses {@link query} into JSON. Repeated calls share the same cached object identity for referential stability. */
+function buildSearchQueryJSON(query: SearchQueryString): Readonly<SearchQueryJSON> | undefined {
+    const cacheKey = query;
     if (buildSearchQueryJSONCache.has(cacheKey)) {
         return buildSearchQueryJSONCache.get(cacheKey);
     }
@@ -603,12 +571,10 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
     try {
         const result = parseSearchQuery(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
-        const rawFilterList = rawQuery ? getRawFilterListFromQuery(rawQuery) : result.rawFilterList;
 
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
-        result.isViewExplicitlySet = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false;
 
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
@@ -626,11 +592,6 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
         result.recentSearchHash = recentSearchHash;
         result.similarSearchHash = similarSearchHash;
 
-        delete result.rawFilterList;
-        if (rawQuery) {
-            result.rawFilterList = rawFilterList;
-        }
-
         if (buildSearchQueryJSONCache.size >= BUILD_SEARCH_QUERY_JSON_CACHE_MAX_SIZE) {
             const firstKey = buildSearchQueryJSONCache.keys().next().value;
             if (firstKey !== undefined) {
@@ -644,11 +605,6 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
     } catch (e) {
         console.error(`Error when parsing SearchQuery: "${query}"`, e);
     }
-}
-
-/** Parses {@link query} (and optionally {@link rawQuery}) into JSON. Repeated calls share the same cached object identity for referential stability. */
-function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString): Readonly<SearchQueryJSON> | undefined {
-    return getCachedSearchQueryJSON(query, rawQuery);
 }
 
 /**
@@ -695,59 +651,6 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
     }
 
     return queryParts.join(' ');
-}
-
-function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | undefined {
-    if (!queryJSON.rawFilterList || queryJSON.rawFilterList.length === 0) {
-        return undefined;
-    }
-
-    const sanitizedFilters = queryJSON.rawFilterList.reduce<RawQueryFilter[]>((accumulator, rawFilter) => {
-        if (!rawFilter) {
-            return accumulator;
-        }
-
-        if (rawFilter.isDefault) {
-            accumulator.push(rawFilter);
-            return accumulator;
-        }
-
-        const rawValue = rawFilter.value;
-        const filterKey = rawFilter.key;
-        const isRecognizedFilterKey = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS).includes(filterKey as SyntaxFilterKey);
-        let updatedValue: string | string[] = Array.isArray(rawValue) ? rawValue.map((value) => value?.toString() ?? '') : (rawValue?.toString() ?? '');
-
-        if (isRecognizedFilterKey) {
-            updatedValue = getUpdatedFilterValue(filterKey as SyntaxFilterKey, updatedValue);
-        }
-
-        accumulator.push({
-            ...rawFilter,
-            value: updatedValue,
-        });
-        return accumulator;
-    }, []);
-
-    const seenKeys = new Set<string>();
-
-    for (let index = sanitizedFilters.length - 1; index >= 0; index -= 1) {
-        const filter = sanitizedFilters.at(index);
-
-        if (!filter) {
-            continue;
-        }
-
-        const filterKey = filter.key;
-
-        if (seenKeys.has(filterKey) && filter.isDefault) {
-            sanitizedFilters.splice(index, 1);
-            continue;
-        }
-
-        seenKeys.add(filterKey);
-    }
-
-    return sanitizedFilters;
 }
 
 type BuildQueryStringOptions = {
@@ -1583,62 +1486,6 @@ function getDisplayQueryFiltersForKey(
     }));
 }
 
-function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
-    const rawValues = Array.isArray(rawFilter.value) ? rawFilter.value : [rawFilter.value];
-    const cleanedValues = rawValues.map((val) => (typeof val === 'string' ? val.trim() : '')).filter((val) => val.length > 0);
-
-    if (cleanedValues.length === 0) {
-        return;
-    }
-
-    if (rawFilter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
-        const workspaceValues = cleanedValues.map((id) => {
-            const policyName = getPolicyNameWithFallback(id, policies, reports);
-            return sanitizeSearchValue(policyName);
-        });
-
-        if (workspaceValues.length === 0) {
-            return;
-        }
-
-        return `${getUserFriendlyKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID)}:${workspaceValues.join(',')}`;
-    }
-
-    if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY || rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER) {
-        return;
-    }
-
-    let userFriendlyKey: UserFriendlyKey;
-    switch (rawFilter.key) {
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
-            userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
-            break;
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
-            userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS);
-            break;
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
-            userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY);
-            break;
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
-            userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS);
-            break;
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT:
-            userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT);
-            break;
-        default:
-            userFriendlyKey = getUserFriendlyKey(rawFilter.key as SearchFilterKey);
-            break;
-    }
-
-    const formattedValues = cleanedValues.map((val) => sanitizeSearchValue(getUserFriendlyValue(val)));
-
-    if (!formattedValues.length) {
-        return;
-    }
-
-    return `${userFriendlyKey}:${formattedValues.join(',')}`;
-}
-
 /**
  * Formats a given `SearchQueryJSON` object into the human-readable string version of query.
  * This format of query is the one which we want to display to users.
@@ -1674,67 +1521,7 @@ function buildUserReadableQueryString({
     feedKeysWithCards,
     reportAttributes,
 }: BuildUserReadableQueryStringParams) {
-    const {type, status, groupBy, view, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
-
-    if (rawFilterList && rawFilterList.length > 0) {
-        const segments: string[] = [];
-
-        for (const rawFilter of rawFilterList) {
-            if (!rawFilter) {
-                continue;
-            }
-
-            if (rawFilter.isDefault) {
-                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies, reports);
-                if (defaultSegment) {
-                    segments.push(defaultSegment);
-                }
-                continue;
-            }
-
-            const rawValues = Array.isArray(rawFilter.value) ? rawFilter.value : [rawFilter.value];
-            const queryFilters = rawValues
-                .map((val) => (val ?? '').toString())
-                .filter((val) => val.length > 0)
-                .map((val) => ({
-                    operator: rawFilter.operator,
-                    value: val,
-                }));
-
-            if (!queryFilters.length) {
-                continue;
-            }
-
-            const displayQueryFilters = getDisplayQueryFiltersForKey(
-                rawFilter.key,
-                queryFilters,
-                PersonalDetails,
-                reports,
-                taxRates,
-                cardList,
-                cardFeeds,
-                policies,
-                currentUserAccountID,
-                translate,
-                reportAttributes,
-                feedKeysWithCards,
-            );
-
-            if (!displayQueryFilters.length) {
-                continue;
-            }
-
-            const segment = buildFilterValuesString(getUserFriendlyKey(rawFilter.key as SearchFilterKey), displayQueryFilters).trim();
-
-            if (segment) {
-                segments.push(segment);
-            }
-        }
-
-        if (segments.length > 0) {
-            return segments.join(' ');
-        }
-    }
+    const {type, status, groupBy, view, columns, policyID, flatFilters: filters = [], limit} = queryJSON;
 
     let title = status
         ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}`
@@ -1880,12 +1667,6 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQue
 }
 
 function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString, currentQueryJSON: Readonly<SearchQueryJSON>): SearchQueryString {
-    const autocompleteRanges = (parseForAutocomplete(queryString) as SearchAutocompleteResult).ranges;
-    const hasOnlyKeywordSearch = queryString.trim().length > 0 && autocompleteRanges.length === 0;
-    if (!hasOnlyKeywordSearch) {
-        return queryString;
-    }
-
     const currentFiltersWithoutKeywords = currentQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
     const currentQueryString = buildSearchQueryString({...currentQueryJSON, flatFilters: currentFiltersWithoutKeywords});
     return `${currentQueryString} ${queryString}`;
@@ -1905,13 +1686,6 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
 
     const computeNodeValue = (left: SyntaxFilterKey, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion);
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
-    const rawFilterList = getRawFilterListFromQuery(query);
-    const hasInFilter = rawFilterList?.some((filter) => !filter.isDefault && filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) ?? false;
-    const hasExplicitType = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE) ?? false;
-
-    if (hasInFilter && !hasExplicitType) {
-        standardizedQuery.type = CONST.SEARCH.DATA_TYPES.CHAT;
-    }
 
     return buildSearchQueryString(standardizedQuery);
 }
@@ -1937,8 +1711,8 @@ function getCurrentSearchQueryJSON() {
         return;
     }
 
-    const {q: searchParams, rawQuery} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-    const queryJSON = buildSearchQueryJSON(searchParams, rawQuery);
+    const {q: searchParams} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+    const queryJSON = buildSearchQueryJSON(searchParams);
     if (!queryJSON) {
         return;
     }
@@ -2189,17 +1963,9 @@ function getDateModifierTitle(modifier: ValueOf<typeof CONST.SEARCH.DATE_MODIFIE
  * so all backend commands use consistent partial-match semantics — matching what the search view shows.
  * Do NOT use for saving/persisting query definitions (e.g. saveSearch), where the original operators must be preserved.
  */
-function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T): string {
+function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null}>(queryData: T): string {
     const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters) : queryData.filters;
-    const normalizedRawFilterList = queryData.rawFilterList
-        ? queryData.rawFilterList.map((filter) => {
-              if (TEXT_SEARCH_FIELDS.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-                  return {...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
-              }
-              return filter;
-          })
-        : queryData.rawFilterList;
-    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
+    return JSON.stringify({...queryData, filters: normalizedFilters});
 }
 
 export {
@@ -2212,6 +1978,7 @@ export {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
+    buildFilterValuesString,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getPolicyNameWithFallback,

@@ -1627,14 +1627,6 @@ describe('compoundParamsKey', () => {
         expect(compoundParamsKey('search-x', {q: 'foo'})).not.toBe('search-x');
     });
 
-    it('should treat explicit-undefined fields as omitted (path rehydration parity)', () => {
-        expect(compoundParamsKey('search-x', {q: 'foo', rawQuery: undefined})).toBe(compoundParamsKey('search-x', {q: 'foo'}));
-    });
-
-    it('should distinguish explicit null from absent (null is a real value)', () => {
-        expect(compoundParamsKey('search-x', {q: 'foo', rawQuery: null})).not.toBe(compoundParamsKey('search-x', {q: 'foo'}));
-    });
-
     it('should distinguish array [undefined] from array [null] (JSON.stringify would otherwise collapse both to "null")', () => {
         expect(compoundParamsKey('search-x', {ids: [undefined]})).not.toBe(compoundParamsKey('search-x', {ids: [null]}));
     });

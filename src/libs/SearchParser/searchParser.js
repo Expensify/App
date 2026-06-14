@@ -435,7 +435,6 @@ function peg$parse(input, options) {
       const allFilters = [head, ...tail.map(([_, filter]) => filter)]
         .filter(Boolean)
         .filter((filter) => filter.right);
-      rawFilterList = allFilters.map(createRawFilter).filter(Boolean);
 
       const filtersWithoutDefaults = allFilters.filter((filter) => !filter.isDefault);
 
@@ -4668,7 +4667,6 @@ function peg$parse(input, options) {
     sortOrder: "desc",
     view: "table",
   };
-  let rawFilterList = [];
   let userProvidedSortBy = false;
   let userProvidedSortOrder = false;
 
@@ -4693,7 +4691,6 @@ function peg$parse(input, options) {
     return {
       ...defaultValues,
       filters,
-      rawFilterList,
     };
   }
 
@@ -4757,26 +4754,6 @@ function peg$parse(input, options) {
     }
 
     defaultValues[field] = value;
-  }
-
-  function createRawFilter(filter) {
-    if (!filter || !filter.right) {
-      return null;
-    }
-
-    if (typeof filter.left !== "string") {
-      return null;
-    }
-
-    const key = filter.left;
-    const value = Array.isArray(filter.right) ? [...filter.right] : filter.right;
-
-    return {
-      key,
-      operator: filter.operator,
-      value,
-      isDefault: !!filter.isDefault,
-    };
   }
 
  

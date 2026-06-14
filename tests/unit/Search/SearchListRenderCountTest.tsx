@@ -118,7 +118,6 @@ const STABLE_QUERY_JSON: SearchQueryJSON = {
     policyID: undefined,
     columns: undefined,
     limit: undefined,
-    rawFilterList: undefined,
 };
 
 const STABLE_COLUMNS: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.ACTION];

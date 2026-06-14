@@ -65,9 +65,8 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
         clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column});
         onSort();
-        // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
         close(() => {
-            Navigation.setParams({q: newQuery, rawQuery: undefined});
+            Navigation.setParams({q: newQuery});
         });
     };
 

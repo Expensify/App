@@ -21,19 +21,13 @@ function selectSearchQueryParam(state: NavigationState | undefined) {
     return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.q as string | undefined) : undefined;
 }
 
-function selectSearchRawQueryParam(state: NavigationState | undefined) {
-    const focused = getDeepestFocusedScreen(state);
-    return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.rawQuery as string | undefined) : undefined;
-}
-
 function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const navigation = useNavigation();
     // Extract only the primitive values we need from the focused screen to avoid
     // re-renders from new object references returned by getDeepestFocusedScreen.
     const queryParam = useRootNavigationState((state) => selectSearchQueryParam(state ?? navigation.getState()));
-    const rawQueryParam = useRootNavigationState((state) => selectSearchRawQueryParam(state ?? navigation.getState()));
     const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
-    const currentSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
+    const currentSearchQueryJSON = buildSearchQueryJSON(definedQueryParam);
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const {accountID} = useCurrentUserPersonalDetails();

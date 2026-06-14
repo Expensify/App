@@ -65,7 +65,6 @@
     sortOrder: "desc",
     view: "table",
   };
-  let rawFilterList = [];
   let userProvidedSortBy = false;
   let userProvidedSortOrder = false;
 
@@ -90,7 +89,6 @@
     return {
       ...defaultValues,
       filters,
-      rawFilterList,
     };
   }
 
@@ -155,26 +153,6 @@
 
     defaultValues[field] = value;
   }
-
-  function createRawFilter(filter) {
-    if (!filter || !filter.right) {
-      return null;
-    }
-
-    if (typeof filter.left !== "string") {
-      return null;
-    }
-
-    const key = filter.left;
-    const value = Array.isArray(filter.right) ? [...filter.right] : filter.right;
-
-    return {
-      key,
-      operator: filter.operator,
-      value,
-      isDefault: !!filter.isDefault,
-    };
-  }
 }
 
 query = _ filters:filterList? _ { return applyDefaults(filters); }
@@ -184,7 +162,6 @@ filterList
       const allFilters = [head, ...tail.map(([_, filter]) => filter)]
         .filter(Boolean)
         .filter((filter) => filter.right);
-      rawFilterList = allFilters.map(createRawFilter).filter(Boolean);
 
       const filtersWithoutDefaults = allFilters.filter((filter) => !filter.isDefault);
 

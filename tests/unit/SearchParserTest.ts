@@ -1376,28 +1376,28 @@ const limitTests = [
 
 describe('search parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
-        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
-        expect(resultWithoutRawFilters).toEqual(expected);
+        const result = parse(query) as SearchQueryJSON;
+        expect(result).toEqual(expected);
     });
 });
 
 describe('Testing search parser with special characters and wrapped in quotes.', () => {
     test.each(keywordTests)(`parsing: $query`, ({query, expected}) => {
-        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
-        expect(resultWithoutRawFilters).toEqual(expected);
+        const result = parse(query) as SearchQueryJSON;
+        expect(result).toEqual(expected);
     });
 });
 
 describe('search parser - view and groupBy defaults', () => {
     test.each(viewAndGroupByTests)(`parsing: $query`, ({query, expected}) => {
-        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
-        expect(resultWithoutRawFilters).toEqual(expected);
+        const result = parse(query) as SearchQueryJSON;
+        expect(result).toEqual(expected);
     });
 });
 
 describe('search parser - limit filter', () => {
     test.each(limitTests)('$description: $query', ({query, expected}) => {
-        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
-        expect(resultWithoutRawFilters).toEqual(expected);
+        const result = parse(query) as SearchQueryJSON;
+        expect(result).toEqual(expected);
     });
 });

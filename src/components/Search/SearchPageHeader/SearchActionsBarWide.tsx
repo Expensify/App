@@ -10,7 +10,7 @@ import SearchActionsBarCreateButton from './SearchActionsBarCreateButton';
 import SearchAdvancedFiltersButton from './SearchAdvancedFiltersButton';
 import SearchDisplayDropdownButton from './SearchDisplayDropdownButton';
 import SearchFiltersBarWide from './SearchFiltersBarWide';
-import SearchPageInputWide from './SearchPageInputWide';
+import SearchPageInput from './SearchPageInput';
 import SearchSaveButton from './SearchSaveButton';
 
 type SearchActionsBarWideProps = {
@@ -20,7 +20,7 @@ type SearchActionsBarWideProps = {
     onSort: () => void;
 };
 
-function SearchActionsBarWide({queryJSON, searchResults, handleSearch, onSort}: SearchActionsBarWideProps) {
+function SearchActionsBarWide({queryJSON, searchResults, onSort}: SearchActionsBarWideProps) {
     const styles = useThemeStyles();
     const {selected} = useSelectionCounts();
     const hasSelectedItems = selected > 0;
@@ -34,10 +34,7 @@ function SearchActionsBarWide({queryJSON, searchResults, handleSearch, onSort}: 
             ) : (
                 <>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.pRelative, styles.w100, styles.flexWrap, styles.flexShrink1, styles.gap2, styles.zIndex10]}>
-                        <SearchPageInputWide
-                            queryJSON={queryJSON}
-                            handleSearch={handleSearch}
-                        />
+                        <SearchPageInput queryJSON={queryJSON} />
                         <SearchFiltersBarWide queryJSON={queryJSON} />
                     </View>
                     <View style={styles.filtersBar}>

@@ -3177,7 +3177,6 @@ type SearchReportActionsParamList = {
 type SearchFullscreenNavigatorParamList = {
     [SCREENS.SEARCH.ROOT]: {
         q: SearchQueryString;
-        rawQuery?: SearchQueryString;
         name?: string;
         groupBy?: string;
     };

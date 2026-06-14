@@ -17,9 +17,6 @@ const CARD_ID = 67890;
 
 /**
  * Returns the parsed filter entries for a given key from a query string.
- * Uses `flatFilters` (the standard parsed-filter representation across the app)
- * so the helper does not depend on `rawFilterList`, which is internal to
- * SearchQueryUtils and only kept when both `query` and `rawQuery` are supplied.
  */
 function getRawFiltersForKey(inputQuery: string, key: string): Array<{operator: string; value: string | string[]}> {
     const queryJSON = buildSearchQueryJSON(inputQuery);

@@ -875,9 +875,8 @@ const ROUTES = {
     SEARCH_ROUTER: 'search-router',
     SEARCH_ROOT: {
         route: 'search',
-        getRoute: ({query, rawQuery, name}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string}) => {
-            const rawQuerySegment = rawQuery ? `&rawQuery=${encodeURIComponent(rawQuery)}` : '';
-            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}` as const;
+        getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => {
+            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}` as const;
         },
     },
     SEARCH_ROOT_VERIFY_ACCOUNT: `search/${VERIFY_ACCOUNT}`,

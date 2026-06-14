@@ -41,7 +41,6 @@ import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
-import {setSearchContext} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -279,7 +278,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             backHistory(() => {
                 onRouterClose();
-                setSearchContext(true);
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
             });
 

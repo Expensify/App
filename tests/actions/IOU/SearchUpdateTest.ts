@@ -307,14 +307,6 @@ describe('actions/IOU', () => {
                 hash: 591785022,
                 recentSearchHash: 714245044,
                 similarSearchHash: 1023624110,
-                rawFilterList: [
-                    {
-                        key: 'policyID',
-                        operator: 'eq',
-                        value: policyID,
-                        isDefault: true,
-                    },
-                ],
             } as unknown as SearchQueryJSON;
 
             // When the IOU report has a matching policyID, it should return true
