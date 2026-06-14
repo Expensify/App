@@ -1,8 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import React, {useEffect} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -189,9 +188,7 @@ function TaskAssigneeSelectorModal() {
                     isOptimisticReport,
                 });
             }
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.goBack(taskEditBackPath);
-            });
+            Navigation.goBack(taskEditBackPath);
             // If there's no report, we're creating a new task
         } else if (option.accountID) {
             setAssigneeValue(
@@ -201,9 +198,7 @@ function TaskAssigneeSelectorModal() {
                 undefined, // passing null as report is null in this condition
                 isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}, loginList, currentUserEmail),
             );
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
-            });
+            Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
         }
     };
 

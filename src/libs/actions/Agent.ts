@@ -1,7 +1,8 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue} from 'react-native-onyx';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {resolveAvatarURI} from '@libs/Avatars/PresetAvatarCatalog';
+import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -10,6 +11,8 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
+import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 function openAgentsPage() {
@@ -32,7 +35,7 @@ function createAgent(
 
     let avatarURI: string | undefined;
     if (customExpensifyAvatarID) {
-        avatarURI = resolveAvatarURI(customExpensifyAvatarID);
+        avatarURI = AGENT_AVATARS.resolveURI(customExpensifyAvatarID);
     } else {
         avatarURI = optimisticAvatarURI;
     }
@@ -69,11 +72,6 @@ function createAgent(
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
             value: null,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING,
-            value: {[optimisticAccountID]: null},
-        },
     ];
 
     const failureData: AnyOnyxUpdate[] = [
@@ -91,44 +89,7 @@ function createAgent(
                 errors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.genericAdd'),
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING,
-            value: {[optimisticAccountID]: null},
-        },
     ];
-
-    // When the agent is being created as part of a workspace flow, also mirror the
-    // pending/error state onto the policy. That way the failure surfaces as a brick road
-    // indicator on the workspace and an inline error on the Workflows page, instead of
-    // being hidden away in Settings > Agents (where the admin may never look).
-    if (policyID) {
-        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                pendingFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                errorFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null},
-            },
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                pendingFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null},
-                errorFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null},
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                pendingFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null},
-                errorFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.genericAdd')},
-            },
-        });
-    }
 
     write(
         WRITE_COMMANDS.CREATE_AGENT,
@@ -142,20 +103,6 @@ function createAgent(
 function clearAgentError(optimisticAccountID: number) {
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: null});
     Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, null);
-}
-
-/**
- * Discard a failed optimistic agent that was seeded into an approval workflow. Wipes the
- * deferred workflow save (so the agent stops appearing as a pending approver), the optimistic
- * personal detail + prompt entry, the optimistic->real ID mapping slot, and the policy-level
- * addAgent error. Used by the RBR X click on the workflows page.
- */
-function clearPendingAgentFromApprovalWorkflow(policyID: string, firstApproverEmail: string, optimisticAccountID: number) {
-    Onyx.merge(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES, {[`${policyID}:${firstApproverEmail}`]: null});
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: null});
-    Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, null);
-    Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: null});
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null}});
 }
 
 function clearAgentUpdateError(accountID: number) {
@@ -315,7 +262,7 @@ function updateAgentAvatar(
     write(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, params, {optimisticData, successData, failureData});
 }
 
-function deleteAgent(accountID: number) {
+function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>) {
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -348,6 +295,31 @@ function deleteAgent(accountID: number) {
         },
     ];
 
+    // Mark the agent's row pending-delete on every policy it belongs to so workflow cards render
+    // the agent's approver row with strikethrough/RBR while DELETE_AGENT is in flight.
+    if (agentLogin && allPolicies) {
+        for (const policy of Object.values(allPolicies)) {
+            if (!policy?.id || !policy.employeeList?.[agentLogin]) {
+                continue;
+            }
+            const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
+            const optimisticEmployees: OnyxCollectionInputValue<PolicyEmployee> = {
+                [agentLogin]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+            const successEmployees: OnyxCollectionInputValue<PolicyEmployee> = {[agentLogin]: null};
+            const failureEmployees: OnyxCollectionInputValue<PolicyEmployee> = {
+                [agentLogin]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            };
+
+            optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: optimisticEmployees}});
+            successData.push({onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: successEmployees}});
+            failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: failureEmployees}});
+        }
+    }
+
     write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.SETTINGS_AGENTS);
 }
@@ -357,7 +329,6 @@ export {
     openProfilePage,
     createAgent,
     clearAgentError,
-    clearPendingAgentFromApprovalWorkflow,
     clearAgentUpdateError,
     clearAgentNameUpdateError,
     clearAgentPromptUpdateError,
