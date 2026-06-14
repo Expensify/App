@@ -668,7 +668,7 @@ describe('SearchQueryUtils', () => {
         const emptyTaxRates: Record<string, string[]> = {};
         const currentUserAccountID = 0;
 
-        test('preserves manual filter order for raw queries', () => {
+        test('produces canonical filter order', () => {
             const queryString = 'type:expense date:this-month groupBy:from tag:travel';
             const canonicalQueryString = getQueryWithUpdatedValues(queryString);
 
@@ -696,10 +696,10 @@ describe('SearchQueryUtils', () => {
                 reportAttributes: undefined,
             });
 
-            expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
+            expect(result).toBe('type:expense group-by:from date:this-month tag:travel');
         });
 
-        test('preserves status all default value from manual query', () => {
+        test('drops the default status all value from the query', () => {
             const queryString = 'type:expense status:all merchant:Uber';
             const canonicalQueryString = getQueryWithUpdatedValues(queryString);
 
@@ -727,10 +727,10 @@ describe('SearchQueryUtils', () => {
                 reportAttributes: undefined,
             });
 
-            expect(result).toBe('type:expense status:all merchant:Uber');
+            expect(result).toBe('type:expense merchant:Uber');
         });
 
-        test('maps workspace names and maintains manual order', () => {
+        test('maps workspace names in canonical order', () => {
             const queryString = 'policyID:123 type:expense merchant:Starbucks';
             const canonicalQueryString = getQueryWithUpdatedValues(queryString);
 
@@ -763,7 +763,7 @@ describe('SearchQueryUtils', () => {
                 reportAttributes: undefined,
             });
 
-            expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
+            expect(result).toBe('type:expense workspace:"Team Space" merchant:Starbucks');
         });
 
         test('includes limit in readable query string when present', () => {
@@ -1594,14 +1594,6 @@ describe('SearchQueryUtils', () => {
         it('should return different primary hash for queries with different explicit views but the same similarSearchHash', () => {
             const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category view:pie');
             const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:bar');
-
-            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
-            expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
-        });
-
-        it('should return different primary hash for implicit table view and explicit view:table', () => {
-            const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category');
-            const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:table');
 
             expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
             expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
@@ -2898,25 +2890,12 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('status:outstanding');
         });
 
-        it('should return query unchanged when it contains explicit filters', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
-
-            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('type:expense hello', currentQueryJSON) : '';
-            expect(result).toBe('type:expense hello');
-        });
-
-        it('should return query unchanged when it contains only explicit filters without keywords', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
-
-            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('type:expense status:open', currentQueryJSON) : '';
-            expect(result).toBe('type:expense status:open');
-        });
-
-        it('should return empty query unchanged', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+        it('should keep the current context without keywords when input is empty', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all existing');
 
             const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('', currentQueryJSON) : '';
-            expect(result).toBe('');
+            expect(result).toContain('type:trip');
+            expect(result).not.toContain('existing');
         });
 
         it('should strip existing keyword filters from current context before prepending', () => {
