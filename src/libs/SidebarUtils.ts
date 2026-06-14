@@ -931,7 +931,7 @@ function getOptionData({
 
     const isExpense = isExpenseReport(report);
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || isExpense;
-    const subtitle = getChatRoomSubtitle(report, policy, false, isReportArchived);
+    const subtitle = getChatRoomSubtitle(report, policy, false, isReportArchived, conciergeReportID);
 
     const status = personalDetail?.status ?? '';
 

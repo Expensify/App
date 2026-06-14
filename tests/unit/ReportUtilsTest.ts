@@ -3648,6 +3648,18 @@ describe('ReportUtils', () => {
             const result = getChatRoomSubtitle(report, policy);
             expect(result).toBe(policy.name);
         });
+
+        it('should return "Concierge support" when the report is the Concierge chat passed via conciergeReportID', () => {
+            const report = createRegularChat(1, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]);
+            const result = getChatRoomSubtitle(report, policy, false, false, report.reportID);
+            expect(result).toBe('Your personal AI agent');
+        });
+
+        it('should not return "Concierge support" when conciergeReportID does not match the report', () => {
+            const report = createRegularChat(1, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]);
+            const result = getChatRoomSubtitle(report, policy, false, false, 'some-other-report-id');
+            expect(result).not.toBe('Your personal AI agent');
+        });
     });
 
     describe('getMoneyRequestOptions', () => {
