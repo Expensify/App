@@ -34,7 +34,8 @@ function GroupChildrenContainer({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {selectedTransactions} = useSearchSelectionContext();
-    const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false);
+    const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false, item.keyForList);
+    const isContentVisible = isExpanded || isRendered;
 
     const isSelected = !!item.isSelected || (item.transactions.length > 0 && item.transactions.every((transaction) => selectedTransactions[transaction.transactionID]?.isSelected));
 
@@ -60,14 +61,14 @@ function GroupChildrenContainer({
             ]}
         >
             <Animated.View style={animatedStyle}>
-                <Animated.View
-                    style={[styles.stickToTop, styles.pb1]}
-                    onLayout={onLayout}
-                >
-                    {isRendered && (
+                {isContentVisible ? (
+                    <Animated.View
+                        style={[styles.stickToTop, styles.pb1]}
+                        onLayout={onLayout}
+                    >
                         <GroupChildrenContent
                             item={item}
-                            isExpanded={isExpanded}
+                            isExpanded={isContentVisible}
                             groupBy={groupBy}
                             searchType={searchType}
                             columns={columns}
@@ -82,8 +83,8 @@ function GroupChildrenContainer({
                             cardFeeds={cardFeeds}
                             conciergeReportID={conciergeReportID}
                         />
-                    )}
-                </Animated.View>
+                    </Animated.View>
+                ) : null}
             </Animated.View>
         </Animated.View>
     );

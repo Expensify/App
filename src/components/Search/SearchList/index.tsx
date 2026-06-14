@@ -325,34 +325,22 @@ function SearchList({
             return {splitData: data, stickyHeaderIndices: undefined, childrenContainerIndices: CONST.EMPTY_ARRAY as readonly number[]};
         }
 
-        const {splitData} = splitGroupsIntoPairs(data);
-        const filteredData: SearchListItem[] = [];
-        const stickyIndices: number[] = [];
+        const {splitData, stickyHeaderIndices: splitStickyIndices} = splitGroupsIntoPairs(data);
         const childrenIndices: number[] = [];
 
-        for (const item of splitData) {
-            if (isGroupChildrenContainerItem(item)) {
-                const originalKey = (item.keyForList ?? '').replace('children_', '');
-                const shouldIncludeChildren = expandedGroups.has(originalKey);
-                if (!shouldIncludeChildren) {
-                    continue;
-                }
-                childrenIndices.push(filteredData.length);
+        for (let i = 0; i < splitData.length; i++) {
+            const item = splitData.at(i);
+            if (item && isGroupChildrenContainerItem(item)) {
+                childrenIndices.push(i);
             }
-
-            if (isGroupHeaderItem(item)) {
-                stickyIndices.push(filteredData.length);
-            }
-
-            filteredData.push(item);
         }
 
         return {
-            splitData: filteredData,
-            stickyHeaderIndices: stickyIndices.length > 0 ? stickyIndices : undefined,
+            splitData,
+            stickyHeaderIndices: splitStickyIndices.length > 0 ? splitStickyIndices : undefined,
             childrenContainerIndices: childrenIndices,
         };
-    }, [data, shouldSplitGroups, expandedGroups]);
+    }, [data, shouldSplitGroups]);
 
     const getItemType = useCallback(
         (item: SearchListItem) => {
@@ -530,7 +518,6 @@ function SearchList({
             if (isGroupHeaderItem(item)) {
                 const headerItem = item;
                 const originalKey = (item.keyForList ?? '').replace('header_', '');
-                const hasChildrenInList = expandedGroups.has(originalKey);
                 return (
                     <GroupHeader
                         item={headerItem}
@@ -546,7 +533,7 @@ function SearchList({
                         onFocus={onFocus}
                         isFocused={isItemFocused}
                         isFirstItem={index === firstVisibleIndex}
-                        isLastItem={!hasChildrenInList && index === lastVisibleIndex && !ListFooterComponent}
+                        isLastItem={false}
                         originalKey={originalKey}
                         lastPaymentMethod={lastPaymentMethod}
                         personalPolicyID={personalPolicyID}
