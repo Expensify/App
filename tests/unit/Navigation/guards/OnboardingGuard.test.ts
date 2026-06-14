@@ -112,6 +112,36 @@ describe('OnboardingGuard', () => {
             expect(result.type).toBe('BLOCK');
             expect(result.reason).toBe('Cannot reset to non-onboarding screen while on onboarding');
         });
+
+        it('should ALLOW RESET action that targets the 2FA setup flow even when user is on onboarding', () => {
+            // Given a user who is on onboarding and is shown the RequireTwoFactorAuthenticationOverlay (e.g. a domain-migration account that must set up 2FA)
+            const onboardingState: NavigationState = {
+                key: 'root',
+                index: 0,
+                routeNames: [SCREENS.ONBOARDING.PURPOSE],
+                routes: [{key: 'purpose', name: SCREENS.ONBOARDING.PURPOSE}],
+                stale: false,
+                type: 'root',
+            };
+
+            // When pressing "Enable two-factor authentication" dispatches a RESET that targets a 2FA setup screen
+            const resetToTwoFactorAction: NavigationAction = {
+                type: CONST.NAVIGATION_ACTIONS.RESET,
+                payload: {
+                    key: 'root',
+                    index: 0,
+                    routeNames: [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT],
+                    routes: [{key: 'two-factor-verify-account', name: SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT}],
+                    stale: false,
+                    type: 'root',
+                },
+            };
+
+            const result = OnboardingGuard.evaluate(onboardingState, resetToTwoFactorAction, authenticatedContext);
+
+            // Then the reset should be allowed so the 2FA setup flow opens; otherwise the overlay button is silently blocked and appears unresponsive
+            expect(result.type).toBe('ALLOW');
+        });
     });
 
     describe('skip onboarding conditions', () => {
