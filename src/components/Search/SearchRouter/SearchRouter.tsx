@@ -1,4 +1,4 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
@@ -72,6 +72,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const personalDetails = usePersonalDetails();
     const sortedActions = useSortedActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -140,9 +141,20 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
 
-                const option = createOptionFromReport(contextualReport, personalDetails, contextualReportNVP, contextualReportPolicy, sortedActions, undefined, {
-                    showPersonalDetails: true,
-                });
+                const option = createOptionFromReport(
+                    contextualReport,
+                    personalDetails,
+                    contextualReportNVP,
+                    contextualReportPolicy,
+                    sortedActions,
+                    undefined,
+                    {
+                        showPersonalDetails: true,
+                    },
+                    undefined,
+                    undefined,
+                    isTrackIntentUser,
+                );
                 reportForContextualSearch = option;
             }
 
@@ -207,6 +219,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             sortedActions,
             contextualReportNVP,
             contextualReportPolicy,
+            isTrackIntentUser,
         ],
     );
 
@@ -373,7 +386,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         onRouterClose();
     });
-    const updateAndScrollToFocusedIndex = useCallback(() => listRef.current?.updateAndScrollToFocusedIndex(searchQueryItems?.length ?? 1, true), [searchQueryItems?.length]);
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
@@ -422,7 +434,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 searchQueryItems={searchQueryItems}
                 getAdditionalSections={getAdditionalSections}
                 onListItemPress={onListItemPress}
-                onHighlightFirstItem={updateAndScrollToFocusedIndex}
+                shouldHighlightFirstItem
                 ref={listRef}
                 textInputRef={textInputRef}
                 autocompleteSubstitutions={autocompleteSubstitutions}
