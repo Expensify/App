@@ -2582,7 +2582,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         beforeEach(() => {
             jest.mocked(Navigation.navigate).mockClear();
-            (Navigation.getActiveRoute as jest.Mock).mockReturnValue(undefined);
+            jest.mocked(Navigation.getActiveRoute).mockReturnValue('');
         });
 
         it('navigates to workspace upgrade instead of approving when expenseReportPolicy is a Submit workspace', () => {
