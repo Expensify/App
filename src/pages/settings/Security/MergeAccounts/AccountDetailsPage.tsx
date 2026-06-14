@@ -1,9 +1,8 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -26,6 +25,7 @@ import {addErrorMessage, getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
 import {clearGetValidateCodeForAccountMerge, requestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
@@ -82,36 +82,36 @@ function AccountDetailsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    useFocusEffect(
-        useCallback(() => {
-            const task = InteractionManager.runAfterInteractions(() => {
+    useFocusEffect(() => {
+        const task = TransitionTracker.runAfterTransitions({
+            callback: () => {
                 if (!validateCodeSent || !email) {
                     return;
                 }
 
                 Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email.trim()));
-            });
+            },
+        });
 
-            return () => task.cancel();
-        }, [validateCodeSent, email]),
-    );
+        return () => task.cancel();
+    });
 
-    useFocusEffect(
-        useCallback(() => {
-            const task = InteractionManager.runAfterInteractions(() => {
+    useFocusEffect(() => {
+        const task = TransitionTracker.runAfterTransitions({
+            callback: () => {
                 if (!errorKey || !email) {
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email.trim(), errorKey));
-            });
+            },
+        });
 
-            return () => task.cancel();
-        }, [errorKey, email]),
-    );
+        return () => task.cancel();
+    });
 
-    useFocusEffect(
-        useCallback(() => {
-            const task = InteractionManager.runAfterInteractions(() => {
+    useFocusEffect(() => {
+        const task = TransitionTracker.runAfterTransitions({
+            callback: () => {
                 if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                     return;
                 }
@@ -119,11 +119,11 @@ function AccountDetailsPage() {
                 Navigation.navigate(
                     ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
                 );
-            });
+            },
+        });
 
-            return () => task.cancel();
-        }, [privateSubscription?.type, currentUserPersonalDetails.login]),
-    );
+        return () => task.cancel();
+    });
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('blur', () => {

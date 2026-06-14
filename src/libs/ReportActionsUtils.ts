@@ -174,8 +174,6 @@ const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
 
 const POLICY_CHANGE_LOG_ARRAY = new Set<ReportActionName>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG));
 
-const ROOM_CHANGE_LOG_ARRAY = new Set<ReportActionName>(Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
-
 const MEMBER_CHANGE_ARRAY = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
     CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
@@ -265,7 +263,7 @@ function isPendingRemove(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
 
 /**
  * Derives the moderation decision and whether the action is flagged from the action itself.
- * Used by leaves that previously received the equivalent values as props from PureReportActionItem.
+ * Used by leaves that previously received the equivalent values as props from ReportActionItem.
  */
 function getModerationFlagState(reportAction: OnyxInputOrEntry<ReportAction>): {latestDecision: DecisionName | undefined; hasBeenFlagged: boolean} {
     // Moderation only applies to ADD_COMMENT actions
@@ -318,6 +316,14 @@ function isUnapprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): repor
 
 function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED);
+}
+
+function getForwardedReportActionMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>>, translate: LocalizedTranslate): string {
+    const originalMessage = getOriginalMessage(reportAction);
+    if (originalMessage?.workflow === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL && originalMessage?.to) {
+        return translate('iou.forwarded');
+    }
+    return translate('iou.forwarded', originalMessage?.message);
 }
 
 function isDynamicExternalWorkflowSubmitFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> {
@@ -696,10 +702,6 @@ function isRetractedAction(reportAction: OnyxEntry<ReportAction>): reportAction 
 
 function isRejectedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER);
-}
-
-function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
-    return reportAction?.actionName ? ROOM_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
 }
 
 function isInviteOrRemovedAction(
@@ -1705,7 +1707,7 @@ function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean
 }
 
 /**
- * Simple hook to check whether the PureReportActionItem should return item based on whether the ReportPreview was recently deleted and the PureReportActionItem has not yet unloaded
+ * Simple hook to check whether the ReportActionItem should return item based on whether the ReportPreview was recently deleted and the ReportActionItem has not yet unloaded
  */
 function useTableReportViewActionRenderConditionals({childMoneyRequestCount, childVisibleActionCount, pendingAction, actionName}: ReportAction) {
     const previousChildMoneyRequestCount = usePrevious(childMoneyRequestCount);
@@ -1718,7 +1720,7 @@ function useTableReportViewActionRenderConditionals({childMoneyRequestCount, chi
 
     const isEmptyPreviewWithComments = reportsCount === 0 && commentsCount > 0 && previousReportsCount > 0;
 
-    // We only want to remove the item if the ReportPreview has comments but no reports, so we avoid having a PureReportActionItem with no ReportPreview but only comments
+    // We only want to remove the item if the ReportPreview has comments but no reports, so we avoid having a ReportActionItem with no ReportPreview but only comments
     return !(isActionAReportPreview && isActionInUpdateState && isEmptyPreviewWithComments);
 }
 
@@ -3197,6 +3199,19 @@ function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, a
     return getReportActionText(action);
 }
 
+function getCustomUnitRateDateRangeForMessage(translate: LocalizedTranslate, startDate?: string, endDate?: string): string {
+    if (startDate && endDate) {
+        return translate('workspaceActions.customUnitRateDateRangeStartToEnd', DateUtils.formatToReadableString(startDate), DateUtils.formatToReadableString(endDate));
+    }
+    if (startDate) {
+        return translate('workspaceActions.customUnitRateDateRangeFrom', DateUtils.formatToReadableString(startDate));
+    }
+    if (endDate) {
+        return translate('workspaceActions.customUnitRateDateRangeUntilEnd', DateUtils.formatToReadableString(endDate));
+    }
+    return translate('workspaceActions.customUnitRateDateRangeAllDates');
+}
+
 function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage, oldTaxPercentage, newStartDate, newEndDate, oldStartDate, oldEndDate} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
@@ -3229,52 +3244,12 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.DATE_RANGE) {
-        const startDateChanged = newStartDate !== oldStartDate;
-        const endDateChanged = newEndDate !== oldEndDate;
-
-        if (startDateChanged && endDateChanged && newStartDate && newEndDate) {
-            const formattedOldStartDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
-            const formattedOldEndDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
-            return translate(
-                'workspaceActions.updatedCustomUnitRateStartAndEndDate',
-                customUnitRateName,
-                DateUtils.formatToReadableString(newStartDate),
-                DateUtils.formatToReadableString(newEndDate),
-                formattedOldStartDate,
-                formattedOldEndDate,
-            );
+        const oldDateRange = getCustomUnitRateDateRangeForMessage(translate, oldStartDate, oldEndDate);
+        let newDateRange = getCustomUnitRateDateRangeForMessage(translate, newStartDate, newEndDate);
+        if (newStartDate && newEndDate) {
+            newDateRange = translate('workspaceActions.customUnitRateDateRangeFrom', newDateRange);
         }
-
-        let startDateMessage = '';
-        let endDateMessage = '';
-
-        if (startDateChanged) {
-            if (!newStartDate && oldStartDate) {
-                startDateMessage = translate('workspaceActions.removedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(oldStartDate));
-            } else if (newStartDate) {
-                const formattedOldDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
-                startDateMessage = translate('workspaceActions.updatedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(newStartDate), formattedOldDate);
-            }
-        }
-
-        if (endDateChanged) {
-            if (!newEndDate && oldEndDate) {
-                endDateMessage = translate('workspaceActions.removedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(oldEndDate));
-            } else if (newEndDate) {
-                const formattedOldDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
-                endDateMessage = translate('workspaceActions.updatedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(newEndDate), formattedOldDate);
-            }
-        }
-
-        if (startDateMessage && endDateMessage) {
-            return `${startDateMessage}, ${endDateMessage}`;
-        }
-        if (startDateMessage) {
-            return startDateMessage;
-        }
-        if (endDateMessage) {
-            return endDateMessage;
-        }
+        return translate('workspaceActions.updatedCustomUnitRateDateRange', customUnitRateName, newDateRange, oldDateRange);
     }
 
     return getReportActionText(action);
@@ -3504,6 +3479,31 @@ function getAutoPayApprovedReportsEnabledMessage(translate: LocalizedTranslate, 
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED>) ?? {};
 
     return translate('workspaceActions.updatedAutoPayApprovedReports', {enabled: !!enabled});
+}
+
+function formatTax(taxName?: string, taxPercentage?: string): string {
+    if (!taxName) {
+        return '';
+    }
+    return taxPercentage ? `${taxName} (${taxPercentage})` : taxName;
+}
+
+function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {categoryName, oldTaxName, oldTaxPercentage, newTaxName, newTaxPercentage} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE>) ?? {};
+
+    if (!categoryName || !newTaxName || !oldTaxName) {
+        return getReportActionText(action);
+    }
+
+    const oldTax = formatTax(oldTaxName, oldTaxPercentage);
+    const newTax = formatTax(newTaxName, newTaxPercentage);
+
+    return translate('workspaceActions.updatedCategoryTaxRate', {
+        categoryName: getDecodedCategoryName(categoryName),
+        oldTax,
+        newTax,
+    });
 }
 
 function getAutoReimbursementMessage(translate: LocalizedTranslate, action: ReportAction): string {
@@ -4740,7 +4740,6 @@ export {
     isPayAction,
     isPendingRemove,
     getModerationFlagState,
-    isPolicyChangeLogAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
@@ -4748,7 +4747,6 @@ export {
     isReportPreviewAction,
     isReversedTransaction,
     getMentionedAccountIDsFromAction,
-    isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction,
     isTaskAction,
@@ -4790,6 +4788,7 @@ export {
     getUpdateRoomDescriptionMessage,
     getRoomAvatarUpdatedMessage,
     didMessageMentionCurrentUser,
+    getForwardedReportActionMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogUpdateEmployee,
     getPolicyChangeLogDeleteMemberMessage,
@@ -4811,6 +4810,7 @@ export {
     getRequireCompanyCardsEnabledMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    getCategoryTaxRateMessage,
     getMccGroupCategoryMessage,
     formatAddressToString,
     getCompanyAddressUpdateMessage,
