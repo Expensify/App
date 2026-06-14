@@ -94,7 +94,7 @@ function CopyPolicySettingsConfirmPage() {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.copyPolicySettings.title')}
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={() => Navigation.goBack(sourcePolicyID ? ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID) : undefined)}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3]}>
