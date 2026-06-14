@@ -290,7 +290,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.copyPolicySettings.title')}
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={() => Navigation.goBack(sourcePolicyID ? ROUTES.POLICY_COPY_SETTINGS.getRoute(sourcePolicyID) : undefined)}
                 />
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.selectSettings.title')}</Text>
