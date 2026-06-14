@@ -12,8 +12,6 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isMobile} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -35,8 +33,7 @@ function AddAgentRulePage({
 }: AddAgentRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
+    const shouldUseScrollableLayout = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const formRef = useRef<FormRef>(null);

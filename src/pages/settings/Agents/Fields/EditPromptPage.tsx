@@ -12,9 +12,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {updateAgentPrompt} from '@libs/actions/Agent';
-import {isMobile} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -28,8 +26,7 @@ type EditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, 
 function EditPromptPage({route}: EditPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
+    const shouldUseScrollableLayout = useIsInLandscapeMode();
     const accountID = route.params.accountID;
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
 
