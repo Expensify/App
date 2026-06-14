@@ -134,7 +134,8 @@ function IOURequestStepDate({
                     isTrackDistanceExpense: isTrackExpense,
                     expenseDate: newCreated,
                 });
-                setCustomUnitRateID(transactionID, rateID, transaction, effectivePolicy);
+                const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+                setCustomUnitRateID(transactionID, rateID, transaction, effectivePolicy, rateID !== currentRateID);
             }
         }
 

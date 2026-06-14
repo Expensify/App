@@ -370,6 +370,8 @@ const CONST = {
 
     API_TRANSACTION_TAG_MAX_LENGTH: 255,
 
+    TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES: 5,
+
     AUTO_AUTH_STATE: {
         NOT_STARTED: 'not-started',
         SIGNING_IN: 'signing-in',
@@ -1383,6 +1385,7 @@ const CONST = {
     CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Configure-approval-workflows',
     SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
+    CUSTOM_AGENTS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents',
     BULK_UPLOAD_HELP_URL: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense#option-4-bulk-upload-receipts-desktop-only',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
@@ -2074,6 +2077,8 @@ const CONST = {
             RHP_DURATION_OUT_WEB: 100,
             CENTERED_DURATION_IN_WEB: 120,
             CENTERED_DURATION_OUT_WEB: 80,
+            NARROW_SLIDE_DURATION_IN_WEB: 300,
+            NARROW_SLIDE_DURATION_OUT_WEB: 200,
         },
         RHP_ENTER_OFFSET_PX_WEB: 60,
     },
@@ -2331,6 +2336,11 @@ const CONST = {
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
+    },
+    INBOX_TAB: {
+        ALL: 'all',
+        TODO: 'todo',
+        UNREAD: 'unread',
     },
     THEME: {
         DEFAULT: 'system',
@@ -3975,6 +3985,7 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
             MAKE_AUDITOR: 'makeAuditor',
+            MAKE_CARD_ADMIN: 'makeCardAdmin',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -4803,6 +4814,10 @@ const CONST = {
         ACTION: {
             ALLOW: 'allow',
             BLOCK: 'block',
+        },
+        NOUN: {
+            MERCHANT: 'merchant',
+            SPEND_CATEGORY: 'spendCategory',
         },
     },
     get SUBSCRIPTION_PRICES() {
@@ -7433,12 +7448,12 @@ const CONST = {
                 description: 'workspace.upgrade.distanceRates.description' as const,
                 icon: 'CarIce',
             },
-            auditor: {
-                id: 'auditor' as const,
-                alias: 'auditor',
-                name: 'Auditor',
-                title: 'workspace.upgrade.auditor.title' as const,
-                description: 'workspace.upgrade.auditor.description' as const,
+            controlPolicyRoles: {
+                id: 'controlPolicyRoles' as const,
+                alias: 'control-policy-roles',
+                name: 'Control policy roles',
+                title: 'workspace.upgrade.controlPolicyRoles.title' as const,
+                description: 'workspace.upgrade.controlPolicyRoles.description' as const,
                 icon: 'BlueShield',
             },
             reports: {
@@ -7751,6 +7766,7 @@ const CONST = {
         MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
         GPS_TOOLTIP: 'gpsTooltip',
         HAS_FILTER_NEGATION: 'hasFilterNegation',
+        MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
@@ -8497,10 +8513,10 @@ const CONST = {
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
-                AI_RULE_ITEM: 'WorkspaceRules-AIRuleItem',
-                ADD_AI_RULE: 'WorkspaceRules-AddAIRule',
-                AI_RULE_SAVE: 'WorkspaceRules-AIRuleSave',
-                AI_RULE_DELETE: 'WorkspaceRules-AIRuleDelete',
+                AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',
+                ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',
+                AGENT_RULE_SAVE: 'WorkspaceRules-AgentRuleSave',
+                AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
