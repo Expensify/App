@@ -90,7 +90,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     isInverted: true,
                     unreadMarkerReportActionIndex: -1,
                     onTrackScrolling: onTrackScrollingMockFn,
-                    hasOnceLoadedReportActions: true,
                     hasNewerActions: false,
                 }),
             );
@@ -118,7 +117,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     isInverted: true,
                     unreadMarkerReportActionIndex: 1,
                     onTrackScrolling: onTrackScrollingMockFn,
-                    hasOnceLoadedReportActions: true,
                     hasNewerActions: false,
                 }),
             );
@@ -152,7 +150,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     isInverted: true,
                     hasNewerActions: false,
                     onTrackScrolling: onTrackScrollingMockFn,
-                    hasOnceLoadedReportActions: true,
                 }),
             );
 
@@ -178,7 +175,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     unreadMarkerReportActionIndex: 1,
                     isInverted: true,
                     onTrackScrolling: onTrackScrollingMockFn,
-                    hasOnceLoadedReportActions: true,
                     hasNewerActions: false,
                 }),
             );
@@ -209,7 +205,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     unreadMarkerReportActionIndex: 1,
                     isInverted: true,
                     onTrackScrolling: onTrackScrollingMockFn,
-                    hasOnceLoadedReportActions: true,
                     hasNewerActions: false,
                 }),
             );
@@ -248,7 +243,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     onTrackScrolling: onTrackScrollingMockFn,
                     hasNewerActions: false,
                     unreadMarkerReportActionIndex: -1,
-                    hasOnceLoadedReportActions: true,
                     isInverted: true,
                     actionBadgeTargetIndex: -1,
                 }),
@@ -267,7 +261,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     onTrackScrolling: onTrackScrollingMockFn,
                     hasNewerActions: false,
                     unreadMarkerReportActionIndex: -1,
-                    hasOnceLoadedReportActions: true,
                     isInverted: true,
                     actionBadgeTargetIndex: 5,
                 }),
@@ -299,7 +292,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     onTrackScrolling: onTrackScrollingMockFn,
                     hasNewerActions: false,
                     unreadMarkerReportActionIndex: -1,
-                    hasOnceLoadedReportActions: true,
                     isInverted: true,
                     actionBadgeTargetIndex: 2,
                 }),
@@ -330,7 +322,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     onTrackScrolling: onTrackScrollingMockFn,
                     hasNewerActions: false,
                     unreadMarkerReportActionIndex: -1,
-                    hasOnceLoadedReportActions: true,
                     isInverted: true,
                     actionBadgeTargetIndex: -1,
                 }),
@@ -356,7 +347,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     onTrackScrolling: onTrackScrollingMockFn,
                     hasNewerActions: false,
                     unreadMarkerReportActionIndex: -1,
-                    hasOnceLoadedReportActions: true,
                     isInverted: true,
                     actionBadgeTargetIndex: 5,
                 }),
@@ -389,7 +379,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     onTrackScrolling: onTrackScrollingMockFn,
                     hasNewerActions: false,
                     unreadMarkerReportActionIndex: -1,
-                    hasOnceLoadedReportActions: true,
                     isInverted: true,
                     actionBadgeTargetIndex,
                 }),

@@ -28,14 +28,14 @@ describe('useIsReportActionsLoaded', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {hasOnceLoadedReportActions: true});
 
         const {result} = renderHook(() => useIsReportActionsLoaded(REPORT_ID));
-        await expect(result.current).toBe(true);
+        expect(result.current).toBe(true);
     });
 
     it('returns true when the report has report actions even if it has never finished loading', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION.reportActionID]: REPORT_ACTION});
 
         const {result} = renderHook(() => useIsReportActionsLoaded(REPORT_ID));
-        await expect(result.current).toBe(true);
+        expect(result.current).toBe(true);
     });
 
     it('returns false when the report actions object is empty', async () => {
