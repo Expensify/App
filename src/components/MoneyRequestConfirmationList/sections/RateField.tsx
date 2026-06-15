@@ -1,6 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -8,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -31,6 +33,7 @@ type RateFieldProps = {
     formError: string;
     shouldNavigateToUpgradePath: boolean;
     shouldSelectPolicy: boolean;
+    shouldShowRateAutoUpdatedTooltip?: boolean;
 };
 
 function RateField({
@@ -50,6 +53,7 @@ function RateField({
     formError,
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
+    shouldShowRateAutoUpdatedTooltip,
 }: RateFieldProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -59,6 +63,11 @@ function RateField({
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isRateInteractive = !!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;
+
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED,
+        !!shouldShowRateAutoUpdatedTooltip,
+    );
 
     return (
         <MenuItemWithTopDescription
@@ -101,6 +110,14 @@ function RateField({
             disabled={didConfirm}
             interactive={isRateInteractive}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
+            shouldRenderTooltip={shouldShowProductTrainingTooltip}
+            renderTooltipContent={renderProductTrainingTooltip}
+            tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
+            tooltipAnchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+            tooltipShiftHorizontal={variables.mileageRateTooltipShiftHorizontal}
+            tooltipShiftVertical={variables.mileageRateTooltipShiftVertical}
+            onEducationTooltipPress={hideProductTrainingTooltip}
+            shouldHideOnScroll
         />
     );
 }

@@ -703,7 +703,7 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_INVITE_MESSAGE: {
         path: 'invite-message',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM],
     },
     WORKSPACE_INVITE_MESSAGE_ROLE: {
         path: 'role',
@@ -3333,13 +3333,13 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/preview-matches',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/preview-matches` as const,
     },
-    RULES_AI_NEW: {
-        route: 'workspaces/:policyID/rules/ai-rules/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/ai-rules/new` as const,
+    RULES_AGENT_NEW: {
+        route: 'workspaces/:policyID/rules/agent-rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/agent-rules/new` as const,
     },
-    RULES_AI_EDIT: {
-        route: 'workspaces/:policyID/rules/ai-rules/:ruleID',
-        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/ai-rules/${ruleID}` as const,
+    RULES_AGENT_EDIT: {
+        route: 'workspaces/:policyID/rules/agent-rules/:ruleID',
+        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/agent-rules/${ruleID}` as const,
     },
     SHARE_ROOT: 'share/root',
     SHARE_ROOT_SHARE: 'share/root/share',
