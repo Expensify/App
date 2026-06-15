@@ -48,7 +48,7 @@ type MoneyRequestReportFlashListProps = FlashListProps<UnifiedListItem> & {
 function MoneyRequestReportFlashList(props: MoneyRequestReportFlashListProps) {
     return (
         <FlashList<UnifiedListItem>
-            // eslint-disable-next-line react/jsx-props-no-spreading -- thin forwarder; spreading the props (including the ref) is the point
+            // thin forwarder; spreading the props (including the ref) is the point
             {...props}
         />
     );
