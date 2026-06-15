@@ -7198,7 +7198,7 @@ function buildOptimisticChangePolicyData({
     }
 
     // 2. If this is a thread, we have to mark the parent report preview action as deleted to properly update the UI
-    if (reportPreviewAction && report.parentReportID && report.parentReportActionID) {
+    if (report.parentReportID && report.parentReportActionID) {
         const oldWorkspaceChatReportID = report.parentReportID;
         const oldReportPreviewActionID = report.parentReportActionID;
         const deletedTime = DateUtils.getDBTime();
