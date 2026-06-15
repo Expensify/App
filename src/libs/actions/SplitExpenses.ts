@@ -86,7 +86,7 @@ function initSplitExpense(
     transaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
     report: OnyxEntry<Report>,
-    currentUserAccountID: number | undefined,
+    currentUserAccountID: number,
     {navigateToEditSplitExpense = false, isProduction = false}: {navigateToEditSplitExpense?: boolean; isProduction?: boolean} = {},
 ): void {
     if (!transaction) {

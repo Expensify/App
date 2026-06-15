@@ -141,7 +141,7 @@ type UberReceiptPartner = {
     /**
      * form data for uber partner
      */
-    connectFormData: string;
+    connectFormData?: string;
     /**
      * auto invite for uber connection
      */
@@ -2044,12 +2044,12 @@ type CodingRule = {
     errors?: OnyxCommon.Errors;
 };
 
-/** Policy AI rule data model */
-type AIRule = {
+/** Policy Agent rule data model */
+type AgentRule = {
     /** Unique identifier for the rule */
     ruleID: string;
 
-    /** The AI prompt (i.e. the rule defined with natural language) */
+    /** The Agent prompt (i.e. the rule defined with natural language) */
     prompt: string;
 
     /** Short one-line summary generated server-side from the prompt */
@@ -2276,8 +2276,8 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** A set of coding rules for automatic expense field population based on merchant matching */
             codingRules?: Record<string, CodingRule>;
 
-            /** A set of AI rules defined with natural language - The rules are run by the "RuleBot" */
-            aiRules?: Record<string, AIRule>;
+            /** A set of Agent rules defined with natural language - The rules are run by the "RuleBot" */
+            agentRules?: Record<string, AgentRule>;
         };
 
         /** The "RuleBot" agent account ID */
@@ -2512,5 +2512,5 @@ export type {
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,
-    AIRule,
+    AgentRule,
 };
