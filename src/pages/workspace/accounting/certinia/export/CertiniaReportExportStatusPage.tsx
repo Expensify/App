@@ -14,13 +14,13 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-type FinancialForceReportExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.SUBMITTED;
+type FinancialForceReportExportStatus = 'Approved' | 'Submitted';
 
 type ReportExportStatusListItem = ListItem & {
     value: FinancialForceReportExportStatus;
 };
 
-const REPORT_EXPORT_STATUSES: FinancialForceReportExportStatus[] = [CONST.CERTINIA_EXPORT_STATUS.APPROVED, CONST.CERTINIA_EXPORT_STATUS.SUBMITTED];
+const REPORT_EXPORT_STATUSES: FinancialForceReportExportStatus[] = ['Approved', 'Submitted'];
 
 function CertiniaReportExportStatusPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -30,17 +30,21 @@ function CertiniaReportExportStatusPage({policy}: WithPolicyConnectionsProps) {
     const exportConfig = config?.export;
     const selectedReportExportStatus = exportConfig?.reportExportStatus;
     const normalizedSelectedReportExportStatus = getCertiniaExportStatusValue(selectedReportExportStatus);
+    const selectedReportExportStatusKey = REPORT_EXPORT_STATUSES.find((status) => getCertiniaExportStatusValue(status) === normalizedSelectedReportExportStatus);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS.path);
 
-    const data: ReportExportStatusListItem[] = REPORT_EXPORT_STATUSES.map((status) => ({
-        value: status,
-        text: translate(`workspace.certinia.reportExportStatus.values.${status}`),
-        keyForList: status,
-        isSelected: normalizedSelectedReportExportStatus === status,
-    }));
+    const data: ReportExportStatusListItem[] = REPORT_EXPORT_STATUSES.map((status) => {
+        const normalizedStatus = getCertiniaExportStatusValue(status);
+        return {
+            value: status,
+            text: normalizedStatus ? translate(`workspace.certinia.reportExportStatus.values.${normalizedStatus}`) : status,
+            keyForList: status,
+            isSelected: normalizedSelectedReportExportStatus === normalizedStatus,
+        };
+    });
 
     const selectReportExportStatus = (row: ReportExportStatusListItem) => {
-        if (row.value !== normalizedSelectedReportExportStatus && policyID) {
+        if (getCertiniaExportStatusValue(row.value) !== normalizedSelectedReportExportStatus && policyID) {
             updateFinancialForceReportExportStatus(policyID, row.value, exportConfig?.reportExportStatus ?? null);
         }
         Navigation.goBack(backPath);
@@ -55,7 +59,7 @@ function CertiniaReportExportStatusPage({policy}: WithPolicyConnectionsProps) {
             data={data}
             onSelectRow={selectReportExportStatus}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={normalizedSelectedReportExportStatus}
+            initiallyFocusedOptionKey={selectedReportExportStatusKey}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             title="workspace.certinia.reportExportStatus.label"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}

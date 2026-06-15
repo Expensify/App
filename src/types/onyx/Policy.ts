@@ -1479,7 +1479,7 @@ type FinancialForceExportConfig = {
     companyID?: string;
 
     /** PSA: report-level export status. */
-    reportExportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
+    reportExportStatus?: 'Approved' | 'Submitted';
 };
 
 /** Certinia auto-sync */
