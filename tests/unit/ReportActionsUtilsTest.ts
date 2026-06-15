@@ -18,6 +18,7 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
+    getCategoryTaxRateMessage,
     getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
@@ -4104,6 +4105,75 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
             expect(actual).toBe('renamed the Distance rate "Default Rate" to "Custom Rate"');
         });
+
+        it('should return the correct message when a start date is set on a rate without dates', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'dateRange',
+                    newStartDate: '2026-04-01',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('updated the distance rate "Default Rate" to apply from April 1, 2026 (previously for all dates)');
+        });
+
+        it('should return the correct message when both start and end dates are changed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'dateRange',
+                    newStartDate: '2026-04-01',
+                    newEndDate: '2026-05-31',
+                    oldStartDate: '2026-03-01',
+                    oldEndDate: '2026-04-30',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('updated the distance rate "Default Rate" to apply from April 1, 2026 - May 31, 2026 (previously March 1, 2026 - April 30, 2026)');
+        });
+
+        it('should return the correct message when an end date is changed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'dateRange',
+                    newEndDate: '2026-05-31',
+                    oldEndDate: '2026-04-30',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('updated the distance rate "Default Rate" to apply until May 31, 2026 (previously until April 30, 2026)');
+        });
+
+        it('should return the correct message when all dates are cleared', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'dateRange',
+                    oldStartDate: '2026-03-01',
+                    oldEndDate: '2026-04-30',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('updated the distance rate "Default Rate" to apply for all dates (previously March 1, 2026 - April 30, 2026)');
+        });
     });
 
     describe('didMessageMentionCurrentUser', () => {
@@ -4610,6 +4680,46 @@ describe('ReportActionsUtils', () => {
 
             const result = getAutoReimbursementMessage(translateLocal, action);
             expect(result).toBe('changed the auto-pay approved reports threshold to "$1,000.00" (previously "$500.00")');
+        });
+    });
+
+    describe('getCategoryTaxRateMessage', () => {
+        it('should render the changed-tax-rate message with both name and percentage on each side', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Office Supplies',
+                    oldTaxName: 'Tax Exempt',
+                    oldTaxPercentage: '0%',
+                    newTaxName: 'Tax Rate 1',
+                    newTaxPercentage: '5%',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+            expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
+        });
+
+        it('should drop the parens on the side with an empty percentage (e.g. previous tax was deleted)', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Office Supplies',
+                    oldTaxName: 'Deleted Tax Rate',
+                    oldTaxPercentage: '',
+                    newTaxName: 'Tax Rate 1',
+                    newTaxPercentage: '5%',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+            expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Deleted Tax Rate")');
         });
     });
 

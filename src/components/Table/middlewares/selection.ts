@@ -10,6 +10,9 @@ type UseSelectionProps<DataType extends TableData> = {
     /** The data being used in the table */
     data: DataType[];
 
+    /** The number of non-disabled items in the original (pre-search/filter) data */
+    originalSelectableCount: number;
+
     /** The list of selected keys */
     selectedKeys: string[];
 
@@ -39,7 +42,12 @@ type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataT
     mobileSelectionModalRowKey: string | null;
 };
 
-export default function useSelection<DataType extends TableData>({data, selectedKeys, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
+export default function useSelection<DataType extends TableData>({
+    data,
+    originalSelectableCount,
+    selectedKeys,
+    onRowSelectionChange,
+}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isSelectionModeEnabled = useMobileSelectionMode();
     const lastSelectedRowKeyRef = useRef<string | null>(null);
@@ -61,14 +69,23 @@ export default function useSelection<DataType extends TableData>({data, selected
         }
     }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length]);
 
-    // When there are no more items to be selected, turn off selection mode on mobile
+    // When there are genuinely no selectable items left, turn off selection mode on mobile.
+    // Stay in selection mode as long as the original data has non-disabled items (they may be hidden by search/filter).
     useEffect(() => {
-        if (selectableKeys.length || !isSelectionModeEnabled) {
+        if (selectableKeys.length || !isSelectionModeEnabled || originalSelectableCount > 0) {
             return;
         }
 
         turnOffMobileSelectionMode();
-    }, [selectableKeys.length, isSelectionModeEnabled]);
+    }, [selectableKeys.length, isSelectionModeEnabled, originalSelectableCount]);
+
+    const prevSelectionModeEnabledRef = useRef(isSelectionModeEnabled);
+    useEffect(() => {
+        if (prevSelectionModeEnabledRef.current && !isSelectionModeEnabled) {
+            onRowSelectionChange?.([]);
+        }
+        prevSelectionModeEnabledRef.current = isSelectionModeEnabled;
+    }, [isSelectionModeEnabled, onRowSelectionChange]);
 
     /**
      * Clear all of the currently selected keys

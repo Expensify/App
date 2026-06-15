@@ -151,7 +151,6 @@ import {
     isExpensifyTeam,
     isGroupPolicy as isGroupPolicyPolicyUtils,
     isInstantSubmitEnabled,
-    isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
     isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
@@ -1699,7 +1698,9 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Whether the provided report belongs to a paid group or Submit policy
+ * Whether the report belongs to a group policy (Collect, Control, or Submit). Report-based counterpart
+ * of `PolicyUtils.isGroupPolicy`. Prefer this over `isPaidGroupPolicy(report)` for feature gating
+ * (violations, report fields, etc.) so free group plans like Submit are not excluded.
  */
 // TODO: Remove this function and use isGroupPolicy directly after https://github.com/Expensify/App/issues/66415 is done
 function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): boolean {
@@ -1707,7 +1708,9 @@ function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxIn
 }
 
 /**
- * Whether the provided report belongs to a Control or Collect policy
+ * Whether the report belongs to a paid policy (Collect/Control) only. Report-based counterpart of
+ * `PolicyUtils.isPaidGroupPolicy`. For group-feature gating use `isReportInGroupPolicy` instead,
+ * otherwise Submit workspaces are wrongly excluded.
  */
 function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
     const policyType = getPolicyType(report, allPolicies);
@@ -1715,10 +1718,12 @@ function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Whether the provided report belongs to a Control or Collect policy and is an expense report
+ * Whether the provided report belongs to a group policy (Collect, Control, or Submit) and is an expense report.
+ * Use for report-field-style features that Submit workspaces also support, so the free Submit plan isn't
+ * incorrectly excluded.
  */
-function isPaidGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && isPaidGroupPolicy(report);
+function isGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
+    return isExpenseReport(report) && isReportInGroupPolicy(report);
 }
 
 /**
@@ -2922,7 +2927,7 @@ type GetAddExpenseDropdownOptionsParams = {
     iouRequestBackToReport?: string;
     unreportedExpenseBackToReport?: string;
     lastDistanceExpenseType?: IOURequestType;
-    currentUserAccountID?: number;
+    currentUserAccountID: number;
 };
 
 function getAddExpenseDropdownOptions({
@@ -4502,7 +4507,7 @@ function canEditReportTitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
         getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField)) ?? getTitleFieldWithFallback(policy);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
-    return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isPaidGroupPolicyPolicyUtils(policy);
+    return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isGroupPolicyPolicyUtils(policy);
 }
 
 /**
@@ -4622,7 +4627,7 @@ function getTransactionDetails(
     }
 
     const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
-    const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || isPaidGroupPolicyPolicyUtils(policy);
+    const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || isGroupPolicyPolicyUtils(policy);
 
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
@@ -5649,6 +5654,11 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.reimbursable = transactionChanges?.reimbursable ? 'reimbursable' : 'non-reimbursable';
     }
 
+    if ('vendor' in transactionChanges) {
+        originalMessage.oldVendor = oldTransaction?.comment?.vendor ?? null;
+        originalMessage.vendor = transactionChanges?.vendor ?? null;
+    }
+
     if ('billable' in transactionChanges) {
         const oldBillable = getBillable(oldTransaction);
         originalMessage.oldBillable = oldBillable ? 'billable' : 'non-billable';
@@ -5951,20 +5961,20 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number) {
     Navigation.goBack();
 }
 
-function navigateOnDeleteExpense(backToRoute: Route) {
+function navigateOnDeleteExpense(backToRoute: Route, afterTransition?: () => void) {
     if (isSearchTopmostFullScreenRoute()) {
-        Navigation.dismissModal();
+        Navigation.dismissModal({afterTransition});
         return;
     }
 
     const rootState = navigationRef.getRootState();
     const focusedRoute = findFocusedRoute(rootState);
     if (focusedRoute?.params && 'backTo' in focusedRoute.params) {
-        Navigation.goBack(focusedRoute.params.backTo as Route);
+        Navigation.goBack(focusedRoute.params.backTo as Route, {afterTransition});
         return;
     }
 
-    Navigation.goBack(backToRoute);
+    Navigation.goBack(backToRoute, {afterTransition});
 }
 
 /**
@@ -11057,10 +11067,7 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     ]);
     setMoneyRequestReportID(transactionID, expenseChatReportID);
     if (isCategorizing) {
-        const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true);
-        Navigation.navigate(
-            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID), confirmationRoute),
-        );
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
     } else {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true));
     }
@@ -11185,10 +11192,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                 },
             ]);
             if (policyExpenseReportID) {
-                const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID, undefined, true);
-                Navigation.navigate(
-                    createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID), confirmationRoute),
-                );
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
             } else {
                 Log.warn('policyExpenseReportID is not valid during expense categorizing');
             }
@@ -11196,16 +11200,15 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
         if (filteredPoliciesCount === 0 || filteredPoliciesCount > 1) {
             Navigation.navigate(
-                createDynamicRoute(
-                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: actionName,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID,
-                        reportID,
-                        upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
-                        shouldSubmitExpense: true,
-                    }),
-                ),
+                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                    action: actionName,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    reportID,
+                    backTo: '',
+                    upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
+                    shouldSubmitExpense: true,
+                }),
             );
             return;
         }
@@ -11223,10 +11226,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             },
         ]);
         if (policyExpenseReportID) {
-            const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID, undefined, true);
-            Navigation.navigate(
-                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID), confirmationRoute),
-            );
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
         } else {
             Log.warn('policyExpenseReportID is not valid during expense categorizing');
         }
@@ -11234,7 +11234,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, Navigation.getActiveRoute()));
         return;
     }
 
@@ -12311,7 +12311,7 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
     if (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
         return false;
     }
-    return isPaidGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role && !isPendingDeletePolicy(newPolicy);
+    return isGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role && !isPendingDeletePolicy(newPolicy);
 }
 
 /**
@@ -12994,6 +12994,18 @@ function getLinkedIOUTransaction(reportAction: OnyxEntry<ReportAction | Optimist
     return transactionID ? transactions.find((item) => item.transactionID === transactionID) : undefined;
 }
 
+/**
+ * Returns true if the "Mark as done" copy/button should be shown.
+ * Aligns with backend: only shown when all four conditions are true (isTrackIntentUser, isSubmitAndClose, isSubmitter, isSubmittingToSelf).
+ *
+ */
+function shouldShowMarkAsDone({isTrackIntentUser, report, policy}: {isTrackIntentUser?: boolean; report: OnyxEntry<Report>; policy: OnyxEntry<Policy>}): boolean {
+    if (!isTrackIntentUser || !isSubmitAndClose(policy) || !isReportOwner(report)) {
+        return false;
+    }
+    return getNextApproverAccountID(report) === report?.ownerAccountID;
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     buildConciergeGreetingReportAction,
@@ -13222,8 +13234,7 @@ export {
     isOpenExpenseReport,
     isOpenTaskReport,
     isOptimisticPersonalDetail,
-    isPaidGroupPolicy,
-    isPaidGroupPolicyExpenseReport,
+    isGroupPolicyExpenseReport,
     isPayer,
     isPolicyAdmin,
     isPolicyExpenseChat,
@@ -13377,6 +13388,7 @@ export {
     getTransactionSortValue,
     isSortableColumnName,
     getLinkedIOUTransaction,
+    shouldShowMarkAsDone,
     hasHeldExpensesFromTransactions,
     canModifyHoldStatus,
 };

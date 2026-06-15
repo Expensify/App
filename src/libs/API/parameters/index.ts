@@ -375,9 +375,9 @@ export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExp
 export type {default as SetPolicyExpenseMaxAmountNoItemizedReceipt} from './SetPolicyExpenseMaxAmountNoItemizedReceipt';
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
-export type {default as AddPolicyAIRuleParams} from './AddPolicyAIRuleParams';
-export type {default as UpdatePolicyAIRuleParams} from './UpdatePolicyAIRuleParams';
-export type {default as DeletePolicyAIRuleParams} from './DeletePolicyAIRuleParams';
+export type {default as AddPolicyAgentRuleParams} from './AddPolicyAgentRuleParams';
+export type {default as UpdatePolicyAgentRuleParams} from './UpdatePolicyAgentRuleParams';
+export type {default as DeletePolicyAgentRuleParams} from './DeletePolicyAgentRuleParams';
 export type {default as UpdateCustomRules} from './UpdateCustomRules';
 export type {default as SetPolicyBillableModeParams} from './SetPolicyBillableModeParams';
 export type {default as SetPolicyCashExpenseModeParams} from './SetPolicyCashExpenseModeParams';
@@ -404,6 +404,7 @@ export type {default as SetCardReconciliationBankAccountParams} from './SetCardR
 export type {default as CardDeactivateParams} from './CardDeactivateParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
 export type {default as RemoveDelegateParams} from './RemoveDelegateParams';
+export type {default as RemoveDelegatorParams} from './RemoveDelegatorParams';
 export type {default as SetPolicyTagApproverParams} from './SetPolicyTagApproverParams';
 export type {default as SaveSearchParams} from './SaveSearch';
 export type {default as DeleteSavedSearchParams} from './DeleteSavedSearch';
