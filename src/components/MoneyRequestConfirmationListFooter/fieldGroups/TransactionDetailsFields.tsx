@@ -166,6 +166,7 @@ function TransactionDetailsFields({
                     formError={errorState.formError}
                     shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                     shouldSelectPolicy={shouldSelectPolicy}
+                    shouldShowRateAutoUpdatedTooltip={distanceData.shouldShowRateAutoUpdatedTooltip}
                 />
             )}
 
