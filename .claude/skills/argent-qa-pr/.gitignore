@@ -1,0 +1,11 @@
+# Never commit real secrets. Each user fills in their own gitignored .env
+# (from .env.example). These patterns are a safety net.
+.env
+.env.*
+# ...but DO commit the template:
+!.env.example
+*.secret
+**/credentials*
+
+# Helper deps (installed locally, not committed)
+node_modules/

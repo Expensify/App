@@ -1,0 +1,10 @@
+{
+  "name": "expensify-magic-code-helper",
+  "private": true,
+  "type": "module",
+  "description": "Fetches the Expensify login code from Gmail over IMAP (used by the argent-qa-pr skill preflight).",
+  "dependencies": {
+    "imap": "^0.8.19",
+    "mailparser": "^3.7.1"
+  }
+}
