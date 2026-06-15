@@ -3,25 +3,30 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import ReceiptCell from '@components/TransactionItemRow/DataCells/ReceiptCell';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import RecentlyAddedReceiptThumbnail from './RecentlyAddedReceiptThumbnail';
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 
-const FALLBACK_THUMBNAIL_SIZE = 40;
 const FALLBACK_ICON_SIZE = 20;
-
-/** Width of the leading thumbnail column, shared with the section's column header. */
-const THUMBNAIL_COLUMN_WIDTH = FALLBACK_THUMBNAIL_SIZE;
 
 /** Width of the date column, shared with the section's column header so labels line up with the values. */
 const DATE_COLUMN_WIDTH = 72;
+
+function getThumbnailColumnWidth(shouldUseNarrowLayout: boolean): number {
+    return shouldUseNarrowLayout ? variables.h36 : variables.w28;
+}
+
+function getThumbnailColumnHeight(shouldUseNarrowLayout: boolean): number {
+    return shouldUseNarrowLayout ? variables.w40 : variables.h32;
+}
 
 type RecentlyAddedRowProps = {
     /** The expense to render */
@@ -38,17 +43,22 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator}: RecentlyAdded
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {convertToDisplayString} = useCurrencyListActions();
-    const icons = useMemoizedLazyExpensifyIcons(['Receipt', 'ArrowRight']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Receipt']);
 
     const formattedDate = DateUtils.formatWithUTCTimeZone(expense.created, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
 
     const thumbnail = expense.transaction ? (
-        <RecentlyAddedReceiptThumbnail transaction={expense.transaction} />
+        <ReceiptCell
+            transactionItem={expense.transaction}
+            isSelected={false}
+            shouldUseNarrowLayout={shouldUseNarrowLayout}
+        />
     ) : (
         <View
             style={[
-                StyleUtils.getWidthAndHeightStyle(FALLBACK_THUMBNAIL_SIZE, FALLBACK_THUMBNAIL_SIZE),
+                StyleUtils.getWidthAndHeightStyle(getThumbnailColumnWidth(shouldUseNarrowLayout), getThumbnailColumnHeight(shouldUseNarrowLayout)),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
                 styles.alignItemsCenter,
                 styles.justifyContentCenter,
@@ -88,12 +98,12 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator}: RecentlyAdded
             <Icon
                 src={icons.ArrowRight}
                 fill={theme.icon}
-                width={variables.iconSizeSmall}
-                height={variables.iconSizeSmall}
+                width={variables.iconSizeNormal}
+                height={variables.iconSizeNormal}
             />
         </PressableWithFeedback>
     );
 }
 
 export default RecentlyAddedRow;
-export {THUMBNAIL_COLUMN_WIDTH, DATE_COLUMN_WIDTH};
+export {DATE_COLUMN_WIDTH, getThumbnailColumnWidth};
