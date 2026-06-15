@@ -1,4 +1,4 @@
-import type {TNode} from 'react-native-render-html';
+import type {TNode} from '@native-html/render';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import parseVictoryAxisNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryAxisParser';
 import parseVictoryLegendNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryLegendParser';

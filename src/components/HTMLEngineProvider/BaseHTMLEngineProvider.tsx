@@ -1,7 +1,7 @@
+import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEngineProvider} from '@native-html/render';
+import type {TNode} from '@native-html/render';
 import React, {useMemo} from 'react';
 import type {TextProps} from 'react-native';
-import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
-import type {TNode} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import FontUtils from '@styles/utils/FontUtils';

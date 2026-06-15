@@ -1,7 +1,7 @@
+import type {TDefaultRendererProps} from '@native-html/render';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import type {StyleProp, TextStyle} from 'react-native';
-import type {TDefaultRendererProps} from 'react-native-render-html';
 import EmojiWithTooltip from '@components/EmojiWithTooltip';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';

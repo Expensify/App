@@ -1,6 +1,6 @@
+import type {TNode} from '@native-html/render';
+import {HTMLContentModel, useAmbientTRenderEngine} from '@native-html/render';
 import React from 'react';
-import type {TNode} from 'react-native-render-html';
-import {HTMLContentModel, useAmbientTRenderEngine} from 'react-native-render-html';
 import {Pie} from 'victory-native';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';

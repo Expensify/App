@@ -1,5 +1,5 @@
+import type {TNode} from '@native-html/render';
 import {drawOffscreen, makeOffscreenSurface} from '@shopify/react-native-skia/lib/module/headless';
-import type {TNode} from 'react-native-render-html';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import resolveVictoryChartType from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveVictoryChartType';

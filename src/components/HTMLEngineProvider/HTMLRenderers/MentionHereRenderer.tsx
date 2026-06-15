@@ -1,8 +1,8 @@
+import type {CustomRendererProps, TPhrasing, TText} from '@native-html/render';
+import {TNodeChildrenRenderer} from '@native-html/render';
 import React from 'react';
 import type {TextStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 

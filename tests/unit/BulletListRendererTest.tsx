@@ -1,6 +1,6 @@
+import type {CustomRendererProps, TBlock} from '@native-html/render';
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import BulletItemRenderer from '@components/HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
 import NumberedItemRenderer from '@components/HTMLEngineProvider/HTMLRenderers/NumberedItemRenderer';
 import OLRenderer from '@components/HTMLEngineProvider/HTMLRenderers/OLRenderer';
@@ -11,10 +11,10 @@ import CONST from '@src/CONST';
 jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: 400}));
 jest.mock('@hooks/useHasTextAncestor', () => () => false);
 
-// Capture the html string ultimately passed to react-native-render-html so we can
+// Capture the html string ultimately passed to @native-html/render so we can
 // assert the orphaned <br/> stripping happens before the library sees the HTML.
 const capturedSource: {html?: string} = {};
-jest.mock('react-native-render-html', () => {
+jest.mock('@native-html/render', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {View: MockView, Text: MockText} = jest.requireActual<{View: React.ComponentType; Text: React.ComponentType}>('react-native');
     return {

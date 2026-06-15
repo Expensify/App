@@ -1,7 +1,7 @@
+import type {CustomRendererProps, TPhrasing, TText} from '@native-html/render';
+import {TNodeChildrenRenderer} from '@native-html/render';
 import React from 'react';
 import type {TextStyle} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Text from '@components/Text';
 import useEnterKeyHandler from '@hooks/useEnterKeyHandler';
 import useThemeStyles from '@hooks/useThemeStyles';

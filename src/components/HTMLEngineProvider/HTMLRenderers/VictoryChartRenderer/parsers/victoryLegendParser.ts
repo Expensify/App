@@ -1,4 +1,4 @@
-import type {TNode} from 'react-native-render-html';
+import type {TNode} from '@native-html/render';
 import normalizeChartFontWeight from '@components/Charts/utils/normalizeChartFontWeight';
 import type {LegendItem, LegendItemEntry, PartialProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';

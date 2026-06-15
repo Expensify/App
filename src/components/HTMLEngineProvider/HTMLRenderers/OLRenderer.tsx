@@ -1,7 +1,7 @@
+import type {CustomRendererProps, TBlock} from '@native-html/render';
+import {TNodeRenderer} from '@native-html/render';
 import React from 'react';
 import {View} from 'react-native';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
-import {TNodeRenderer} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
 import NumberedItemRenderer from './NumberedItemRenderer';
 

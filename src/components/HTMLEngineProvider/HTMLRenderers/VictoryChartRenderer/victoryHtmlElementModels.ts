@@ -1,4 +1,4 @@
-import {HTMLContentModel, HTMLElementModel} from 'react-native-render-html';
+import {HTMLContentModel, HTMLElementModel} from '@native-html/render';
 
 const VICTORY_HTML_ELEMENT_MODELS = {
     victorychart: HTMLElementModel.fromCustomModel({

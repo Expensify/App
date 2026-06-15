@@ -1,4 +1,4 @@
-import type {TNode} from 'react-native-render-html';
+import type {TNode} from '@native-html/render';
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseRawShiftedLineSegmentStyle from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawShiftedLineSegmentStyle';
 

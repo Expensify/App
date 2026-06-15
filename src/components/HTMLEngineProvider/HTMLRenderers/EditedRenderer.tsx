@@ -1,5 +1,5 @@
+import type {CustomRendererProps, TBlock} from '@native-html/render';
 import React from 'react';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';

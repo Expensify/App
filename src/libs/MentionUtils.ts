@@ -1,6 +1,6 @@
+import type {TPhrasing, TText} from '@native-html/render';
 import isEmpty from 'lodash/isEmpty';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TPhrasing, TText} from 'react-native-render-html';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';

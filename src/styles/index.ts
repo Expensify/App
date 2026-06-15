@@ -1,5 +1,6 @@
 /* eslint-disable max-lines */
 /* eslint-disable @typescript-eslint/naming-convention */
+import type {MixedStyleDeclaration, MixedStyleRecord} from '@native-html/render';
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
@@ -9,7 +10,6 @@ import {Platform, StyleSheet} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
 import type {SharedValue} from 'react-native-reanimated';
 import {interpolate} from 'react-native-reanimated';
-import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -179,7 +179,7 @@ const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
 
 const webViewStyles = (theme: ThemeColors) =>
     ({
-        // As of react-native-render-html v6, don't declare distinct styles for
+        // As of @native-html/render v6, don't declare distinct styles for
         // custom renderers, the API for custom renderers has changed. Declare the
         // styles in the below "tagStyles" instead. If you need to reuse those
         // styles from the renderer, just pass the "style" prop to the underlying

@@ -1,4 +1,4 @@
-import type {TNode} from 'react-native-render-html';
+import type {TNode} from '@native-html/render';
 
 /**
  * Get a node's unique ID based on its position in the HTML hierarchy.

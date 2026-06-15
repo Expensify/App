@@ -197,6 +197,7 @@
 "../../src/components/HTMLEngineProvider/BaseHTMLEngineProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/components/HTMLEngineProvider/HTMLRenderers/AccountManagerLinkRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/HTMLEngineProvider/HTMLRenderers/AnchorRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/components/HTMLEngineProvider/HTMLRenderers/CodeRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/HTMLEngineProvider/HTMLRenderers/ConciergeLinkRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/HTMLEngineProvider/HTMLRenderers/EmojiRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/HTMLEngineProvider/HTMLRenderers/MentionHereRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
