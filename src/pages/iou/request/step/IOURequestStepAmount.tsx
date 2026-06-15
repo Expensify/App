@@ -151,9 +151,9 @@ function IOURequestStepAmount({
         setSelectedCurrency(originalCurrency);
     }, [originalCurrency]);
 
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         Navigation.goBack(backTo);
-    }, [backTo]);
+    };
 
     const handleSubmit = ({amount, paymentMethod}: {amount: string; paymentMethod?: PaymentMethodType}) => {
         submitAmount({
