@@ -23,7 +23,7 @@ If you don't see **Agents** in your **Account** settings, the Beta isn't enabled
 
 ## How to create a Custom Agent
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Agents**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account > Agents**.
 2. Click **New agent**.
 3. In the **Agent name** field, enter a name for the agent.
 4. Click **Write custom instructions** and describe what you want the agent to do.
@@ -57,7 +57,7 @@ You can update an agent's instructions at any time. See [how to edit a Custom Ag
 
 ## How to chat with a Custom Agent
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Agents**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account > Agents**.
 2. Find the agent you want to message, then click the chat icon on the agent's row.
 
 You can also open an agent and click **Chat with agent**.
@@ -68,7 +68,7 @@ You can also open an agent and click **Chat with agent**.
 
 Copiloting into an agent lets you act on its behalf.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Agents**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account > Agents**.
 2. Find the agent you want to act as, then click **Copilot** on the agent's row.
 
 You can also open an agent and click **Copilot into account**.
@@ -77,7 +77,7 @@ You can also open an agent and click **Copilot into account**.
 
 ## How to edit a Custom Agent
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Agents**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account > Agents**.
 2. Find the agent you want to change, then click **Edit**.
 3. Update the **Agent name**, **Write custom instructions**, or avatar as needed.
 
@@ -85,7 +85,7 @@ You can also open an agent and click **Copilot into account**.
 
 ## How to delete a Custom Agent
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Agents**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account > Agents**.
 2. Find the agent you want to remove, then click **Edit**.
 3. Click **Delete agent**.
 4. Click **Delete agent** again to confirm.
