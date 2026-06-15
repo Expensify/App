@@ -192,7 +192,11 @@ function processHTTPRequest<TKey extends OnyxKey>(
             // distinctly from generic connectivity errors, then rethrow to keep the existing
             // offline-handling behavior intact.
             if (isCertificatePinningError(error)) {
-                Log.alert('[HttpUtils] Certificate pinning validation failed', {url, command});
+                // Log uploads go through this same path; calling Log.alert here would queue another
+                // Log request to the same pinned host and can loop when pinning is broken.
+                if (command !== 'Log') {
+                    Log.alert('[HttpUtils] Certificate pinning validation failed', {url, command});
+                }
                 reportCertificatePinningError(error, url);
             }
             throw error;
