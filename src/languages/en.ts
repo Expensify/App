@@ -5075,6 +5075,13 @@ const translations = {
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Submitted',
                 },
             },
+            reportExportStatus: {
+                label: 'Expense report status',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Approved',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Submitted',
+                },
+            },
             exportDate: {
                 label: 'Payable invoice date',
                 values: {
@@ -5089,6 +5096,13 @@ const translations = {
             },
             exportNonReimbursable: {
                 label: 'Export non-reimbursable expenses as',
+            },
+            expenseReports: 'Expense Reports',
+            exportReimbursableExpenseReports: {
+                helperText: 'Expenses marked as reimbursable will be exported as Expense Reports made out to the employee.',
+            },
+            exportNonReimbursableExpenseReports: {
+                helperText: 'Expenses marked as non-reimbursable will be exported as Expense Reports made out to the employee.',
             },
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please sync the connection again after vendors are added in Certinia.',

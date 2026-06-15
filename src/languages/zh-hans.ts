@@ -4841,6 +4841,13 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '已提交',
                 },
             },
+            reportExportStatus: {
+                label: '报销报告状态',
+                values: {
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '已批准',
+                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '已提交',
+                },
+            },
             exportDate: {
                 label: '应付发票日期',
                 values: {
@@ -4851,6 +4858,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
             exportReimbursable: {label: '导出可报销费用为', helperText: '标记为可报销的费用将作为应付账单导出，并开具给员工。'},
             exportNonReimbursable: {label: '将不可报销的报销单导出为'},
+            expenseReports: '报销报告',
+            exportReimbursableExpenseReports: {helperText: '标记为可报销的费用将导出为开给员工的报销报告。'},
+            exportNonReimbursableExpenseReports: {helperText: '标记为不可报销的费用将导出为开给员工的报销报告。'},
             noVendorsFound: '未找到供应商',
             noVendorsFoundDescription: '在 Certinia 中添加供应商后，请再次同步连接。',
             noCompaniesFound: '未找到公司',
