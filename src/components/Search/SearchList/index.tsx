@@ -298,7 +298,6 @@ function SearchList({
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
 
-    const isGroupByActive = !!groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set());
 
     const onToggleGroup = useCallback((key: string) => {
@@ -313,7 +312,7 @@ function SearchList({
         });
     }, []);
 
-    const shouldSplitGroups = isGroupByActive && isLargeScreenWidth;
+    const shouldSplitGroups = !!groupBy && isLargeScreenWidth;
 
     const {splitData: listData, stickyHeaderIndices} = useMemo(() => {
         if (!shouldSplitGroups) {
