@@ -20,7 +20,6 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
-import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -28,6 +27,7 @@ import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -38,14 +38,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {getReportLayoutGroupBy, getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import {
     canAddTransaction,
@@ -68,9 +67,7 @@ import {getTransactionPendingAction, getVisibleTransactionViolations, isTransact
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -151,8 +148,6 @@ type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     shouldBeHighlighted?: boolean;
 };
 
-type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-
 type SortedTransactions = {
     sortBy: SortableColumnName;
     sortOrder: SortOrder;
@@ -180,7 +175,7 @@ function MoneyRequestReportTransactionList({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    const {markReportRHPWidth} = useWideRHPActions();
+    const navigateToTransactionThread = useNavigateToTransactionThread();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
@@ -206,8 +201,6 @@ function MoneyRequestReportTransactionList({
     const [reportLayoutOption] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_OPTION);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
@@ -554,44 +547,15 @@ function MoneyRequestReportTransactionList({
      */
     const navigateToTransaction = useCallback(
         (activeTransactionID: string) => {
-            const iouAction = getIOUActionForTransactionID(reportActions, activeTransactionID);
-            const backTo = Navigation.getActiveRoute();
-            let reportIDToNavigate = iouAction?.childReportID;
-
-            const routeParams = {
-                reportID: reportIDToNavigate,
-                backTo,
-            } as ReportScreenNavigationProps;
-
-            if (!reportIDToNavigate) {
-                const transaction = sortedTransactions.find((t) => t.transactionID === activeTransactionID);
-                const transactionThreadReport = createTransactionThreadReport({
-                    introSelected,
-                    currentUserLogin: currentUserDetails.email ?? '',
-                    currentUserAccountID: currentUserDetails.accountID,
-                    betas,
-                    iouReport: report,
-                    iouReportAction: iouAction,
-                    transaction,
-                });
-                if (transactionThreadReport) {
-                    reportIDToNavigate = transactionThreadReport.reportID;
-                    routeParams.reportID = reportIDToNavigate;
-                }
-            } else {
-                setOptimisticTransactionThread(reportIDToNavigate, report?.reportID, iouAction?.reportActionID, report?.policyID);
-            }
-
-            // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
-            // to display prev/next arrows in RHP for navigation - use visual order from grouped transactions
-            setActiveTransactionIDs(visualOrderTransactionIDs).then(() => {
-                if (reportIDToNavigate) {
-                    markReportRHPWidth(reportIDToNavigate, 'wide');
-                }
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
+            navigateToTransactionThread({
+                transactionID: activeTransactionID,
+                reportActions,
+                report,
+                transaction: sortedTransactions.find((t) => t.transactionID === activeTransactionID),
+                siblingTransactionIDs: visualOrderTransactionIDs,
             });
         },
-        [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportRHPWidth, introSelected, betas, currentUserDetails.email, currentUserDetails.accountID],
+        [navigateToTransactionThread, reportActions, sortedTransactions, report, visualOrderTransactionIDs],
     );
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
