@@ -1,5 +1,5 @@
 import type {NavigationAction} from '@react-navigation/native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {useCallback, useEffect, useRef} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useBeforeRemove from '@hooks/useBeforeRemove';
@@ -10,13 +10,19 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
 import type UseDiscardChangesConfirmationOptions from './types';
 
-function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm}: UseDiscardChangesConfirmationOptions) {
+function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm, onTabSwitchDiscard}: UseDiscardChangesConfirmationOptions) {
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
+    const route = useRoute();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+
+    // When rendered inside an OnyxTabNavigator tab, also guard tab switches (no-op otherwise / when no onTabSwitchDiscard given).
+    useRegisterTabSwitchGuard(route.name, getHasUnsavedChanges, onTabSwitchDiscard, onCancel);
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const shouldNavigateBack = useRef(false);
     const shouldIgnoreNextBeforeRemove = useRef(false);
@@ -61,11 +67,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
         isDiscardModalOpen.current = true;
         onVisibilityChange?.(true);
         showConfirmModal({
-            title: translate('discardChangesConfirmation.title'),
-            prompt: translate('discardChangesConfirmation.body'),
-            danger: true,
-            confirmText: translate('discardChangesConfirmation.confirmText'),
-            cancelText: translate('common.cancel'),
+            ...getDiscardChangesModalConfig(translate),
             shouldIgnoreBackHandlerDuringTransition: true,
         }).then((result) => {
             markNextBeforeRemoveAsModalCleanup();
