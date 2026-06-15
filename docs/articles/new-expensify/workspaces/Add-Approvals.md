@@ -1,7 +1,7 @@
 ---
 title: Add Approvals
 description: Require report approvals in your Expensify workspace, including setting approval thresholds and over-limit approvers.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow]
 ---
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
@@ -48,8 +48,8 @@ Set up default or custom approval workflows to route expenses through one or mor
 
 1. Navigate to **Workspaces > [Workspace Name] > Workflows**.
 2. Under **Approvals**, click **Add approval workflow**.
-3. Choose the member whose expenses should have a custom workflow.
-4. Click **Next**.
+3. On the **Expenses from** page, choose the member whose expenses should have a custom workflow. To route expenses from someone who isn't a workspace member yet, type their email address and select them from the list.
+4. Click **Next**. If you selected someone who isn't a workspace member, the **Invite new member** screen appears. Click **Invite** to add them to the workspace and continue.
 5. Select the first approver for their expenses.
 6. (Optional) Set an additional approval when a report exceeds a specific amount:
  - Enter a dollar amount in the Report amount field.
@@ -57,6 +57,12 @@ Set up default or custom approval workflows to route expenses through one or mor
 7. Click **Next**.
 8. Use **Additional approver** to add more approvers.
 9. Click **Add workflow** to save.
+
+<!-- SCREENSHOT:
+Suggestion: The Expenses from page with a non-member's email typed into the search field, showing the typed user as a selectable result.
+Location: After step 3 of "Set a Custom Workflow for Specific Members"
+Purpose: Show that a non-workspace member can be selected and invited directly from the approval workflow flow.
+-->
 
 **Note:** Custom workflows are only available on the Control plan. To enable custom workflows, upgrade to the Control plan in Settings > Billing & Subscriptions.
 
