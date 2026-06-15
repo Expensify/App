@@ -5,6 +5,7 @@ import FixedFooter from '@components/FixedFooter';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -17,6 +18,7 @@ type CertiniaPrerequisitesStepProps = SubPageProps & {
 function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: CertiniaPrerequisitesStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     const isLastStep = currentPageName === CONST.CERTINIA_PREREQUISITES.PAGE_NAME.OAUTH;
 
@@ -76,6 +78,7 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
                     style={[styles.w100]}
                     onPress={isLastStep ? onConnect : onNext}
                     text={translate(buttonKey)}
+                    isDisabled={isLastStep && isOffline}
                     pressOnEnter
                 />
             </FixedFooter>

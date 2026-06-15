@@ -71,6 +71,8 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const {primaryFeeds, otherFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const policy = usePolicy(policyID);
     const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
 
@@ -105,7 +107,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         }
         updateSelectedExpensifyCardFeed(issueCardFundID, policyID);
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
 
     /** When there is no primary feed for this workspace, mirror empty-state flow: bank account / new program setup (same as WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT). */
@@ -126,7 +128,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         const isFeedPendingDelete = entry.settings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         return {
             value: entry.fundID,
-            text: getExpensifyCardFeedDescription(entry.settings, policies),
+            text: getExpensifyCardFeedDescription(entry.settings, policies, domains, entry.fundID, cardList),
             keyForList: entry.fundID.toString(),
             isSelected: entry.fundID === lastSelectedExpensifyCardFeedID,
             isDisabled: isFeedPendingDelete || (isOtherWorkspaceSection && isOffline),
