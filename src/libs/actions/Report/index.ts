@@ -7009,6 +7009,7 @@ function buildOptimisticChangePolicyData({
     isReportLastVisibleArchived,
     reportNextStep,
     optimisticPolicyExpenseChatReport,
+    reportPreviewAction,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7021,6 +7022,7 @@ function buildOptimisticChangePolicyData({
     isReportLastVisibleArchived: boolean | undefined;
     reportNextStep?: ReportNextStepDeprecated;
     optimisticPolicyExpenseChatReport?: Report;
+    reportPreviewAction: OnyxEntry<ReportAction>;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -7196,14 +7198,13 @@ function buildOptimisticChangePolicyData({
     }
 
     // 2. If this is a thread, we have to mark the parent report preview action as deleted to properly update the UI
-    if (report.parentReportID && report.parentReportActionID) {
+    if (reportPreviewAction && report.parentReportID && report.parentReportActionID) {
         const oldWorkspaceChatReportID = report.parentReportID;
         const oldReportPreviewActionID = report.parentReportActionID;
-        const oldReportPreviewAction = allReportActions?.[oldWorkspaceChatReportID]?.[oldReportPreviewActionID];
         const deletedTime = DateUtils.getDBTime();
-        const firstMessage = Array.isArray(oldReportPreviewAction?.message) ? oldReportPreviewAction.message.at(0) : null;
+        const firstMessage = Array.isArray(reportPreviewAction?.message) ? reportPreviewAction.message.at(0) : null;
         const updatedReportPreviewAction = {
-            ...oldReportPreviewAction,
+            ...reportPreviewAction,
             originalMessage: {
                 deleted: deletedTime,
             },
@@ -7213,10 +7214,10 @@ function buildOptimisticChangePolicyData({
                         ...firstMessage,
                         deleted: deletedTime,
                     },
-                    ...(Array.isArray(oldReportPreviewAction?.message) ? oldReportPreviewAction.message.slice(1) : []),
+                    ...(Array.isArray(reportPreviewAction?.message) ? reportPreviewAction.message.slice(1) : []),
                 ],
             }),
-            ...(!Array.isArray(oldReportPreviewAction?.message) && {
+            ...(!Array.isArray(reportPreviewAction?.message) && {
                 message: {
                     deleted: deletedTime,
                 },
@@ -7233,11 +7234,11 @@ function buildOptimisticChangePolicyData({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldWorkspaceChatReportID}`,
             value: {
                 [oldReportPreviewActionID]: {
-                    ...oldReportPreviewAction,
+                    ...reportPreviewAction,
                     originalMessage: {
                         deleted: null,
                     },
-                    ...(!Array.isArray(oldReportPreviewAction?.message) && {
+                    ...(!Array.isArray(reportPreviewAction?.message) && {
                         message: {
                             deleted: null,
                         },
@@ -7507,6 +7508,7 @@ function changeReportPolicy({
     isASAPSubmitBetaEnabled,
     reportNextStep,
     isReportLastVisibleArchived = false,
+    reportPreviewAction,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7519,6 +7521,7 @@ function changeReportPolicy({
     isASAPSubmitBetaEnabled: boolean;
     reportNextStep?: ReportNextStepDeprecated;
     isReportLastVisibleArchived?: boolean;
+    reportPreviewAction: OnyxEntry<ReportAction>;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
@@ -7535,6 +7538,7 @@ function changeReportPolicy({
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
         reportNextStep,
+        reportPreviewAction,
     });
 
     const params = {
@@ -7568,6 +7572,7 @@ function changeReportPolicyAndInviteSubmitter({
     isReportLastVisibleArchived,
     reportNextStep,
     reportActionsList,
+    reportPreviewAction,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7583,6 +7588,7 @@ function changeReportPolicyAndInviteSubmitter({
     isReportLastVisibleArchived: boolean | undefined;
     reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     reportActionsList: OnyxCollection<ReportActions>;
+    reportPreviewAction: OnyxEntry<ReportAction>;
 }) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID || !submitterLogin) {
         return;
@@ -7631,6 +7637,7 @@ function changeReportPolicyAndInviteSubmitter({
         isReportLastVisibleArchived,
         reportNextStep,
         optimisticPolicyExpenseChatReport: membersChats.reportCreationData[submitterLogin],
+        reportPreviewAction,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];

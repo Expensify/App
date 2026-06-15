@@ -3134,6 +3134,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: true,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3191,6 +3192,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3258,6 +3260,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3351,6 +3354,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3432,6 +3436,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3488,6 +3493,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3577,6 +3583,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: false,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3621,6 +3628,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3651,6 +3659,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3680,6 +3689,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3709,6 +3719,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3740,6 +3751,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3792,6 +3804,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: false,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -4240,6 +4253,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
             });
             expect(buildNextStepNew).toHaveBeenCalledWith({
                 report,
@@ -4290,6 +4304,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
             });
 
             // Find the transaction optimistic data
@@ -4348,6 +4363,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
             });
 
             // Should NOT find transaction optimistic data when currencies are the same
@@ -4393,6 +4409,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
             });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
@@ -4451,6 +4468,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
             });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
@@ -4462,6 +4480,70 @@ describe('actions/Report', () => {
             expect(nonMatchingOptimisticData).toBeDefined();
             expect((nonMatchingOptimisticData?.value as OnyxTypes.Transaction)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             expect((nonMatchingOptimisticData?.value as OnyxTypes.Transaction)?.convertedAmount).toBeNull();
+        });
+
+        it('should mark old report preview action as deleted when changing report policy', () => {
+            const parentReportID = '2';
+            const parentReportActionID = '3';
+
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                parentReportID,
+                parentReportActionID,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(Number(parentReportID), undefined),
+            };
+
+            const reportPreviewAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> = {
+                ...createRandomReportAction(Number(parentReportActionID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {
+                    linkedReportID: parentReportID,
+                },
+                previousMessage: [],
+                message: [
+                    {
+                        translationKey: '',
+                        type: 'COMMENT',
+                        html: '',
+                        text: '',
+                        isEdited: false,
+                        isDeletedParentAction: false,
+                    },
+                ],
+            };
+
+            const policy = createRandomPolicy(Number(1));
+
+            const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
+                report,
+                parentReport,
+                policy,
+                currentUserAccountID: 1,
+                currentUserEmail: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+                reportPreviewAction,
+            });
+
+            const parentReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`;
+            const optimisticReportActionData = optimisticData.find((data) => data.key === parentReportActionKey);
+            const failureReportActionData = failureData.find((data) => data.key === parentReportActionKey);
+
+            expect(optimisticReportActionData).toBeDefined();
+            const updatedOptimisticAction = (optimisticReportActionData?.value as OnyxTypes.ReportActions)?.[parentReportActionID];
+            expect(updatedOptimisticAction?.originalMessage && 'deleted' in updatedOptimisticAction.originalMessage && updatedOptimisticAction.originalMessage.deleted).toBeTruthy();
+            expect(Array.isArray(updatedOptimisticAction?.message) && updatedOptimisticAction?.message.at(0)?.deleted).toBeTruthy();
+
+            expect(failureReportActionData).toBeDefined();
+            const revertedAction = (failureReportActionData?.value as OnyxTypes.ReportActions)?.[parentReportActionID];
+            expect(revertedAction?.originalMessage && 'deleted' in revertedAction.originalMessage && revertedAction.originalMessage.deleted).toBeNull();
         });
     });
 
