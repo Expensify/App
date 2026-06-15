@@ -71,21 +71,10 @@ function MapView({
     // location without bothering the user. It will return
     // false if user has already started dragging the map or
     // if there are one or more waypoints present.
-    const shouldFollowUserLocation = useMemo(
+    const shouldPanMapToCurrentPosition = useCallback(
         () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0),
         [userInteractedWithMap, waypoints, shouldDisplayCurrentLocation],
     );
-
-    const prevWaypointsLength = useRef(waypoints?.length ?? 0);
-    useEffect(() => {
-        const currentLength = waypoints?.length ?? 0;
-        // When the route/waypoints are cleared (e.g. discarding a GPS trip),
-        // resume following the user's current location.
-        if (prevWaypointsLength.current > 0 && currentLength === 0) {
-            setUserInteractedWithMap(false);
-        }
-        prevWaypointsLength.current = currentLength;
-    }, [waypoints?.length]);
 
     const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
         (error) => {
@@ -109,7 +98,7 @@ function MapView({
 
             shouldInitializeCurrentPosition.current = false;
 
-            if (!shouldFollowUserLocation) {
+            if (!shouldPanMapToCurrentPosition()) {
                 setCurrentPositionToInitialState();
                 return;
             }
@@ -118,7 +107,7 @@ function MapView({
                 const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
                 setUserLocation(currentCoords);
             }, setCurrentPositionToInitialState);
-        }, [isOffline, shouldFollowUserLocation, setCurrentPositionToInitialState]),
+        }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
     );
 
     useEffect(() => {
@@ -126,7 +115,7 @@ function MapView({
             return;
         }
 
-        if (!shouldFollowUserLocation) {
+        if (!shouldPanMapToCurrentPosition()) {
             return;
         }
 
@@ -135,7 +124,7 @@ function MapView({
             animationDuration: 1500,
             centerCoordinate: [currentPosition.longitude, currentPosition.latitude],
         });
-    }, [currentPosition, shouldFollowUserLocation]);
+    }, [currentPosition, shouldPanMapToCurrentPosition]);
 
     useImperativeHandle(
         ref,
@@ -212,7 +201,6 @@ function MapView({
             cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
             return;
         }
-        setUserInteractedWithMap(false);
         cameraRef?.current?.setCamera({
             heading: 0,
             centerCoordinate: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
@@ -224,10 +212,9 @@ function MapView({
     const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
 
     const waypointsBounds = useMemo(() => {
-        if (!waypoints || (!waypoints.length && !directionCoordinates?.length)) {
+        if (!waypoints) {
             return undefined;
         }
-
         const {northEast, southWest} = utils.getBounds(
             waypoints.map((waypoint) => waypoint.coordinate),
             directionCoordinates,
@@ -235,17 +222,25 @@ function MapView({
         return {ne: northEast, sw: southWest};
     }, [waypoints, directionCoordinates]);
 
-    const defaultSettings = useMemo(() => {
-        if (interactive && shouldFollowUserLocation) {
-            return centerCoordinate ? {zoomLevel: initialState?.zoom, centerCoordinate} : undefined;
+    const defaultSettings: Mapbox.CameraStop | undefined = useMemo(() => {
+        if (interactive) {
+            if (!centerCoordinate) {
+                return undefined;
+            }
+            return {
+                zoomLevel: initialState?.zoom,
+                centerCoordinate,
+            };
         }
         if (!waypointsBounds) {
-            return {};
+            return undefined;
         }
-        return {bounds: waypointsBounds};
-    }, [interactive, centerCoordinate, waypointsBounds, initialState?.zoom, shouldFollowUserLocation]);
+        return {
+            bounds: waypointsBounds,
+        };
+    }, [interactive, centerCoordinate, waypointsBounds, initialState?.zoom]);
 
-    const initCenterCoordinate = useMemo(() => (interactive && shouldFollowUserLocation ? centerCoordinate : undefined), [interactive, centerCoordinate, shouldFollowUserLocation]);
+    const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
     const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
 
     const distanceSymbolCoordinate = useMemo(() => {
