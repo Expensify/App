@@ -509,24 +509,33 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         );
                         const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();
                         setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
+                        // The wide RHP close animation was changed, and because of that the expense was deleted right after
+                        // the animation finished, which caused flickering in the expenses list. We want the user to see
+                        // the expense in the list for a little bit longer, so we wait for the animation to finish and then
+                        // add an additional delay before removing it.
+                        // See https://github.com/Expensify/App/issues/92036
+                        const afterTransition = () => {
+                            setTimeout(() => {
+                                const deleteResult = deleteTransactions(
+                                    [transaction.transactionID],
+                                    duplicateTransactions,
+                                    duplicateTransactionViolations,
+                                    isReportInSearch ? currentSearchHash : undefined,
+                                    false,
+                                );
+
+                                if (deleteResult.action === 'redirected') {
+                                    return;
+                                }
+
+                                removeTransaction(transaction.transactionID);
+                            }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
+                        };
                         if (goBackRoute) {
-                            navigateOnDeleteExpense(goBackRoute);
+                            navigateOnDeleteExpense(goBackRoute, afterTransition);
+                        } else {
+                            afterTransition();
                         }
-                        InteractionManager.runAfterInteractions(() => {
-                            const deleteResult = deleteTransactions(
-                                [transaction.transactionID],
-                                duplicateTransactions,
-                                duplicateTransactionViolations,
-                                isReportInSearch ? currentSearchHash : undefined,
-                                false,
-                            );
-
-                            if (deleteResult.action === 'redirected') {
-                                return;
-                            }
-
-                            removeTransaction(transaction.transactionID);
-                        });
                     }
                     return;
                 }
@@ -545,19 +554,27 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const deleteNavigateBackUrl = backToRoute ?? Navigation.getActiveRoute();
                 setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
 
+                // The wide RHP close animation was changed, and because of that the report was deleted right after
+                // the animation finished, which caused flickering in the reports list. We want the user to see
+                // the report in the list for a little bit longer, so we wait for the animation to finish and then
+                // add an additional delay before removing it.
+                // See https://github.com/Expensify/App/issues/92036
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.goBack(backToRoute);
-                    InteractionManager.runAfterInteractions(() => {
-                        deleteAppReport({
-                            report: moneyRequestReport,
-                            selfDMReport,
-                            currentUserEmailParam: email ?? '',
-                            currentUserAccountIDParam: accountID,
-                            reportTransactions,
-                            allTransactionViolations,
-                            bankAccountList,
-                            hash: currentSearchHash,
-                        });
+                    Navigation.goBack(backToRoute, {
+                        afterTransition: () => {
+                            setTimeout(() => {
+                                deleteAppReport({
+                                    report: moneyRequestReport,
+                                    selfDMReport,
+                                    currentUserEmailParam: email ?? '',
+                                    currentUserAccountIDParam: accountID,
+                                    reportTransactions,
+                                    allTransactionViolations,
+                                    bankAccountList,
+                                    hash: currentSearchHash,
+                                });
+                            }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
+                        },
                     });
                 });
             },

@@ -3,18 +3,12 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
-    CreateWorkspaceInvoiceFieldListValueParams,
-    CreateWorkspaceInvoiceFieldParams,
     CreateWorkspaceReportFieldListValueParams,
     CreateWorkspaceReportFieldParams,
-    DeletePolicyInvoiceField,
     DeletePolicyReportField,
-    EnableWorkspaceInvoiceFieldListValueParams,
     EnableWorkspaceReportFieldListValueParams,
     OpenPolicyReportFieldsPageParams,
-    RemoveWorkspaceInvoiceFieldListValueParams,
     RemoveWorkspaceReportFieldListValueParams,
-    UpdateWorkspaceInvoiceFieldInitialValueParams,
     UpdateWorkspaceReportFieldInitialValueParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -57,8 +51,7 @@ type DeleteReportFieldsListValueParams = {
 type CreateReportFieldParams = Pick<WorkspaceReportFieldForm, 'name' | 'type' | 'initialValue'> & {
     listValues: string[];
     disabledListValues: boolean[];
-    policyReportIDs: Array<string | undefined> | undefined;
-    isInvoiceField?: boolean;
+    policyExpenseReportIDs: Array<string | undefined> | undefined;
     policy: OnyxEntry<Policy>;
 };
 
@@ -103,19 +96,6 @@ function openPolicyReportFieldsPage(policyID: string) {
     };
 
     API.read(READ_COMMANDS.OPEN_POLICY_REPORT_FIELDS_PAGE, params);
-}
-
-function openPolicyInvoicesPage(policyID: string) {
-    if (!policyID) {
-        Log.warn('openPolicyInvoicesPage invalid params', {policyID});
-        return;
-    }
-
-    const params: OpenPolicyReportFieldsPageParams = {
-        policyID,
-    };
-
-    API.read(READ_COMMANDS.OPEN_POLICY_INVOICES_PAGE, params);
 }
 
 /**
@@ -185,19 +165,14 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
 /**
  * Creates a new report field.
  */
-function createReportField({name, type, initialValue, listValues, disabledListValues, policyReportIDs, isInvoiceField = false, policy}: CreateReportFieldParams) {
+function createReportField({name, type, initialValue, listValues, disabledListValues, policyExpenseReportIDs, policy}: CreateReportFieldParams) {
     if (!policy) {
         Log.warn('Policy data is not present');
         return;
     }
 
     const previousFieldList = policy?.fieldList ?? {};
-    const target = isInvoiceField ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
-    const defaultFieldID = WorkspaceReportFieldUtils.generateFieldID(name);
-    const defaultFieldKey = ReportUtils.getReportFieldKey(defaultFieldID);
-    const defaultField = previousFieldList[defaultFieldKey];
-    const shouldUseTargetSpecificFieldID = isInvoiceField || (defaultField && !WorkspaceReportFieldUtils.isReportFieldTargetValid(defaultField, target));
-    const fieldID = shouldUseTargetSpecificFieldID ? WorkspaceReportFieldUtils.generateFieldID(name, target) : defaultFieldID;
+    const fieldID = WorkspaceReportFieldUtils.generateFieldID(name);
     const fieldKey = ReportUtils.getReportFieldKey(fieldID);
 
     // User selected type Text but entered a formula Initial value, treat it as a Formula type for optimistic UI
@@ -207,7 +182,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
     const optimisticReportFieldDataForPolicy: Omit<OnyxValueWithOfflineFeedback<PolicyReportField>, 'value'> = {
         name,
         type: optimisticType,
-        target,
+        target: 'expense',
         defaultValue: initialValue,
         values: listValues,
         disabledOptions: disabledListValues,
@@ -230,7 +205,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 errorFields: null,
             },
         },
-        ...(policyReportIDs ?? []).map(
+        ...(policyExpenseReportIDs ?? []).map(
             (reportID): OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> => ({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -256,7 +231,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 },
             },
         },
-        ...(policyReportIDs ?? []).map(
+        ...(policyExpenseReportIDs ?? []).map(
             (reportID): OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> => ({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -286,18 +261,12 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
         failureData,
     };
 
-    const parameters: CreateWorkspaceReportFieldParams | CreateWorkspaceInvoiceFieldParams = isInvoiceField
-        ? {
-              policyID: policy?.id,
-              invoiceFields: JSON.stringify([optimisticReportFieldDataForPolicy]),
-          }
-        : {
-              policyID: policy?.id,
-              reportFields: JSON.stringify([optimisticReportFieldDataForPolicy]),
-          };
+    const parameters: CreateWorkspaceReportFieldParams = {
+        policyID: policy?.id,
+        reportFields: JSON.stringify([optimisticReportFieldDataForPolicy]),
+    };
 
-    const createCommand = isInvoiceField ? WRITE_COMMANDS.CREATE_WORKSPACE_INVOICE_FIELD : WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD;
-    API.write(createCommand, parameters, onyxData);
+    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD, parameters, onyxData);
 }
 
 function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsParams) {
@@ -307,24 +276,19 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
     }
 
     const allReportFields = policy?.fieldList ?? {};
-    const resolvedReportFieldKeys = reportFieldsToUpdate.filter((reportFieldKey) => !!allReportFields[reportFieldKey]);
-    if (resolvedReportFieldKeys.length === 0) {
-        Log.warn('No valid report fields to delete', {reportFieldsToUpdate});
-        return;
-    }
 
-    const updatedReportFields = Object.fromEntries(Object.entries(allReportFields).filter(([key]) => !resolvedReportFieldKeys.includes(key)));
-    const optimisticReportFields = resolvedReportFieldKeys.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyReportField>>>>((acc, reportFieldKey) => {
+    const updatedReportFields = Object.fromEntries(Object.entries(allReportFields).filter(([key]) => !reportFieldsToUpdate.includes(key)));
+    const optimisticReportFields = reportFieldsToUpdate.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyReportField>>>>((acc, reportFieldKey) => {
         acc[reportFieldKey] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         return acc;
     }, {});
 
-    const successReportFields = resolvedReportFieldKeys.reduce<Record<string, null>>((acc, reportFieldKey) => {
+    const successReportFields = reportFieldsToUpdate.reduce<Record<string, null>>((acc, reportFieldKey) => {
         acc[reportFieldKey] = null;
         return acc;
     }, {});
 
-    const failureReportFields = resolvedReportFieldKeys.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyReportField>>>>((acc, reportFieldKey) => {
+    const failureReportFields = reportFieldsToUpdate.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyReportField>>>>((acc, reportFieldKey) => {
         acc[reportFieldKey] = {pendingAction: null};
         return acc;
     }, {});
@@ -363,24 +327,12 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
         ],
     };
 
-    const fieldsToDelete = resolvedReportFieldKeys.map((reportFieldKey) => allReportFields[reportFieldKey]).filter((reportField): reportField is PolicyReportField => !!reportField);
-    const isInvoiceField = fieldsToDelete.length > 0 && fieldsToDelete.every((reportField) => reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE);
-    const updatedReportFieldsValues = Object.values(updatedReportFields);
-    const remainingInvoiceFields = updatedReportFieldsValues.filter((reportField) => reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE);
-    const remainingExpenseFields = updatedReportFieldsValues.filter((reportField) => !reportField.target || reportField.target === CONST.REPORT_FIELD_TARGETS.EXPENSE);
-    const invoiceFieldsPayload = remainingInvoiceFields;
-    const parameters: DeletePolicyReportField | DeletePolicyInvoiceField = isInvoiceField
-        ? {
-              policyID: policy?.id,
-              invoiceFields: JSON.stringify(invoiceFieldsPayload),
-          }
-        : {
-              policyID: policy?.id,
-              reportFields: JSON.stringify(remainingExpenseFields),
-          };
-    const deleteCommand = isInvoiceField ? WRITE_COMMANDS.DELETE_POLICY_INVOICE_FIELD : WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD;
+    const parameters: DeletePolicyReportField = {
+        policyID: policy?.id,
+        reportFields: JSON.stringify(Object.values(updatedReportFields)),
+    };
 
-    API.write(deleteCommand, parameters, onyxData);
+    API.write(WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD, parameters, onyxData);
 }
 
 /**
@@ -448,19 +400,12 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}:
             },
         ],
     };
-    const isInvoiceField = updatedReportField?.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
-    const parameters: UpdateWorkspaceReportFieldInitialValueParams | UpdateWorkspaceInvoiceFieldInitialValueParams = isInvoiceField
-        ? {
-              policyID: policy?.id,
-              invoiceFields: JSON.stringify([updatedReportField]),
-          }
-        : {
-              policyID: policy?.id,
-              reportFields: JSON.stringify([updatedReportField]),
-          };
-    const updateCommand = isInvoiceField ? WRITE_COMMANDS.UPDATE_WORKSPACE_INVOICE_FIELD_INITIAL_VALUE : WRITE_COMMANDS.UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE;
+    const parameters: UpdateWorkspaceReportFieldInitialValueParams = {
+        policyID: policy?.id,
+        reportFields: JSON.stringify([updatedReportField]),
+    };
 
-    API.write(updateCommand, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE, parameters, onyxData);
 }
 
 function updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes, enabled}: UpdateReportFieldListValueEnabledParams) {
@@ -499,19 +444,12 @@ function updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes,
         ],
     };
 
-    const isInvoiceField = reportField?.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
-    const parameters: EnableWorkspaceReportFieldListValueParams | EnableWorkspaceInvoiceFieldListValueParams = isInvoiceField
-        ? {
-              policyID: policy?.id,
-              invoiceFields: JSON.stringify([updatedReportField]),
-          }
-        : {
-              policyID: policy?.id,
-              reportFields: JSON.stringify([updatedReportField]),
-          };
-    const enableCommand = isInvoiceField ? WRITE_COMMANDS.ENABLE_WORKSPACE_INVOICE_FIELD_LIST_VALUE : WRITE_COMMANDS.ENABLE_WORKSPACE_REPORT_FIELD_LIST_VALUE;
+    const parameters: EnableWorkspaceReportFieldListValueParams = {
+        policyID: policy?.id,
+        reportFields: JSON.stringify([updatedReportField]),
+    };
 
-    API.write(enableCommand, parameters, onyxData);
+    API.write(WRITE_COMMANDS.ENABLE_WORKSPACE_REPORT_FIELD_LIST_VALUE, parameters, onyxData);
 }
 
 /**
@@ -546,19 +484,12 @@ function addReportFieldListValue({policy, reportFieldID, valueName}: AddReportFi
         ],
     };
 
-    const isInvoiceField = reportField?.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
-    const parameters: CreateWorkspaceReportFieldListValueParams | CreateWorkspaceInvoiceFieldListValueParams = isInvoiceField
-        ? {
-              policyID: policy?.id,
-              invoiceFields: JSON.stringify([updatedReportField]),
-          }
-        : {
-              policyID: policy?.id,
-              reportFields: JSON.stringify([updatedReportField]),
-          };
-    const createCommand = isInvoiceField ? WRITE_COMMANDS.CREATE_WORKSPACE_INVOICE_FIELD_LIST_VALUE : WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD_LIST_VALUE;
+    const parameters: CreateWorkspaceReportFieldListValueParams = {
+        policyID: policy?.id,
+        reportFields: JSON.stringify([updatedReportField]),
+    };
 
-    API.write(createCommand, parameters, onyxData);
+    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD_LIST_VALUE, parameters, onyxData);
 }
 
 /**
@@ -601,19 +532,12 @@ function removeReportFieldListValue({policy, reportFieldID, valueIndexes}: Remov
         ],
     };
 
-    const isInvoiceField = reportField?.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
-    const parameters: RemoveWorkspaceReportFieldListValueParams | RemoveWorkspaceInvoiceFieldListValueParams = isInvoiceField
-        ? {
-              policyID: policy?.id,
-              invoiceFields: JSON.stringify([updatedReportField]),
-          }
-        : {
-              policyID: policy?.id,
-              reportFields: JSON.stringify([updatedReportField]),
-          };
-    const removeCommand = isInvoiceField ? WRITE_COMMANDS.REMOVE_WORKSPACE_INVOICE_FIELD_LIST_VALUE : WRITE_COMMANDS.REMOVE_WORKSPACE_REPORT_FIELD_LIST_VALUE;
+    const parameters: RemoveWorkspaceReportFieldListValueParams = {
+        policyID: policy?.id,
+        reportFields: JSON.stringify([updatedReportField]),
+    };
 
-    API.write(removeCommand, parameters, onyxData);
+    API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_REPORT_FIELD_LIST_VALUE, parameters, onyxData);
 }
 
 export type {CreateReportFieldParams};
@@ -629,7 +553,6 @@ export {
     updateReportFieldInitialValue,
     updateReportFieldListValueEnabled,
     openPolicyReportFieldsPage,
-    openPolicyInvoicesPage,
     addReportFieldListValue,
     removeReportFieldListValue,
 };
