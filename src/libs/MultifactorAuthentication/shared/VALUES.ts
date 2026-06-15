@@ -224,7 +224,7 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
  * other hand, is already type-checked by xstate.
  */
 const MFA_STATE = {
-    IDLE: 'idle',
+    CLOSED: 'closed',
     OPEN: 'open',
     CLOSING: 'closing',
     PREPARING: 'preparing',
@@ -317,16 +317,6 @@ const SHARED_VALUES = {
 
     /** XState node IDs for the MFA state machine. See {@link MFA_STATE}. */
     MFA_STATE,
-
-    /**
-     * Modal lifecycle as seen by the view layer. `OPEN`/`CLOSING` reuse the machine node IDs; `CLOSED`
-     * is the view-layer name for the `IDLE` state (modal unmounted, actor ready for INIT).
-     */
-    MODAL_PHASE: {
-        OPEN: MFA_STATE.OPEN,
-        CLOSING: MFA_STATE.CLOSING,
-        CLOSED: 'closed',
-    },
 } as const;
 
 export type {ReasonValue};

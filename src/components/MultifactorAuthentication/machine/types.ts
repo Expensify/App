@@ -1,10 +1,12 @@
-import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationScenarioConfigFor} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import type CONST from '@src/CONST';
 
-/** Modal lifecycle phase the view layer reads; the values it can take live in CONST.MULTIFACTOR_AUTHENTICATION.MODAL_PHASE. */
-type MfaModalPhase = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.MODAL_PHASE>;
+/** Modal lifecycle state the view layer reads: the machine's three top-level states. */
+type MfaModalState =
+    | typeof CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.CLOSED
+    | typeof CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.OPEN
+    | typeof CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.CLOSING;
 
 /**
  * The INIT event that starts a flow, with `scenarioName`, `scenario` config, and `payload` correlated
@@ -23,12 +25,12 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
 
 /**
  * Events accepted by the machine. So far only the three that drive the
- * `idle -> success -> teardown` lifecycle exist; semantic input events (validate code, soft prompt, ...) are
+ * `closed -> success -> teardown` lifecycle exist; semantic input events (validate code, soft prompt, ...) are
  * added by the slices that introduce their states.
  *
  * CLOSE_MODAL requests the close (flow -> `closing`); MODAL_CLOSED is the navigator's notification
- * that the close animation fully finished (`closing` -> `idle`, which wipes the context).
+ * that the close animation fully finished (`closing` -> `closed`, which wipes the context).
  */
 type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'};
 
-export type {MfaEvent, MfaModalPhase, MultifactorAuthenticationInitEvent};
+export type {MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent};

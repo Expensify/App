@@ -1,11 +1,13 @@
 import {useEffect} from 'react';
 import {BackHandler} from 'react-native';
-import type {MfaModalPhase} from '@components/MultifactorAuthentication/machine';
+import type {MfaModalState} from '@components/MultifactorAuthentication/machine';
 import getPlatform from '@libs/getPlatform';
 import {cancelPendingMfaMarkerReattach, isMfaMarkerStripInProgress, toggleMfaMarker} from '@libs/Navigation/helpers/mfaModalMarkerPreservation';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
+
+const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 function dispatchToggle(isVisible: boolean) {
     Navigation.isNavigationReady().then(() => toggleMfaMarker(isVisible));
@@ -32,12 +34,12 @@ function getHistory(): readonly unknown[] {
  * so re-subscribing on `requestCancel` change does not toggle the history
  * marker off/on.
  *
- * @param modalPhase Current modal lifecycle phase; the marker lives only while it is `open`.
+ * @param modalState Current modal lifecycle state; the marker lives only while it is `open`.
  * @param requestCancel Called on every back press.
  */
-function useSyncMfaModalNavigatorWithHistory(modalPhase: MfaModalPhase, requestCancel: () => void): void {
+function useSyncMfaModalNavigatorWithHistory(modalState: MfaModalState, requestCancel: () => void): void {
     // The marker tracks `open` only: `closing` already pops it so back is released while the close animation plays
-    const isModalOpen = modalPhase === 'open';
+    const isModalOpen = modalState === MFA_STATE.OPEN;
 
     // Push the history marker while the modal is open; pop it on close. Tied to isModalOpen only so re-renders don't churn it.
     useEffect(() => {

@@ -4,7 +4,7 @@ import type {MfaState} from '@components/MultifactorAuthentication/machine';
 /**
  * The flow-internal API for the screens and navigator hosting an active MFA flow. Every method is a
  * thin wrapper over `send(event)` - no flow logic (the behavior IS machine state). `state` is the
- * machine snapshot mapped to the legacy shape plus `modalPhase`, so existing consumers keep reading
+ * machine snapshot mapped to the legacy shape plus `modalState`, so existing consumers keep reading
  * `state.X`.
  *
  * Deliberately not exported from the Context barrel: app code starts flows through the external API
@@ -17,7 +17,7 @@ type MultifactorAuthenticationInternalApi = {
     /** Close the modal overlay. */
     closeModal: () => void;
 
-    /** Notify the machine that the close animation has fully finished. Called by the modal navigator on teardown; the machine then moves from `closing` back to `idle`. */
+    /** Notify the machine that the close animation has fully finished. Called by the modal navigator on teardown; the machine then moves from `closing` back to `closed`. */
     notifyModalClosed: () => void;
 
     /** Centralized back-press / backdrop entry. */

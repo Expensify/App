@@ -11,7 +11,7 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 const DEFAULT_CONTEXT: MultifactorAuthenticationState = DEFAULT_STATE;
 
 /**
- * MFA state machine. The top level models the modal lifecycle (`idle` -> `open` -> `closing`); the
+ * MFA state machine. The top level models the modal lifecycle (`closed` -> `open` -> `closing`); the
  * child states of `open` map 1:1 to the screen the user currently sees. Later slices add screens as
  * `open` children, per-screen work as child states of its screen, and events shared by every screen
  * (e.g. SET_ERROR) on `open` itself.
@@ -54,16 +54,16 @@ const mfaMachine = setup({
         resetNavigationBuffer: () => resetMfaNavigation(),
     },
     delays: {
-        // How long `closing` waits for MODAL_CLOSED before re-entering `idle` on its own; longer
+        // How long `closing` waits for MODAL_CLOSED before re-entering `closed` on its own; longer
         // than any close animation can take.
         closeFallback: CONST.MAX_TRANSITION_START_WAIT_MS + CONST.MAX_TRANSITION_DURATION_MS + CONST.ANIMATED_TRANSITION,
     },
 }).createMachine({
     id: 'mfa',
-    initial: MFA_STATE.IDLE,
+    initial: MFA_STATE.CLOSED,
     context: DEFAULT_CONTEXT,
     states: {
-        [MFA_STATE.IDLE]: {
+        [MFA_STATE.CLOSED]: {
             // The wipe runs on every (re)entry so no flow data (validate code, challenges, scenario
             // response) outlives the modal.
             entry: ['resetContext', 'resetNavigationBuffer'],
@@ -97,13 +97,13 @@ const mfaMachine = setup({
         // Modal teardown. The context still holds the flow data here on purpose: the outcome screen
         // stays visible while it slides out. The navigator sends MODAL_CLOSED once the close
         // animation finishes; if it unmounts before that, the event never comes and the
-        // `closeFallback` timer re-enters `idle` instead.
+        // `closeFallback` timer re-enters `closed` instead.
         [MFA_STATE.CLOSING]: {
             on: {
-                MODAL_CLOSED: MFA_STATE.IDLE,
+                MODAL_CLOSED: MFA_STATE.CLOSED,
             },
             after: {
-                closeFallback: {target: MFA_STATE.IDLE},
+                closeFallback: {target: MFA_STATE.CLOSED},
             },
         },
     },

@@ -95,7 +95,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const hideCancelConfirm = () => send({type: 'CLOSE_MODAL'});
     const confirmCancel = () => send({type: 'CLOSE_MODAL'});
 
-    useSyncMfaModalNavigatorWithHistory(state.modalPhase, requestCancel);
+    useSyncMfaModalNavigatorWithHistory(state.modalState, requestCancel);
 
     const externalApi: MultifactorAuthenticationExternalApi = {executeScenario};
 
