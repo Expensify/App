@@ -242,8 +242,9 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                       }
                     : undefined,
         },
-        [ONYXKEYS.LOGIN_LIST]: {
-            [userID]: {
+        [ONYXKEYS.LOGINS]: {
+            [`1_${userID}`]: {
+                partnerID: 1,
                 partnerName: 'John Doe',
                 partnerUserID: userID,
                 validatedDate: status !== CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO ? new Date().toISOString() : undefined,
