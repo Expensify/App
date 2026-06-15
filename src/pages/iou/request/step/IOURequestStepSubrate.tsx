@@ -240,8 +240,16 @@ function IOURequestStepSubrate({
                             items={validOptions}
                             onValueChange={(value) => {
                                 setSubrateValue(value as string);
+
+                                // Focus the Quantity input after the ValuePicker modal closes.
+                                // TransitionTracker's callback fires synchronously inside Reanimated's animation
+                                // callback (outside React's event handler), so React flushes state updates async
+                                // via MessageChannel. requestIdleCallback ensures focus() runs after React commits
+                                // and the modal's FocusTrap (web) deactivates, preventing focus from being stolen.
                                 TransitionTracker.runAfterTransitions({
-                                    callback: () => textInputRef.current?.focus(),
+                                    callback: () => {
+                                        requestIdleCallback(() => textInputRef.current?.focus());
+                                    },
                                     waitForUpcomingTransition: true,
                                 });
                             }}
