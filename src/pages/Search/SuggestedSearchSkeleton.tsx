@@ -47,9 +47,10 @@ const LHN = {
 
 type SuggestedSearchSkeletonProps = {
     sectionCount: number;
+    shouldHideLabels?: boolean;
 };
 
-function SuggestedSearchSkeleton({sectionCount}: SuggestedSearchSkeletonProps) {
+function SuggestedSearchSkeleton({sectionCount, shouldHideLabels = false}: SuggestedSearchSkeletonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -65,11 +66,13 @@ function SuggestedSearchSkeleton({sectionCount}: SuggestedSearchSkeletonProps) {
                     height={icon.h}
                     transform={[{translateX: icon.xVal}, {translateY: icon.yVal}]}
                 />
-                <SkeletonRect
-                    width={label.w}
-                    height={label.h}
-                    transform={[{translateX: label.xVal}, {translateY: label.yVal}]}
-                />
+                {!shouldHideLabels && (
+                    <SkeletonRect
+                        width={label.w}
+                        height={label.h}
+                        transform={[{translateX: label.xVal}, {translateY: label.yVal}]}
+                    />
+                )}
             </>
         );
     };

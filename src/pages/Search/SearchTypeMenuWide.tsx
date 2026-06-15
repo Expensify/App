@@ -193,8 +193,11 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                     />
                 )}
 
-                {areSuggestedSearchesLoading && !isVisuallyCollapsed ? (
-                    <SuggestedSearchSkeleton sectionCount={nonExpenseReportsSections.length || 2} />
+                {areSuggestedSearchesLoading ? (
+                    <SuggestedSearchSkeleton
+                        sectionCount={nonExpenseReportsSections.length || 2}
+                        shouldHideLabels={isVisuallyCollapsed}
+                    />
                 ) : (
                     nonExpenseReportsSections.map((section, index) => (
                         <Section

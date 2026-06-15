@@ -1,5 +1,5 @@
 import type {ParamListBase} from '@react-navigation/native';
-import React, {useEffect, useEffectEvent, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import SidebarLeftIcon from '@assets/images/sidebar-left.svg';
@@ -33,11 +33,6 @@ type SearchSidebarProps = {
     state: PlatformStackNavigationState<ParamListBase>;
 };
 
-type PointerPosition = {
-    clientX: number;
-    clientY: number;
-};
-
 function SearchSidebar({state}: SearchSidebarProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -45,10 +40,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {isOffline} = useNetwork();
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isCollapsed, isPeeking, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
-    const isSidebarHoveredRef = useRef(false);
-    const latestPointerPositionRef = useRef<PointerPosition | null>(null);
-    const sidebarElementRef = useRef<HTMLElement | null>(null);
+    const {isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
     const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
     const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
@@ -77,79 +69,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
         return endPeek;
     }, [endPeek, shouldUseNarrowLayout]);
-
-    const updateLatestPointerPosition = (event?: MouseEvent) => {
-        if (!event) {
-            return;
-        }
-
-        latestPointerPositionRef.current = {
-            clientX: event.clientX,
-            clientY: event.clientY,
-        };
-    };
-
-    const isPointerInsideSidebar = () => {
-        const sidebarElement = sidebarElementRef.current;
-
-        if (!sidebarElement) {
-            return isSidebarHoveredRef.current;
-        }
-
-        const latestPointerPosition = latestPointerPositionRef.current;
-        if (!latestPointerPosition) {
-            return isSidebarHoveredRef.current;
-        }
-
-        const sidebarBounds = sidebarElement.getBoundingClientRect();
-        return (
-            latestPointerPosition.clientX >= sidebarBounds.left &&
-            latestPointerPosition.clientX <= sidebarBounds.right &&
-            latestPointerPosition.clientY >= sidebarBounds.top &&
-            latestPointerPosition.clientY <= sidebarBounds.bottom
-        );
-    };
-
-    const queueEndPeekIfPointerIsOutsideSidebar = useEffectEvent((event?: MouseEvent) => {
-        updateLatestPointerPosition(event);
-
-        const hasDocument = typeof document !== 'undefined';
-        const isPointerInside = hasDocument ? isPointerInsideSidebar() : isSidebarHoveredRef.current;
-        isSidebarHoveredRef.current = isPointerInside;
-
-        if (!isPeeking || !hasDocument) {
-            return;
-        }
-
-        if (isPointerInside) {
-            return;
-        }
-
-        // The saved-search popover is rendered from the peeking sidebar. Defer the cleanup until after the current press
-        // finishes so selecting a popover item is not canceled by unmounting the peeking sidebar subtree.
-        window.setTimeout(endPeek, 0);
-    });
-
-    const markSidebarHovered = () => {
-        isSidebarHoveredRef.current = true;
-    };
-
-    const handleSidebarHoverOut = () => {
-        isSidebarHoveredRef.current = false;
-        endPeek();
-    };
-
-    useEffect(() => {
-        if (!isPeeking || typeof document === 'undefined') {
-            return;
-        }
-
-        document.addEventListener('click', queueEndPeekIfPointerIsOutsideSidebar, true);
-
-        return () => {
-            document.removeEventListener('click', queueEndPeekIfPointerIsOutsideSidebar, true);
-        };
-    }, [isPeeking]);
 
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
@@ -180,11 +99,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
     return (
         <Animated.View style={layoutSpacerStyle}>
-            <Hoverable
-                ref={sidebarElementRef}
-                onHoverIn={markSidebarHovered}
-                onHoverOut={handleSidebarHoverOut}
-            >
+            <Hoverable onHoverOut={endPeek}>
                 <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
                     <View style={styles.flex1}>
                         <TopBar
