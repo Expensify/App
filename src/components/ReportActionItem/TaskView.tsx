@@ -16,6 +16,7 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import RenderHTML from '@components/RenderHTML';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -92,6 +93,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     // since Onyx updates asynchronously and the screen reader would announce the stale state.
     const [prevIsCompletedFromOnyx, setPrevIsCompletedFromOnyx] = useState(isCompletedFromOnyx);
     const [localIsCompleted, setLocalIsCompleted] = useState(isCompletedFromOnyx);
+    const [taskCheckboxAnnouncement, setTaskCheckboxAnnouncement] = useState<{message: string; key: number}>();
 
     if (prevIsCompletedFromOnyx !== isCompletedFromOnyx) {
         setPrevIsCompletedFromOnyx(isCompletedFromOnyx);
@@ -99,6 +101,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     }
 
     const isCompleted = shouldBreakGrouping && isScreenReaderActive ? localIsCompleted : isCompletedFromOnyx;
+    const shouldAnnounceTaskCheckboxState = shouldBreakGrouping && isScreenReaderActive && !!taskCheckboxAnnouncement;
+
+    useAccessibilityAnnouncement(taskCheckboxAnnouncement?.message ?? '', shouldAnnounceTaskCheckboxState, {announcementKey: taskCheckboxAnnouncement?.key});
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
@@ -203,7 +208,12 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                                 return;
                                                             }
                                                             if (shouldBreakGrouping && isScreenReaderActive) {
-                                                                setLocalIsCompleted((prev) => !prev);
+                                                                const willBeCompleted = !isCompleted;
+                                                                setLocalIsCompleted(willBeCompleted);
+                                                                setTaskCheckboxAnnouncement((currentAnnouncement) => ({
+                                                                    message: willBeCompleted ? translate('task.messages.completed') : translate('task.messages.reopened'),
+                                                                    key: (currentAnnouncement?.key ?? 0) + 1,
+                                                                }));
                                                             }
                                                             if (isCompleted) {
                                                                 reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);

@@ -13,6 +13,7 @@ import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuS
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -100,6 +101,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     // since Onyx updates asynchronously and the screen reader would announce the stale state.
     const [prevIsTaskCompletedFromOnyx, setPrevIsTaskCompletedFromOnyx] = useState(isTaskCompletedFromOnyx);
     const [localIsTaskCompleted, setLocalIsTaskCompleted] = useState(isTaskCompletedFromOnyx);
+    const [taskCheckboxAnnouncement, setTaskCheckboxAnnouncement] = useState<{message: string; key: number}>();
 
     if (prevIsTaskCompletedFromOnyx !== isTaskCompletedFromOnyx) {
         setPrevIsTaskCompletedFromOnyx(isTaskCompletedFromOnyx);
@@ -107,6 +109,9 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     }
 
     const isTaskCompleted = shouldBreakGrouping && isScreenReaderActive ? localIsTaskCompleted : isTaskCompletedFromOnyx;
+    const shouldAnnounceTaskCheckboxState = shouldBreakGrouping && isScreenReaderActive && !!taskCheckboxAnnouncement;
+
+    useAccessibilityAnnouncement(taskCheckboxAnnouncement?.message ?? '', shouldAnnounceTaskCheckboxState, {announcementKey: taskCheckboxAnnouncement?.key});
 
     const parentReportAction = useParentReportAction(taskContextReport);
     const taskAssigneeAccountID = getTaskAssigneeAccountID(taskContextReport, parentReportAction) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -188,7 +193,12 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             shouldSelectOnPressEnter
                             onPress={callFunctionIfActionIsAllowed(() => {
                                 if (shouldBreakGrouping && isScreenReaderActive) {
-                                    setLocalIsTaskCompleted((prev) => !prev);
+                                    const willBeCompleted = !isTaskCompleted;
+                                    setLocalIsTaskCompleted(willBeCompleted);
+                                    setTaskCheckboxAnnouncement((currentAnnouncement) => ({
+                                        message: willBeCompleted ? translate('task.messages.completed') : translate('task.messages.reopened'),
+                                        key: (currentAnnouncement?.key ?? 0) + 1,
+                                    }));
                                 }
                                 if (isTaskCompleted) {
                                     reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
