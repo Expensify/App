@@ -77,8 +77,8 @@ Learn how to [pay expenses submitted on a workspace](https://help.expensify.com/
 
 If you reimburse employees through another method, such as payroll or cash, you can enable **Payments** without connecting a bank account. This allows you to use **Mark as Paid** to record reimbursements processed outside of Expensify.
 
-1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces** > your **workspace name** > **Workflows**.
-2. Toggle on **Payments**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name > Workflows**.
+2. Enable **Payments**.
 
 Once enabled, you can use **Mark as Paid** to keep track of reimbursements made outside of Expensify.
 
