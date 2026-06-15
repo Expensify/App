@@ -9,7 +9,7 @@ import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 // Jest (jest-expo) resolves the `.native` variant by default, so we require the web entry point
 // explicitly (with its `.tsx` extension) to exercise the web implementation.
 // eslint-disable-next-line import/extensions
-const QuickbooksOnlineSetupPage = (require('@pages/workspace/accounting/qbo/QuickbooksOnlineSetupPage/index.tsx') as {default: typeof QuickbooksOnlineSetupPageType}).default;
+const QuickbooksOnlineSetupPage = (require('@pages/workspace/accounting/qbo/QuickbooksOnlineSetupPage/index.tsx') as unknown as {default: typeof QuickbooksOnlineSetupPageType}).default;
 
 const ENVIRONMENT_URL = 'https://new.expensify.com';
 const POLICY_ID = '123';
