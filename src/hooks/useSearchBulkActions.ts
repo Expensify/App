@@ -1182,11 +1182,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         duplicateHandlerRef.current();
     }, []);
 
-    const [activePolicyExpenseChat] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {selector: (reports) => getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id, reports)},
+    const activePolicyExpenseChatSelector = useCallback(
+        (reports: OnyxCollection<Report>) => getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id, reports),
         [currentUserPersonalDetails.accountID, defaultExpensePolicy?.id],
     );
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: activePolicyExpenseChatSelector});
 
     const allTransactionsForDuplicate = useMemo(
         () =>
