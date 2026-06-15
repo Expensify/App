@@ -1354,7 +1354,6 @@
 "../../src/pages/workspace/accounting/intacct/export/SageIntacctReimbursableExpensesDestinationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/intacct/import/SageIntacctAddUserDimensionPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/accounting/intacct/import/SageIntacctAddUserDimensionPage.tsx"	"rulesdir/no-default-id-values"	1
-"../../src/pages/workspace/accounting/intacct/import/SageIntacctEditUserDimensionsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/accounting/intacct/import/SageIntacctMappingsTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/intacct/import/SageIntacctToggleMappingsPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenSetupContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1364,7 +1363,6 @@
 "../../src/pages/workspace/accounting/netsuite/advanced/NetSuiteJournalEntryApprovalLevelSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/advanced/NetSuiteVendorBillApprovalLevelSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteDateSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesDestinationSelectPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesDestinationSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesJournalPostingPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteInvoiceItemPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1375,7 +1373,6 @@
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/subPages/ConfirmCustomSegmentList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/subPages/CustomListMappingStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/subPages/CustomSegmentMappingStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldView.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectsPage.tsx"	"no-restricted-syntax"	2
@@ -1457,7 +1454,6 @@
 "../../src/pages/workspace/expensifyCard/WorkspaceEditCardLimitPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceEditCardLimitTypePage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/pages/workspace/expensifyCard/issueNew/LimitTypeStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/issueNew/spendRules/SetSpendRulesStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/hr/HRProviderCard.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
