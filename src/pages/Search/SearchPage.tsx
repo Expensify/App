@@ -9,6 +9,7 @@ import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
+import {PaymentContextProvider} from '@hooks/usePaymentContext';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchOverlay from '@hooks/useSearchOverlay';
@@ -129,6 +130,10 @@ function SearchPage({route}: SearchPageProps) {
         const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
         const numberOfExpense = shouldUseClientTotal
             ? selectedTransactionsKeys.reduce((count, key) => {
+                  if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+                      const group = currentSearchResults?.data?.[key as keyof typeof currentSearchResults.data] as {count?: number} | undefined;
+                      return count + (group?.count ?? 0);
+                  }
                   const item = selectedTransactions[key];
                   if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
                       return count;
@@ -139,7 +144,7 @@ function SearchPage({route}: SearchPageProps) {
         const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0) : metadata?.total;
 
         return {count: numberOfExpense, total, currency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals, currentSearchResults]);
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
@@ -158,37 +163,39 @@ function SearchPage({route}: SearchPageProps) {
     });
 
     return (
-        <Animated.View style={[styles.flex1]}>
-            {shouldUseNarrowLayout ? (
-                <SearchPageNarrow
-                    queryJSON={currentSearchQueryJSON}
-                    metadata={metadata}
-                    searchResults={searchResults}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    footerData={footerData}
-                    shouldShowFooter={shouldShowFooter}
-                    onSortPressedCallback={onSortPressedCallback}
-                    searchOverlayContent={searchOverlayContent}
-                    onSearchContentReady={onSearchContentReady}
-                    hasFilterBars={hasFilterBars}
-                    isOverlayActive={isOverlayActive}
-                />
-            ) : (
-                <SearchPageWide
-                    queryJSON={currentSearchQueryJSON}
-                    searchResults={searchResults}
-                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    footerData={footerData}
-                    handleSearchAction={handleSearchAction}
-                    onSortPressedCallback={onSortPressedCallback}
-                    route={route}
-                    shouldShowFooter={shouldShowFooter}
-                    searchOverlayContent={searchOverlayContent}
-                    onSearchContentReady={onSearchContentReady}
-                />
-            )}
-        </Animated.View>
+        <PaymentContextProvider>
+            <Animated.View style={[styles.flex1]}>
+                {shouldUseNarrowLayout ? (
+                    <SearchPageNarrow
+                        queryJSON={currentSearchQueryJSON}
+                        metadata={metadata}
+                        searchResults={searchResults}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        footerData={footerData}
+                        shouldShowFooter={shouldShowFooter}
+                        onSortPressedCallback={onSortPressedCallback}
+                        searchOverlayContent={searchOverlayContent}
+                        onSearchContentReady={onSearchContentReady}
+                        hasFilterBars={hasFilterBars}
+                        isOverlayActive={isOverlayActive}
+                    />
+                ) : (
+                    <SearchPageWide
+                        queryJSON={currentSearchQueryJSON}
+                        searchResults={searchResults}
+                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        footerData={footerData}
+                        handleSearchAction={handleSearchAction}
+                        onSortPressedCallback={onSortPressedCallback}
+                        route={route}
+                        shouldShowFooter={shouldShowFooter}
+                        searchOverlayContent={searchOverlayContent}
+                        onSearchContentReady={onSearchContentReady}
+                    />
+                )}
+            </Animated.View>
+        </PaymentContextProvider>
     );
 }
 

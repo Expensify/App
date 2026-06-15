@@ -70,4 +70,3 @@ function buildReceiptFiles({
 }
 
 export default buildReceiptFiles;
-export type {BuildReceiptFilesParams};

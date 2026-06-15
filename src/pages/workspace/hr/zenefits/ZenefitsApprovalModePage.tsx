@@ -21,14 +21,12 @@ function ZenefitsApprovalModePage({
 
     const config: HRApprovalModeProviderConfig<ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE>> = {
         testID: 'ZenefitsApprovalModePage',
-        beta: CONST.BETAS.ZENEFITS,
         isConnected: isZenefitsConnected,
         approvalModes: CONST.ZENEFITS.APPROVAL_MODE,
         getCurrentApprovalMode: (policy) => policy?.connections?.zenefits?.config?.approvalMode ?? null,
         getProviderName: () => translate('workspace.hr.zenefits.title'),
         getHeaderTitle: () => translate('workspace.hr.approvalMode'),
-        handleSave: ({draftApprovalMode, currentApprovalMode, connectionSyncProgress}) =>
-            updateZenefitsApprovalMode(policyID, draftApprovalMode, currentApprovalMode, connectionSyncProgress),
+        handleSave: ({draftApprovalMode, currentApprovalMode}) => updateZenefitsApprovalMode(policyID, draftApprovalMode, currentApprovalMode),
     };
 
     return (
