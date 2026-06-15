@@ -8518,10 +8518,10 @@ describe('SearchUIUtils', () => {
             expect(categoryGLCodeHeader?.sortColumnName).toBe(CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE);
         });
 
-        test('Should exclude First approver from sort options but keep First approved', () => {
+        test('Should exclude First approver and First approved from sort options (BE does not support sorting these derived columns)', () => {
             const texts = SearchUIUtils.getSortByOptions([CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER, CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED], translateLocal).map((option) => option.text);
             expect(texts).not.toContain(translateLocal('search.filters.firstApprover'));
-            expect(texts).toContain(translateLocal('search.filters.firstApproved'));
+            expect(texts).not.toContain(translateLocal('search.filters.firstApproved'));
         });
 
         test('Should only show MCC when that column is selected and at least one transaction has a displayable MCC', () => {
