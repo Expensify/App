@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 
 /**
@@ -15,7 +14,7 @@ import {useMultifactorAuthentication} from '@components/MultifactorAuthenticatio
 function useMFACancelOnEscape(): () => boolean {
     const {requestCancel} = useMultifactorAuthentication();
 
-    return useCallback(() => {
+    return () => {
         const suppressEscapeKeyup = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
                 event.stopImmediatePropagation();
@@ -25,7 +24,7 @@ function useMFACancelOnEscape(): () => boolean {
         document.addEventListener('keyup', suppressEscapeKeyup, true);
         requestCancel();
         return false;
-    }, [requestCancel]);
+    };
 }
 
 export default useMFACancelOnEscape;
