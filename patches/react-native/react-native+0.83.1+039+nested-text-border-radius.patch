@@ -194,7 +194,7 @@ new file mode 100644
 index 0000000..8194ea7
 --- /dev/null
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-@@ -0,0 +1,125 @@
+@@ -0,0 +1,117 @@
 +/* Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
 + * This source code is licensed under the MIT license found in the
@@ -215,7 +215,7 @@ index 0000000..8194ea7
 + * borderRadius is 0, this draws a plain rectangle identical to [ReactBackgroundColorSpan].
 + *
 + * For multiline spans, only the outer corners are rounded: left corners on the first line, right
-+ * corners on the last line (flipped for RTL).
++ * corners on the last line.
 + */
 +internal class ReactBackgroundDrawSpan(
 +    @ColorInt private val backgroundColor: Int,
@@ -282,8 +282,7 @@ index 0000000..8194ea7
 +      } else {
 +        val isFirstLine = line == startLine
 +        val isLastLine = line == endLine
-+        val rtl = layout.getParagraphDirection(line) == Layout.DIR_RIGHT_TO_LEFT
-+        drawSelectiveRoundRect(canvas, rectF, isFirstLine, isLastLine, rtl)
++        drawSelectiveRoundRect(canvas, rectF, isFirstLine, isLastLine)
 +      }
 +    }
 +  }
@@ -293,19 +292,12 @@ index 0000000..8194ea7
 +      rect: RectF,
 +      isFirstLine: Boolean,
 +      isLastLine: Boolean,
-+      rtl: Boolean,
 +  ) {
-+    // For LTR: first line rounds left corners, last line rounds right corners.
-+    // For RTL: first line rounds right corners, last line rounds left corners.
-+    val roundStart = isFirstLine
-+    val roundEnd = isLastLine
-+    val roundLeft = if (rtl) roundEnd else roundStart
-+    val roundRight = if (rtl) roundStart else roundEnd
-+
-+    val topLeft = if (roundLeft) borderTopLeftRadius else 0f
-+    val bottomLeft = if (roundLeft) borderBottomLeftRadius else 0f
-+    val topRight = if (roundRight) borderTopRightRadius else 0f
-+    val bottomRight = if (roundRight) borderBottomRightRadius else 0f
++    // First line rounds left corners, last line rounds right corners.
++    val topLeft = if (isFirstLine) borderTopLeftRadius else 0f
++    val bottomLeft = if (isFirstLine) borderBottomLeftRadius else 0f
++    val topRight = if (isLastLine) borderTopRightRadius else 0f
++    val bottomRight = if (isLastLine) borderBottomRightRadius else 0f
 +
 +    val radii =
 +        floatArrayOf(
@@ -670,7 +662,7 @@ index 0000000..3ca52ac
 + * for inline text spans that have the RCTTextBorderRadius attribute set.
 + *
 + * For multiline spans, only the outer corners are rounded: left corners on the
-+ * first line rect, right corners on the last line rect (flipped for RTL).
++ * first line rect, right corners on the last line rect.
 + */
 +@interface RCTTextLayoutManagerWithBorderRadius : NSLayoutManager
 +
