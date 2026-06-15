@@ -241,15 +241,21 @@ function IOURequestStepDistanceOdometer({
             initialStartReadingRef.current = startValue;
             initialEndReadingRef.current = endValue;
         }
-        // The refs and setters destructured from `useOdometerReadingsState` are stable; we intentionally omit them
-        // to keep this effect driven only by transaction changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         currentTransaction?.comment?.odometerStart,
         currentTransaction?.comment?.odometerEnd,
         currentTransaction?.comment?.odometerStartImage,
         currentTransaction?.comment?.odometerEndImage,
         isEditing,
+        setStartReading,
+        setEndReading,
+        startReadingRef,
+        endReadingRef,
+        initialStartReadingRef,
+        initialEndReadingRef,
+        initialStartImageRef,
+        initialEndImageRef,
+        hasInitializedRefs,
     ]);
 
     const navigateToNextStep = useOdometerNavigation({

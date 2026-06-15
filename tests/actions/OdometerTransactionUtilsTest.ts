@@ -141,37 +141,41 @@ describe('actions/OdometerTransactionUtils', () => {
         afterEach(() => {
             jest.unmock('@libs/OdometerImageUtils');
         });
-        it('should set odometer start image on a draft transaction', async () => {
+        it('should set odometer start image on a draft transaction', () => {
             const transaction = createRandomTransaction(1);
             const transactionID = transaction.transactionID;
             const file = {uri: 'image.uri', name: 'image.jpg', type: 'image/jpeg', size: 1234};
             const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.START;
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
-
-            setMoneyRequestOdometerImage(transaction, imageType, file, true, false);
-            await waitForBatchedUpdates();
-
-            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(draftTransaction?.comment?.odometerStartImage).toEqual(file);
+            return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction)
+                .then(() => {
+                    setMoneyRequestOdometerImage(transaction, imageType, file, true, false);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`))
+                .then((draftTransaction) => {
+                    expect(draftTransaction?.comment?.odometerStartImage).toEqual(file);
+                });
         });
 
-        it('should set odometer end image on a non-draft transaction', async () => {
+        it('should set odometer end image on a non-draft transaction', () => {
             const transaction = createRandomTransaction(1);
             const transactionID = transaction.transactionID;
             const file = {uri: 'image.uri', name: 'image.jpg', type: 'image/jpeg', size: 1234};
             const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.END;
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-
-            setMoneyRequestOdometerImage(transaction, imageType, file, false, false);
-            await waitForBatchedUpdates();
-
-            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-            expect(updatedTransaction?.comment?.odometerEndImage).toEqual(file);
+            return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction)
+                .then(() => {
+                    setMoneyRequestOdometerImage(transaction, imageType, file, false, false);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`))
+                .then((updatedTransaction) => {
+                    expect(updatedTransaction?.comment?.odometerEndImage).toEqual(file);
+                });
         });
 
-        it('should remove odometer start image from a draft transaction', async () => {
+        it('should remove odometer start image from a draft transaction', () => {
             const transaction = {
                 ...createRandomTransaction(1),
                 comment: {
@@ -181,16 +185,18 @@ describe('actions/OdometerTransactionUtils', () => {
             const transactionID = transaction.transactionID;
             const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.START;
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
-
-            removeMoneyRequestOdometerImage(transaction, imageType, true, false);
-            await waitForBatchedUpdates();
-
-            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(draftTransaction?.comment?.odometerStartImage).toBeUndefined();
+            return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction)
+                .then(() => {
+                    removeMoneyRequestOdometerImage(transaction, imageType, true, false);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`))
+                .then((draftTransaction) => {
+                    expect(draftTransaction?.comment?.odometerStartImage).toBeUndefined();
+                });
         });
 
-        it('should remove odometer end image from a non-draft transaction', async () => {
+        it('should remove odometer end image from a non-draft transaction', () => {
             const transaction = {
                 ...createRandomTransaction(1),
                 comment: {
@@ -200,13 +206,15 @@ describe('actions/OdometerTransactionUtils', () => {
             const transactionID = transaction.transactionID;
             const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.END;
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-
-            removeMoneyRequestOdometerImage(transaction, imageType, false, false);
-            await waitForBatchedUpdates();
-
-            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-            expect(updatedTransaction?.comment?.odometerEndImage).toBeUndefined();
+            return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction)
+                .then(() => {
+                    removeMoneyRequestOdometerImage(transaction, imageType, false, false);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`))
+                .then((updatedTransaction) => {
+                    expect(updatedTransaction?.comment?.odometerEndImage).toBeUndefined();
+                });
         });
     });
 

@@ -1621,7 +1621,6 @@
 "../../tests/actions/IOUTest/UpdateMoneyRequestTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/UpdateMoneyRequestVendorTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/actions/MergeTransactionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
-"../../tests/actions/OdometerTransactionUtilsTest.ts"	"@lwc/lwc/no-async-await"	4
 "../../tests/actions/OdometerTransactionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/actions/OdometerTransactionUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/OnyxUpdateManagerTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -1703,9 +1702,9 @@
 "../../tests/ui/ForYouSectionTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/ui/IOURequestStartPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/IOURequestStepAmountDraftTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/ui/IOURequestStepDistanceOdometerBackupTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
-"../../tests/ui/IOURequestStepDistanceOdometerNextSyncTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../tests/ui/IOURequestStepDistanceOdometerSflResumeTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../tests/ui/IOURequestStepDistanceOdometerBackupTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../tests/ui/IOURequestStepDistanceOdometerNextSyncTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../tests/ui/IOURequestStepDistanceOdometerSflResumeTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/IOURequestStepDistanceTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/ui/IOURequestStepScanTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/ui/InitialSettingsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2

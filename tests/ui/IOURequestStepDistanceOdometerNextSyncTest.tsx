@@ -152,7 +152,7 @@ function createOdometerDraftTransaction(): Transaction {
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
             },
         },
-    } as unknown as Transaction;
+    };
 }
 
 function renderCreateOdometer() {

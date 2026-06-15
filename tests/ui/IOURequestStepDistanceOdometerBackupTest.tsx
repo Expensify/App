@@ -161,7 +161,7 @@ function createOdometerTransaction(): Transaction {
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
             },
         },
-    } as unknown as Transaction;
+    };
 }
 
 // Edit-from-confirmation entry: route name !== DISTANCE_CREATE and action !== EDIT -> `isEditingConfirmation` is true
@@ -223,7 +223,7 @@ describe('IOURequestStepDistanceOdometer - edit-from-confirmation backup is rest
 
         // The backup restore must run exactly once. With the duplicate inline effect it ran twice (the second
         // restore nulled the transaction). This assertion is 2 on the buggy code
-        expect(TransactionEdit.restoreOriginalTransactionFromBackupWithImageCleanup as jest.Mock).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(TransactionEdit.restoreOriginalTransactionFromBackupWithImageCleanup)).toHaveBeenCalledTimes(1);
 
         // The expense must survive the back navigation: the draft transaction is restored from the backup, not nulled
         const restoredTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);

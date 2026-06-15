@@ -249,11 +249,8 @@ type OdometerUnsavedChangesState = {
 
 /**
  * Decide whether the odometer screen has unsaved changes that warrant a "Discard changes?" prompt.
- *
- * The image guard is load-bearing: isOdometerDraftPendingHydration is directional (reports a transaction MISSING
- * what the draft holds, never one AHEAD of it), so a genuine image add/swap reads as "not pending" and the draft
- * clause would wrongly suppress it - hence that clause must not suppress when hasImageChanges is set. The identity
- * is re-mint-invariant (name|size), so a non-user blob re-mint doesn't register. The typing guard does the same for readings
+ * Images diff on a re-mint-invariant identity (name|size) so a non-user blob re-mint doesn't register, and the
+ * typing guard does the same for readings. See the draft-suppression clause below for the directional caveat
  */
 function getOdometerHasUnsavedChanges(state: OdometerUnsavedChangesState): boolean {
     if (!state.isGuardActive) {

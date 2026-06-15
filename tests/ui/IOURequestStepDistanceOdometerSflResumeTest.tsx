@@ -115,7 +115,7 @@ function createOdometerTransaction(withImage: boolean): Transaction {
             odometerStartImage: withImage ? START_IMAGE : undefined,
             customUnit: {customUnitID: 'u', customUnitRateID: 'r', name: 'Distance', distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
         },
-    } as unknown as Transaction;
+    };
 }
 
 function renderCreateFlow(register: RegisterTabSwitchGuard) {
