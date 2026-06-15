@@ -10,12 +10,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
-import Direction from './Direction';
+import GPSDirection from './GPSDirection';
 import GPSWaypointLayer from './GPSWaypointLayer';
-import type {Coordinate, GPSMapViewProps} from './MapViewTypes';
+import type {GPSMapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
-import useAnimatedTrailingDirectionCoordinate from './useAnimatedTrailingDirectionCoordinate';
 import utils from './utils';
 
 // The native Mapbox SDK renders the user-location puck on its own dedicated layer. We draw the route below
@@ -123,61 +122,6 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
 
     const waypointsBounds = getWaypointBounds();
 
-    const getTrailingSegmentMetadata = () => {
-        const lastSegment = directionCoordinatesProp?.at(-1);
-
-        if (!lastSegment?.length) {
-            return {
-                secondToLastCoordinate: undefined,
-                lastSegmentStartCoordinate: undefined,
-            };
-        }
-
-        const lastSegmentStartCoordinate = lastSegment.at(0);
-        const secondToLastCoordinate = lastSegment.length === 1 ? lastSegmentStartCoordinate : lastSegment.at(-2);
-
-        return {
-            secondToLastCoordinate,
-            lastSegmentStartCoordinate,
-        };
-    };
-
-    const trailingSegmentMetadata = getTrailingSegmentMetadata();
-
-    const animatedTrailingCoordinate = useAnimatedTrailingDirectionCoordinate({
-        isEnabled: !!isTrackingGPS,
-        segmentCount: directionCoordinatesProp?.length ?? 0,
-        lastSegmentStartLongitude: trailingSegmentMetadata.lastSegmentStartCoordinate?.at(0),
-        lastSegmentStartLatitude: trailingSegmentMetadata.lastSegmentStartCoordinate?.at(1),
-        secondToLastLongitude: trailingSegmentMetadata.secondToLastCoordinate?.at(0),
-        secondToLastLatitude: trailingSegmentMetadata.secondToLastCoordinate?.at(1),
-        targetLongitude: lastLocation?.longitude,
-        targetLatitude: lastLocation?.latitude,
-        durationMs: CONST.MAPBOX.GPS_ROUTE_ANIMATION_DURATION_MS,
-    });
-
-    const getCoordinates = () => {
-        if (!isTrackingGPS || !lastLocation || !directionCoordinatesProp || directionCoordinatesProp.length === 0) {
-            return directionCoordinatesProp;
-        }
-
-        const lastSegment = directionCoordinatesProp.at(-1);
-        if (!lastSegment) {
-            return directionCoordinatesProp;
-        }
-
-        if (lastSegment.length === 0) {
-            return directionCoordinatesProp;
-        }
-
-        const lastLocationCoordinate: Coordinate = animatedTrailingCoordinate ?? [lastLocation.longitude, lastLocation.latitude];
-
-        const newLastSegment = [...lastSegment.slice(0, lastSegment.length === 1 ? undefined : -1), lastLocationCoordinate];
-
-        const newDirectionCoordinates = [...directionCoordinatesProp.slice(0, directionCoordinatesProp.length - 1), newLastSegment];
-        return newDirectionCoordinates;
-    };
-
     const onUserLocationUpdate = (update: Mapbox.Location) => {
         const coords = update.coords;
         setLastLocation({longitude: coords.longitude, latitude: coords.latitude});
@@ -249,12 +193,11 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
                         belowLayerID={hasEverTrackedGPS || isTrackingGPS ? LOCATION_PUCK_LAYER_ID : undefined}
                     />
 
-                    {!!directionCoordinatesProp && (
-                        <Direction
-                            coordinates={getCoordinates()}
-                            belowLayerID={CONST.MAP_VIEW_LAYERS.WAYPOINTS}
-                        />
-                    )}
+                    <GPSDirection
+                        directionCoordinates={directionCoordinatesProp}
+                        isTrackingGPS={isTrackingGPS}
+                        lastLocation={lastLocation}
+                    />
                 </Mapbox.MapView>
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
                     <Button

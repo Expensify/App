@@ -1,39 +1,57 @@
 import {useEffect, useRef, useState} from 'react';
+import CONST from '@src/CONST';
 import type {Coordinate} from './MapViewTypes';
 import utils from './utils';
 
 type UseAnimatedTrailingDirectionCoordinateParams = {
+    // Whether the animation is enabled
     isEnabled: boolean;
-    segmentCount: number;
-    lastSegmentStartLongitude?: number;
-    lastSegmentStartLatitude?: number;
-    secondToLastLongitude?: number;
-    secondToLastLatitude?: number;
-    targetLongitude?: number;
-    targetLatitude?: number;
-    durationMs: number;
+
+    // Target coordinate of the animation
+    targetCoordinate: Coordinate;
+
+    // List of coordinates which together forms a direction.
+    directionCoordinates: Coordinate[][];
 };
 
-function useAnimatedTrailingDirectionCoordinate({
-    isEnabled,
-    segmentCount,
-    lastSegmentStartLongitude,
-    lastSegmentStartLatitude,
-    secondToLastLongitude,
-    secondToLastLatitude,
-    targetLongitude,
-    targetLatitude,
-    durationMs,
-}: UseAnimatedTrailingDirectionCoordinateParams): Coordinate | undefined {
+const ANIMATION_DURATION_MS = CONST.MAPBOX.GPS_ROUTE_ANIMATION_DURATION_MS;
+
+function getTrailingSegmentData(directionCoordinates: Coordinate[][]) {
+    const lastSegment = directionCoordinates?.at(-1);
+
+    if (!lastSegment?.length) {
+        return {
+            secondToLastCoordinate: undefined,
+            lastSegmentStartCoordinate: undefined,
+        };
+    }
+
+    const lastSegmentStartCoordinate = lastSegment.at(0);
+    const secondToLastCoordinate = lastSegment.length === 1 ? lastSegmentStartCoordinate : lastSegment.at(-2);
+
+    return {
+        secondToLastCoordinate,
+        lastSegmentStartCoordinate,
+    };
+}
+
+function useAnimatedTrailingDirectionCoordinate({directionCoordinates, isEnabled, targetCoordinate}: UseAnimatedTrailingDirectionCoordinateParams): Coordinate | undefined {
+    const segmentCount = directionCoordinates.length;
+
+    const trailingSegmentData = getTrailingSegmentData(directionCoordinates);
+    // Why second to last, and not last? Because in edge cases, the last coordinate from directionCoordinates
+    // would be closer to real user location than the targetCoordinate passed from MapBox location engine updates
+    // and the animation would go the opposite way
+    const secondToLastCoordinate = trailingSegmentData.secondToLastCoordinate;
+    const lastSegmentStartCoordinate = trailingSegmentData.lastSegmentStartCoordinate;
+
     const [animatedCoordinate, setAnimatedCoordinate] = useState<Coordinate | undefined>(undefined);
     const animationFrameRef = useRef<number | undefined>(undefined);
     const animatedCoordinateRef = useRef<Coordinate | undefined>(undefined);
     const animationStartTimeRef = useRef<number | undefined>(undefined);
     const prevSegmentCountRef = useRef<number | undefined>(undefined);
-    const prevLastSegmentStartLongitudeRef = useRef<number | undefined>(undefined);
-    const prevLastSegmentStartLatitudeRef = useRef<number | undefined>(undefined);
-    const prevTargetLongitudeRef = useRef<number | undefined>(undefined);
-    const prevTargetLatitudeRef = useRef<number | undefined>(undefined);
+    const prevLastSegmentStartRef = useRef<Coordinate | undefined>(undefined);
+    const prevTargetRef = useRef<Coordinate | undefined>(undefined);
 
     const cancelAnimation = () => {
         if (animationFrameRef.current !== undefined) {
@@ -46,13 +64,19 @@ function useAnimatedTrailingDirectionCoordinate({
     const startAnimation = (from: Coordinate, to: Coordinate) => {
         cancelAnimation();
 
+        if (utils.areCoordinatesEqual(from, to)) {
+            animatedCoordinateRef.current = to;
+            setAnimatedCoordinate(to);
+            return;
+        }
+
         const animate = (timestamp: number) => {
             if (animationStartTimeRef.current === undefined) {
                 animationStartTimeRef.current = timestamp;
             }
 
             const elapsed = timestamp - animationStartTimeRef.current;
-            const progress = Math.min(elapsed / durationMs, 1);
+            const progress = Math.min(elapsed / ANIMATION_DURATION_MS, 1);
             const nextCoordinate = utils.interpolateCoordinate(from, to, progress);
             animatedCoordinateRef.current = nextCoordinate;
             setAnimatedCoordinate(nextCoordinate);
@@ -69,32 +93,22 @@ function useAnimatedTrailingDirectionCoordinate({
     };
 
     useEffect(() => {
-        if (!isEnabled || targetLongitude === undefined || targetLatitude === undefined) {
+        if (!isEnabled || !targetCoordinate) {
             cancelAnimation();
             prevSegmentCountRef.current = undefined;
-            prevLastSegmentStartLongitudeRef.current = undefined;
-            prevLastSegmentStartLatitudeRef.current = undefined;
-            prevTargetLongitudeRef.current = undefined;
-            prevTargetLatitudeRef.current = undefined;
+            prevLastSegmentStartRef.current = undefined;
+            prevTargetRef.current = undefined;
             return cancelAnimation;
         }
 
-        const hasSegmentBoundaryChanged =
-            prevSegmentCountRef.current !== segmentCount ||
-            prevLastSegmentStartLongitudeRef.current !== lastSegmentStartLongitude ||
-            prevLastSegmentStartLatitudeRef.current !== lastSegmentStartLatitude;
-        const hasTargetCoordinateChanged = prevTargetLongitudeRef.current !== targetLongitude || prevTargetLatitudeRef.current !== targetLatitude;
+        const hasSegmentBoundaryChanged = prevSegmentCountRef.current !== segmentCount || !utils.areCoordinatesEqual(prevLastSegmentStartRef.current, lastSegmentStartCoordinate);
+        const hasTargetCoordinateChanged = utils.areCoordinatesEqual(prevTargetRef.current, targetCoordinate);
 
         prevSegmentCountRef.current = segmentCount;
-        prevLastSegmentStartLongitudeRef.current = lastSegmentStartLongitude;
-        prevLastSegmentStartLatitudeRef.current = lastSegmentStartLatitude;
-        prevTargetLongitudeRef.current = targetLongitude;
-        prevTargetLatitudeRef.current = targetLatitude;
+        prevLastSegmentStartRef.current = lastSegmentStartCoordinate;
+        prevTargetRef.current = targetCoordinate;
 
-        const targetCoordinate: Coordinate = [targetLongitude, targetLatitude];
-        const secondToLastCoordinate: Coordinate | undefined =
-            secondToLastLongitude !== undefined && secondToLastLatitude !== undefined ? [secondToLastLongitude, secondToLastLatitude] : undefined;
-
+        // If the segment boundary has changed, we need to start a new animation from the second to last coordinate or the target coordinate.
         if (hasSegmentBoundaryChanged) {
             animatedCoordinateRef.current = undefined;
             const fromCoordinate = secondToLastCoordinate ?? targetCoordinate;
@@ -106,23 +120,13 @@ function useAnimatedTrailingDirectionCoordinate({
             return;
         }
 
+        // If the target coordinate has changed, we need to start a new animation from the current animated coordinate
+        // (if there was an ongoing animation already) or the second to last coordinate
         const fromCoordinate = animatedCoordinateRef.current ?? secondToLastCoordinate ?? targetCoordinate;
         startAnimation(fromCoordinate, targetCoordinate);
 
         return cancelAnimation;
-    }, [
-        cancelAnimation,
-        durationMs,
-        isEnabled,
-        lastSegmentStartLatitude,
-        lastSegmentStartLongitude,
-        secondToLastLatitude,
-        secondToLastLongitude,
-        segmentCount,
-        startAnimation,
-        targetLatitude,
-        targetLongitude,
-    ]);
+    }, [cancelAnimation, isEnabled, lastSegmentStartCoordinate, secondToLastCoordinate, targetCoordinate, segmentCount, startAnimation]);
 
     if (!isEnabled) {
         return undefined;

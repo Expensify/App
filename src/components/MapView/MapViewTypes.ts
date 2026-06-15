@@ -41,16 +41,19 @@ type MapViewProps = {
 };
 
 type GPSMapViewProps = Omit<MapViewProps, 'directionCoordinates'> & {
-    // Whether to render the native, smoothly-interpolated Mapbox location puck and let the camera
-    // follow it natively (instead of the custom marker + JS-driven camera). Opt-in per screen.
-    shouldUseAnimatedUserLocation?: boolean;
-
-    // Whether to keep the camera natively following the user even when a route/waypoints are present
-    // (e.g. during an active GPS trip). Requires shouldUseAnimatedUserLocation.
-    shouldForceFollowUserLocation?: boolean;
-
     // Whether the GPS trip is active
-    isTrackingGPS?: boolean;
+    isTrackingGPS: boolean;
+
+    // List of coordinates which together forms a direction.
+    directionCoordinates: Coordinate[][];
+};
+
+type GPSDirectionProps = {
+    // Whether the GPS trip is active
+    isTrackingGPS: boolean;
+
+    // Last location of the user
+    lastLocation: {longitude: number; latitude: number} | undefined;
 
     // List of coordinates which together forms a direction.
     directionCoordinates: Coordinate[][];
@@ -101,4 +104,4 @@ type MapViewHandle = {
     fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type {WayPoint, MapViewProps, GPSMapViewProps, DirectionProps, PendingMapViewProps, Coordinate};
+export type {WayPoint, MapViewProps, GPSMapViewProps, DirectionProps, PendingMapViewProps, Coordinate, GPSDirectionProps};
