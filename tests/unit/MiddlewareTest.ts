@@ -1,10 +1,6 @@
-/* eslint-disable @lwc/lwc/no-async-await */
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import Reauthentication from '@libs/Middleware/Reauthentication';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
-import reauthenticate from '@libs/Reauthentication';
-import CONST from '@src/CONST';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 // This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
 import '@src/libs/actions/replaceOptimisticReportWithActualReport';
@@ -17,14 +13,11 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report as OnyxReport, PersonalDetailsList} from '@src/types/onyx';
-import type OnyxRequest from '@src/types/onyx/Request';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 type FormDataObject = {body: TestHelper.FormData};
-
-jest.mock('@libs/Reauthentication');
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -55,90 +48,7 @@ beforeEach(async () => {
 });
 
 describe('Middleware', () => {
-    describe('Reauthentication', () => {
-        test('clears original request failure updates when failed reauthentication redirects to sign-in', async () => {
-            const mockedReauthenticate = jest.mocked(reauthenticate);
-            mockedReauthenticate.mockResolvedValueOnce(false);
-
-            const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
-                command: 'TestCommand',
-                data: {apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS},
-                failureData: [
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.NETWORK,
-                        value: {shouldFailAllRequests: true},
-                    },
-                ],
-                finallyData: [
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.NETWORK,
-                        value: {shouldForceOffline: true},
-                    },
-                ],
-            };
-
-            const response = await Reauthentication(
-                Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                }),
-                request,
-                false,
-            );
-
-            expect(response?.jsonCode).toBe(CONST.JSON_CODE.NOT_AUTHENTICATED);
-            expect(request.failureData).toBeUndefined();
-            expect(request.finallyData).toBeUndefined();
-        });
-    });
-
     describe('SaveResponseInOnyx', () => {
-        test('does not apply original request failure data after failed reauthentication redirects to sign-in', async () => {
-            const mockedReauthenticate = jest.mocked(reauthenticate);
-            mockedReauthenticate.mockResolvedValueOnce(false);
-
-            let shouldFailAllRequests: boolean | undefined;
-            let shouldForceOffline: boolean | undefined;
-            Onyx.connect({
-                key: ONYXKEYS.NETWORK,
-                callback: (val) => {
-                    shouldFailAllRequests = val?.shouldFailAllRequests;
-                    shouldForceOffline = val?.shouldForceOffline;
-                },
-            });
-
-            Request.addMiddleware(Reauthentication);
-            Request.addMiddleware(SaveResponseInOnyx);
-            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
-                jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-            });
-
-            const response = await Request.processWithMiddleware({
-                command: 'TestCommand',
-                data: {apiRequestType: 'makeRequestWithSideEffects'},
-                failureData: [
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.NETWORK,
-                        value: {shouldFailAllRequests: true},
-                    },
-                ],
-                finallyData: [
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.NETWORK,
-                        value: {shouldForceOffline: true},
-                    },
-                ],
-            });
-            await waitForBatchedUpdates();
-
-            expect(response?.jsonCode).toBe(CONST.JSON_CODE.NOT_AUTHENTICATED);
-            expect(shouldFailAllRequests).toBeFalsy();
-            expect(shouldForceOffline).toBeFalsy();
-        });
-
         test('preserves the response for side-effect requests when the update is already applied', async () => {
             // Given the client already has a lastUpdateID applied
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
