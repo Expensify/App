@@ -2168,6 +2168,10 @@ function getGroupPaidPolicies(policies: OnyxCollection<Policy> | null) {
     return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && !policy?.isJoinRequestPending && shouldShowPolicy(policy, false, undefined));
 }
 
+function hasAnyPaidPolicy(policies: OnyxCollection<Policy> | null) {
+    return getGroupPaidPolicies(policies).length > 0;
+}
+
 /**
  * Returns the group workspaces where the user can create a report: paid (Team/Corporate) workspaces,
  * plus Submit workspaces when the SUBMIT_2026 beta is enabled. Submit workspaces are free but still
@@ -2623,6 +2627,7 @@ export {
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     isSubmitPolicy,
+    hasAnyPaidPolicy,
 };
 
 export type {MemberEmailsToAccountIDs, PolicyFeature};

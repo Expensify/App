@@ -13,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, getGroupPaidPolicies} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, hasAnyPaidPolicy} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -114,7 +114,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
             return false;
         }
-        return getGroupPaidPolicies(allPolicies).length > 0;
+        return hasAnyPaidPolicy(allPolicies);
     }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
 
     const shouldTooltipBeVisible = useCallback(
