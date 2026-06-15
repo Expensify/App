@@ -380,6 +380,64 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
     return validator ? validator() : false;
 }
 
+/**
+ * Syncs the customUnitRateOutOfDateRange violation with the current transaction rate and expense date.
+ * Adds, removes, or updates the violation so the rate field reflects the selected rate's date bounds.
+ */
+function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolation[], transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>): TransactionViolation[] {
+    if (!transaction || !TransactionUtils.isDistanceRequest(transaction)) {
+        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+    }
+
+    const customUnitRateID = transaction.comment?.customUnit?.customUnitRateID;
+    if (!customUnitRateID || !policy?.customUnits || customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+    }
+
+    const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy});
+    const expenseDate = TransactionUtils.getCreated(transaction);
+
+    if (!mileageRate || mileageRate.enabled === false || !expenseDate) {
+        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+    }
+
+    const isOutOfDateRange = !DistanceRequestUtils.isRateEligibleForDate(mileageRate, expenseDate);
+    const hasViolation = violations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+    const violationData = {
+        startDate: mileageRate.startDate ?? undefined,
+        endDate: mileageRate.endDate ?? undefined,
+    };
+
+    if (isOutOfDateRange && !hasViolation) {
+        return [
+            ...violations,
+            {
+                name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                type: CONST.VIOLATION_TYPES.WARNING,
+                showInReview: true,
+                data: violationData,
+            },
+        ];
+    }
+
+    if (!isOutOfDateRange && hasViolation) {
+        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+    }
+
+    if (isOutOfDateRange && hasViolation) {
+        return violations.map((violation) =>
+            violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE
+                ? {
+                      ...violation,
+                      data: violationData,
+                  }
+                : violation,
+        );
+    }
+
+    return violations;
+}
+
 const ViolationsUtils = {
     /**
      * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction
@@ -517,26 +575,29 @@ const ViolationsUtils = {
         }
 
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
-        if (customUnitRateID && customUnitRateID.length > 0 && !isSelfDM) {
+        const isDistanceRequestForCustomUnit = TransactionUtils.isDistanceRequest(updatedTransaction);
+        if (customUnitRateID && customUnitRateID.length > 0 && (!isSelfDM || isDistanceRequestForCustomUnit)) {
             const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
             const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
             if (customRate && customRate.enabled !== false) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
 
                 if (TransactionUtils.isDistanceRequest(updatedTransaction)) {
-                    const transactionDate = updatedTransaction.modifiedCreated ?? updatedTransaction.created;
-                    const isOutOfDateRange = !!transactionDate && !DistanceRequestUtils.isRateEligibleForDate(customRate, transactionDate);
+                    const transactionDate = TransactionUtils.getCreated(updatedTransaction);
+                    const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy});
+                    const isRateValidForPolicy = !!mileageRate && mileageRate.enabled !== false;
+                    const isOutOfDateRange = !!transactionDate && isRateValidForPolicy && !DistanceRequestUtils.isRateEligibleForDate(mileageRate, transactionDate);
 
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
 
-                    if (isOutOfDateRange) {
+                    if (isOutOfDateRange && mileageRate) {
                         newTransactionViolations.push({
                             name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                             type: CONST.VIOLATION_TYPES.WARNING,
                             showInReview: true,
                             data: {
-                                startDate: customRate.startDate,
-                                endDate: customRate.endDate,
+                                startDate: mileageRate.startDate ?? undefined,
+                                endDate: mileageRate.endDate ?? undefined,
                             },
                         });
                     }
@@ -1062,6 +1123,6 @@ const ViolationsUtils = {
     },
 };
 
-export {getIsViolationFixed};
+export {getIsViolationFixed, syncCustomUnitRateOutOfDateRangeViolation};
 export default ViolationsUtils;
 export {filterReceiptViolations};

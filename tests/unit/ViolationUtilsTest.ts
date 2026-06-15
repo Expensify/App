@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Permissions from '@libs/Permissions';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
-import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -444,6 +444,28 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
 
+        it('should add the customUnitRateOutOfDateRange violation for distance requests on self DM reports', () => {
+            transaction.created = '2026-06-15';
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                isSelfDM: true,
+            });
+
+            expect(result.value).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                }),
+            );
+        });
+
         it('should remove the customUnitRateOutOfDateRange violation for non-distance requests', () => {
             transactionViolations = [
                 {
@@ -467,6 +489,135 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(
                 expect.objectContaining({
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                }),
+            );
+        });
+    });
+
+    describe('syncCustomUnitRateOutOfDateRangeViolation', () => {
+        const customUnitRateID = 'rate_id';
+
+        beforeEach(() => {
+            transactionViolations = [];
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+            transaction.created = '2026-06-15';
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID,
+                },
+            };
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: true,
+                            name: '2025 mileage',
+                            rate: 65.5,
+                            startDate: '2025-01-01',
+                            endDate: '2025-12-31',
+                        },
+                    },
+                },
+            };
+        });
+
+        it('should add the customUnitRateOutOfDateRange violation when the expense date is outside the rate bounds', () => {
+            const result = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    data: {
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                }),
+            );
+        });
+
+        it('should remove the customUnitRateOutOfDateRange violation when the expense date is within the rate bounds', () => {
+            transaction.created = '2025-06-15';
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    showInReview: true,
+                    data: {
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                },
+            ];
+
+            const result = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
+
+            expect(result).not.toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                }),
+            );
+        });
+
+        it('should update violation data when switching to a different out-of-bounds rate', () => {
+            const otherRateID = 'other_rate_id';
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [otherRateID]: {
+                            currency: 'USD',
+                            customUnitRateID: otherRateID,
+                            enabled: true,
+                            name: '2024 mileage',
+                            rate: 60,
+                            startDate: '2024-01-01',
+                            endDate: '2024-12-31',
+                        },
+                    },
+                },
+            };
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID: otherRateID,
+                },
+            };
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    showInReview: true,
+                    data: {
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                },
+            ];
+
+            const result = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    data: {
+                        startDate: '2024-01-01',
+                        endDate: '2024-12-31',
+                    },
                 }),
             );
         });

@@ -1743,6 +1743,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasModifiedCategory && transactionChanges.category === ''
                 ? optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY)
                 : optimisticViolations;
+        if (hasModifiedDistanceRate) {
+            optimisticViolations = optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+        }
         if (hasPendingWaypoints) {
             optimisticViolations = optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.NO_ROUTE);
         }
@@ -1914,15 +1917,28 @@ function getUpdateTrackExpenseParams(
     | typeof ONYXKEYS.COLLECTION.REPORT
     | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
 > {
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+        >
     > = [];
     const successData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT>
     > = [];
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+        >
     > = [];
 
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
@@ -2100,6 +2116,41 @@ function getUpdateTrackExpenseParams(
         key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
         value: transactionThread,
     });
+
+    const hasModifiedCreated = 'created' in transactionChanges;
+    const hasModifiedDate = 'date' in transactionChanges;
+    if (
+        transactionID &&
+        policyForTransaction &&
+        updatedTransaction &&
+        isDistanceRequestTransactionUtils(updatedTransaction) &&
+        (hasModifiedDistanceRate || hasModifiedCreated || hasModifiedDate)
+    ) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const currentTransactionViolations = getAllTransactionViolations()[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        const optimisticViolations = hasModifiedDistanceRate
+            ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE)
+            : currentTransactionViolations;
+
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
+            updatedTransaction,
+            transactionViolations: optimisticViolations,
+            policy: policyForTransaction,
+            policyTagList: {},
+            policyCategories: {},
+            hasDependentTags: hasDependentTags(policyForTransaction, {}),
+            isInvoiceTransaction: false,
+            isSelfDM: isSelfDM(chatReport),
+            iouReport: chatReport ?? undefined,
+            isFromExpenseReport: false,
+        });
+        optimisticData.push(violationsOnyxData);
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: currentTransactionViolations,
+        });
+    }
 
     return {
         params: apiParams,
