@@ -5,21 +5,28 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {createTransactionThreadReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllReportActions, getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getReportOrDraftReport, isOneTransactionReport} from '@libs/ReportUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import EmptyState from './EmptyState';
 import RecentlyAddedRow, {DATE_COLUMN_WIDTH, THUMBNAIL_COLUMN_WIDTH} from './RecentlyAddedRow';
+import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 import {useRecentlyAddedData} from './useRecentlyAddedData';
 
 const HEADER_RECEIPT_ICON_SIZE = 16;
@@ -38,13 +45,46 @@ function RecentlyAddedSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots', 'Receipt']);
     const {calculatePopoverPosition} = usePopoverPosition();
+    const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isOverflowMenuVisible, setIsOverflowMenuVisible] = useState(false);
     const [overflowMenuPosition, setOverflowMenuPosition] = useState<AnchorPosition>();
     const overflowMenuButtonRef = useRef<View>(null);
 
     const hasExpenses = transactions.length > 0;
 
-    const openExpense = (reportID: string) => {
+    // Each row is a single expense, so we open that specific expense rather than its parent report.
+    // A one-transaction report already renders the expense inline, so we keep its reportID; for a
+    // multi-expense report we resolve (and create if needed) the transaction thread for the tapped expense.
+    const getReportIDToOpen = (expense: RecentlyAddedExpense): string => {
+        const parentReport = getReportOrDraftReport(expense.reportID);
+        if (isOneTransactionReport(parentReport)) {
+            return expense.reportID;
+        }
+
+        const iouAction = getIOUActionForTransactionID(Object.values(getAllReportActions(expense.reportID)), expense.transactionID);
+        if (!iouAction) {
+            return expense.reportID;
+        }
+        if (iouAction.childReportID) {
+            return iouAction.childReportID;
+        }
+
+        const transactionThreadReport = createTransactionThreadReport({
+            introSelected,
+            currentUserLogin: currentUserEmail ?? '',
+            currentUserAccountID,
+            betas,
+            iouReport: parentReport,
+            iouReportAction: iouAction,
+            transaction: expense.transaction,
+        });
+        return transactionThreadReport?.reportID ?? expense.reportID;
+    };
+
+    const openExpense = (expense: RecentlyAddedExpense) => {
+        const reportID = getReportIDToOpen(expense);
         if (shouldUseNarrowLayout) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME));
             return;
@@ -129,7 +169,7 @@ function RecentlyAddedSection() {
                         <RecentlyAddedRow
                             key={expense.transactionID}
                             expense={expense}
-                            onPress={() => openExpense(expense.reportID)}
+                            onPress={() => openExpense(expense)}
                             shouldShowSeparator={index < transactions.length - 1}
                         />
                     ))}

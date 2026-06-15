@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import RecentlyAddedSection from '@pages/home/RecentlyAddedSection';
 import {useRecentlyAddedData} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -225,6 +226,53 @@ describe('RecentlyAddedSection', () => {
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
             expect(mockNavigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ROW_1.reportID, undefined, undefined, ROUTES.HOME));
+        });
+
+        it('opens the tapped expense in a multi-expense report by navigating to its transaction thread', async () => {
+            setWideLayout();
+            const parentReportID = 'report_multi';
+            const threadReportID = 'thread_for_t1';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.EXPENSE, transactionCount: 2});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    a1: {
+                        reportActionID: 'a1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        childReportID: threadReportID,
+                        originalMessage: {IOUTransactionID: 't1'},
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [{...ROW_1, reportID: parentReportID}]});
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByTestId('recentlyAddedRow-t1'));
+
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: ROUTES.HOME}));
+        });
+
+        it('opens the parent report directly for an expense in a one-transaction report', async () => {
+            setWideLayout();
+            const parentReportID = 'report_single';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.EXPENSE, transactionCount: 1});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [{...ROW_1, reportID: parentReportID}]});
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByTestId('recentlyAddedRow-t1'));
+
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, backTo: ROUTES.HOME}));
         });
     });
 
