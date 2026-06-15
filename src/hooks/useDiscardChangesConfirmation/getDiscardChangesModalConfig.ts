@@ -1,9 +1,9 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 /**
- * Shared config for the "Discard changes?" confirmation modal so the nav-away (`useDiscardChangesConfirmation`)
- * and tab-switch (`OnyxTabNavigator`) paths show the exact same modal. Web callers add the web-only
- * `shouldIgnoreBackHandlerDuringTransition` themselves.
+ * Single source of truth for the "Discard changes?" modal content, so every caller (nav-away and tab-switch)
+ * renders an identical modal instead of drifting apart. Behavioral flags like the web-only
+ * `shouldIgnoreBackHandlerDuringTransition` are added per caller, not here
  */
 function getDiscardChangesModalConfig(translate: LocaleContextProps['translate']) {
     return {

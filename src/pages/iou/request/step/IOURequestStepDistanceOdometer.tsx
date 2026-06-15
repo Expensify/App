@@ -233,10 +233,8 @@ function IOURequestStepDistanceOdometer({
             endReadingRef.current = endValue;
         }
 
-        // Slide the readings baseline up on a non-user change (draft hydration, an external save from confirmation)
-        // so leaving doesn't flag the externally-saved value as unsaved; the typing guard in isExternalOdometerResync
-        // protects in-progress keystrokes. Images are NOT slid: their diff uses a re-mint-invariant identity, so a
-        // re-mint never registers (nothing to absorb) and sliding would wrongly absorb a genuine swap
+        // Slide the readings baseline on a non-user change (draft hydration, external save) so leaving doesn't flag it as unsaved.
+        // Images aren't slid: their re-mint-invariant diff already ignores re-mints, and sliding would absorb a genuine swap.
         if (isExternalResync) {
             initialStartReadingRef.current = startValue;
             initialEndReadingRef.current = endValue;
@@ -329,6 +327,7 @@ function IOURequestStepDistanceOdometer({
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
+    // Per-keystroke validation: enforce format constraints and cap the max value
     const isOdometerInputValid = (text: string, previousText: string): boolean => {
         if (!text) {
             return true;

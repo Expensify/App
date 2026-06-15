@@ -17,7 +17,8 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
     const [shouldAllowNavigation, setShouldAllowNavigation] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
 
-    // When rendered inside an OnyxTabNavigator tab, also guard tab switches (no-op otherwise / when no onTabSwitchDiscard given).
+    // Also guard tab switches when this screen is an OnyxTabNavigator tab. 
+    // Self-disables outside a tab navigator or without an onTabSwitchDiscard handler
     useRegisterTabSwitchGuard(route.name, getHasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
     const shouldPrevent = !shouldAllowNavigation;

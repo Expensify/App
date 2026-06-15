@@ -126,8 +126,7 @@ function useOdometerReadingsState({
         prevSelectedTabRef.current = selectedTab;
     }, [selectedTab, isLoadingSelectedTab]);
 
-    // Initialize initial values refs on mount for DiscardChangesConfirmation
-    // These should never be updated after mount - they represent the "baseline" state
+    // Snapshot the baseline refs once on mount for the discard-changes diff; never update them after.
     useEffect(() => {
         if (hasInitializedRefs.current) {
             return;
@@ -137,13 +136,11 @@ function useOdometerReadingsState({
         if (!isEditing && !isOdometerTransaction) {
             return;
         }
-        // Wait for blob verification - otherwise Cmd+R would snapshot a stale blob URI before
-        // useRestartOnOdometerImagesFailure swaps in a fresh one, and the diff would look like an edit.
+        // Wait for blob verification, else Cmd+R snapshots a stale blob URI that later gets swapped, and the diff looks like an edit.
         if (!hasVerifiedBlobs) {
             return;
         }
-        // Wait for the save-for-later draft to land in the transaction; otherwise post-hydration
-        // values would later look like unsaved changes against this baseline.
+        // Wait for the save-for-later draft to land in the transaction, else hydrated values later look like unsaved changes.
         if (isOdometerDraftPendingHydration(odometerDraft, currentTransaction?.comment)) {
             return;
         }
@@ -151,9 +148,7 @@ function useOdometerReadingsState({
         const currentEnd = currentTransaction?.comment?.odometerEnd;
         const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
         const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
-        // Snapshot the transaction as the baseline; the discard guard diffs current-vs-baseline, so no "user edited"
-        // tracking is needed. The empty-mount baseline survives Next->back, an SFL-resume/reload absorbs the hydrated
-        // value, and images use a re-mint-invariant identity so only a genuine add/swap/remove counts.
+        // Snapshot the transaction as the baseline; the discard guard diffs current-vs-baseline, no edit tracking needed.
         initialStartReadingRef.current = startValue;
         initialEndReadingRef.current = endValue;
         initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
@@ -172,9 +167,7 @@ function useOdometerReadingsState({
         odometerDraft,
     ]);
 
-    // Sync current state (not the mount refs) from the transaction. Mirrors branches 1-3 of
-    // `shouldInitializeOdometerFromTransaction` (odometerResync.ts is the source of truth); it can safely omit that
-    // predicate's `!isUserTyping` guard because this effect's deps are readings + isEditing only (no image deps).
+    // Sync current state (not the mount refs) from the transaction
     useEffect(() => {
         const currentStart = currentTransaction?.comment?.odometerStart;
         const currentEnd = currentTransaction?.comment?.odometerEnd;

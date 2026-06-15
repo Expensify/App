@@ -2,10 +2,9 @@
  * Pure decision helpers for the "resync local odometer readings from the transaction" effect in
  * `IOURequestStepDistanceOdometer`
  *
- * That effect keeps the local readings in sync with the transaction without clobbering in-progress typing, and
- * slides the discard-changes baseline when the transaction is changed elsewhere (e.g. an edit saved from the
- * confirmation step). The branching lives here as small pure predicates that can be unit-tested in isolation
- * from the effect's ref mutations
+ * That effect syncs local readings from the transaction without clobbering in-progress typing, and slides the
+ * discard-changes baseline when the transaction changes elsewhere (e.g. an edit saved from the confirmation step).
+ * Keeping the branching here as pure predicates lets it be unit-tested apart from the effect's ref mutations
  */
 
 type OdometerResyncState = {
@@ -40,9 +39,8 @@ type OdometerResyncState = {
 };
 
 /**
- * An "external resync" is when the transaction was changed somewhere else (e.g. an edit saved from the
- * confirmation step) while nothing is being typed here - so the transaction becomes the new baseline. The
- * typing guard prevents clobbering in-progress keystrokes that aren't in the transaction yet
+ * An "external resync": the transaction changed elsewhere (e.g. an edit saved from the confirmation step) while
+ * nothing is being typed here, so it becomes the new baseline. The typing guard avoids clobbering in-progress keystrokes.
  */
 function isExternalOdometerResync(state: OdometerResyncState): boolean {
     if (!state.hasTransactionData || !state.hasInitialized || state.isUserTyping) {

@@ -245,18 +245,15 @@ type OdometerUnsavedChangesState = {
 };
 
 /**
- * Decide whether the odometer screen has unsaved changes that warrant a "Discard changes?" prompt.
- * Images diff on a re-mint-invariant identity (name|size) so a non-user blob re-mint doesn't register, and the
- * typing guard does the same for readings. See the draft-suppression clause below for the directional caveat
+ * Decide whether the odometer screen has unsaved changes worth a "Discard changes?" prompt. Both checks ignore
+ * non-user noise: images diff on a re-mint-invariant identity (name|size), and the typing guard skips mid-edit readings
  */
 function getOdometerHasUnsavedChanges(state: OdometerUnsavedChangesState): boolean {
     if (!state.isGuardActive) {
         return false;
     }
     const hasImageChanges = state.transactionStartImageUri !== state.baselineStartImageUri || state.transactionEndImageUri !== state.baselineEndImageUri;
-    // Suppress only when the transaction still EQUALS the draft (spurious baseline drift, not a genuine edit).
-    // isOdometerDraftPendingHydration is directional, so it can't catch a transaction that moved AHEAD of the draft
-    // (changed reading + Next, no re-save) - this reading-equality check and the typing guard do
+    // Suppress only when the transaction still EQUALS the draft (baseline drift is not a real edit).
     const draftReadingsMatchTransaction =
         (state.odometerDraft?.odometerStartReading ?? null) === (state.currentComment?.odometerStart ?? null) &&
         (state.odometerDraft?.odometerEndReading ?? null) === (state.currentComment?.odometerEnd ?? null);

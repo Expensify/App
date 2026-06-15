@@ -11,11 +11,9 @@ function getOdometerImageName(image: FileObject | string | null | undefined): st
 
 /**
  * A re-mint-invariant identity for an odometer image, used in the discard-changes baseline diff.
- *
- * A re-mint (base64 -> blob via `deserializeOdometerDraftImage` on resume/reload, or a blob revoke/recreate)
- * keeps the file `name` and `size` but produces a fresh blob `uri`. So comparing `name|size` stays stable
- * across a re-mint while a different file (different name and/or size) reads as a change. Native images are
- * `file://` uri strings that never re-mint, so the string itself is already a stable identity
+ * Re-minting a blob (on resume/reload, or revoke/recreate) yields a fresh `uri` but keeps `name` and `size`,
+ * so `name|size` stays stable across re-mints while a different file changes it. Native images are `file://`
+ * strings that never re-mint, so the string itself is already a stable identity.
  */
 function getOdometerImageIdentity(image: FileObject | string | null | undefined): string {
     if (!image) {
