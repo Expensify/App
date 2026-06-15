@@ -5,7 +5,6 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import cardScarf from '@assets/images/card-scarf.svg';
 import Badge from '@components/Badge';
-import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -82,8 +81,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const defaultFundID = useDefaultFundID(policyID);
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
-    const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
-    const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FreezeCard', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
@@ -165,27 +162,34 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     };
 
     const handleFreezePress = () => {
-        setIsFreezeModalVisible(true);
-    };
-
-    const handleConfirmFreeze = () => {
-        if (!card) {
-            return;
-        }
-        freezeCardAction(Number(card?.fundID ?? defaultFundID ?? CONST.DEFAULT_NUMBER_ID), card, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-        setIsFreezeModalVisible(false);
+        showConfirmModal({
+            title: `${translate('cardPage.freezeCard')}?`,
+            shouldSetModalVisibility: false,
+            prompt: translate('cardPage.freezeDescription'),
+            confirmText: translate('cardPage.freezeCard'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !card) {
+                return;
+            }
+            freezeCardAction(Number(card?.fundID ?? defaultFundID ?? CONST.DEFAULT_NUMBER_ID), card, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+        });
     };
 
     const handleUnfreezePress = () => {
-        setIsUnfreezeModalVisible(true);
-    };
-
-    const handleConfirmUnfreeze = () => {
-        if (!card) {
-            return;
-        }
-        unfreezeCardAction(Number(card?.fundID ?? defaultFundID ?? CONST.DEFAULT_NUMBER_ID), card, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-        setIsUnfreezeModalVisible(false);
+        showConfirmModal({
+            title: `${translate('cardPage.unfreezeCard')}?`,
+            shouldSetModalVisibility: false,
+            prompt: translate('cardPage.unfreezeDescription'),
+            confirmText: translate('cardPage.unfreezeCard'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !card) {
+                return;
+            }
+            unfreezeCardAction(Number(card?.fundID ?? defaultFundID ?? CONST.DEFAULT_NUMBER_ID), card, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+        });
     };
 
     const spendRule = getSpendRuleByCardID(expensifyCardSettings, cardID);
@@ -413,29 +417,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isOfflineModalVisible}
                         onClose={() => setIsOfflineModalVisible(false)}
-                    />
-                    <ConfirmModal
-                        title={`${translate('cardPage.freezeCard')}?`}
-                        isVisible={isFreezeModalVisible}
-                        onConfirm={handleConfirmFreeze}
-                        onCancel={() => setIsFreezeModalVisible(false)}
-                        onBackdropPress={() => setIsFreezeModalVisible(false)}
-                        shouldSetModalVisibility={false}
-                        prompt={translate('cardPage.freezeDescription')}
-                        confirmText={translate('cardPage.freezeCard')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                    <ConfirmModal
-                        title={`${translate('cardPage.unfreezeCard')}?`}
-                        isVisible={isUnfreezeModalVisible}
-                        onConfirm={handleConfirmUnfreeze}
-                        onCancel={() => setIsUnfreezeModalVisible(false)}
-                        onBackdropPress={() => setIsUnfreezeModalVisible(false)}
-                        shouldSetModalVisibility={false}
-                        prompt={translate('cardPage.unfreezeDescription')}
-                        confirmText={translate('cardPage.unfreezeCard')}
-                        cancelText={translate('common.cancel')}
                     />
                 </ScrollView>
             </ScreenWrapper>
