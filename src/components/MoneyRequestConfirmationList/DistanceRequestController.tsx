@@ -92,7 +92,7 @@ function DistanceRequestController({
         const errorKey = 'iou.error.invalidRate';
         const policyRates = DistanceRequestUtils.getMileageRates(policy);
 
-        if (transaction?.comment?.customUnit?.rateAutoUpdated) {
+        if (isPolicyChanged && transaction?.comment?.customUnit?.rateAutoUpdated) {
             clearMoneyRequestRateAutoUpdated(transactionID);
         }
 
