@@ -38,6 +38,7 @@ import type {
     Vendor,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
+import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
@@ -2379,6 +2380,11 @@ function isPreferredExporter(policy: Policy, currentUserLogin: string) {
     return exporters.some((exporter) => exporter && exporter === currentUserLogin);
 }
 
+/** Whether a workspace has been provisioned with a Spotnana entity. */
+function isWorkspaceProvisionedForTravel(travelSettings?: WorkspaceTravelSettings): boolean {
+    return !!(travelSettings?.spotnanaCompanyID ?? travelSettings?.associatedTravelDomainAccountID);
+}
+
 /**
  * Determines which travel step should be shown based on policy state
  */
@@ -2642,6 +2648,7 @@ export {
     getPolicyEmployeeAccountIDs,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getTravelStep,
+    isWorkspaceProvisionedForTravel,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
     isTimeTrackingEnabled,

@@ -5,7 +5,7 @@ import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isAuthenticationError} from './actions/connections';
 import type {Part} from './actions/Policy/CopyPolicySettings';
-import {isTimeTrackingEnabled} from './PolicyUtils';
+import {isTimeTrackingEnabled, isWorkspaceProvisionedForTravel} from './PolicyUtils';
 
 type FeatureRow = {
     part: Part;
@@ -263,7 +263,7 @@ function getTimeTrackingCopySettingsDescription(policy: Policy | undefined, tran
  * provisioning check in BookTravelButton.
  */
 function isSourceProvisionedForTravel(policy: Policy | undefined): boolean {
-    return !!policy?.travelSettings?.spotnanaCompanyID || !!policy?.travelSettings?.associatedTravelDomainAccountID;
+    return isWorkspaceProvisionedForTravel(policy?.travelSettings);
 }
 
 export {

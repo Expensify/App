@@ -24,6 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 
 function CopyPolicySettingsConfirmPage() {
     const route = useRoute<PlatformStackRouteProp<PolicyCopySettingsNavigatorParamList, typeof SCREENS.POLICY_COPY_SETTINGS.CONFIRM>>();
@@ -43,7 +44,7 @@ function CopyPolicySettingsConfirmPage() {
     const hasLoadedCopyPolicySettings = copyPolicySettingsState !== undefined;
     const hasLoadedPolicies = policies !== undefined;
 
-    const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter((policy) => policy !== undefined);
+    const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter((policy): policy is Policy => policy !== undefined);
 
     // Copying travel from a provisioned source re-provisions each target with its own Spotnana
     // entity, which requires accepting Expensify Travel terms. Capture that consent here.

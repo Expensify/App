@@ -5,6 +5,7 @@ import {buildCopyPolicySettingsData} from '@src/libs/actions/Policy/CopyPolicySe
 import type {Part} from '@src/libs/actions/Policy/CopyPolicySettings';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
+import type CopyPolicySettings from '@src/types/onyx/CopyPolicySettings';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import createRandomPolicy from '../utils/collections/policies';
@@ -128,15 +129,13 @@ function getMergedPolicyPatch(update: CopyPolicySettingsOnyxData['successData'][
     return update.value as Partial<Policy>;
 }
 
-type CopyPolicySettingsStep = {currentStep?: string | null};
-
-function getCopyPolicySettingsStep(update: {value?: unknown} | undefined): CopyPolicySettingsStep | undefined {
+function getCopyPolicySettingsStep(update: {value?: unknown} | undefined): Pick<CopyPolicySettings, 'currentStep'> | undefined {
     if (!update || !('value' in update)) {
         return undefined;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return update.value as CopyPolicySettingsStep;
+    return update.value as Pick<CopyPolicySettings, 'currentStep'>;
 }
 
 describe('actions/Policy/CopyPolicySettings', () => {
