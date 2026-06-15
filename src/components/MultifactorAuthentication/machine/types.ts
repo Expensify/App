@@ -1,11 +1,10 @@
+import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationScenarioConfigFor} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
+import type CONST from '@src/CONST';
 
-/**
- * The modal lifecycle as seen by the view layer, derived 1:1 from the machine's top-level state:
- * `open` -> 'open', `closing` -> 'closing', `idle` -> 'closed'.
- */
-type MfaModalPhase = 'open' | 'closing' | 'closed';
+/** Modal lifecycle phase the view layer reads; the values it can take live in CONST.MULTIFACTOR_AUTHENTICATION.MODAL_PHASE. */
+type MfaModalPhase = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.MODAL_PHASE>;
 
 /**
  * The INIT event that starts a flow, with `scenarioName`, `scenario` config, and `payload` correlated

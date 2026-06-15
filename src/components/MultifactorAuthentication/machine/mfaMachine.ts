@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type {MfaEvent} from './types';
 
+const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 const DEFAULT_CONTEXT: MultifactorAuthenticationState = DEFAULT_STATE;
 
 /**
@@ -59,34 +60,34 @@ const mfaMachine = setup({
     },
 }).createMachine({
     id: 'mfa',
-    initial: 'idle',
+    initial: MFA_STATE.IDLE,
     context: DEFAULT_CONTEXT,
     states: {
-        idle: {
+        [MFA_STATE.IDLE]: {
             // The wipe runs on every (re)entry so no flow data (validate code, challenges, scenario
             // response) outlives the modal.
             entry: ['resetContext', 'resetNavigationBuffer'],
             on: {
                 // Accepted only here: an INIT sent while the modal is open or still closing is
                 // dropped rather than started on dirty state.
-                INIT: {target: 'open', actions: 'initFromEvent'},
+                INIT: {target: MFA_STATE.OPEN, actions: 'initFromEvent'},
             },
         },
-        open: {
-            initial: 'preparing',
+        [MFA_STATE.OPEN]: {
+            initial: MFA_STATE.PREPARING,
             on: {
-                CLOSE_MODAL: {target: 'closing', actions: 'hideCancelConfirm'},
+                CLOSE_MODAL: {target: MFA_STATE.CLOSING, actions: 'hideCancelConfirm'},
             },
             states: {
                 // Transparent initial screen. There is no pre-screen work yet, so it falls straight through;
                 // later slices replace `always` with child states (device check, registration decision, ...).
-                preparing: {
-                    always: 'outcome',
+                [MFA_STATE.PREPARING]: {
+                    always: MFA_STATE.OUTCOME,
                 },
-                outcome: {
-                    initial: 'success',
+                [MFA_STATE.OUTCOME]: {
+                    initial: MFA_STATE.SUCCESS,
                     states: {
-                        success: {
+                        [MFA_STATE.SUCCESS]: {
                             entry: ['markFlowComplete', 'navigateToSuccessOutcome'],
                         },
                     },
@@ -97,12 +98,12 @@ const mfaMachine = setup({
         // stays visible while it slides out. The navigator sends MODAL_CLOSED once the close
         // animation finishes; if it unmounts before that, the event never comes and the
         // `closeFallback` timer re-enters `idle` instead.
-        closing: {
+        [MFA_STATE.CLOSING]: {
             on: {
-                MODAL_CLOSED: 'idle',
+                MODAL_CLOSED: MFA_STATE.IDLE,
             },
             after: {
-                closeFallback: {target: 'idle'},
+                closeFallback: {target: MFA_STATE.IDLE},
             },
         },
     },

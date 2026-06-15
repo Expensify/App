@@ -1,7 +1,11 @@
 import type {SnapshotFrom} from 'xstate';
 import type {MultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/state';
+import CONST from '@src/CONST';
 import type mfaMachine from './mfaMachine';
 import type {MfaModalPhase} from './types';
+
+const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
+const MFA_MODAL_PHASE = CONST.MULTIFACTOR_AUTHENTICATION.MODAL_PHASE;
 
 type MfaSnapshot = SnapshotFrom<typeof mfaMachine>;
 
@@ -9,10 +13,10 @@ type MfaSnapshot = SnapshotFrom<typeof mfaMachine>;
 type MfaState = MultifactorAuthenticationState & {modalPhase: MfaModalPhase};
 
 function getModalPhase(snapshot: MfaSnapshot): MfaModalPhase {
-    if (snapshot.matches('open')) {
-        return 'open';
+    if (snapshot.matches(MFA_STATE.OPEN)) {
+        return MFA_MODAL_PHASE.OPEN;
     }
-    return snapshot.matches('closing') ? 'closing' : 'closed';
+    return snapshot.matches(MFA_STATE.CLOSING) ? MFA_MODAL_PHASE.CLOSING : MFA_MODAL_PHASE.CLOSED;
 }
 
 /**
