@@ -152,4 +152,4 @@ function executeDismissModalStrategy(destinationReportID: string | undefined, ru
     dismissWideToNewReport(destinationReportID, runAfterDismiss);
 }
 
-export {dismissOnly, dismissSuperWideRHP, dismissRHPToReport, dismissWideToNewSearchType, executeDismissModalStrategy, setDismissOnlyPendingActionForCurrentRoute};
+export {dismissOnly, dismissSuperWideRHP, dismissRHPToReport, dismissWideToNewSearchType, executeDismissModalStrategy};
