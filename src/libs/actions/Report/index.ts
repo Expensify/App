@@ -1690,6 +1690,27 @@ function openReport(params: OpenReportActionParams) {
             },
         });
 
+        // Clear optimistic flags once the BE confirms — otherwise pendingAction "add" stays stuck.
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
+            value: {
+                [iouReportActionID]: {
+                    pendingAction: null,
+                    isOptimisticAction: null,
+                },
+            },
+        });
+
+        // Remove the optimistic IOU action on failure so it doesn't persist locally.
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
+            value: {
+                [iouReportActionID]: null,
+            },
+        });
+
         parameters.moneyRequestPreviewReportActionID = iouReportActionID;
 
         // Log how often the legacy transaction fallback path is taken
