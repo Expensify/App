@@ -1911,7 +1911,7 @@ function Search({
                         )
                     }
                     contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                    containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                    containerStyle={[styles.pv0]}
                     onScroll={onSearchListScroll}
                     onEndReachedThreshold={0.75}
                     onEndReached={fetchMoreResults}

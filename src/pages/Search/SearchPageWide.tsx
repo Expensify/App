@@ -120,7 +120,6 @@ function SearchPageWide({
                             <View style={styles.flex1}>
                                 {shouldShowLoadingSkeleton ? (
                                     <SearchLoadingSkeleton
-                                        containerStyle={styles.mt3}
                                         reasonAttributes={{
                                             context: 'SearchPage',
                                             isOffline,
