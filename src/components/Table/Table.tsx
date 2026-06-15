@@ -246,7 +246,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         activeSorting,
         activeSearchString,
         tableMethods,
-        hasActiveFilters: hasActiveFilters,
+        hasActiveFilters,
         hasSearchString: hasActiveSearchString,
         isEmptyResult,
         shouldUseNarrowTableLayout,

@@ -216,7 +216,7 @@ export default function TableRow({
                                         style={styles.flex1}
                                         isChecked={!!item.selected}
                                         accessibilityLabel={translate('common.select')}
-                                        disabled={item.disabled || item.isSelectionDisabled}
+                                        disabled={!!item.disabled || !!item.isSelectionDisabled}
                                         onPress={(event) => handleCheckboxPress(event)}
                                     />
                                 )}

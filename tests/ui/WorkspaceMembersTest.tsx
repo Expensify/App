@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -45,13 +45,16 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.MEMBERS, initialP
 };
 
 const selectCheckboxByMemberName = (memberName: string) => {
-    const memberRowsOrder = ['Owner', 'Admin', 'Auditor', 'Member', 'Self'];
-    const memberIndex = memberRowsOrder.indexOf(memberName);
-    const element = screen.getAllByLabelText(TestHelper.translateLocal('common.select')).at(memberIndex);
-    if (!element) {
-        return;
-    }
-    fireEvent.press(element);
+    const memberEmailByName: Record<string, string> = {
+        Owner: 'owner@gmail.com',
+        Admin: 'admin@example.com',
+        Auditor: 'auditor@example.com',
+        Member: 'user@example.com',
+        Self: 'test@example.com',
+    };
+    const displayName = memberName === 'Owner' || memberName === 'Self' ? memberName : `${memberName} User`;
+    const row = screen.getByLabelText(new RegExp(`^${displayName}, ${memberEmailByName[memberName]}`));
+    fireEvent.press(within(row).getByLabelText(TestHelper.translateLocal('common.select')));
 };
 
 describe('WorkspaceMembers', () => {

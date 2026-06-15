@@ -65,6 +65,10 @@ export default function useSelection<DataType extends TableData>({
     const selectableKeys = data.filter((item) => !item.disabled && !item.isSelectionDisabled).map((item) => item.keyForList);
     const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
 
+    const clearSelection = () => {
+        onRowSelectionChange?.([]);
+    };
+
     // Sync the selection mode with the screen size & selection state
     useEffect(() => {
         const isMobileMissingSelectionMode = shouldUseNarrowLayout && !isSelectionModeEnabled && selectedKeys.length;
@@ -76,25 +80,20 @@ export default function useSelection<DataType extends TableData>({
         } else if (isDesktopWithoutSelectableKeys || isSelectionModeEnabledWithoutSelectableKeys) {
             turnOffMobileSelectionMode();
         }
-    }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount]);
+    }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount, selectableKeys.length]);
 
     // When selection mode is turned off, clear the list of selected keys, so that re-enabling selection mode doesn't retain rows
     const wasSelectionModeEnabled = usePrevious(isSelectionModeEnabled);
     useEffect(() => {
-        if (wasSelectionModeEnabled && !isSelectionModeEnabled) {
-            clearSelection();
+        if (!wasSelectionModeEnabled || isSelectionModeEnabled) {
+            return;
         }
-    }, [isSelectionModeEnabled, selectedKeys.length]);
+
+        clearSelection();
+    }, [isSelectionModeEnabled, selectedKeys.length, clearSelection, wasSelectionModeEnabled]);
 
     // When the table filters change, clear the current selection
-    useEffect(() => clearSelection(), [currentFilters]);
-
-    /**
-     * Clear all of the currently selected keys
-     */
-    const clearSelection = () => {
-        onRowSelectionChange?.([]);
-    };
+    useEffect(() => clearSelection(), [currentFilters, clearSelection]);
 
     /**
      * When the select all checkbox is toggled, select or deselect all of the

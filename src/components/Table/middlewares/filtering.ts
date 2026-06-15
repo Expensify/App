@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import type {TableData} from '@components/Table/types';
+import {getObjectKeys} from '@libs/ObjectUtils';
 import type {Middleware, MiddlewareHookResult} from './types';
 
 /**
@@ -110,7 +111,7 @@ function useFiltering<DataType extends TableData, FilterKey extends string = str
     };
 
     const hasActiveFilters = filters
-        ? (Object.keys(currentFilters) as FilterKey[]).some((key) => {
+        ? getObjectKeys(currentFilters).some((key) => {
               const filterValue = currentFilters[key];
               const defaultValue = filters[key]?.default;
               return filterValue !== defaultValue;
@@ -150,7 +151,7 @@ function filter<DataType extends TableData, FilterKey extends string = string>({
         return data;
     }
 
-    const filterKeys = Object.keys(filters) as FilterKey[];
+    const filterKeys = getObjectKeys(filters);
 
     return data.filter((item) => {
         return filterKeys.every((filterKey) => {
