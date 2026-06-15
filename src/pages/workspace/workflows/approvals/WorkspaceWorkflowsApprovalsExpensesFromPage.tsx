@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {canEditWorkspaceSettings, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -114,15 +115,19 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         setSelectedMembers(
             approvalWorkflow.members
                 .filter((member) => {
-                    const isPolicyMember = !!policy?.employeeList?.[member.email];
+                    // A freshly invited phone number is stored here by its bare E.164 login, but the
+                    // policy keys it by the SMS-domain form (+15551234567@expensify.sms). Normalize
+                    // before the policy lookup so the just-invited member isn't dropped on return.
+                    const isPolicyMember = !!policy?.employeeList?.[addSMSDomainIfPhoneNumber(member.email)];
                     // Keep policy members. For non-policy members, only keep if they're
                     // in the invite draft (meaning an invite flow is actively in progress).
                     // This mirrors the card flow's handleBackButtonPress cleanup pattern.
                     return isPolicyMember || invitedEmailsToAccountIDsDraft?.[member.email] != null;
                 })
                 .map((member) => {
-                    let accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
-                    const isPolicyMember = !!policy?.employeeList?.[member.email];
+                    const normalizedEmail = addSMSDomainIfPhoneNumber(member.email);
+                    let accountID = Number(policyMemberEmailsToAccountIDs[normalizedEmail] ?? '');
+                    const isPolicyMember = !!policy?.employeeList?.[normalizedEmail];
 
                     const personalDetail = getPersonalDetailByEmail(member.email);
 
@@ -154,7 +159,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         // Only show right element for policy members
                         rightElement: isPolicyMember ? (
                             <MemberRightIcon
-                                role={policy?.employeeList?.[member.email]?.role}
+                                role={policy?.employeeList?.[normalizedEmail]?.role}
                                 owner={policy?.owner}
                                 login={login}
                             />
@@ -208,7 +213,12 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 };
             })
             .filter(
-                (member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !selectedMembers.some((selectedOption) => selectedOption.login === member.login),
+                // liveAvailableMembers come from policy.employeeList, so a phone member's login is the
+                // SMS-domain form, whereas a freshly invited member's selectedMembers login is still the
+                // bare E.164. Normalize both sides so the invitee isn't listed twice (selected + available).
+                (member) =>
+                    (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) &&
+                    !selectedMembers.some((selectedOption) => addSMSDomainIfPhoneNumber(selectedOption.login ?? '') === member.login),
             );
 
         members.push(...availableMembers);
@@ -278,7 +288,10 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         // and fail backend validation with "Approvals can only be set for
         // members of the policy".
         const stagedMembers = approvalWorkflow?.members ?? [];
-        const confirmedMembers = stagedMembers.filter((m) => !!policy?.employeeList?.[m.email]);
+        // A just-invited phone member is staged by its bare E.164 login but keyed in the policy by the
+        // SMS-domain form, so normalize before checking membership; otherwise a confirmed invitee would
+        // be treated as never invited and its selection dropped on back.
+        const confirmedMembers = stagedMembers.filter((m) => !!policy?.employeeList?.[addSMSDomainIfPhoneNumber(m.email)]);
         if (confirmedMembers.length !== stagedMembers.length) {
             setApprovalWorkflowMembers(confirmedMembers);
         }
@@ -312,12 +325,18 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             if (!member.login) {
                 continue;
             }
-            const isPolicyMember = policy?.employeeList?.[member.login];
+            // A freshly invited phone number is stored in approvalWorkflow.members by its bare
+            // E.164 login, but the policy keys it by the SMS-domain form (+15551234567@expensify.sms),
+            // so normalize before checking whether it's already a workspace member.
+            const normalizedLogin = addSMSDomainIfPhoneNumber(member.login);
+            const isPolicyMember = policy?.employeeList?.[normalizedLogin];
             if (isPolicyMember) {
                 existingMembers.push({
                     displayName: member.text ?? '',
                     avatar: member.icons?.at(0)?.source,
-                    email: member.login,
+                    // Use the SMS-domain form the policy is keyed by so the backend matches this member
+                    // and doesn't reject the workflow with "Approvals can only be set for members of the policy".
+                    email: normalizedLogin,
                 });
             } else {
                 // This is a non-workspace member that needs to be invited
@@ -432,7 +451,10 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         email: member.login,
                         avatar: typeof iconSource === 'string' ? iconSource : undefined,
                     });
-                    if (policy?.employeeList?.[member.login]) {
+                    // The policy keys phone members by their SMS-domain form (+15551234567@expensify.sms),
+                    // so normalize before checking membership; otherwise an existing phone member would be
+                    // re-added to the invite draft.
+                    if (policy?.employeeList?.[addSMSDomainIfPhoneNumber(member.login)]) {
                         continue;
                     }
                     const iconId = member.icons?.at(0)?.id;
