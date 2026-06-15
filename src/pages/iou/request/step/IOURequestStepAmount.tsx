@@ -350,6 +350,7 @@ function IOURequestStepAmount({
                             optimisticChatReportID,
                             optimisticTransactionID,
                             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                            shouldHandleNavigation: overrides.shouldHandleNavigation,
                         });
                     } else {
                         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -384,9 +385,10 @@ function IOURequestStepAmount({
                             personalDetails,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            shouldHandleNavigation: overrides.shouldHandleNavigation,
                         });
                     }
-                    cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                    cleanupAfterSkipConfirmSubmit({
                         report,
                         action,
                         draftTransactionIDs,

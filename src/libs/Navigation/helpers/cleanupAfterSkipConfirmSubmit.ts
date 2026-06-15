@@ -1,16 +1,13 @@
 import cleanupAfterExpenseCreate from './cleanupAfterExpenseCreate';
-import cleanupAndNavigateAfterExpenseCreate from './cleanupAndNavigateAfterExpenseCreate';
 import type {CleanupAndNavigateAfterExpenseCreateParams} from './cleanupAndNavigateAfterExpenseCreate';
 
 /**
- * Skip-confirmation cleanup dispatcher: `shouldHandleNavigation` (from `submitWithDismissFirst`) picks
- * cleanup-only vs cleanup-and-navigate. The skip-confirm analog of `useExpenseSubmission`'s `performPostBatchCleanup`.
+ * Cleanup-only after a skip-confirmation submit. The skip-confirm analog of `useExpenseSubmission`'s
+ * `performPostBatchCleanup`: the write action now owns post-creation navigation (via its own
+ * `shouldHandleNavigation`), so cleanup must never navigate too or the fallback path would run
+ * navigation/growl twice. Navigation on dismiss-first paths is done by `submitWithDismissFirst`.
  */
-function cleanupAfterSkipConfirmSubmit(shouldHandleNavigation: boolean, params: CleanupAndNavigateAfterExpenseCreateParams) {
-    if (shouldHandleNavigation) {
-        cleanupAndNavigateAfterExpenseCreate(params);
-        return;
-    }
+function cleanupAfterSkipConfirmSubmit(params: CleanupAndNavigateAfterExpenseCreateParams) {
     cleanupAfterExpenseCreate({draftTransactionIDs: params.draftTransactionIDs, linkedTrackedExpenseReportAction: params.linkedTrackedExpenseReportAction});
 }
 

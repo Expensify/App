@@ -28,16 +28,8 @@ describe('cleanupAfterSkipConfirmSubmit', () => {
         jest.clearAllMocks();
     });
 
-    it('should delegate to cleanupAndNavigateAfterExpenseCreate with the full params when shouldHandleNavigation is true', () => {
-        cleanupAfterSkipConfirmSubmit(true, params);
-
-        expect(cleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
-        expect(cleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(params);
-        expect(cleanupAfterExpenseCreate).not.toHaveBeenCalled();
-    });
-
-    it('should delegate only the cleanup-relevant subset to cleanupAfterExpenseCreate when shouldHandleNavigation is false', () => {
-        cleanupAfterSkipConfirmSubmit(false, params);
+    it('should delegate only the cleanup-relevant subset to cleanupAfterExpenseCreate and never navigate (the write action owns navigation)', () => {
+        cleanupAfterSkipConfirmSubmit(params);
 
         expect(cleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
         expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith({
