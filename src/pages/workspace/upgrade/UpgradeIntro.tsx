@@ -60,7 +60,9 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const formattedPrice = useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const shouldUseTeamPricing = isCategorizing || isDistanceRateUpgrade || isReporting || isSubmitFeature || upgradePlanType === CONST.POLICY.TYPE.TEAM;
+        const matchesTeamPricingHeuristics = isCategorizing || isDistanceRateUpgrade || isReporting || isSubmitFeature || upgradePlanType === CONST.POLICY.TYPE.TEAM;
+        // An explicit upgradePlanType (chosen in the Plan RHP) is authoritative over the feature-based heuristics, so pricing matches the plan title shown in GenericFeaturesView.
+        const shouldUseTeamPricing = upgradePlanType === CONST.POLICY.TYPE.CORPORATE ? false : matchesTeamPricingHeuristics;
         return `${convertToShortDisplayString(
             CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
             upgradeCurrency,
