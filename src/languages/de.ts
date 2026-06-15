@@ -7396,15 +7396,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
             agentRules: {
                 title: 'Agent-Regeln',
-                subtitle: 'Beschreiben Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen',
+                subtitle: 'Beschreiben Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen.',
                 addRule: 'Agent-Regel hinzufügen',
                 findRule: 'Agent-Regel finden',
                 addRuleTitle: 'Regel hinzufügen',
                 editRuleTitle: 'Regel bearbeiten',
                 deleteRule: 'Regel löschen',
                 deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
-                describeRuleTitle: 'Beschreiben Sie Ihre Regel',
-                describeRuleSubtitle: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
+                describeRuleTitle: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
                 disclaimer: 'KI-Agenten können Fehler machen.',
                 agentCreatedTitle: 'RuleBot wurde zu Ihrem Arbeitsbereich hinzugefügt!',
                 agentCreatedDescription: (agentsRoute: string) =>

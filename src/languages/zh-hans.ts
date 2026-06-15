@@ -7166,15 +7166,14 @@ ${reportName}
             },
             agentRules: {
                 title: '代理规则',
-                subtitle: '描述在你需要时运行的灵活规则',
+                subtitle: '描述在你需要时运行的灵活规则。',
                 addRule: '添加代理规则',
                 findRule: '查找代理规则',
                 addRuleTitle: '添加规则',
                 editRuleTitle: '编辑规则',
                 deleteRule: '删除规则',
                 deleteRuleConfirmation: '确定要删除此规则吗？',
-                describeRuleTitle: '描述你的规则',
-                describeRuleSubtitle: '描述你的规则，我们会由 Concierge 为你创建',
+                describeRuleTitle: '描述你的规则，我们会由 Concierge 为你创建',
                 disclaimer: 'AI 智能体可能会犯错。',
                 agentCreatedTitle: 'RuleBot 已添加到你的工作区!',
                 agentCreatedDescription: (agentsRoute: string) =>

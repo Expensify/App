@@ -7298,15 +7298,14 @@ ${reportName}
             },
             agentRules: {
                 title: 'エージェント ルール',
-                subtitle: '必要なときに実行される柔軟なルールを記述します',
+                subtitle: '必要なときに実行される柔軟なルールを記述します。',
                 addRule: 'エージェント ルールを追加',
                 findRule: 'エージェント ルールを検索',
                 addRuleTitle: 'ルールを追加',
                 editRuleTitle: 'ルールを編集',
                 deleteRule: 'ルールを削除',
                 deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
-                describeRuleTitle: 'ルールの内容を記入してください',
-                describeRuleSubtitle: 'ルールの内容を入力すると、Concierge が自動作成します',
+                describeRuleTitle: 'ルールの内容を入力すると、Concierge が自動作成します',
                 disclaimer: 'AI エージェントは間違える場合があります。',
                 agentCreatedTitle: 'RuleBot がワークスペースに追加されました!',
                 agentCreatedDescription: (agentsRoute: string) =>

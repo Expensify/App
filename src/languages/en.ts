@@ -7506,15 +7506,14 @@ const translations = {
             },
             agentRules: {
                 title: 'Agent Rules',
-                subtitle: 'Describe flexible rules that run when you need them',
+                subtitle: 'Describe flexible rules that run when you need them.',
                 addRule: 'Add Agent rule',
                 findRule: 'Find Agent rule',
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
                 deleteRule: 'Delete rule',
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
-                describeRuleTitle: 'Describe your rule',
-                describeRuleSubtitle: 'Describe your rule and Concierge will build it',
+                describeRuleTitle: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>

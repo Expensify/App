@@ -137,10 +137,6 @@ function AddAgentRulePage({
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
                 >
                     <View style={styles.flex1}>
-                        <View style={[styles.gap2, styles.mv4]}>
-                            <Text style={[styles.textHeadlineH2]}>{translate('workspace.rules.agentRules.describeRuleTitle')}</Text>
-                            <Text style={[styles.textSupporting]}>{translate('workspace.rules.agentRules.describeRuleSubtitle')}</Text>
-                        </View>
                         <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
                             <InputWrapper
                                 InputComponent={TextInput}
@@ -150,6 +146,7 @@ function AddAgentRulePage({
                                 role={CONST.ROLE.PRESENTATION}
                                 onKeyPress={handleKeyPress}
                                 multiline
+                                shouldLabelStayOnSingleLine
                                 containerStyles={[styles.flex1]}
                                 touchableInputWrapperStyle={[styles.flex1]}
                                 textInputContainerStyles={[styles.flex1]}

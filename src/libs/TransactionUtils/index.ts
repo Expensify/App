@@ -183,7 +183,10 @@ function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'
 }
 
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
-    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
+    if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
+        return true;
+    }
+    return transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
 }
 
 function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
