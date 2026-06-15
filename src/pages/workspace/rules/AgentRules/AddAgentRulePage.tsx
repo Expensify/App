@@ -100,10 +100,13 @@ function AddAgentRulePage({
             iconHeight: variables.iconSizeUltraLarge,
             iconAdditionalStyles: {borderRadius: variables.iconSizeUltraLarge / 2, overflow: 'hidden', marginTop: 12},
         }).then(() => {
-            Navigation.goBack();
             if (linkPressedRef.current) {
-                Navigation.navigate(ROUTES.SETTINGS_AGENTS);
+                // Dismiss the RHP fully before navigating so it isn't left in the browser history,
+                // otherwise pressing the browser back button from the Agents page reopens this RHP.
+                Navigation.dismissModal({afterTransition: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS)});
+                return;
             }
+            Navigation.goBack();
         });
     };
 
