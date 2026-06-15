@@ -13,28 +13,28 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {clearPolicyAIRuleErrors} from '@userActions/Policy/Rules';
+import {clearPolicyAgentRuleErrors} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type AIRulesSectionProps = {
+type AgentRulesSectionProps = {
     policyID: string;
     canWriteRules: boolean;
     showReadOnlyModal: () => void;
 };
 
-function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSectionProps) {
+function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const aiRules = policy?.rules?.aiRules;
-    const hasRules = !isEmptyObject(aiRules);
+    const agentRules = policy?.rules?.agentRules;
+    const hasRules = !isEmptyObject(agentRules);
 
-    const sortedRules = Object.entries(aiRules ?? {})
+    const sortedRules = Object.entries(agentRules ?? {})
         .filter(([, rule]) => !!rule)
         .map(([ruleID, rule]) => ({...rule, ruleID}))
         .sort((a, b) => {
@@ -50,9 +50,9 @@ function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSec
 
     const renderTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.aiRules.title')}</Text>
+            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.agentRules.title')}</Text>
             <Badge
-                text={translate('common.newFeature')}
+                text={translate('common.beta')}
                 isCondensed
                 success
             />
@@ -63,7 +63,7 @@ function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSec
         <Section
             isCentralPane
             renderTitle={renderTitle}
-            subtitle={translate('workspace.rules.aiRules.subtitle')}
+            subtitle={translate('workspace.rules.agentRules.subtitle')}
             subtitleMuted
             childrenStyles={[styles.gap3]}
         >
@@ -75,7 +75,7 @@ function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSec
                                 <OfflineWithFeedback
                                     pendingAction={rule.pendingAction}
                                     errors={rule.errors}
-                                    onClose={() => clearPolicyAIRuleErrors(policyID, rule.ruleID, rule)}
+                                    onClose={() => clearPolicyAgentRuleErrors(policyID, rule.ruleID, rule)}
                                 >
                                     <MenuItemWithTopDescription
                                         title={(rule.title ?? rule.prompt).replaceAll(/\s+/g, ' ').trim()}
@@ -87,9 +87,9 @@ function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSec
                                                 showReadOnlyModal();
                                                 return;
                                             }
-                                            Navigation.navigate(ROUTES.RULES_AI_EDIT.getRoute(policyID, rule.ruleID));
+                                            Navigation.navigate(ROUTES.RULES_AGENT_EDIT.getRoute(policyID, rule.ruleID));
                                         }}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AI_RULE_ITEM}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_ITEM}
                                         disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                                     />
                                 </OfflineWithFeedback>
@@ -99,7 +99,7 @@ function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSec
                 </View>
             )}
             <MenuItem
-                title={translate('workspace.rules.aiRules.addRule')}
+                title={translate('workspace.rules.agentRules.addRule')}
                 titleStyle={styles.textStrong}
                 icon={expensifyIcons.Plus}
                 iconHeight={20}
@@ -110,12 +110,12 @@ function AIRulesSection({policyID, canWriteRules, showReadOnlyModal}: AIRulesSec
                         showReadOnlyModal();
                         return;
                     }
-                    Navigation.navigate(ROUTES.RULES_AI_NEW.getRoute(policyID));
+                    Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID));
                 }}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_AI_RULE}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_AGENT_RULE}
             />
         </Section>
     );
 }
 
-export default AIRulesSection;
+export default AgentRulesSection;

@@ -247,7 +247,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.AGENTS.ADD]: {
         policyID?: string;
-        workflowApproverEmail?: string;
     };
     [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: undefined;
     [SCREENS.SETTINGS.AGENTS.EDIT]: {
@@ -1538,10 +1537,10 @@ type SettingsNavigatorParamList = {
         ruleID: string;
         merchantIndex: string;
     };
-    [SCREENS.WORKSPACE.RULES_AI_NEW]: {
+    [SCREENS.WORKSPACE.RULES_AGENT_NEW]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.RULES_AI_EDIT]: {
+    [SCREENS.WORKSPACE.RULES_AGENT_EDIT]: {
         policyID: string;
         ruleID: string;
     };
@@ -2775,23 +2774,6 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
         policyID: string;
         firstApproverEmail: string;
-
-        /**
-         * Optional email of a person/agent to seed as approver[0] when the editor mounts. Used by
-         * the inline Add Agent flow on the Workflows page so the freshly-created agent can be
-         * dropped into the workflow without coordinating cross-page state.
-         */
-        seedApproverEmail?: string;
-
-        /**
-         * Optional optimistic accountID of an agent that was just created locally but does not
-         * have a server-assigned email yet. The Edit Approvers screen reads the personal
-         * details by accountID and seeds the workflow with whatever is there (display name,
-         * avatar, optimistic pendingAction). When the CREATE_AGENT response arrives the
-         * personal detail is upgraded with the real login, which then becomes the approver
-         * email for the workflow save.
-         */
-        seedApproverAccountID?: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
         policyID: string;
@@ -2813,10 +2795,6 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER]: {
         policyID: string;
         approverIndex: number;
-    };
-    [SCREENS.WORKSPACE.WORKFLOWS_ADD_AGENT]: {
-        policyID: string;
-        workflowApproverEmail?: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;

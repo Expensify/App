@@ -5,7 +5,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import Navigation from '@libs/Navigation/Navigation';
-import AIRulesSection from '@pages/workspace/rules/AIRulesSection';
+import AgentRulesSection from '@pages/workspace/rules/AgentRulesSection';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -54,7 +54,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@userActions/Policy/Rules', () => ({
-    clearPolicyAIRuleErrors: jest.fn(),
+    clearPolicyAgentRuleErrors: jest.fn(),
 }));
 
 const mockedUsePolicy = jest.mocked(usePolicy);
@@ -65,8 +65,8 @@ const mockedNavigate = jest.mocked(Navigation.navigate);
 
 const POLICY_ID = 'POLICY_ID_1';
 
-function setPolicyAIRules(aiRules: Record<string, unknown> | undefined) {
-    (mockedUsePolicy as jest.Mock).mockReturnValue({rules: {aiRules}});
+function setPolicyAgentRules(agentRules: Record<string, unknown> | undefined) {
+    (mockedUsePolicy as jest.Mock).mockReturnValue({rules: {agentRules}});
 }
 
 function getRuleTitles(): string[] {
@@ -75,7 +75,7 @@ function getRuleTitles(): string[] {
 
 const mockKeyboardEvent = new KeyboardEvent('keydown');
 
-describe('AIRulesSection', () => {
+describe('AgentRulesSection', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockedUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
@@ -83,12 +83,12 @@ describe('AIRulesSection', () => {
 
     describe('title rendering', () => {
         it('uses rule.title when set', () => {
-            setPolicyAIRules({
+            setPolicyAgentRules({
                 r1: {ruleID: 'r1', prompt: 'Long prompt text', title: 'Short title', created: '2026-01-01 00:00:00'},
             });
 
             render(
-                <AIRulesSection
+                <AgentRulesSection
                     policyID={POLICY_ID}
                     canWriteRules
                     showReadOnlyModal={jest.fn()}
@@ -99,12 +99,12 @@ describe('AIRulesSection', () => {
         });
 
         it('falls back to rule.prompt when title is missing', () => {
-            setPolicyAIRules({
+            setPolicyAgentRules({
                 r1: {ruleID: 'r1', prompt: 'Prompt only', created: '2026-01-01 00:00:00'},
             });
 
             render(
-                <AIRulesSection
+                <AgentRulesSection
                     policyID={POLICY_ID}
                     canWriteRules
                     showReadOnlyModal={jest.fn()}
@@ -115,12 +115,12 @@ describe('AIRulesSection', () => {
         });
 
         it('collapses whitespace and trims', () => {
-            setPolicyAIRules({
+            setPolicyAgentRules({
                 r1: {ruleID: 'r1', prompt: '  hello\n\n  world  \t!  ', created: '2026-01-01 00:00:00'},
             });
 
             render(
-                <AIRulesSection
+                <AgentRulesSection
                     policyID={POLICY_ID}
                     canWriteRules
                     showReadOnlyModal={jest.fn()}
@@ -133,14 +133,14 @@ describe('AIRulesSection', () => {
 
     describe('rule list filtering and sorting', () => {
         it('sorts rules by created desc', () => {
-            setPolicyAIRules({
+            setPolicyAgentRules({
                 r1: {ruleID: 'r1', prompt: 'first', title: 'A', created: '2026-01-01 00:00:00'},
                 r2: {ruleID: 'r2', prompt: 'second', title: 'B', created: '2026-02-01 00:00:00'},
                 r3: {ruleID: 'r3', prompt: 'third', title: 'C', created: '2026-03-01 00:00:00'},
             });
 
             render(
-                <AIRulesSection
+                <AgentRulesSection
                     policyID={POLICY_ID}
                     canWriteRules
                     showReadOnlyModal={jest.fn()}
@@ -151,7 +151,7 @@ describe('AIRulesSection', () => {
         });
 
         it('hides pending-delete rules when online', () => {
-            setPolicyAIRules({
+            setPolicyAgentRules({
                 r1: {ruleID: 'r1', prompt: 'keep', title: 'Keep', created: '2026-01-01 00:00:00'},
                 r2: {
                     ruleID: 'r2',
@@ -163,7 +163,7 @@ describe('AIRulesSection', () => {
             });
 
             render(
-                <AIRulesSection
+                <AgentRulesSection
                     policyID={POLICY_ID}
                     canWriteRules
                     showReadOnlyModal={jest.fn()}
@@ -175,7 +175,7 @@ describe('AIRulesSection', () => {
 
         it('keeps pending-delete rules when offline so OfflineWithFeedback can style them', () => {
             mockedUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
-            setPolicyAIRules({
+            setPolicyAgentRules({
                 r1: {ruleID: 'r1', prompt: 'keep', title: 'Keep', created: '2026-01-01 00:00:00'},
                 r2: {
                     ruleID: 'r2',
@@ -187,7 +187,7 @@ describe('AIRulesSection', () => {
             });
 
             render(
-                <AIRulesSection
+                <AgentRulesSection
                     policyID={POLICY_ID}
                     canWriteRules
                     showReadOnlyModal={jest.fn()}
@@ -198,10 +198,10 @@ describe('AIRulesSection', () => {
         });
 
         it('renders no rule items when policy has none', () => {
-            setPolicyAIRules(undefined);
+            setPolicyAgentRules(undefined);
 
             render(
-                <AIRulesSection
+                <AgentRulesSection
                     policyID={POLICY_ID}
                     canWriteRules
                     showReadOnlyModal={jest.fn()}
@@ -213,11 +213,11 @@ describe('AIRulesSection', () => {
     });
 
     describe('add rule button', () => {
-        it('navigates to RULES_AI_NEW when user has write access', () => {
-            setPolicyAIRules(undefined);
+        it('navigates to RULES_AGENT_NEW when user has write access', () => {
+            setPolicyAgentRules(undefined);
 
             render(
-                <AIRulesSection
+                <AgentRulesSection
                     policyID={POLICY_ID}
                     canWriteRules
                     showReadOnlyModal={jest.fn()}
@@ -227,15 +227,15 @@ describe('AIRulesSection', () => {
             const onPress = mockedMenuItem.mock.calls.at(0)?.at(0)?.onPress;
             onPress?.(mockKeyboardEvent);
 
-            expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.RULES_AI_NEW.getRoute(POLICY_ID));
+            expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_NEW.getRoute(POLICY_ID));
         });
 
         it('calls showReadOnlyModal when user lacks write access', () => {
             const showReadOnlyModal = jest.fn();
-            setPolicyAIRules(undefined);
+            setPolicyAgentRules(undefined);
 
             render(
-                <AIRulesSection
+                <AgentRulesSection
                     policyID={POLICY_ID}
                     canWriteRules={false}
                     showReadOnlyModal={showReadOnlyModal}
@@ -251,13 +251,13 @@ describe('AIRulesSection', () => {
     });
 
     describe('rule item press', () => {
-        it('navigates to RULES_AI_EDIT when user has write access', () => {
-            setPolicyAIRules({
+        it('navigates to RULES_AGENT_EDIT when user has write access', () => {
+            setPolicyAgentRules({
                 r1: {ruleID: 'r1', prompt: 'p', title: 'T', created: '2026-01-01 00:00:00'},
             });
 
             render(
-                <AIRulesSection
+                <AgentRulesSection
                     policyID={POLICY_ID}
                     canWriteRules
                     showReadOnlyModal={jest.fn()}
@@ -267,17 +267,17 @@ describe('AIRulesSection', () => {
             const onPress = mockedMenuItemWithTopDescription.mock.calls.at(0)?.at(0)?.onPress;
             onPress?.(mockKeyboardEvent);
 
-            expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.RULES_AI_EDIT.getRoute(POLICY_ID, 'r1'));
+            expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_EDIT.getRoute(POLICY_ID, 'r1'));
         });
 
         it('calls showReadOnlyModal when user lacks write access', () => {
             const showReadOnlyModal = jest.fn();
-            setPolicyAIRules({
+            setPolicyAgentRules({
                 r1: {ruleID: 'r1', prompt: 'p', title: 'T', created: '2026-01-01 00:00:00'},
             });
 
             render(
-                <AIRulesSection
+                <AgentRulesSection
                     policyID={POLICY_ID}
                     canWriteRules={false}
                     showReadOnlyModal={showReadOnlyModal}
