@@ -488,4 +488,25 @@ describe('DistanceRequestUtils', () => {
             expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
         });
     });
+
+    describe('isRateEligibleForDate', () => {
+        const boundedRate = {
+            customUnitRateID: 'rate_1',
+            rate: 65,
+            startDate: '2025-01-01',
+            endDate: '2025-12-31',
+        };
+
+        it('should treat a DB timestamp on the inclusive end date as eligible', () => {
+            expect(DistanceRequestUtils.isRateEligibleForDate(boundedRate, '2025-12-31 10:00:00')).toBe(true);
+        });
+
+        it('should treat a DB timestamp on the inclusive start date as eligible', () => {
+            expect(DistanceRequestUtils.isRateEligibleForDate(boundedRate, '2025-01-01 08:30:00')).toBe(true);
+        });
+
+        it('should treat a DB timestamp after the end date as ineligible', () => {
+            expect(DistanceRequestUtils.isRateEligibleForDate(boundedRate, '2026-01-01 00:00:00')).toBe(false);
+        });
+    });
 });

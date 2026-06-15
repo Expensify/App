@@ -10,6 +10,7 @@ import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import DateUtils from './DateUtils';
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
@@ -347,10 +348,15 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
  * Missing bounds mean unbounded in that direction.
  */
 function isRateEligibleForDate(rate: MileageRate, expenseDate: string): boolean {
-    if (rate.startDate && expenseDate < rate.startDate) {
+    const normalizedExpenseDate = DateUtils.formatWithUTCTimeZone(expenseDate, CONST.DATE.FNS_FORMAT_STRING);
+    if (!normalizedExpenseDate) {
+        return true;
+    }
+
+    if (rate.startDate && normalizedExpenseDate < rate.startDate) {
         return false;
     }
-    if (rate.endDate && expenseDate > rate.endDate) {
+    if (rate.endDate && normalizedExpenseDate > rate.endDate) {
         return false;
     }
     return true;

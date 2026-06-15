@@ -8,6 +8,7 @@ import {setCustomUnitRateID, setMoneyRequestAmount, setMoneyRequestMerchant, set
 import {setSplitShares} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
+import {getCreated} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -178,7 +179,7 @@ function DistanceRequestController({
         }
 
         let rateToUse = lastSelectedRate;
-        const expenseDate = transaction?.created;
+        const expenseDate = getCreated(transaction);
         if (expenseDate) {
             const mileageRates = DistanceRequestUtils.getMileageRates(policy);
             const lastRate = lastSelectedRate ? mileageRates[lastSelectedRate] : undefined;

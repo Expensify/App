@@ -38,7 +38,7 @@ import {
     isScanning,
     removeTransactionFromDuplicateTransactionViolation,
 } from '@libs/TransactionUtils';
-import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -2132,18 +2132,11 @@ function getUpdateTrackExpenseParams(
             ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE)
             : currentTransactionViolations;
 
-        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
-            updatedTransaction,
-            transactionViolations: optimisticViolations,
-            policy: policyForTransaction,
-            policyTagList: {},
-            policyCategories: {},
-            hasDependentTags: hasDependentTags(policyForTransaction, {}),
-            isInvoiceTransaction: false,
-            isSelfDM: isSelfDM(chatReport),
-            iouReport: chatReport ?? undefined,
-            isFromExpenseReport: false,
-        });
+        const violationsOnyxData = {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: syncCustomUnitRateOutOfDateRangeViolation(optimisticViolations, updatedTransaction, policyForTransaction),
+        };
         optimisticData.push(violationsOnyxData);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,

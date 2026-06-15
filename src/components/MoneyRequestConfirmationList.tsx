@@ -23,6 +23,7 @@ import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getCategory,
+    getCreated,
     getCurrency,
     getMerchant,
     getRateID,
@@ -555,7 +556,7 @@ function MoneyRequestConfirmationList({
                     distanceRateName: mileageRate.name,
                     distanceRateCurrency: currency,
                     mileageRate,
-                    expenseDate: transaction?.created,
+                    expenseDate: getCreated(transaction),
                     customUnitRateID,
                     shouldShowRateAutoUpdatedTooltip,
                 }}
