@@ -29,7 +29,10 @@ const mfaMachine = setup({
     },
     /* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
     actions: {
-        initFromEvent: assign(({event}) => {
+        // Seeds the flow's context from the INIT event. A named action's event is typed as the full
+        // MfaEvent union, so the guard narrows it to INIT to read the scenario fields; INIT is the only
+        // transition wired here, so that early return is unreachable (it just satisfies the type checker).
+        initFlow: assign(({event}) => {
             if (event.type !== 'INIT') {
                 return {};
             }
@@ -46,12 +49,14 @@ const mfaMachine = setup({
             // success screen slides in with a measured width (Android animation race).
             Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS));
         },
-        hideCancelConfirm: assign({isCancelConfirmVisible: false}),
+        // Runs on CLOSE_MODAL: drops the cancel-confirmation modal so it cannot linger over the
+        // closing navigator (CLOSE_MODAL can fire without the flow completing, e.g. an offline cancel).
+        hideCancelConfirmModal: assign({isCancelConfirmVisible: false}),
         resetContext: assign(() => ({...DEFAULT_CONTEXT})),
         // Clears the module-level navigation buffer (pendingNavigation/hasInitialLaidOut). Owned by
         // the machine so a navigator that unmounts mid-close cannot leave a stale buffered screen
         // behind for the next flow.
-        resetNavigationBuffer: () => resetMfaNavigation(),
+        clearModalOpenNavigationState: () => resetMfaNavigation(),
     },
     delays: {
         // How long `closing` waits for MODAL_CLOSED before re-entering `closed` on its own; longer
@@ -66,17 +71,17 @@ const mfaMachine = setup({
         [MFA_STATE.CLOSED]: {
             // The wipe runs on every (re)entry so no flow data (validate code, challenges, scenario
             // response) outlives the modal.
-            entry: ['resetContext', 'resetNavigationBuffer'],
+            entry: ['resetContext', 'clearModalOpenNavigationState'],
             on: {
                 // Accepted only here: an INIT sent while the modal is open or still closing is
                 // dropped rather than started on dirty state.
-                INIT: {target: MFA_STATE.OPEN, actions: 'initFromEvent'},
+                INIT: {target: MFA_STATE.OPEN, actions: 'initFlow'},
             },
         },
         [MFA_STATE.OPEN]: {
             initial: MFA_STATE.PREPARING,
             on: {
-                CLOSE_MODAL: {target: MFA_STATE.CLOSING, actions: 'hideCancelConfirm'},
+                CLOSE_MODAL: {target: MFA_STATE.CLOSING, actions: 'hideCancelConfirmModal'},
             },
             states: {
                 // Transparent initial screen. There is no pre-screen work yet, so it falls straight through;
