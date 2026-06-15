@@ -53,8 +53,13 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
         if (item.role === CONST.POLICY.ROLE.EDITOR) {
             return translate('common.editor');
         }
+        if (item.role === CONST.POLICY.ROLE.CARD_ADMIN) {
+            return translate('common.cardAdmin');
+        }
         return '';
     })();
+
+    const accessibilityLabel = `${item.name}, ${item.email}, ${roleLabel}`;
 
     const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
         styleUtils.getBackgroundAndBorderStyle(theme.sidebar),
@@ -66,6 +71,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
             interactive
             rowIndex={rowIndex}
             disabled={item.disabled}
+            accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.LIST_ROW}
             skeletonReasonAttributes={{context: 'WorkspaceMembersTableRow'}}
             offlineWithFeedback={{errors: item.errors, pendingAction: item.pendingAction, dismissError: item.dismissError}}

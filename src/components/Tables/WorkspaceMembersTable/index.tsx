@@ -161,21 +161,31 @@ export default function WorkspaceMembersTable({
         if (!filterValues || filterValues.length === 0) {
             return true;
         }
+
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.ALL)) {
             return true;
         }
-        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.ADMINS) && item.role === CONST.POLICY.ROLE.ADMIN) {
+
+        const isAdmin = item.role === CONST.POLICY.ROLE.ADMIN || item.role === CONST.POLICY.ROLE.OWNER;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.ADMINS) && isAdmin) {
             return true;
         }
-        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && isPolicyApprover(policy, item.login)) {
+
+        const isApprover = isPolicyApprover(policy, item.login);
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && isApprover) {
             return true;
         }
-        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS) && item.role === CONST.POLICY.ROLE.AUDITOR) {
+
+        const isAuditor = item.role === CONST.POLICY.ROLE.AUDITOR;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS) && isAuditor) {
             return true;
         }
-        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS) && item.role === CONST.POLICY.ROLE.CARD_ADMIN) {
+
+        const isCardAdmin = item.role === CONST.POLICY.ROLE.CARD_ADMIN;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS) && isCardAdmin) {
             return true;
         }
+
         return false;
     };
 
@@ -223,6 +233,7 @@ export default function WorkspaceMembersTable({
             selectedKeys={selectedKeys}
             selectionEnabled={isPolicyAdmin}
             columns={workspaceMembersColumns}
+            initialSortColumn="member"
             title={translate('common.members')}
             renderItem={renderTableItem}
             compareItems={compareTableItems}

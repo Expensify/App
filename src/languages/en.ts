@@ -219,6 +219,7 @@ const translations = {
         admin: 'Admin',
         editor: 'Editor',
         owner: 'Owner',
+        cardAdmin: 'Card Admin',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'calendar opened',
         send: 'Send',
