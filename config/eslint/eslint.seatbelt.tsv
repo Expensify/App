@@ -1707,7 +1707,6 @@
 "../../tests/ui/LHNItemsPresence.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/LocationPermissionModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/ui/MerchantListItemHeaderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/ui/MoneyReportViewTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/MoneyRequestReportActionsListRejectModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/MoneyRequestReportFooter.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/ui/MoneyRequestReportPreview.test.tsx"	"no-restricted-imports"	1

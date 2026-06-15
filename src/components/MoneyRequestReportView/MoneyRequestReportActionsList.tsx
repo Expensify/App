@@ -590,6 +590,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
                         report={reportStable}
                         transactionThreadReport={transactionThreadReport}
+                        chatReport={chatReport}
                         displayAsGroup={displayAsGroup}
                         shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
                         shouldDisplayReplyDivider={visibleReportActions.length > 1}
@@ -606,6 +607,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             visibleReportActions,
             parentReportAction,
             reportStable,
+            chatReport,
             isOffline,
             transactionThreadReport,
             unreadMarkerReportActionID,
