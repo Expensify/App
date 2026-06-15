@@ -56,6 +56,18 @@ jest.mock('@components/MenuItem', () => {
 
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
+// The real `convertToDisplayString` needs a seeded currency list/locale and otherwise returns '',
+// which would hide the "Converted" suffix. Return a deterministic non-empty string instead.
+jest.mock('@hooks/useCurrencyList', () => ({
+    useCurrencyListActions: jest.fn(() => ({
+        convertToDisplayString: jest.fn((amountInCents = 0, currency = '') => `${currency}${amountInCents}`),
+        getCurrencySymbol: jest.fn((currency = '') => `${currency}`),
+        getCurrencyDecimals: jest.fn(() => 2),
+        convertToDisplayStringWithoutCurrency: jest.fn((amountInCents = 0) => `${amountInCents}`),
+    })),
+    useCurrencyListState: jest.fn(() => ({})),
+}));
+
 TestHelper.setupGlobalFetchMock();
 
 const currentUserAccountID = 10;
@@ -398,6 +410,92 @@ describe('MoneyRequestView edit fields', () => {
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
             expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
+        });
+    });
+
+    it('appends "Converted" to the Tax amount description for a foreign-currency taxed expense', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {currency: CONST.CURRENCY.USD});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                currency: 'UZS',
+                convertedAmount: 27410265,
+                taxCode: 'TAX_10',
+                taxAmount: 1110,
+                convertedTaxAmount: 1332281,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).toBeOnTheScreen();
+        });
+    });
+
+    it('does NOT append "Converted" to the Tax amount description when the converted tax is zero (tax exempt)', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {currency: CONST.CURRENCY.USD});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                currency: 'UZS',
+                convertedAmount: 27410265,
+                taxCode: 'TAX_EXEMPT',
+                taxAmount: 0,
+                convertedTaxAmount: 0,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
+            expect(screen.queryByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
+        });
+    });
+
+    it('does NOT append "Converted" to the Tax amount description when the expense currency matches the report currency', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {currency: CONST.CURRENCY.USD});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                currency: CONST.CURRENCY.USD,
+                convertedAmount: 27410265,
+                taxCode: 'TAX_10',
+                taxAmount: 1110,
+                convertedTaxAmount: 1332281,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
+            expect(screen.queryByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
         });
     });
 });
