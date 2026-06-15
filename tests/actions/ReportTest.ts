@@ -4536,14 +4536,18 @@ describe('actions/Report', () => {
             const optimisticReportActionData = optimisticData.find((data) => data.key === parentReportActionKey);
             const failureReportActionData = failureData.find((data) => data.key === parentReportActionKey);
 
+            function isReportActions(value: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>['value']): value is OnyxTypes.ReportActions {
+                return !!value && parentReportActionID in value;
+            };
+
             expect(optimisticReportActionData).toBeDefined();
-            const updatedOptimisticAction = (optimisticReportActionData?.value as OnyxTypes.ReportActions)?.[parentReportActionID];
+            const updatedOptimisticAction = isReportActions(optimisticReportActionData?.value) ? optimisticReportActionData.value[parentReportActionID] : undefined;
             const updatedOriginalMessage = updatedOptimisticAction ? getOriginalMessage(updatedOptimisticAction) : undefined;
             expect(updatedOriginalMessage && 'deleted' in updatedOriginalMessage && updatedOriginalMessage.deleted).toBeTruthy();
             expect(Array.isArray(updatedOptimisticAction?.message) && updatedOptimisticAction?.message.at(0)?.deleted).toBeTruthy();
 
             expect(failureReportActionData).toBeDefined();
-            const revertedAction = (failureReportActionData?.value as OnyxTypes.ReportActions)?.[parentReportActionID];
+            const revertedAction = isReportActions(failureReportActionData?.value) ? failureReportActionData.value[parentReportActionID] : undefined;
             const revertedOriginalMessage = revertedAction ? getOriginalMessage(revertedAction) : undefined;
             expect(revertedOriginalMessage && 'deleted' in revertedOriginalMessage && revertedOriginalMessage.deleted).toBeNull();
         });
