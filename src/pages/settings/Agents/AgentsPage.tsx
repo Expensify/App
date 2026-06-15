@@ -159,7 +159,7 @@ function AgentsPage() {
                         headerMedia={illustrations.TvScreenRobot}
                         title={translate('agentsPage.emptyAgents.title')}
                         subtitleText={
-                            <View style={[styles.renderHTML, styles.agentsPageEmptyStateSubtitle]}>
+                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
                                 <RenderHTML html={translate('agentsPage.emptyAgents.subtitle')} />
                             </View>
                         }
