@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateGroupChatMemberRoles} from '@libs/actions/Report';
@@ -13,24 +14,24 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 
-type ReportParticipantRoleSelectionPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>;
+type DynamicReportParticipantRoleSelectionPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROLE>;
 
 type ListItemType = ListItem & {
     value: ValueOf<typeof CONST.REPORT.ROLE>;
 };
 
-function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRoleSelectionPageProps) {
+function DynamicReportParticipantRoleSelectionPage({report, route}: DynamicReportParticipantRoleSelectionPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const accountID = Number(route?.params?.accountID) ?? -1;
-    const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, accountID, route.params.backTo);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_ROLE.path);
     const member = report.participants?.[accountID];
 
     if (!member) {
@@ -54,14 +55,14 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
 
     const changeRole = ({value}: ListItemType) => {
         updateGroupChatMemberRoles(report.reportID, [accountID], value);
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     return (
-        <ScreenWrapper testID="ReportParticipantRoleSelectionPage">
+        <ScreenWrapper testID="DynamicReportParticipantRoleSelectionPage">
             <HeaderWithBackButton
                 title={translate('common.role')}
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                 <SelectionList
@@ -76,4 +77,4 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     );
 }
 
-export default withReportOrNotFound()(ReportParticipantRoleSelectionPage);
+export default withReportOrNotFound()(DynamicReportParticipantRoleSelectionPage);
