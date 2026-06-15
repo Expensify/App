@@ -364,8 +364,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         <MenuItemWithTopDescription
                                             description={translate('workspace.common.customField1')}
                                             title={member?.employeeUserID}
-                                            shouldShowRightIcon={canAssignElevatedRoles}
-                                            interactive={canAssignElevatedRoles}
+                                            shouldShowRightIcon={canWriteMembers}
+                                            interactive={canWriteMembers}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1'))}
                                         />
                                     </OfflineWithFeedback>
@@ -373,8 +373,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         <MenuItemWithTopDescription
                                             description={translate('workspace.common.customField2')}
                                             title={member?.employeePayrollID}
-                                            shouldShowRightIcon={canAssignElevatedRoles}
-                                            interactive={canAssignElevatedRoles}
+                                            shouldShowRightIcon={canWriteMembers}
+                                            interactive={canWriteMembers}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2'))}
                                         />
                                     </OfflineWithFeedback>

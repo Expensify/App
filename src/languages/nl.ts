@@ -6257,6 +6257,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 one: 'Auditeur maken',
                 other: 'Auditors aanmaken',
             }),
+            makePeopleAdmin: () => ({
+                one: 'People-beheerder maken',
+                other: 'People-beheerders maken',
+            }),
             selectAll: 'Alles selecteren',
             error: {
                 genericAdd: 'Er is een probleem opgetreden bij het toevoegen van dit werkruimtelid',

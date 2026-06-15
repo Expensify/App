@@ -6278,6 +6278,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 one: 'Rendi revisore',
                 other: 'Crea revisori',
             }),
+            makePeopleAdmin: () => ({
+                one: 'Rendi amministratore persone',
+                other: 'Rendi amministratori persone',
+            }),
             selectAll: 'Seleziona tutto',
             error: {
                 genericAdd: "Si è verificato un problema nell'aggiungere questo membro dello spazio di lavoro",

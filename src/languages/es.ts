@@ -6122,6 +6122,10 @@ ${amount} para ${merchant} - ${date}`,
                 one: 'Convertir en auditor',
                 other: 'Convertir en auditores',
             }),
+            makePeopleAdmin: () => ({
+                one: 'Hacer administrador de personas',
+                other: 'Hacer administradores de personas',
+            }),
             selectAll: 'Seleccionar todo',
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo',

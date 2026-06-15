@@ -3986,6 +3986,7 @@ const CONST = {
             MAKE_ADMIN: 'makeAdmin',
             MAKE_AUDITOR: 'makeAuditor',
             MAKE_CARD_ADMIN: 'makeCardAdmin',
+            MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',

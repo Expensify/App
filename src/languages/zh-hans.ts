@@ -6101,6 +6101,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 one: '设为审计员',
                 other: '创建审计员',
             }),
+            makePeopleAdmin: () => ({
+                one: '设为人员管理员',
+                other: '设为人员管理员',
+            }),
             selectAll: '全选',
             error: {
                 genericAdd: '添加此工作区成员时出现问题',
