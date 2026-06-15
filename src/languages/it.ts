@@ -7372,11 +7372,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloccato' : 'Consentito'} ${shownCount > 1 ? 'categorie' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} in più` : ''}`,
-                restrictMerchants: 'Limita gli esercenti',
+                restrictMerchants: 'Limita esercenti',
                 merchantTypes: 'Tipi di esercenti',
                 allowedMerchants: 'Esercenti consentiti',
                 allowedMerchantTypes: 'Tipi di esercenti consentiti',
-                blockedMerchants: 'Commercianti bloccati',
+                blockedMerchants: 'Esercenti bloccati',
                 blockedMerchantTypes: 'Tipi di esercenti bloccati',
                 currencies: 'Valute',
                 permittedCurrencies: 'Valute consentite',
@@ -7385,6 +7385,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 settlementCurrencyPermittedSubtitle: 'La valuta di regolamento della carta è sempre consentita',
                 currenciesCurrencyMismatchTitle: 'Valuta non corrispondente',
                 currenciesCurrencyMismatchPrompt: 'Per impostare le valute preferite, seleziona le carte che vengono regolate nella stessa valuta.',
+                restrictMerchantsOffSubtitle: 'Gli addebiti vengono approvati per le valute consentite che non superano un importo massimo',
+                restrictMerchantsAllowSubtitle:
+                    'Le spese sono approvate per le valute consentite che non superano un importo massimo e quando l’esercente o il tipo di esercente corrisponde.',
+                restrictMerchantsBlockSubtitle:
+                    'Gli addebiti vengono approvati per le valute consentite che non superano un importo massimo oppure se il commerciante o il tipo di commerciante corrispondono.',
             },
             agentRules: {
                 title: 'Regole Agente',

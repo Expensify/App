@@ -7340,7 +7340,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Zablokowane' : 'Dozwolone'} ${shownCount > 1 ? 'kategorie' : 'kategoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} więcej` : ''}`,
-                restrictMerchants: 'Ogranicz sprzedawców',
+                restrictMerchants: 'Ograniczaj sprzedawców',
                 merchantTypes: 'Typy sprzedawców',
                 allowedMerchants: 'Dozwoleni sprzedawcy',
                 allowedMerchantTypes: 'Dozwolone typy sprzedawców',
@@ -7353,6 +7353,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 settlementCurrencyPermittedSubtitle: 'Waluta rozliczeniowa karty jest zawsze dozwolona',
                 currenciesCurrencyMismatchTitle: 'Niezgodność waluty',
                 currenciesCurrencyMismatchPrompt: 'Aby ustawić preferowane waluty, wybierz karty rozliczane w tej samej walucie.',
+                restrictMerchantsOffSubtitle: 'Opłaty są zatwierdzane dla dozwolonych walut, które nie przekraczają maksymalnej kwoty',
+                restrictMerchantsAllowSubtitle:
+                    'Obciążenia są zatwierdzane dla dozwolonych walut, które nie przekraczają maksymalnej kwoty, oraz gdy zgadza się sprzedawca lub typ sprzedawcy.',
+                restrictMerchantsBlockSubtitle: 'Opłaty są zatwierdzane dla dozwolonych walut, które nie przekraczają maksymalnej kwoty, lub gdy zgadza się sprzedawca albo typ sprzedawcy.',
             },
             agentRules: {
                 title: 'Zasady Agenta',

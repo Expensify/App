@@ -7338,7 +7338,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 chooseCards: 'Choisir des cartes',
                 saveRule: 'Enregistrer la règle',
                 allow: 'Autoriser',
-                spendRuleSectionTitle: 'Règles de dépense',
+                spendRuleSectionTitle: 'Règles de dépenses',
                 addMerchant: 'Ajouter un commerçant',
                 merchantContains: 'Le commerçant contient',
                 merchantExactlyMatches: 'Le commerçant correspond exactement',
@@ -7418,9 +7418,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 restrictMerchants: 'Restreindre les marchands',
                 merchantTypes: 'Types de marchands',
                 allowedMerchants: 'Commerçants autorisés',
-                allowedMerchantTypes: 'Types de marchands autorisés',
+                allowedMerchantTypes: 'Types de commerçants autorisés',
                 blockedMerchants: 'Commerçants bloqués',
-                blockedMerchantTypes: 'Types de marchands bloqués',
+                blockedMerchantTypes: 'Types de commerçants bloqués',
                 currencies: 'Devises',
                 permittedCurrencies: 'Devises autorisées',
                 allCurrencies: 'Toutes les devises',
@@ -7428,6 +7428,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 settlementCurrencyPermittedSubtitle: 'La devise de règlement de la carte est toujours autorisée',
                 currenciesCurrencyMismatchTitle: 'Incohérence de devise',
                 currenciesCurrencyMismatchPrompt: 'Pour définir des devises préférées, sélectionnez les cartes qui sont réglées dans la même devise.',
+                restrictMerchantsOffSubtitle: 'Les dépenses sont approuvées pour les devises autorisées qui ne dépassent pas un montant maximal',
+                restrictMerchantsAllowSubtitle:
+                    'Les frais sont approuvés pour les devises autorisées qui ne dépassent pas un montant maximal, et lorsque le commerçant ou le type de commerçant correspond.',
+                restrictMerchantsBlockSubtitle:
+                    'Les frais sont approuvés pour les devises autorisées qui ne dépassent pas un montant maximal, ou lorsque le commerçant ou le type de commerçant correspond.',
             },
             agentRules: {
                 title: 'Règles Agent',
