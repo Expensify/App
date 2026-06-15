@@ -28,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
-    canMemberWrite,
+    canMemberManageRole,
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
     goBackFromInvalidPolicy,
@@ -93,15 +93,17 @@ function WorkspaceInviteMessageComponent({
     const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
     const [workspaceInviteRoleDraftFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
-    const canAssignElevatedRoles = canMemberWrite(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
-    const canChangeInviteRole = !isSubmitPolicy(policy) && canAssignElevatedRoles;
+    const canManageUserRole = canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.ROLE.USER);
+    const canChangeInviteRole = !isSubmitPolicy(policy) && canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.ROLE.AUDITOR);
     // Submit workspaces only allow inviting editors, so default the invite role accordingly when no draft is set.
     // The backend ignores any other role for Submit workspaces, but defaulting here keeps the UI honest before submit.
     const workspaceInviteRoleDraft = isSubmitPolicy(policy)
         ? CONST.POLICY.ROLE.EDITOR
-        : canAssignElevatedRoles
+        : workspaceInviteRoleDraftFromOnyx && canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', workspaceInviteRoleDraftFromOnyx)
           ? (workspaceInviteRoleDraftFromOnyx ?? CONST.POLICY.ROLE.USER)
-          : CONST.POLICY.ROLE.USER;
+          : canManageUserRole
+            ? CONST.POLICY.ROLE.USER
+            : CONST.POLICY.ROLE.AUDITOR;
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;

@@ -3,11 +3,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import type {ListItemType} from '@components/WorkspaceMemberRoleList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
 import {updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {canMemberManageRole} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -25,8 +27,10 @@ type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingPr
 function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: WorkspaceMemberDetailsRolePageProps) {
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
+    const canManageSelectedMemberRole = canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', member?.role);
     useRedirectSubmitWorkspaceFeatureUpgrade({
         policy,
         backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
@@ -37,6 +41,9 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         if (value === member?.role) {
             return;
         }
+        if (!canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', value)) {
+            return;
+        }
         updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value);
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     };
@@ -44,8 +51,9 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            shouldBeBlocked={!canManageSelectedMemberRole}
         >
             <ScreenWrapper
                 testID="WorkspaceMemberDetailsRolePage"

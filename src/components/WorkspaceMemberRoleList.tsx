@@ -6,7 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {canMemberWrite, isControlPolicy} from '@libs/PolicyUtils';
+import {canMemberManageRole, isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
@@ -74,23 +74,17 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
     ];
 
     const isPolicyControl = isControlPolicy(policy);
-    // Only strict admins can assign the ADMIN role. Editors (e.g. Submit workspace owners) can
-    // invite/manage members but must not be able to escalate anyone to admin.
-    const canAssignElevatedRoles = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
     const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => {
-        if (item.value === CONST.POLICY.ROLE.AUDITOR && (!isPolicyControl || !canAssignElevatedRoles)) {
+        if (item.value === CONST.POLICY.ROLE.AUDITOR && !isPolicyControl) {
             return false;
         }
-        if (item.value === CONST.POLICY.ROLE.CARD_ADMIN && (!isPolicyControl || !canAssignElevatedRoles)) {
+        if (item.value === CONST.POLICY.ROLE.CARD_ADMIN && !isPolicyControl) {
             return false;
         }
-        if (item.value === CONST.POLICY.ROLE.PEOPLE_ADMIN && (!isPolicyControl || !canAssignElevatedRoles)) {
+        if (item.value === CONST.POLICY.ROLE.PEOPLE_ADMIN && !isPolicyControl) {
             return false;
         }
-        if (item.value === CONST.POLICY.ROLE.ADMIN && !canAssignElevatedRoles) {
-            return false;
-        }
-        return true;
+        return canMemberManageRole(policy, currentUserLogin, item.value);
     });
 
     return (

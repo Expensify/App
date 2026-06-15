@@ -68,6 +68,8 @@ import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils
 import {getDisplayNameOrDefault, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
+    canMemberManageMemberWithRole,
+    canMemberManageRole,
     canMemberWrite,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
@@ -373,6 +375,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 return;
             }
 
+            if (!canMemberManageMemberWithRole(policy, currentUserLogin ?? '', policy?.employeeList?.[login]?.role)) {
+                return;
+            }
+
             // Add or remove the user if the checkbox is enabled
             if (selectedEmployees.includes(login)) {
                 removeUser(login);
@@ -380,7 +386,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 addUser(login);
             }
         },
-        [policy?.owner, currentUserPersonalDetails.login, selectedEmployees, removeUser, addUser],
+        [policy, currentUserPersonalDetails.login, currentUserLogin, selectedEmployees, removeUser, addUser],
     );
 
     /** Opens the member details page */
@@ -488,7 +494,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     !canWriteMembers ||
                     accountID === policy?.ownerAccountID ||
                     accountID === session?.accountID ||
-                    (!canAssignElevatedRoles && policyEmployee.role === CONST.POLICY.ROLE.ADMIN),
+                    !canMemberManageMemberWithRole(policy, currentUserLogin ?? '', policyEmployee.role),
                 isDisabled: isPendingDeleteOrError,
                 isInteractive: !details.isOptimisticPersonalDetail,
                 cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
@@ -553,8 +559,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         policy?.owner,
         isPolicyAdmin,
         canWriteMembers,
-        canAssignElevatedRoles,
+        currentUserLogin,
         session?.accountID,
+        policy,
         styles.cursorDefault,
         styles.flex1,
         styles.pr3,
@@ -820,22 +827,24 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     };
 
     const getBulkActionsButtonOptions = () => {
-        const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
-            {
+        const selectedEmployeesRoles = selectedEmployees.map((email) => {
+            return policy?.employeeList?.[email]?.role;
+        });
+        const canManageSelectedEmployees = selectedEmployeesRoles.every((role) => canMemberManageMemberWithRole(policy, currentUserLogin ?? '', role));
+        const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [];
+
+        if (canManageSelectedEmployees) {
+            options.push({
                 text: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: icons.RemoveMembers,
                 onSelected: askForConfirmationToRemove,
-            },
-        ];
+            });
+        }
 
         if (!isPaidGroupPolicy(policy)) {
             return options;
         }
-
-        const selectedEmployeesRoles = selectedEmployees.map((email) => {
-            return policy?.employeeList?.[email]?.role;
-        });
 
         const memberOption = {
             text: translate('workspace.people.makeMember', {count: selectedEmployees.length}),
@@ -877,7 +886,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const isReimbursementEnabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
         const hasAtLeastOnePayer = isReimbursementEnabled && policy?.achAccount?.reimburser ? selectedEmployees.includes(policy?.achAccount?.reimburser) : false;
 
-        if (hasAtLeastOneNonMemberRole && !hasAtLeastOnePayer && canAssignElevatedRoles) {
+        if (hasAtLeastOneNonMemberRole && !hasAtLeastOnePayer && canManageSelectedEmployees && canMemberManageRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.USER)) {
             options.push(memberOption);
         }
 
@@ -885,7 +894,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push(adminOption);
         }
 
-        if (hasAtLeastOneNonAuditorRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
+        if (
+            hasAtLeastOneNonAuditorRole &&
+            isControlPolicy(policy) &&
+            !hasAtLeastOnePayer &&
+            canManageSelectedEmployees &&
+            canMemberManageRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.AUDITOR)
+        ) {
             options.push(auditorOption);
         }
 

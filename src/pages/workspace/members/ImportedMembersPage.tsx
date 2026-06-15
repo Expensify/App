@@ -14,7 +14,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite, isControlPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {canMemberManageMemberWithRole, canMemberManageRole, isControlPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +34,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const canAssignElevatedRoles = canMemberWrite(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
+    const canManageAuditorRole = canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.ROLE.AUDITOR);
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -43,7 +43,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
         {text: translate('common.email'), value: CONST.CSV_IMPORT_COLUMNS.EMAIL, isRequired: true},
     ];
-    if (canAssignElevatedRoles) {
+    if (canManageAuditorRole) {
         columnRoles.push({text: translate('common.role'), value: CONST.CSV_IMPORT_COLUMNS.ROLE});
     }
     columnRoles.push(
@@ -130,13 +130,21 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const members = membersEmails?.slice(containsHeader ? 1 : 0).map((email, index) => {
             const isPolicyMember = isPolicyMemberWithoutPendingDelete(email, policy);
             let role = isPolicyMember ? (policy?.employeeList?.[email]?.role ?? '') : '';
-            if (canAssignElevatedRoles && membersRolesColumn !== -1 && membersRoles?.[containsHeader ? index + 1 : index]) {
-                role = membersRoles?.[containsHeader ? index + 1 : index];
+            const importedRole = membersRoles?.[containsHeader ? index + 1 : index];
+            const canManageCurrentRole = !isPolicyMember || canMemberManageMemberWithRole(policy, currentUserPersonalDetails.login ?? '', role);
+            if (
+                canManageAuditorRole &&
+                membersRolesColumn !== -1 &&
+                importedRole &&
+                canManageCurrentRole &&
+                canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', importedRole)
+            ) {
+                role = importedRole;
             }
-            if (canAssignElevatedRoles && membersRolesColumn !== -1 && !role) {
+            if (canManageAuditorRole && membersRolesColumn !== -1 && !role) {
                 isRoleMissing = true;
             }
-            if (!canAssignElevatedRoles && !role) {
+            if (!canManageAuditorRole && !role) {
                 role = CONST.POLICY.ROLE.USER;
             }
             let submitsTo = '';

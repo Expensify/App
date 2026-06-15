@@ -203,6 +203,31 @@ function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature
     return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
 }
 
+function canMemberManageRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
+    if (!role) {
+        return false;
+    }
+
+    if (canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)) {
+        return true;
+    }
+
+    return (
+        isControlPolicy(policy) &&
+        canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) &&
+        getPolicyRole(policy, login) === CONST.POLICY.ROLE.PEOPLE_ADMIN &&
+        (role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.AUDITOR)
+    );
+}
+
+function canMemberManageMemberWithRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
+    if (canMemberManageRole(policy, login, role)) {
+        return true;
+    }
+
+    return isSubmitPolicy(policy) && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && role === CONST.POLICY.ROLE.EDITOR;
+}
+
 /**
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
  */
@@ -2530,6 +2555,8 @@ export {
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
+    canMemberManageRole,
+    canMemberManageMemberWithRole,
     isGroupPolicy,
     isGroupPolicyByType,
     isPendingDeletePolicy,

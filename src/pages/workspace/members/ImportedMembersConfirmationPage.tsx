@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {canMemberWrite, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {canMemberManageRole, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,8 +44,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const canAssignElevatedRoles = canMemberWrite(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
-    const role = canAssignElevatedRoles ? roleFromOnyx : CONST.POLICY.ROLE.USER;
+    const canManageAuditorRole = canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.ROLE.AUDITOR);
+    const role = canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', roleFromOnyx) ? roleFromOnyx : CONST.POLICY.ROLE.USER;
     const [isImporting, setIsImporting] = useState(false);
     const {isOffline} = useNetwork();
 
@@ -151,8 +151,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                         <MenuItemWithTopDescription
                             title={translate(`workspace.common.roleName`, role)}
                             description={translate('common.role')}
-                            shouldShowRightIcon={canAssignElevatedRoles}
-                            interactive={canAssignElevatedRoles}
+                            shouldShowRightIcon={canManageAuditorRole}
+                            interactive={canManageAuditorRole}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.IMPORTED_MEMBERS_ROLE.path))}
                         />
                     </View>
