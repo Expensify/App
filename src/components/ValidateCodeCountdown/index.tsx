@@ -20,17 +20,26 @@ function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCo
     }));
 
     useEffect(() => {
-        if (timeRemaining > 0) {
-            timerRef.current = setTimeout(() => {
-                setTimeRemaining((prev) => prev - 1);
-            }, 1000);
-        } else {
+        if (timeRemaining <= 0) {
             onCountdownFinish();
+            return;
         }
+
+        // When anchored to `requestedAt`, align the next tick to the wall-clock second boundary so every tab/reload flips the
+        // displayed second at the same instant instead of drifting by each tab's own mount offset. Without an anchor (the
+        // `hasMagicCodeBeenSent` flows) there is nothing to align to, so fall back to a fixed 1s cadence.
+        const msUntilNextTick = requestedAt ? CONST.MILLISECONDS_PER_SECOND - ((Date.now() - requestedAt) % CONST.MILLISECONDS_PER_SECOND) : CONST.MILLISECONDS_PER_SECOND;
+
+        timerRef.current = setTimeout(() => {
+            // With an anchor, re-derive from the wall clock so the countdown self-corrects against setTimeout drift,
+            // background-tab throttling, and cross-tab phase differences. Without one, keep the simple decrement.
+            setTimeRemaining((prev) => (requestedAt ? DateUtils.getRemainingSecondsInWindow(requestedAt, CONST.REQUEST_CODE_DELAY * CONST.MILLISECONDS_PER_SECOND) : prev - 1));
+        }, msUntilNextTick);
+
         return () => {
             clearTimeout(timerRef.current);
         };
-    }, [onCountdownFinish, timeRemaining]);
+    }, [onCountdownFinish, timeRemaining, requestedAt]);
 
     // Announce countdown start/reset/expiration for screen readers.
     // We check timeRemaining === 1 (not 0) because the component unmounts immediately at 0s, so the expired announcement wouldn't be spoken.
