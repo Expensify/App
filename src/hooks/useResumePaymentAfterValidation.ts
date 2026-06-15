@@ -1,6 +1,5 @@
 import {useEffect} from 'react';
 import {clearPendingPaymentContinue} from '@libs/actions/PendingPaymentContinue';
-// eslint-disable-next-line no-restricted-imports -- the hook does not use React Navigation directly but 'resume' callback can contain navigation
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type PendingPaymentContinue from '@src/types/onyx/PendingPaymentContinue';
