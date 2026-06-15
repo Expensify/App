@@ -37,6 +37,7 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
+    getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
@@ -52,6 +53,7 @@ import {
     getDynamicExternalWorkflowSubmitFailedActionMessage,
     getExportIntegrationMessageHTML,
     getForeignCurrencyDefaultTaxUpdateMessage,
+    getForwardedReportActionMessage,
     getForwardsToUpdateMessage,
     getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
@@ -186,6 +188,7 @@ import {
     isSelfDM,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from '@libs/SpendRuleChangeLogUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
@@ -300,6 +303,7 @@ type ContextMenuActionPayload = {
     originalReport: OnyxEntry<ReportType>;
     isHarvestReport?: boolean;
     isTryNewDotNVPDismissed?: boolean;
+    isTrackIntentUser?: boolean;
     childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
@@ -874,6 +878,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 isHarvestReport,
                 isTryNewDotNVPDismissed,
+                isTrackIntentUser,
                 movedFromReport,
                 movedToReport,
                 childReport,
@@ -1017,6 +1022,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getRequireCompanyCardsEnabledMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
                     Clipboard.setString(getAutoReimbursementMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE) {
+                    Clipboard.setString(getCategoryTaxRateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY) {
                     Clipboard.setString(getMccGroupCategoryMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
@@ -1073,7 +1080,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                     if (harvesting) {
                         setClipboardMessage(translate('iou.automaticallySubmitted'));
                     } else {
-                        Clipboard.setString(translate('iou.submitted', getOriginalMessage(reportAction)?.message));
+                        Clipboard.setString(
+                            shouldShowMarkAsDone({
+                                policy,
+                                isTrackIntentUser,
+                                report,
+                            })
+                                ? translate('iou.markedAsDone', getOriginalMessage(reportAction)?.message)
+                                : translate('iou.submitted', getOriginalMessage(reportAction)?.message),
+                        );
                     }
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
@@ -1089,7 +1104,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     if (automaticAction) {
                         setClipboardMessage(translate('iou.automaticallyForwarded'));
                     } else {
-                        Clipboard.setString(translate('iou.forwarded'));
+                        Clipboard.setString(getForwardedReportActionMessage(reportAction, translate));
                     }
                 } else if (isRejectedAction(reportAction)) {
                     Clipboard.setString(translate('iou.rejectedThisReport'));
@@ -1425,7 +1440,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             let reportID = reportIDParam;
 
             if (isMoneyRequestAction(moneyRequestAction)) {
-                reportID = getOriginalMessage(moneyRequestAction)?.IOUReportID;
+                reportID = moneyRequestAction?.reportID;
             } else if (isReportPreviewActionReportActionsUtils(reportAction)) {
                 reportID = reportAction?.childReportID;
             }
@@ -1452,7 +1467,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             );
         },
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
-            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : undefined;
+            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? moneyRequestAction?.reportID : undefined;
 
             const reportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportIDParam;
             if (closePopover) {

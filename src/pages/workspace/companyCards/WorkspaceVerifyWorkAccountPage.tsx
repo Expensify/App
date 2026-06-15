@@ -11,6 +11,7 @@ import {expensifyLoginsSelector} from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {updateSelectedFeed} from '@userActions/Card';
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
@@ -24,7 +25,9 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceVerifyWorkAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_VERIFY_WORK_EMAIL>;
 
-function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageProps) {
+type WorkspaceVerifyWorkAccountPageContentProps = Pick<WorkspaceVerifyWorkAccountPageProps, 'route'>;
+
+function WorkspaceVerifyWorkAccountPageContent({route}: WorkspaceVerifyWorkAccountPageContentProps) {
     const {policyID, feed} = route.params;
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
@@ -89,6 +92,21 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
                 Navigation.goBack();
             }}
         />
+    );
+}
+
+function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageProps) {
+    const {policyID} = route.params;
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            <WorkspaceVerifyWorkAccountPageContent route={route} />
+        </AccessOrNotFoundWrapper>
     );
 }
 

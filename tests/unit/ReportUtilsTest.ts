@@ -117,6 +117,7 @@ import {
     getTaskAssigneeChatOnyxData,
     getTitleFieldWithFallback,
     getTransactionDetails,
+    getTransactionReportName,
     getTransactionSortValue,
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
@@ -164,6 +165,7 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    shouldShowMarkAsDone,
     sortIconsByName,
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
@@ -497,7 +499,8 @@ describe('ReportUtils', () => {
         const reportAction = {
             ...createRandomReportAction(44),
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            originalMessage: {IOUReportID: iouReportID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+            reportID: iouReportID,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
         };
 
         const iouReport = {...createExpenseReport(Number(iouReportID)), policyID: policyID.toString()};
@@ -5281,10 +5284,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(22);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '22',
+                reportID: invoiceReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: invoiceReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 530,
                     currency: CONST.CURRENCY.USD,
@@ -5318,10 +5321,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(22);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '3',
+                reportID: expenseReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                     IOUDetails: {
@@ -5353,10 +5356,10 @@ describe('ReportUtils', () => {
         it('it should return false when linkedTransaction is undefined', () => {
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '44',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: '44',
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -5385,10 +5388,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(56);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '56',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: transaction.transactionID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -5415,10 +5418,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(57);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '57',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: transaction.transactionID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -5451,10 +5454,10 @@ describe('ReportUtils', () => {
             };
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '55',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: transaction.transactionID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -5518,12 +5521,12 @@ describe('ReportUtils', () => {
             };
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 ...createRandomReportAction(89012),
+                reportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 message: [{type: CONST.REPORT.MESSAGE.TYPE.TEXT, text: ''}],
                 previousMessage: undefined,
                 originalMessage: {
-                    IOUReportID: reportID,
                     IOUTransactionID: transactionID,
                     amount: 5000,
                     currency: CONST.CURRENCY.USD,
@@ -5598,10 +5601,10 @@ describe('ReportUtils', () => {
             };
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '101',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -5632,10 +5635,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(103);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '103',
+                reportID: expenseReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -5747,10 +5750,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(200);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '200',
+                reportID: settledReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: settledReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -5784,10 +5787,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(201);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '201',
+                reportID: approvedReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: approvedReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -5820,10 +5823,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(202);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '202',
+                reportID: closedReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: closedReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -7317,7 +7320,7 @@ describe('ReportUtils', () => {
     });
 
     describe('buildOptimisticIOUReportAction', () => {
-        it('should not include IOUReportID in the originalMessage when tracking a personal expense', () => {
+        it('should set the action reportID to the provided iouReportID when tracking a personal expense', () => {
             const iouAction = buildOptimisticIOUReportAction({
                 type: 'track',
                 amount: 1200,
@@ -7328,7 +7331,7 @@ describe('ReportUtils', () => {
                 iouReportID: '8698041594589716',
                 isPersonalTrackingExpense: true,
             });
-            expect(getOriginalMessage(iouAction as ReportAction<'IOU'>)?.IOUReportID).toBe(undefined);
+            expect((iouAction as ReportAction<'IOU'>)?.reportID).toBe('8698041594589716');
         });
     });
 
@@ -7548,8 +7551,8 @@ describe('ReportUtils', () => {
                 ...parentReportAction,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: '1',
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: '1',
                     amount: 100,
                     participantAccountID: 1,
@@ -7604,8 +7607,8 @@ describe('ReportUtils', () => {
                 ...parentReportAction,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: '1',
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: '1',
                     amount: 100,
                     participantAccountID: 1,
@@ -7639,9 +7642,9 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
+                reportID: selfDMReport.reportID,
                 originalMessage: {
                     IOUTransactionID: transaction.transactionID,
-                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
                     type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
@@ -10421,26 +10424,17 @@ describe('ReportUtils', () => {
             const policyID = '123456';
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
-            const policyWithoutCurrentUser: Policy = {
-                ...createRandomPolicy(1),
-                id: policyID,
-                employeeList: {
-                    'employee@test.com': {
-                        role: CONST.POLICY.ROLE.USER,
-                        errors: {},
-                    },
-                },
-            };
+            // policy.role holds the current user's own role and is synced for every workspace they belong to,
+            // even when employeeList has not loaded (the roster is only fully synced for the active workspace).
+            // A non-member therefore has no role, so membership is determined from policy.role.
+            const policyWithoutCurrentUser: Policy = {...createRandomPolicy(1), id: policyID, employeeList: {}};
+            delete (policyWithoutCurrentUser as Partial<Policy>).role;
 
             const policyWithCurrentUser: Policy = {
                 ...createRandomPolicy(2),
                 id: policyID,
-                employeeList: {
-                    [currentUserEmail]: {
-                        role: CONST.POLICY.ROLE.USER,
-                        errors: {},
-                    },
-                },
+                role: CONST.POLICY.ROLE.USER,
+                employeeList: {},
             };
 
             const restrictedReport: Report = {
@@ -12697,6 +12691,107 @@ describe('ReportUtils', () => {
         test('still finds draft report when 5th param is undefined', () => {
             const result = getReportOrDraftReport(mockReportID, undefined, undefined, mockDraftReport, undefined);
             expect(result).toEqual(mockDraftReport);
+        });
+    });
+
+    describe('getTransactionReportName', () => {
+        const mockReportID = '100';
+        const mockTransactionReport: Report = {
+            ...createRandomReport(100, undefined),
+            reportName: 'Transaction Report',
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+
+        beforeEach(async () => {
+            await Onyx.clear();
+        });
+
+        test('uses report param when provided', async () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                transactions: [transaction],
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result).toBe('string');
+        });
+
+        test('returns report name with report param', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                transactions: [transaction],
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result).toBe('string');
+        });
+
+        test('returns reversed transaction message when action is reversed', () => {
+            const reportAction = createRandomReportAction(1);
+
+            jest.spyOn(require('@libs/ReportActionsUtils'), 'isReversedTransaction').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('parentReportAction.reversedTransaction'));
+        });
+
+        test('returns deleted expense message when action is deleted', () => {
+            const reportAction = createRandomReportAction(1);
+
+            jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('parentReportAction.deletedExpense'));
+        });
+
+        test('uses report param from caller', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                transactions: [transaction],
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result).toBe('string');
         });
     });
 
@@ -16766,6 +16861,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result).toHaveLength(3);
         });
@@ -16780,6 +16876,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
             expect(result.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
@@ -16796,6 +16893,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result.at(0)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.createExpense'));
             expect(result.at(1)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.trackDistance'));
@@ -16812,6 +16910,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
             expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
@@ -16831,6 +16930,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             // Trigger each onSelected - the function should not throw
@@ -16851,6 +16951,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             expect(result).toHaveLength(3);
@@ -16870,6 +16971,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             // CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE should early-return when iouReportID is undefined
@@ -16889,6 +16991,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             expect(result).toHaveLength(3);
@@ -16908,6 +17011,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             expect(result).toHaveLength(3);
@@ -16923,6 +17027,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result.at(1)?.icon).toBe(mockIcons.Location);
             expect(result.at(2)?.icon).toBe(mockIcons.ReceiptPlus);
@@ -17308,6 +17413,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             expect(options).toHaveLength(3);
@@ -17327,6 +17433,7 @@ describe('ReportUtils', () => {
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
                     ownerBillingGracePeriodEnd: undefined,
+                    currentUserAccountID,
                 });
                 options.at(0)?.onSelected?.();
 
@@ -17358,6 +17465,7 @@ describe('ReportUtils', () => {
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
                     ownerBillingGracePeriodEnd: undefined,
+                    currentUserAccountID,
                 });
                 options.at(0)?.onSelected?.();
 
@@ -17390,6 +17498,7 @@ describe('ReportUtils', () => {
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
                     ownerBillingGracePeriodEnd: undefined,
+                    currentUserAccountID,
                 });
                 options.at(2)?.onSelected?.();
 
@@ -17869,11 +17978,11 @@ describe('ReportUtils', () => {
         const iouAction = {
             ...createRandomReportAction(Number(iouReportActionID)),
             reportActionID: iouReportActionID,
+            reportID: expenseReportID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
             originalMessage: {
                 IOUTransactionID: transactionID,
-                IOUReportID: expenseReportID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 0,
                 currency: CONST.CURRENCY.USD,
@@ -17894,9 +18003,9 @@ describe('ReportUtils', () => {
 
         it('should NOT flag $0 manual expense as smartscan error when expense report is resolved via reports collection', () => {
             // With the reports collection the function can look up the actual
-            // expense report (type 'expense') via IOUReportID. For expense
-            // reports areRequiredFieldsEmpty checks isMerchantMissing (not
-            // amount), so a $0 expense with a valid merchant is fine.
+            // expense report (type 'expense') via the action's reportID. For
+            // expense reports areRequiredFieldsEmpty checks isMerchantMissing
+            // (not amount), so a $0 expense with a valid merchant is fine.
             const reportsCollection = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: expenseReport,
             };
@@ -18468,5 +18577,138 @@ describe('ReportUtils', () => {
 
             expect(getBankAccountRoute(report, false)).toBe(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
         });
+    });
+});
+describe('shouldShowMarkAsDone', () => {
+    const policyID = '1';
+    const otherAccountID = 42;
+
+    it('should return false when user is not a track-intent user', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: false, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when policy is not submit-and-close', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when user does not own the report', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: otherAccountID,
+            managerID: otherAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when next approver is different from owner', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: otherAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when isTrackIntentUser is undefined', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: undefined, report, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when report is undefined', () => {
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+        } as Policy;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report: undefined, policy: testPolicy})).toBe(false);
+    });
+
+    it('should return false when policy is undefined', () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: undefined})).toBe(false);
+    });
+
+    it('should return true when user is track-intent, policy is submit-and-close, user owns report, and submits to self', async () => {
+        const report = {
+            reportID: 'report1',
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+        const testPolicy = {
+            id: policyID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: currentUserEmail,
+        } as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
+        });
+        await waitForBatchedUpdates();
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(true);
     });
 });
