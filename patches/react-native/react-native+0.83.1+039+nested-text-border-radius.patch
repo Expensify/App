@@ -679,10 +679,10 @@ index 0000000..3ca52ac
 +NS_ASSUME_NONNULL_END
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 new file mode 100644
-index 0000000..fd401a9
+index 0000000..de879555fcff8965cbae03765ff445258880db95
 --- /dev/null
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,132 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -743,17 +743,33 @@ index 0000000..fd401a9
 +    [self enumerateLineFragmentsForGlyphRange:spanGlyphRange
 +                                   usingBlock:^(CGRect lineRect, CGRect usedRect, NSTextContainer *tc, NSRange lineGlyphRange, BOOL *s) {
 +      NSRange intersected = NSIntersectionRange(spanGlyphRange, lineGlyphRange);
-+      CGRect spanRect = [self boundingRectForGlyphRange:intersected inTextContainer:tc];
++      if (intersected.length == 0) {
++        lineIdx++;
++        return;
++      }
 +
-+      // Container coords → view coords
-+      spanRect.origin.x += origin.x;
-+      spanRect.origin.y += origin.y;
++      CGPoint startLoc = [self locationForGlyphAtIndex:intersected.location];
 +
-+      // Shrink height to em-box (font.lineHeight = ascender + |descender|, no leading).
-+      // This creates a leading-sized gap between adjacent line backgrounds, matching web CSS.
++      // Horizontal: hug the glyphs via caret positions (mirrors Android's getPrimaryHorizontal).
++      // boundingRectForGlyphRange includes trailing-whitespace/inter-glyph advance that scales
++      // with font size, which bleeds visibly past large (heading) text.
++      NSUInteger endGlyph = NSMaxRange(intersected);
++      CGFloat endX = (endGlyph < NSMaxRange(lineGlyphRange))
++          ? [self locationForGlyphAtIndex:endGlyph].x          // start of next glyph = tight right edge
++          : CGRectGetMaxX(usedRect) - lineRect.origin.x;       // span runs to line end → trailing-ws-trimmed edge
++
++      CGRect spanRect;
++      spanRect.origin.x = lineRect.origin.x + startLoc.x + origin.x;
++      spanRect.size.width = endX - startLoc.x;
++
++      // Vertical: usedRect fallback for the font==nil case, then font metrics override.
++      // font.lineHeight = ascender + |descender|, no leading. This creates a leading-sized gap
++      // between adjacent line backgrounds, matching web CSS.
++      spanRect.origin.y = usedRect.origin.y + origin.y;
++      spanRect.size.height = usedRect.size.height;
++
 +      if (font && intersected.length > 0) {
-+          CGPoint glyphLoc = [self locationForGlyphAtIndex:intersected.location];
-+          CGFloat baseline = lineRect.origin.y + origin.y + glyphLoc.y;
++          CGFloat baseline = lineRect.origin.y + origin.y + startLoc.y;
 +          spanRect.origin.y = baseline - font.ascender;
 +          spanRect.size.height = font.lineHeight;
 +      }
