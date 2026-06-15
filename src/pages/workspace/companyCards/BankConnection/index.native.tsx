@@ -21,15 +21,12 @@ import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeed
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@navigation/types';
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 type BankConnectionProps = {
@@ -39,14 +36,11 @@ type BankConnectionProps = {
     /** Selected feed for assign card flow */
     feed?: CompanyCardFeedWithDomainID;
 
-    /** Route params for add new card flow */
-    route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION>;
-
     /** Title of the header */
     title?: string;
 };
 
-function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankConnectionProps) {
+function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
@@ -55,9 +49,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const authToken = session?.authToken ?? null;
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const selectedBank = addNewCard?.data?.selectedBank;
-    const {feed: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
-    const policyID = policyIDFromProps ?? policyIDFromRoute;
-    const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
+    const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
     const isPlaid = !!plaidToken;
     const url = getCompanyCardBankConnection(policyID, bankName);
@@ -69,7 +61,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
         [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
     );
-    const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
+    const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
@@ -112,11 +104,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
             return;
         }
 
-        // Handle add new card flow
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 

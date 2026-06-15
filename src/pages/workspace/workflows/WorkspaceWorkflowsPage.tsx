@@ -3,9 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
-import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -20,12 +18,10 @@ import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useAddAgentToApprovalWorkflow from '@hooks/useAddAgentToApprovalWorkflow';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
-import useDeferredAgentWorkflowReconciliation from '@hooks/useDeferredAgentWorkflowReconciliation';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -38,7 +34,6 @@ import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
-import {clearPendingAgentFromApprovalWorkflow} from '@libs/actions/Agent';
 import {
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
@@ -48,8 +43,7 @@ import {
     setWorkspaceAutoHarvesting,
     setWorkspaceReimbursement,
 } from '@libs/actions/Policy/Policy';
-import {dismissProductTraining} from '@libs/actions/Welcome';
-import {setApprovalWorkflow} from '@libs/actions/Workflow';
+import {clearApprovalWorkflow, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -85,15 +79,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
-
-const agentsWorkflowsBannerDismissedSelector = (value: OnyxEntry<DismissedProductTraining>): boolean => !!value?.[CONST.AGENTS_WORKFLOWS_BANNER];
 
 function WorkflowNoResultsView({message, shouldShow, searchValue}: {message: string; shouldShow: boolean; searchValue: string}) {
     const styles = useThemeStyles();
@@ -132,11 +123,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [deferredAgentWorkflowSaves] = useOnyx(ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-    const [isAgentsWorkflowsBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsWorkflowsBannerDismissedSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const {showConfirmModal} = useConfirmModal();
@@ -151,18 +139,17 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, email: currentUserEmail = '', login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const isUserReimburser = policy?.achAccount?.reimburser !== undefined && account?.primaryLogin !== undefined && policy?.achAccount?.reimburser === account?.primaryLogin;
-    const {
-        approvalWorkflows: rawApprovalWorkflows,
-        availableMembers,
-        usedApproverEmails,
-    } = convertPolicyEmployeesToApprovalWorkflows({
-        policy,
-        personalDetails: personalDetails ?? {},
-        localeCompare,
-        currentUserLogin,
-    });
+    const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
+        () =>
+            convertPolicyEmployeesToApprovalWorkflows({
+                policy,
+                personalDetails: personalDetails ?? {},
+                localeCompare,
+                currentUserLogin,
+            }),
+        [policy, personalDetails, localeCompare, currentUserLogin],
+    );
 
-    const approvalWorkflows = useDeferredAgentWorkflowReconciliation(rawApprovalWorkflows, policy, route.params.policyID);
     const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
@@ -182,29 +169,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
 
-    const hasPendingDeferredAgentSave = useMemo(
-        () => Object.values(deferredAgentWorkflowSaves ?? {}).some((entry) => entry?.policyID === route.params.policyID),
-        [deferredAgentWorkflowSaves, route.params.policyID],
-    );
-
     const fetchData = useCallback(() => {
-        // Skip the workflows refetch while a freshly-added offline agent's deferred workflow save is still
-        // pending reconciliation: the READ returns the pre-approval-update employeeList (workspace owner is
-        // still the approver), which would clobber the optimistic agent-as-approver overlay and briefly
-        // flicker the approver row when the connection is restored.
-        if (!hasPendingDeferredAgentSave) {
-            openPolicyWorkflowsPage(route.params.policyID, true);
-        }
+        openPolicyWorkflowsPage(route.params.policyID, true);
         getPaymentMethods();
-    }, [route.params.policyID, hasPendingDeferredAgentSave]);
+    }, [route.params.policyID]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
             return;
         }
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
-        });
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
     }, [policy]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
@@ -285,7 +259,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
-    const handleAddAgentPress = useAddAgentToApprovalWorkflow(policy, route.params.policyID);
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
     const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
 
@@ -488,15 +461,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 </View>
                             </View>
                         )}
-                        {isCustomAgentBetaEnabled && !isAgentsWorkflowsBannerDismissed && (
-                            <AgentPromotionalBanner
-                                title={translate('workflowsPage.automateApprovalsWithAgentsTitle')}
-                                subtitle={translate('workflowsPage.automateApprovalsWithAgentsSubtitle')}
-                                onDismiss={() => dismissProductTraining(CONST.AGENTS_WORKFLOWS_BANNER, true)}
-                                dismissSentryLabel={CONST.SENTRY_LABEL.AGENTS_WORKFLOWS_BANNER.DISMISS}
-                                style={styles.mt6}
-                            />
-                        )}
                         {filteredApprovalWorkflows.length > CONST.SEARCH_BAR_THRESHOLD && (
                             <SearchBar
                                 label={translate('workflowsPage.findWorkflow')}
@@ -510,34 +474,47 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             shouldShow={searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0}
                             searchValue={workflowSearchInput}
                         />
-                        {searchFilteredWorkflows.map((workflow) => (
-                            <OfflineWithFeedback
-                                key={workflow.routingFirstApproverEmail}
-                                pendingAction={workflow.pendingAction}
-                            >
-                                <ApprovalWorkflowSection
-                                    approvalWorkflow={workflow}
-                                    onPress={
-                                        shouldBlockApprovalWorkflowEditing || !canWriteApprovals
-                                            ? undefined
-                                            : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.routingFirstApproverEmail))
-                                    }
-                                    onAddAgentPress={() => handleAddAgentPress(workflow)}
-                                    onDismissApproverError={(approver) => {
-                                        if (approver.accountID === undefined) {
-                                            return;
+                        {searchFilteredWorkflows.map((workflow) => {
+                            const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
+
+                            return (
+                                <OfflineWithFeedback
+                                    key={firstApproverEmail}
+                                    pendingAction={workflow.pendingAction}
+                                >
+                                    <ApprovalWorkflowSection
+                                        approvalWorkflow={workflow}
+                                        onPress={
+                                            shouldBlockApprovalWorkflowEditing || !canWriteApprovals
+                                                ? undefined
+                                                : () => {
+                                                      // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
+                                                      clearApprovalWorkflow();
+                                                      Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApproverEmail));
+                                                  }
                                         }
-                                        clearPendingAgentFromApprovalWorkflow(route.params.policyID, workflow.routingFirstApproverEmail, approver.accountID);
-                                    }}
-                                    canAddAgent={!shouldBlockApprovalWorkflowEditing && isPolicyAdmin}
-                                    currency={policy?.outputCurrency}
-                                    isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
-                                    hrProviderName={isHRConnected ? hrProviderName : undefined}
-                                    isHRAdvancedMode={isHRAdvancedModeEnabled}
-                                    hrFinalApproverEmail={isHRAdvancedModeEnabled ? hrFinalApproverEmail : undefined}
-                                />
-                            </OfflineWithFeedback>
-                        ))}
+                                        onShowAllMembersPress={
+                                            shouldBlockApprovalWorkflowEditing
+                                                ? undefined
+                                                : () => {
+                                                      selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers: availableMembers, usedApproverEmails});
+                                                      Navigation.navigate(
+                                                          ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(
+                                                              route.params.policyID,
+                                                              ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                                                          ),
+                                                      );
+                                                  }
+                                        }
+                                        currency={policy?.outputCurrency}
+                                        isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
+                                        hrProviderName={isHRConnected ? hrProviderName : undefined}
+                                        isHRAdvancedMode={isHRAdvancedModeEnabled}
+                                        hrFinalApproverEmail={isHRAdvancedModeEnabled ? hrFinalApproverEmail : undefined}
+                                    />
+                                </OfflineWithFeedback>
+                            );
+                        })}
                         {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
                             <MenuItem
                                 title={translate('workflowsPage.addApprovalButton')}
@@ -760,6 +737,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         hrFinalApproverEmail,
         shouldBlockApprovalWorkflowEditing,
         approvalSubtitle,
+        availableMembers,
+        usedApproverEmails,
         navigateToSubmitWorkspaceApprovalsUpgrade,
         promptConfigureApprovalsInHR,
         isDEWEnabled,
@@ -767,8 +746,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         expensifyIcons.Info,
         expensifyIcons.Plus,
         expensifyIcons.DotIndicator,
-        isCustomAgentBetaEnabled,
-        isAgentsWorkflowsBannerDismissed,
         theme.textSupporting,
         accountManagerReportID,
         filteredApprovalWorkflows.length,
@@ -806,7 +783,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         withPaymentsReadOnlyFallback,
         withWorkflowsReadOnlyFallback,
         showReadOnlyModal,
-        handleAddAgentPress,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
