@@ -12,7 +12,9 @@ import ROUTES from '@src/ROUTES';
 // Jest (jest-expo) resolves the `.native` variant by default, so we require the web entry point
 // explicitly (with its `.tsx` extension) to exercise the web implementation.
 // eslint-disable-next-line import/extensions
-const XeroSetupPage = (require('@pages/workspace/accounting/xero/XeroSetupPage/index.tsx') as {default: typeof XeroSetupPageType}).default;
+const xeroSetupPageModule: unknown = require('@pages/workspace/accounting/xero/XeroSetupPage/index.tsx');
+
+const XeroSetupPage = (xeroSetupPageModule as {default: typeof XeroSetupPageType}).default;
 
 const ENVIRONMENT_URL = 'https://new.expensify.com';
 const TWO_FACTOR_AUTH_ROUTE = ROUTES.SETTINGS_2FA_ENABLED;
