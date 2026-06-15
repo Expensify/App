@@ -2,9 +2,11 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
+import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, SearchResults} from '@src/types/onyx';
+import {createRandomReport} from '../../utils/collections/reports';
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
 // ---------------------------------------------------------------------------
@@ -62,12 +64,13 @@ jest.mock('@libs/actions/Search', () => ({
 // integration/permission chain in getSecondaryExportReportActions. The key behavior under
 // test is that the snapshot-resolved report (truthy) reaches this function; without the fix
 // the report is undefined and canReportBeExported bails before ever calling it.
-const mockGetSecondaryExportReportActions = jest.fn((accountID: number, login: string, report: Report | undefined) =>
-    report ? [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED] : [],
-);
+const mockGetSecondaryExportReportActions = jest.fn((...args: Parameters<typeof ReportSecondaryActionUtilsModule.getSecondaryExportReportActions>) => {
+    const report = args[2];
+    return report ? [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED] : [];
+});
 jest.mock('@libs/ReportSecondaryActionUtils', () => ({
-    ...jest.requireActual<typeof import('@libs/ReportSecondaryActionUtils')>('@libs/ReportSecondaryActionUtils'),
-    getSecondaryExportReportActions: (...args: [number, string, Report | undefined, ...unknown[]]) => mockGetSecondaryExportReportActions(...args),
+    ...jest.requireActual<typeof ReportSecondaryActionUtilsModule>('@libs/ReportSecondaryActionUtils'),
+    getSecondaryExportReportActions: (...args: Parameters<typeof ReportSecondaryActionUtilsModule.getSecondaryExportReportActions>) => mockGetSecondaryExportReportActions(...args),
 }));
 
 jest.mock('@libs/actions/MergeTransaction', () => ({
@@ -294,6 +297,7 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
 /** A complete report as it arrives from the search API (lives in the snapshot, not live Onyx on a fresh load). */
 function makeSnapshotReport(): Report {
     return {
+        ...createRandomReport(CURRENT_USER_ACCOUNT_ID, undefined),
         reportID: REPORT_ID,
         policyID: POLICY_ID,
         reportName: 'Approved report',
@@ -301,7 +305,29 @@ function makeSnapshotReport(): Report {
         stateNum: CONST.REPORT.STATE_NUM.APPROVED,
         statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-    } as unknown as Report;
+    };
+}
+
+/** Build a minimal expense-report search snapshot containing the given reports keyed by their collection key. */
+function makeSearchResults(reports: Report[]): SearchResults {
+    const data: SearchResults['data'] = {};
+    for (const report of reports) {
+        data[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
+    }
+    return {
+        search: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
+            offset: 0,
+            hasMoreResults: false,
+            hasResults: true,
+            isLoading: false,
+            count: 1,
+            total: 100,
+            currency: 'USD',
+        },
+        data,
+    };
 }
 
 function getExportSubMenuItems(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
@@ -352,22 +378,7 @@ describe('useSearchBulkActions - report export options resolve from the search s
          *       integration export ("Export to NetSuite") and "Mark as Exported" options appear
          *       without opening any report.
          */
-        mockCurrentSearchResults = {
-            search: {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
-                offset: 0,
-                hasMoreResults: false,
-                hasResults: true,
-                isLoading: false,
-                count: 1,
-                total: 100,
-                currency: 'USD',
-            },
-            data: {
-                [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: makeSnapshotReport(),
-            },
-        } as unknown as SearchResults;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
 
         // NOTE: deliberately NOT writing the live Onyx report_<id> — that is the bug condition.
 
@@ -404,20 +415,7 @@ describe('useSearchBulkActions - report export options resolve from the search s
          *       integration export / "Mark as Exported" options are not offered. This guards against
          *       regressing the gate into showing options for reports we cannot resolve.
          */
-        mockCurrentSearchResults = {
-            search: {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
-                offset: 0,
-                hasMoreResults: false,
-                hasResults: true,
-                isLoading: false,
-                count: 1,
-                total: 100,
-                currency: 'USD',
-            },
-            data: {},
-        } as unknown as SearchResults;
+        mockCurrentSearchResults = makeSearchResults([]);
 
         mockSelectedReports = [makeSelectedReport()];
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
