@@ -13,6 +13,7 @@ import {
     isValidExpirationDate,
     isValidInputLength,
     isValidLegalName,
+    isValidNANPPhone,
     isValidPastDate,
     isValidPaymentZipCode,
     isValidPersonName,
@@ -587,6 +588,40 @@ describe('ValidationUtils', () => {
 
         test('Should return false for an empty string', () => {
             expect(isValidUSPhone('')).toBe(false);
+        });
+    });
+
+    describe('isValidNANPPhone', () => {
+        test('Should return true for a standard US phone number', () => {
+            expect(isValidNANPPhone('+12018675309')).toBe(true);
+        });
+
+        test('Should return true for a Puerto Rico phone number', () => {
+            expect(isValidNANPPhone('+17873464732')).toBe(true);
+        });
+
+        test('Should return true for a US Virgin Islands phone number', () => {
+            expect(isValidNANPPhone('+13405551234')).toBe(true);
+        });
+
+        test('Should return true for a Guam phone number', () => {
+            expect(isValidNANPPhone('+16715551234')).toBe(true);
+        });
+
+        test('Should return true for a Northern Mariana Islands phone number', () => {
+            expect(isValidNANPPhone('+16705551234')).toBe(true);
+        });
+
+        test('Should return true for a Canadian phone number', () => {
+            expect(isValidNANPPhone('+14165551234')).toBe(true);
+        });
+
+        test('Should return false for a UK phone number', () => {
+            expect(isValidNANPPhone('+442071234567')).toBe(false);
+        });
+
+        test('Should return false for an empty string', () => {
+            expect(isValidNANPPhone('')).toBe(false);
         });
     });
 
