@@ -100,7 +100,12 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
 function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy =>
-            !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id && !!getPolicyRole(policy, currentUserLogin),
+            !!policy &&
+            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            !!policy.name &&
+            !!policy.id &&
+            !!getPolicyRole(policy, currentUserLogin) &&
+            isGroupPolicy(policy),
     );
 }
 
