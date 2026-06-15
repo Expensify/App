@@ -1673,7 +1673,6 @@ function shouldShowYear(
             result.shouldShowYearCreated &&
             result.shouldShowYearSubmitted &&
             result.shouldShowYearApproved &&
-            result.shouldShowYearFirstApproved &&
             result.shouldShowYearPosted &&
             result.shouldShowYearExported &&
             result.shouldShowYearWithdrawn
