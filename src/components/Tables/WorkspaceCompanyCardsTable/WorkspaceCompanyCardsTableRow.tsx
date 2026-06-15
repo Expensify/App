@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import type {TableData} from '@components/Table';
 import Table from '@components/Table';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -22,19 +23,20 @@ import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/type
 import type {CardAssignmentData} from '@src/types/onyx/Card';
 import WorkspaceCompanyCardsTableSkeleton from './WorkspaceCompanyCardsTableSkeleton';
 
-type WorkspaceCompanyCardTableRowData = CardAssignmentData & {
-    /** Whether the card is deleted */
-    isCardDeleted: boolean;
+type WorkspaceCompanyCardTableRowData = TableData &
+    CardAssignmentData & {
+        /** Whether the card is deleted */
+        isCardDeleted: boolean;
 
-    /** Whether the card is assigned */
-    isAssigned: boolean;
+        /** Whether the card is assigned */
+        isAssigned: boolean;
 
-    /** Assigned card */
-    assignedCard?: Card;
+        /** Assigned card */
+        assignedCard?: Card;
 
-    /** On dismiss error callback */
-    onDismissError?: () => void;
-};
+        /** On dismiss error callback */
+        onDismissError?: () => void;
+    };
 
 type WorkspaceCompanyCardTableRowProps = {
     /** The workspace company card table item */

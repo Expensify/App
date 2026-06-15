@@ -143,6 +143,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                 <InteractiveStepSubHeader
                     startStepIndex={1}
                     stepNames={CONST.COMPANY_CARD.STEP_NAMES}
+                    currentStepAccessibilityDescription={translate('workspace.companyCards.chooseCard')}
                 />
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>

@@ -27,8 +27,17 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {canMemberWrite, getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy, isSubmitPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
+import {
+    canMemberWrite,
+    getDefaultApprover,
+    getMemberAccountIDsForWorkspace,
+    goBackFromInvalidPolicy,
+    isControlPolicy,
+    isSubmitPolicy,
+    tryNavigateToSubmitWorkspaceUpgrade,
+} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import {getSearchParamFromPath} from '@libs/Url';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,6 +75,13 @@ function WorkspaceInviteMessageComponent({
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const policyName = policy?.name;
+
+    const backToPath = typeof backTo === 'string' ? (backTo.split('?').at(0) ?? '') : '';
+    const isWorkflowApprovalExpensesFromRoute = backToPath.endsWith('/workflows/approvals/expenses-from');
+    const headerTitle = isWorkflowApprovalExpensesFromRoute ? translate('workflowsExpensesFromPage.title') : translate('workspace.inviteMessage.confirmDetails');
+    const subtitle = isWorkflowApprovalExpensesFromRoute ? undefined : policyName;
+
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const filteredReportActions = useAllPolicyExpenseChatReportActions();
@@ -81,7 +97,11 @@ function WorkspaceInviteMessageComponent({
     const canChangeInviteRole = !isSubmitPolicy(policy) && canAssignElevatedRoles;
     // Submit workspaces only allow inviting editors, so default the invite role accordingly when no draft is set.
     // The backend ignores any other role for Submit workspaces, but defaulting here keeps the UI honest before submit.
-    const workspaceInviteRoleDraft = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : canAssignElevatedRoles ? (workspaceInviteRoleDraftFromOnyx ?? CONST.POLICY.ROLE.USER) : CONST.POLICY.ROLE.USER;
+    const workspaceInviteRoleDraft = isSubmitPolicy(policy)
+        ? CONST.POLICY.ROLE.EDITOR
+        : canAssignElevatedRoles
+          ? (workspaceInviteRoleDraftFromOnyx ?? CONST.POLICY.ROLE.USER)
+          : CONST.POLICY.ROLE.USER;
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
@@ -98,6 +118,7 @@ function WorkspaceInviteMessageComponent({
     };
 
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
+
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
         .map((personalDetail) => {
@@ -178,7 +199,17 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        if ((backTo as string)?.endsWith('members')) {
+        if (isWorkflowApprovalExpensesFromRoute) {
+            const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
+            if (nestedBackTo) {
+                Navigation.goBack(nestedBackTo as Routes);
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0));
+            }
+            return;
+        }
+
+        if (backTo?.endsWith('members')) {
             Navigation.dismissModal();
             return;
         }
@@ -202,7 +233,6 @@ function WorkspaceInviteMessageComponent({
         return errorFields;
     };
 
-    const policyName = policy?.name;
     const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
     const invitingMemberDetails = getPersonalDetailByEmail(invitingMemberEmail);
     const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
@@ -228,8 +258,8 @@ function WorkspaceInviteMessageComponent({
             >
                 {shouldShowBackButton && (
                     <HeaderWithBackButton
-                        title={translate('workspace.inviteMessage.confirmDetails')}
-                        subtitle={policyName}
+                        title={headerTitle}
+                        subtitle={subtitle}
                         shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -245,7 +275,9 @@ function WorkspaceInviteMessageComponent({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {isInviteNewMemberStep && <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>}
+                    {(isInviteNewMemberStep || isWorkflowApprovalExpensesFromRoute) && (
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
+                    )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <ReportActionAvatars
                             size={CONST.AVATAR_SIZE.LARGE}

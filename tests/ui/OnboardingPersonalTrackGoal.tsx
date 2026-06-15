@@ -3,6 +3,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {act, render, screen, userEvent, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -16,7 +17,6 @@ import OnboardingPersonalTrackGoal from '@pages/OnboardingPersonalTrackGoal';
 import {completeOnboarding} from '@userActions/Report';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -50,7 +50,7 @@ jest.mock('@userActions/Policy/Policy', () => {
 
 TestHelper.setupGlobalFetchMock();
 
-const translateGoal = (goal: string) => TestHelper.translateLocal(`onboarding.personalTrackGoal.${goal}` as TranslationPaths);
+const translateGoal = (goal: ValueOf<typeof CONST.ONBOARDING_PERSONAL_TRACK_GOALS>) => TestHelper.translateLocal(`onboarding.personalTrackGoal.${goal}`);
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 
@@ -89,7 +89,16 @@ describe('OnboardingPersonalTrackGoal Page', () => {
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+            isInNarrowPaneModal: false,
+            isExtraSmallScreenHeight: false,
+            isMediumScreenWidth: false,
+            isLargeScreenWidth: false,
+            isExtraLargeScreenWidth: false,
+            isExtraSmallScreenWidth: false,
+            isSmallScreen: false,
+            onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
+        } satisfies ResponsiveLayoutResult);
     });
 
     afterEach(async () => {
@@ -163,6 +172,26 @@ describe('OnboardingPersonalTrackGoal Page', () => {
 
         // Private-domain users already entered their name, so they should not be sent back to the personal details screen.
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(''));
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should restore a previously entered "Something else" value from Onyx', async () => {
+        await TestHelper.signInWithTestUser();
+
+        const customGoal = 'My custom tracking goal';
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL, customGoal);
+        });
+
+        const {unmount} = renderOnboardingPersonalTrackGoalPage(SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByDisplayValue(customGoal)).toBeOnTheScreen();
+        });
 
         unmount();
         await waitForBatchedUpdatesWithAct();
