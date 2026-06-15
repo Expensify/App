@@ -4952,13 +4952,6 @@ ${amount} dla ${merchant} - ${date}`,
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Wysłano',
                 },
             },
-            reportExportStatus: {
-                label: 'Status raportu wydatków',
-                values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Zatwierdzono',
-                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Wysłano',
-                },
-            },
             exportDate: {
                 label: 'Data płatności faktury',
                 values: {
@@ -4972,9 +4965,6 @@ ${amount} dla ${merchant} - ${date}`,
                 helperText: 'Wydatki oznaczone jako podlegające zwrotowi zostaną wyeksportowane jako faktury do zapłaty wystawione na pracownika.',
             },
             exportNonReimbursable: {label: 'Eksportuj niewliczane do zwrotu wydatki jako'},
-            expenseReports: 'Raporty wydatków',
-            exportReimbursableExpenseReports: {helperText: 'Wydatki oznaczone jako podlegające zwrotowi zostaną wyeksportowane jako raporty wydatków wystawione na pracownika.'},
-            exportNonReimbursableExpenseReports: {helperText: 'Wydatki oznaczone jako niepodlegające zwrotowi zostaną wyeksportowane jako raporty wydatków wystawione na pracownika.'},
             noVendorsFound: 'Nie znaleziono dostawców',
             noVendorsFoundDescription: 'Po dodaniu dostawców w Certinia zsynchronizuj ponownie to połączenie.',
             noCompaniesFound: 'Nie znaleziono firm',

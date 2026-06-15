@@ -4954,13 +4954,6 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
                 },
             },
-            reportExportStatus: {
-                label: 'Status do relatório de despesas',
-                values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Aprovado',
-                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
-                },
-            },
             exportDate: {
                 label: 'Data de vencimento da fatura',
                 values: {
@@ -4974,9 +4967,6 @@ ${amount} para ${merchant} - ${date}`,
                 helperText: 'Despesas marcadas como reembolsáveis serão exportadas como faturas a pagar emitidas em nome do funcionário.',
             },
             exportNonReimbursable: {label: 'Exportar despesas não reembolsáveis como'},
-            expenseReports: 'Relatórios de despesas',
-            exportReimbursableExpenseReports: {helperText: 'Despesas marcadas como reembolsáveis serão exportadas como relatórios de despesas emitidos em nome do funcionário.'},
-            exportNonReimbursableExpenseReports: {helperText: 'Despesas marcadas como não reembolsáveis serão exportadas como relatórios de despesas emitidos em nome do funcionário.'},
             noVendorsFound: 'Nenhum fornecedor encontrado',
             noVendorsFoundDescription: 'Sincronize a conexão novamente depois que os fornecedores forem adicionados no Certinia.',
             noCompaniesFound: 'Nenhuma empresa encontrada',

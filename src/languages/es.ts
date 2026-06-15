@@ -4866,13 +4866,6 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
                 },
             },
-            reportExportStatus: {
-                label: 'Estado del informe de gastos',
-                values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Aprobado',
-                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
-                },
-            },
             exportDate: {
                 label: 'Fecha de factura pagadera',
                 values: {
@@ -4886,9 +4879,6 @@ ${amount} para ${merchant} - ${date}`,
                 helperText: 'Los gastos marcados como reembolsables se exportarán como facturas por pagar a nombre de la persona empleada.',
             },
             exportNonReimbursable: {label: 'Exportar gastos no reembolsables como'},
-            expenseReports: 'Informes de gastos',
-            exportReimbursableExpenseReports: {helperText: 'Los gastos marcados como reembolsables se exportarán como informes de gastos emitidos al empleado.'},
-            exportNonReimbursableExpenseReports: {helperText: 'Los gastos marcados como no reembolsables se exportarán como informes de gastos emitidos al empleado.'},
             noVendorsFound: 'No se encontraron proveedores',
             noVendorsFoundDescription: 'Vuelve a sincronizar la conexión después de añadir los proveedores en Certinia.',
             noCompaniesFound: 'No se encontraron empresas',

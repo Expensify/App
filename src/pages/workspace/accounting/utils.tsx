@@ -328,16 +328,6 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
             const certiniaConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA];
             const certiniaConfig = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
-            const certiniaSubscribedExportSettings = certiniaConfig?.hasPSA
-                ? [CONST.CERTINIA_CONFIG.EXPORTER, CONST.CERTINIA_CONFIG.REPORT_EXPORT_STATUS, CONST.CERTINIA_CONFIG.REIMBURSABLE, CONST.CERTINIA_CONFIG.NON_REIMBURSABLE]
-                : [
-                      CONST.CERTINIA_CONFIG.EXPORTER,
-                      CONST.CERTINIA_CONFIG.EXPORT_STATUS,
-                      CONST.CERTINIA_CONFIG.EXPORT_DATE,
-                      CONST.CERTINIA_CONFIG.VENDOR_ACCOUNT,
-                      CONST.CERTINIA_CONFIG.REIMBURSABLE,
-                      CONST.CERTINIA_CONFIG.NON_REIMBURSABLE,
-                  ];
             let certiniaTitle = translate('workspace.certinia.title');
             if (certiniaConnection && certiniaConfig?.hasPSA) {
                 certiniaTitle = translate('workspace.certinia.titlePSA');
@@ -362,7 +352,14 @@ function getAccountingIntegrationData(
                     CONST.CERTINIA_CONFIG.SYNC_TAX,
                 ],
                 onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
-                subscribedExportSettings: certiniaSubscribedExportSettings,
+                subscribedExportSettings: [
+                    CONST.CERTINIA_CONFIG.EXPORTER,
+                    CONST.CERTINIA_CONFIG.EXPORT_STATUS,
+                    CONST.CERTINIA_CONFIG.EXPORT_DATE,
+                    CONST.CERTINIA_CONFIG.VENDOR_ACCOUNT,
+                    CONST.CERTINIA_CONFIG.REIMBURSABLE,
+                    CONST.CERTINIA_CONFIG.NON_REIMBURSABLE,
+                ],
                 onAdvancedPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
                 subscribedAdvancedSettings: [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.CERTINIA)),

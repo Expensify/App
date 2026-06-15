@@ -4985,13 +4985,6 @@ ${amount} für ${merchant} – ${date}`,
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Übermittelt',
                 },
             },
-            reportExportStatus: {
-                label: 'Status der Spesenabrechnung',
-                values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Genehmigt',
-                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Übermittelt',
-                },
-            },
             exportDate: {
                 label: 'Fälligkeitstag der Rechnung',
                 values: {
@@ -5005,9 +4998,6 @@ ${amount} für ${merchant} – ${date}`,
                 helperText: 'Als erstattungsfähig markierte Ausgaben werden als Verbindlichkeitsrechnungen auf den*die Mitarbeitende*n exportiert.',
             },
             exportNonReimbursable: {label: 'Nicht erstattungsfähige Ausgaben exportieren als'},
-            expenseReports: 'Spesenabrechnungen',
-            exportReimbursableExpenseReports: {helperText: 'Als erstattungsfähig markierte Ausgaben werden als Spesenabrechnungen für Mitarbeitende exportiert.'},
-            exportNonReimbursableExpenseReports: {helperText: 'Als nicht erstattungsfähig markierte Ausgaben werden als Spesenabrechnungen für Mitarbeitende exportiert.'},
             noVendorsFound: 'Keine Anbieter gefunden',
             noVendorsFoundDescription: 'Bitte synchronisieren Sie die Verbindung erneut, nachdem Lieferanten in Certinia hinzugefügt wurden.',
             noCompaniesFound: 'Keine Unternehmen gefunden',

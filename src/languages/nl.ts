@@ -4960,13 +4960,6 @@ ${amount} voor ${merchant} - ${date}`,
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Ingediend',
                 },
             },
-            reportExportStatus: {
-                label: 'Status van declaratie',
-                values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Goedgekeurd',
-                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Ingediend',
-                },
-            },
             exportDate: {
                 label: 'Vervaldatum factuur',
                 values: {
@@ -4980,9 +4973,6 @@ ${amount} voor ${merchant} - ${date}`,
                 helperText: 'Declarabele uitgaven worden geëxporteerd als te betalen facturen op naam van de werknemer.',
             },
             exportNonReimbursable: {label: 'Niet-declarabele uitgaven exporteren als'},
-            expenseReports: 'Declaraties',
-            exportReimbursableExpenseReports: {helperText: 'Declarabele uitgaven worden geëxporteerd als declaraties op naam van de werknemer.'},
-            exportNonReimbursableExpenseReports: {helperText: 'Niet-declarabele uitgaven worden geëxporteerd als declaraties op naam van de werknemer.'},
             noVendorsFound: 'Geen leveranciers gevonden',
             noVendorsFoundDescription: 'Synchroniseer de verbinding opnieuw nadat leveranciers zijn toegevoegd in Certinia.',
             noCompaniesFound: 'Geen bedrijven gevonden',
