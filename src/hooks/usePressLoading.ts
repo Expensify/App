@@ -1,22 +1,22 @@
 import {useCallback, useState} from 'react';
 
 /**
- * Bridges the gap between a button press and a loading state becoming visible.
+ * Bridges the gap between a button press and the consumer-driven `isLoading` becoming visible.
  *
- * `startPressLoading` shows the spinner (`isPressed`) and defers the work by a tick, so React can paint
- * the spinner before the work runs and potentially blocks the JS thread. `isPressed` resets automatically
- * once the deferred work has been kicked off, handing the loading state back to `isLoading`.
+ * On press, `startPressLoading` shows the spinner (`isPressed`) and defers the work by a tick so React can paint
+ * the spinner before the (possibly JS-blocking) work runs. `isPressed` then stays on until `isLoading` turns true.
  */
-function usePressLoading() {
+function usePressLoading(isLoading = false) {
     const [isPressed, setIsPressed] = useState(false);
 
     const startPressLoading = useCallback((onPress: () => void) => {
         setIsPressed(true);
-        setTimeout(() => {
-            onPress();
-            setIsPressed(false);
-        }, 0);
+        setTimeout(onPress, 0);
     }, []);
+
+    if (isPressed && isLoading) {
+        setIsPressed(false);
+    }
 
     return {isPressed, startPressLoading};
 }

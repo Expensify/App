@@ -53,7 +53,7 @@ function CountrySelection() {
     const [selectedCountry, setSelectedCountry] = useState<string>(initialCountry);
     const [shouldShowError, setShouldShowError] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
     const navigation = useContext(NavigationContext);
 
     useEffect(() => {

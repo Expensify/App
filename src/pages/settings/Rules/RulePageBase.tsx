@@ -95,7 +95,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     // Cannot use useRef because react compiler fails
     const [isSaving, setIsSaving] = useState(false);
     const [shouldShowError, setShouldShowError] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isSaving);
     const styles = useThemeStyles();
 
     useEffect(() => () => clearDraftRule(), []);

@@ -74,7 +74,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const [isErrorVisible, setIsErrorVisible] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isSaving);
     const currentRuleID = ruleID ?? ROUTES.NEW;
     const isEditing = currentRuleID !== ROUTES.NEW;
     const existingRule = isEditing ? expensifyCardSettings?.cardRules?.[currentRuleID] : undefined;

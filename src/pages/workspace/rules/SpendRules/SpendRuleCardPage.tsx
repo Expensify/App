@@ -96,7 +96,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
 
     const [selectedCardIDs, setSelectedCardIDs] = useState<string[]>([]);
     const [isSaving, setIsSaving] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isSaving);
 
     useFocusEffect(
         useCallback(() => {

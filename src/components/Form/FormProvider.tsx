@@ -274,7 +274,7 @@ function FormProvider({
     );
 
     // Press-driven spinner bridge: covers the gap between the click and the parent committing formState.isLoading=true (typically driven by Onyx)
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(!!formState?.isLoading || isLoading);
 
     const submit = useDebounceNonReactive(
         useCallback(() => {

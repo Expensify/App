@@ -41,7 +41,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
 
     // Any existing participants and Expensify emails should not be eligible for invitation

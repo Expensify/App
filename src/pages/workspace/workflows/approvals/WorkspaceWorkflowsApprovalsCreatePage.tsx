@@ -39,7 +39,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const [addExpenseApprovalsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`);
     const formRef = useRef<ScrollView>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
 
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy);

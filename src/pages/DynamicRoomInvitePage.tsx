@@ -66,7 +66,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const isReportArchived = useReportIsArchived(report.reportID);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {

@@ -51,7 +51,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const didInvite = useRef<boolean>(false);
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
 
     const domainName = domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
 

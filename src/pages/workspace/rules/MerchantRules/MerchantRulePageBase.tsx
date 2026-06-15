@@ -100,7 +100,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isSaving);
     const isEditing = !!ruleID;
     const isInLandscapeMode = useIsInLandscapeMode();
 

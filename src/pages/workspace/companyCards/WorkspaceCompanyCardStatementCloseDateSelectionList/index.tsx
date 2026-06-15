@@ -62,7 +62,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
     const [isChoosingCustomDate, setIsChoosingCustomDate] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
 
     const title = useMemo(
         () => (isChoosingCustomDate ? translate('workspace.companyCards.customCloseDate') : translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')),

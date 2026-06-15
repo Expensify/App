@@ -47,7 +47,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const {showConfirmModal} = useConfirmModal();
     const isDeleting = useRef(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
 
     const updateApprovalWorkflowCallback = () => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {

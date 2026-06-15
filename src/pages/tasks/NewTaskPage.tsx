@@ -60,7 +60,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
     const [error, setError] = useState<{message: string; taskKey: string}>({message: '', taskKey: ''});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
     const errorMessage = error.taskKey === taskKey ? error.message : '';
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;

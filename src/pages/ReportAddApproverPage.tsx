@@ -44,7 +44,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);

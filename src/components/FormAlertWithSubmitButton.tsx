@@ -113,7 +113,7 @@ function FormAlertWithSubmitButton({
     const styles = useThemeStyles();
     const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
 
-    const {isPressed, startPressLoading} = usePressLoading();
+    const {isPressed, startPressLoading} = usePressLoading(isLoading);
 
     const handlePress = useCallback(() => {
         if (!shouldShowLoadingImmediatelyOnPress) {
