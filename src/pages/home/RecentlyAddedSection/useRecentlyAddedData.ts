@@ -4,11 +4,12 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {search} from '@libs/actions/Search';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getAmount, getCreated, getCurrency, getMerchant} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
 /** A single expense row surfaced by the Recently added slot. */
 type RecentlyAddedExpense = {
@@ -29,6 +30,13 @@ type RecentlyAddedExpense = {
 
     /** The expense currency */
     currency: string;
+
+    /**
+     * The transaction thread report to open for this expense, resolved from the snapshot's IOU action.
+     * Needed for unreported (tracked) expenses, whose thread lives in the self-DM and is absent from the
+     * main Onyx collection.
+     */
+    threadReportID?: string;
 
     /** The full transaction, used to render the receipt thumbnail */
     transaction?: Transaction;
@@ -96,8 +104,14 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
 
         const reportOwnerByReportID = new Map<string, number | undefined>();
         const snapshotTransactions: Transaction[] = [];
+        const snapshotReportActions: ReportAction[] = [];
         // Snapshot data is a keyed record where the key prefix determines the value type.
         for (const [key, value] of Object.entries(data)) {
+            if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                snapshotReportActions.push(...Object.values((value ?? {}) as Record<string, ReportAction>));
+                continue;
+            }
             if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const report = value as Report;
@@ -140,6 +154,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 merchant: getMerchant(transaction),
                 amount: getAmount(transaction),
                 currency: getCurrency(transaction),
+                threadReportID: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID)?.childReportID,
                 transaction,
             }));
     }, [snapshotData, accountID]);

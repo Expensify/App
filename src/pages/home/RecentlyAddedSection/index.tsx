@@ -16,7 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createTransactionThreadReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllReportActions, getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, isOneTransactionReport} from '@libs/ReportUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {AnchorPosition} from '@styles/index';
@@ -58,12 +58,20 @@ function RecentlyAddedSection() {
     // A one-transaction report already renders the expense inline, so we keep its reportID; for a
     // multi-expense report we resolve (and create if needed) the transaction thread for the tapped expense.
     const getReportIDToOpen = (expense: RecentlyAddedExpense): string => {
+        const isUnreported = expense.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+        // Unreported (tracked) expenses live in the self-DM; their transaction thread (resolved from the
+        // snapshot) is the expense view to open, since report "0" does not exist.
+        if (isUnreported) {
+            return expense.threadReportID ?? expense.reportID;
+        }
+
         const parentReport = getReportOrDraftReport(expense.reportID);
         if (isOneTransactionReport(parentReport)) {
             return expense.reportID;
         }
 
-        const iouAction = getIOUActionForTransactionID(Object.values(getAllReportActions(expense.reportID)), expense.transactionID);
+        const iouAction = getIOUActionForReportID(expense.reportID, expense.transactionID);
         if (!iouAction) {
             return expense.reportID;
         }
