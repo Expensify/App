@@ -1574,7 +1574,7 @@ describe('ReportActionsUtils', () => {
         // isSentMoneyReportAction() return true and triggers our filter branch.
         const sendMoneyPayAction = {
             ...mockIOUAction,
-            reportActionID: 'sendmoney-pay-1',
+            reportActionID: 'expense-pay-1',
             originalMessage: {
                 ...originalMessage,
                 type: CONST.IOU.TYPE.PAY,
