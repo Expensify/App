@@ -1440,7 +1440,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             let reportID = reportIDParam;
 
             if (isMoneyRequestAction(moneyRequestAction)) {
-                reportID = getOriginalMessage(moneyRequestAction)?.IOUReportID;
+                reportID = moneyRequestAction?.reportID;
             } else if (isReportPreviewActionReportActionsUtils(reportAction)) {
                 reportID = reportAction?.childReportID;
             }
@@ -1467,7 +1467,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             );
         },
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
-            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : undefined;
+            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? moneyRequestAction?.reportID : undefined;
 
             const reportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportIDParam;
             if (closePopover) {
