@@ -28,6 +28,10 @@ jest.mock('@hooks/useLocalize', () => ({
         translate: (key: string) => key,
     }),
 }));
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: () => ({accountID: 123, login: 'test@example.com'}),
+}));
 
 const mockFileDownload = fileDownload as jest.MockedFunction<typeof fileDownload>;
 const mockSendFromConcierge = sendExportFileFromConcierge as jest.MockedFunction<typeof sendExportFileFromConcierge>;
@@ -35,7 +39,7 @@ const mockClearExportDownload = clearExportDownload as jest.MockedFunction<typeo
 const mockNavigateToConcierge = navigateToConciergeChat as jest.MockedFunction<typeof navigateToConciergeChat>;
 
 const EXPORT_ID = 'test-export-123';
-const DOWNLOAD_URL = 'https://example.com/export.csv';
+const FILE_NAME = 'test-report-file';
 
 function renderModal(props: Partial<React.ComponentProps<typeof ExportDownloadStatusModal>> = {}) {
     return render(
@@ -103,17 +107,18 @@ describe('ExportDownloadStatusModal', () => {
         expect(screen.getByText('exportDownload.dismiss')).toBeTruthy();
     });
 
-    it('auto-downloads on ready state transition', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', downloadURL: DOWNLOAD_URL});
+    it('auto-downloads on ready state transition with a secure URL built from the fileName', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
 
         renderModal();
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), DOWNLOAD_URL);
+        const expectedURLPart = `secure?secureType=pdfreport&filename=${encodeURIComponent(FILE_NAME)}&downloadName=${encodeURIComponent(`${FILE_NAME}.pdf`)}`;
+        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining(expectedURLPart), `${FILE_NAME}.pdf`, expect.anything(), expect.anything());
     });
 
     it('shows ready state with Download and Close buttons', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', downloadURL: DOWNLOAD_URL});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
 
         renderModal();
         await waitForBatchedUpdatesWithAct();
@@ -137,7 +142,7 @@ describe('ExportDownloadStatusModal', () => {
     });
 
     it('retains last state when Onyx key becomes null', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', downloadURL: DOWNLOAD_URL});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
 
         renderModal();
         await waitForBatchedUpdatesWithAct();
@@ -166,7 +171,7 @@ describe('ExportDownloadStatusModal', () => {
     it('shows partial failure body when failedReportCount > 0 in ready state', async () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {
             state: 'ready',
-            downloadURL: DOWNLOAD_URL,
+            fileName: FILE_NAME,
             reportCount: 3,
             failedReportCount: 2,
         });
@@ -181,7 +186,7 @@ describe('ExportDownloadStatusModal', () => {
     it('shows standard ready body when failedReportCount is 0', async () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {
             state: 'ready',
-            downloadURL: DOWNLOAD_URL,
+            fileName: FILE_NAME,
             reportCount: 5,
             failedReportCount: 0,
         });
@@ -195,7 +200,7 @@ describe('ExportDownloadStatusModal', () => {
 
     it('Close button calls clearExportDownload', async () => {
         const onClose = jest.fn();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', downloadURL: DOWNLOAD_URL});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
 
         renderModal({onClose});
         await waitForBatchedUpdatesWithAct();
