@@ -29,18 +29,18 @@ const getUserTimezone = (currentUserPersonalDetails: ValueOf<WithCurrentUserPers
 function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProps) {
     const {translate} = useLocalize();
     const timezone = getUserTimezone(currentUserPersonalDetails);
-    const allTimezones = useInitialValue(() =>
-        TIMEZONES.filter((tz: string) => !tz.startsWith('Etc/GMT')).map((text: string) => ({
+    const allTimezones = useInitialValue(() => {
+        const options = TIMEZONES.filter((tz: string) => !tz.startsWith('Etc/GMT')).map((text: string) => ({
             text,
             value: text,
             keyForList: getKey(text),
             isSelected: text === timezone.selected,
-        })),
-    );
-    // Move the currently-selected timezone to the top so it's visible without scrolling when the page opens with no search input.
-    const timezonesWithSelectedFirst = useInitialValue(() => moveInitialSelectionToTop(allTimezones, timezone.selected ? [timezone.selected] : []));
+        }));
+        // Move the currently-selected timezone to the top so it's visible without scrolling when the page opens.
+        return moveInitialSelectionToTop(options, timezone.selected ? [timezone.selected] : []);
+    });
     const [timezoneInputText, setTimezoneInputText] = useState('');
-    const [timezoneOptions, setTimezoneOptions] = useState(timezonesWithSelectedFirst);
+    const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
     const saveSelectedTimezone = ({text}: {text: string}) => {
         updateSelectedTimezone(text as SelectedTimezone, currentUserPersonalDetails.accountID);
@@ -49,11 +49,6 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     const filterShownTimezones = useCallback(
         (searchText: string) => {
             setTimezoneInputText(searchText);
-            // With no search input, pin the selected timezone to the top; once the user searches, keep the original alphabetical order.
-            if (!searchText.trim()) {
-                setTimezoneOptions(timezonesWithSelectedFirst);
-                return;
-            }
             const searchWords = searchText.toLowerCase().match(/[a-z0-9]+/g) ?? [];
             setTimezoneOptions(
                 allTimezones.filter((tz) =>
@@ -66,7 +61,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 ),
             );
         },
-        [allTimezones, timezonesWithSelectedFirst],
+        [allTimezones],
     );
 
     const textInputOptions = useMemo(
