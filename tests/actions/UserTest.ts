@@ -322,24 +322,16 @@ describe('actions/User', () => {
                 // Then API.write targets RESEND_VALIDATE_CODE, stamping a numeric request time optimistically
                 // (so the gate can de-duplicate reloads within the resend window) and reverting it to null on
                 // failure (so a failed request never suppresses the next send).
-                expect(mockAPI.write).toHaveBeenCalledWith(
-                    WRITE_COMMANDS.RESEND_VALIDATE_CODE,
-                    null,
-                    expect.objectContaining({
-                        optimisticData: expect.arrayContaining([
-                            expect.objectContaining({
-                                key: ONYXKEYS.VALIDATE_ACTION_CODE,
-                                value: expect.objectContaining({lastValidateCodeRequestedAt: expect.any(Number)}),
-                            }),
-                        ]),
-                        failureData: expect.arrayContaining([
-                            expect.objectContaining({
-                                key: ONYXKEYS.VALIDATE_ACTION_CODE,
-                                value: expect.objectContaining({lastValidateCodeRequestedAt: null}),
-                            }),
-                        ]),
-                    }),
-                );
+                const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+                const optimisticUpdate = onyxData?.optimisticData?.find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
+                const failureUpdate = onyxData?.failureData?.find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
+
+                // expect.any(...) is typed as `any`; hold it in an `unknown` so the matcher can be used without an unsafe assignment.
+                const anyNumber: unknown = expect.any(Number);
+
+                expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.RESEND_VALIDATE_CODE);
+                expect(optimisticUpdate?.value).toEqual(expect.objectContaining({lastValidateCodeRequestedAt: anyNumber}));
+                expect(failureUpdate?.value).toEqual(expect.objectContaining({lastValidateCodeRequestedAt: null}));
             });
         });
     });
