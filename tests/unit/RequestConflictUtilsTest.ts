@@ -7,6 +7,7 @@ import {
     resolveEditCommentWithNewAddCommentRequest,
     resolveEnableFeatureConflicts,
     resolveOpenReportDuplicationConflictAction,
+    resolveTransactionCreationDuplicate,
 } from '@libs/actions/RequestConflictUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
@@ -226,6 +227,41 @@ describe('RequestConflictUtils', () => {
 
             const result = resolveDetachReceiptConflicts(persistedRequests, {transactionID: '1'} as never);
             expect(result).toEqual({conflictAction: {type: 'delete', indices: [0, 2], pushNewRequest: true}});
+        });
+    });
+
+    describe('resolveTransactionCreationDuplicate', () => {
+        it('returns push when no transactionID is supplied', () => {
+            const result = resolveTransactionCreationDuplicate([{command: WRITE_COMMANDS.TRACK_EXPENSE, data: {transactionID: '1'}}], undefined);
+            expect(result).toEqual({conflictAction: {type: 'push'}});
+        });
+
+        it('returns push when no queued TrackExpense or RequestMoney shares the transactionID', () => {
+            const persistedRequests = [
+                {command: 'OpenReport'},
+                {command: WRITE_COMMANDS.TRACK_EXPENSE, data: {transactionID: '999'}},
+                {command: WRITE_COMMANDS.REQUEST_MONEY, data: {transactionID: '777'}},
+            ];
+            const result = resolveTransactionCreationDuplicate(persistedRequests, '1');
+            expect(result).toEqual({conflictAction: {type: 'push'}});
+        });
+
+        it('returns noAction when a queued TrackExpense already carries the same transactionID', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.TRACK_EXPENSE, data: {transactionID: '878080547297159018'}}];
+            const result = resolveTransactionCreationDuplicate(persistedRequests, '878080547297159018');
+            expect(result).toEqual({conflictAction: {type: 'noAction'}});
+        });
+
+        it('returns noAction when a queued RequestMoney already carries the same transactionID', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.REQUEST_MONEY, data: {transactionID: '878080547297159018'}}];
+            const result = resolveTransactionCreationDuplicate(persistedRequests, '878080547297159018');
+            expect(result).toEqual({conflictAction: {type: 'noAction'}});
+        });
+
+        it('ignores unrelated commands that happen to carry the same transactionID', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '878080547297159018'}}];
+            const result = resolveTransactionCreationDuplicate(persistedRequests, '878080547297159018');
+            expect(result).toEqual({conflictAction: {type: 'push'}});
         });
     });
 });

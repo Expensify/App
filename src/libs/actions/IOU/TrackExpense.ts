@@ -87,6 +87,7 @@ import {buildPolicyData} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, notifyNewAction} from '@userActions/Report';
+import {resolveTransactionCreationDuplicate} from '@userActions/RequestConflictUtils';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction} from '@src/CONST';
@@ -1875,7 +1876,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             };
 
             deferredAPIWrite = () => {
-                API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+                API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData, {
+                    checkAndFixConflictingRequest: (persistedRequests) => resolveTransactionCreationDuplicate(persistedRequests, parameters.transactionID),
+                });
             };
         }
     }
@@ -2701,7 +2704,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
             }
 
             const apiWrite = () => {
-                API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
+                API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData, {
+                    checkAndFixConflictingRequest: (persistedRequests) => resolveTransactionCreationDuplicate(persistedRequests, parameters.transactionID),
+                });
             };
 
             deferOrExecuteWrite(apiWrite, {

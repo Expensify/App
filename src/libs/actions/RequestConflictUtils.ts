@@ -245,6 +245,25 @@ function resolveEnableFeatureConflicts<TKey extends OnyxKey>(
     };
 }
 
+const transactionCreationCommands = new Set<string>([WRITE_COMMANDS.TRACK_EXPENSE, WRITE_COMMANDS.REQUEST_MONEY]);
+
+/**
+ * Drops a duplicate TrackExpense / CreateMoneyRequest write when one with the same client-generated
+ * `transactionID` is already persisted. The first persisted request keeps the optimistic data it applied
+ * and continues through the queue's normal retry path; the duplicate would otherwise hit Bedrock and trip
+ * the unique-constraint guard in `Transaction::createMoneyRequest`.
+ */
+function resolveTransactionCreationDuplicate<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, transactionID: string | undefined): ConflictActionData {
+    if (!transactionID) {
+        return {conflictAction: {type: 'push'}};
+    }
+    const hasDuplicate = persistedRequests.some((request) => transactionCreationCommands.has(request.command) && request.data?.transactionID === transactionID);
+    if (hasDuplicate) {
+        return {conflictAction: {type: 'noAction'}};
+    }
+    return {conflictAction: {type: 'push'}};
+}
+
 function resolveDetachReceiptConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: DetachReceiptParams): ConflictActionData {
     const indicesToDelete: number[] = [];
     for (const [index, request] of persistedRequests.entries()) {
@@ -286,6 +305,7 @@ export {
     resolveEnableFeatureConflicts,
     enablePolicyFeatureCommand,
     resolveDetachReceiptConflicts,
+    resolveTransactionCreationDuplicate,
 };
 
 export type {EnablePolicyFeatureCommand, AnyRequestMatcher};
