@@ -158,11 +158,9 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
         }
 
         setNewRoomFormLoading();
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                addPolicyReport(policyReport);
-                Navigation.dismissModalWithReport({reportID: policyReport.reportID});
-            });
+        requestAnimationFrame(() => {
+            addPolicyReport(policyReport);
+            Navigation.dismissModalWithReport({reportID: policyReport.reportID});
         });
     };
 
