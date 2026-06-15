@@ -44,7 +44,7 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.policyStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS);
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS);
             expect(result.current.policyIDWithErrors).toBe(WORKSPACE.policyID);
         });
 
@@ -67,7 +67,7 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.policyStatus).toBe(CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR);
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR);
             expect(result.current.policyIDWithErrors).toBe(WORKSPACE.policyID);
         });
 
@@ -95,7 +95,7 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.policyStatus).toBe(CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR);
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR);
             expect(result.current.policyIDWithErrors).toBe(WORKSPACE.policyID);
         });
 
@@ -130,7 +130,7 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.policyStatus).toBe(CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS);
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS);
             expect(result.current.policyIDWithErrors).toBe(WORKSPACE.policyID);
         });
 
@@ -160,7 +160,7 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.policyStatus).toBe(CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR);
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR);
             expect(result.current.policyIDWithErrors).toBe(WORKSPACE.policyID);
         });
 
@@ -185,7 +185,7 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.policyStatus).toBe(CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR);
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR);
             expect(result.current.policyIDWithErrors).toBe(WORKSPACE.policyID);
         });
 
@@ -214,7 +214,74 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.policyStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS);
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS);
+        });
+    });
+
+    describe('policy info statuses', () => {
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('returns HAS_MERGE_HR_COMPLETE_SETUP when merge HR setup is needed', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: userID},
+                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                        id: WORKSPACE.policyID,
+                        name: WORKSPACE.policyName,
+                        owner: userID,
+                        role: 'admin',
+                        policyAccountID: WORKSPACE.policyAccountID,
+                        connections: {
+                            [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                                config: {integration: 'workday'},
+                                data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                                lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                            },
+                        },
+                    },
+                    [ONYXKEYS.CARD_LIST]: {},
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.policyErrorStatus).toBeUndefined();
+            expect(result.current.policyInfoStatus).toBe(CONST.INDICATOR_STATUS.HAS_MERGE_HR_COMPLETE_SETUP);
+            expect(result.current.policyIDWithErrors).toBeUndefined();
+        });
+
+        it('does not return HAS_MERGE_HR_COMPLETE_SETUP for non-admin users', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: otherUserID},
+                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                        id: WORKSPACE.policyID,
+                        name: WORKSPACE.policyName,
+                        owner: userID,
+                        role: 'user',
+                        policyAccountID: WORKSPACE.policyAccountID,
+                        connections: {
+                            [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                                config: {integration: 'workday'},
+                                data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                                lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                            },
+                        },
+                    },
+                    [ONYXKEYS.CARD_LIST]: {},
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.policyInfoStatus).toBeUndefined();
         });
     });
 
@@ -265,7 +332,8 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.policyStatus).toBeUndefined();
+            expect(result.current.policyErrorStatus).toBeUndefined();
+            expect(result.current.policyInfoStatus).toBeUndefined();
             expect(result.current.domainStatus).toBeUndefined();
             expect(result.current.policyIDWithErrors).toBeUndefined();
         });
@@ -281,7 +349,8 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.policyStatus).toBeUndefined();
+            expect(result.current.policyErrorStatus).toBeUndefined();
+            expect(result.current.policyInfoStatus).toBeUndefined();
             expect(result.current.domainStatus).toBeUndefined();
             expect(result.current.policyIDWithErrors).toBeUndefined();
         });
@@ -318,7 +387,55 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             // HAS_POLICY_ERRORS is checked first
-            expect(result.current.policyStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS);
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS);
+        });
+    });
+
+    describe('error priority over info', () => {
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('returns policy error status when both sync error and merge HR setup are needed', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: userID},
+                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                        id: WORKSPACE.policyID,
+                        name: WORKSPACE.policyName,
+                        owner: userID,
+                        role: 'admin',
+                        policyAccountID: WORKSPACE.policyAccountID,
+                        connections: {
+                            quickbooksOnline: {
+                                lastSync: {
+                                    errorMessage: 'Sync failed',
+                                    isSuccessful: false,
+                                    errorDate: new Date().toISOString(),
+                                },
+                            },
+                            [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                                config: {integration: 'workday'},
+                                data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                                lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                            },
+                        },
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${WORKSPACE.policyID}` as const]: {
+                        stageInProgress: null,
+                        connectionName: 'quickbooksOnline',
+                    },
+                    [ONYXKEYS.CARD_LIST]: {},
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS);
+            expect(result.current.policyInfoStatus).toBe(CONST.INDICATOR_STATUS.HAS_MERGE_HR_COMPLETE_SETUP);
         });
     });
 
@@ -358,7 +475,7 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.policyStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS);
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS);
             expect(result.current.policyIDWithErrors).toBe(SECOND_WORKSPACE.policyID);
         });
     });

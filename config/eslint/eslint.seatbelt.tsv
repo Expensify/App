@@ -559,7 +559,7 @@
 "../../src/hooks/usePaymentOptions.ts"	"react-hooks/refs"	1
 "../../src/hooks/usePersonalPolicy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/usePolicyData/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/usePolicyIndicatorChecks.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/hooks/usePolicyIndicatorChecks.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/usePreferredCurrency.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/usePrevious.ts"	"react-hooks/refs"	1
 "../../src/hooks/useProactiveAppReview.ts"	"react-hooks/purity"	1
@@ -2087,7 +2087,7 @@
 "../../tests/unit/useLastWorkspaceNumberTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/useMarkAsReadTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/usePersonalDetailSearchSelectorTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/usePolicyIndicatorChecksTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
+"../../tests/unit/usePolicyIndicatorChecksTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
 "../../tests/unit/usePopoverPositionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/useReceiptHoverZoomTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/useReportActionAvatarsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -2101,7 +2101,7 @@
 "../../tests/unit/useSyncFocusTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/useTodosTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/useTransactionViolationsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	21
-"../../tests/unit/useWorkspacesTabIndicatorStatusTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../tests/unit/useWorkspacesTabIndicatorStatusTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/waitForPreviousRunsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/withAgentAccessDenied.test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/utils/TestHelper.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6

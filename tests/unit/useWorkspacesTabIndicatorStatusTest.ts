@@ -49,6 +49,12 @@ const TEST_CASES = {
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR,
     },
+    hasMergeHRCompleteSetup: {
+        name: 'has Merge HR complete setup needed',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_MERGE_HR_COMPLETE_SETUP,
+        policyIDWithErrors: undefined,
+    },
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const getMockForTestCase = ({name}: IndicatorTestCase) =>
@@ -98,6 +104,15 @@ const getMockForTestCase = ({name}: IndicatorTestCase) =>
                                   reimbursableExpensesExportDestination: 'VENDOR_BILL',
                                   reimbursableExpensesAccount: undefined,
                               },
+                          },
+                      }
+                    : {}),
+                ...(name === TEST_CASES.hasMergeHRCompleteSetup.name
+                    ? {
+                          [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                              config: {integration: 'workday'},
+                              data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                              lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
                           },
                       }
                     : {}),
@@ -155,7 +170,8 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
             const {policyIDWithErrors} = result.current;
-            expect(policyIDWithErrors).toBe(WORKSPACE.policyID);
+            const expectedPolicyIDWithErrors = 'policyIDWithErrors' in testCase ? testCase.policyIDWithErrors : WORKSPACE.policyID;
+            expect(policyIDWithErrors).toBe(expectedPolicyIDWithErrors);
         });
     });
 
@@ -344,6 +360,54 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             // 3. HAS_EMPLOYEE_LIST_ERROR
             // etc.
             expect(status).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS);
+        });
+    });
+
+    describe('error priority over info', () => {
+        beforeAll(async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        email: userID,
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                        id: WORKSPACE.policyID,
+                        name: WORKSPACE.policyName,
+                        owner: userID,
+                        role: 'admin',
+                        policyAccountID: WORKSPACE.policyAccountID,
+                        connections: {
+                            quickbooksOnline: {
+                                lastSync: {
+                                    errorMessage: 'Sync failed',
+                                    isSuccessful: false,
+                                    errorDate: new Date().toISOString(),
+                                },
+                            },
+                            [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                                config: {integration: 'workday'},
+                                data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                                lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                            },
+                        },
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${WORKSPACE.policyID}` as const]: {
+                        stageInProgress: null,
+                        connectionName: 'quickbooksOnline',
+                    },
+                    [`${ONYXKEYS.CARD_LIST}`]: {},
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+        });
+
+        it('shows red sync error when both sync error and merge HR setup are needed', async () => {
+            const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status, indicatorColor} = result.current;
+
+            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS);
+            expect(indicatorColor).toBe(defaultTheme.danger);
         });
     });
 });
