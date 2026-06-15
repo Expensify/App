@@ -7,6 +7,8 @@ keywords: [New Expensify, card rewards, Expensify Card perks]
 
 From cash-back rewards to discounts on popular services, the Expensify Card offers benefits that make it more than just a corporate card. In this article, we’ll highlight the various perks available to cardholders, how to access them, and how they can benefit your business operations. Whether you're looking to cut costs, streamline workflows, or unlock valuable savings, the Expensify Card perks are tailored to meet your needs.
 
+> **Note:** The perks below apply to the U.S. Expensify Card. The UK/EU Expensify Card does not currently offer cash back. See [Set Up and Manage the Expensify Card in the UK and EU](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card-UK-EU) for details on the UK/EU card.
+
 ---
 
 # Expensify Perks
