@@ -79,35 +79,35 @@ function AddAgentRulePage({
             linkPressedRef.current = true;
             closeModal();
         };
-        showConfirmModal({
-            title: translate('workspace.rules.agentRules.agentCreatedTitle'),
-            titleStyles: styles.textHeadlineH1,
-            prompt: (
-                <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                    <RenderHTML
-                        html={translate('workspace.rules.agentRules.agentCreatedDescription', ROUTES.SETTINGS_AGENTS)}
-                        onLinkPress={handleAgentsLinkPress}
-                    />
-                </View>
-            ),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-            shouldUseSuccessStyleForConfirm: true,
-            iconSource: BotAvatarBlue,
-            iconFill: false,
-            shouldCenterIcon: true,
-            iconWidth: variables.iconSizeUltraLarge,
-            iconHeight: variables.iconSizeUltraLarge,
-            iconAdditionalStyles: {borderRadius: variables.iconSizeUltraLarge / 2, overflow: 'hidden', marginTop: 12},
-        }).then(() => {
-            Navigation.dismissModal({
-                afterTransition: () => {
+        Navigation.dismissModal({
+            afterTransition: () => {
+                showConfirmModal({
+                    title: translate('workspace.rules.agentRules.agentCreatedTitle'),
+                    titleStyles: styles.textHeadlineH1,
+                    prompt: (
+                        <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
+                            <RenderHTML
+                                html={translate('workspace.rules.agentRules.agentCreatedDescription', ROUTES.SETTINGS_AGENTS)}
+                                onLinkPress={handleAgentsLinkPress}
+                            />
+                        </View>
+                    ),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                    shouldUseSuccessStyleForConfirm: true,
+                    iconSource: BotAvatarBlue,
+                    iconFill: false,
+                    shouldCenterIcon: true,
+                    iconWidth: variables.iconSizeUltraLarge,
+                    iconHeight: variables.iconSizeUltraLarge,
+                    iconAdditionalStyles: {borderRadius: variables.iconSizeUltraLarge / 2, overflow: 'hidden', marginTop: 12},
+                }).then(() => {
                     if (!linkPressedRef.current) {
                         return;
                     }
                     Navigation.navigate(ROUTES.SETTINGS_AGENTS);
-                },
-            });
+                });
+            },
         });
     };
 
