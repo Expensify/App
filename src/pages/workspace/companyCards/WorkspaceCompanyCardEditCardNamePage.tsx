@@ -33,7 +33,8 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
     const {policyID, cardID, feed} = route.params;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const defaultValue = customCardNames?.[cardID];
+    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const defaultValue = workspaceCardFeeds?.settings?.companyCardCustomNames?.[cardID] ?? customCardNames?.[cardID];
 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();

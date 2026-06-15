@@ -99,6 +99,7 @@ function WorkspaceCompanyCardsTable({
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`);
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
 
@@ -178,12 +179,15 @@ function WorkspaceCompanyCardsTable({
         ? []
         : (companyCardEntries ?? []).map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
               const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
+              const cardID = assignedCard?.cardID;
+              const customCardName =
+                  (cardID && (workspaceCardFeeds?.settings?.companyCardCustomNames?.[cardID] ?? customCardNames?.[cardID])) || getDefaultCardName(cardholder?.displayName ?? '');
 
               return {
                   cardName,
                   keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
                   encryptedCardNumber,
-                  customCardName: assignedCard?.cardID && customCardNames?.[assignedCard.cardID] ? customCardNames?.[assignedCard.cardID] : getDefaultCardName(cardholder?.displayName ?? ''),
+                  customCardName,
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                   isAssigned,
                   assignedCard,
