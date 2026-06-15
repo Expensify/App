@@ -6000,8 +6000,12 @@ function hasReportNameError(report: OnyxEntry<Report>): boolean {
 function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>, disabledRules?: string[], isGroupPolicyReportParam?: boolean): string {
     let isGroupPolicyReport = false;
     if (parsingDetails?.reportID) {
-        const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
-        isGroupPolicyReport = isGroupPolicyReportParam ?? isReportInGroupPolicy(currentReport);
+        if (isGroupPolicyReportParam !== undefined) {
+            isGroupPolicyReport = isGroupPolicyReportParam;
+        } else {
+            const currentReport = getReportOrDraftReport(parsingDetails.reportID);
+            isGroupPolicyReport = isReportInGroupPolicy(currentReport);
+        }
     }
 
     if (parsingDetails?.policyID) {
