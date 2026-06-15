@@ -6,6 +6,7 @@ import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -89,6 +90,10 @@ function ParentNavigationSubtitle({
     shouldShowFromPrefix = true,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
+    // We intentionally use isSmallScreenWidth (real device width), not shouldUseNarrowLayout — the latter is
+    // true whenever this component renders inside an RHP, which would always block the super-wide path below.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -173,20 +178,30 @@ function ParentNavigationSubtitle({
             }
         }
 
-        // When viewing a money request in the search navigator, open the parent report in a right-hand pane (RHP)
-        // to preserve the search context instead of navigating away.
+        // When viewing a money request report in an RHP, open its parent (the workspace chat) as another RHP
+        // instead of navigating away full-page. This mirrors the Search flow (SEARCH_MONEY_REQUEST_REPORT). The
+        // EXPENSE_REPORT case is scoped to the Home tab — in the Reports/Inbox tab the parent chat is the fullscreen
+        // underneath, so the dismiss-to-reveal logic below should handle it instead.
         if (openParentReportInCurrentTab && currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             const lastRoute = currentFocusedNavigator?.state?.routes.at(-1);
-            if (lastRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
+            if (
+                lastRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ||
+                (lastRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT && currentFullScreenRoute?.name === SCREENS.HOME)
+            ) {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID}));
                 return;
             }
 
-            // Specific case: when opening expense report from search report (chat RHP),
-            // avoid stacking RHPs by going back to the search report if it's already there
+            // Specific case: when the parent report is already the previous RHP in the stack (e.g. the Home
+            // "Submit" flow opens EXPENSE_REPORT, then an expense detail as SEARCH_REPORT on top), avoid stacking
+            // a duplicate RHP — just go back to the already-open parent instead.
             const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
 
-            if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && previousRoute.params && 'reportID' in previousRoute.params) {
+            if (
+                (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || previousRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) &&
+                previousRoute.params &&
+                'reportID' in previousRoute.params
+            ) {
                 const reportIDFromParams = previousRoute.params.reportID;
 
                 if (reportIDFromParams === parentReportID) {
@@ -216,6 +231,11 @@ function ParentNavigationSubtitle({
             // and the parent isn't already in the stack — otherwise the REPORT_WITH_ID fallback
             // would yank the user to Inbox.
             if (isReportInRHP) {
+                if (!isSmallScreenWidth && isMoneyRequestReport(report)) {
+                    Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: parentReportID}));
+                    return;
+                }
+
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: isVisibleAction ? parentReportActionID : undefined}));
                 return;
             }
