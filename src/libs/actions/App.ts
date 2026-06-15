@@ -391,10 +391,8 @@ function getOnyxDataForOpenOrReconnect(
     }
 
     if (isOpenApp || isFullReconnect) {
-        // The receipt must never compare below the NVP demand this command answers, even on a
-        // client clock behind the server — a plain client-now value would re-trigger
-        // subscribeToFullReconnect on every response and sustain a reconnect storm.
-        // See getFullReconnectSeedTime for the full rationale.
+        // max(now, NVP) — a plain client-now receipt could compare below the NVP demand this
+        // command answers and re-trigger subscribeToFullReconnect; see getFullReconnectSeedTime.
         result.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
@@ -537,12 +535,10 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
 }
 
 /**
- * Fires a full reconnect in response to the server's NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE
- * demand, optimistically seeding the LAST_FULL_RECONNECT_TIME receipt first so the NVP
- * re-delivered by the response cannot re-arm the trigger. The seed write re-enters
- * subscribeToFullReconnect's callback, but with the receipt at max(now, NVP) the trigger
- * comparison fails in every clock regime, so the re-entrant call is a no-op by construction.
- * See getFullReconnectSeedTime for the clock-skew rationale.
+ * Fires a full reconnect for the given NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE demand,
+ * optimistically seeding the LAST_FULL_RECONNECT_TIME receipt first so the NVP re-delivered by
+ * the response cannot re-arm the trigger. The seed write re-enters subscribeToFullReconnect's
+ * callback, which is a no-op by construction: the receipt is already at max(now, NVP).
  */
 function triggerFullReconnect(fullReconnectBefore: string) {
     Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getFullReconnectSeedTime(fullReconnectBefore));
