@@ -4,7 +4,6 @@ import {emailSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
