@@ -57,6 +57,7 @@ function IOURequestStepHours({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(accountID, policyID, reports ?? {})});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const defaultPolicyRate = getDefaultTimeTrackingRate(policy);
     const rate = transaction?.comment?.units?.rate ?? defaultPolicyRate;
@@ -115,7 +116,6 @@ function IOURequestStepHours({
 
         if (isEmbeddedInStartPage) {
             if (explicitPolicyID) {
-                const policyExpenseChat = getPolicyExpenseChat(accountID, policyID);
                 if (!policyExpenseChat) {
                     console.error(`Couldn't find policy expense chat for policyID: ${policyID}`);
                     return;

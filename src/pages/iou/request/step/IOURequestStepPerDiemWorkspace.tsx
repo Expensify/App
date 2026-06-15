@@ -25,6 +25,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
     } = route;
     const {accountID} = useCurrentUserPersonalDetails();
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
 
@@ -35,7 +36,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
             getPolicies={getActivePoliciesWithExpenseChatAndPerDiemEnabled}
             onSelectWorkspace={(policy) => {
                 const {targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
-                    getPolicyExpenseChat(accountID, policy?.id),
+                    getPolicyExpenseChat(accountID, policy?.id, allReports ?? {}),
                     selfDMReport,
                     iouType,
                     defaultExpensePolicy,

@@ -57,6 +57,9 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
+    const [policyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id, reports ?? {}),
+    });
 
     useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
@@ -64,7 +67,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
         startScanProcessSpan(isMultiScanEnabled);
         if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserPersonalDetails.accountID)) {
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-            const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
+            const targetReport = shouldAutoReport ? policyExpenseChat : selfDMReport;
             const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
             const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
 

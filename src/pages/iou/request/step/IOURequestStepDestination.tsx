@@ -80,7 +80,7 @@ function IOURequestStepDestination({
     const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
     const {accountID} = useCurrentUserPersonalDetails();
-    const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
+    const [policyExpenseReport] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(accountID, policy?.id, reports ?? {})});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {top} = useSafeAreaInsets();

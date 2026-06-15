@@ -1,5 +1,6 @@
 import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -8,6 +9,7 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getActivePoliciesWithExpenseChatAndTimeEnabled, getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {setMoneyRequestParticipantsFromReport, setMoneyRequestTimeRate} from '@userActions/IOU/MoneyRequest';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
@@ -21,6 +23,7 @@ function IOURequestStepTimeWorkspace({route, navigation}: IOURequestStepTimeWork
 
     const {accountID} = useCurrentUserPersonalDetails();
     const isTransactionDraft = shouldUseTransactionDraft(action);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     return (
         <BaseRequestStepWorkspace
@@ -28,7 +31,7 @@ function IOURequestStepTimeWorkspace({route, navigation}: IOURequestStepTimeWork
             navigation={navigation}
             getPolicies={getActivePoliciesWithExpenseChatAndTimeEnabled}
             onSelectWorkspace={(policy) => {
-                const policyExpenseChat = getPolicyExpenseChat(accountID, policy?.id);
+                const policyExpenseChat = getPolicyExpenseChat(accountID, policy?.id, allReports ?? {});
                 if (!policyExpenseChat) {
                     console.error(`Couldn't find policy expense chat for policyID: ${policy?.id}`);
                     return;

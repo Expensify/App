@@ -169,6 +169,9 @@ function IOURequestStepAmount({
 
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const [defaultPolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id, reports ?? {}),
+    });
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
@@ -424,7 +427,7 @@ function IOURequestStepAmount({
         // so we need to handle participant selection based on available workspace settings
         if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam)) {
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-            const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id) : selfDMReport;
+            const targetReport = shouldAutoReport ? defaultPolicyExpenseChat : selfDMReport;
             const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
             const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
             const isReturningFromConfirmationPage = !!transaction?.participants?.length;
