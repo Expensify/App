@@ -38,7 +38,7 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
 
-    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardFeeds, cardFeedsMetadata] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
 
@@ -61,7 +61,7 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
         return errors;
     };
 
-    if (isLoadingOnyxValue(customCardNamesMetadata, workspaceCardFeedsMetadata)) {
+    if (isLoadingOnyxValue(customCardNamesMetadata, workspaceCardFeedsMetadata, cardFeedsMetadata)) {
         return null;
     }
 
