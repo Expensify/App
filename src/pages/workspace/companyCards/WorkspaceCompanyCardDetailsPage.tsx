@@ -212,7 +212,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     >
                         <MenuItemWithTopDescription
                             description={translate('workspace.moreFeatures.companyCards.cardName')}
-                            title={(workspaceCardFeeds?.settings?.companyCardCustomNames?.[cardID] ?? customCardNames?.[cardID]) || getDefaultCardName(cardholder?.displayName)}
+                            title={workspaceCardFeeds?.settings?.companyCardCustomNames?.[cardID] ?? customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.displayName)}
                             shouldShowRightIcon={canWriteCompanyCards}
                             brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName))}

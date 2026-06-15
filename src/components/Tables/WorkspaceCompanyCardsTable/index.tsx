@@ -179,15 +179,16 @@ function WorkspaceCompanyCardsTable({
         ? []
         : (companyCardEntries ?? []).map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
               const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
-              const cardID = assignedCard?.cardID;
-              const customCardName =
-                  (cardID && (workspaceCardFeeds?.settings?.companyCardCustomNames?.[cardID] ?? customCardNames?.[cardID])) || getDefaultCardName(cardholder?.displayName ?? '');
 
               return {
                   cardName,
                   keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
                   encryptedCardNumber,
-                  customCardName,
+                  customCardName: assignedCard?.cardID
+                      ? (workspaceCardFeeds?.settings?.companyCardCustomNames?.[assignedCard.cardID] ??
+                        customCardNames?.[assignedCard.cardID] ??
+                        getDefaultCardName(cardholder?.displayName ?? ''))
+                      : getDefaultCardName(cardholder?.displayName ?? ''),
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                   isAssigned,
                   assignedCard,
