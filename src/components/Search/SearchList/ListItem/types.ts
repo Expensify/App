@@ -3,9 +3,9 @@ import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ListItemProps} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
-import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type CONST from '@src/CONST';
 import type {
     BankAccountList,
