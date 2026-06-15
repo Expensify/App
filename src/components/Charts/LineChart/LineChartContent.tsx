@@ -24,7 +24,8 @@ import {
     useLabelHitTesting,
     useYAxisLabelWidth,
 } from '@components/Charts/hooks';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING} from '@components/Charts/VictoryTheme';
+import {labelOverhang} from '@components/Charts/utils';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -77,6 +78,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const chartBottom = useSharedValue(0);
 
     const measurements = useChartLabelMeasurements(data, fontMgr, variables.iconSizeExtraSmall);
+    const {lineHeight, firstLabelWidth, lastLabelWidth, maxLabelWidth, labelWidths} = measurements;
 
     const {formatValue} = useChartLabelFormats({
         data,
@@ -97,15 +99,23 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const chartPaddingLeft = yAxisLabelWidth + GLYPH_PADDING;
 
     const domainPadding = (() => {
-        if (!measurements.firstLabelWidth || !measurements.lastLabelWidth) {
+        if (!firstLabelWidth || !lastLabelWidth) {
             return BASE_DOMAIN_PADDING;
         }
-        const labelsExceedTickSpacing = tickSpacing > 0 && measurements.maxLabelWidth + LABEL_PADDING > tickSpacing;
+        const labelsExceedTickSpacing = tickSpacing > 0 && maxLabelWidth + LABEL_PADDING > tickSpacing;
+        let leftOverhang = firstLabelWidth / 2;
+        let rightOverhang = lastLabelWidth / 2;
+
+        if (labelsExceedTickSpacing) {
+            const diagTickMax = (tickSpacing - LABEL_PADDING) / SIN_45 + lineHeight;
+            leftOverhang = labelOverhang(Math.min(firstLabelWidth, diagTickMax), lineHeight, LABEL_ROTATIONS.DIAGONAL).left;
+            rightOverhang = lineHeight / 2;
+        }
 
         return {
             ...BASE_DOMAIN_PADDING,
-            left: Math.max(0, measurements.firstLabelWidth / 2 - chartPaddingLeft),
-            right: labelsExceedTickSpacing ? measurements.lineHeight / 2 : measurements.lastLabelWidth / 2,
+            left: Math.max(0, leftOverhang - chartPaddingLeft),
+            right: rightOverhang,
         };
     })();
 
@@ -187,7 +197,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                 {xAxisLabelHeight !== undefined && !!fontMgr && (
                     <ChartXAxisLabels
                         labels={originalLabels}
-                        labelWidths={measurements.labelWidths}
+                        labelWidths={labelWidths}
                         regularLabelMaxWidth={regularLabelMaxWidth}
                         firstLabelMaxWidth={firstLabelMaxWidth}
                         lastLabelMaxWidth={lastLabelMaxWidth}
