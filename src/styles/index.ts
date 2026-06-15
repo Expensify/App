@@ -5597,7 +5597,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         agentsPageForWebEmptyStateSubtitle: {
             alignSelf: 'center',
-            maxWidth: 355,
+            maxWidth: 335,
         },
 
         emptyStateFolderWithPaperIconSize: {
