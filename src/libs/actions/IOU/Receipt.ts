@@ -8,7 +8,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {buildOptimisticDetachReceipt, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -45,6 +45,8 @@ function detachReceipt(
         return;
     }
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
@@ -99,7 +101,7 @@ function detachReceipt(
         },
     ];
 
-    if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
+    if (transactionPolicy && isGroupPolicy(transactionPolicy) && newTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
             updatedTransaction: newTransaction,
@@ -179,6 +181,8 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
     }
 
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
@@ -235,7 +239,7 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
         },
     ];
 
-    if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
+    if (transactionPolicy && isGroupPolicy(transactionPolicy) && newTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
             updatedTransaction: newTransaction,

@@ -14,7 +14,6 @@ import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRest
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -45,7 +44,6 @@ type SetSpendRulesStepProps = {
 function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isProduction} = useEnvironment();
     const personalDetails = usePersonalDetails();
     const domainAccountID = useDefaultFundID(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Pencil']);
@@ -59,7 +57,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const isEditing = issueNewCard?.isEditing;
     const currencyCode = issueNewCard?.data?.currency ?? CONST.CURRENCY.USD;
     const isVirtualCard = issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
-    const isSpendRuleVisible = !isProduction && isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED);
+    const isSpendRuleVisible = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED);
 
     const spendRuleID = issueNewCard?.data?.spendRuleID;
     const spendRuleForm = issueNewCard?.data.spendRuleValue ?? {};
@@ -230,9 +228,9 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                 shouldHideFixErrorsAlert
                 validate={validate}
             >
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.setCardRules')}</Text>
                 {isSpendRuleVisible && (
                     <>
-                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.setCardRules')}</Text>
                         <ToggleSettingOptionRow
                             title={translate('workspace.card.issueNewCard.addSpendRule')}
                             isActive={spendRuleEnabled}
