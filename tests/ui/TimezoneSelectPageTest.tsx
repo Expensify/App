@@ -7,7 +7,7 @@ import TIMEZONES from '@src/TIMEZONES';
 
 const selectableTimezones = TIMEZONES.filter((tz) => !tz.startsWith('Etc/GMT'));
 // A timezone near the end of the alphabetical list, so its natural position is far down.
-const selectedTimezone = 'Pacific/Tongatapu';
+const selectedTimezone = 'Pacific/Wake';
 
 let mockTimezone: {selected: string; automatic: boolean} = {selected: selectedTimezone, automatic: false};
 
