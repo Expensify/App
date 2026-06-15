@@ -6387,7 +6387,6 @@ const translations = {
             issueNewCard: {
                 whoNeedsCard: 'Who needs a card?',
                 inviteNewMember: 'Invite new member',
-                inviteMemberNotAllowed: 'Ask a workspace admin to invite this person first',
                 findMember: 'Find member',
                 chooseCardType: 'Choose a card type',
                 physicalCard: 'Physical card',

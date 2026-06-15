@@ -6350,7 +6350,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             issueNewCard: {
                 whoNeedsCard: 'Qui a besoin d’une carte ?',
                 inviteNewMember: 'Inviter un nouveau membre',
-                inviteMemberNotAllowed: 'Demandez à un administrateur de l’espace de travail d’inviter cette personne d’abord',
                 findMember: 'Trouver un membre',
                 chooseCardType: 'Choisissez un type de carte',
                 physicalCard: 'Carte physique',

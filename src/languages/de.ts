@@ -6327,7 +6327,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             issueNewCard: {
                 whoNeedsCard: 'Wer braucht eine Karte?',
                 inviteNewMember: 'Neues Mitglied einladen',
-                inviteMemberNotAllowed: 'Bitte einen Workspace-Administrator, diese Person zuerst einzuladen',
                 findMember: 'Mitglied finden',
                 chooseCardType: 'Kartentyp auswählen',
                 physicalCard: 'Physische Karte',

@@ -73,7 +73,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         includeUserToInvite: canInviteMembers,
         excludeLogins: excludedUsers,
         excludeFromSuggestionsOnly: softExclusions,
-        includeRecentReports: true,
+        includeRecentReports: canInviteMembers,
         shouldInitialize: didScreenTransitionEnd,
     });
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -160,32 +160,31 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         const filteredMembersBeforeSearch = filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin);
         const filteredMembers = tokenizedSearch(filteredMembersBeforeSearch, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-        const options = [
-            ...filteredMembers,
-            ...availableOptions.selectedOptions,
-            ...availableOptions.recentOptions,
-            ...availableOptions.personalDetails,
-            ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
-        ];
+        const options = canInviteMembers
+            ? [
+                  ...filteredMembers,
+                  ...availableOptions.selectedOptions,
+                  ...availableOptions.recentOptions,
+                  ...availableOptions.personalDetails,
+                  ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
+              ]
+            : filteredMembers;
 
-        assignees = options.map((option) => {
-            const isPolicyMember = !!policy?.employeeList?.[option.login ?? ''];
-            const shouldDisableNonMember = !canInviteMembers && !isPolicyMember;
-
-            return {
-                ...option,
-                keyForList: option.keyForList ?? option.login ?? '',
-                isDisabled: shouldDisableNonMember,
-                alternateText: shouldDisableNonMember ? translate('workspace.card.issueNewCard.inviteMemberNotAllowed') : option.alternateText,
-            };
-        });
+        assignees = options.map((option) => ({
+            ...option,
+            keyForList: option.keyForList ?? option.login ?? '',
+        }));
     } else if (debouncedSearchTerm) {
         assignees = [];
     }
 
     useEffect(() => {
+        if (!canInviteMembers) {
+            return;
+        }
+
         searchUserInServer(debouncedSearchTerm);
-    }, [debouncedSearchTerm]);
+    }, [canInviteMembers, debouncedSearchTerm]);
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
     const headerMessage = (() => {
@@ -223,9 +222,8 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
                 onSelectRow={submit}
                 ListItem={UserListItem}
                 textInputOptions={textInputOptions}
-                isLoadingNewOptions={!!isSearchingForReports}
+                isLoadingNewOptions={canInviteMembers && !!isSearchingForReports}
                 initiallyFocusedItemKey={issueNewCard?.data?.assigneeEmail}
-                alternateNumberOfSupportedLines={2}
                 disableMaintainingScrollPosition
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding

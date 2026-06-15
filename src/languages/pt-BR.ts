@@ -6292,7 +6292,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             issueNewCard: {
                 whoNeedsCard: 'Quem precisa de um cartão?',
                 inviteNewMember: 'Convidar novo membro',
-                inviteMemberNotAllowed: 'Peça a um administrador do workspace para convidar essa pessoa primeiro',
                 findMember: 'Encontrar membro',
                 chooseCardType: 'Escolha um tipo de cartão',
                 physicalCard: 'Cartão físico',
