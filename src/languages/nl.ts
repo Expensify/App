@@ -4963,8 +4963,8 @@ ${amount} voor ${merchant} - ${date}`,
             reportExportStatus: {
                 label: 'Status van declaratie',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Goedgekeurd',
-                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Ingediend',
+                    Approved: 'Goedgekeurd',
+                    Submitted: 'Ingediend',
                 },
             },
             exportDate: {

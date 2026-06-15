@@ -4957,8 +4957,8 @@ ${amount} para ${merchant} - ${date}`,
             reportExportStatus: {
                 label: 'Status do relatório de despesas',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Aprovado',
-                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
+                    Approved: 'Aprovado',
+                    Submitted: 'Enviado',
                 },
             },
             exportDate: {

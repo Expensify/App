@@ -4999,8 +4999,8 @@ ${amount} pour ${merchant} - ${date}`,
             reportExportStatus: {
                 label: 'Statut de la note de frais',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Approuvé',
-                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Soumis',
+                    Approved: 'Approuvé',
+                    Submitted: 'Soumis',
                 },
             },
             exportDate: {

@@ -4972,8 +4972,8 @@ ${amount} per ${merchant} - ${date}`,
             reportExportStatus: {
                 label: 'Stato della nota spese',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Approvato',
-                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Inviato',
+                    Approved: 'Approvato',
+                    Submitted: 'Inviato',
                 },
             },
             exportDate: {

@@ -20,6 +20,7 @@ type CertiniaDimensionParam = TupleToUnion<typeof CERTINIA_DIMENSION_PARAMS>;
 
 type CertiniaMappingValue = ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
 type CertiniaExportStatus = ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
+type CertiniaReportExportStatus = 'Approved' | 'Submitted';
 
 function dimensionParamToNumber(dimension: string): number {
     return Number(dimension.replace('dimension', ''));
@@ -46,6 +47,18 @@ function getCertiniaExportStatusValue(status: string | undefined): CertiniaExpor
     }
 
     return undefined;
+}
+
+function getCertiniaReportExportStatusValue(status: string | undefined): CertiniaReportExportStatus | undefined {
+    const normalizedStatus = getCertiniaExportStatusValue(status);
+    switch (normalizedStatus) {
+        case CONST.CERTINIA_EXPORT_STATUS.APPROVED:
+            return 'Approved';
+        case CONST.CERTINIA_EXPORT_STATUS.SUBMITTED:
+            return 'Submitted';
+        default:
+            return undefined;
+    }
 }
 
 function updateFinancialForceDimensionMapping(policyID: string | undefined, dimension: CertiniaDimensionParam, value: CertiniaMappingValue, previousValue: CertiniaMappingValue | null) {
@@ -79,9 +92,10 @@ export {
     CERTINIA_DIMENSION_PARAMS,
     dimensionParamToNumber,
     getCertiniaExportStatusValue,
+    getCertiniaReportExportStatusValue,
     getDimensionLabel,
     getDisplayTypeLabel,
     isCertiniaDimensionParam,
     updateFinancialForceDimensionMapping,
 };
-export type {CertiniaDimensionParam, CertiniaMappingValue};
+export type {CertiniaDimensionParam, CertiniaMappingValue, CertiniaReportExportStatus};

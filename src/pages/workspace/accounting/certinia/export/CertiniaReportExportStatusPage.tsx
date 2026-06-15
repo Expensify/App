@@ -8,19 +8,18 @@ import {clearFinancialForceErrorField, updateFinancialForceReportExportStatus} f
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
-import {getCertiniaExportStatusValue} from '@pages/workspace/accounting/certinia/utils';
+import {getCertiniaReportExportStatusValue} from '@pages/workspace/accounting/certinia/utils';
+import type {CertiniaReportExportStatus} from '@pages/workspace/accounting/certinia/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-type FinancialForceReportExportStatus = 'Approved' | 'Submitted';
-
 type ReportExportStatusListItem = ListItem & {
-    value: FinancialForceReportExportStatus;
+    value: CertiniaReportExportStatus;
 };
 
-const REPORT_EXPORT_STATUSES: FinancialForceReportExportStatus[] = ['Approved', 'Submitted'];
+const REPORT_EXPORT_STATUSES: CertiniaReportExportStatus[] = ['Approved', 'Submitted'];
 
 function CertiniaReportExportStatusPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -29,22 +28,18 @@ function CertiniaReportExportStatusPage({policy}: WithPolicyConnectionsProps) {
     const {config} = policy?.connections?.financialforce ?? {};
     const exportConfig = config?.export;
     const selectedReportExportStatus = exportConfig?.reportExportStatus;
-    const normalizedSelectedReportExportStatus = getCertiniaExportStatusValue(selectedReportExportStatus);
-    const selectedReportExportStatusKey = REPORT_EXPORT_STATUSES.find((status) => getCertiniaExportStatusValue(status) === normalizedSelectedReportExportStatus);
+    const selectedReportExportStatusKey = getCertiniaReportExportStatusValue(selectedReportExportStatus);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS.path);
 
-    const data: ReportExportStatusListItem[] = REPORT_EXPORT_STATUSES.map((status) => {
-        const normalizedStatus = getCertiniaExportStatusValue(status);
-        return {
-            value: status,
-            text: normalizedStatus ? translate(`workspace.certinia.reportExportStatus.values.${normalizedStatus}`) : status,
-            keyForList: status,
-            isSelected: normalizedSelectedReportExportStatus === normalizedStatus,
-        };
-    });
+    const data: ReportExportStatusListItem[] = REPORT_EXPORT_STATUSES.map((status) => ({
+        value: status,
+        text: translate(`workspace.certinia.reportExportStatus.values.${status}`),
+        keyForList: status,
+        isSelected: selectedReportExportStatusKey === status,
+    }));
 
     const selectReportExportStatus = (row: ReportExportStatusListItem) => {
-        if (getCertiniaExportStatusValue(row.value) !== normalizedSelectedReportExportStatus && policyID) {
+        if (row.value !== selectedReportExportStatusKey && policyID) {
             updateFinancialForceReportExportStatus(policyID, row.value, exportConfig?.reportExportStatus ?? null);
         }
         Navigation.goBack(backPath);

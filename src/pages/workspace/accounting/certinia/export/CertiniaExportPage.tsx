@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
-import {getCertiniaExportStatusValue} from '@pages/workspace/accounting/certinia/utils';
+import {getCertiniaExportStatusValue, getCertiniaReportExportStatusValue} from '@pages/workspace/accounting/certinia/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -35,7 +35,7 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
     const exportStatus = exportConfig?.exportStatus;
     const normalizedExportStatus = getCertiniaExportStatusValue(exportStatus);
     const reportExportStatus = exportConfig?.reportExportStatus;
-    const normalizedReportExportStatus = getCertiniaExportStatusValue(reportExportStatus);
+    const normalizedReportExportStatus = getCertiniaReportExportStatusValue(reportExportStatus);
     const exportDate = exportConfig?.exportDate;
 
     const preferredExporterRow: ExportRow = {

@@ -4844,8 +4844,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             reportExportStatus: {
                 label: '报销报告状态',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '已批准',
-                    [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '已提交',
+                    Approved: '已批准',
+                    Submitted: '已提交',
                 },
             },
             exportDate: {
