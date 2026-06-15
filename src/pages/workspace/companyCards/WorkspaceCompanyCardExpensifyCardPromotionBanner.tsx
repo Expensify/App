@@ -27,11 +27,10 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompa
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
-    const {canWrite: canWriteMoreFeatures, showReadOnlyModal: showMoreFeaturesReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+    const {canWrite: canWriteMoreFeatures} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const policyID = policy?.id;
     const areExpensifyCardsEnabled = policy?.areExpensifyCardsEnabled;
     const canUseLearnMore = areExpensifyCardsEnabled ? canWriteCompanyCards : canWriteMoreFeatures;
-    const handleReadOnlyAction = areExpensifyCardsEnabled ? onReadOnlyAction : showMoreFeaturesReadOnlyModal;
 
     const illustrations = useMemoizedLazyIllustrations(['CreditCardsNewGreen']);
 
@@ -54,7 +53,7 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompa
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
                 <Button
                     success
-                    onPress={canUseLearnMore ? handleLearnMore : handleReadOnlyAction}
+                    onPress={canUseLearnMore ? handleLearnMore : onReadOnlyAction}
                     style={shouldUseNarrowLayout && !isInLandscapeMode && styles.flex1}
                     innerStyles={!canUseLearnMore ? styles.buttonOpacityDisabled : undefined}
                     hoverStyles={!canUseLearnMore ? styles.buttonOpacityDisabled : undefined}
@@ -63,7 +62,7 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompa
                 />
             </View>
         );
-    }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, canUseLearnMore, handleLearnMore, handleReadOnlyAction]);
+    }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, canUseLearnMore, handleLearnMore, onReadOnlyAction]);
 
     return (
         <View style={[styles.ph4, styles.mb4]}>
