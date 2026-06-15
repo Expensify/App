@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -57,6 +57,14 @@ function DynamicIOURequestStepAttendeesPage({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.path);
     const {isOffline} = useNetwork();
+    const backPathRef = useRef(backPath);
+
+    // We use a ref because MoneyRequestAttendeeSelector's memo only compares attendees and iouType,
+    // so the onFinish callback can become stale if backPath updates after the initial render.
+    // A ref avoids adding backPath to useCallback deps, which would unnecessarily re-render the heavy child (MoneyRequestAttendeeSelector).
+    useEffect(() => {
+        backPathRef.current = backPath;
+    }, [backPath]);
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -85,7 +93,7 @@ function DynamicIOURequestStepAttendeesPage({
             }
         }
 
-        Navigation.goBack(backPath);
+        Navigation.goBack(backPathRef.current);
     }, [
         attendees,
         previousAttendees,
@@ -103,11 +111,10 @@ function DynamicIOURequestStepAttendeesPage({
         parentReportNextStep,
         isOffline,
         delegateAccountID,
-        backPath,
     ]);
 
     const navigateBack = () => {
-        Navigation.goBack(backPath);
+        Navigation.goBack(backPathRef.current);
     };
 
     return (
