@@ -19,6 +19,7 @@ type DistanceData = {
     distanceRateCurrency: string;
     mileageRate: MileageRate;
     expenseDate: string | undefined;
+    customUnitRateID: string | undefined;
     shouldShowRateAutoUpdatedTooltip?: boolean;
 };
 

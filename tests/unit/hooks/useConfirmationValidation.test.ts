@@ -179,6 +179,44 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.distanceAmountTooLarge'});
     });
 
+    it('does not block confirmation when the selected distance rate does not match the expense date', () => {
+        const policy = {
+            id: 'policy1',
+            customUnits: {
+                unitId: {
+                    customUnitID: 'unitId',
+                    attributes: {unit: 'mi'},
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        rate1: {
+                            customUnitRateID: 'rate1',
+                            enabled: true,
+                            rate: 65.5,
+                            startDate: '2025-01-01',
+                            endDate: '2025-12-31',
+                        },
+                    },
+                },
+            },
+        } as unknown as OnyxTypes.Policy;
+
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isDistanceRequest: true,
+                policy,
+                transaction: createTransactionBase({
+                    amount: 1000,
+                    created: '2026-06-15',
+                    comment: {customUnit: {customUnitRateID: 'rate1'}},
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                }),
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: null});
+    });
+
     it('returns invalidAmount for split with zero amount when fields are filled', () => {
         const {result} = renderHook(() =>
             useConfirmationValidation({

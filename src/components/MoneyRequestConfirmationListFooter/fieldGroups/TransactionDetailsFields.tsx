@@ -156,6 +156,7 @@ function TransactionDetailsFields({
                     rate={distanceData.rate}
                     mileageRate={distanceData.mileageRate}
                     expenseDate={distanceData.expenseDate}
+                    customUnitRateID={distanceData.customUnitRateID}
                     didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
                     isPolicyExpenseChat={isPolicyExpenseChat}

@@ -23,6 +23,7 @@ type RateFieldProps = {
     rate: number | undefined;
     mileageRate: MileageRate;
     expenseDate: string | undefined;
+    customUnitRateID: string | undefined;
     didConfirm: boolean;
     isReadOnly: boolean;
     isPolicyExpenseChat: boolean;
@@ -38,6 +39,35 @@ type RateFieldProps = {
     shouldShowRateAutoUpdatedTooltip?: boolean;
 };
 
+function isRateOutOfDateRangeForConfirmation({
+    customUnitRateID,
+    policy,
+    mileageRate,
+    expenseDate,
+}: {
+    customUnitRateID: string | undefined;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    mileageRate: MileageRate;
+    expenseDate: string | undefined;
+}): boolean {
+    if (!expenseDate || !policy?.id) {
+        return false;
+    }
+
+    if (!customUnitRateID || ['-1', CONST.CUSTOM_UNITS.FAKE_P2P_ID].includes(customUnitRateID)) {
+        return false;
+    }
+
+    const policyRates = DistanceRequestUtils.getMileageRates(policy);
+    const isRateValidForPolicy = customUnitRateID in policyRates && policyRates[customUnitRateID].enabled !== false;
+
+    if (!isRateValidForPolicy) {
+        return false;
+    }
+
+    return !DistanceRequestUtils.isRateEligibleForDate(mileageRate, expenseDate);
+}
+
 function RateField({
     distanceRateName,
     distanceRateCurrency,
@@ -45,6 +75,7 @@ function RateField({
     rate,
     mileageRate,
     expenseDate,
+    customUnitRateID,
     didConfirm,
     isReadOnly,
     isPolicyExpenseChat,
@@ -65,7 +96,7 @@ function RateField({
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const {isOffline} = useNetwork();
 
-    const isRateOutOfDateRange = !!expenseDate && !DistanceRequestUtils.isRateEligibleForDate(mileageRate, expenseDate);
+    const isRateOutOfDateRange = isRateOutOfDateRangeForConfirmation({customUnitRateID, policy, mileageRate, expenseDate});
     const rateOutOfDateRangeErrorText = useMemo(() => {
         if (!isRateOutOfDateRange) {
             return '';
@@ -84,7 +115,7 @@ function RateField({
             translate,
             convertToDisplayString,
         });
-    }, [convertToDisplayString, expenseDate, isRateOutOfDateRange, mileageRate.endDate, mileageRate.startDate, translate]);
+    }, [convertToDisplayString, isRateOutOfDateRange, mileageRate.endDate, mileageRate.startDate, translate]);
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isRateInteractive = !!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;

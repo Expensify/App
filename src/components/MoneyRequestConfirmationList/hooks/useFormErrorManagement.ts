@@ -3,7 +3,6 @@ import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import type {MileageRate} from '@libs/DistanceRequestUtils';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {areRequiredFieldsEmpty, getTag, hasMissingSmartscanFields, isMerchantMissing} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
@@ -68,9 +67,6 @@ type UseFormErrorManagementParams = {
 
     /** Whether splits are rendered read-only (suppresses some field errors) */
     shouldShowReadOnlySplits: boolean;
-
-    /** Mileage rate for the distance request, used to clear date-range violation errors */
-    mileageRate?: MileageRate;
 };
 
 type UseFormErrorManagementResult = {
@@ -133,7 +129,6 @@ function useFormErrorManagement({
     routeError,
     isTypeSplit,
     shouldShowReadOnlySplits,
-    mileageRate,
 }: UseFormErrorManagementParams): UseFormErrorManagementResult {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -182,8 +177,6 @@ function useFormErrorManagement({
         currentUserPersonalDetails,
         isAttendeeTrackingEnabled: isAttendeeTrackingEnabled(policy),
         isControlPolicy: policy?.type === CONST.POLICY.TYPE.CORPORATE,
-        mileageRate,
-        expenseDate: transaction?.created,
     });
 
     // Mirror formError into a ref so the effect below can read the current value without listing
@@ -237,10 +230,6 @@ function useFormErrorManagement({
         }
         // The tax amount error is a parameterized message surfaced inline on the tax amount field, so skip it here.
         if (formError === 'iou.error.invalidTaxAmount') {
-            return undefined;
-        }
-        // The rate date-range violation is surfaced inline on the rate field, so skip it here.
-        if (formError === 'violations.customUnitRateOutOfDateRange') {
             return undefined;
         }
         return formError ? translate(formError) : undefined;

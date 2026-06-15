@@ -344,7 +344,6 @@ function MoneyRequestConfirmationList({
         routeError,
         isTypeSplit,
         shouldShowReadOnlySplits,
-        mileageRate,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
@@ -557,6 +556,7 @@ function MoneyRequestConfirmationList({
                     distanceRateCurrency: currency,
                     mileageRate,
                     expenseDate: transaction?.created,
+                    customUnitRateID,
                     shouldShowRateAutoUpdatedTooltip,
                 }}
                 amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
