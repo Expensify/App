@@ -141,7 +141,7 @@ type UberReceiptPartner = {
     /**
      * form data for uber partner
      */
-    connectFormData: string;
+    connectFormData?: string;
     /**
      * auto invite for uber connection
      */
@@ -1557,8 +1557,23 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
 };
 
+/** A group of employees the admin can choose to import from (e.g. a company, cost center, department). */
+type MergeHRGroup = {
+    /** Group ID */
+    id: string;
+
+    /** Human-readable name of the group */
+    name: string;
+
+    /** Group type (department/division etc.) */
+    type: string;
+};
+
 /** Merge HR connection data */
-type MergeHRConnectionData = Record<string, never>;
+type MergeHRConnectionData = {
+    /** Groups available to import employees from. Distinct from `config.groups`, which is the admin's selection. */
+    groups?: MergeHRGroup[];
+};
 
 /** Merge HR connection config */
 type MergeHRConnectionConfig = HRConnectionConfigBase &
@@ -1568,6 +1583,13 @@ type MergeHRConnectionConfig = HRConnectionConfigBase &
 
         /** Approval mode controlling how reports are routed for approval */
         approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
+
+        /**
+         * Groups the admin chose to import employees from.
+         * - `string[]` with one or more IDs — setup complete, sync only those groups.
+         * - `null` — setup not yet complete.
+         */
+        groups: string[] | null;
     }>;
 
 /** TriNet (Zenefits) connection data */
@@ -2022,13 +2044,16 @@ type CodingRule = {
     errors?: OnyxCommon.Errors;
 };
 
-/** Policy AI rule data model */
-type AIRule = {
+/** Policy Agent rule data model */
+type AgentRule = {
     /** Unique identifier for the rule */
     ruleID: string;
 
-    /** The AI prompt (i.e. the rule defined with natural language) */
+    /** The Agent prompt (i.e. the rule defined with natural language) */
     prompt: string;
+
+    /** Short one-line summary generated server-side from the prompt */
+    title?: string;
 
     /** When this rule was created */
     created: string;
@@ -2251,8 +2276,8 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** A set of coding rules for automatic expense field population based on merchant matching */
             codingRules?: Record<string, CodingRule>;
 
-            /** A set of AI rules defined with natural language - The rules are run by the "RuleBot" */
-            aiRules?: Record<string, AIRule>;
+            /** A set of Agent rules defined with natural language - The rules are run by the "RuleBot" */
+            agentRules?: Record<string, AgentRule>;
         };
 
         /** The "RuleBot" agent account ID */
@@ -2305,9 +2330,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
-
-        /** Whether the Invoice Fields feature is enabled */
-        areInvoiceFieldsEnabled?: boolean;
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
@@ -2490,5 +2512,5 @@ export type {
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,
-    AIRule,
+    AgentRule,
 };

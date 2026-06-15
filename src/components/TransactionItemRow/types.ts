@@ -148,6 +148,7 @@ type TransactionItemRowWideComputedData = Omit<TransactionItemRowNarrowComputedD
     transactionAttendees: Attendee[];
     shouldShowAttendees: boolean;
     totalPerAttendee: number | undefined;
+    isMarkAsDone: boolean;
 };
 
 export type {TransactionWithOptionalSearchFields, TransactionItemRowProps, TransactionItemRowRBRDeferControlProps, TransactionItemRowNarrowComputedData, TransactionItemRowWideComputedData};

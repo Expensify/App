@@ -14,7 +14,6 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceInvoiceBalanceSection from './WorkspaceInvoiceBalanceSection';
-import WorkspaceInvoiceFieldsSection from './WorkspaceInvoiceFieldsSection';
 import WorkspaceInvoiceVBASection from './WorkspaceInvoiceVBASection';
 import WorkspaceInvoicingDetailsSection from './WorkspaceInvoicingDetailsSection';
 
@@ -61,7 +60,6 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                                 canWriteMoreFeatures={canWriteMoreFeatures}
                             />
                         )}
-                        {!!policyID && <WorkspaceInvoiceFieldsSection policyID={policyID} />}
                     </View>
                 )}
             </WorkspacePageWithSections>
