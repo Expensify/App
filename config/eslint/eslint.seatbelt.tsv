@@ -564,6 +564,7 @@
 "../../src/hooks/usePrevious.ts"	"react-hooks/refs"	1
 "../../src/hooks/useProactiveAppReview.ts"	"react-hooks/purity"	1
 "../../src/hooks/useReceiptScanDrop.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/hooks/useReportActionsScroll.ts"	"no-restricted-imports"	1
 "../../src/hooks/useReportScrollManager/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
