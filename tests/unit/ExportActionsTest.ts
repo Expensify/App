@@ -79,7 +79,7 @@ describe('Export actions', () => {
     });
 
     test('exportReportsToPDF sets optimistic Onyx data with state preparing and returns exportID', async () => {
-        const exportID = Export.exportReportsToPDF(['report1', 'report2']);
+        const exportID = Export.exportReportsToPDF([1, 2]);
         await waitForBatchedUpdates();
 
         expect(typeof exportID).toBe('string');
@@ -91,7 +91,7 @@ describe('Export actions', () => {
 
     test('exportReportsToPDF failureData clears Onyx key on failure', async () => {
         mockFetch.fail?.();
-        const exportID = Export.exportReportsToPDF(['report1']);
+        const exportID = Export.exportReportsToPDF([1]);
         await waitForBatchedUpdates();
 
         const value = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);

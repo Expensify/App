@@ -1724,7 +1724,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsPdfModalVisible(true);
                         return;
                     }
-                    const exportID = exportReportsToPDF(selectedReportIDs);
+                    const exportID = exportReportsToPDF(selectedReportIDs.map(Number));
                     setActiveExportID(exportID);
                 },
             });

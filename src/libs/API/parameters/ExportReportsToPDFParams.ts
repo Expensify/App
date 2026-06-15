@@ -1,5 +1,5 @@
 type ExportReportsToPDFParams = {
-    reportIDList: string[];
+    reportIDs: string;
     exportID: string;
 };
 

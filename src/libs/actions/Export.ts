@@ -75,7 +75,7 @@ function clearStaleExportDownloads() {
     });
 }
 
-function exportReportsToPDF(reportIDList: string[]): string {
+function exportReportsToPDF(reportIDs: number[]): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -95,7 +95,7 @@ function exportReportsToPDF(reportIDList: string[]): string {
         },
     ];
 
-    write(WRITE_COMMANDS.EXPORT_REPORTS_TO_PDF, {reportIDList, exportID}, {optimisticData, failureData});
+    write(WRITE_COMMANDS.EXPORT_REPORTS_TO_PDF, {reportIDs: JSON.stringify(reportIDs), exportID}, {optimisticData, failureData});
 
     return exportID;
 }
