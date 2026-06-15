@@ -43,9 +43,9 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const canManageAuditorRole = canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.ROLE.AUDITOR);
-    const role = canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', roleFromOnyx) ? roleFromOnyx : CONST.POLICY.ROLE.USER;
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const canManageAuditorRole = canMemberManageRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR);
+    const role = canMemberManageRole(policy, currentUserLogin, roleFromOnyx) ? roleFromOnyx : CONST.POLICY.ROLE.USER;
     const [isImporting, setIsImporting] = useState(false);
     const {isOffline} = useNetwork();
 

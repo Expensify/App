@@ -21,7 +21,7 @@ type DynamicImportedMembersRoleSelectionPageProps = PlatformStackScreenProps<Set
 function DynamicImportedMembersRoleSelectionPage({route}: DynamicImportedMembersRoleSelectionPageProps) {
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [role = CONST.POLICY.ROLE.USER] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.IMPORTED_MEMBERS_ROLE.path);
 
@@ -30,7 +30,7 @@ function DynamicImportedMembersRoleSelectionPage({route}: DynamicImportedMembers
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.ROLE.AUDITOR)}
+            shouldBeBlocked={!canMemberManageRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR)}
         >
             <ScreenWrapper
                 testID="DynamicImportedMembersRoleSelectionPage"
@@ -41,7 +41,7 @@ function DynamicImportedMembersRoleSelectionPage({route}: DynamicImportedMembers
                     role={role}
                     policy={policy}
                     onSelectRole={({value}) => {
-                        if (!canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', value)) {
+                        if (!canMemberManageRole(policy, currentUserLogin, value)) {
                             return;
                         }
                         setImportedSpreadsheetMemberRole(value);

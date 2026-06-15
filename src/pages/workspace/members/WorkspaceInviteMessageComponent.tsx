@@ -93,13 +93,12 @@ function WorkspaceInviteMessageComponent({
     const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
     const [workspaceInviteRoleDraftFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
-    const canManageUserRole = canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.ROLE.USER);
-    const canChangeInviteRole = !isSubmitPolicy(policy) && canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.ROLE.AUDITOR);
+    const currentUserLogin = currentUserPersonalDetails.login ?? '';
+    const canManageUserRole = canMemberManageRole(policy, currentUserLogin, CONST.POLICY.ROLE.USER);
+    const canChangeInviteRole = !isSubmitPolicy(policy) && canMemberManageRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR);
     const fallbackInviteRole = canManageUserRole ? CONST.POLICY.ROLE.USER : CONST.POLICY.ROLE.AUDITOR;
     const draftInviteRole =
-        workspaceInviteRoleDraftFromOnyx && canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', workspaceInviteRoleDraftFromOnyx)
-            ? workspaceInviteRoleDraftFromOnyx
-            : fallbackInviteRole;
+        workspaceInviteRoleDraftFromOnyx && canMemberManageRole(policy, currentUserLogin, workspaceInviteRoleDraftFromOnyx) ? workspaceInviteRoleDraftFromOnyx : fallbackInviteRole;
     // Submit workspaces only allow inviting editors, so default the invite role accordingly when no draft is set.
     // The backend ignores any other role for Submit workspaces, but defaulting here keeps the UI honest before submit.
     const workspaceInviteRoleDraft = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : draftInviteRole;

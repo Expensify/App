@@ -77,7 +77,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
@@ -94,13 +94,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
     const isSelectedMemberOwner = policy?.owner === details.login;
-    const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
-    const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
-    const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
-    const canWriteMembers = canMemberWrite(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
-    const canManageSelectedMemberRole = canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', member?.role);
-    const canRemoveSelectedMember =
-        canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserPersonalDetails.login ?? '', member?.role);
+    const isSelectedMemberCurrentUser = accountID === currentUserAccountID;
+    const isCurrentUserAdmin = policy?.employeeList?.[currentUserLogin]?.role === CONST.POLICY.ROLE.ADMIN;
+    const isCurrentUserOwner = policy?.owner === currentUserLogin;
+    const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    const canManageSelectedMemberRole = canMemberManageRole(policy, currentUserLogin, member?.role);
+    const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = formatPhoneNumber(getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
@@ -115,7 +114,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         policy,
         personalDetails: personalDetails ?? {},
         localeCompare,
-        currentUserLogin: currentUserPersonalDetails?.login,
+        currentUserLogin,
     });
 
     useEffect(() => {
@@ -278,6 +277,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         <AccessOrNotFoundWrapper
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

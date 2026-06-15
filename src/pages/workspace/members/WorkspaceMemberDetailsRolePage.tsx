@@ -27,10 +27,10 @@ type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingPr
 function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: WorkspaceMemberDetailsRolePageProps) {
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
-    const canManageSelectedMemberRole = canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', member?.role);
+    const canManageSelectedMemberRole = canMemberManageRole(policy, currentUserLogin, member?.role);
     useRedirectSubmitWorkspaceFeatureUpgrade({
         policy,
         backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
@@ -41,7 +41,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         if (value === member?.role) {
             return;
         }
-        if (!canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', value)) {
+        if (!canMemberManageRole(policy, currentUserLogin, value)) {
             return;
         }
         updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value);

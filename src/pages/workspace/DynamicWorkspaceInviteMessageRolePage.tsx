@@ -24,7 +24,7 @@ type DynamicWorkspaceInviteMessageRolePageProps = WithPolicyAndFullscreenLoading
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE_ROLE>;
 
 function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspaceInviteMessageRolePageProps) {
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [roleFromOnyx, roleResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID}`);
     // Submit workspaces only allow inviting editors. Keep this default aligned with WorkspaceInviteMessageComponent so the
     // role row pre-selects Editor before the user picks anything.
@@ -43,7 +43,7 @@ function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspace
             policyID={route.params.policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.ROLE.AUDITOR)}
+            shouldBeBlocked={!canMemberManageRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR)}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
@@ -56,7 +56,7 @@ function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspace
                     policy={policy}
                     isLoading={isOnyxLoading}
                     onSelectRole={({value}) => {
-                        if (!canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', value)) {
+                        if (!canMemberManageRole(policy, currentUserLogin, value)) {
                             return;
                         }
                         setWorkspaceInviteRoleDraft(route.params.policyID, value);

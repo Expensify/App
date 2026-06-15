@@ -33,8 +33,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const canManageAuditorRole = canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.ROLE.AUDITOR);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const canManageAuditorRole = canMemberManageRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR);
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -131,14 +131,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             const isPolicyMember = isPolicyMemberWithoutPendingDelete(email, policy);
             let role = isPolicyMember ? (policy?.employeeList?.[email]?.role ?? '') : '';
             const importedRole = membersRoles?.[containsHeader ? index + 1 : index];
-            const canManageCurrentRole = !isPolicyMember || canMemberManageMemberWithRole(policy, currentUserPersonalDetails.login ?? '', role);
-            if (
-                canManageAuditorRole &&
-                membersRolesColumn !== -1 &&
-                importedRole &&
-                canManageCurrentRole &&
-                canMemberManageRole(policy, currentUserPersonalDetails.login ?? '', importedRole)
-            ) {
+            const canManageCurrentRole = !isPolicyMember || canMemberManageMemberWithRole(policy, currentUserLogin, role);
+            if (canManageAuditorRole && membersRolesColumn !== -1 && importedRole && canManageCurrentRole && canMemberManageRole(policy, currentUserLogin, importedRole)) {
                 role = importedRole;
             }
             if (canManageAuditorRole && membersRolesColumn !== -1 && !role) {
