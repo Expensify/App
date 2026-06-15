@@ -1102,7 +1102,8 @@ const translations = {
         recentlyAddedSection: {
             title: 'Recently added',
             viewAll: 'View all expenses',
-            emptyStateMessage: 'Add an expense to see it here.',
+            emptyStateTitle: 'No recent expenses',
+            emptyStateMessage: 'Create one or drag a receipt here',
         },
         gettingStartedSection: {
             title: 'Getting started',

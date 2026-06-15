@@ -24,6 +24,7 @@ function EmptyState() {
                 height={ILLUSTRATION_SIZE}
             />
             <View style={styles.forYouEmptyStateTextContainer}>
+                <Text style={styles.forYouEmptyStateTitle}>{translate('homePage.recentlyAddedSection.emptyStateTitle')}</Text>
                 <Text style={styles.forYouEmptyStateDescription}>{translate('homePage.recentlyAddedSection.emptyStateMessage')}</Text>
             </View>
         </View>
