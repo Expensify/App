@@ -314,30 +314,33 @@ describe('actions/User', () => {
     });
 
     describe('requestValidateCodeAction', () => {
-        it('should set lastValidateCodeRequestedAt optimistically and clear it on failure', async () => {
+        it('should set lastValidateCodeRequestedAt optimistically and clear it on failure', () => {
             // When requestValidateCodeAction is called
             UserActions.requestValidateCodeAction();
-            await waitForBatchedUpdates();
 
-            // Then API.write should target RESEND_VALIDATE_CODE
-            const calls = (mockAPI.write as jest.Mock).mock.calls;
-            const [command, , onyxData] = calls.at(0) as [
-                unknown,
-                unknown,
-                {
-                    optimisticData?: Array<{key: string; value: {lastValidateCodeRequestedAt?: number | null}}>;
-                    failureData?: Array<{key: string; value: {lastValidateCodeRequestedAt?: number | null}}>;
-                },
-            ];
-            expect(command).toBe(WRITE_COMMANDS.RESEND_VALIDATE_CODE);
-
-            // The optimistic update stamps a numeric request time so the gate can de-duplicate reloads within the resend window
-            const optimisticUpdate = (onyxData.optimisticData ?? []).find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
-            expect(optimisticUpdate?.value.lastValidateCodeRequestedAt).toEqual(expect.any(Number));
-
-            // The failure update reverts it to null so a failed request never suppresses the next send
-            const failureUpdate = (onyxData.failureData ?? []).find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
-            expect(failureUpdate?.value.lastValidateCodeRequestedAt).toBeNull();
+            return waitForBatchedUpdates().then(() => {
+                // Then API.write targets RESEND_VALIDATE_CODE, stamping a numeric request time optimistically
+                // (so the gate can de-duplicate reloads within the resend window) and reverting it to null on
+                // failure (so a failed request never suppresses the next send).
+                expect(mockAPI.write).toHaveBeenCalledWith(
+                    WRITE_COMMANDS.RESEND_VALIDATE_CODE,
+                    null,
+                    expect.objectContaining({
+                        optimisticData: expect.arrayContaining([
+                            expect.objectContaining({
+                                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                                value: expect.objectContaining({lastValidateCodeRequestedAt: expect.any(Number)}),
+                            }),
+                        ]),
+                        failureData: expect.arrayContaining([
+                            expect.objectContaining({
+                                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                                value: expect.objectContaining({lastValidateCodeRequestedAt: null}),
+                            }),
+                        ]),
+                    }),
+                );
+            });
         });
     });
 
