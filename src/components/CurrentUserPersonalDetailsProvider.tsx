@@ -17,12 +17,11 @@ function CurrentUserPersonalDetailsProvider({children}: {children: React.ReactNo
     const session = useSession();
     const userAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const userAccountSelector = useCallback(
-        (allPersonalDetails: OnyxEntry<PersonalDetailsList>): CurrentUserPersonalDetails => {
-            const personalDetailsForUser = (allPersonalDetails?.[userAccountID] ?? {}) as CurrentUserPersonalDetails;
-            personalDetailsForUser.accountID = userAccountID;
-            personalDetailsForUser.email = session?.email;
-            return personalDetailsForUser;
-        },
+        (allPersonalDetails: OnyxEntry<PersonalDetailsList>): CurrentUserPersonalDetails => ({
+            ...allPersonalDetails?.[userAccountID],
+            accountID: userAccountID,
+            email: session?.email,
+        }),
         [session?.email, userAccountID],
     );
     const [currentUserPersonalDetails = defaultCurrentUserPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: userAccountSelector});
