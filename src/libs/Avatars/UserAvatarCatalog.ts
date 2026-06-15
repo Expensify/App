@@ -8,33 +8,35 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import {createAvatarCatalog} from './AvatarCatalog';
 import type {AvatarEntry} from './AvatarCatalog';
-import type {DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, SeasonF1AvatarIDs, UserAvatarID} from './UserAvatarCatalog.types';
+import type {DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, LetterAvatarSchemeKey, SeasonF1AvatarIDs, UserAvatarID} from './UserAvatarCatalog.types';
 
 const CDN_DEFAULT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 const CDN_SEASON_F1 = `${CONST.CLOUDFRONT_URL}/images/avatars/custom-avatars/season-f1`;
 
 const DEFAULT_AVATAR_PREFIX = `default-avatar`;
 
-const LETTER_AVATAR_COLOR_OPTIONS: LetterAvatarColorStyle[] = [
-    {backgroundColor: colors.blue100, fillColor: colors.blue600},
-    {backgroundColor: colors.blue400, fillColor: colors.blue700},
-    {backgroundColor: colors.blue700, fillColor: colors.blue200},
-    {backgroundColor: colors.green100, fillColor: colors.green600},
-    {backgroundColor: colors.green400, fillColor: colors.green700},
-    {backgroundColor: colors.green700, fillColor: colors.green200},
-    {backgroundColor: colors.yellow100, fillColor: colors.yellow600},
-    {backgroundColor: colors.yellow400, fillColor: colors.yellow700},
-    {backgroundColor: colors.yellow700, fillColor: colors.yellow200},
-    {backgroundColor: colors.tangerine100, fillColor: colors.tangerine600},
-    {backgroundColor: colors.tangerine400, fillColor: colors.tangerine700},
-    {backgroundColor: colors.tangerine700, fillColor: colors.tangerine200},
-    {backgroundColor: colors.pink100, fillColor: colors.pink600},
-    {backgroundColor: colors.pink400, fillColor: colors.pink700},
-    {backgroundColor: colors.pink700, fillColor: colors.pink200},
-    {backgroundColor: colors.ice100, fillColor: colors.ice600},
-    {backgroundColor: colors.ice400, fillColor: colors.ice700},
-    {backgroundColor: colors.ice700, fillColor: colors.ice200},
-];
+const LETTER_AVATAR_SCHEMES: Record<LetterAvatarSchemeKey, LetterAvatarColorStyle> = {
+    blue100: {backgroundColor: colors.blue100, fillColor: colors.blue600},
+    blue400: {backgroundColor: colors.blue400, fillColor: colors.blue700},
+    blue700: {backgroundColor: colors.blue700, fillColor: colors.blue200},
+    green100: {backgroundColor: colors.green100, fillColor: colors.green600},
+    green400: {backgroundColor: colors.green400, fillColor: colors.green700},
+    green700: {backgroundColor: colors.green700, fillColor: colors.green200},
+    yellow100: {backgroundColor: colors.yellow100, fillColor: colors.yellow600},
+    yellow400: {backgroundColor: colors.yellow400, fillColor: colors.yellow700},
+    yellow700: {backgroundColor: colors.yellow700, fillColor: colors.yellow200},
+    tangerine100: {backgroundColor: colors.tangerine100, fillColor: colors.tangerine600},
+    tangerine400: {backgroundColor: colors.tangerine400, fillColor: colors.tangerine700},
+    tangerine700: {backgroundColor: colors.tangerine700, fillColor: colors.tangerine200},
+    pink100: {backgroundColor: colors.pink100, fillColor: colors.pink600},
+    pink400: {backgroundColor: colors.pink400, fillColor: colors.pink700},
+    pink700: {backgroundColor: colors.pink700, fillColor: colors.pink200},
+    ice100: {backgroundColor: colors.ice100, fillColor: colors.ice600},
+    ice400: {backgroundColor: colors.ice400, fillColor: colors.ice700},
+    ice700: {backgroundColor: colors.ice700, fillColor: colors.ice200},
+};
+
+const LETTER_AVATAR_COLOR_OPTIONS: LetterAvatarColorStyle[] = Object.values(LETTER_AVATAR_SCHEMES);
 
 const DEFAULTS: Record<DefaultAvatarIDs, AvatarEntry> = {
     'default-avatar_1': {local: DefaultAvatars.Avatar1, url: `${CDN_DEFAULT_AVATARS}/default-avatar_1.png`},
@@ -191,6 +193,10 @@ function isLetterAvatarID(value: string): value is LetterAvatarIDs {
     return value in LETTER_DEFAULTS;
 }
 
+function isLetterAvatarSchemeKey(value: string): value is LetterAvatarSchemeKey {
+    return value in LETTER_AVATAR_SCHEMES;
+}
+
 /**
  * Returns a letter avatar component based on the first letter of the provided name.
  * @param name - The name to extract first letter/character from. (Expected 0-9, A-Z)
@@ -210,4 +216,4 @@ function getLetterAvatar(name?: string): React.FC<SvgProps> | null {
     return LETTER_DEFAULTS[workspaceKey].local;
 }
 
-export {USER_AVATARS, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, DEFAULT_AVATAR_PREFIX, getLetterAvatar};
+export {USER_AVATARS, LETTER_AVATAR_SCHEMES, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, DEFAULT_AVATAR_PREFIX, getLetterAvatar, isLetterAvatarSchemeKey};

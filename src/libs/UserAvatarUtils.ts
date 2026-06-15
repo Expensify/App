@@ -2,8 +2,8 @@ import {md5} from 'expensify-common';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
-import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
-import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
+import {DEFAULT_AVATAR_PREFIX, isLetterAvatarSchemeKey, LETTER_AVATAR_COLOR_OPTIONS, LETTER_AVATAR_SCHEMES, USER_AVATARS} from './Avatars/UserAvatarCatalog';
+import type {DefaultAvatarIDs, LetterAvatarColorStyle} from './Avatars/UserAvatarCatalog.types';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
@@ -73,6 +73,30 @@ function getAccountIDHashBucket({accountID = CONST.DEFAULT_NUMBER_ID, accountEma
         accountIDHashBucket = ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
     }
     return accountIDHashBucket;
+}
+
+/**
+ * Resolves the colour scheme for a generated letter avatar: the explicitly chosen scheme key when present and valid,
+ * otherwise a stable default derived from the same hash used for the default avatar bucket.
+ *
+ * @param args.accountID - The user's account ID
+ * @param args.accountEmail - The user's email address (takes precedence for the hash)
+ * @param args.avatarSchemeKey - A scheme key the user picked (e.g. "blue100"); takes precedence over the hash
+ * @returns The letter-avatar colour scheme (background and fill colours)
+ */
+function getLetterAvatarScheme({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarSchemeKey}: CommonAvatarArgsType & {avatarSchemeKey?: string}): LetterAvatarColorStyle {
+    if (avatarSchemeKey && isLetterAvatarSchemeKey(avatarSchemeKey)) {
+        return LETTER_AVATAR_SCHEMES[avatarSchemeKey];
+    }
+
+    const [firstOption] = LETTER_AVATAR_COLOR_OPTIONS;
+    let index = 0;
+    if (accountEmail) {
+        index = Number.parseInt(md5(accountEmail).substring(0, 4), 16) % LETTER_AVATAR_COLOR_OPTIONS.length;
+    } else if (accountID > 0) {
+        index = accountID % LETTER_AVATAR_COLOR_OPTIONS.length;
+    }
+    return LETTER_AVATAR_COLOR_OPTIONS.at(index) ?? firstOption;
 }
 
 /**
@@ -298,6 +322,7 @@ export {
     getDefaultAvatar,
     getDefaultAvatarName,
     getDefaultAvatarURL,
+    getLetterAvatarScheme,
     getCatalogAvatarNameFromURL,
     getFullSizeAvatar,
     getSmallSizeAvatar,

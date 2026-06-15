@@ -89,6 +89,28 @@ type LetterAvatarIDs =
     | 'letter-default-avatar_z';
 
 type LetterAvatarColorStyle = {backgroundColor: string; fillColor: string};
+
+/** Stable key for a letter-avatar colour scheme, used to store and restore a user's choice */
+type LetterAvatarSchemeKey =
+    | 'blue100'
+    | 'blue400'
+    | 'blue700'
+    | 'green100'
+    | 'green400'
+    | 'green700'
+    | 'yellow100'
+    | 'yellow400'
+    | 'yellow700'
+    | 'tangerine100'
+    | 'tangerine400'
+    | 'tangerine700'
+    | 'pink100'
+    | 'pink400'
+    | 'pink700'
+    | 'ice100'
+    | 'ice400'
+    | 'ice700';
+
 type UserAvatarID = DefaultAvatarIDs | SeasonF1AvatarIDs;
 
-export type {DefaultAvatarIDs, SeasonF1AvatarIDs, LetterAvatarIDs, UserAvatarID, LetterAvatarColorStyle};
+export type {DefaultAvatarIDs, SeasonF1AvatarIDs, LetterAvatarIDs, UserAvatarID, LetterAvatarColorStyle, LetterAvatarSchemeKey};
