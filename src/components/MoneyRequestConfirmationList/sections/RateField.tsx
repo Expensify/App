@@ -2,6 +2,7 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import {useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -63,9 +64,11 @@ function RateField({
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isRateInteractive = !!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;
 
+    const {isSearchRouterDisplayed} = useSearchRouterState();
+
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED,
-        !!shouldShowRateAutoUpdatedTooltip,
+        !!shouldShowRateAutoUpdatedTooltip && !isSearchRouterDisplayed,
     );
 
     return (
