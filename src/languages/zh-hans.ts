@@ -2741,9 +2741,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     agentsPage: {
         title: '代理人',
-        subtitle: '通过自定义智能体自动化处理任务。',
+        subtitle: `<muted-text>创建代理来处理你的工作流程，摆脱手工操作，每天节省数小时。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">了解更多</a>。</muted-text>`,
         newAgent: '新代理人',
-        emptyAgents: {title: '尚未创建代理', subtitle: '别再手动处理这些事情了。交给智能代理去执行，为自己节省大量时间。'},
+        emptyAgents: {
+            title: '尚未创建代理',
+            subtitle: `<muted-text><centered-text>别再手动处理各种事务了。改为指示代理来完成，为自己节省大量时间。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">了解更多</a>。</centered-text></muted-text>`,
+        },
         error: {
             genericAdd: '添加此智能体时出现了问题',
             genericUpdate: '更新此代理时出现问题',
@@ -8089,10 +8092,7 @@ ${reportName}
             [CONST.SEARCH.GROUP_BY.YEAR]: '年',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
         },
-        moneyRequestReport: {
-            emptyStateTitle: '此报表没有任何报销。',
-            accessPlaceHolder: '展开查看详情',
-        },
+        moneyRequestReport: {emptyStateTitle: '暂时没有报销费用', accessPlaceHolder: '展开查看详情'},
         noCategory: '无类别',
         noMerchant: '无商家',
         noTag: '无标签',

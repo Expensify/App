@@ -735,6 +735,13 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
 }
 
 /**
+ * Get excluded users as a Record for use in search selector
+ */
+function getExcludedUsers(employeeList?: PolicyEmployeeList): Record<string, boolean> {
+    return Object.fromEntries(getIneligibleInvitees(employeeList).map((login) => [login, true]));
+}
+
+/**
  * Get Guide and Account Manager information including their emails/logins and exclusion record.
  * Used for filtering Guide/AM from contact lists while allowing manual entry.
  *
@@ -2481,6 +2488,7 @@ export {
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
+    getExcludedUsers,
     getMemberAccountIDsForWorkspace,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
