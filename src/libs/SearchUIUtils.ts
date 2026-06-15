@@ -2921,7 +2921,7 @@ function getReportSections({
                 // First approver/approved come from the earliest APPROVED/FORWARDED report action; blank when the report has no approval.
                 const firstApprovedAction = firstApprovedActionByReportID.get(reportItem.reportID);
                 const firstApproverAccountID = firstApprovedAction?.actorAccountID;
-                const firstApproverDetails = firstApproverAccountID ? (mergedPersonalDetails?.[firstApproverAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
+                const firstApproverDetails = firstApproverAccountID ? mergedPersonalDetails?.[firstApproverAccountID] : undefined;
                 const firstApproved = firstApprovedAction?.created ?? '';
 
                 const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
