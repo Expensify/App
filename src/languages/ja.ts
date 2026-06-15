@@ -8248,10 +8248,7 @@ ${reportName}
             [CONST.SEARCH.GROUP_BY.YEAR]: '年数',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
         },
-        moneyRequestReport: {
-            emptyStateTitle: 'このレポートには経費がありません。',
-            accessPlaceHolder: '詳細を開く',
-        },
+        moneyRequestReport: {emptyStateTitle: 'まだ経費がありません', accessPlaceHolder: '詳細を開く'},
         noCategory: 'カテゴリなし',
         noMerchant: '店舗なし',
         noTag: 'タグなし',

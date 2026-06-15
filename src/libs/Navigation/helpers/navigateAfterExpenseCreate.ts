@@ -75,6 +75,7 @@ type NavigateAfterExpenseCreateParams = {
     isInvoice?: boolean;
     hasMultipleTransactions: boolean;
     shouldAddPendingNewTransactionIDs?: boolean;
+    shouldNavigate?: boolean;
 };
 
 type ShowExpenseAddedGrowlParams = {
@@ -237,6 +238,7 @@ function navigateAfterExpenseCreate({
 
     hasMultipleTransactions,
     shouldAddPendingNewTransactionIDs = false,
+    shouldNavigate = true,
 }: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
     const isUserOnSpend = isSearchTopmostFullScreenRoute();
@@ -245,7 +247,9 @@ function navigateAfterExpenseCreate({
     // we just need to dismiss the money request flow screens and open the report chat
     // containing the IOU report. No growl is shown in this case.
     if (!isFromGlobalCreate || !transactionID) {
-        dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        if (shouldNavigate) {
+            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        }
         if (shouldAddPendingNewTransactionIDs) {
             addPendingNewTransactionIDs(activeReportID, transactionID);
         }
@@ -256,11 +260,18 @@ function navigateAfterExpenseCreate({
     // chat containing the IOU report) and show the "Expense added" growl on top of it. We don't
     // redirect to Spend here - the growl just shows.
     if (isUserOnInbox) {
-        dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        if (shouldNavigate) {
+            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        }
         if (shouldAddPendingNewTransactionIDs) {
             addPendingNewTransactionIDs(activeReportID, transactionID);
         }
         showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInbox: true, isInvoice});
+        return;
+    }
+
+    // The caller owns navigation in this case, so skip redirecting to Search.
+    if (!shouldNavigate) {
         return;
     }
 

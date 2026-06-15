@@ -8437,7 +8437,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
         },
         moneyRequestReport: {
-            emptyStateTitle: 'This report has no expenses.',
+            emptyStateTitle: 'No expenses yet',
             accessPlaceHolder: 'Open for details',
         },
         noCategory: 'No category',

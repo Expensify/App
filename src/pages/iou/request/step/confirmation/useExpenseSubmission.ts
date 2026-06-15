@@ -26,7 +26,6 @@ import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpe
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
-import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {
@@ -49,6 +48,7 @@ import {
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
+import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
@@ -516,7 +516,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID],
                 existingChatReport,
             );
-            const activeReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReportID;
+            const activeReportID = isExpenseReport ? report?.reportID : chatReportID;
 
             const result = submitPerDiemExpenseIOUActions({
                 report,
@@ -558,7 +558,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 optimisticChatReportID,
             });
             const targetReportID = backToReport ?? activeReportID;
-            if (shouldHandleNavigation && result && targetReportID) {
+            // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
+            const isOneToTwoTransition = !backToReport && isOneToTwoTransactionTransition(isMoneyRequestReport, reportTransactions);
+
+            if (result && targetReportID) {
                 navigateAfterExpenseCreate({
                     activeReportID: targetReportID,
                     iouReportID: result.iouReport?.reportID,
@@ -566,7 +569,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     transactionThreadReportID: result.transactionThreadReportID,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                     hasMultipleTransactions: reportTransactions.length > 0,
-                    shouldAddPendingNewTransactionIDs: targetReportID === chatReportID,
+                    shouldAddPendingNewTransactionIDs: (shouldHandleNavigation && targetReportID === chatReportID) || isOneToTwoTransition,
+                    shouldNavigate: shouldHandleNavigation,
                 });
             }
         }
