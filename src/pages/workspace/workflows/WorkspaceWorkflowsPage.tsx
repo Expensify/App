@@ -367,368 +367,371 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             return undefined;
         };
 
-        return [
-            shouldShowSubmissionFrequency
-                ? {
-                      title: translate('workflowsPage.submissionFrequency'),
-                      subtitle: translate('workflowsPage.submissionFrequencyDescription'),
-                      switchAccessibilityLabel: translate('workflowsPage.submissionFrequencyDescription'),
-                      onToggle: (isEnabled: boolean) => {
-                          if (!canWriteWorkflows) {
-                              showReadOnlyModal();
-                              return;
-                          }
-                          if (!policy) {
-                              return;
-                          }
-                          setWorkspaceAutoHarvesting(policy, isEnabled);
-                      },
-                      subMenuItems: (
-                          <MenuItemWithTopDescription
-                              title={getAutoReportingFrequencyDisplayNames(translate)[getCorrectedAutoReportingFrequency(policy) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]}
-                              titleStyle={styles.textNormalThemeText}
-                              descriptionTextStyle={styles.textLabelSupportingNormal}
-                              onPress={onPressAutoReportingFrequency}
-                              sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTO_REPORTING_FREQUENCY}
-                              // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
-                              description={translate('common.frequency')}
-                              shouldShowRightIcon={canWriteWorkflows}
-                              interactive={canWriteWorkflows}
-                              wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                              brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                          />
-                      ),
-                      isActive: (policy?.autoReporting && !hasDelayedSubmissionError) ?? false,
-                      pendingAction: policy?.pendingFields?.autoReporting ?? policy?.pendingFields?.autoReportingFrequency,
-                      errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
-                      onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
-                      disabled: !canWriteWorkflows,
-                      disabledAction: withWorkflowsReadOnlyFallback(),
-                      showLockIcon: !canWriteWorkflows,
-                  }
-                : undefined,
-            {
-                title: translate('workflowsPage.addApprovalsTitle'),
-                subtitle: approvalOptionSubtitle,
-                switchAccessibilityLabel: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
+        const options: ToggleSettingOptionRowProps[] = [];
+
+        if (shouldShowSubmissionFrequency) {
+            options.push({
+                title: translate('workflowsPage.submissionFrequency'),
+                subtitle: translate('workflowsPage.submissionFrequencyDescription'),
+                switchAccessibilityLabel: translate('workflowsPage.submissionFrequencyDescription'),
                 onToggle: (isEnabled: boolean) => {
-                    if (!canWriteApprovals) {
+                    if (!canWriteWorkflows) {
                         showReadOnlyModal();
                         return;
                     }
-                    if (isEnabled && canAccessSubmit2026Features) {
-                        navigateToSubmitWorkspaceApprovalsUpgrade();
+                    if (!policy) {
                         return;
                     }
-                    if (isHRConnected) {
-                        return;
-                    }
-                    if (!isEnabled) {
-                        showConfirmModal({
-                            title: translate('workspace.bankAccount.areYouSure'),
-                            prompt: translate('workflowsPage.disableApprovalPromptDescription'),
-                            confirmText: translate('common.disable'),
-                            cancelText: translate('common.cancel'),
-                            danger: true,
-                        }).then((result) => {
-                            if (result.action !== ModalActions.CONFIRM) {
-                                return;
-                            }
-                            confirmDisableApprovals();
-                        });
-                        return;
-                    }
-                    setWorkspaceApprovalMode(policy, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, {
-                        reportNextSteps: allReportNextSteps,
-                        transactionViolations,
-                        betas,
-                    });
+                    setWorkspaceAutoHarvesting(policy, isEnabled);
                 },
                 subMenuItems: (
-                    <>
-                        {isDEWEnabled && (
-                            <View style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.mt6, styles.mbn3, styles.flexRow, styles.alignItemsCenter]}>
-                                <Icon
-                                    src={expensifyIcons.Info}
-                                    fill={theme.textSupporting}
-                                    additionalStyles={styles.popoverMenuIcon}
-                                />
-                                <View style={[styles.flex1, styles.ml3]}>
-                                    <RenderHTML
-                                        html={
-                                            accountManagerReportID
-                                                ? translate('workflowsPage.customApprovalWorkflowEnabled')
-                                                : translate('workflowsPage.customApprovalWorkflowEnabledConciergeOnly')
-                                        }
-                                    />
-                                </View>
-                            </View>
-                        )}
-                        {filteredApprovalWorkflows.length > CONST.SEARCH_BAR_THRESHOLD && (
-                            <SearchBar
-                                label={translate('workflowsPage.findWorkflow')}
-                                inputValue={workflowSearchInput}
-                                onChangeText={setWorkflowSearchInput}
-                                style={[styles.mt6, {marginHorizontal: 0}]}
-                            />
-                        )}
-                        <WorkflowNoResultsView
-                            message={translate('common.noResultsFoundMatching', workflowSearchInput)}
-                            shouldShow={searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0}
-                            searchValue={workflowSearchInput}
-                        />
-                        {searchFilteredWorkflows.map((workflow) => {
-                            const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
-
-                            return (
-                                <OfflineWithFeedback
-                                    key={firstApproverEmail}
-                                    pendingAction={workflow.pendingAction}
-                                >
-                                    <ApprovalWorkflowSection
-                                        approvalWorkflow={workflow}
-                                        onPress={
-                                            shouldBlockApprovalWorkflowEditing || !canWriteApprovals
-                                                ? undefined
-                                                : () => {
-                                                      // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
-                                                      clearApprovalWorkflow();
-                                                      Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApproverEmail));
-                                                  }
-                                        }
-                                        onShowAllMembersPress={
-                                            shouldBlockApprovalWorkflowEditing
-                                                ? undefined
-                                                : () => {
-                                                      selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers: availableMembers, usedApproverEmails});
-                                                      Navigation.navigate(
-                                                          ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(
-                                                              route.params.policyID,
-                                                              ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
-                                                          ),
-                                                      );
-                                                  }
-                                        }
-                                        currency={policy?.outputCurrency}
-                                        isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
-                                        hrProviderName={isHRConnected ? hrProviderName : undefined}
-                                        isHRAdvancedMode={isHRAdvancedModeEnabled}
-                                        hrFinalApproverEmail={isHRAdvancedModeEnabled ? hrFinalApproverEmail : undefined}
-                                    />
-                                </OfflineWithFeedback>
-                            );
-                        })}
-                        {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
-                            <MenuItem
-                                title={translate('workflowsPage.addApprovalButton')}
-                                titleStyle={styles.textStrong}
-                                icon={expensifyIcons.Plus}
-                                iconHeight={20}
-                                iconWidth={20}
-                                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                                onPress={addApprovalAction}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
-                            />
-                        )}
-                    </>
+                    <MenuItemWithTopDescription
+                        title={getAutoReportingFrequencyDisplayNames(translate)[getCorrectedAutoReportingFrequency(policy) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]}
+                        titleStyle={styles.textNormalThemeText}
+                        descriptionTextStyle={styles.textLabelSupportingNormal}
+                        onPress={onPressAutoReportingFrequency}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTO_REPORTING_FREQUENCY}
+                        // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
+                        description={translate('common.frequency')}
+                        shouldShowRightIcon={canWriteWorkflows}
+                        interactive={canWriteWorkflows}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                        brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
                 ),
-                disabled: !canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isHRConnected,
-                disabledAction: withApprovalsReadOnlyFallback(getAddApprovalsToggleDisabledAction()),
-                showLockIcon: !canWriteApprovals,
-                // Submit2026 workspaces have approval mode set to Advanced, but we want to show it here as off because configuring the advanced approvals is a paid feature.
-                isActive:
-                    !canAccessSubmit2026Features &&
-                    (isHRConnected ||
-                        isDEWEnabled ||
-                        (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ??
-                            false)),
-                pendingAction: policy?.pendingFields?.approvalMode,
-                errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
-                onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+                isActive: (policy?.autoReporting && !hasDelayedSubmissionError) ?? false,
+                pendingAction: policy?.pendingFields?.autoReporting ?? policy?.pendingFields?.autoReportingFrequency,
+                errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
+                onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
+                disabled: !canWriteWorkflows,
+                disabledAction: withWorkflowsReadOnlyFallback(),
+                showLockIcon: !canWriteWorkflows,
+            });
+        }
+
+        options.push({
+            title: translate('workflowsPage.addApprovalsTitle'),
+            subtitle: approvalOptionSubtitle,
+            switchAccessibilityLabel: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
+            onToggle: (isEnabled: boolean) => {
+                if (!canWriteApprovals) {
+                    showReadOnlyModal();
+                    return;
+                }
+                if (isEnabled && canAccessSubmit2026Features) {
+                    navigateToSubmitWorkspaceApprovalsUpgrade();
+                    return;
+                }
+                if (isHRConnected) {
+                    return;
+                }
+                if (!isEnabled) {
+                    showConfirmModal({
+                        title: translate('workspace.bankAccount.areYouSure'),
+                        prompt: translate('workflowsPage.disableApprovalPromptDescription'),
+                        confirmText: translate('common.disable'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    }).then((result) => {
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+                        confirmDisableApprovals();
+                    });
+                    return;
+                }
+                setWorkspaceApprovalMode(policy, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, {
+                    reportNextSteps: allReportNextSteps,
+                    transactionViolations,
+                    betas,
+                });
             },
-            shouldShowPayments
-                ? {
-                      title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
-                      subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
-                      switchAccessibilityLabel: translate('workflowsPage.makeOrTrackPaymentsDescription'),
-                      onToggle: (isEnabled: boolean) => {
-                          if (!canWritePayments) {
-                              showReadOnlyModal();
-                              return;
-                          }
-                          if (isEnabled && canAccessSubmit2026Features) {
-                              Navigation.navigate(
-                                  ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                      route.params.policyID,
-                                      CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.alias,
-                                      ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
-                                  ),
-                              );
-                              return;
-                          }
-                          let newReimbursementChoice;
-                          if (!isEnabled) {
-                              newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-                          } else if (!!policy?.achAccount && !isCurrencySupportedForDirectReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
-                              newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-                          } else {
-                              newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-                          }
+            subMenuItems: (
+                <>
+                    {isDEWEnabled && (
+                        <View style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.mt6, styles.mbn3, styles.flexRow, styles.alignItemsCenter]}>
+                            <Icon
+                                src={expensifyIcons.Info}
+                                fill={theme.textSupporting}
+                                additionalStyles={styles.popoverMenuIcon}
+                            />
+                            <View style={[styles.flex1, styles.ml3]}>
+                                <RenderHTML
+                                    html={
+                                        accountManagerReportID
+                                            ? translate('workflowsPage.customApprovalWorkflowEnabled')
+                                            : translate('workflowsPage.customApprovalWorkflowEnabledConciergeOnly')
+                                    }
+                                />
+                            </View>
+                        </View>
+                    )}
+                    {filteredApprovalWorkflows.length > CONST.SEARCH_BAR_THRESHOLD && (
+                        <SearchBar
+                            label={translate('workflowsPage.findWorkflow')}
+                            inputValue={workflowSearchInput}
+                            onChangeText={setWorkflowSearchInput}
+                            style={[styles.mt6, {marginHorizontal: 0}]}
+                        />
+                    )}
+                    <WorkflowNoResultsView
+                        message={translate('common.noResultsFoundMatching', workflowSearchInput)}
+                        shouldShow={searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0}
+                        searchValue={workflowSearchInput}
+                    />
+                    {searchFilteredWorkflows.map((workflow) => {
+                        const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
 
-                          const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
-                          setWorkspaceReimbursement({
-                              policyID: route.params.policyID,
-                              currentAchAccount: policy?.achAccount,
-                              currentReimbursementChoice: policy?.reimbursementChoice,
-                              reimbursementChoice: newReimbursementChoice,
-                              reimburserEmail: newReimburserEmail ?? '',
-                              bankAccountID: policy?.achAccount?.bankAccountID,
-                              accountNumber: policy?.achAccount?.accountNumber,
-                              addressName: policy?.achAccount?.addressName,
-                              bankName: policy?.achAccount?.bankName,
-                              state: policy?.achAccount?.state,
-                          });
-                      },
-                      subMenuItems: (
-                          <>
-                              {shouldShowBankAccount ? (
-                                  <OfflineWithFeedback pendingAction={bankAccountPendingAction}>
-                                      <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
-                                          <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
-                                      </View>
-                                      <MenuItem
-                                          title={bankTitle}
-                                          description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
-                                          onPress={
-                                              canWritePayments
-                                                  ? () => {
-                                                        if (isAccountLocked) {
-                                                            showLockedAccountModal();
-                                                            return;
-                                                        }
-                                                        // User who is reimburser can initiate unlocking process
-                                                        if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
-                                                            pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
-                                                            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
-                                                            return;
-                                                        }
-
-                                                        // User who is not reimburser can't initiate unlocking process but can connect new account
-                                                        if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && !isUserReimburser) {
-                                                            // If user has existing accounts and no bank account setup in progress we should show screen to choose an existing account
-                                                            if (hasValidExistingAccounts && !shouldShowContinueModal) {
-                                                                Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
-                                                                return;
-                                                            }
-                                                        }
-
-                                                        navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
-                                                    }
-                                                  : undefined
-                                          }
-                                          displayInDefaultIconColor
-                                          icon={bankIcon.icon}
-                                          iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
-                                          iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
-                                          iconStyles={bankIcon.iconStyles}
-                                          titleStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
-                                          descriptionTextStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
-                                          disabled={isOffline || !isPolicyAdmin}
-                                          badgeText={getBadgeText(accountData?.state)}
-                                          sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
-                                          badgeIcon={isAccountInSetupState || (isBusinessBankAccountLocked && isPolicyAdmin) ? expensifyIcons.DotIndicator : undefined}
-                                          isBadgeSuccess={isAccountInSetupState}
-                                          isBadgeError={isBusinessBankAccountLocked && isPolicyAdmin}
-                                          shouldShowRightIcon={canWritePayments}
-                                          interactive={canWritePayments}
-                                          shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
-                                          wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                          brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                      />
-                                  </OfflineWithFeedback>
-                              ) : (
-                                  canWritePayments && (
-                                      <MenuItem
-                                          title={translate('bankAccount.addBankAccount')}
-                                          titleStyle={styles.textStrong}
-                                          onPress={() => {
-                                              if (isAccountLocked) {
-                                                  showLockedAccountModal();
-                                                  return;
+                        return (
+                            <OfflineWithFeedback
+                                key={firstApproverEmail}
+                                pendingAction={workflow.pendingAction}
+                            >
+                                <ApprovalWorkflowSection
+                                    approvalWorkflow={workflow}
+                                    onPress={
+                                        shouldBlockApprovalWorkflowEditing || !canWriteApprovals
+                                            ? undefined
+                                            : () => {
+                                                  // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
+                                                  clearApprovalWorkflow();
+                                                  Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApproverEmail));
                                               }
-                                              if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
-                                                  showConfirmModal({
-                                                      title: translate('workspace.bankAccount.workspaceCurrencyNotSupported'),
-                                                      prompt: updateWorkspaceCurrencyPrompt,
-                                                      confirmText: translate('workspace.bankAccount.updateWorkspaceCurrency'),
-                                                      cancelText: translate('common.cancel'),
-                                                  }).then((result) => {
-                                                      if (result.action !== ModalActions.CONFIRM) {
-                                                          return;
-                                                      }
-                                                      confirmCurrencyChangeAndHideModal();
-                                                  });
-
-                                                  return;
-                                              }
-                                              if (!shouldShowBankAccount && hasValidExistingAccounts && !shouldShowContinueModal) {
+                                    }
+                                    onShowAllMembersPress={
+                                        shouldBlockApprovalWorkflowEditing
+                                            ? undefined
+                                            : () => {
+                                                  selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers: availableMembers, usedApproverEmails});
                                                   Navigation.navigate(
-                                                      ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(
+                                                      ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(
                                                           route.params.policyID,
                                                           ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
                                                       ),
                                                   );
-                                                  return;
                                               }
-                                              navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
-                                          }}
-                                          icon={expensifyIcons.Plus}
-                                          iconHeight={20}
-                                          iconWidth={20}
-                                          shouldShowRightIcon
-                                          disabled={isOffline || !isPolicyAdmin}
-                                          shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
-                                          sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_BANK_ACCOUNT}
-                                          wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                          brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                      />
-                                  )
-                              )}
-                              {shouldShowBankAccount && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && (
-                                  <OfflineWithFeedback
-                                      pendingAction={policy?.pendingFields?.reimburser}
-                                      shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
-                                      errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
-                                      onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
-                                      errorRowStyles={[styles.ml7]}
-                                  >
-                                      <MenuItemWithTopDescription
-                                          title={displayNameForAuthorizedPayer ?? ''}
-                                          titleStyle={styles.textNormalThemeText}
-                                          descriptionTextStyle={styles.textLabelSupportingNormal}
-                                          description={translate('workflowsPayerPage.payer')}
-                                          onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
-                                          sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
-                                          shouldShowRightIcon={canWritePayments}
-                                          interactive={canWritePayments}
-                                          wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                          brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                      />
-                                  </OfflineWithFeedback>
-                              )}
-                          </>
-                      ),
-                      isEndOptionRow: true,
-                      isActive: policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
-                      pendingAction: policy?.pendingFields?.reimbursementChoice,
-                      errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
-                      onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
-                      disabled: !canWritePayments,
-                      disabledAction: withPaymentsReadOnlyFallback(),
-                      showLockIcon: !canWritePayments,
-                  }
-                : undefined,
-        ].filter((item): item is ToggleSettingOptionRowProps => !!item);
+                                    }
+                                    currency={policy?.outputCurrency}
+                                    isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
+                                    hrProviderName={isHRConnected ? hrProviderName : undefined}
+                                    isHRAdvancedMode={isHRAdvancedModeEnabled}
+                                    hrFinalApproverEmail={isHRAdvancedModeEnabled ? hrFinalApproverEmail : undefined}
+                                />
+                            </OfflineWithFeedback>
+                        );
+                    })}
+                    {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
+                        <MenuItem
+                            title={translate('workflowsPage.addApprovalButton')}
+                            titleStyle={styles.textStrong}
+                            icon={expensifyIcons.Plus}
+                            iconHeight={20}
+                            iconWidth={20}
+                            style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                            onPress={addApprovalAction}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
+                        />
+                    )}
+                </>
+            ),
+            disabled: !canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isHRConnected,
+            disabledAction: withApprovalsReadOnlyFallback(getAddApprovalsToggleDisabledAction()),
+            showLockIcon: !canWriteApprovals,
+            // Submit2026 workspaces have approval mode set to Advanced, but we want to show it here as off because configuring the advanced approvals is a paid feature.
+            isActive:
+                !canAccessSubmit2026Features &&
+                (isHRConnected ||
+                    isDEWEnabled ||
+                    (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false)),
+            pendingAction: policy?.pendingFields?.approvalMode,
+            errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+            onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+        });
+
+        if (shouldShowPayments) {
+            options.push({
+                title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
+                subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
+                switchAccessibilityLabel: translate('workflowsPage.makeOrTrackPaymentsDescription'),
+                onToggle: (isEnabled: boolean) => {
+                    if (!canWritePayments) {
+                        showReadOnlyModal();
+                        return;
+                    }
+                    if (isEnabled && canAccessSubmit2026Features) {
+                        Navigation.navigate(
+                            ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                route.params.policyID,
+                                CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.alias,
+                                ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                            ),
+                        );
+                        return;
+                    }
+                    let newReimbursementChoice;
+                    if (!isEnabled) {
+                        newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+                    } else if (!!policy?.achAccount && !isCurrencySupportedForDirectReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
+                        newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+                    } else {
+                        newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+                    }
+
+                    const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
+                    setWorkspaceReimbursement({
+                        policyID: route.params.policyID,
+                        currentAchAccount: policy?.achAccount,
+                        currentReimbursementChoice: policy?.reimbursementChoice,
+                        reimbursementChoice: newReimbursementChoice,
+                        reimburserEmail: newReimburserEmail ?? '',
+                        bankAccountID: policy?.achAccount?.bankAccountID,
+                        accountNumber: policy?.achAccount?.accountNumber,
+                        addressName: policy?.achAccount?.addressName,
+                        bankName: policy?.achAccount?.bankName,
+                        state: policy?.achAccount?.state,
+                    });
+                },
+                subMenuItems: (
+                    <>
+                        {shouldShowBankAccount ? (
+                            <OfflineWithFeedback pendingAction={bankAccountPendingAction}>
+                                <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
+                                    <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
+                                </View>
+                                <MenuItem
+                                    title={bankTitle}
+                                    description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
+                                    onPress={
+                                        canWritePayments
+                                            ? () => {
+                                                  if (isAccountLocked) {
+                                                      showLockedAccountModal();
+                                                      return;
+                                                  }
+                                                  // User who is reimburser can initiate unlocking process
+                                                  if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
+                                                      pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
+                                                      navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+                                                      return;
+                                                  }
+
+                                                  // User who is not reimburser can't initiate unlocking process but can connect new account
+                                                  if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && !isUserReimburser) {
+                                                      // If user has existing accounts and no bank account setup in progress we should show screen to choose an existing account
+                                                      if (hasValidExistingAccounts && !shouldShowContinueModal) {
+                                                          Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
+                                                          return;
+                                                      }
+                                                  }
+
+                                                  navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
+                                              }
+                                            : undefined
+                                    }
+                                    displayInDefaultIconColor
+                                    icon={bankIcon.icon}
+                                    iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
+                                    iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
+                                    iconStyles={bankIcon.iconStyles}
+                                    titleStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
+                                    descriptionTextStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
+                                    disabled={isOffline || !isPolicyAdmin}
+                                    badgeText={getBadgeText(accountData?.state)}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
+                                    badgeIcon={isAccountInSetupState || (isBusinessBankAccountLocked && isPolicyAdmin) ? expensifyIcons.DotIndicator : undefined}
+                                    isBadgeSuccess={isAccountInSetupState}
+                                    isBadgeError={isBusinessBankAccountLocked && isPolicyAdmin}
+                                    shouldShowRightIcon={canWritePayments}
+                                    interactive={canWritePayments}
+                                    shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                    brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                />
+                            </OfflineWithFeedback>
+                        ) : (
+                            canWritePayments && (
+                                <MenuItem
+                                    title={translate('bankAccount.addBankAccount')}
+                                    titleStyle={styles.textStrong}
+                                    onPress={() => {
+                                        if (isAccountLocked) {
+                                            showLockedAccountModal();
+                                            return;
+                                        }
+                                        if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
+                                            showConfirmModal({
+                                                title: translate('workspace.bankAccount.workspaceCurrencyNotSupported'),
+                                                prompt: updateWorkspaceCurrencyPrompt,
+                                                confirmText: translate('workspace.bankAccount.updateWorkspaceCurrency'),
+                                                cancelText: translate('common.cancel'),
+                                            }).then((result) => {
+                                                if (result.action !== ModalActions.CONFIRM) {
+                                                    return;
+                                                }
+                                                confirmCurrencyChangeAndHideModal();
+                                            });
+
+                                            return;
+                                        }
+                                        if (!shouldShowBankAccount && hasValidExistingAccounts && !shouldShowContinueModal) {
+                                            Navigation.navigate(
+                                                ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(
+                                                    route.params.policyID,
+                                                    ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                                                ),
+                                            );
+                                            return;
+                                        }
+                                        navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
+                                    }}
+                                    icon={expensifyIcons.Plus}
+                                    iconHeight={20}
+                                    iconWidth={20}
+                                    shouldShowRightIcon
+                                    disabled={isOffline || !isPolicyAdmin}
+                                    shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_BANK_ACCOUNT}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                    brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                />
+                            )
+                        )}
+                        {shouldShowBankAccount && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && (
+                            <OfflineWithFeedback
+                                pendingAction={policy?.pendingFields?.reimburser}
+                                shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
+                                errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
+                                onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
+                                errorRowStyles={[styles.ml7]}
+                            >
+                                <MenuItemWithTopDescription
+                                    title={displayNameForAuthorizedPayer ?? ''}
+                                    titleStyle={styles.textNormalThemeText}
+                                    descriptionTextStyle={styles.textLabelSupportingNormal}
+                                    description={translate('workflowsPayerPage.payer')}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
+                                    shouldShowRightIcon={canWritePayments}
+                                    interactive={canWritePayments}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                    brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                />
+                            </OfflineWithFeedback>
+                        )}
+                    </>
+                ),
+                isEndOptionRow: true,
+                isActive: policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                pendingAction: policy?.pendingFields?.reimbursementChoice,
+                errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
+                onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
+                disabled: !canWritePayments,
+                disabledAction: withPaymentsReadOnlyFallback(),
+                showLockIcon: !canWritePayments,
+            });
+        }
+
+        return options;
     }, [
         policy,
         currentUserLogin,

@@ -213,7 +213,7 @@ function canMemberManageRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
     }
 
     return (
-        isControlPolicy(policy) &&
+        policy?.type === CONST.POLICY.TYPE.CORPORATE &&
         canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) &&
         getPolicyRole(policy, login) === CONST.POLICY.ROLE.PEOPLE_ADMIN &&
         (role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.AUDITOR)
