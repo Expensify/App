@@ -131,6 +131,10 @@ const DYNAMIC_ROUTES = {
         path: 'imported-members-role',
         entryScreens: [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION],
     },
+    REPORT_SETTINGS: {
+        path: 'report-settings',
+        entryScreens: [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT],
+    },
     PAYMENT_CARD_CURRENCY_SELECTOR: {
         path: 'payment-card-currency',
         entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY, SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD, SCREENS.WORKSPACE.OWNER_CHANGE_CHECK],
@@ -141,11 +145,11 @@ const DYNAMIC_ROUTES = {
     },
     REPORT_SETTINGS_WRITE_CAPABILITY: {
         path: 'who-can-post',
-        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
+        entryScreens: [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT],
     },
     REPORT_SETTINGS_VISIBILITY: {
         path: 'visibility',
-        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
+        entryScreens: [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT],
     },
     CHANGE_POLICY_EDUCATIONAL: {
         path: 'change-workspace-educational',
@@ -220,6 +224,14 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_CERTINIA_ADVANCED: {
         path: 'certinia/advanced',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS: {
+        path: 'certinia-report-status/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR: {
+        path: 'certinia/company',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
@@ -515,7 +527,7 @@ const DYNAMIC_ROUTES = {
     },
     NOTIFICATION_PREFERENCES: {
         path: 'notification-preferences',
-        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT, SCREENS.DYNAMIC_PROFILE],
+        entryScreens: [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT, SCREENS.DYNAMIC_PROFILE],
         getRoute: (reportID: string) => getUrlWithParams('notification-preferences', {reportID}),
         queryParams: ['reportID'],
     },
@@ -563,7 +575,7 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_INVITE_MESSAGE: {
         path: 'invite-message',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM],
     },
     WORKSPACE_INVITE_MESSAGE_ROLE: {
         path: 'role',
@@ -715,6 +727,30 @@ const DYNAMIC_ROUTES = {
         ],
         getRoute: (reportID: string) => getUrlWithParams('details', {reportID}),
         queryParams: ['reportID'],
+    },
+    REPORT_PARTICIPANTS: {
+        path: 'participants',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+    },
+    REPORT_PARTICIPANTS_INVITE: {
+        path: 'participants-invite',
+        entryScreens: [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT],
+    },
+    REPORT_PARTICIPANTS_DETAILS: {
+        path: 'participants-details/:accountID',
+        entryScreens: [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT],
+        getRoute: (accountID: number) => `participants-details/${accountID}` as const,
+    },
+    REPORT_PARTICIPANTS_ROLE: {
+        path: 'participants-role',
+        entryScreens: [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_DETAILS],
     },
     REPORT_DETAILS_SHARE_CODE: {
         path: 'share-code',
@@ -1307,13 +1343,10 @@ const ROUTES = {
     SETTINGS_AGENTS: 'settings/agents',
     SETTINGS_AGENTS_ADD: {
         route: 'settings/agents/new',
-        getRoute: ({policyID, workflowApproverEmail}: {policyID?: string; workflowApproverEmail?: string} = {}) => {
+        getRoute: ({policyID}: {policyID?: string} = {}) => {
             const params = new URLSearchParams();
             if (policyID) {
                 params.set('policyID', policyID);
-            }
-            if (workflowApproverEmail) {
-                params.set('workflowApproverEmail', workflowApproverEmail);
             }
             const query = params.toString();
             return `settings/agents/new${query ? `?${query}` : ''}` as const;
@@ -1485,31 +1518,6 @@ const ROUTES = {
     EXPENSE_REPORT_VERIFY_ACCOUNT: {
         route: `e/:reportID/${VERIFY_ACCOUNT}`,
         getRoute: (reportID: string) => `e/${reportID}/${VERIFY_ACCOUNT}` as const,
-    },
-    REPORT_PARTICIPANTS: {
-        route: 'r/:reportID/participants',
-
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants` as const, backTo),
-    },
-    REPORT_PARTICIPANTS_INVITE: {
-        route: 'r/:reportID/participants/invite',
-
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/invite` as const, backTo),
-    },
-    REPORT_PARTICIPANTS_DETAILS: {
-        route: 'r/:reportID/participants/:accountID',
-
-        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}` as const, backTo),
-    },
-    REPORT_PARTICIPANTS_ROLE_SELECTION: {
-        route: 'r/:reportID/participants/:accountID/role',
-
-        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}/role` as const, backTo),
-    },
-    REPORT_SETTINGS: {
-        route: 'r/:reportID/settings',
-
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings` as const, backTo),
     },
     REPORT_CHANGE_APPROVER_ADD_APPROVER: {
         route: 'r/:reportID/change-approver/add',
@@ -2307,11 +2315,7 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EDIT: {
         route: 'workspaces/:policyID/workflows/approvals/:firstApproverEmail/edit',
-        getRoute: (policyID: string, firstApproverEmail: string, seedApproverEmail?: string, seedApproverAccountID?: number) =>
-            getUrlWithParams(`workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit`, {
-                seedApproverEmail,
-                seedApproverAccountID: seedApproverAccountID !== undefined ? String(seedApproverAccountID) : undefined,
-            }),
+        getRoute: (policyID: string, firstApproverEmail: string) => `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
         route: 'workspaces/:policyID/workflows/approvals/expenses-from',
@@ -2333,11 +2337,6 @@ const ROUTES = {
     WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER: {
         route: 'workspaces/:policyID/workflows/approvals/over-limit-approver',
         getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/over-limit-approver?approverIndex=${approverIndex}` as const,
-    },
-    WORKSPACE_WORKFLOWS_ADD_AGENT: {
-        route: 'workspaces/:policyID/workflows/add-agent',
-        getRoute: ({policyID, workflowApproverEmail}: {policyID: string; workflowApproverEmail?: string}) =>
-            getUrlWithParams(`workspaces/${policyID}/workflows/add-agent`, {workflowApproverEmail}),
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'workspaces/:policyID/workflows/payer',
@@ -3235,13 +3234,13 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/preview-matches',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/preview-matches` as const,
     },
-    RULES_AI_NEW: {
-        route: 'workspaces/:policyID/rules/ai-rules/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/ai-rules/new` as const,
+    RULES_AGENT_NEW: {
+        route: 'workspaces/:policyID/rules/agent-rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/agent-rules/new` as const,
     },
-    RULES_AI_EDIT: {
-        route: 'workspaces/:policyID/rules/ai-rules/:ruleID',
-        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/ai-rules/${ruleID}` as const,
+    RULES_AGENT_EDIT: {
+        route: 'workspaces/:policyID/rules/agent-rules/:ruleID',
+        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/agent-rules/${ruleID}` as const,
     },
     SHARE_ROOT: 'share/root',
     SHARE_ROOT_SHARE: 'share/root/share',
@@ -3942,6 +3941,33 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_ADVANCED route');
             }
             return `workspaces/${policyID}/accounting/certinia/advanced` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_TAGS_MAPPING: {
+        route: 'workspaces/:policyID/accounting/certinia/import/tags-mapping',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_TAGS_MAPPING route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/import/tags-mapping` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS: {
+        route: 'workspaces/:policyID/accounting/certinia/export/report-status',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/export/report-status` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/certinia/company',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/company` as const;
         },
     },
     ADD_EXISTING_EXPENSE: {
