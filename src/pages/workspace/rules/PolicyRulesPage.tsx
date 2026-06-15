@@ -24,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
+import AIRulesSection from './AIRulesSection';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 import MerchantRulesSection from './MerchantRulesSection';
 
@@ -39,7 +40,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Rules']);
-    const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
+    const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
@@ -77,7 +78,13 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                             title={translate('workspace.rules.agentsPromoBanner.title')}
                             subtitle={translate('workspace.rules.agentsPromoBanner.subtitle')}
                             ctaText={translate('workspace.rules.agentsPromoBanner.cta')}
-                            onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID))}
+                            onCtaPress={() => {
+                                if (!canWriteRules) {
+                                    showReadOnlyModal();
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.RULES_AI_NEW.getRoute(policyID));
+                            }}
                             ctaSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.CTA}
                             onDismiss={() => dismissProductTraining(CONST.AGENTS_RULES_BANNER, true)}
                             dismissSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.DISMISS}
@@ -87,16 +94,25 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                     <IndividualExpenseRulesSection
                         policyID={policyID}
                         canWriteRules={canWriteRules}
-                        showReadOnlyModal={showReadOnlyModal}
+                        withReadOnlyFallback={withReadOnlyFallback}
                     />
                     <MerchantRulesSection
                         policyID={policyID}
                         canWriteRules={canWriteRules}
+                        showReadOnlyModal={showReadOnlyModal}
                     />
                     {!!policy?.areExpensifyCardsEnabled && (
                         <SpendRulesSection
                             policyID={policyID}
                             canWriteRules={canWriteRules}
+                            showReadOnlyModal={showReadOnlyModal}
+                        />
+                    )}
+                    {isCustomAgentBetaEnabled && (
+                        <AIRulesSection
+                            policyID={policyID}
+                            canWriteRules={canWriteRules}
+                            showReadOnlyModal={showReadOnlyModal}
                         />
                     )}
                 </View>

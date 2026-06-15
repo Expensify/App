@@ -70,6 +70,7 @@ import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCardLock from '@assets/images/credit-card-lock.svg';
+import CreditCardMultiple from '@assets/images/credit-card-multiple.svg';
 import CreditCardWithPlaneHourglass from '@assets/images/credit-card-with-plane-hourglass.svg';
 import CreditCardWithPlane from '@assets/images/credit-card-with-plane.svg';
 import CreditCard from '@assets/images/creditcard.svg';
@@ -176,6 +177,7 @@ import MoneyHourglass from '@assets/images/money-hourglass.svg';
 import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
+import Moon from '@assets/images/moon.svg';
 import MultiTag from '@assets/images/multi-tag.svg';
 import Fingerprint from '@assets/images/multifactorAuthentication/fingerprint.svg';
 import Mute from '@assets/images/mute.svg';
@@ -187,6 +189,7 @@ import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
+import Paycheck from '@assets/images/paycheck.svg';
 import Pencil from '@assets/images/pencil.svg';
 import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
@@ -205,6 +208,7 @@ import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
 import ReceiptScan from '@assets/images/receipt-scan.svg';
+import ReceiptSearch from '@assets/images/receipt-search.svg';
 import ReceiptSlash from '@assets/images/receipt-slash.svg';
 import Receipt from '@assets/images/receipt.svg';
 import RemoveMembers from '@assets/images/remove-members.svg';
@@ -250,6 +254,7 @@ import TreasureChest from '@assets/images/treasure-chest.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
+import UserArrowLeft from '@assets/images/user-arrow-left.svg';
 import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
@@ -327,6 +332,7 @@ const Expensicons = {
     ConnectionComplete,
     Copy,
     CreditCard,
+    CreditCardMultiple,
     Crop,
     CreditCardHourglass,
     CreditCardExclamation,
@@ -417,6 +423,7 @@ const Expensicons = {
     MoneyWaving,
     MoneyHourglass,
     Monitor,
+    Moon,
     Mute,
     ExpensifyLogoNew,
     NewWindow,
@@ -428,6 +435,7 @@ const Expensicons = {
     OdometerEnd,
     Paperclip,
     Pause,
+    Paycheck,
     Pencil,
     Percent,
     Phone,
@@ -445,6 +453,7 @@ const Expensicons = {
     ReceiptPlaceholderPlus,
     ReceiptPlus,
     ReceiptScan,
+    ReceiptSearch,
     ReceiptSlash,
     RemoveMembers,
     ReportCopy,
@@ -473,6 +482,7 @@ const Expensicons = {
     Upload,
     UploadAlt,
     User,
+    UserArrowLeft,
     UserCheck,
     Users,
     VideoSlash,

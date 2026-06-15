@@ -12,6 +12,7 @@ import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported'
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +22,7 @@ import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings} from '@libs/PolicyUtils';
 import {hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -52,8 +53,8 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
+    const {canWrite: canWriteExpensifyCard, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
 
     // Dismiss the "Update to USD" modal if the currency changes to USD externally (e.g. from another device)
     const isCurrencyModalOpen = useRef(false);
@@ -69,9 +70,12 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
 
     const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountList);
+    const shouldStartBankAccountSetup = !eligibleBankAccounts.length || isSetupUnfinished;
+    const canStartBankAccountSetup = canEditWorkspaceSettings(policy, currentUserLogin);
+    const shouldDisableCTA = !canWriteExpensifyCard || (shouldStartBankAccountSetup && !canStartBankAccountSetup);
 
     const startFlow = () => {
-        if (!eligibleBankAccounts.length || isSetupUnfinished) {
+        if (shouldStartBankAccountSetup) {
             Navigation.navigate(
                 ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
                     policyID: policy?.id,
@@ -80,7 +84,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             );
         } else if (policy?.id) {
             clearIssueNewCardFormData();
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy.id)));
         }
     };
 
@@ -132,9 +136,17 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     menuItems={isUkEuCurrencySupported ? expensifyCardFeatures.slice(1) : expensifyCardFeatures}
                     title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
-                    ctaText={canWriteExpensifyCard ? translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard') : undefined}
+                    ctaText={translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
                     ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     onCtaPress={() => {
+                        if (!canWriteExpensifyCard) {
+                            showReadOnlyModal();
+                            return;
+                        }
+                        if (shouldStartBankAccountSetup && !canStartBankAccountSetup) {
+                            showReadOnlyModal();
+                            return;
+                        }
                         if (isDelegateAccessRestricted) {
                             showDelegateNoAccessModal();
                             return;
@@ -153,6 +165,8 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     illustration={illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
+                    buttonInnerStyles={shouldDisableCTA ? styles.buttonOpacityDisabled : undefined}
+                    buttonHoverStyles={shouldDisableCTA ? styles.buttonOpacityDisabled : undefined}
                 />
             </View>
             <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

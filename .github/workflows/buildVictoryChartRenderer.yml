@@ -1,0 +1,78 @@
+name: Build victory-chart-renderer
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to checkout and build
+        type: string
+        required: true
+      release-tag:
+        description: GitHub Release tag for this deploy (used in failure notifications)
+        type: string
+        required: true
+
+    outputs:
+      BINARY_FILENAME:
+        description: Filename of the compiled Linux x64 binary
+        value: ${{ jobs.build.outputs.BINARY_FILENAME }}
+
+jobs:
+  build:
+    name: Build victory-chart-renderer (Linux x64)
+    runs-on: blacksmith-8vcpu-ubuntu-2404
+    outputs:
+      BINARY_FILENAME: victory-chart-renderer-linux-x64
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Setup Bun
+        # v2.2.0
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version-file: .bun-version
+
+      - name: Build victory-chart-renderer Linux x64 binary
+        run: npm run server:vcr:build:linux
+
+      - name: Verify compiled binary is executable
+        run: test -x server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64
+
+      - name: Smoke-test compiled binary
+        run: ./server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64 --chart-xml "$(cat server/victory-chart-renderer/tests/fixtures/top-categories-6.xml)" --out /tmp/vcr-smoke.png && test -s /tmp/vcr-smoke.png
+
+      - name: Upload victory-chart-renderer Linux x64 artifact
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: victory-chart-renderer-linux-x64-artifact
+          path: server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64
+
+      - name: Log victory-chart-renderer build failure
+        if: failure() || cancelled()
+        run: |
+          echo "::error::victory-chart-renderer Linux x64 build did not succeed for release ${{ inputs.release-tag }}. GitHub Release will not include victory-chart-renderer-linux-x64."
+
+      - name: Announce victory-chart-renderer build failure in Slack
+        if: failure() || cancelled()
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: 'warning',
+                text: `⚠️ ${process.env.AS_REPO} <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|victory-chart-renderer build> failed for deploy release <https://github.com/Expensify/App/releases/tag/${{ inputs.release-tag }}|${{ inputs.release-tag }}>. victory-chart-renderer-linux-x64 will not be attached.`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

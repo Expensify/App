@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton';
@@ -9,7 +10,13 @@ import usePolicy from '@hooks/usePolicy';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getNextApproverAccountID, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils, isReportOwner} from '@libs/ReportUtils';
+import {
+    getNextApproverAccountID,
+    hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
+    hasViolations as hasViolationsReportUtils,
+    isReportOwner,
+    shouldShowMarkAsDone,
+} from '@libs/ReportUtils';
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,7 +52,13 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${iouReport?.invoiceReceiver && 'policyID' in iouReport.invoiceReceiver ? iouReport.invoiceReceiver.policyID : ''}`,
     );
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        isTrackIntentUser,
+        report: iouReport,
+        policy: expenseReportPolicy,
+    });
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
@@ -107,6 +120,7 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
             }}
             moneyRequestReport={iouReport}
             shouldShowPayButton={shouldShowPayButton}
+            shouldShowMarkAsDoneCopy={shouldUseMarkAsDoneCopy}
             isDisabled={isBlockSubmitDueToPreventSelfApproval}
         />
     );

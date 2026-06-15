@@ -100,7 +100,6 @@ function SearchStaticList({
             translate,
             formatPhoneNumber,
             bankAccountList: undefined,
-            allReportMetadata: undefined,
             conciergeReportID: undefined,
             convertToDisplayString,
         });

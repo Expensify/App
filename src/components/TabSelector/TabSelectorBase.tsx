@@ -26,8 +26,7 @@ function TabSelectorBase({
     position,
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
-    shouldShowProductTrainingTooltip = false,
-    renderProductTrainingTooltip,
+    contentContainerStyles,
 }: TabSelectorBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -63,7 +62,11 @@ function TabSelectorBase({
             }}
             ref={containerRef}
             style={styles.scrollableTabSelector}
-            contentContainerStyle={styles.tabSelectorContentContainer}
+            // On iOS a horizontal ScrollView lays out its content along an unbounded main axis, so flex-1 tabs
+            // (equalWidth) divide their intrinsic content width instead of the viewport. Giving the content
+            // container a definite width lets the flex children split it evenly. Scoped to equalWidth so normal
+            // overflowing/scrollable tab rows are not constrained.
+            contentContainerStyle={[styles.tabSelectorContentContainer, equalWidth && styles.w100, contentContainerStyles]}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -119,10 +122,10 @@ function TabSelectorBase({
                         testID={tab.testID}
                         sentryLabel={tab.sentryLabel}
                         shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                        shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
-                        renderProductTrainingTooltip={renderProductTrainingTooltip}
                         equalWidth={equalWidth}
                         badgeText={tab.badgeText}
+                        isBadgeCondensed={tab.isBadgeCondensed}
+                        badgeStyles={tab.badgeStyles}
                         pendingAction={tab.pendingAction}
                         isDisabled={tab.isDisabled}
                     />
