@@ -109,6 +109,9 @@ type ConfirmContentProps = {
 
     /** Whether to show a loading indicator next to the title */
     isTitleLoading?: boolean;
+
+    /** Force the confirm button to use the success style even when no cancel button is shown */
+    shouldUseSuccessStyleForConfirm?: boolean;
 };
 
 function ConfirmContent({
@@ -142,6 +145,7 @@ function ConfirmContent({
     isVisible,
     isConfirmLoading,
     isTitleLoading = false,
+    shouldUseSuccessStyleForConfirm = false,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -222,7 +226,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={shouldShowCancelButton && !danger ? success : false}
+                            success={shouldUseSuccessStyleForConfirm || (shouldShowCancelButton && !danger) ? success : false}
                             danger={danger}
                             style={shouldReverseStackedButtons ? styles.mt3 : styles.mt4}
                             onPress={onConfirm}
@@ -253,7 +257,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={shouldShowCancelButton && !danger ? success : false}
+                            success={shouldUseSuccessStyleForConfirm || (shouldShowCancelButton && !danger) ? success : false}
                             danger={danger}
                             style={[styles.flex1]}
                             onPress={onConfirm}

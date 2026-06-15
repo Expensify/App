@@ -69,6 +69,8 @@ You can issue virtual or physical cards to employees:
 8. Name the card for easier tracking
 9. Click **Issue card** to confirm
 
+When issuing a card, you can also apply an existing Spend Rule or create a new one so the card has real-time spending controls from its first use. To learn more, [learn how to set up Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
+
 ![Choose a Smart limit type]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_03.png){:width="100%"}
 
 ![Click issue card to confirm and issue the card]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_04.png){:width="100%"}
@@ -87,6 +89,8 @@ You can issue virtual or physical cards to employees:
    - Card name
    - Deactivation
 4. To change the linked bank account, update settlement frequency, or manage cash back settings, click **Settings**.
+
+Your workspace also has built-in default protections that automatically block certain transaction categories on every Expensify Card, and you can set Spend Rules to approve or decline transactions in real time. To learn more, [learn how to set up Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 
 ![Click Expensify Card in the left menu to see a list of cards]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_05.png){:width="100%"}
 
