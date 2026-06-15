@@ -16,6 +16,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -55,7 +56,7 @@ import {
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -64,15 +65,12 @@ import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
-function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
-    const backTo = route.params.backTo;
+type DynamicReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT>;
+function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPageProps) {
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path);
     const navigateBackToReportDetails = useCallback(() => {
-        if (!report) {
-            return;
-        }
-        Navigation.goBack(backTo ?? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
-    }, [backTo, report]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'User']);
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -222,7 +220,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
     const openMemberDetails = (item: MemberOption) => {
         if (isGroupChat && isCurrentUserAdmin) {
-            Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, item.accountID, backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(item.accountID)));
             return;
         }
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
@@ -326,7 +324,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
-            testID="ReportParticipantsPage"
+            testID="DynamicReportParticipantsPage"
         >
             <FullPageNotFoundView shouldShow={!report || isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report)}>
                 <HeaderWithBackButton
@@ -363,7 +361,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             ) : (
                                 <Button
                                     success
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_INVITE.getRoute(report.reportID, backTo))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path))}
                                     text={translate('workspace.invite.member')}
                                     icon={icons.Plus}
                                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
@@ -403,4 +401,4 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     );
 }
 
-export default withReportOrNotFound()(ReportParticipantsPage);
+export default withReportOrNotFound()(DynamicReportParticipantsPage);

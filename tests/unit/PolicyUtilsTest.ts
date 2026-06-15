@@ -19,6 +19,7 @@ import {
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
+    getExcludedUsers,
     getExpensifyTeamExclusions,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
@@ -3032,7 +3033,7 @@ describe('PolicyUtils', () => {
             expect(hasPolicyRulesError(undefined)).toBe(false);
         });
 
-        it('returns false when no coding or AI rules exist', () => {
+        it('returns false when no coding or agent rules exist', () => {
             const policy: Policy = {...createRandomPolicy(0), rules: {}};
             expect(hasPolicyRulesError(policy)).toBe(false);
         });
@@ -3042,7 +3043,7 @@ describe('PolicyUtils', () => {
                 ...createRandomPolicy(0),
                 rules: {
                     codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}}},
-                    aiRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}},
+                    agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}},
                 },
             };
             expect(hasPolicyRulesError(policy)).toBe(false);
@@ -3058,14 +3059,51 @@ describe('PolicyUtils', () => {
             expect(hasPolicyRulesError(policy)).toBe(true);
         });
 
-        it('returns true when an AI rule has errors', () => {
+        it('returns true when an agent rule has errors', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
                 rules: {
-                    aiRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
+                    agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
                 },
             };
             expect(hasPolicyRulesError(policy)).toBe(true);
+        });
+    });
+
+    describe('getExcludedUsers', () => {
+        it('marks every active policy member as excluded', () => {
+            const result = getExcludedUsers(employeeList);
+            expect(result['owner@test.com']).toBe(true);
+            expect(result['admin@test.com']).toBe(true);
+            expect(result['employee@test.com']).toBe(true);
+        });
+
+        it('always excludes Expensify emails', () => {
+            const result = getExcludedUsers(employeeList);
+            for (const email of CONST.EXPENSIFY_EMAILS) {
+                expect(result[email]).toBe(true);
+            }
+        });
+
+        it('does not exclude a member that is pending delete', () => {
+            const list: PolicyEmployeeList = {
+                'employee@test.com': {email: 'employee@test.com', role: 'user', submitsTo: '', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+            const result = getExcludedUsers(list);
+            expect(result['employee@test.com']).toBeUndefined();
+        });
+
+        it('does not exclude a member that has errors', () => {
+            const list: PolicyEmployeeList = {
+                'employee@test.com': {email: 'employee@test.com', role: 'user', submitsTo: '', errors: {error1: 'Something went wrong'}},
+            };
+            const result = getExcludedUsers(list);
+            expect(result['employee@test.com']).toBeUndefined();
+        });
+
+        it('returns only Expensify emails when the employee list is undefined', () => {
+            const result = getExcludedUsers(undefined);
+            expect(Object.keys(result)).toEqual([...CONST.EXPENSIFY_EMAILS]);
         });
     });
 });
