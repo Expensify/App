@@ -1565,6 +1565,79 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('SendMoney phantom type=create filtering', () => {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const originalMessage = getOriginalMessage(mockIOUAction) as OriginalMessageIOU;
+
+        // Modern SendMoney pay action: type=pay AND IOUDetails present. This is what makes
+        // isSentMoneyReportAction() return true and triggers our filter branch.
+        const sendMoneyPayAction = {
+            ...mockIOUAction,
+            reportActionID: 'sendmoney-pay-1',
+            originalMessage: {
+                ...originalMessage,
+                type: CONST.IOU.TYPE.PAY,
+                IOUDetails: {amount: 100, comment: '', currency: 'USD'},
+                IOUTransactionID: 'txn-1',
+                paymentType: 'Elsewhere',
+            } as OriginalMessageIOU,
+        };
+
+        // Phantom IOU create action that OpenReport synthesizes for legacy SendMoney transactions.
+        const phantomCreateAction = {
+            ...mockIOUAction,
+            reportActionID: 'phantom-create-1',
+            originalMessage: {
+                ...originalMessage,
+                type: CONST.IOU.TYPE.CREATE,
+                IOUTransactionID: 'txn-1',
+            } as OriginalMessageIOU,
+        };
+
+        // Plain mark-as-paid-elsewhere pay action: type=pay, NO IOUDetails. Does not trigger the
+        // SendMoney filter branch, so type=create actions are not dropped from these reports.
+        const markAsPaidElsewhereAction = {
+            ...mockIOUAction,
+            reportActionID: 'mark-paid-1',
+            originalMessage: {
+                ...originalMessage,
+                type: CONST.IOU.TYPE.PAY,
+                IOUDetails: undefined,
+                paymentType: 'Elsewhere',
+            } as OriginalMessageIOU,
+        };
+
+        // Legitimate IOU create action used to verify it survives when no SendMoney pay is present.
+        const legitimateCreateAction = {
+            ...mockIOUAction,
+            reportActionID: 'create-1',
+            originalMessage: {
+                ...originalMessage,
+                type: CONST.IOU.TYPE.CREATE,
+                IOUTransactionID: 'txn-1',
+            } as OriginalMessageIOU,
+        };
+
+        describe('getCombinedReportActions', () => {
+            it('drops type=create IOU actions when a SendMoney pay action is present on the report', () => {
+                const result = getCombinedReportActions([sendMoneyPayAction, phantomCreateAction], 'thread-1', []);
+                expect(result.some((action) => action.reportActionID === sendMoneyPayAction.reportActionID)).toBe(true);
+                expect(result.some((action) => action.reportActionID === phantomCreateAction.reportActionID)).toBe(false);
+            });
+
+            it('keeps type=create when only a plain pay (no IOUDetails) action is present', () => {
+                const result = getCombinedReportActions([markAsPaidElsewhereAction, legitimateCreateAction], null, []);
+                expect(result.some((action) => action.reportActionID === legitimateCreateAction.reportActionID)).toBe(true);
+            });
+
+            it('keeps the SendMoney pay action itself (filter only drops type=create)', () => {
+                const result = getCombinedReportActions([sendMoneyPayAction, phantomCreateAction], 'thread-1', []);
+                const sendMoneyRendered = result.find((action) => action.reportActionID === sendMoneyPayAction.reportActionID);
+                expect(sendMoneyRendered).toBeDefined();
+            });
+        });
+    });
+
     describe('shouldShowAddMissingDetails', () => {
         it('should return true if personal detail is not completed', () => {
             const mockPersonalDetail = {
