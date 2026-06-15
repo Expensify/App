@@ -36,7 +36,11 @@ function useReportAttributesByID(reportID: string | undefined) {
  * Uses reportByIDsSelector to filter down to only the requested reports.
  */
 function useReportAttributesByIDs(reportIDs: Array<string | undefined>) {
-    const filteredReportIDs = useMemo(() => reportIDs.filter((id): id is string => !!id), [reportIDs]);
+    // Join to a stable string so useMemo compares by content, not array reference.
+    // This guards against callers that pass new inline array literals on every render.
+    const reportIDsKey = reportIDs.join(',');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const filteredReportIDs = useMemo(() => reportIDs.filter((id): id is string => !!id), [reportIDsKey]);
     const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportByIDsSelector(filteredReportIDs)(attributes), [filteredReportIDs]);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
         selector: reportAttributesSelector,
