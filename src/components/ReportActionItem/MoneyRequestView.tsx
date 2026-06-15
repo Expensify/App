@@ -371,15 +371,12 @@ function MoneyRequestView({
     const canEditAmount =
         !isGPSDistanceRequest &&
         isEditable &&
-        (canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT, isChatReportArchived, transaction}) ||
-            (shouldShowSplitIndicator && isSplitAvailable));
+        (canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT, transaction}) || (shouldShowSplitIndicator && isSplitAvailable));
     const canEditMerchant =
-        isEditable &&
-        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.MERCHANT, isChatReportArchived, transaction, report: moneyRequestReport, policy});
+        isEditable && canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.MERCHANT, transaction, report: moneyRequestReport, policy});
 
     const canEditDate =
-        isEditable &&
-        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.DATE, isChatReportArchived, transaction, report: moneyRequestReport, policy});
+        isEditable && canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.DATE, transaction, report: moneyRequestReport, policy});
 
     const canEditDistanceOrRate = isPolicyAccessible(policy, currentUserEmailParam) || isTrackExpense || isP2PDistanceRequest;
 
@@ -389,7 +386,6 @@ function MoneyRequestView({
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.DISTANCE,
-            isChatReportArchived,
             transaction,
             report: moneyRequestReport,
             policy,
@@ -401,7 +397,6 @@ function MoneyRequestView({
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
-            isChatReportArchived,
             transaction,
             report: moneyRequestReport,
             policy,
@@ -413,7 +408,6 @@ function MoneyRequestView({
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
-            isChatReportArchived,
             outstandingReportsByPolicyID,
             transaction,
             report: moneyRequestReport,
@@ -454,7 +448,6 @@ function MoneyRequestView({
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
-            isChatReportArchived,
             transaction,
             report: moneyRequestReport,
             policy,

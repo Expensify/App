@@ -176,7 +176,6 @@ function MoneyRequestReceiptView({
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
-    const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {login: currentUserLogin, accountID: currentUserAccountID, timezone: currentUserTimezone} = currentUserPersonalDetail;
     const theme = useTheme();
@@ -221,8 +220,7 @@ function MoneyRequestReceiptView({
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
 
     const canEditReceipt =
-        isEditable &&
-        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, isChatReportArchived, transaction, report: moneyRequestReport, policy});
+        isEditable && canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, report: moneyRequestReport, policy});
 
     const onAttachmentFilesValidated = (files: FileObject[]) => {
         if (!report?.reportID) {

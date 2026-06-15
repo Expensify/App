@@ -189,7 +189,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         canEditFieldOfMoneyRequest({
             reportAction: getIOUActionForTransactionID(reportActions, singleTransaction.transactionID),
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
-            isChatReportArchived,
             outstandingReportsByPolicyID,
             transaction: singleTransaction,
         }) &&

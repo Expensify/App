@@ -4117,7 +4117,6 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
             expect.objectContaining({
                 archivedReportsIDSet: expect.any(Set),
-                isChatReportArchived: false,
             }),
         );
         expect(ReportUtils.canUserPerformWriteAction).toHaveBeenCalledWith(parentReport, false);
@@ -4155,7 +4154,6 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
             expect.objectContaining({
                 archivedReportsIDSet,
-                isChatReportArchived: true,
             }),
         );
         expect(ReportUtils.canUserPerformWriteAction).toHaveBeenCalledWith(parentReport, true);

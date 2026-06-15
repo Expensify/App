@@ -1072,7 +1072,6 @@ function getSecondaryReportActions({
             const canMoveExpense = canEditFieldOfMoneyRequest({
                 reportAction: iouReportAction,
                 fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
-                isChatReportArchived,
                 outstandingReportsByPolicyID,
                 transaction,
             });
@@ -1189,7 +1188,6 @@ function getSecondaryTransactionThreadActions({
         canEditFieldOfMoneyRequest({
             reportAction,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
-            isChatReportArchived: isMoneyRequestReportArchived,
             outstandingReportsByPolicyID,
             transaction: reportTransaction,
             archivedReportsIDSet,
