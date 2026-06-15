@@ -91,7 +91,7 @@ function exportReportsToPDF(reportIDs: number[]): string {
         {
             onyxMethod: Onyx.METHOD.SET,
             key: onyxKey,
-            value: null,
+            value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED},
         },
     ];
 
