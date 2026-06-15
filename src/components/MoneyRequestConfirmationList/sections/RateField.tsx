@@ -68,7 +68,7 @@ function RateField({
 
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED,
-        !!shouldShowRateAutoUpdatedTooltip && !isSearchRouterDisplayed,
+        !!shouldShowRateAutoUpdatedTooltip && !isSearchRouterDisplayed && !shouldDisplayDistanceRateError,
     );
 
     return (

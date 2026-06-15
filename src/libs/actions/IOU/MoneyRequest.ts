@@ -817,6 +817,16 @@ function setMoneyRequestReimbursable(transactionID: string, reimbursable: boolea
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reimbursable});
 }
 
+function clearMoneyRequestRateAutoUpdated(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: {
+                rateAutoUpdated: false,
+            },
+        },
+    });
+}
+
 function setMoneyRequestReportID(transactionID: string, reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID});
 }
@@ -843,6 +853,7 @@ export {
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
     setCustomUnitRateID,
+    clearMoneyRequestRateAutoUpdated,
     setGPSTransactionDraftData,
     resetDraftTransactionsCustomUnit,
     setCustomUnitID,

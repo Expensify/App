@@ -4,7 +4,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import {setCustomUnitRateID, setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestPendingFields} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequestRateAutoUpdated, setCustomUnitRateID, setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestPendingFields} from '@libs/actions/IOU/MoneyRequest';
 import {setSplitShares} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
@@ -91,6 +91,10 @@ function DistanceRequestController({
 
         const errorKey = 'iou.error.invalidRate';
         const policyRates = DistanceRequestUtils.getMileageRates(policy);
+
+        if (transaction?.comment?.customUnit?.rateAutoUpdated) {
+            clearMoneyRequestRateAutoUpdated(transactionID);
+        }
 
         // If the selected rate belongs to the policy, and for moving track expense if the units also matches, clear the error
         if (customUnitRateID && customUnitRateID in policyRates && (!isMovingTransactionFromTrackExpense || policyRates[customUnitRateID].unit === mileageRate.unit)) {
