@@ -18,7 +18,6 @@ import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
-import {openAgentsPage} from '@userActions/Agent';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import {clearStaleExportDownloads} from '@userActions/Export';
@@ -118,11 +117,6 @@ function AuthScreensInitHandler() {
             Log.info('[AuthScreens] Sending ReconnectApp');
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
-
-        // Hydrate the user's custom-agent prompts so AgentZeroStatusProvider can recognize
-        // custom-agent chats opened directly from a deep link or right after sign-in, without
-        // requiring a prior visit to Settings > Agents.
-        openAgentsPage();
 
         App.setUpPoliciesAndNavigate(
             session,
