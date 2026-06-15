@@ -3585,3 +3585,79 @@ describe('TransactionUtils', () => {
         });
     });
 });
+
+describe('getSupersededPendingCardTransactionIDs', () => {
+    function buildCardTransaction(transactionID: string, status: Transaction['status'], parentTransactionID = ''): Transaction {
+        return generateTransaction({
+            transactionID,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            status,
+            parentTransactionID,
+        });
+    }
+
+    it('marks the pending auth as superseded when its posted counterpart is present', () => {
+        const pending = buildCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
+        const posted = buildCardTransaction('clear1', CONST.TRANSACTION.STATUS.POSTED, 'auth1');
+
+        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([pending, posted]);
+
+        expect([...result]).toEqual(['auth1']);
+    });
+
+    it('returns an empty set for a pending auth with no posted counterpart', () => {
+        const pending = buildCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
+
+        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([pending]);
+
+        expect(result.size).toBe(0);
+    });
+
+    it('marks every pending auth in a chain as superseded (incremental auths + clearing)', () => {
+        const rootAuth = buildCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
+        const incrementalAuth = buildCardTransaction('auth1b', CONST.TRANSACTION.STATUS.PENDING, 'auth1');
+        const posted = buildCardTransaction('clear1', CONST.TRANSACTION.STATUS.POSTED, 'auth1');
+
+        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([rootAuth, incrementalAuth, posted]);
+
+        expect([...result].sort()).toEqual(['auth1', 'auth1b']);
+    });
+
+    it('ignores non-card pending transactions', () => {
+        const pending = generateTransaction({transactionID: 'cashPending', bank: '', status: CONST.TRANSACTION.STATUS.PENDING});
+        const posted = generateTransaction({transactionID: 'cashPosted', bank: '', status: CONST.TRANSACTION.STATUS.POSTED, parentTransactionID: 'cashPending'});
+
+        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([pending, posted]);
+
+        expect(result.size).toBe(0);
+    });
+
+    it('ignores split transactions linked via comment.originalTransactionID rather than parentTransactionID', () => {
+        const splitParent = generateTransaction({
+            transactionID: 'splitParent',
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            status: CONST.TRANSACTION.STATUS.PENDING,
+            comment: {originalTransactionID: 'splitParent'},
+        });
+        const splitChild = generateTransaction({
+            transactionID: 'splitChild',
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            comment: {originalTransactionID: 'splitParent'},
+        });
+
+        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([splitParent, splitChild]);
+
+        expect(result.size).toBe(0);
+    });
+
+    it('does not mix unrelated card auth chains', () => {
+        const cardAPending = buildCardTransaction('authA', CONST.TRANSACTION.STATUS.PENDING);
+        const cardAPosted = buildCardTransaction('clearA', CONST.TRANSACTION.STATUS.POSTED, 'authA');
+        const cardBPending = buildCardTransaction('authB', CONST.TRANSACTION.STATUS.PENDING);
+
+        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([cardAPending, cardAPosted, cardBPending]);
+
+        expect([...result]).toEqual(['authA']);
+    });
+});
