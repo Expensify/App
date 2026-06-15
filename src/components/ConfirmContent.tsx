@@ -113,6 +113,9 @@ type ConfirmContentProps = {
 
     /** Whether the prompt should be scrollable when it is taller than the screen (e.g. a long list of items) */
     shouldEnablePromptScroll?: boolean;
+
+    /** Force the confirm button to use the success style even when no cancel button is shown */
+    shouldUseSuccessStyleForConfirm?: boolean;
 };
 
 function ConfirmContent({
@@ -147,6 +150,7 @@ function ConfirmContent({
     isConfirmLoading,
     isTitleLoading = false,
     shouldEnablePromptScroll = false,
+    shouldUseSuccessStyleForConfirm = false,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -229,7 +233,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={shouldShowCancelButton && !danger ? success : false}
+                            success={shouldUseSuccessStyleForConfirm || (shouldShowCancelButton && !danger) ? success : false}
                             danger={danger}
                             style={shouldReverseStackedButtons ? styles.mt3 : styles.mt4}
                             onPress={onConfirm}
@@ -260,7 +264,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={shouldShowCancelButton && !danger ? success : false}
+                            success={shouldUseSuccessStyleForConfirm || (shouldShowCancelButton && !danger) ? success : false}
                             danger={danger}
                             style={[styles.flex1]}
                             onPress={onConfirm}
