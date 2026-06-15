@@ -62,7 +62,7 @@ To override the central export account per card:
 2. Click on an assigned card to open the **Card Details** page.
 3. Select a specific **export account** for that card.
 
-**Note:** If the card is set to Default Card, the central export account will be used.
+**Note:** The default option in the export account list is labeled based on the **Export company card expenses as** setting: **Default card**, **Default vendor**, or **Default account**. When a card uses this default option, the central export account is used.
 
 ---
 
