@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -28,13 +28,35 @@ function RulesReimbursableDefaultPage({
 
     const reimbursableMode = getCashExpenseReimbursableMode(policy);
 
+    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
+    // persisted reimbursableMode, which also covers the page rendering before the policy is in Onyx.
+    const [draftMode, setDraftMode] = useState<typeof reimbursableMode>();
+    const selectedMode = draftMode ?? reimbursableMode;
+
     const reimbursableModes = Object.values(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES).map((mode) => ({
         text: translate(`workspace.rules.individualExpenseRules.${mode}`),
         alternateText: translate(`workspace.rules.individualExpenseRules.${mode}Description`),
         value: mode,
-        isSelected: reimbursableMode === mode,
+        isSelected: selectedMode === mode,
         keyForList: mode,
     }));
+
+    const saveAndGoBack = useCallback(() => {
+        if (!selectedMode) {
+            return;
+        }
+        setPolicyReimbursableMode(policyID, selectedMode, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable);
+        Navigation.goBack();
+    }, [policyID, selectedMode, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: saveAndGoBack,
+        }),
+        [saveAndGoBack, translate],
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -58,9 +80,9 @@ function RulesReimbursableDefaultPage({
                     data={reimbursableModes}
                     ListItem={SingleSelectListItem}
                     onSelectRow={(item) => {
-                        setPolicyReimbursableMode(policyID, item.value, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable);
-                        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+                        setDraftMode(item.value);
                     }}
+                    confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
                     style={{containerStyle: styles.pt3}}
                     initiallyFocusedItemKey={reimbursableMode}

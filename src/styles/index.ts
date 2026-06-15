@@ -3616,15 +3616,6 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 10,
         },
 
-        searchListHeaderBorderCover: {
-            position: 'absolute',
-            bottom: -2,
-            left: 0,
-            right: 0,
-            height: 1,
-            backgroundColor: theme.highlightBG,
-        },
-
         groupSubHeaderBorderOverlap: {
             marginTop: -1,
         },
