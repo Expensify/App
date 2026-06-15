@@ -16,7 +16,6 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, openAgentsPage} from '@userActions/Agent';
@@ -45,7 +44,6 @@ function AgentsPage() {
     const switchToDelegator = useSwitchToDelegator();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-    const isWebDesktop = getPlatform(true) === CONST.PLATFORM.WEB;
     useDocumentTitle(translate('agentsPage.title'));
 
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
@@ -161,7 +159,7 @@ function AgentsPage() {
                         headerMedia={illustrations.TvScreenRobot}
                         title={translate('agentsPage.emptyAgents.title')}
                         subtitleText={
-                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, isWebDesktop && styles.agentsPageForWebEmptyStateSubtitle]}>
+                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, !shouldUseNarrowLayout && styles.agentsPageEmptyStateSubtitle]}>
                                 <RenderHTML html={translate('agentsPage.emptyAgents.subtitle')} />
                             </View>
                         }

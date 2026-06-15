@@ -5595,7 +5595,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        agentsPageForWebEmptyStateSubtitle: {
+        agentsPageEmptyStateSubtitle: {
             alignSelf: 'center',
             maxWidth: 335,
         },
