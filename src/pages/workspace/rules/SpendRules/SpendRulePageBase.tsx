@@ -10,6 +10,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -64,7 +65,8 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
-    const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
+    const {showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
+    const canWriteSpendRules = useCanWriteCardSpendRules(policyID);
     const domainAccountID = useDefaultFundID(policyID);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
@@ -157,7 +159,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const errorMessage = getErrorMessage(hasSelectedCards, hasAnyRuleApplied, translate);
 
     const handleSaveRule = () => {
-        if (!canWriteRules) {
+        if (!canWriteSpendRules) {
             return;
         }
         if (errorMessage) {
@@ -179,7 +181,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     };
 
     const handleDeleteRule = () => {
-        if (!canWriteRules) {
+        if (!canWriteSpendRules) {
             return;
         }
         if (!existingRule) {
@@ -207,7 +209,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         return <NotFoundPage />;
     }
 
-    if (!isEditing && !!policy && !canWriteRules) {
+    if (!isEditing && !!policy && !canWriteSpendRules) {
         return <NotFoundPage />;
     }
 
@@ -215,8 +217,8 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            shouldBeBlocked={!!policy?.id && !canWriteSpendRules}
         >
             <ScreenWrapper
                 testID={testID}
@@ -229,15 +231,15 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.spendRules.chooseCards')}
                         onPress={
-                            canWriteRules
+                            canWriteSpendRules
                                 ? () => {
                                       clearError();
                                       navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
                                   }
                                 : undefined
                         }
-                        shouldShowRightIcon={canWriteRules}
-                        interactive={canWriteRules}
+                        shouldShowRightIcon={canWriteSpendRules}
+                        interactive={canWriteSpendRules}
                         title={cardsMenuTitle}
                         numberOfLinesTitle={2}
                         titleStyle={styles.flex1}
@@ -248,7 +250,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         <SpendRuleRestrictionTypeToggle
                             restrictionAction={restrictionAction}
                             onSelect={(action) => {
-                                if (!canWriteRules) {
+                                if (!canWriteSpendRules) {
                                     showReadOnlyModal();
                                     return;
                                 }
@@ -260,15 +262,15 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     <MenuItemWithTopDescription
                         description={translate('common.merchant')}
                         onPress={
-                            canWriteRules
+                            canWriteSpendRules
                                 ? () => {
                                       clearError();
                                       navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS, {policyID, ruleID: currentRuleID});
                                   }
                                 : undefined
                         }
-                        shouldShowRightIcon={canWriteRules}
-                        interactive={canWriteRules}
+                        shouldShowRightIcon={canWriteSpendRules}
+                        interactive={canWriteSpendRules}
                         title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
                         numberOfLinesTitle={2}
                         titleStyle={styles.flex1}
@@ -277,15 +279,15 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.spendRules.spendCategory')}
                         onPress={
-                            canWriteRules
+                            canWriteSpendRules
                                 ? () => {
                                       clearError();
                                       navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CATEGORY, {policyID, ruleID: currentRuleID});
                                   }
                                 : undefined
                         }
-                        shouldShowRightIcon={canWriteRules}
-                        interactive={canWriteRules}
+                        shouldShowRightIcon={canWriteSpendRules}
+                        interactive={canWriteSpendRules}
                         title={categoriesMenuTitle}
                         numberOfLinesTitle={2}
                         titleStyle={styles.flex1}
@@ -294,7 +296,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.spendRules.maxAmount')}
                         onPress={
-                            canWriteRules
+                            canWriteSpendRules
                                 ? () => {
                                       clearError();
                                       if (!selectedCurrency) {
@@ -305,14 +307,14 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                   }
                                 : undefined
                         }
-                        shouldShowRightIcon={canWriteRules}
-                        interactive={canWriteRules}
+                        shouldShowRightIcon={canWriteSpendRules}
+                        interactive={canWriteSpendRules}
                         title={maxAmountMenuTitle}
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                     />
                 </ScrollView>
-                {canWriteRules && (
+                {canWriteSpendRules && (
                     <FormAlertWithSubmitButton
                         buttonText={translate('workspace.rules.spendRules.saveRule')}
                         containerStyles={[styles.m4, styles.mb5]}
