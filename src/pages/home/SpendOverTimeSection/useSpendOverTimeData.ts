@@ -58,7 +58,7 @@ function useSpendOverTimeData() {
     const {accountID, login} = useCurrentUserPersonalDetails();
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
     const isSearchLoading = !!searchResults?.search?.isLoading;
-    const reportAttributes = useReportAttributes();
+    const reportAttributesDerivedValue = useReportAttributes();
 
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -102,7 +102,7 @@ function useSpendOverTimeData() {
                       bankAccountList: undefined,
                       conciergeReportID: undefined,
                       convertToDisplayString,
-                      reportAttributesDerivedValue: reportAttributes,
+                      reportAttributesDerivedValue,
                   })[0],
                   localeCompare,
                   translate,

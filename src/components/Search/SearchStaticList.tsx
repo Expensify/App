@@ -77,7 +77,7 @@ function SearchStaticList({
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
-    const reportAttributes = useReportAttributes();
+    const reportAttributesDerivedValue = useReportAttributes();
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
 
@@ -104,7 +104,7 @@ function SearchStaticList({
             bankAccountList: undefined,
             conciergeReportID: undefined,
             convertToDisplayString,
-            reportAttributesDerivedValue: reportAttributes,
+            reportAttributesDerivedValue,
         });
 
         return getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)

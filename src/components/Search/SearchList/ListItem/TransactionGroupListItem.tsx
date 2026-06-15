@@ -141,7 +141,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const reportAttributes = useReportAttributes();
+    const reportAttributesDerivedValue = useReportAttributes();
 
     let transactions: TransactionListItemType[];
     if (isExpenseReportType) {
@@ -161,7 +161,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             cardFeeds,
             conciergeReportID,
             convertToDisplayString,
-            reportAttributesDerivedValue: reportAttributes,
+            reportAttributesDerivedValue,
         }) as [TransactionListItemType[], number, boolean];
         transactions = sectionData.map((transactionItem) => ({
             ...transactionItem,
