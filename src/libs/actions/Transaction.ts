@@ -821,74 +821,6 @@ function setTransactionReport(transactionID: string, transaction: Partial<Transa
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 }
 
-type ChangeTransactionsReportDerivedData = {
-    currentTransactionViolations: Record<string, TransactionViolation[]>;
-    transactionDuplicatesByTransactionID: Record<string, string[] | undefined>;
-    siblingNonDuplicatedViolationsByTransactionID: Record<string, TransactionViolation[]>;
-};
-
-function getTransactionViolationsForChangeReport(transactionIDs: string[], transactionViolations: OnyxCollection<TransactionViolation[]>): Record<string, TransactionViolation[]> {
-    const violationsByTransactionID: Record<string, TransactionViolation[]> = {};
-    for (const id of transactionIDs) {
-        violationsByTransactionID[id] = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
-    }
-
-    const siblingIDs = new Set<string>();
-    for (const id of transactionIDs) {
-        const duplicateViolation = violationsByTransactionID[id].find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-        if (duplicateViolation?.data?.duplicates) {
-            for (const siblingID of duplicateViolation.data.duplicates) {
-                siblingIDs.add(siblingID);
-            }
-        }
-    }
-
-    for (const siblingID of siblingIDs) {
-        if (siblingID in violationsByTransactionID) {
-            continue;
-        }
-        violationsByTransactionID[siblingID] = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingID}`] ?? [];
-    }
-
-    return violationsByTransactionID;
-}
-
-function getChangeTransactionsReportData(transactions: Transaction[], violationsByTransactionID: Record<string, TransactionViolation[]>): ChangeTransactionsReportDerivedData {
-    const currentTransactionViolations = transactions.reduce<Record<string, TransactionViolation[]>>((acc, transaction) => {
-        acc[transaction.transactionID] = violationsByTransactionID[transaction.transactionID] ?? [];
-        return acc;
-    }, {});
-
-    const transactionDuplicatesByTransactionID = transactions.reduce<Record<string, string[] | undefined>>((acc, transaction) => {
-        const duplicateViolation = currentTransactionViolations[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-        acc[transaction.transactionID] = duplicateViolation?.data?.duplicates;
-        return acc;
-    }, {});
-
-    const siblingIDs = [
-        ...new Set(
-            Object.values(transactionDuplicatesByTransactionID)
-                .filter((ids): ids is string[] => !!ids)
-                .flat(),
-        ),
-    ];
-
-    const siblingNonDuplicatedViolationsByTransactionID = siblingIDs.reduce<Record<string, TransactionViolation[]>>((acc, id) => {
-        const siblingViolations = violationsByTransactionID[id] ?? [];
-        const nonDuplicatedViolations = siblingViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-        if (nonDuplicatedViolations.length > 0) {
-            acc[id] = nonDuplicatedViolations;
-        }
-        return acc;
-    }, {});
-
-    return {
-        currentTransactionViolations,
-        transactionDuplicatesByTransactionID,
-        siblingNonDuplicatedViolationsByTransactionID,
-    };
-}
-
 type ChangeTransactionsReportProps = {
     transactionIDs: string[];
     isASAPSubmitBetaEnabled: boolean;
@@ -927,11 +859,11 @@ function changeTransactionsReport({
     const staleReportIDs = new Set<string>();
     const optimisticPendingFieldsByReport: Record<string, Partial<NonNullable<Report['pendingFields']>>> = {};
     const targetReportCurrenciesByReport: Record<string, Set<string>> = {};
-    const violationsByTransactionID = getTransactionViolationsForChangeReport(transactionIDs, transactionViolations);
-    const {currentTransactionViolations, transactionDuplicatesByTransactionID, siblingNonDuplicatedViolationsByTransactionID} = getChangeTransactionsReportData(
-        transactions,
-        violationsByTransactionID,
-    );
+
+    const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
+    for (const id of transactionIDs) {
+        currentTransactionViolations[id] = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+    }
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -1190,13 +1122,15 @@ function changeTransactionsReport({
 
         // Optimistically clear all violations for the transaction when moving to self DM report
         if (isUnreported) {
-            const duplicateTransactionIDs = transactionDuplicatesByTransactionID[transaction.transactionID];
+            const duplicateTransactionIDs = currentTransactionViolations[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data
+                ?.duplicates;
             if (duplicateTransactionIDs) {
                 for (const id of duplicateTransactionIDs) {
+                    const siblingViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-                        value: siblingNonDuplicatedViolationsByTransactionID[id],
+                        value: siblingViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
                     });
                 }
             }
