@@ -107,6 +107,7 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
         return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- imperative module (not a React component); no useLocalize hook available here
     const growlMessage = isInvoice ? translateLocal('iou.invoiceSent') : translateLocal('iou.expenseAdded');
 
     const buildThreadFromOnyx = (): string | undefined => {
@@ -171,6 +172,7 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
                 });
             });
         };
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- imperative module (not a React component); no useLocalize hook available here
         Growl.success(growlMessage, 6000, {label: translateLocal('common.view'), onPress: navigateToExpenseRHP});
     };
 

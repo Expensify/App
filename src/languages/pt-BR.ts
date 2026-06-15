@@ -1193,6 +1193,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Valor',
+        expenseAdded: 'Despesa adicionada',
+        invoiceSent: 'Fatura enviada',
         percent: 'Porcentagem',
         date: 'Data',
         taxAmount: 'Valor do imposto',

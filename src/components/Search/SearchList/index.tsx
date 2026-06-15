@@ -25,7 +25,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -501,7 +500,6 @@ function SearchList({
             if (isGroupChildrenContainerItem(item)) {
                 const containerItem = item;
                 const originalKey = (item.keyForList ?? '').replace('children_', '');
-                const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
                 return (
                     <GroupChildrenContainer
                         item={containerItem}
