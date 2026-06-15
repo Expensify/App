@@ -1424,7 +1424,6 @@ type ShouldShowYearResult = {
     shouldShowYearCreated: boolean;
     shouldShowYearSubmitted: boolean;
     shouldShowYearApproved: boolean;
-    shouldShowYearFirstApproved: boolean;
     shouldShowYearPosted: boolean;
     shouldShowYearExported: boolean;
     shouldShowYearWithdrawn: boolean;
@@ -1494,26 +1493,6 @@ function getFirstApprovalActionInCurrentCycle(actions: Record<string, OnyxTypes.
 
 /**
  * @private
- * Builds a map of the earliest approval action (APPROVED/FORWARDED) by report ID — its actor is the report's first approver.
- */
-function buildFirstApprovedActionByReportIDMap(data: OnyxTypes.SearchResults['data']): Map<string, OnyxTypes.ReportAction> {
-    const firstApprovedActionByReportID = new Map<string, OnyxTypes.ReportAction>();
-    for (const key of Object.keys(data)) {
-        if (!isReportActionEntry(key)) {
-            continue;
-        }
-        const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-        const firstApprovalAction = getFirstApprovalActionInCurrentCycle(data[key]);
-
-        if (firstApprovalAction) {
-            firstApprovedActionByReportID.set(reportID, firstApprovalAction);
-        }
-    }
-    return firstApprovedActionByReportID;
-}
-
-/**
- * @private
  * Whether any report in the results has an approval action — used to hide the empty First approver/approved columns.
  */
 function hasFirstApproverData(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[]): boolean {
@@ -1549,7 +1528,6 @@ function shouldShowYear(
         shouldShowYearCreated: false,
         shouldShowYearSubmitted: false,
         shouldShowYearApproved: false,
-        shouldShowYearFirstApproved: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
         shouldShowYearWithdrawn: false,
@@ -1604,7 +1582,6 @@ function shouldShowYear(
     }
 
     const lastExportedActionByReportID = precomputedLastExportedMap ?? buildLastExportedActionByReportIDMap(data);
-    const firstApprovedActionByReportID = buildFirstApprovedActionByReportIDMap(data);
 
     for (const key of Object.keys(data)) {
         if (!checkOnlyReports && isTransactionEntry(key)) {
@@ -1655,11 +1632,6 @@ function shouldShowYear(
             const exportedAction = lastExportedActionByReportID.get(item.reportID);
             if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
                 result.shouldShowYearExported = true;
-            }
-
-            const firstApprovedAction = firstApprovedActionByReportID.get(item.reportID);
-            if (firstApprovedAction?.created && DateUtils.doesDateBelongToAPastYear(firstApprovedAction.created)) {
-                result.shouldShowYearFirstApproved = true;
             }
         } else if (!result.shouldShowYearWithdrawn && isGroupEntry(key)) {
             const group = data[key];
@@ -1834,7 +1806,6 @@ type PreprocessingContext = {
     shouldShowYearCreatedReport: boolean;
     shouldShowYearSubmittedReport: boolean;
     shouldShowYearApprovedReport: boolean;
-    shouldShowYearFirstApprovedReport: boolean;
     shouldShowYearExportedReport: boolean;
     shouldShowAmountInWideColumn: boolean;
     shouldShowTaxAmountInWideColumn: boolean;
@@ -1862,7 +1833,6 @@ function createPreprocessingContext(): PreprocessingContext {
         shouldShowYearCreatedReport: false,
         shouldShowYearSubmittedReport: false,
         shouldShowYearApprovedReport: false,
-        shouldShowYearFirstApprovedReport: false,
         shouldShowYearExportedReport: false,
         shouldShowAmountInWideColumn: false,
         shouldShowTaxAmountInWideColumn: false,
@@ -1912,9 +1882,6 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     const firstApprovalAction = getFirstApprovalActionInCurrentCycle(actions);
     if (firstApprovalAction) {
         ctx.firstApprovedActionByReportID.set(reportID, firstApprovalAction);
-        if (!ctx.shouldShowYearFirstApprovedReport && DateUtils.doesDateBelongToAPastYear(firstApprovalAction.created)) {
-            ctx.shouldShowYearFirstApprovedReport = true;
-        }
     }
 }
 
@@ -2865,7 +2832,6 @@ function getReportSections({
         shouldShowYearCreatedReport,
         shouldShowYearSubmittedReport,
         shouldShowYearApprovedReport,
-        shouldShowYearFirstApprovedReport,
         shouldShowYearExportedReport,
         shouldShowAmountInWideColumn,
         shouldShowTaxAmountInWideColumn,
@@ -2983,7 +2949,6 @@ function getReportSections({
                     shouldShowYear: shouldShowYearCreatedReport,
                     shouldShowYearSubmitted: shouldShowYearSubmittedReport,
                     shouldShowYearApproved: shouldShowYearApprovedReport,
-                    shouldShowYearFirstApproved: shouldShowYearFirstApprovedReport,
                     shouldShowYearExported: shouldShowYearExportedReport,
                     hasVisibleViolations: hasVisibleViolationsForReport,
                     isRejectedReport,

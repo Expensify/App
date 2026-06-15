@@ -58,7 +58,6 @@ type GetReportTableColumnStylesParams = {
     isTaxAmountColumnWide?: boolean;
     isSubmittedColumnWide?: boolean;
     isApprovedColumnWide?: boolean;
-    isFirstApprovedColumnWide?: boolean;
     isPostedColumnWide?: boolean;
     isExportedColumnWide?: boolean;
     shouldRemoveTotalColumnFlex?: boolean;
@@ -1871,7 +1870,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         const {
             isSubmittedColumnWide,
             isApprovedColumnWide,
-            isFirstApprovedColumnWide,
             isPostedColumnWide,
             isExportedColumnWide,
             isDateColumnWide,
@@ -1900,19 +1898,20 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w130), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
-                columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w92 : variables.w72)};
+                columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w102 : variables.w62)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
-                columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w92 : variables.w72)};
+                columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w102 : variables.w62)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
-                columnWidth = {...getWidthStyle(isFirstApprovedColumnWide ? variables.w92 : variables.w72)};
+                // Fixed width: wide enough for both the long "First approved" header and a past-year date, so no year-based widening is needed.
+                columnWidth = {...getWidthStyle(variables.w102)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.POSTED:
-                columnWidth = {...getWidthStyle(isPostedColumnWide ? variables.w92 : variables.w72)};
+                columnWidth = {...getWidthStyle(isPostedColumnWide ? variables.w102 : variables.w62)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
-                columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w92 : variables.w72)};
+                columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w102 : variables.w62)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
                 columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w102 : variables.w62)};

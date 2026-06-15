@@ -99,7 +99,7 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED, {isFirstApprovedColumnWide: item.shouldShowYearFirstApproved})]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED)]}>
                 <DateCell
                     date={item.firstApproved ?? ''}
                     showTooltip

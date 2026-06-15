@@ -273,12 +273,6 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         shouldShowYearApproved: boolean;
 
         /**
-         * Whether we should show the year for the first approved date.
-         * This is true if at least one report in the dataset was first-approved in past years
-         */
-        shouldShowYearFirstApproved?: boolean;
-
-        /**
          * Whether we should show the year for the exported date.
          * This is true if at least one report in the dataset was exported in past years
          */

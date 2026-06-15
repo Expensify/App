@@ -91,15 +91,7 @@ describe('getButtonVariantStyles', () => {
 });
 
 describe('getReportTableColumnStyles - First approved column width', () => {
-    it('uses the wide width when isFirstApprovedColumnWide is true (e.g. a past-year date)', () => {
-        expect(getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED, {isFirstApprovedColumnWide: true})).toEqual({width: variables.w92});
-    });
-
-    it('uses the normal width when isFirstApprovedColumnWide is false', () => {
-        expect(getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED, {isFirstApprovedColumnWide: false})).toEqual({width: variables.w72});
-    });
-
-    it('defaults to the normal width when the wide flag is omitted', () => {
-        expect(getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED)).toEqual({width: variables.w72});
+    it('uses a fixed wide width (fits the long header and a past-year date, so no year-based widening)', () => {
+        expect(getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED)).toEqual({width: variables.w102});
     });
 });
