@@ -26,6 +26,7 @@ function useSearchSections(): UseSearchSectionsResult {
     const {convertToDisplayString} = useCurrencyListActions();
 
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
@@ -55,7 +56,8 @@ function useSearchSections(): UseSearchSectionsResult {
             archivedReportsIDList: archivedReportsIDSet,
             isActionLoadingSet,
             cardFeeds,
-            cardList: nonPersonalAndWorkspaceCards,
+            cardList: personalAndWorkspaceCards,
+            nonPersonalAndWorkspaceCardList: nonPersonalAndWorkspaceCards,
             conciergeReportID,
             convertToDisplayString,
             reportAttributesDerivedValue,
