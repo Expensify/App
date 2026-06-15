@@ -9,6 +9,7 @@ import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -139,15 +140,13 @@ function SubmitExpenseOrchestrator({
 
     // Unified from both prop (isFromGlobalCreate) and transaction flags because
     // the transaction flags are the source of truth — the prop is derived from
-    // the same transaction at mount time. Both must agree for correct handler
-    // selection (e.g. SEARCH_DISMISS) and telemetry scenario derivation.
+    // the same transaction at mount time. Either source being true is sufficient
+    // for correct handler selection (e.g. SEARCH_DISMISS) and telemetry.
     const isFromGlobalCreateFromTransaction = !!(isFromGlobalCreateOnTransaction || isFromFloatingActionButtonOnTransaction);
     const isFromGlobalCreateForNavigation = !!(isFromGlobalCreate || isFromGlobalCreateFromTransaction);
 
     const startSubmitSpans = () => {
         const hasReceiptFiles = Object.values(receiptFiles).some((receipt) => !!receipt);
-        // Re-derive from transaction inside the callback so telemetry captures the value
-        // at submission time, not at render time (transaction is mutable Onyx state).
         const scenario = getSubmitExpenseScenario({
             iouType,
             isDistanceRequest,
@@ -454,14 +453,16 @@ function SubmitExpenseOrchestrator({
                     resetPermissionFlow={() => {
                         setStartLocationPermissionFlow(false);
                     }}
+                    // onGrant/onDeny fire before the permission modal finishes closing.
+                    // On iOS, navigating immediately would break the modal close animation.
                     onGrant={() => {
-                        dispatchSubmitHandler(true);
+                        navigateAfterInteraction(() => dispatchSubmitHandler(true));
                     }}
                     onDeny={(wasUserInitiated) => {
                         if (wasUserInitiated) {
                             updateLastLocationPermissionPrompt();
                         }
-                        dispatchSubmitHandler(false);
+                        navigateAfterInteraction(() => dispatchSubmitHandler(false));
                     }}
                     onInitialGetLocationCompleted={() => {
                         setIsConfirming(false);
