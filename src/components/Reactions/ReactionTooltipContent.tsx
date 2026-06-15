@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -45,13 +45,13 @@ function userNamesStringSelector(accountIDs: number[], currentUserAccountID: num
 function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserAccountID}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const [namesString] = useOnyx(
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
-        {
-            selector: userNamesStringSelector(accountIDs, currentUserAccountID, translate),
-        },
+    const namesStringSelector = useCallback(
+        (personalDetails: OnyxEntry<PersonalDetailsList>) => userNamesStringSelector(accountIDs, currentUserAccountID, translate)(personalDetails),
         [accountIDs, currentUserAccountID, translate],
     );
+    const [namesString] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: namesStringSelector,
+    });
     const localizedEmojiName = getLocalizedEmojiName(emojiName, preferredLocale);
 
     return (

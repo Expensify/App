@@ -64,13 +64,9 @@ function DebugReportPage({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isOffline} = useNetwork();
     const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => attributes?.reports?.[reportID], [reportID]);
-    const [reportAttributes] = useOnyx(
-        ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-        {
-            selector: reportAttributesSelector,
-        },
-        [reportAttributesSelector],
-    );
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: reportAttributesSelector,
+    });
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -81,7 +77,7 @@ function DebugReportPage({
     const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
     const reportOwnerSelector = useMemo(() => personalDetailByAccountIDSelector(report?.ownerAccountID), [report?.ownerAccountID]);
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
 

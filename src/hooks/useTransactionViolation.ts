@@ -22,13 +22,9 @@ function useTransactionViolation(eligibleTransactionIDs?: Set<string>) {
         [eligibleTransactionIDs],
     );
 
-    const [transactionViolations] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-        {
-            selector: transactionViolationSelector,
-        },
-        [transactionViolationSelector],
-    );
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: transactionViolationSelector,
+    });
 
     return transactionViolations;
 }

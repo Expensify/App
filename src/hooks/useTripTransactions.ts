@@ -39,13 +39,9 @@ function useTripTransactions(reportID: string | undefined): Transaction[] {
         [tripTransactionReportIDs],
     );
 
-    const [tripTransactions = getEmptyArray<Transaction>()] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION,
-        {
-            selector: tripTransactionsSelector,
-        },
-        [tripTransactionsSelector],
-    );
+    const [tripTransactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: tripTransactionsSelector,
+    });
     return tripTransactions;
 }
 
