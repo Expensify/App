@@ -83,10 +83,12 @@ function AddAgentRulePage({
             title: translate('workspace.rules.agentRules.agentCreatedTitle'),
             titleStyles: styles.textHeadlineH1,
             prompt: (
-                <RenderHTML
-                    html={translate('workspace.rules.agentRules.agentCreatedDescription', ROUTES.SETTINGS_AGENTS)}
-                    onLinkPress={handleAgentsLinkPress}
-                />
+                <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
+                    <RenderHTML
+                        html={translate('workspace.rules.agentRules.agentCreatedDescription', ROUTES.SETTINGS_AGENTS)}
+                        onLinkPress={handleAgentsLinkPress}
+                    />
+                </View>
             ),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
