@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -17,11 +16,9 @@ import usePolicy from '@hooks/usePolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
-import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils';
@@ -67,10 +64,6 @@ function NewTaskPage({route}: NewTaskPageProps) {
 
     const backTo = route.params?.backTo;
     const confirmButtonRef = useRef<View>(null);
-    useFocusEffect(() => {
-        const handle = TransitionTracker.runAfterTransitions({callback: blurActiveElement});
-        return () => handle.cancel();
-    });
 
     useEffect(() => {
         if (!task?.parentReportID) {
@@ -132,6 +125,8 @@ function NewTaskPage({route}: NewTaskPageProps) {
                     onBackButtonPress={() => {
                         Navigation.goBack(ROUTES.NEW_TASK_DETAILS.getRoute(backTo));
                     }}
+                    /** Skip focus of the first interactive element in the header to make sure that Enter key confirms the task instead of navigating back. */
+                    shouldSkipFocusAfterTransition
                 />
                 {!!hasDestinationError && (
                     <FormHelpMessage
