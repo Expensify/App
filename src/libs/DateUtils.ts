@@ -382,7 +382,7 @@ function getRemainingSecondsInWindow(requestedAt: number | undefined, windowMs: 
     if (!requestedAt) {
         return 0;
     }
-    return Math.max(0, Math.ceil((windowMs - (Date.now() - requestedAt)) / 1000));
+    return Math.max(0, Math.ceil((windowMs - (Date.now() - requestedAt)) / CONST.MILLISECONDS_PER_SECOND));
 }
 
 /**
