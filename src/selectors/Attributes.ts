@@ -14,4 +14,9 @@ const reportByIDsSelector = (reportIDs: string[]) => (attributes: OnyxEntry<Repo
         {} as Record<string, ReportAttributes>,
     );
 
+function getReportAttributeByID(reportAttributes: OnyxEntry<ReportAttributesDerivedValue['reports']>, reportID: string | undefined): ReportAttributes | undefined {
+    return reportID ? reportAttributes?.[reportID] : undefined;
+}
+
 export default reportByIDsSelector;
+export {getReportAttributeByID};
