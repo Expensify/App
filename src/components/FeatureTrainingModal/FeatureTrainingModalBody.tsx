@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import FeatureTrainingModalContent from './FeatureTrainingModalContent';
 import FeatureTrainingModalIllustration from './FeatureTrainingModalIllustration';
@@ -63,9 +64,10 @@ function FeatureTrainingModalBody({
     ...props
 }: FeatureTrainingModalBodyProps) {
     const StyleUtils = useStyleUtils();
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     return (
-        <View style={width ? StyleUtils.getWidthStyle(width) : undefined}>
+        <View style={width && onboardingIsMediumOrLargerScreenWidth ? StyleUtils.getWidthStyle(width) : undefined}>
             <FeatureTrainingModalIllustration
                 illustrationAspectRatio={illustrationAspectRatioProp}
                 illustrationInnerContainerStyle={illustrationInnerContainerStyle}
