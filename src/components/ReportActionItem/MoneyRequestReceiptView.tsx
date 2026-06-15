@@ -369,7 +369,7 @@ function MoneyRequestReceiptView({
         if (!isEmptyObject(fallbackReceiptError)) {
             return {...errorsWithoutReportCreation, ...fallbackReceiptError};
         }
-        return {...errorsWithoutReportCreation, ...reportCreationError};
+        return isEmptyObject(errorsWithoutReportCreation) ? reportCreationError : errorsWithoutReportCreation;
     }, [hasReceiptUploadError, fallbackReceiptError, errorsWithoutReportCreation, reportCreationError]);
     const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
 
