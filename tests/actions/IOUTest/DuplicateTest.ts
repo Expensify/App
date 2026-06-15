@@ -1686,7 +1686,7 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             // Verify API was called with TRACK_EXPENSE (trackExpense path, not requestMoney)
-            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.TRACK_EXPENSE, expect.objectContaining({}), expect.objectContaining({}));
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.TRACK_EXPENSE, expect.objectContaining({}), expect.objectContaining({}), expect.objectContaining({checkAndFixConflictingRequest: expect.any(Function)}));
         });
 
         it('should call createDistanceRequest for distance transactions', async () => {
