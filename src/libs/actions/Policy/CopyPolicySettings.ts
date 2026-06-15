@@ -9,7 +9,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
-import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 
 type Part =
     | 'overview'
@@ -163,23 +162,17 @@ function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | u
  * Returns the travelSettings patch to merge onto the target when travel is copied. Only the
  * non-identity autoAddTripName preference is transferred; the target keeps its own Spotnana
  * identity fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms, which
- * the backend re-provisions per target. Mirrors Auth's TRAVEL_SETTINGS_COPYABLE_FIELDS allow-list.
+ * the backend re-provisions per target. Mirrors Auth's autoAddTripName-only copy. Spreading the
+ * target's existing travelSettings (like setWorkspaceTravelSettings) means an unprovisioned target
+ * gets only {autoAddTripName} with no fabricated identity fields, so it is not treated as provisioned.
  */
 function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'travelSettings'> | undefined {
     const sourceAutoAddTripName = sourcePolicy.travelSettings?.autoAddTripName;
-    const targetTravelSettings = targetPolicy.travelSettings;
-    if (sourceAutoAddTripName === undefined || !targetTravelSettings) {
+    if (sourceAutoAddTripName === undefined) {
         return undefined;
     }
 
-    const travelSettings: WorkspaceTravelSettings = {
-        spotnanaCompanyID: targetTravelSettings.spotnanaCompanyID,
-        associatedTravelDomainAccountID: targetTravelSettings.associatedTravelDomainAccountID,
-        hasAcceptedTerms: targetTravelSettings.hasAcceptedTerms,
-        autoAddTripName: sourceAutoAddTripName,
-    };
-
-    return {travelSettings};
+    return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourceAutoAddTripName}};
 }
 
 /**

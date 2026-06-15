@@ -254,6 +254,30 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 expect(policy?.travelSettings).toEqual(targetTravelSettings);
             });
+
+            it('copies autoAddTripName to an unprovisioned target without fabricating identity fields', () => {
+                const sourcePolicy = makeSourcePolicy({
+                    travelSettings: {
+                        spotnanaCompanyID: 'SOURCE_COMPANY',
+                        associatedTravelDomainAccountID: 'SOURCE_DOMAIN_ACCOUNT',
+                        hasAcceptedTerms: true,
+                        autoAddTripName: false,
+                    },
+                });
+                // Target has never been provisioned for travel, so it has no travelSettings.
+                const targetPolicy = makeTargetPolicy();
+
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['travel'], {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // The source's autoAddTripName=false is reflected so the UI does not show the opposite preference.
+                expect(policy?.travelSettings?.autoAddTripName).toBe(false);
+
+                // No Spotnana identity fields are fabricated, so the target is not treated as provisioned.
+                expect(policy?.travelSettings?.spotnanaCompanyID).toBeUndefined();
+                expect(policy?.travelSettings?.associatedTravelDomainAccountID).toBeUndefined();
+                expect(policy?.travelSettings?.hasAcceptedTerms).toBeUndefined();
+            });
         });
 
         describe('collection key overwrites', () => {
