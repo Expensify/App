@@ -1,7 +1,7 @@
 // NOTE: This component has a static twin in SearchPageNarrow/StaticSearchPageInput.tsx
 // used for fast perceived performance. If you change the UI here, verify the
 // static version still looks visually identical.
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
