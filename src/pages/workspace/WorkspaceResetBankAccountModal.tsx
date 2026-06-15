@@ -1,8 +1,9 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useEffectEvent, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,6 +49,7 @@ function WorkspaceResetBankAccountModal({
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -103,27 +105,41 @@ function WorkspaceResetBankAccountModal({
         }
     };
 
-    return (
-        <ConfirmModal
-            title={translate('workspace.bankAccount.areYouSure')}
-            confirmText={isInOpenState ? translate('workspace.bankAccount.yesDisconnectMyBankAccount') : translate('workspace.bankAccount.yesStartOver')}
-            cancelText={translate('common.cancel')}
-            prompt={
-                isInOpenState ? (
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('workspace.bankAccount.disconnectYourBankAccount', bankShortName)} />
-                    </View>
-                ) : (
-                    translate('workspace.bankAccount.clearProgress')
-                )
+    // Guards against showing the modal more than once (e.g. React StrictMode double-invoking effects)
+    const isModalOpenRef = useRef(false);
+    const showResetModal = useEffectEvent(() => {
+        if (isModalOpenRef.current) {
+            return;
+        }
+        isModalOpenRef.current = true;
+        showConfirmModal({
+            title: translate('workspace.bankAccount.areYouSure'),
+            confirmText: isInOpenState ? translate('workspace.bankAccount.yesDisconnectMyBankAccount') : translate('workspace.bankAccount.yesStartOver'),
+            cancelText: translate('common.cancel'),
+            prompt: isInOpenState ? (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML html={translate('workspace.bankAccount.disconnectYourBankAccount', bankShortName)} />
+                </View>
+            ) : (
+                translate('workspace.bankAccount.clearProgress')
+            ),
+            danger: true,
+            shouldShowCancelButton: true,
+        }).then(({action}) => {
+            isModalOpenRef.current = false;
+            if (action !== ModalActions.CONFIRM) {
+                cancelResetBankAccount();
+                return;
             }
-            danger
-            onCancel={cancelResetBankAccount}
-            onConfirm={handleConfirm}
-            shouldShowCancelButton
-            isVisible
-        />
-    );
+            handleConfirm();
+        });
+    });
+
+    useEffect(() => {
+        showResetModal();
+    }, []);
+
+    return null;
 }
 
 export default WorkspaceResetBankAccountModal;

@@ -1,12 +1,13 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import AmountForm from '@components/AmountForm';
-import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -38,7 +39,7 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const defaultFundID = useDefaultFundID(policyID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path);
 
@@ -74,8 +75,6 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
     const updateCardLimit = (newLimit: number) => {
         const newAvailableSpend = getNewAvailableSpend(newLimit);
 
-        setIsConfirmModalVisible(false);
-
         updateExpensifyCardLimit(
             defaultFundID,
             Number(cardID),
@@ -94,7 +93,19 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
         const newAvailableSpend = getNewAvailableSpend(newLimit);
 
         if (newAvailableSpend <= 0) {
-            setIsConfirmModalVisible(true);
+            showConfirmModal({
+                title: translate('workspace.expensifyCard.changeCardLimit'),
+                prompt: translate(getPromptTextKey, convertToDisplayString(newLimit, currency)),
+                confirmText: translate('workspace.expensifyCard.changeLimit'),
+                cancelText: translate('common.cancel'),
+                danger: true,
+                shouldEnableNewFocusManagement: true,
+            }).then(({action}) => {
+                if (action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                updateCardLimit(newLimit);
+            });
             return;
         }
 
@@ -147,31 +158,14 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
                     enabledWhenOffline
                     validate={validate}
                 >
-                    {({inputValues}) => (
-                        <>
-                            <InputWrapper
-                                InputComponent={AmountForm}
-                                defaultValue={convertToFrontendAmountAsString(card?.nameValuePairs?.unapprovedExpenseLimit, 0)}
-                                isCurrencyPressable={false}
-                                currency={currency}
-                                inputID={INPUT_IDS.LIMIT}
-                                ref={inputCallbackRef}
-                            />
-                            {/* We migrated https://github.com/Expensify/App/issues/83836 to a dynamic card limit page.`ConfirmModal` is deprecated, so we temporarily disabled the ESLint warning for this component. */}
-                            {/* eslint-disable-next-line @typescript-eslint/no-deprecated */}
-                            <ConfirmModal
-                                title={translate('workspace.expensifyCard.changeCardLimit')}
-                                isVisible={isConfirmModalVisible}
-                                onConfirm={() => updateCardLimit(Number(inputValues[INPUT_IDS.LIMIT]) * 100)}
-                                onCancel={() => setIsConfirmModalVisible(false)}
-                                prompt={translate(getPromptTextKey, convertToDisplayString(Number(inputValues[INPUT_IDS.LIMIT]) * 100, currency))}
-                                confirmText={translate('workspace.expensifyCard.changeLimit')}
-                                cancelText={translate('common.cancel')}
-                                danger
-                                shouldEnableNewFocusManagement
-                            />
-                        </>
-                    )}
+                    <InputWrapper
+                        InputComponent={AmountForm}
+                        defaultValue={convertToFrontendAmountAsString(card?.nameValuePairs?.unapprovedExpenseLimit, 0)}
+                        isCurrencyPressable={false}
+                        currency={currency}
+                        inputID={INPUT_IDS.LIMIT}
+                        ref={inputCallbackRef}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
