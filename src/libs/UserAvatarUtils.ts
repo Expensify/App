@@ -2,8 +2,10 @@ import {md5} from 'expensify-common';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
-import {DEFAULT_AVATAR_PREFIX, isLetterAvatarSchemeKey, LETTER_AVATAR_COLOR_OPTIONS, LETTER_AVATAR_SCHEMES, USER_AVATARS} from './Avatars/UserAvatarCatalog';
-import type {DefaultAvatarIDs, LetterAvatarColorStyle} from './Avatars/UserAvatarCatalog.types';
+import {isLetterAvatarSchemeKey, LETTER_AVATAR_COLOR_OPTIONS, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
+import type {LetterAvatarColorStyle} from './Avatars/letterAvatarPalette';
+import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
+import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
@@ -18,7 +20,7 @@ const LETTER_AVATAR_NAME_REGEX = /^letter-avatar-#[0-9A-F]{6}-#[0-9A-F]{6}-[A-Z]
  * Default Avatar - auto generated from accountID or email. A subset of User Avatars.
  * User Avatar - pre-designed avatar from UserAvatarCatalog.USER_AVATARS (defaults + Season F1).
  * Agent Avatar - bot avatar from AgentAvatarCatalog.AGENT_AVATARS, assigned to agent accounts.
- * Letter Avatar - first-letter avatar with color from UserAvatarCatalog.LETTER_AVATAR_COLOR_OPTIONS.
+ * Letter Avatar - first-letter avatar with color from letterAvatarPalette.LETTER_AVATAR_COLOR_OPTIONS.
  * Uploaded Avatar - user-uploaded image.
  *
  * Catalog-backed avatars (User + Agent) resolve to local SVGs at render time via AvatarLookup.findLocalAvatarForURL.

@@ -1,4 +1,4 @@
-import {LETTER_AVATAR_SCHEMES} from '@libs/Avatars/UserAvatarCatalog';
+import {LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 import {getLetterAvatarScheme} from '@libs/UserAvatarUtils';
 
 const OPTIONS = Object.values(LETTER_AVATAR_SCHEMES);
