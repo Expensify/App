@@ -7299,7 +7299,7 @@ ${amount} para ${merchant} - ${date}`,
                 disclaimer: 'Los agentes de IA pueden cometer errores.',
                 agentCreatedTitle: '¡RuleBot se ha añadido a tu espacio de trabajo!',
                 agentCreatedDescription: (agentsRoute: string) =>
-                    `Para aplicar tus reglas de agente, hemos creado un agente para ti y lo hemos añadido como administrador de tu espacio de trabajo.<br><br>Edita los datos de tu agente en <a href="${agentsRoute}">Cuenta &gt; Agentes</a>.`,
+                    `<muted-text>Para aplicar tus reglas de agente, hemos creado un agente para ti y lo hemos añadido como administrador de tu espacio de trabajo.<br><br>Edita los datos de tu agente en <a href="${agentsRoute}">Cuenta &gt; Agentes</a>.</muted-text>`,
             },
         },
         emptyDomain: {

@@ -7516,7 +7516,7 @@ const translations = {
                 disclaimer: 'AI agents can make mistakes.',
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
-                    `To enforce your agent rules, we've created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent's details in <a href="${agentsRoute}">Account &gt; Agents</a>.`,
+                    `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
             },
         },
         planTypePage: {

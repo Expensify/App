@@ -83,12 +83,10 @@ function AddAgentRulePage({
             title: translate('workspace.rules.agentRules.agentCreatedTitle'),
             titleStyles: styles.textHeadlineH1,
             prompt: (
-                <View style={styles.renderHTML}>
-                    <RenderHTML
-                        html={translate('workspace.rules.agentRules.agentCreatedDescription', ROUTES.SETTINGS_AGENTS)}
-                        onLinkPress={handleAgentsLinkPress}
-                    />
-                </View>
+                <RenderHTML
+                    html={translate('workspace.rules.agentRules.agentCreatedDescription', ROUTES.SETTINGS_AGENTS)}
+                    onLinkPress={handleAgentsLinkPress}
+                />
             ),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
@@ -97,7 +95,7 @@ function AddAgentRulePage({
             shouldCenterIcon: true,
             iconWidth: variables.iconSizeUltraLarge,
             iconHeight: variables.iconSizeUltraLarge,
-            iconAdditionalStyles: {borderRadius: variables.iconSizeUltraLarge / 2, overflow: 'hidden'},
+            iconAdditionalStyles: {borderRadius: variables.iconSizeUltraLarge / 2, overflow: 'hidden', marginTop: 12},
         }).then(() => {
             Navigation.goBack();
             if (linkPressedRef.current) {

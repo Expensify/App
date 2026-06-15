@@ -7406,7 +7406,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 disclaimer: 'KI-Agenten können Fehler machen.',
                 agentCreatedTitle: 'RuleBot wurde zu Ihrem Arbeitsbereich hinzugefügt!',
                 agentCreatedDescription: (agentsRoute: string) =>
-                    `Um Ihre Agent-Regeln durchzusetzen, haben wir einen Agenten für Sie erstellt und ihn als Administrator zu Ihrem Arbeitsbereich hinzugefügt.<br><br>Bearbeiten Sie die Details Ihres Agenten unter <a href="${agentsRoute}">Konto &gt; Agenten</a>.`,
+                    `<muted-text>Um Ihre Agent-Regeln durchzusetzen, haben wir einen Agenten für Sie erstellt und ihn als Administrator zu Ihrem Arbeitsbereich hinzugefügt.<br><br>Bearbeiten Sie die Details Ihres Agenten unter <a href="${agentsRoute}">Konto &gt; Agenten</a>.</muted-text>`,
             },
         },
         planTypePage: {

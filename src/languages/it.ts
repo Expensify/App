@@ -7390,7 +7390,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 disclaimer: 'Gli agenti IA possono commettere errori.',
                 agentCreatedTitle: 'RuleBot è stato aggiunto al tuo spazio di lavoro!',
                 agentCreatedDescription: (agentsRoute: string) =>
-                    `Per applicare le tue regole dell’agente, abbiamo creato un agente per te e lo abbiamo aggiunto come amministratore del tuo spazio di lavoro.<br><br>Modifica i dettagli del tuo agente in <a href="${agentsRoute}">Account &gt; Agenti</a>.`,
+                    `<muted-text>Per applicare le tue regole dell’agente, abbiamo creato un agente per te e lo abbiamo aggiunto come amministratore del tuo spazio di lavoro.<br><br>Modifica i dettagli del tuo agente in <a href="${agentsRoute}">Account &gt; Agenti</a>.</muted-text>`,
             },
         },
         planTypePage: {
