@@ -1,6 +1,4 @@
 import cloneDeep from 'lodash/cloneDeep';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -72,6 +70,8 @@ function prepareToCleanUpMoneyRequest(
     selectedTransactionIDs?: string[],
 ) {
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReportActions = getAllReportActionsFromIOU();
 
@@ -249,6 +249,7 @@ function prepareToCleanUpMoneyRequest(
 function getNavigationUrlOnMoneyRequestDelete(
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
@@ -257,9 +258,6 @@ function getNavigationUrlOnMoneyRequestDelete(
     if (!transactionID) {
         return undefined;
     }
-    const allReports = getAllReports();
-    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport} = prepareToCleanUpMoneyRequest(
         transactionID,
         reportAction,
@@ -310,7 +308,15 @@ function cleanUpMoneyRequest(
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
         prepareToCleanUpMoneyRequest(transactionID, reportAction, transactionThreadReport, iouReport, chatReport, isChatIOUReportArchived, false);
 
-    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, isSingleTransactionView);
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
+        transactionID,
+        reportAction,
+        transactionThreadReport,
+        iouReport,
+        chatReport,
+        isChatIOUReportArchived,
+        isSingleTransactionView,
+    );
     // build Onyx data
 
     // Onyx operations to delete the transaction, update the IOU report action and chat report action
@@ -471,13 +477,13 @@ function cleanUpMoneyRequest(
 
     // First, update the reportActions to ensure related actions are not displayed.
     Onyx.update(reportActionsOnyxUpdates).then(() => {
-        Navigation.goBack(urlToNavigateBack);
-        InteractionManager.runAfterInteractions(() => {
-            if (shouldDeleteIOUReport) {
-                clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
-            }
-            // After navigation, update the remaining data.
-            Onyx.update(onyxUpdates);
+        Navigation.goBack(urlToNavigateBack, {
+            afterTransition: () => {
+                if (shouldDeleteIOUReport) {
+                    clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
+                }
+                Onyx.update(onyxUpdates);
+            },
         });
     });
 }
@@ -691,7 +697,15 @@ function deleteMoneyRequest({
         selectedTransactionIDs,
     );
 
-    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, isSingleTransactionView);
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
+        transactionID,
+        reportAction,
+        transactionThreadReport,
+        iouReport,
+        chatReport,
+        isChatIOUReportArchived,
+        isSingleTransactionView,
+    );
 
     // STEP 2: Build Onyx data
     // The logic mostly resembles the cleanUpMoneyRequest function

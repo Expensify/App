@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
@@ -74,6 +75,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const reportAttributesDerived = useReportAttributes();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
@@ -83,17 +85,28 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const options: OptionList | null = useMemo(
         () =>
             enabled && allReports && allPersonalDetails
-                ? createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, privateIsArchivedMap, allPolicies, {
-                      maxRecentReports: reportsLimit,
-                      includeP2P,
-                      isSearching,
-                      betas,
-                  })
+                ? createFilteredOptionList(
+                      allPersonalDetails,
+                      allReports,
+                      reportAttributesDerived,
+                      privateIsArchivedMap,
+                      allPolicies,
+                      {
+                          maxRecentReports: reportsLimit,
+                          includeP2P,
+                          isSearching,
+                          betas,
+                      },
+                      undefined,
+                      undefined,
+                      isTrackIntentUser,
+                  )
                 : null,
-        [enabled, allReports, allPersonalDetails, reportAttributesDerived, privateIsArchivedMap, allPolicies, reportsLimit, includeP2P, isSearching, betas],
+        [enabled, allReports, allPersonalDetails, reportAttributesDerived, privateIsArchivedMap, allPolicies, reportsLimit, includeP2P, isSearching, betas, isTrackIntentUser],
     );
 
-    const hasMore = options ? reportsLimit < totalReports : false;
+    // When isSearching is set to true, the createFilteredOptionList returns all reports
+    const hasMore = !isSearching && options ? reportsLimit < totalReports : false;
 
     const loadMore = () => {
         if (!hasMore) {

@@ -19,6 +19,7 @@ import {getConnectedIntegration, getCurrentConnectionName} from '@libs/PolicyUti
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -80,43 +81,51 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     };
 
     return (
-        <SelectionScreen
+        <AccessOrNotFoundWrapper
             policyID={policyID}
-            headerContent={
-                <View style={[styles.mh5, styles.mb3]}>
-                    {!!exportMenuItem?.description && (
-                        <View style={[styles.renderHTML, styles.flexRow]}>
-                            <RenderHTML
-                                html={
-                                    isXeroConnection
-                                        ? translate('workspace.moreFeatures.companyCards.integrationExportTitleXero', exportMenuItem.description)
-                                        : translate(
-                                              'workspace.moreFeatures.companyCards.integrationExportTitle',
-                                              exportMenuItem.description,
-                                              `${environmentURL}/${exportMenuItem.exportPageLink}`,
-                                          )
-                                }
-                            />
-                        </View>
-                    )}
-                </View>
-            }
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
-            displayName="WorkspaceCompanyCardAccountSelectCardPage"
-            data={searchedListOptions ?? []}
-            textInputOptions={{
-                label: translate('common.search'),
-                value: searchText,
-                onChangeText: setSearchText,
-            }}
-            onSelectRow={updateExportAccount}
-            initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feed, cardID, backTo))}
-            headerTitleAlreadyTranslated={exportMenuItem?.description}
-            listEmptyContent={listEmptyContent}
-            connectionName={connectedIntegration}
-            shouldShowTextInput={shouldShowTextInput}
-        />
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            <SelectionScreen
+                policyID={policyID}
+                headerContent={
+                    <View style={[styles.mh5, styles.mb3]}>
+                        {!!exportMenuItem?.description && (
+                            <View style={[styles.renderHTML, styles.flexRow]}>
+                                <RenderHTML
+                                    html={
+                                        isXeroConnection
+                                            ? translate('workspace.moreFeatures.companyCards.integrationExportTitleXero', exportMenuItem.description)
+                                            : translate(
+                                                  'workspace.moreFeatures.companyCards.integrationExportTitle',
+                                                  exportMenuItem.description,
+                                                  `${environmentURL}/${exportMenuItem.exportPageLink}`,
+                                              )
+                                    }
+                                />
+                            </View>
+                        )}
+                    </View>
+                }
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+                displayName="WorkspaceCompanyCardAccountSelectCardPage"
+                data={searchedListOptions ?? []}
+                textInputOptions={{
+                    label: translate('common.search'),
+                    value: searchText,
+                    onChangeText: setSearchText,
+                }}
+                onSelectRow={updateExportAccount}
+                initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feed, cardID, backTo))}
+                headerTitleAlreadyTranslated={exportMenuItem?.description}
+                listEmptyContent={listEmptyContent}
+                connectionName={connectedIntegration}
+                shouldShowTextInput={shouldShowTextInput}
+                isRowMultilineSupported
+            />
+        </AccessOrNotFoundWrapper>
     );
 }
 
