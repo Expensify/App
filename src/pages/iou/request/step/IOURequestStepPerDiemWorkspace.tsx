@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useOnyx from '@hooks/useOnyx';
@@ -6,13 +6,14 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
+import {findSelfDMReportID} from '@libs/ReportUtils';
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setTransactionReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {policyExpenseChatsSelector} from '@src/selectors/Report';
 import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -25,7 +26,8 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
     } = route;
     const {accountID} = useCurrentUserPersonalDetails();
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const selector = useMemo(() => policyExpenseChatsSelector(accountID), [accountID]);
+    const [policyExpenseChats] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
 
@@ -36,7 +38,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
             getPolicies={getActivePoliciesWithExpenseChatAndPerDiemEnabled}
             onSelectWorkspace={(policy) => {
                 const {targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
-                    getPolicyExpenseChat(accountID, policy?.id, allReports ?? {}),
+                    policyExpenseChats?.[policy?.id ?? ''],
                     selfDMReport,
                     iouType,
                     defaultExpensePolicy,
