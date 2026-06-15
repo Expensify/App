@@ -166,6 +166,7 @@ function Section({
                                 style={styles.h100}
                                 webStyle={styles.h100}
                                 loop
+                                autoPlay
                                 shouldLoadAfterInteractions={shouldUseNarrowLayout}
                             />
                         ) : (
