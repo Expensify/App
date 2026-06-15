@@ -11,7 +11,7 @@ import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU/TrackExpense';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import {usePersonalDetails, useSession} from './OnyxListItemProvider';
@@ -50,8 +50,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [chatReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${chatReport?.policyID}`);
 
-    const [maybeTransactions] = useTransactionsByID([...selectedIds]);
-    const transactions = maybeTransactions?.filter((transaction): transaction is Transaction => !!transaction) ?? [];
+    const [transactions] = useTransactionsByID([...selectedIds]);
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
