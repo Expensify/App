@@ -25,25 +25,38 @@ jest.mock('@libs/actions/Report', () => ({
     getReportChannelName: (reportID: string) => `private-report-${reportID}`,
 }));
 
+let mockIsVisible = true;
+const mockVisibilityCallbacks = new Set<() => void>();
+
+jest.mock('@libs/Visibility', () => ({
+    __esModule: true,
+    default: {
+        hasFocus: jest.fn(() => true),
+        isVisible: jest.fn(() => mockIsVisible),
+        onVisibilityChange: jest.fn((callback: () => void) => {
+            mockVisibilityCallbacks.add(callback);
+            return () => {
+                mockVisibilityCallbacks.delete(callback);
+            };
+        }),
+    },
+}));
+
 const REPORT_ID = '123';
 const REPORT_ACTION_ID = '456';
 const CREATED = '2026-04-03 10:00:00.000';
 const STREAM_SESSION_ID = 'stream-session-1';
 const TARGET_BODY_MARKDOWN = 'Hello';
 const COMPLETED_BODY_MARKDOWN = 'Hello world';
+const NEXT_BODY_MARKDOWN = 'HelloWorld';
 const FINAL_RENDERED_HTML = '<comment>Server final response</comment>';
+const PUSHER_DRAFT_PACE_INTERVAL_MS = 10;
+const SHORT_FINAL_RENDERED_HTML = '<comment>OK</comment>';
+const LONG_FINAL_RENDERED_TEXT = Array.from({length: 12}, (_, index) => `Streaming response ${index}`).join(' ');
+const LONG_FINAL_RENDERED_HTML = `<comment>${LONG_FINAL_RENDERED_TEXT}</comment>`;
 
-type MockPusherSubscribe = jest.MockedFunction<
-    (
-        channelName: string,
-        eventName?: string,
-        eventCallback?: (event: ConciergeDraftEvent | ConciergeDraftEventsEvent) => void,
-        onResubscribe?: () => void,
-    ) => ReturnType<typeof Pusher.subscribe>
->;
-
-function getMockPusherSubscribe(): MockPusherSubscribe {
-    return Pusher.subscribe as MockPusherSubscribe;
+function getMockPusherSubscribe() {
+    return jest.mocked(Pusher.subscribe);
 }
 
 function getFirstMessageText(reportAction: ReportAction | null): string | undefined {
@@ -80,6 +93,13 @@ function emitPusherEvent(eventType: string, event: ConciergeDraftEvent | Concier
     callback(event);
 }
 
+function triggerVisibilityChange(isVisible: boolean) {
+    mockIsVisible = isVisible;
+    for (const callback of mockVisibilityCallbacks) {
+        callback();
+    }
+}
+
 describe('ConciergeDraftContext', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -87,6 +107,8 @@ describe('ConciergeDraftContext', () => {
 
     beforeEach(async () => {
         getMockPusherSubscribe().mockClear();
+        mockIsVisible = true;
+        mockVisibilityCallbacks.clear();
         setCachedDraft(REPORT_ID, null);
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, REPORT_ID);
@@ -95,6 +117,7 @@ describe('ConciergeDraftContext', () => {
 
     afterEach(async () => {
         setCachedDraft(REPORT_ID, null);
+        jest.restoreAllMocks();
         await Onyx.clear();
     });
 
@@ -161,6 +184,182 @@ describe('ConciergeDraftContext', () => {
         expect(getFirstMessageText(result.current.draftReportAction)).toBe('He');
         expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Server final response');
         expect(result.current.isDraftPendingCompletion).toBe(true);
+
+        unmount();
+    });
+
+    it('catches up paced Pusher drafts from elapsed time when visibility returns', async () => {
+        let now = 1000;
+        jest.spyOn(Date, 'now').mockImplementation(() => now);
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(TARGET_BODY_MARKDOWN));
+        });
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
+
+        act(() => {
+            triggerVisibilityChange(false);
+        });
+
+        now += 4 * PUSHER_DRAFT_PACE_INTERVAL_MS;
+        act(() => {
+            triggerVisibilityChange(true);
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('Hello');
+
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(NEXT_BODY_MARKDOWN, {sequence: 2}));
+        });
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('HelloW');
+
+        now += PUSHER_DRAFT_PACE_INTERVAL_MS;
+        act(() => {
+            triggerVisibilityChange(true);
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('HelloWo');
+
+        unmount();
+    });
+
+    it('preserves elapsed catch-up across queued Pusher targets when visibility returns', async () => {
+        let now = 1000;
+        jest.spyOn(Date, 'now').mockImplementation(() => now);
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(TARGET_BODY_MARKDOWN));
+        });
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
+
+        act(() => {
+            triggerVisibilityChange(false);
+        });
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(NEXT_BODY_MARKDOWN, {sequence: 2}));
+        });
+
+        now += 9 * PUSHER_DRAFT_PACE_INTERVAL_MS;
+        act(() => {
+            triggerVisibilityChange(true);
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe(NEXT_BODY_MARKDOWN);
+
+        unmount();
+    });
+
+    it('applies buffered completed Pusher drafts when visibility returns', async () => {
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        act(() => {
+            triggerVisibilityChange(false);
+        });
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(COMPLETED_BODY_MARKDOWN));
+        });
+        act(() => {
+            emitPusherEvent(
+                Pusher.TYPE.CONCIERGE_DRAFT_COMPLETED,
+                createDraftEvent('', {
+                    sequence: 2,
+                    status: 'completed',
+                    bodyMarkdown: undefined,
+                    finalRenderedHTML: FINAL_RENDERED_HTML,
+                }),
+            );
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Server final response');
+        expect(result.current.isDraftPendingCompletion).toBe(true);
+
+        act(() => {
+            triggerVisibilityChange(true);
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('Server final response');
+        expect(result.current.isDraftPendingCompletion).toBe(false);
+        expect(getCachedDraft(REPORT_ID)?.pusherPendingCompletionEvent).toBeUndefined();
+
+        unmount();
+    });
+
+    it('trickles finalRenderedHTML-only Pusher events before completing the draft', async () => {
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        jest.useFakeTimers();
+        try {
+            act(() => {
+                emitPusherEvent(
+                    Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
+                    createDraftEvent('', {
+                        status: 'started',
+                        bodyMarkdown: undefined,
+                        finalRenderedHTML: LONG_FINAL_RENDERED_HTML,
+                    }),
+                );
+            });
+
+            const initialText = getFirstMessageText(result.current.draftReportAction);
+            expect(initialText?.length).toBeGreaterThan(0);
+            expect(initialText).not.toBe(LONG_FINAL_RENDERED_TEXT);
+            expect(result.current.isDraftPendingCompletion).toBe(true);
+
+            act(() => {
+                jest.advanceTimersByTime(15_100);
+            });
+
+            expect(getFirstMessageText(result.current.draftReportAction)).toBe(LONG_FINAL_RENDERED_TEXT);
+            expect(result.current.isDraftPendingCompletion).toBe(false);
+        } finally {
+            unmount();
+            jest.useRealTimers();
+        }
+    });
+
+    it('reveals short finalRenderedHTML-only Pusher events immediately', async () => {
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        act(() => {
+            emitPusherEvent(
+                Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
+                createDraftEvent('', {
+                    status: 'started',
+                    bodyMarkdown: undefined,
+                    finalRenderedHTML: SHORT_FINAL_RENDERED_HTML,
+                }),
+            );
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('OK');
+        expect(result.current.isDraftPendingCompletion).toBe(false);
 
         unmount();
     });
@@ -256,6 +455,32 @@ describe('ConciergeDraftContext', () => {
             expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe(TARGET_BODY_MARKDOWN);
             expect(getCachedDraft(REPORT_ID)?.pusherTargetSequence).toBe(2);
         });
+
+        unmount();
+    });
+
+    it('reveals short finalRenderedHTML-only batched Pusher draft events immediately', async () => {
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, {
+                events: [
+                    createDraftEvent('', {
+                        status: 'started',
+                        bodyMarkdown: undefined,
+                        finalRenderedHTML: SHORT_FINAL_RENDERED_HTML,
+                    }),
+                ],
+            });
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('OK');
+        expect(result.current.isDraftPendingCompletion).toBe(false);
 
         unmount();
     });

@@ -121,6 +121,13 @@ function Button({
         };
     }, [buttonStyles, shouldBlendOpacity]);
 
+    let loadingIndicatorColor = theme.text;
+    if (variant === 'danger') {
+        loadingIndicatorColor = theme.buttonDangerText;
+    } else if (variant === 'success') {
+        loadingIndicatorColor = theme.textLight;
+    }
+
     return (
         <PressableWithFeedback
             ref={ref as PressableRef}
@@ -200,7 +207,7 @@ function Button({
             </ButtonContext.Provider>
             {isLoading && (
                 <ActivityIndicator
-                    color={variant === 'success' || variant === 'danger' ? theme.textLight : theme.text}
+                    color={loadingIndicatorColor}
                     style={[styles.pAbsolute, styles.l0, styles.r0]}
                     reasonAttributes={buttonLoadingReasonAttributes}
                 />
