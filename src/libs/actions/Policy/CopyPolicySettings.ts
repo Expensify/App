@@ -163,8 +163,9 @@ function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | u
  * non-identity autoAddTripName preference is transferred; the target keeps its own Spotnana
  * identity fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms, which
  * the backend re-provisions per target. Mirrors Auth's autoAddTripName-only copy. Spreading the
- * target's existing travelSettings (like setWorkspaceTravelSettings) means an unprovisioned target
- * gets only {autoAddTripName} with no fabricated identity fields, so it is not treated as provisioned.
+ * target's existing travelSettings (like setWorkspaceTravelSettings) means a target that is not yet
+ * provisioned gets only {autoAddTripName} with no fabricated identity fields, so it is not treated
+ * as provisioned.
  */
 function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'travelSettings'> | undefined {
     const sourceAutoAddTripName = sourcePolicy.travelSettings?.autoAddTripName;
@@ -172,6 +173,9 @@ function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): P
         return undefined;
     }
 
+    // A target that is not yet provisioned has no travelSettings, so the spread yields just
+    // {autoAddTripName}. The Spotnana identity fields are optional (populated by the backend at
+    // provision time), so leaving them out here keeps the target from looking provisioned.
     return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourceAutoAddTripName}};
 }
 

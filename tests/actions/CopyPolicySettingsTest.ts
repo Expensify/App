@@ -255,7 +255,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.travelSettings).toEqual(targetTravelSettings);
             });
 
-            it('copies autoAddTripName to an unprovisioned target without fabricating identity fields', () => {
+            it('copies autoAddTripName to a not-yet-provisioned target without fabricating identity fields', () => {
                 const sourcePolicy = makeSourcePolicy({
                     travelSettings: {
                         spotnanaCompanyID: 'SOURCE_COMPANY',
