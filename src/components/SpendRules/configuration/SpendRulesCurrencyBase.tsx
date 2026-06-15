@@ -47,9 +47,11 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
         return validCurrencyOptions.map((option) => option.value);
     });
 
+    const currencyItems: CurrencyListItem[] = [];
+    const selectedCurrenciesSet = new Set(selectedCurrencies);
+
     let areAllCurrenciesSelected = true;
     let settlementCurrencyLabel = settlementCurrency;
-    const currencyItems: CurrencyListItem[] = [];
 
     for (const currencyOption of currencyOptions) {
         if (currencyOption.value === settlementCurrency) {
@@ -57,7 +59,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
             continue;
         }
 
-        const isSelected = selectedCurrencies.includes(currencyOption.value);
+        const isSelected = selectedCurrenciesSet.has(currencyOption.value);
 
         currencyItems.push({
             isSelected,
@@ -72,7 +74,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
     }
 
     const filterCurrency = (item: CurrencyListItem, searchInput: string) => {
-        return (item.text ?? '').toLowerCase().includes(searchInput.toLowerCase());
+        return (item.text ?? '').toLowerCase().includes(searchInput);
     };
 
     const sortCurrencies = (items: CurrencyListItem[]) => {
@@ -92,7 +94,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
 
     const toggleSelectAll = () => {
         const visibleValues = filteredCurrencyItems.map((item) => item.value);
-        const allVisibleSelected = visibleValues.length > 0 && visibleValues.every((value) => selectedCurrencies.includes(value));
+        const allVisibleSelected = visibleValues.length > 0 && visibleValues.every((value) => selectedCurrenciesSet.has(value));
 
         if (allVisibleSelected) {
             const visibleSet = new Set(visibleValues);
