@@ -45,9 +45,15 @@ For guidance, examples, and prompt-writing best practices, [learn how to write A
 
 ## What happens after an Agent Rule is created 
 
-When you create your first Agent Rule, Expensify automatically creates RuleBot and adds it to the workspace as a Workspace Admin.
+When you create your first Agent Rule, Expensify automatically creates RuleBot and adds it to the workspace as a Workspace Admin. A one-time confirmation appears letting you know RuleBot has been added to your workspace, with a link to view and edit the agent's details under **Account > Agents**.
 
 RuleBot immediately begins monitoring report activity and evaluating reports against all configured Agent Rules.
+
+<!-- SCREENSHOT:
+Suggestion: The "RuleBot has been added to your workspace!" confirmation shown after saving the first Agent Rule, including the link to Account > Agents.
+Location: Under "What happens after an Agent Rule is created"
+Purpose: Show users the one-time confirmation state and where to edit the agent.
+-->
 
 Agent Rules apply to future report activity, but not existing Paid or Done reports. 
 
@@ -119,4 +125,4 @@ When evaluating a report, RuleBot can review the 50 most recent report actions, 
 
 ## Do I need to create or manage RuleBot?
 
-No. RuleBot is created automatically when you add your first AI Rule and is managed by Expensify.
+No. RuleBot is created automatically when you add your first AI Rule. You can view and edit the agent's details under **Account > Agents**.
