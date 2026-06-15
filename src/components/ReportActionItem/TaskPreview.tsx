@@ -130,6 +130,9 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const shouldShowGreenDotIndicator = isOpenTaskReport(taskContextReport, action) && isReportManager(taskContextReport);
     const taskTitlePlainText = Parser.htmlToText(taskTitle);
     const taskAccessibilityLabel = taskTitlePlainText ? `${translate('task.task')}: ${taskTitlePlainText}` : translate('task.task');
+    const shouldUseSplitTaskCheckboxAccessibility = shouldBreakGrouping && isScreenReaderActive;
+    const taskCheckboxAccessibilityLabel = shouldUseSplitTaskCheckboxAccessibility ? translate('task.task') : taskAccessibilityLabel;
+    const taskCheckboxAccessibilityHint = shouldUseSplitTaskCheckboxAccessibility && taskTitlePlainText ? taskTitlePlainText : undefined;
     if (isDeletedParentAction) {
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedTask')}</deleted-action>`} />;
     }
@@ -206,7 +209,8 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                                     completeTask(taskContextReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskReportID);
                                 }
                             })}
-                            accessibilityLabel={taskAccessibilityLabel}
+                            accessibilityLabel={taskCheckboxAccessibilityLabel}
+                            accessibilityHint={taskCheckboxAccessibilityHint}
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
                         />
                     </View>
@@ -215,6 +219,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             accessible
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={taskAccessibilityLabel}
+                            accessibilityHint={shouldUseSplitTaskCheckboxAccessibility ? '' : undefined}
                             onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
                             onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                             onPressOut={() => ControlSelection.unblock()}

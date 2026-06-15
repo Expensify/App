@@ -78,6 +78,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
     const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre);
     const taskAccessibilityLabel = taskTitlePlainText ? `${translate('task.task')}: ${taskTitlePlainText}` : translate('task.task');
+    const shouldUseSplitTaskCheckboxAccessibility = shouldBreakGrouping && isScreenReaderActive;
+    const taskCheckboxAccessibilityLabel = shouldUseSplitTaskCheckboxAccessibility ? translate('task.task') : taskAccessibilityLabel;
+    const taskCheckboxAccessibilityHint = shouldUseSplitTaskCheckboxAccessibility && taskTitlePlainText ? taskTitlePlainText : undefined;
 
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(
         getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails),
@@ -232,7 +235,8 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         containerSize={24}
                                                         containerBorderRadius={8}
                                                         caretSize={16}
-                                                        accessibilityLabel={taskAccessibilityLabel}
+                                                        accessibilityLabel={taskCheckboxAccessibilityLabel}
+                                                        accessibilityHint={taskCheckboxAccessibilityHint}
                                                         disabled={!isTaskActionable}
                                                         sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                                     />
@@ -241,6 +245,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                             accessible
                                                             accessibilityRole={CONST.ROLE.BUTTON}
                                                             accessibilityLabel={taskAccessibilityLabel}
+                                                            accessibilityHint={shouldUseSplitTaskCheckboxAccessibility ? '' : undefined}
                                                             accessibilityState={{disabled: isDisableInteractive}}
                                                             disabled={isDisableInteractive}
                                                             onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path)))}
