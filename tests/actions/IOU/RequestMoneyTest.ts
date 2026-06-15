@@ -378,7 +378,9 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
 
                                     // Snapshot data shouldn't be updated optimistically for requestMoney when the current search query type is invoice.
-                                    expect(snapshotData).toBeUndefined();
+                                    // Post-init, a known-but-empty collection resolves to the frozen `{}` (the legacy
+                                    // `undefined`-for-empty-collection shim was removed in Onyx).
+                                    expect(snapshotData).toEqual({});
                                     resolve();
                                 },
                             });

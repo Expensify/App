@@ -12,14 +12,12 @@ import type * as OnyxTypes from '@src/types/onyx';
 let allReports: OnyxCollection<OnyxTypes.Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
 });
 
 let allReportDrafts: OnyxCollection<OnyxTypes.Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
-    waitForCollectionCallback: true,
     callback: (value) => (allReportDrafts = value),
 });
 

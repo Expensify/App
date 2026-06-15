@@ -4594,7 +4594,10 @@ describe('actions/Report', () => {
 
             const reportsCollectionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}`);
 
-            expect(reportsCollectionAfter).toBeUndefined();
+            // Post-init, a known-but-empty collection resolves to the frozen `{}` (the legacy
+            // `undefined`-for-empty-collection shim was removed in Onyx). What we want to assert
+            // here is that no report was created — the collection has zero members.
+            expect(reportsCollectionAfter).toEqual({});
         });
     });
 

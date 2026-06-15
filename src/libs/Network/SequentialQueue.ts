@@ -382,9 +382,6 @@ function flush(shouldResetPromise = true) {
     // Use connectWithoutView since this is for network queue and don't affect to any UI
     const connection = Onyx.connectWithoutView({
         key: ONYXKEYS.PERSISTED_REQUESTS,
-        // We exceptionally opt out of reusing the connection here to avoid extra callback calls due to
-        // an existing connection already made in PersistedRequests.ts.
-        reuseConnection: false,
         callback: () => {
             Log.info('[SequentialQueue] PERSISTED_REQUESTS loaded, starting process()', false, {
                 requestsLength: getAllPersistedRequests().length,
