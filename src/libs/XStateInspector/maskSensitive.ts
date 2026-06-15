@@ -42,7 +42,7 @@ function hasToJSON(value: unknown): value is {toJSON: () => unknown} {
  * `visited` tracks only the current recursion path (entries are removed on the way back up), so a
  * shared non-circular reference renders fully and only true cycles collapse to the marker.
  */
-function maskDeep(value: unknown, isUnderSensitiveKey: boolean, depth: number, visited: WeakSet<WeakKey>): unknown {
+function maskDeep(value: unknown, isUnderSensitiveKey: boolean, depth: number, visited: WeakSet<WeakKey>, maskByKey: boolean): unknown {
     if (typeof value === 'function' || typeof value === 'symbol' || value === undefined) {
         return undefined;
     }
@@ -61,13 +61,13 @@ function maskDeep(value: unknown, isUnderSensitiveKey: boolean, depth: number, v
     if (hasToJSON(value)) {
         // Unwrapping does not descend, so the depth stays; XState snapshots rely on this to shed
         // their unserializable internals (`machine`, `_nodes`) exactly like JSON.stringify would.
-        result = maskDeep(value.toJSON(), isUnderSensitiveKey, depth, visited);
+        result = maskDeep(value.toJSON(), isUnderSensitiveKey, depth, visited, maskByKey);
     } else if (Array.isArray(value)) {
-        result = value.map((item) => maskDeep(item, isUnderSensitiveKey, depth + 1, visited) ?? null);
+        result = value.map((item) => maskDeep(item, isUnderSensitiveKey, depth + 1, visited, maskByKey) ?? null);
     } else {
         const masked: Record<string, unknown> = {};
         for (const [key, nested] of Object.entries(value)) {
-            const maskedValue = maskDeep(nested, isUnderSensitiveKey || SENSITIVE_KEYS.has(key), depth + 1, visited);
+            const maskedValue = maskDeep(nested, isUnderSensitiveKey || (maskByKey && SENSITIVE_KEYS.has(key)), depth + 1, visited, maskByKey);
             if (maskedValue !== undefined) {
                 masked[key] = maskedValue;
             }
@@ -77,6 +77,10 @@ function maskDeep(value: unknown, isUnderSensitiveKey: boolean, depth: number, v
     visited.delete(value);
 
     return result;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /**
@@ -89,11 +93,21 @@ function maskDeep(value: unknown, isUnderSensitiveKey: boolean, depth: number, v
  * Declared as overloads: the first matches the inspector's `serialize` option, the second admits
  * the arbitrary runtime values the implementation is total over (the inspector feeds it raw
  * snapshots whose actual shape is far looser than the option type claims).
+ *
+ * `snapshot.value` is exempt from key-based masking: it is the machine's current state value, built
+ * only from static state-node names (never runtime data), and the inspector cannot highlight the
+ * active state without it - so a state named like a sensitive key (`validateCode`, `pin`) stays
+ * readable. The exemption is scoped to that one path; a `value` key anywhere else is still masked.
  */
 function maskInspectionEvent(event: StatelyInspectionEvent): StatelyInspectionEvent;
 function maskInspectionEvent(event: unknown): unknown;
 function maskInspectionEvent(event: unknown): unknown {
-    return maskDeep(event, false, 0, new WeakSet());
+    const masked = maskDeep(event, false, 0, new WeakSet(), true);
+    if (!isRecord(event) || !isRecord(masked) || !isRecord(event.snapshot) || !isRecord(masked.snapshot) || !('value' in event.snapshot)) {
+        return masked;
+    }
+    masked.snapshot.value = maskDeep(event.snapshot.value, false, 0, new WeakSet(), false);
+    return masked;
 }
 
 export {maskInspectionEvent, CIRCULAR_MARKER, MAX_DEPTH_MARKER, SENSITIVE_VALUE_MASK};
