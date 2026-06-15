@@ -27,9 +27,6 @@ type Args = {
     /** Callback to call on every scroll event */
     onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
-    /** Whether the report actions have been loaded at least once */
-    hasOnceLoadedReportActions: boolean;
-
     /** The index of the action badge target report action in the sorted visible actions list (-1 if none) */
     actionBadgeTargetIndex?: number;
 };
@@ -42,7 +39,6 @@ export default function useReportUnreadMessageScrollTracking({
     onTrackScrolling,
     unreadMarkerReportActionIndex,
     isInverted,
-    hasOnceLoadedReportActions,
     actionBadgeTargetIndex = -1,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
@@ -53,14 +49,12 @@ export default function useReportUnreadMessageScrollTracking({
         reportID: string;
         unreadMarkerReportActionIndex: number;
         isFocused: boolean;
-        hasOnceLoadedReportActions: boolean;
         actionBadgeTargetIndex: number;
     }>({
         reportID,
         unreadMarkerReportActionIndex,
         previousViewableItems: [],
         isFocused: true,
-        hasOnceLoadedReportActions,
         actionBadgeTargetIndex,
     });
     // We want to save the updated value on ref to use it in onViewableItemsChanged
@@ -73,10 +67,6 @@ export default function useReportUnreadMessageScrollTracking({
     useEffect(() => {
         ref.current.isFocused = isFocused;
     }, [isFocused]);
-
-    useEffect(() => {
-        ref.current.hasOnceLoadedReportActions = hasOnceLoadedReportActions;
-    }, [hasOnceLoadedReportActions]);
 
     /**
      * On every scroll event we want to:
@@ -140,7 +130,7 @@ export default function useReportUnreadMessageScrollTracking({
         if (unreadActionVisible && readActionSkippedRef.current) {
             // eslint-disable-next-line no-param-reassign
             readActionSkippedRef.current = false;
-            readNewestAction(ref.current.reportID, ref.current.hasOnceLoadedReportActions);
+            readNewestAction(ref.current.reportID);
         }
 
         // Track whether the action badge target is above the viewport (i.e., not visible and at a higher index in the inverted list)

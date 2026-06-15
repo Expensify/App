@@ -343,7 +343,6 @@ function ReportActionsList({
                 setHasScrolledOverThreshold(offset >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
                 onScroll?.(event);
             },
-            hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
             actionBadgeTargetIndex,
         });
 
@@ -478,18 +477,8 @@ function ReportActionsList({
         }
         reportScrollManager.scrollToBottom();
         readActionSkippedRef.current = false;
-        readNewestAction(report.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
-    }, [
-        setIsFloatingMessageCounterVisible,
-        hasNewestReportAction,
-        reportScrollManager,
-        report.reportID,
-        backTo,
-        introSelected,
-        reportLoadingState?.hasOnceLoadedReportActions,
-        betas,
-        readActionSkippedRef,
-    ]);
+        readNewestAction(report.reportID);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected, betas, readActionSkippedRef]);
 
     const scrollToActionBadgeTarget = useCallback(() => {
         if (actionBadgeTargetIndex < 0) {

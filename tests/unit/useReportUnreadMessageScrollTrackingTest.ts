@@ -40,7 +40,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     onTrackScrolling: onTrackScrollingMockFn,
                     hasNewerActions: false,
                     unreadMarkerReportActionIndex: -1,
-                    hasOnceLoadedReportActions: true,
                     isInverted: true,
                 }),
             );
@@ -62,7 +61,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     isInverted: true,
                     hasNewerActions: false,
                     onTrackScrolling: onTrackScrollingMockFn,
-                    hasOnceLoadedReportActions: true,
                 }),
             );
 

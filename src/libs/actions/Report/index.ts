@@ -2716,7 +2716,7 @@ function expandURLPreview(reportID: string | undefined, reportActionID: string) 
  * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
  * Currently, the unread indicator needs to be reset only when users mark a report as read.
  */
-function readNewestAction(reportID: string | undefined, hasOnceLoadedReportActions: boolean, shouldResetUnreadMarker = false) {
+function readNewestAction(reportID: string | undefined, isReportActionsLoaded = true, shouldResetUnreadMarker = false) {
     if (!reportID) {
         return;
     }
@@ -2724,12 +2724,8 @@ function readNewestAction(reportID: string | undefined, hasOnceLoadedReportActio
     // Do not try to mark the report as read if the report has not been loaded and shared with the user.
     // However, if report actions already exist in Onyx (e.g., delivered via Pusher), the report is
     // clearly shared with the user and we can proceed with marking it as read.
-    if (!hasOnceLoadedReportActions) {
-        const reportActions = allReportActions?.[reportID];
-        const hasReportActions = !!reportActions && Object.keys(reportActions).length > 0;
-        if (!hasReportActions) {
-            return;
-        }
+    if (!isReportActionsLoaded) {
+        return;
     }
 
     const lastReadTime = getDBTimeWithSkew();
