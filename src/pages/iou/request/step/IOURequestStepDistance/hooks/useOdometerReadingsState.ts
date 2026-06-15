@@ -151,14 +151,9 @@ function useOdometerReadingsState({
         const currentEnd = currentTransaction?.comment?.odometerEnd;
         const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
         const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
-        // Snapshot the transaction as the baseline; the discard guard then diffs current-vs-baseline. No "user
-        // edited" tracking is needed:
-        //  - Create: this runs at the (empty) mount before the user types, and the screen stays mounted across
-        //    Next -> back, so the empty baseline survives and a committed-but-unsaved reading reads as a change
-        //  - SFL-resume / reload: the fresh mount absorbs the hydrated value (= the saved state), so a clean resume
-        //    stays silent
-        //  - Images use a re-mint-invariant identity in the diff (getOdometerImageIdentity), so a non-user blob
-        //    re-mint is absorbed while a genuine add/swap/remove is caught - no need to special-case the baseline
+        // Snapshot the transaction as the baseline; the discard guard diffs current-vs-baseline, so no "user edited"
+        // tracking is needed. The empty-mount baseline survives Next->back, an SFL-resume/reload absorbs the hydrated
+        // value, and images use a re-mint-invariant identity so only a genuine add/swap/remove counts.
         initialStartReadingRef.current = startValue;
         initialEndReadingRef.current = endValue;
         initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
@@ -177,19 +172,13 @@ function useOdometerReadingsState({
         odometerDraft,
     ]);
 
-    // Initialize current state (NOT the initial refs, which are set once on mount) from the transaction when editing
-    // or when it has data - but not on tab switch. Mirrors the first three branches of
-    // `shouldInitializeOdometerFromTransaction` (odometerResync.ts is the source of truth), minus its `!isUserTyping`
-    // guard: the typing ref lives in the component, and this effect's deps are only readings + isEditing (no image
-    // deps), so it can't hit the clear-then-delete-image bug the guard fixes. Keep in sync.
+    // Sync current state (not the mount refs) from the transaction. Mirrors branches 1-3 of
+    // `shouldInitializeOdometerFromTransaction` (odometerResync.ts is the source of truth); it can safely omit that
+    // predicate's `!isUserTyping` guard because this effect's deps are readings + isEditing only (no image deps).
     useEffect(() => {
         const currentStart = currentTransaction?.comment?.odometerStart;
         const currentEnd = currentTransaction?.comment?.odometerEnd;
 
-        // Only initialize if:
-        // 1. We haven't initialized yet AND transaction has data, OR
-        // 2. We're editing and transaction has data (to load existing values), OR
-        // 3. Transaction has data but local state is empty (user navigated back from another page)
         const hasTransactionData = (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined);
         const hasLocalState = startReadingRef.current || endReadingRef.current;
 

@@ -20,9 +20,6 @@ type SaveOdometerDraftParams = {
     endImage?: FileObject | string | null;
 };
 
-/**
- * Set the odometer readings for a transaction.
- */
 function setMoneyRequestOdometerReading(transactionID: string, startReading: number | null, endReading: number | null, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
