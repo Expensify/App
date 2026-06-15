@@ -28,5 +28,12 @@ npx setup-skia-web
 # Clean up web/static created by setup-skia-web
 rm -rf "$ROOT_DIR/web/static"
 
+# Remove the nested metro-source-map that @rock-js/plugin-metro may bundle, so the
+# patched top-level metro-source-map (patches/metro-source-map+0.84.4.patch) is the
+# only copy resolved. Without this, Rock can load its own unpatched copy and the
+# Hermes "__packed" source map crash ("Unexpected module with full source map found")
+# can come back.
+rm -rf "$ROOT_DIR/node_modules/@rock-js/plugin-metro/node_modules/metro-source-map"
+
 # Apply packages using patch-package
 scripts/applyPatches.sh

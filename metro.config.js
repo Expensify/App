@@ -12,6 +12,10 @@ const path = require('path');
 const envPath = process.env.ENVFILE ? (path.isAbsolute(process.env.ENVFILE) ? process.env.ENVFILE : path.join(__dirname, process.env.ENVFILE)) : path.join(__dirname, '.env');
 require('dotenv').config({path: envPath});
 
+// Expo SDK 56 replaces global fetch with expo/fetch on native, which breaks large API responses (e.g. OpenApp).
+// Keep React Native's built-in fetch unless explicitly overridden.
+process.env.EXPO_PUBLIC_USE_RN_FETCH = process.env.EXPO_PUBLIC_USE_RN_FETCH ?? '1';
+
 const defaultConfig = getReactNativeDefaultConfig(__dirname);
 const expoConfig = getExpoDefaultConfig(__dirname);
 

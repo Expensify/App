@@ -1,0 +1,23 @@
+diff --git a/node_modules/metro-source-map/src/source-map.js b/node_modules/metro-source-map/src/source-map.js
+index ebb793e..5de87c7 100644
+--- a/node_modules/metro-source-map/src/source-map.js
++++ b/node_modules/metro-source-map/src/source-map.js
+@@ -75,9 +75,15 @@ function fromRawMappingsImpl(isBlocking, onDone, modules, offsetLines) {
+     if (Array.isArray(map)) {
+       addMappingsForFile(generator, map, mod, carryOver);
+     } else if (map != null) {
+-      throw new Error(
+-        `Unexpected module with full source map found: ${mod.path}`,
+-      );
++      if (map.__packed != null) {
++        // This module's source map is in Hermes packed format (__version, __count, __names, __packed).
++        // fromRawMappings only handles VLQ segment arrays — the Hermes packed format is used by
++        // the Hermes bytecode compiler and requires a different serialization path. Skip it here.
++      } else {
++        throw new Error(
++          `Unexpected module with full source map found: ${mod.path}`,
++        );
++      }
+     }
+     carryOver = carryOver + countLines(code);
+     return false;
