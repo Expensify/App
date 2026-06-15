@@ -42,19 +42,7 @@ import GroupHeader from './ListItem/GroupHeader';
 import type TaskListItem from './ListItem/TaskListItem';
 import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
 import type TransactionListItem from './ListItem/TransactionListItem';
-import type {
-    ReportActionListItemType,
-    TaskListItemType,
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-    TransactionMerchantGroupListItemType,
-    TransactionMonthGroupListItemType,
-    TransactionQuarterGroupListItemType,
-    TransactionWeekGroupListItemType,
-    TransactionYearGroupListItemType,
-} from './ListItem/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from './ListItem/types';
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './ListItem/types';
 import SearchSelectAllMenu from './SearchSelectAllMenu';
 
