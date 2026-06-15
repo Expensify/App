@@ -1,5 +1,6 @@
 import {useCallback, useRef, useState} from 'react';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
+// eslint-disable-next-line no-restricted-imports
+import {InteractionManager} from 'react-native';
 
 type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
 
@@ -23,18 +24,14 @@ export default function useSingleExecution() {
                 isExecutingRef.current = true;
 
                 const execution = action(...params);
-
-                TransitionTracker.runAfterTransitions({
-                    callback: () => {
-                        if (!(execution instanceof Promise)) {
-                            setIsExecuting(false);
-                            return;
-                        }
-                        execution.finally(() => {
-                            setIsExecuting(false);
-                        });
-                    },
-                    waitForUpcomingTransition: true,
+                InteractionManager.runAfterInteractions(() => {
+                    if (!(execution instanceof Promise)) {
+                        setIsExecuting(false);
+                        return;
+                    }
+                    execution.finally(() => {
+                        setIsExecuting(false);
+                    });
                 });
             },
         [],
