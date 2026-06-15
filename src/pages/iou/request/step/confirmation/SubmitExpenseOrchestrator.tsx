@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import LocationPermissionModal from '@components/LocationPermissionModal';
+import useOnyx from '@hooks/useOnyx';
 import DateUtils from '@libs/DateUtils';
 import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -19,6 +20,7 @@ import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest'
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
@@ -122,6 +124,7 @@ function SubmitExpenseOrchestrator({
     isFromFloatingActionButtonOnTransaction,
     children,
 }: SubmitExpenseOrchestratorProps) {
+    const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
     const [isConfirming, setIsConfirming] = useState(false);
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const confirmingSafetyTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -183,7 +186,7 @@ function SubmitExpenseOrchestrator({
             isReportInRHP: isReportOpenInRHP(rootState),
             isReportTopmostSplit: isReportTopmostSplitNavigator(),
             isSearchTopmostFullScreen: isSearchTopmostFullScreenRoute(),
-            isDestinationReportLoaded: !!destinationReportID && !!getReportOrDraftReport(destinationReportID)?.reportID,
+            isDestinationReportLoaded: !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID,
         };
     };
 
@@ -369,7 +372,7 @@ function SubmitExpenseOrchestrator({
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_IN_RHP_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const rootState = navigationRef.getRootState();
 
-        const report = destinationReportID ? getReportOrDraftReport(destinationReportID) : undefined;
+        const report = destinationReportID ? getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport) : undefined;
         const isDestinationEmpty = !!report && isMoneyRequestReport(report) && !report.transactionCount;
         if (isDestinationEmpty) {
             reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});

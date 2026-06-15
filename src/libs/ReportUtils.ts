@@ -5298,12 +5298,12 @@ function getTransactionReportName({
     translate,
     reportAction,
     transactions,
-    reports,
+    report,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
     transactions?: Transaction[];
-    reports?: Report[];
+    report: OnyxEntry<Report>;
 }): string {
     if (reportAction && isReversedTransaction(reportAction)) {
         return translate('parentReportAction.reversedTransaction');
@@ -5324,7 +5324,6 @@ function getTransactionReportName({
         return translate('iou.receiptScanning', {count: 1});
     }
 
-    const report = getReportOrDraftReport(transaction?.reportID, reports);
     if (hasMissingSmartscanFieldsTransactionUtils(transaction, report)) {
         return translate('iou.receiptMissingDetails');
     }
