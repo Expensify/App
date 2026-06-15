@@ -11,7 +11,7 @@ import clearShortLivedAuthState from './actions/Session/clearShortLivedAuthState
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import redirectToSignIn from './actions/SignInRedirect';
 import HttpsError from './Errors/HttpsError';
-import {getAuthenticateErrorMessage} from './ErrorUtils';
+import {getAuthenticateErrorMessage, getErrorMessage} from './ErrorUtils';
 import Log from './Log';
 import {post} from './Network';
 import {getCredentials, hasReadRequiredDataFromStorage, setAuthToken, setIsAuthenticating} from './Network/NetworkStore';
@@ -71,8 +71,9 @@ function Authenticate<TKey extends OnyxKey>(parameters: Parameters): Promise<Res
     try {
         requireParameters(['partnerName', 'partnerPassword', 'partnerUserID', 'partnerUserSecret'], parameters, commandName);
     } catch (error) {
-        const errorMessage = (error as Error).message;
-        trackAuthenticationError(error as Error, {
+        const errorMessage = getErrorMessage(error);
+        // Caught values can be non-Error objects, but telemetry expects an Error instance.
+        trackAuthenticationError(error instanceof Error ? error : new Error(errorMessage), {
             errorType: 'missing_params',
             functionName: 'Authenticate',
             commandName,
@@ -115,6 +116,13 @@ function shouldRetryAuthenticateError(error: unknown): boolean {
     // and auth throttling, should fall through to the normal sign-out path so we
     // do not spin on Authenticate before redirecting to sign in.
     return error.message === CONST.ERROR.FAILED_TO_FETCH || error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED;
+}
+
+function getAuthenticationErrorResponse(error: HttpsError): Response<OnyxKey> {
+    return {
+        jsonCode: Number(error.status),
+        message: error.message,
+    };
 }
 
 /**
@@ -260,39 +268,38 @@ function reauthenticate(command = ''): Promise<boolean> {
                 return true;
             })
             .catch((error) => {
-                if (!shouldRetryAuthenticateError(error)) {
+                if (error instanceof HttpsError && !shouldRetryAuthenticateError(error)) {
                     // Reuse the standard Authenticate response handling so HTTP
                     // failures and body-level failures produce the same UX.
-                    const errorMessage = getAuthenticateErrorMessage({
-                        jsonCode: Number((error as HttpsError).status),
-                        message: (error as Error).message,
-                    } as Response<OnyxKey>);
+                    const authenticationErrorResponse = getAuthenticationErrorResponse(error);
+                    const errorMessage = getAuthenticateErrorMessage(authenticationErrorResponse);
 
-                    trackAuthenticationError(error as Error, {
+                    trackAuthenticationError(error, {
                         errorType: 'auth_failure',
                         functionName: 'reauthenticate',
-                        jsonCode: Number((error as HttpsError).status),
+                        jsonCode: Number(error.status),
                         command,
                         errorMessage,
                     });
                     setIsAuthenticating(false);
                     Log.hmmm('[Reauthenticate] Redirecting to Sign In because Authenticate returned a non-retryable HTTP error', {
                         command,
-                        error: (error as Error).message,
-                        status: (error as HttpsError).status,
+                        error: error.message,
+                        status: error.status,
                     });
                     redirectToSignIn(errorMessage);
                     return false;
                 }
 
-                trackAuthenticationError(error as Error, {
+                // Caught values can be non-Error objects, but telemetry expects an Error instance.
+                trackAuthenticationError(error instanceof Error ? error : new Error(getErrorMessage(error)), {
                     errorType: 'unexpected_error',
                     functionName: 'reauthenticate',
                     command,
                 });
 
                 Log.alert('[Reauthenticate] Unexpected error during authentication', {
-                    error: (error as Error).message,
+                    error: getErrorMessage(error),
                     command,
                 });
                 throw error;

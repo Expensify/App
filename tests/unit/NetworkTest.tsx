@@ -1,3 +1,4 @@
+/* eslint-disable @lwc/lwc/no-async-await */
 import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
 import {confirmReadyToOpenApp, reconnectApp} from '@libs/actions/App';
@@ -414,12 +415,14 @@ describe('NetworkTests', () => {
             });
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         global.fetch = fetchMock as unknown as typeof fetch;
 
         PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const fetchCalls = fetchMock.mock.calls as Array<[RequestInfo, RequestInit | undefined]>;
         const commandNames = fetchCalls
             .map(([input]) => {
@@ -490,12 +493,14 @@ describe('NetworkTests', () => {
             });
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         global.fetch = fetchMock as unknown as typeof fetch;
 
         PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const fetchCalls = fetchMock.mock.calls as Array<[RequestInfo, RequestInit | undefined]>;
         const commandNames = fetchCalls
             .map(([input]) => {
@@ -556,6 +561,7 @@ describe('NetworkTests', () => {
             });
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         global.fetch = fetchMock as unknown as typeof fetch;
 
         PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
@@ -565,6 +571,7 @@ describe('NetworkTests', () => {
         jest.runAllTimers();
         await waitForBatchedUpdates();
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const fetchCalls = fetchMock.mock.calls as Array<[RequestInfo, RequestInit | undefined]>;
         const commandNames = fetchCalls
             .map(([input]) => {
@@ -621,12 +628,14 @@ describe('NetworkTests', () => {
             });
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         global.fetch = fetchMock as unknown as typeof fetch;
 
         PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const fetchCalls = fetchMock.mock.calls as Array<[RequestInfo, RequestInit | undefined]>;
         const commandNames = fetchCalls
             .map(([input]) => {

@@ -1,3 +1,4 @@
+/* eslint-disable @lwc/lwc/no-async-await */
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Reauthentication from '@libs/Middleware/Reauthentication';
@@ -56,7 +57,7 @@ beforeEach(async () => {
 describe('Middleware', () => {
     describe('Reauthentication', () => {
         test('clears original request failure updates when failed reauthentication redirects to sign-in', async () => {
-            const mockedReauthenticate = reauthenticate as jest.MockedFunction<typeof reauthenticate>;
+            const mockedReauthenticate = jest.mocked(reauthenticate);
             mockedReauthenticate.mockResolvedValueOnce(false);
 
             const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
@@ -94,7 +95,7 @@ describe('Middleware', () => {
 
     describe('SaveResponseInOnyx', () => {
         test('does not apply original request failure data after failed reauthentication redirects to sign-in', async () => {
-            const mockedReauthenticate = reauthenticate as jest.MockedFunction<typeof reauthenticate>;
+            const mockedReauthenticate = jest.mocked(reauthenticate);
             mockedReauthenticate.mockResolvedValueOnce(false);
 
             let shouldFailAllRequests: boolean | undefined;
