@@ -25,6 +25,7 @@ import {
     getDefaultTaxCode,
     getDistanceInMeters,
     getIsFromGlobalCreate,
+    isDistanceRequest,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -827,6 +828,48 @@ function clearMoneyRequestRateAutoUpdated(transactionID: string) {
     });
 }
 
+/**
+ * Recalculates the distance rate when the expense date changes during expense creation.
+ * Sets rateAutoUpdated when the selected rate changes so the confirmation page can show the educational tooltip.
+ */
+function updateDistanceRateOnExpenseDateChange({
+    transactionID,
+    transaction,
+    newCreated,
+    reportID,
+    isPolicyExpenseChat,
+    isTrackExpense,
+    policy,
+    policyForTrackExpense,
+    lastSelectedDistanceRates,
+}: {
+    transactionID: string;
+    transaction: OnyxEntry<Transaction>;
+    newCreated: string;
+    reportID: string;
+    isPolicyExpenseChat: boolean;
+    isTrackExpense: boolean;
+    policy: OnyxEntry<Policy>;
+    policyForTrackExpense: OnyxEntry<Policy>;
+    lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates>;
+}) {
+    if (!isDistanceRequest(transaction) || !(isPolicyExpenseChat || isTrackExpense)) {
+        return;
+    }
+
+    const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
+    const rateID = DistanceRequestUtils.getCustomUnitRateID({
+        reportID,
+        isPolicyExpenseChat,
+        policy: effectivePolicy,
+        lastSelectedDistanceRates,
+        isTrackDistanceExpense: isTrackExpense,
+        expenseDate: newCreated,
+    });
+    const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+    setCustomUnitRateID(transactionID, rateID, transaction, effectivePolicy, rateID !== currentRateID);
+}
+
 function setMoneyRequestReportID(transactionID: string, reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID});
 }
@@ -853,6 +896,7 @@ export {
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
     setCustomUnitRateID,
+    updateDistanceRateOnExpenseDateChange,
     clearMoneyRequestRateAutoUpdated,
     setGPSTransactionDraftData,
     resetDraftTransactionsCustomUnit,
