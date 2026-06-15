@@ -6,6 +6,7 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 import {CartesianChart, Line} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import AreaGradient from '@components/Charts/components/AreaGradient';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -23,8 +24,8 @@ import {
     useLabelHitTesting,
     useYAxisLabelWidth,
 } from '@components/Charts/hooks';
-import {calculateMinDomainPadding} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
+import {labelOverhang} from '@components/Charts/utils';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -32,13 +33,10 @@ import variables from '@styles/variables';
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
 /** Inner dot radius for line chart data points */
-const DOT_RADIUS = 6;
+const DOT_RADIUS = 4;
 
 /** Extra hover area beyond the dot radius for easier touch targeting */
 const DOT_HOVER_EXTRA_RADIUS = 2;
-
-/** Minimum safe padding to avoid clipping labels/points */
-const MIN_SAFE_PADDING = DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
 
 /** Base domain padding applied to all sides */
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
@@ -80,34 +78,46 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const chartBottom = useSharedValue(0);
 
     const measurements = useChartLabelMeasurements(data, fontMgr, variables.iconSizeExtraSmall);
+    const {lineHeight, firstLabelWidth, lastLabelWidth, maxLabelWidth, labelWidths} = measurements;
 
-    const domainPadding = (() => {
-        if (chartWidth === 0 || data.length === 0) {
-            return BASE_DOMAIN_PADDING;
-        }
+    const {formatValue} = useChartLabelFormats({
+        data,
+        unit: yAxisUnit,
+        unitPosition: yAxisUnitPosition,
+    });
 
-        const geometricPadding = calculateMinDomainPadding(chartWidth, data.length);
-
-        if (!measurements.firstLabelWidth || !measurements.lastLabelWidth) {
-            return {...BASE_DOMAIN_PADDING, left: geometricPadding, right: geometricPadding};
-        }
-
-        const firstLabelNeeds = measurements.firstLabelWidth / 2;
-        const lastLabelNeeds = measurements.lastLabelWidth / 2;
-
-        const wastedLeft = geometricPadding - firstLabelNeeds;
-        const wastedRight = geometricPadding - lastLabelNeeds;
-        const reclaimablePadding = Math.min(wastedLeft, wastedRight);
-
-        if (reclaimablePadding <= 0) {
-            return {...BASE_DOMAIN_PADDING, left: geometricPadding, right: geometricPadding};
-        }
-
-        const horizontalPadding = Math.max(geometricPadding - reclaimablePadding, MIN_SAFE_PADDING);
-        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
-    })();
+    const yAxisLabelWidth = useYAxisLabelWidth(
+        Math.max(...data.map((p) => p.total), 0),
+        Math.min(...data.map((p) => p.total), 0),
+        VictoryTheme.axis.tickCount,
+        formatValue,
+        fontMgr,
+        variables.iconSizeExtraSmall,
+    );
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
+    const chartPaddingLeft = yAxisLabelWidth + GLYPH_PADDING;
+
+    const domainPadding = (() => {
+        if (!firstLabelWidth || !lastLabelWidth) {
+            return BASE_DOMAIN_PADDING;
+        }
+        const labelsExceedTickSpacing = tickSpacing > 0 && maxLabelWidth + LABEL_PADDING > tickSpacing;
+        let leftOverhang = firstLabelWidth / 2;
+        let rightOverhang = lastLabelWidth / 2;
+
+        if (labelsExceedTickSpacing) {
+            const diagTickMax = (tickSpacing - LABEL_PADDING) / SIN_45 + lineHeight;
+            leftOverhang = labelOverhang(Math.min(firstLabelWidth, diagTickMax), lineHeight, LABEL_ROTATIONS.DIAGONAL).left;
+            rightOverhang = lineHeight / 2;
+        }
+
+        return {
+            ...BASE_DOMAIN_PADDING,
+            left: Math.max(0, leftOverhang - chartPaddingLeft),
+            right: rightOverhang,
+        };
+    })();
 
     const totalDomainPadding = domainPadding.left + domainPadding.right;
     const paddingScale = plotAreaWidth > 0 ? plotAreaWidth / (plotAreaWidth + totalDomainPadding) : 0;
@@ -124,12 +134,6 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     });
 
     const originalLabels = data.map((p) => p.label);
-
-    const {formatValue} = useChartLabelFormats({
-        data,
-        unit: yAxisUnit,
-        unitPosition: yAxisUnitPosition,
-    });
 
     const {isCursorOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
         fontMgr,
@@ -188,12 +192,12 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                 <ScatterPoints
                     points={args.points.y}
                     radius={DOT_RADIUS}
-                    color={VictoryTheme.colors.default}
+                    color={VictoryTheme.colors.defaultDot}
                 />
                 {xAxisLabelHeight !== undefined && !!fontMgr && (
                     <ChartXAxisLabels
                         labels={originalLabels}
-                        labelWidths={measurements.labelWidths}
+                        labelWidths={labelWidths}
                         regularLabelMaxWidth={regularLabelMaxWidth}
                         firstLabelMaxWidth={firstLabelMaxWidth}
                         lastLabelMaxWidth={lastLabelMaxWidth}
@@ -225,15 +229,11 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
-    const yAxisLabelWidth = useYAxisLabelWidth(
-        Math.max(...data.map((p) => p.total), 0),
-        Math.min(...data.map((p) => p.total), 0),
-        VictoryTheme.axis.tickCount,
-        formatValue,
-        fontMgr,
-        variables.iconSizeExtraSmall,
-    );
-    const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
+    const chartPadding = {
+        ...VictoryTheme.axis.padding,
+        bottom: labelSpace + VictoryTheme.axis.padding.bottom,
+        left: chartPaddingLeft,
+    };
 
     if (isLoading || !fontMgr) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LineChartContent', isLoading, isFontLoading: !fontMgr};
@@ -282,13 +282,20 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         frame={{lineWidth: 0}}
                         data={chartData}
                     >
-                        {({points}) => (
-                            <Line
-                                points={points.y}
-                                color={VictoryTheme.colors.default}
-                                strokeWidth={2}
-                                curveType="linear"
-                            />
+                        {({points, yScale, yTicks}) => (
+                            <>
+                                <AreaGradient
+                                    points={points.y}
+                                    baselineY={yScale(Math.min(...yTicks))}
+                                    color={VictoryTheme.colors.default}
+                                />
+                                <Line
+                                    points={points.y}
+                                    color={VictoryTheme.colors.default}
+                                    strokeWidth={2}
+                                    curveType="linear"
+                                />
+                            </>
                         )}
                     </CartesianChart>
                 )}

@@ -72,10 +72,6 @@ jest.mock('@userActions/App', () => ({
     setLocale: jest.fn(),
 }));
 
-jest.mock('@userActions/Agent', () => ({
-    openAgentsPage: jest.fn(),
-}));
-
 jest.mock('@userActions/Download', () => ({
     clearDownloads: jest.fn(),
 }));

@@ -4,10 +4,10 @@ import {View} from 'react-native';
 import type {AvatarProps} from '@components/Avatar';
 import Avatar from '@components/Avatar';
 import {getExpensifyIcon} from '@components/Icon/chunks/expensify-icons.chunk';
-import {PRESET_AVATAR_CATALOG} from '@libs/Avatars/PresetAvatarCatalog';
+import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import CONST from '@src/CONST';
 
-const AVATAR_URL = PRESET_AVATAR_CATALOG['car-blue100'].url;
+const AVATAR_URL = USER_AVATARS.entries['car-blue100'].url;
 
 type AvatarStory = StoryFn<typeof Avatar>;
 
