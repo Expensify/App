@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
-import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
+import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import {mfaMachine, snapshotToState} from '@components/MultifactorAuthentication/machine';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
@@ -17,7 +17,7 @@ import getPlatform from '@libs/getPlatform';
 import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 import type {DeviceBiometrics} from '@src/types/onyx';
 import MultifactorAuthenticationExternalApiContext from './MultifactorAuthenticationExternalApiContext';
-import type {MultifactorAuthenticationExternalApi} from './MultifactorAuthenticationExternalApiContext';
+import type {MultifactorAuthenticationExecuteScenarioArgs, MultifactorAuthenticationExternalApi} from './MultifactorAuthenticationExternalApiContext';
 import MultifactorAuthenticationInternalApiContext from './MultifactorAuthenticationInternalApiContext';
 import type {MultifactorAuthenticationInternalApi} from './MultifactorAuthenticationInternalApiContext';
 
@@ -61,7 +61,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      * Initiates a multifactor authentication scenario: captures start-of-flow telemetry, then sends
      * INIT. The machine takes over from there - the Provider holds no flow logic.
      */
-    const executeScenario = async <T extends MultifactorAuthenticationScenario>(scenarioName: T, params?: MultifactorAuthenticationScenarioParams<T>): Promise<void> => {
+    const executeScenario = async <T extends MultifactorAuthenticationScenario>(scenarioName: T, ...args: MultifactorAuthenticationExecuteScenarioArgs<T>): Promise<void> => {
+        const [params] = args;
+
         // Perf short-circuit: once a scenario is active the machine ignores INIT, so skip the redundant
         // captureCredentialsState() native call + breadcrumb on the happy path.
         if (state.scenario) {

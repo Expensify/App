@@ -1,35 +1,13 @@
-import type {EmptyObject} from 'type-fest';
-import type {
-    MultifactorAuthenticationScenario,
-    MultifactorAuthenticationScenarioConfig,
-    MultifactorAuthenticationScenarioConfigRecord,
-} from '@components/MultifactorAuthentication/config/types';
+import type {ValueOf} from 'type-fest';
+import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfigRecord} from '@components/MultifactorAuthentication/config/types';
 import CONST from '@src/CONST';
-import type {Payload as AuthorizeTransactionPayload} from './AuthorizeTransaction';
 import AuthorizeTransaction from './AuthorizeTransaction';
 import BiometricsTest from './BiometricsTest';
-import type {Payload as ChangePINPayload} from './ChangePIN';
 import ChangePIN from './ChangePIN';
 import customConfig from './DefaultUserInterface';
-import type {Payload as RevealCardDetailsPayload} from './RevealCardDetails';
 import RevealCardDetails from './RevealCardDetails';
-import type {Payload as RevealPINPayload} from './RevealPIN';
 import RevealPIN from './RevealPIN';
-import type {Payload as SetPINOrderCardPayload} from './SetPINOrderCard';
 import SetPINOrderCard from './SetPINOrderCard';
-
-/**
- * Payload types for multifactor authentication scenarios.
- * Each scenario that requires additional parameters should have its payload type defined here.
- */
-type Payloads = {
-    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: EmptyObject;
-    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: SetPINOrderCardPayload;
-    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: AuthorizeTransactionPayload;
-    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN]: RevealPINPayload;
-    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.CHANGE_PIN]: ChangePINPayload;
-    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_CARD_DETAILS]: RevealCardDetailsPayload;
-};
 
 /**
  * Configuration records for all multifactor authentication scenarios.
@@ -44,16 +22,26 @@ const MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG = {
 } as const satisfies MultifactorAuthenticationScenarioConfigRecord;
 
 /**
- * Every entry of the config record satisfies MultifactorAuthenticationScenarioConfig at definition, but the
- * per-scenario action signatures make the record's value union non-narrowable, so the lookup needs
- * an assertion. This accessor owns the single assertion so callers don't repeat it; params are
- * type-guarded separately by ExecuteScenarioParams<T>.
+ * Resolved config for a single scenario key, preserving that scenario's specific action signature.
+ * This is the precise type behind {@link getScenarioConfig}'s return.
  */
-function getScenarioConfig(scenarioName: MultifactorAuthenticationScenario): MultifactorAuthenticationScenarioConfig {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenarioName] as MultifactorAuthenticationScenarioConfig;
+type MultifactorAuthenticationScenarioConfigFor<T extends MultifactorAuthenticationScenario> = (typeof MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG)[T];
+
+/**
+ * Union of every resolved scenario config - the value type to store when the scenario is dynamic (not
+ * known at the type level), e.g. the `scenario` field on the runtime MFA state.
+ */
+type MultifactorAuthenticationResolvedScenarioConfig = ValueOf<typeof MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG>;
+
+/**
+ * Returns the config for a scenario key, narrowed through the generic so each scenario's action
+ * signature survives without a type assertion. Call sites that store the result next to a dynamic
+ * scenario name should widen the field to {@link MultifactorAuthenticationResolvedScenarioConfig}.
+ */
+function getScenarioConfig<T extends MultifactorAuthenticationScenario>(scenarioName: T): MultifactorAuthenticationScenarioConfigFor<T> {
+    return MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenarioName];
 }
 
 export default MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG;
 export {getScenarioConfig};
-export type {Payloads};
+export type {MultifactorAuthenticationScenarioConfigFor, MultifactorAuthenticationResolvedScenarioConfig};

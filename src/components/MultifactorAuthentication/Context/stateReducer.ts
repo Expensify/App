@@ -1,4 +1,3 @@
-import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
 import CONST from '@src/CONST';
 import {DEFAULT_STATE} from './state';
 import type {Action, MultifactorAuthenticationState} from './types';
@@ -38,8 +37,6 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             return {...state, authorizationChallenge: action.payload};
         case 'SET_SOFT_PROMPT_APPROVED':
             return {...state, softPromptApproved: action.payload};
-        case 'SET_SCENARIO':
-            return {...state, scenario: action.payload};
         case 'SET_PAYLOAD':
             return {...state, payload: action.payload};
         case 'SET_REGISTRATION_COMPLETE':
@@ -55,19 +52,6 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             return {...state, scenarioResponse: action.payload};
         case 'SET_CANCEL_CONFIRM_VISIBLE':
             return {...state, isCancelConfirmVisible: action.payload};
-        case 'INIT': {
-            // Race guard: drop duplicate INIT — reducer sees latest state, catches stale-closure dispatches.
-            if (state.scenario) {
-                return state;
-            }
-            const scenario = getScenarioConfig(action.payload.scenario);
-            return {
-                ...DEFAULT_STATE,
-                scenarioName: action.payload.scenario,
-                scenario,
-                payload: action.payload.payload,
-            };
-        }
         case 'CLOSE_MODAL':
             // Also clear isCancelConfirmVisible. CLOSE_MODAL can close the navigator without the
             // flow ever completing (e.g. cancel() short-circuits to CLOSE_MODAL when offline), so
