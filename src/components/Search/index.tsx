@@ -351,6 +351,7 @@ function Search({
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributesDerivedValue = useReportAttributes();
 
@@ -604,7 +605,8 @@ function Search({
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
-            cardList: nonPersonalAndWorkspaceCards,
+            cardList: personalAndWorkspaceCards,
+            nonPersonalAndWorkspaceCardList: nonPersonalAndWorkspaceCards,
             isOffline,
             allTransactionViolations: violations,
             customCardNames,
@@ -639,6 +641,7 @@ function Search({
         email,
         isActionLoadingSet,
         cardFeeds,
+        personalAndWorkspaceCards,
         nonPersonalAndWorkspaceCards,
         policies,
         bankAccountList,

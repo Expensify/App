@@ -115,6 +115,7 @@ function TransactionItemRowWide({
     totalPerAttendee,
     transactionThreadReportID,
     createdAt,
+    isMarkAsDone,
 }: TransactionItemRowWideProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -315,6 +316,7 @@ function TransactionItemRowWide({
                                 hash={transactionItem?.hash}
                                 amount={report?.total}
                                 shouldDisablePointerEvents={isDisabled}
+                                isMarkAsDone={isMarkAsDone}
                             />
                         )}
                     </View>

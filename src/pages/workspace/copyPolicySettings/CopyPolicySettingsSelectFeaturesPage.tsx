@@ -22,6 +22,7 @@ import {
     areAllTargetsAccountingCompatible,
     areAllTargetsCompatibleForAccountingPart,
     FEATURE_ROWS,
+    getReceiptPartnersCopySettingsDescription,
     getTimeTrackingCopySettingsDescription,
     isCopyPolicySettingsPartEnabledOnSource,
 } from '@libs/CopyPolicySettingsUtils';
@@ -174,6 +175,8 @@ function CopyPolicySettingsSelectFeaturesPage() {
                 return perDiemCount > 0 ? `${perDiemCount} ${translate('workspace.common.perDiem').toLowerCase()}` : undefined;
             case 'timeTracking':
                 return getTimeTrackingCopySettingsDescription(sourcePolicy, translate);
+            case 'receiptPartners':
+                return getReceiptPartnersCopySettingsDescription(sourcePolicy, translate);
             case 'invoices':
                 return invoiceConfigurationText || undefined;
             default:

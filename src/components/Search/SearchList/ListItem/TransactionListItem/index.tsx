@@ -16,6 +16,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type {TransactionPreviewData} from '@libs/actions/Search';
@@ -73,16 +74,17 @@ function TransactionListItem<TItem extends ListItem>({
     const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
+    const [activePolicyIDFromOnyx] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     // Use report's policyID as fallback when transaction doesn't have policyID directly
     // Use moving-expense policy as final fallback for SelfDM tracking expenses.
     // NOTE: Using || instead of ?? to treat empty string "" as falsy
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const explicitPolicyID = transactionItem.policyID || snapshotReport?.policyID;
-    let policyID = explicitPolicyID;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    let policyID = explicitPolicyID || activePolicyIDFromOnyx;
     if (!policyID && transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         policyID = policyForMovingExpensesID;
     }
@@ -107,6 +109,11 @@ function TransactionListItem<TItem extends ListItem>({
         transactionItem,
     ]);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID)}`);
+    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy} = useReportPaymentContext({
+        reportID: transactionItem.reportID,
+        chatReportPolicyID: parentChatReport?.policyID,
+    });
 
     const liveTransactionItem = useLiveRowCapabilities<TransactionListItemType>({
         item: transactionItem,
@@ -160,7 +167,7 @@ function TransactionListItem<TItem extends ListItem>({
     const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
             hash: currentSearchHash,
-            item: transactionItem,
+            item: liveTransactionItem,
             goToItem: () => onSelectRow(item, transactionPreviewData, event),
             snapshotReport,
             snapshotPolicy,
@@ -175,6 +182,16 @@ function TransactionListItem<TItem extends ListItem>({
             amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
+            currentUserAccountID,
+            currentUserLogin,
+            introSelected,
+            betas,
+            isSelfTourViewed,
+            activePolicy,
+            chatReport: parentChatReport,
+            chatReportPolicy,
+            iouReportCurrentNextStepDeprecated: nextStep,
+            searchData: currentSearchResults?.data,
         });
     };
 

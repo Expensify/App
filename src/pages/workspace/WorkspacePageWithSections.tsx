@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {emailSelector} from '@selectors/Session';
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -11,6 +10,7 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -146,9 +146,7 @@ function WorkspacePageWithSections({
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {
-        selector: emailSelector,
-    });
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     const isLoading = isPageLoading ? true : !shouldSkipVBBACall && (reimbursementAccount?.isLoading ?? false);
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
@@ -188,7 +186,8 @@ function WorkspacePageWithSections({
         // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
         const canShowPage = hasAccessToPolicyFeature ?? (canEditWorkspaceSettings(policy, currentUserLogin) || shouldShowNonAdmin);
 
-        return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
+        const shouldShowPolicyOrFeature = hasAccessToPolicyFeature ?? shouldShowPolicy;
+        return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicyOrFeature && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUserLogin, hasAccessToPolicyFeature, isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
 
