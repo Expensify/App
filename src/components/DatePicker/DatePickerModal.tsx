@@ -1,6 +1,8 @@
 import {setYear} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
+import {Platform} from 'react-native';
 import type {View} from 'react-native';
+import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,6 +48,32 @@ function DatePickerModal({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+
+    useEffect(() => {
+        if (
+            Platform.OS !== 'web' ||
+            !isSmallScreenWidth ||
+            !isVisible ||
+            !shouldCloseWhenBrowserNavigationChanged ||
+            typeof window === 'undefined' ||
+            typeof window.addEventListener !== 'function'
+        ) {
+            return;
+        }
+
+        const listener = () => {
+            if (isInternalPopstateInProgress()) {
+                return;
+            }
+
+            onClose?.();
+        };
+
+        window.addEventListener('popstate', listener);
+        return () => {
+            window.removeEventListener('popstate', listener);
+        };
+    }, [isSmallScreenWidth, isVisible, onClose, shouldCloseWhenBrowserNavigationChanged]);
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
