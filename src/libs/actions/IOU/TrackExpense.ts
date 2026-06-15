@@ -1497,6 +1497,8 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             value: {
                 parentReportActionID: iouParams.reportActionID,
                 parentReportID: iouParams.reportID,
+                chatReportID: iouParams.reportID,
+                policyID: workspaceParams?.policyID,
             },
         });
 
@@ -1506,6 +1508,8 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             value: {
                 parentReportActionID: transactionThreadReport?.parentReportActionID,
                 parentReportID: transactionThreadReport?.parentReportID,
+                chatReportID: transactionThreadReport?.chatReportID,
+                policyID: transactionThreadReport?.policyID,
             },
         });
     }
