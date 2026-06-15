@@ -8299,6 +8299,12 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pay',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
+            describeSearch: {
+                title: 'Describe your search',
+                inputLabel: 'Your search',
+                description: 'Use plain English to describe what you\'re looking for, like "meals over $50 last month."',
+                buttonText: 'Create filters',
+            },
         },
         display: {
             label: 'Display',
