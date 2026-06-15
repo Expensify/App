@@ -2132,7 +2132,7 @@ function getUpdateTrackExpenseParams(
             ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE)
             : currentTransactionViolations;
 
-        const violationsOnyxData = {
+        const violationsOnyxData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: syncCustomUnitRateOutOfDateRangeViolation(optimisticViolations, updatedTransaction, policyForTransaction),

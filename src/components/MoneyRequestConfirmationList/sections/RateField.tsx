@@ -108,8 +108,8 @@ function RateField({
                 type: CONST.VIOLATION_TYPES.WARNING,
                 showInReview: true,
                 data: {
-                    startDate: mileageRate.startDate,
-                    endDate: mileageRate.endDate,
+                    startDate: mileageRate.startDate ?? undefined,
+                    endDate: mileageRate.endDate ?? undefined,
                 },
             },
             translate,
