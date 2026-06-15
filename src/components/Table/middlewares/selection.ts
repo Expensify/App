@@ -2,6 +2,7 @@ import type {Dispatch, SetStateAction} from 'react';
 import {useEffect, useRef, useState} from 'react';
 import type {TableData, TableRow} from '@components/Table/types';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {MiddlewareHookResult} from './types';
@@ -15,6 +16,9 @@ type UseSelectionProps<DataType extends TableData> = {
 
     /** The list of selected keys */
     selectedKeys: string[];
+
+    /** The list of actively applied filters */
+    currentFilters: Record<string, unknown>;
 
     /** Callback that is fired when the selection of rows in the table changes */
     onRowSelectionChange?: (selectedRowKeys: string[]) => void;
@@ -46,6 +50,7 @@ export default function useSelection<DataType extends TableData>({
     data,
     originalSelectableCount,
     selectedKeys,
+    currentFilters,
     onRowSelectionChange,
 }: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -60,33 +65,37 @@ export default function useSelection<DataType extends TableData>({
     const selectableKeys = data.filter((item) => !item.disabled && !item.isSelectionDisabled).map((item) => item.keyForList);
     const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
 
-    // Automatically disable selection mode when switching to desktop, or enable it when switching to mobile if there are selected rows
+    // Sync the selection mode with the screen size & selection state
     useEffect(() => {
-        if (shouldUseNarrowLayout && !isSelectionModeEnabled && selectedKeys.length) {
+        const isMobileMissingSelectionMode = shouldUseNarrowLayout && !isSelectionModeEnabled && selectedKeys.length;
+        const isDesktopWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !shouldUseNarrowLayout;
+        const isSelectionModeEnabledWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && originalSelectableCount > 0;
+
+        if (isMobileMissingSelectionMode) {
             turnOnMobileSelectionMode();
-        } else if (!shouldUseNarrowLayout && isSelectionModeEnabled && !selectedKeys.length) {
+        } else if (isDesktopWithoutSelectableKeys) {
+            turnOffMobileSelectionMode();
+        } else if (isSelectionModeEnabledWithoutSelectableKeys) {
             turnOffMobileSelectionMode();
         }
-    }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length]);
+    }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount]);
 
-    // When there are genuinely no selectable items left, turn off selection mode on mobile.
-    // Stay in selection mode as long as the original data has non-disabled items (they may be hidden by search/filter).
+    // When selection mode is turned off, clear the list of selected keys, so that re-enabling selection mode doesn't retain rows
+    const wasSelectionModeEnabled = usePrevious(isSelectionModeEnabled);
     useEffect(() => {
-        if (selectableKeys.length || !isSelectionModeEnabled || originalSelectableCount > 0) {
+        if (wasSelectionModeEnabled && !isSelectionModeEnabled) {
+            clearSelection();
+        }
+    }, [isSelectionModeEnabled, selectedKeys.length]);
+
+    // When the table filters change, clear the current selection
+    useEffect(() => {
+        if (selectedKeys.length === 0) {
             return;
         }
 
-        turnOffMobileSelectionMode();
-    }, [selectableKeys.length, isSelectionModeEnabled, originalSelectableCount]);
-
-    //  When selection mode is turned off, clear the list of selected keys, so that re-enabling selection mode doesn't retain rows
-    const prevSelectionModeEnabledRef = useRef(isSelectionModeEnabled);
-    useEffect(() => {
-        if (prevSelectionModeEnabledRef.current && !isSelectionModeEnabled) {
-            onRowSelectionChange?.([]);
-        }
-        prevSelectionModeEnabledRef.current = isSelectionModeEnabled;
-    }, [isSelectionModeEnabled, onRowSelectionChange]);
+        clearSelection();
+    }, [currentFilters]);
 
     /**
      * Clear all of the currently selected keys

@@ -39,26 +39,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
-
-    const roleLabel = (() => {
-        if (item.role === CONST.POLICY.ROLE.OWNER) {
-            return translate('common.owner');
-        }
-        if (item.role === CONST.POLICY.ROLE.ADMIN) {
-            return translate('common.admin');
-        }
-        if (item.role === CONST.POLICY.ROLE.AUDITOR) {
-            return translate('common.auditor');
-        }
-        if (item.role === CONST.POLICY.ROLE.EDITOR) {
-            return translate('common.editor');
-        }
-        if (item.role === CONST.POLICY.ROLE.CARD_ADMIN) {
-            return translate('common.cardAdmin');
-        }
-        return '';
-    })();
-
+    const roleLabel = item.role !== CONST.POLICY.ROLE.USER ? translate('workspace.common.roleName', CONST.POLICY.ROLE.ADMIN) : '';
     const accessibilityLabel = `${item.name}, ${item.email}, ${roleLabel}`;
 
     const getSecondaryAvatarContainerStyle = (hovered: boolean) => [

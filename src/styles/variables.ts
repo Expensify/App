@@ -140,7 +140,7 @@ export default {
     tableCaretColumnWidth: 20,
     domainTableActionColumnWidth: 64,
     workspaceTableActionColumnWidth: 64,
-    workspaceMembersRoleColumnWidth: 72,
+    workspaceMembersRoleColumnWidth: 110,
     sectionMenuItemHeight: 52,
     sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),

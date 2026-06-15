@@ -62,6 +62,7 @@ type UseFilteringProps<DataType extends TableData, FilterKey extends string = st
  * @template FilterKey - The type of filter keys.
  */
 type UseFilteringResult<DataType extends TableData, FilterKey extends string = string> = MiddlewareHookResult<DataType, FilteringMethods<FilterKey>> & {
+    hasActiveFilters: boolean;
     currentFilters: Record<FilterKey, unknown>;
 };
 
@@ -108,7 +109,15 @@ function useFiltering<DataType extends TableData, FilterKey extends string = str
         getActiveFilters,
     };
 
-    return {middleware, currentFilters, methods};
+    const hasActiveFilters = filters
+        ? (Object.keys(currentFilters) as FilterKey[]).some((key) => {
+              const filterValue = currentFilters[key];
+              const defaultValue = filters[key]?.default;
+              return filterValue !== defaultValue;
+          })
+        : false;
+
+    return {middleware, currentFilters, hasActiveFilters, methods};
 }
 
 /**
