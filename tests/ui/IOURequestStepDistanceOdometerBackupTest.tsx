@@ -9,8 +9,8 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import * as TransactionEdit from '@libs/actions/TransactionEdit';
-import DistanceTabGuardContext from '@pages/iou/request/DistanceTabGuardContext';
-import type {DistanceTabGuard, RegisterDistanceTabGuard} from '@pages/iou/request/DistanceTabGuardContext';
+import TabSwitchGuardContext from '@libs/Navigation/TabSwitchGuardContext';
+import type {RegisterTabSwitchGuard, TabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 import IOURequestStepDistanceOdometer from '@pages/iou/request/step/IOURequestStepDistanceOdometer';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -115,7 +115,7 @@ jest.mock('@react-navigation/native', () => {
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
         useFocusEffect: jest.fn(),
         usePreventRemove: jest.fn(),
-        useRoute: jest.fn(),
+        useRoute: jest.fn(() => ({key: 'distance-odometer', name: 'Money_Request_Step_Distance_Odometer', params: {}})),
     };
 });
 
@@ -235,7 +235,7 @@ describe('IOURequestStepDistanceOdometer - edit-from-confirmation backup is rest
 });
 
 // Integration tests for the discard guard: they capture the real closure registered via
-// useRegisterDistanceTabGuard (through DistanceTabGuardContext) and call its getHasUnsavedChanges().
+// useRegisterTabSwitchGuard (through TabSwitchGuardContext) and call its getHasUnsavedChanges().
 //
 // Setup is a save-for-later draft that holds the readings; the user then edits the image. The tests assert both
 // directions:
@@ -260,11 +260,11 @@ describe('IOURequestStepDistanceOdometer - discard guard detects user image chan
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
     });
 
-    function renderWithCapturedGuard(register: RegisterDistanceTabGuard) {
+    function renderWithCapturedGuard(register: RegisterTabSwitchGuard) {
         return render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
-                    <DistanceTabGuardContext.Provider value={register}>
+                    <TabSwitchGuardContext.Provider value={register}>
                         <IOURequestStepDistanceOdometer
                             route={{
                                 key: 'Money_Request_Step_Distance_Odometer-test',
@@ -280,7 +280,7 @@ describe('IOURequestStepDistanceOdometer - discard guard detects user image chan
                             // @ts-expect-error minimal navigation for test
                             navigation={undefined}
                         />
-                    </DistanceTabGuardContext.Provider>
+                    </TabSwitchGuardContext.Provider>
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
         );
@@ -293,8 +293,8 @@ describe('IOURequestStepDistanceOdometer - discard guard detects user image chan
         if (startImage) {
             transaction.comment = {...transaction.comment, odometerStartImage: startImage};
         }
-        let capturedGuard: DistanceTabGuard | undefined;
-        const register: RegisterDistanceTabGuard = (guard) => {
+        let capturedGuard: TabSwitchGuard | undefined;
+        const register: RegisterTabSwitchGuard = (guard) => {
             capturedGuard = guard;
             return () => {};
         };

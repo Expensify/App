@@ -9,8 +9,8 @@ import Onyx from 'react-native-onyx';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import * as OdometerTransactionUtils from '@libs/actions/OdometerTransactionUtils';
-import DistanceTabGuardContext from '@pages/iou/request/DistanceTabGuardContext';
-import type {DistanceTabGuard, RegisterDistanceTabGuard} from '@pages/iou/request/DistanceTabGuardContext';
+import TabSwitchGuardContext from '@libs/Navigation/TabSwitchGuardContext';
+import type {RegisterTabSwitchGuard, TabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 import IOURequestStepDistanceOdometer from '@pages/iou/request/step/IOURequestStepDistanceOdometer';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,7 +79,7 @@ jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
     useFocusEffect: jest.fn(),
     usePreventRemove: jest.fn(),
-    useRoute: jest.fn(),
+    useRoute: jest.fn(() => ({key: 'distance-odometer', name: 'Money_Request_Distance_Create', params: {}})),
 }));
 
 const ACCOUNT_ID = 1;
@@ -118,11 +118,11 @@ function createOdometerTransaction(withImage: boolean): Transaction {
     } as unknown as Transaction;
 }
 
-function renderCreateFlow(register: RegisterDistanceTabGuard) {
+function renderCreateFlow(register: RegisterTabSwitchGuard) {
     return render(
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
-                <DistanceTabGuardContext.Provider value={register}>
+                <TabSwitchGuardContext.Provider value={register}>
                     <IOURequestStepDistanceOdometer
                         route={{
                             key: 'Money_Request_Distance_Create-test',
@@ -138,7 +138,7 @@ function renderCreateFlow(register: RegisterDistanceTabGuard) {
                         // @ts-expect-error minimal navigation for test
                         navigation={undefined}
                     />
-                </DistanceTabGuardContext.Provider>
+                </TabSwitchGuardContext.Provider>
             </CurrentUserPersonalDetailsProvider>
         </OnyxListItemProvider>,
     );
@@ -189,7 +189,7 @@ describe('IOURequestStepDistanceOdometer - create-flow discard guard (no stored 
             await Onyx.set(ONYXKEYS.ODOMETER_DRAFT, existingDraft);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, createOdometerTransaction(true));
         });
-        let resumeGuard: DistanceTabGuard | undefined;
+        let resumeGuard: TabSwitchGuard | undefined;
         renderCreateFlow((guard) => {
             resumeGuard = guard;
             return () => {};
@@ -208,7 +208,7 @@ describe('IOURequestStepDistanceOdometer - create-flow discard guard (no stored 
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
 
-        let guard: DistanceTabGuard | undefined;
+        let guard: TabSwitchGuard | undefined;
         renderCreateFlow((capturedGuard) => {
             guard = capturedGuard;
             return () => {};

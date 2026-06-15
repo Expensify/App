@@ -46,7 +46,6 @@ import {getOdometerImageIdentity} from '@libs/OdometerImageUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import {useRegisterDistanceTabGuard} from '@pages/iou/request/DistanceTabGuardContext';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -572,8 +571,6 @@ function IOURequestStepDistanceOdometer({
         });
     }, []);
 
-    useRegisterDistanceTabGuard(CONST.TAB_REQUEST.DISTANCE_ODOMETER, getHasUnsavedChanges, handleTabSwitchDiscard);
-
     useDiscardChangesConfirmation({
         getHasUnsavedChanges,
         onCancel: restoreLastInputFocus,
@@ -583,6 +580,7 @@ function IOURequestStepDistanceOdometer({
                   backupHandledManually.current = true;
               }
             : undefined,
+        onTabSwitchDiscard: handleTabSwitchDiscard,
         onVisibilityChange: setIsDiscardModalVisible,
     });
 
