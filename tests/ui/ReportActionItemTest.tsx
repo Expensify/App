@@ -138,6 +138,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                chatReport={undefined}
                                 report={undefined}
                                 transactionThreadReport={undefined}
                                 parentReportAction={undefined}
@@ -251,6 +252,16 @@ describe('ReportActionItem', () => {
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('iou.forwarded'))).toBeOnTheScreen();
+        });
+
+        it('FORWARDED action with memo', async () => {
+            const memo = 'Testing approval memo';
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {automaticAction: false, message: memo});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.forwarded', memo))).toBeOnTheScreen();
         });
 
         it('SUBMITTED action', async () => {
@@ -424,6 +435,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -472,6 +484,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -524,6 +537,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -568,6 +582,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -642,6 +657,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -703,6 +719,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -786,6 +803,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -965,6 +983,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1012,6 +1031,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1166,6 +1186,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1345,6 +1366,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', policyID: 'pol123'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1446,6 +1468,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1481,6 +1504,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1518,6 +1542,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1560,6 +1585,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{
                                         reportID: 'threadReport',
                                         type: CONST.REPORT.TYPE.CHAT,
@@ -1602,6 +1628,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1642,6 +1669,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1680,6 +1708,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1717,6 +1746,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1757,6 +1787,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1798,6 +1829,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1923,6 +1955,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', type: CONST.REPORT.TYPE.CHAT}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1960,6 +1993,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', isWaitingOnBankAccount: true}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -2539,6 +2573,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: 'testReport', chatReportID: 'chatReport1'}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -2638,6 +2673,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     transactionThreadReport={undefined}
                                     report={{reportID: HARVEST_REPORT_ID}}
                                     parentReportAction={undefined}
@@ -2679,6 +2715,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={{reportID: HARVEST_REPORT_ID}}
                                     parentReportAction={undefined}
                                     transactionThreadReport={undefined}
@@ -2728,6 +2765,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={undefined}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}

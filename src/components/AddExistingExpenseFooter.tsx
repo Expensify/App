@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -60,38 +59,39 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
             return;
         }
 
-        Navigation.dismissToSuperWideRHP();
-        InteractionManager.runAfterInteractions(() => {
-            if (report && isIOUReport(report)) {
-                convertBulkTrackedExpensesToIOU({
-                    transactions,
-                    iouReport: report,
-                    chatReport,
-                    isASAPSubmitBetaEnabled,
-                    currentUserAccountIDParam: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    currentUserEmailParam: session?.email ?? '',
-                    transactionViolations,
-                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    quickAction,
-                    personalDetails,
-                    betas,
-                    policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
-                });
-            } else {
-                changeTransactionsReport({
-                    transactionIDs: [...selectedIds],
-                    isASAPSubmitBetaEnabled,
-                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    email: session?.email ?? '',
-                    newReport: reportToConfirm,
-                    policy,
-                    reportNextStep,
-                    policyCategories,
-                    policyTagList,
-                    transactions,
-                    transactionViolations,
-                });
-            }
+        Navigation.dismissToSuperWideRHP({
+            afterTransition: () => {
+                if (report && isIOUReport(report)) {
+                    convertBulkTrackedExpensesToIOU({
+                        transactions,
+                        iouReport: report,
+                        chatReport,
+                        isASAPSubmitBetaEnabled,
+                        currentUserAccountIDParam: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        currentUserEmailParam: session?.email ?? '',
+                        transactionViolations,
+                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        quickAction,
+                        personalDetails,
+                        betas,
+                        policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
+                    });
+                } else {
+                    changeTransactionsReport({
+                        transactionIDs: [...selectedIds],
+                        isASAPSubmitBetaEnabled,
+                        accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        email: session?.email ?? '',
+                        newReport: reportToConfirm,
+                        policy,
+                        reportNextStep,
+                        policyCategories,
+                        policyTagList,
+                        transactions,
+                        transactionViolations,
+                    });
+                }
+            },
         });
         setErrorMessage('');
     };
