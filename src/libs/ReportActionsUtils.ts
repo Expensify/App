@@ -799,8 +799,19 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportID: string | null, transactionThreadReportActions: ReportAction[], isSelfDM = false): ReportAction[] {
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
 
-    // We don't want to combine report actions of transaction thread in iou report of send money request because we display the transaction report of send money request as a normal thread
-    if (!transactionThreadReportID || isSentMoneyReport) {
+    // SendMoney reports never legitimately have a `type=create` IOU action — drop any that appear,
+    // since they can only be phantoms synthesized by OpenReport's orphan-thread path.
+    if (isSentMoneyReport) {
+        return reportActions.filter((action) => {
+            if (!isMoneyRequestAction(action)) {
+                return true;
+            }
+            return getOriginalMessage(action)?.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE;
+        });
+    }
+
+    // Nothing to combine when there's no transaction thread.
+    if (!transactionThreadReportID) {
         return reportActions;
     }
 
