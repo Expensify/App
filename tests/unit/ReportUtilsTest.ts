@@ -18515,7 +18515,7 @@ describe('ReportUtils', () => {
         it('returns false when policy is empty', () => {
             const report = buildExpenseReportForAutoReimbursement();
 
-            expect(canBeAutoReimbursed(report, {})).toBe(false);
+            expect(canBeAutoReimbursed(report, undefined)).toBe(false);
         });
     });
 });
