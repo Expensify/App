@@ -24,7 +24,6 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -75,7 +74,6 @@ function getLimitHintTranslationKey(limitType?: string): LimitHintTranslationKey
 }
 
 function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
-    const {isProduction} = useEnvironment();
     const navigation = useNavigation<NavigationProp<SettingsNavigatorParamList>>();
     const {policyID, cardID, backTo} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.path);
@@ -109,7 +107,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     const workspaceCard = workspaceCards?.[cardID];
     const card = workspaceCard ?? cardFromCardList;
-    const currency = useCurrencyForExpensifyCard({policyID});
+    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
     const formattedAvailableSpendAmount = convertToDisplayString(card?.availableSpend, currency);
@@ -119,6 +117,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const remainingLimitHintTranslationKey = getLimitHintTranslationKey(card?.nameValuePairs?.limitType);
     const remainingLimitHint = remainingLimitHintTranslationKey ? translate(remainingLimitHintTranslationKey, formattedAvailableSpendAmount) : undefined;
     const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const canEditSpendRules = canWriteExpensifyCard && !!policy?.areRulesEnabled;
     const isDeactivated = card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
     const isCardOpen = card?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
@@ -146,20 +145,23 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
     }, [canWriteExpensifyCard, defaultFundID, fundCardSettings?.hasOnceLoaded, fundCardSettings?.isLoading, policyID]);
 
-    const deactivateCard = async () => {
-        const {action} = await showConfirmModal({
+    const deactivateCard = () => {
+        showConfirmModal({
             title: translate('workspace.card.deactivateCardModal.deactivateCard'),
             shouldSetModalVisibility: false,
             prompt: translate('workspace.card.deactivateCardModal.deactivateConfirmation'),
             confirmText: translate('workspace.card.deactivateCardModal.deactivate'),
             cancelText: translate('common.cancel'),
             danger: true,
-        });
-        if (action === ModalActions.CONFIRM) {
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
             Navigation.goBack(undefined, {
                 afterTransition: () => deactivateCardAction(defaultFundID, card),
             });
-        }
+        });
     };
 
     const handleFreezePress = () => {
@@ -348,7 +350,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
-                    {!isProduction && spendRulesSummary.length > 0 && (
+                    {spendRulesSummary.length > 0 && (
                         <MenuItemWithTopDescription
                             interactive={false}
                             description={translate('cardPage.spendRules')}
@@ -387,7 +389,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                     </OfflineWithFeedback>
 
                     <View style={styles.mt6}>
-                        {!isProduction && canWriteExpensifyCard && (
+                        {canEditSpendRules && (
                             <MenuItem
                                 icon={expensifyIcons.CreditCardLock}
                                 title={translate('cardPage.editSpendRules')}

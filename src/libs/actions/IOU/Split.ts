@@ -1,6 +1,4 @@
 import {fastMerge} from 'expensify-common';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -16,6 +14,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -34,6 +33,7 @@ import {
     getParsedComment,
     getReportNotificationPreference,
     getReportOrDraftReport,
+    getReportTransactions,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
@@ -78,6 +78,7 @@ import {
 } from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, OneOnOneIOUReport} from './MoneyRequestBuilder';
 import {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 
@@ -326,10 +327,11 @@ function splitBill({
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
         },
     );
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-
     if (shouldHandleNavigation) {
+        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
+    } else {
+        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
 
     notifyNewAction(splitData.chatReportID, undefined, true);
@@ -437,10 +439,11 @@ function splitBillAndOpenReport({
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
         },
     );
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-
     if (shouldHandleNavigation) {
+        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
+    } else {
+        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
     notifyNewAction(splitData.chatReportID, undefined, true);
 }
@@ -513,6 +516,7 @@ function startSplitBill({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        iouReportID: splitChatReport.reportID,
         // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
         delegateAccountIDParam: undefined,
     });
@@ -1155,7 +1159,7 @@ function completeSplitBill(
 
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+    TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
     dismissModalAndOpenReportInInboxTab(chatReportID);
     notifyNewAction(chatReportID, undefined, true);
 }
@@ -1430,6 +1434,7 @@ function createSplitsAndOnyxData({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        iouReportID: splitChatReport.reportID,
         delegateAccountIDParam: delegateAccountID,
     });
 
@@ -2174,25 +2179,31 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     };
 
+    const isOneToTwoTransition = isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID));
+
     deferOrExecuteWrite(apiWrite, {
         shouldDeferForSearch: shouldDeferForSearch || !!(shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
     if (shouldHandleNavigation) {
-        const navigationActiveReportID = backToReport ?? activeReportID;
+        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-        handleNavigateAfterExpenseCreate({
-            activeReportID: navigationActiveReportID,
-            isFromGlobalCreate,
-            transactionID: parameters.transactionID,
-            shouldAddPendingNewTransactionIDs: navigationActiveReportID === parameters.chatReportID,
-        });
+    } else {
+        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
+
+    const navigationActiveReportID = backToReport ?? activeReportID;
+    handleNavigateAfterExpenseCreate({
+        activeReportID: navigationActiveReportID,
+        isFromGlobalCreate,
+        transactionID: parameters.transactionID,
+        shouldAddPendingNewTransactionIDs: isOneToTwoTransition || (shouldHandleNavigation && navigationActiveReportID === parameters.chatReportID),
+        shouldNavigate: shouldHandleNavigation,
+    });
 
     if (!isMoneyRequestReport) {
         notifyNewAction(activeReportID, undefined, true);

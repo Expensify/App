@@ -16,6 +16,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStepNew} from '@libs/NextStepUtils';
+import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
@@ -116,7 +117,9 @@ jest.mock('@libs/Sound', () => ({
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
+    navigate: jest.fn((_route: string, options?: {afterTransition?: () => void}) => {
+        options?.afterTransition?.();
+    }),
     getActiveRoute: jest.fn().mockReturnValue(''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     dismissModalWithReport: jest.fn(),
@@ -5277,6 +5280,7 @@ describe('actions/Report', () => {
                 undefined,
                 undefined,
                 undefined,
+                undefined,
                 CONST.DEFAULT_TIME_ZONE,
             );
 
@@ -5291,6 +5295,7 @@ describe('actions/Report', () => {
                 TestHelper.translateLocal,
                 TEST_USER_ACCOUNT_ID,
                 INTRO_SELECTED,
+                undefined,
                 undefined,
                 undefined,
                 undefined,
@@ -5324,6 +5329,7 @@ describe('actions/Report', () => {
                 undefined,
                 undefined,
                 undefined,
+                undefined,
                 CONST.DEFAULT_TIME_ZONE,
             );
             await waitForBatchedUpdates();
@@ -5354,6 +5360,7 @@ describe('actions/Report', () => {
                 undefined,
                 undefined,
                 undefined,
+                undefined,
                 CONST.DEFAULT_TIME_ZONE,
             );
             await waitForBatchedUpdates();
@@ -5379,7 +5386,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(EXISTING_CHILD_REPORT, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
+            Report.explain(EXISTING_CHILD_REPORT, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -5405,6 +5412,7 @@ describe('actions/Report', () => {
                 REPORT_ACTION,
                 TestHelper.translateLocal,
                 TEST_USER_ACCOUNT_ID,
+                undefined,
                 undefined,
                 undefined,
                 undefined,
@@ -5438,6 +5446,7 @@ describe('actions/Report', () => {
                 TEST_USER_ACCOUNT_ID,
                 INTRO_SELECTED,
                 testBetas,
+                undefined,
                 undefined,
                 undefined,
                 CONST.DEFAULT_TIME_ZONE,
@@ -5485,6 +5494,7 @@ describe('actions/Report', () => {
                 undefined,
                 isSelfTourViewed,
                 undefined,
+                undefined,
                 CONST.DEFAULT_TIME_ZONE,
             );
             await waitForBatchedUpdates();
@@ -5531,6 +5541,7 @@ describe('actions/Report', () => {
                 TestHelper.translateLocal,
                 TEST_USER_ACCOUNT_ID,
                 INTRO_SELECTED,
+                undefined,
                 undefined,
                 undefined,
                 undefined,
@@ -6683,6 +6694,10 @@ describe('actions/Report', () => {
         const TEST_USER_LOGIN = 'test@user.com';
         const PARTICIPANT_1_LOGIN = 'participant1@test.com';
         const PARTICIPANT_1_ACCOUNT_ID = 2;
+        const KNOWN_PARTICIPANTS_PERSONAL_DETAILS = {
+            [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN, displayName: 'Test user account'},
+            [PARTICIPANT_1_ACCOUNT_ID]: {accountID: PARTICIPANT_1_ACCOUNT_ID, login: PARTICIPANT_1_LOGIN, displayName: 'Participant One'},
+        };
 
         beforeEach(async () => {
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
@@ -6734,7 +6749,7 @@ describe('actions/Report', () => {
 
             // When create group chat is called
             Report.navigateToAndCreateGroupChat(
-                [TEST_USER_LOGIN, PARTICIPANT_1_LOGIN],
+                KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 GROUP_CHAT_NAME,
                 TEST_USER_LOGIN,
                 GROUP_CHAT_REPORT_ID,
@@ -6789,7 +6804,7 @@ describe('actions/Report', () => {
 
             // When create group chat is called with an avatar URI and isSelfTourViewed=true
             Report.navigateToAndCreateGroupChat(
-                [TEST_USER_LOGIN, PARTICIPANT_1_LOGIN],
+                KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 GROUP_CHAT_NAME,
                 TEST_USER_LOGIN,
                 GROUP_CHAT_REPORT_ID,
@@ -6824,7 +6839,7 @@ describe('actions/Report', () => {
 
             // When create group chat is called with isSelfTourViewed=true but onboarding already completed
             Report.navigateToAndCreateGroupChat(
-                [TEST_USER_LOGIN, PARTICIPANT_1_LOGIN],
+                KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 GROUP_CHAT_NAME,
                 TEST_USER_LOGIN,
                 GROUP_CHAT_REPORT_ID,
@@ -6851,7 +6866,7 @@ describe('actions/Report', () => {
 
             // When create group chat is called with an avatarFile
             Report.navigateToAndCreateGroupChat(
-                [TEST_USER_LOGIN, PARTICIPANT_1_LOGIN],
+                KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 'Avatar File Group',
                 TEST_USER_LOGIN,
                 GROUP_CHAT_REPORT_ID,
@@ -6880,9 +6895,18 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             await waitForBatchedUpdates();
 
-            // When create group chat is called with a participant not in allPersonalDetails
+            // When create group chat is called with a participant not in allPersonalDetails (flagged as an optimistic personal detail)
+            const unknownParticipantAccountID = getAccountIDsByLogins([UNKNOWN_PARTICIPANT_LOGIN]).at(0) ?? CONST.DEFAULT_NUMBER_ID;
             Report.navigateToAndCreateGroupChat(
-                [TEST_USER_LOGIN, UNKNOWN_PARTICIPANT_LOGIN],
+                {
+                    [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN, displayName: 'Test user account'},
+                    [unknownParticipantAccountID]: {
+                        accountID: unknownParticipantAccountID,
+                        login: UNKNOWN_PARTICIPANT_LOGIN,
+                        displayName: UNKNOWN_PARTICIPANT_LOGIN,
+                        isOptimisticPersonalDetail: true,
+                    },
+                },
                 'Optimistic Group',
                 TEST_USER_LOGIN,
                 GROUP_CHAT_REPORT_ID,
