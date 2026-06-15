@@ -2983,7 +2983,7 @@ function getReportSections({
                     to: (toDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     exported: lastExportedActionByReportID.get(reportItem.reportID)?.created ?? '',
                     firstApproved,
-                    firstApprover: (firstApproverDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
+                    firstApproverAvatar: firstApproverDetails?.avatar,
                     firstApproverAccountID,
                     formattedFirstApprover,
                     formattedFrom,

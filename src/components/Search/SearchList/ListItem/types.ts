@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ListItemProps} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type CONST from '@src/CONST';
 import type {
     BillingGraceEndPeriod,
@@ -237,8 +238,8 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** The date of the report's first approval (created date of the earliest APPROVED/FORWARDED report action) */
         firstApproved?: string;
 
-        /** The personal details of the first approver */
-        firstApprover?: PersonalDetails;
+        /** The avatar of the first approver */
+        firstApproverAvatar?: AvatarSource;
 
         /** Account ID of the first approver (actor on the earliest APPROVED/FORWARDED report action) */
         firstApproverAccountID?: number;

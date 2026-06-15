@@ -89,7 +89,7 @@ function ExpenseReportListItemRowWide({
                 {!!item.firstApproverAccountID && (
                     <UserInfoCell
                         accountID={item.firstApproverAccountID}
-                        avatar={item.firstApprover?.avatar}
+                        avatar={item.firstApproverAvatar}
                         displayName={item.formattedFirstApprover ?? ''}
                         isLargeScreenWidth
                     />
