@@ -1822,7 +1822,6 @@ function Search({
     const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = yearIndicators;
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = amountIndicators;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
-    const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
 
     const shouldShowChartView = (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE || view === CONST.SEARCH.VIEW.PIE) && !!validGroupBy;
 
