@@ -1104,7 +1104,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_TAX]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_PARENT_TAG_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'parentTagMapping', ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_MILESTONES]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_REPORT_EXPORT_STATUS]: Parameters.UpdateFinancialForceGenericTypeParams<'exportStatus', FinancialForceReportExportStatus>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_REPORT_EXPORT_STATUS]: Parameters.UpdateFinancialForceGenericTypeParams<'reportExportStatus', FinancialForceReportExportStatus>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_AUTO_SYNC]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_PARENT_TAG_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'parentTagMapping', ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>>;

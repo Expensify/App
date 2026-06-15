@@ -527,7 +527,7 @@ function updateFinancialForceReportExportStatus(policyID: string, status: Financ
         status,
         previousStatus ?? undefined,
     );
-    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_REPORT_EXPORT_STATUS, {policyID, exportStatus: status}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_REPORT_EXPORT_STATUS, {policyID, reportExportStatus: status}, {optimisticData, failureData, successData});
 }
 
 function updateFinancialForceTaxNonBillable(policyID: string, enabled: boolean, previousValue?: boolean) {
