@@ -117,6 +117,7 @@ import {
     getTaskAssigneeChatOnyxData,
     getTitleFieldWithFallback,
     getTransactionDetails,
+    getTransactionReportName,
     getTransactionSortValue,
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
@@ -12689,6 +12690,107 @@ describe('ReportUtils', () => {
         test('still finds draft report when 5th param is undefined', () => {
             const result = getReportOrDraftReport(mockReportID, undefined, undefined, mockDraftReport, undefined);
             expect(result).toEqual(mockDraftReport);
+        });
+    });
+
+    describe('getTransactionReportName', () => {
+        const mockReportID = '100';
+        const mockTransactionReport: Report = {
+            ...createRandomReport(100, undefined),
+            reportName: 'Transaction Report',
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+
+        beforeEach(async () => {
+            await Onyx.clear();
+        });
+
+        test('uses report param when provided', async () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                transactions: [transaction],
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result).toBe('string');
+        });
+
+        test('returns report name with report param', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                transactions: [transaction],
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result).toBe('string');
+        });
+
+        test('returns reversed transaction message when action is reversed', () => {
+            const reportAction = createRandomReportAction(1);
+
+            jest.spyOn(require('@libs/ReportActionsUtils'), 'isReversedTransaction').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('parentReportAction.reversedTransaction'));
+        });
+
+        test('returns deleted expense message when action is deleted', () => {
+            const reportAction = createRandomReportAction(1);
+
+            jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('parentReportAction.deletedExpense'));
+        });
+
+        test('uses report param from caller', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                transactions: [transaction],
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result).toBe('string');
         });
     });
 

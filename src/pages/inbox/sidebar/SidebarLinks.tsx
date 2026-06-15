@@ -29,6 +29,9 @@ type SidebarLinksProps = {
     /** List of options to display */
     optionListItems: Report[];
 
+    /** Whether the full (unfiltered) LHN report set is empty. Used to distinguish an Onyx-cleared reload from a per-tab empty view. */
+    hasReportData: boolean;
+
     /** The chat priority mode */
     priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
 
@@ -36,7 +39,7 @@ type SidebarLinksProps = {
     isActiveReport: (reportID: string) => boolean;
 };
 
-function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
+function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -80,16 +83,23 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
-    const sidebarSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SidebarLinks',
-        isLoadingReportData,
-        optionListItemsCount: optionListItems?.length,
-    };
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
 
     const shouldShowEmptyLHN = optionListItems.length === 0;
+
+    // Show the loading skeleton only while report data is loading AND the entire LHN report set is empty
+    // (e.g. switching accounts/delegate sessions or re-authenticating after an Onyx clear, where openApp() repopulates reports).
+    // Gating on the unfiltered set — rather than the current tab's filtered list — avoids the reconnect flash on the
+    // Unread/To-do tabs, where the filtered list is legitimately empty while reports still exist.
+    const shouldShowLoadingSkeleton = isLoadingReportData && !hasReportData;
+
+    const sidebarSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SidebarLinks',
+        isLoadingReportData,
+        hasReportData,
+        optionListItemsCount: optionListItems?.length,
+    };
 
     return (
         <View style={[styles.flex1, styles.h100]}>
@@ -109,7 +119,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                         onFirstItemRendered={setSidebarLoaded}
                     />
                 )}
-                {isLoadingReportData && optionListItems?.length === 0 && (
+                {shouldShowLoadingSkeleton && (
                     <View style={[StyleSheet.absoluteFill, styles.appBG, styles.mt3]}>
                         <OptionsListSkeletonView
                             shouldAnimate

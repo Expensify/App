@@ -8346,10 +8346,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Anos',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
         },
-        moneyRequestReport: {
-            emptyStateTitle: 'Este relatório não tem despesas.',
-            accessPlaceHolder: 'Abrir para ver detalhes',
-        },
+        moneyRequestReport: {emptyStateTitle: 'Ainda não há despesas', accessPlaceHolder: 'Abrir para ver detalhes'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Selecione datas para De e Até',
         },
