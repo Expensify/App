@@ -10,17 +10,11 @@ import type {ThemeColors} from '@styles/theme/types';
  */
 type ChartThemeColorKey = 'cardBG' | 'heading' | 'textSupporting' | 'border';
 
-/** Server-generated chart HTML may emit these legacy hex values instead of the current design-system tokens. */
-const SERVER_CARD_BG_LEGACY = '#f7f2ef';
-const SERVER_TEXT_SUPPORTING_LEGACY = '#73857e';
-
 const CHART_CHROME_COLOR_MAP = new Map<string, ChartThemeColorKey>(
     (
         [
-            [SERVER_CARD_BG_LEGACY, 'cardBG'],
             [colors.productLight200, 'cardBG'],
             [colors.productLight900, 'heading'],
-            [SERVER_TEXT_SUPPORTING_LEGACY, 'textSupporting'],
             [colors.productLight800, 'textSupporting'],
             [colors.productLight400, 'border'],
         ] as const
