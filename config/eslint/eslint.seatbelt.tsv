@@ -522,7 +522,6 @@
 "../../src/hooks/useDebouncedState.ts"	"react-hooks/refs"	2
 "../../src/hooks/useDebouncedValue.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDialogContainerFocus/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useDialogContainerFocus/index.ts"	"no-restricted-imports"	1
 "../../src/hooks/useDiscardChangesConfirmation/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDomainGroupFilter.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useDragAndDrop/types.ts"	"@typescript-eslint/no-deprecated/React.MutableRefObject"	1
