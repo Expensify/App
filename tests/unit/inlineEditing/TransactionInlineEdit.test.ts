@@ -179,6 +179,7 @@ describe('getTransactionEditPermissions', () => {
             const perDiemTransaction: Transaction = {
                 ...baseTransaction,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -397,6 +398,7 @@ describe('getTransactionEditPermissions', () => {
                 ...baseUnreportedParams,
                 transaction: {
                     ...unreportedTransaction,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                     comment: {
                         type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                         customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL},
