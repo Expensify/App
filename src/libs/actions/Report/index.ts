@@ -1,8 +1,7 @@
 /* eslint-disable max-lines */
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
+import {DeviceEventEmitter, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
@@ -237,6 +236,7 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
+import deleteReport from './DeleteReport';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
 
@@ -2074,11 +2074,6 @@ function createGroupChat(
         resourceID: reportID,
     };
 
-    // Clear group chat data after navigation dismissed so we don't see stale data
-    InteractionManager.runAfterInteractions(() => {
-        clearGroupChat();
-    });
-
     API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig, {
         checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters),
     });
@@ -2233,18 +2228,33 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
  * Navigates to a report, handling modal dismissal and delayed navigation for composer focus.
  *
  * @param reportID The ID of the report to navigate to
- * @param shouldDismissModal Whether to dismiss the modal before navigating
+ * @param options.shouldDismissModal Whether to dismiss the modal before navigating (defaults to true)
+ * @param options.afterTransition Callback to run after the navigate transition completes
  */
-function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
+function navigateToReport(reportID: string | undefined, options?: {shouldDismissModal?: boolean; afterTransition?: () => void}) {
+    const shouldDismissModal = options?.shouldDismissModal ?? true;
+
     if (shouldDismissModal) {
+        if (!reportID) {
+            Navigation.dismissModal({afterTransition: options?.afterTransition});
+            return;
+        }
         Navigation.dismissModal();
     }
+
     if (!reportID) {
         return;
     }
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
-        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+        Navigation.isNavigationReady().then(() => {
+            const route = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+            if (options?.afterTransition) {
+                Navigation.navigate(route, {afterTransition: options.afterTransition});
+            } else {
+                Navigation.navigate(route);
+            }
+        });
     }, 0);
 }
 
@@ -2264,6 +2274,7 @@ function navigateToAndOpenReport(
     betas: OnyxEntry<Beta[]>,
     shouldDismissModal = true,
     shouldRevalidateExistingChat = false,
+    linkToOptions?: LinkToOptions,
 ) {
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
@@ -2289,7 +2300,7 @@ function navigateToAndOpenReport(
             betas,
         });
 
-        navigateToReport(fallbackChat.reportID, shouldDismissModal);
+        navigateToReport(fallbackChat.reportID, {shouldDismissModal, ...linkToOptions});
     };
 
     if (isEmptyObject(chat) || isReportNotFound(chat)) {
@@ -2298,7 +2309,7 @@ function navigateToAndOpenReport(
     }
 
     if (!shouldRevalidateExistingChat) {
-        navigateToReport(chat.reportID, shouldDismissModal);
+        navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
         return;
     }
 
@@ -2324,7 +2335,7 @@ function navigateToAndOpenReport(
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
     openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, betas});
-    navigateToReport(chat.reportID, shouldDismissModal);
+    navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
 }
 
 function navigateToAndCreateGroupChat(
@@ -2345,7 +2356,7 @@ function navigateToAndCreateGroupChat(
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', currentUserAccountID, optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
     createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, isSelfTourViewed, betas, avatarFile);
 
-    navigateToReport(newChat.reportID);
+    navigateToReport(newChat.reportID, {afterTransition: clearGroupChat});
 }
 
 /**
@@ -2390,7 +2401,7 @@ function navigateToAndOpenReportWithAccountIDs(
             betas,
         });
 
-        navigateToReport(fallbackChat.reportID, false);
+        navigateToReport(fallbackChat.reportID, {shouldDismissModal: false});
     };
 
     if (!chat || isReportNotFound(chat)) {
@@ -2399,7 +2410,7 @@ function navigateToAndOpenReportWithAccountIDs(
     }
 
     if (!shouldRevalidateExistingChat) {
-        navigateToReport(chat.reportID, false);
+        navigateToReport(chat.reportID, {shouldDismissModal: false});
         return;
     }
 
@@ -2425,7 +2436,7 @@ function navigateToAndOpenReportWithAccountIDs(
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
     openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, betas});
-    navigateToReport(chat.reportID, false);
+    navigateToReport(chat.reportID, {shouldDismissModal: false});
 }
 
 /**
@@ -3916,10 +3927,25 @@ function navigateToConciergeChat(
                 return;
             }
             // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], personalDetails ?? allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, shouldDismissModal);
+            navigateToAndOpenReport(
+                [CONST.EMAIL.CONCIERGE],
+                personalDetails ?? allPersonalDetails,
+                currentUserAccountID,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                shouldDismissModal,
+                false,
+                linkToOptions,
+            );
         });
     } else if (shouldDismissModal) {
-        Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});
+        const reportParams = {reportID: conciergeReportID, reportActionID};
+        if (linkToOptions?.afterTransition) {
+            Navigation.dismissModalWithReport(reportParams, undefined, {afterTransition: linkToOptions.afterTransition});
+        } else {
+            Navigation.dismissModalWithReport(reportParams);
+        }
     } else {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), linkToOptions);
     }
@@ -4335,46 +4361,6 @@ function addPolicyReport(policyReport: OptimisticChatReport) {
     API.write(WRITE_COMMANDS.ADD_WORKSPACE_ROOM, parameters, {optimisticData, successData, failureData});
 }
 
-/** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
-function deleteReport(reportID: string | undefined, shouldDeleteChildReports = false) {
-    if (!reportID) {
-        Log.warn('[Report] deleteReport called with no reportID');
-        return;
-    }
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const onyxData: Record<string, null> = {
-        [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
-    };
-
-    // Delete linked transactions
-    const reportActionsForReport = allReportActions?.[reportID];
-
-    const transactionIDs = Object.values(reportActionsForReport ?? {})
-        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
-        .map((reportAction) => ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
-
-    for (const transactionID of [...new Set(transactionIDs)]) {
-        onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null;
-    }
-
-    Onyx.multiSet(onyxData);
-
-    if (shouldDeleteChildReports) {
-        for (const reportAction of Object.values(reportActionsForReport ?? {})) {
-            if (!reportAction.childReportID) {
-                continue;
-            }
-            deleteReport(reportAction.childReportID, shouldDeleteChildReports);
-        }
-    }
-
-    // Delete linked IOU report
-    if (report?.iouReportID) {
-        deleteReport(report.iouReportID, shouldDeleteChildReports);
-    }
-}
-
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
@@ -4399,11 +4385,18 @@ function navigateToConciergeChatAndDeleteReport(
         Navigation.goBack();
     }
     const personalDetails = buildPersonalDetailsList([reportOwnerPersonalDetail, currentUserPersonalDetail, conciergePersonalDetail]);
-    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, undefined, undefined, undefined, personalDetails);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    InteractionManager.runAfterInteractions(() => {
-        deleteReport(reportID, shouldDeleteChildReports);
-    });
+    navigateToConciergeChat(
+        conciergeReportID,
+        introSelected,
+        currentUserAccountID,
+        isSelfTourViewed,
+        betas,
+        false,
+        undefined,
+        {afterTransition: () => deleteReport(reportID, shouldDeleteChildReports)},
+        undefined,
+        personalDetails,
+    );
 }
 
 function clearCreateChatError(
@@ -7001,9 +6994,7 @@ function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean) 
         return;
     }
 
-    InteractionManager.runAfterInteractions(() => {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path));
-    });
+    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path), {waitForTransition: true});
 }
 
 function buildOptimisticChangePolicyData({
@@ -7806,7 +7797,6 @@ export {
     completeOnboarding,
     extractRHPVariantFromResponse,
     createNewReport,
-    deleteReport,
     clearAllReportActionDrafts,
     deleteReportComment,
     deleteReportField,
