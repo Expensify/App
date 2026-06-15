@@ -8525,13 +8525,13 @@ describe('SearchUIUtils', () => {
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE);
         });
 
-        test('Should not offer sorting by Tag GL Code until the backend supports it', () => {
-            expect(SearchUIUtils.getSortByOptions([CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE, CONST.SEARCH.TABLE_COLUMNS.ACTION], translateLocal)).toEqual(
-                [],
-            );
+        test('Should offer sorting by Tag GL Code', () => {
+            expect(SearchUIUtils.getSortByOptions([CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE, CONST.SEARCH.TABLE_COLUMNS.ACTION], translateLocal)).toEqual([
+                {text: translateLocal('common.tagGLCode'), value: CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE},
+            ]);
 
             const tagGLCodeHeader = getExpenseHeaders().find(({columnName}) => columnName === CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE);
-            expect(tagGLCodeHeader?.isColumnSortable).toBe(false);
+            expect(tagGLCodeHeader?.sortColumnName).toBe(CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE);
         });
 
         test('Should only show MCC when that column is selected and at least one transaction has a displayable MCC', () => {
