@@ -38,6 +38,7 @@ import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace,
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -562,6 +563,10 @@ function WorkspacesListPage() {
 
                 if (shouldShowEmployeeListError(policy)) {
                     return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                }
+
+                if (isMergeHRCompleteSetupNeeded(policy)) {
+                    return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
                 }
 
                 return getPolicyBrickRoadIndicatorStatus(
