@@ -67,7 +67,7 @@ describe('TimezoneSelectPage', () => {
                 isSelected: true,
             }),
         );
-        expect(searchedProps?.data.every((tz) => tz.text.toLowerCase().includes('pacific'))).toBe(true);
+        expect(searchedProps?.data.every((tz) => tz.text?.toLowerCase().includes('pacific'))).toBe(true);
     });
 
     it('does not reorder when no timezone is selected', () => {
