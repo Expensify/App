@@ -6,14 +6,11 @@ import okhttp3.CertificatePinner
 /**
  * Certificate pinning for React Native's shared OkHttp client (Iteration 1 - NewDot).
  *
- * On Android, `react-native-blob-util` (authenticated attachment/receipt downloads) routes through
- * `OkHttpClientProvider.getOkHttpClient()`. Installing an [OkHttpClientProvider] factory with an
- * OkHttp [CertificatePinner] here pins that traffic and any residual RN networking that is not
- * routed through Nitro Fetch.
+ * On Android, `react-native-blob-util` (authenticated attachment/receipt downloads) and React Native
+ * networking (including `fetch()`) route through `OkHttpClientProvider.getOkHttpClient()`. Installing
+ * an [OkHttpClientProvider] factory with an OkHttp [CertificatePinner] here pins that traffic.
  *
- * NOTE: This does NOT cover the primary `fetch()` path - that goes through Chromium Cronet in
- * react-native-nitro-fetch and is pinned separately via `CronetEngine.addPublicKeyPins()`.
- * It also does not replace network_security_config.xml, which covers HttpURLConnection/WebView/Glide.
+ * This does not replace network_security_config.xml, which covers HttpURLConnection/WebView/Glide.
  *
  * Keep the pins in sync with config/certificatePinning/pins.json,
  * android/app/src/main/res/xml/network_security_config.xml, and ios/CertificatePinning.swift.

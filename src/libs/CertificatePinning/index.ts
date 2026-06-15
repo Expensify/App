@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 /**
  * Native-platform error fragments that indicate a TLS certificate-pinning failure rather than a
  * generic connectivity problem. These are surfaced through the rejected `fetch()` promise:
- *  - Android (Cronet / OkHttp): `ERR_SSL_PINNED_KEY_NOT_IN_CERT_CHAIN`, `CertificatePinner`
+ *  - Android (OkHttp): `ERR_SSL_PINNED_KEY_NOT_IN_CERT_CHAIN`, `CertificatePinner`
  *  - iOS (TrustKit / URLSession): `pinning`, `kSecTrustResult`, `-1202` (server cert untrusted)
  */
 const PINNING_ERROR_FRAGMENTS = ['ERR_SSL_PINNED_KEY_NOT_IN_CERT_CHAIN', 'CertificatePinner', 'pinning', 'kSecTrustResult', '-1202'];

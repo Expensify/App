@@ -65,7 +65,7 @@ project 'NewExpensify',
 
 target 'NewExpensify' do
   # Certificate pinning (Iteration 1 - NewDot). TrustKit swizzles NSURLSession delegates so the
-  # pinning policy in CertificatePinning.swift applies to all URLSession traffic (Nitro Fetch,
+  # pinning policy in CertificatePinning.swift applies to all URLSession traffic (fetch(),
   # react-native-blob-util, etc.) without per-call code changes.
   pod 'TrustKit', '~> 3.0'
   use_expo_modules!

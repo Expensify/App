@@ -5,9 +5,8 @@
 //  Certificate pinning configuration (Iteration 1 - NewDot).
 //
 //  TrustKit is initialized with `kTSKSwizzleNetworkDelegates` so it automatically validates pins on
-//  every NSURLSession delegate in the process. This covers the primary react-native-nitro-fetch
-//  URLSession path, react-native-blob-util, and any other URLSession-based networking without
-//  per-call changes.
+//  every NSURLSession delegate in the process. This covers fetch(), react-native-blob-util, and
+//  any other URLSession-based networking without per-call changes.
 //
 //  NOTE: WKWebView runs out-of-process and is NOT covered by swizzling - WebView pinning is handled
 //  separately (see the WebView pinning work in Iteration 1).

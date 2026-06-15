@@ -3,13 +3,11 @@
     Certificate pinning configuration (Iteration 1 - NewDot, release builds).
 
     This <pin-set> enforces SSL public-key pinning for Expensify-controlled hosts across all
-    platform TLS stacks that honor network security config: HttpURLConnection (Nitro AutoPrefetcher
-    token refresh), WebView, Glide, and OkHttp (react-native-blob-util).
+    platform TLS stacks that honor network security config: HttpURLConnection, WebView, and Glide.
+    OkHttp traffic (fetch(), react-native-blob-util, etc.) is pinned separately in CertificatePinning.kt.
 
-    NOTE: Chromium Cronet (the primary react-native-nitro-fetch path) uses its own BoringSSL stack
-    and does NOT honor this file - it is pinned separately via CronetEngine.addPublicKeyPins() in the
-    react-native-nitro-fetch patch. Keep the hashes here in sync with config/certificatePinning/pins.json
-    and CertificatePinning.kt / CertificatePinning.swift (regenerate via scripts/generateCertificatePins.sh).
+    Keep the hashes here in sync with config/certificatePinning/pins.json and CertificatePinning.kt /
+    CertificatePinning.swift (regenerate via scripts/generateCertificatePins.sh).
 
     Each domain pins the leaf SPKI hash (primary) plus its issuing intermediate CA SPKI hash
     (durable backup that survives leaf rotation). Do NOT add an `expiration` attribute - an expired

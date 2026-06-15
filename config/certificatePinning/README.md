@@ -8,10 +8,8 @@ native stacks.
 
 | Stack | Platform | Mechanism | File |
 |-------|----------|-----------|------|
-| Nitro Fetch (primary `fetch()`) | Android | Cronet `addPublicKeyPins()` | `patches/react-native-nitro-fetch+1.3.2.patch` (see `patches/react-native-nitro-fetch/details.md`) |
-| Nitro Fetch (primary `fetch()`) | iOS | TrustKit URLSession swizzling | `ios/CertificatePinning.swift` |
-| react-native-blob-util (attachments) | Android | OkHttp `CertificatePinner` | `android/app/src/main/java/com/expensify/chat/CertificatePinning.kt` |
-| react-native-blob-util (attachments) | iOS | TrustKit URLSession swizzling | `ios/CertificatePinning.swift` |
+| URLSession (`fetch()`, blob-util, etc.) | iOS | TrustKit URLSession swizzling | `ios/CertificatePinning.swift` |
+| OkHttp (`fetch()`, blob-util, RN networking) | Android | OkHttp `CertificatePinner` | `android/app/src/main/java/com/expensify/chat/CertificatePinning.kt` |
 | HttpURLConnection / Glide | Android | `<pin-set>` | `android/app/src/main/res/xml/network_security_config.xml` |
 | WebView | Android | `<pin-set>` | `android/app/src/main/res/xml/network_security_config.xml` |
 | WebView (WKWebView) | iOS | TrustKit validator in challenge handler | `patches/react-native-webview+13.16.0.patch` |
