@@ -177,7 +177,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 return undefined;
             }
 
-            return Object.values(allPolicies ?? {}).find((policy) => policy?.workspaceAccountID === workspaceAccountID);
+            return Object.values(allPolicies ?? {}).find((policy) => policy?.policyAccountID === workspaceAccountID);
         },
         [currentCard?.fundID],
     );
@@ -333,7 +333,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             title={translate('cardPage.suspiciousBannerTitle')}
                             description={translate('cardPage.suspiciousBannerDescription')}
                         />
-
                         <Button
                             style={[styles.mh5, styles.mb5]}
                             text={translate('cardPage.reviewTransaction')}
@@ -346,7 +345,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     <>
                         {(!isCardFrozen(currentCard) || !canManageCardFreeze) && (
                             <CardDetailsActionButtons style={styles.mb0}>
-                                {canManageCardFreeze && !isCardFrozen(currentCard) && (
+                                {canManageCardFreeze && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && !isCardFrozen(currentCard) && (
                                     <CardDetailsActionButton
                                         text={translate('cardPage.freezeCard')}
                                         icon={expensifyIcons.FreezeCard}
@@ -379,6 +378,15 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     small
                                 />
                             </View>
+                        )}
+                        {shouldShowSpendRulesSummary && (
+                            <MenuItemWithTopDescription
+                                interactive={false}
+                                description={translate('cardPage.spendRules')}
+                                descriptionTextStyle={[styles.fontSizeLabel]}
+                                titleComponent={spendRulesTitleComponent}
+                                accessibilityLabel={spendRulesSummary.join('. ')}
+                            />
                         )}
                         <MenuItemWithTopDescription
                             description={translate('cardPage.availableSpend')}
@@ -610,16 +618,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                     }
                                                     Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
                                                 }}
-                                            />
-                                        )}
-
-                                        {shouldShowSpendRulesSummary && (
-                                            <MenuItemWithTopDescription
-                                                description={translate('cardPage.spendRules')}
-                                                descriptionTextStyle={[styles.fontSizeLabel]}
-                                                titleComponent={spendRulesTitleComponent}
-                                                onPress={navigateToSpendRulesPage}
-                                                accessibilityLabel={spendRulesSummary.join('. ')}
                                             />
                                         )}
 

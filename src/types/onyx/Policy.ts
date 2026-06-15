@@ -1,6 +1,6 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
-import type {HrSyncResult} from '@libs/API/HrSyncResult';
+import type HrSyncResult from '@libs/API/HrSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -66,10 +66,10 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
         index?: number;
 
         /** ISO 8601 date string for when this rate becomes effective */
-        startDate?: string;
+        startDate?: string | null;
 
         /** ISO 8601 date string for when this rate expires */
-        endDate?: string;
+        endDate?: string | null;
     },
     keyof TaxRateAttributes
 >;
@@ -1630,6 +1630,9 @@ type QBDExportConfig = {
     /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
 
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
+
     /** Accounting method for QBD */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
@@ -2019,6 +2022,24 @@ type CodingRule = {
     errors?: OnyxCommon.Errors;
 };
 
+/** Policy AI rule data model */
+type AIRule = {
+    /** Unique identifier for the rule */
+    ruleID: string;
+
+    /** The AI prompt (i.e. the rule defined with natural language) */
+    prompt: string;
+
+    /** When this rule was created */
+    created: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
+};
+
 /** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -2229,7 +2250,13 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /** A set of coding rules for automatic expense field population based on merchant matching */
             codingRules?: Record<string, CodingRule>;
+
+            /** A set of AI rules defined with natural language - The rules are run by the "RuleBot" */
+            aiRules?: Record<string, AIRule>;
         };
+
+        /** The "RuleBot" agent account ID */
+        ruleBotAccountID?: number;
 
         /** A set of custom rules defined with natural language */
         customRules?: string;
@@ -2278,6 +2305,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
+
+        /** Whether the Invoice Fields feature is enabled */
+        areInvoiceFieldsEnabled?: boolean;
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
@@ -2345,10 +2375,10 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Policy MCC Group settings */
         mccGroup?: Record<string, MccGroup>;
 
-        /** Workspace account ID configured for Expensify Card */
-        workspaceAccountID?: number;
+        /** Policy account ID configured for Expensify Card */
+        policyAccountID?: number;
 
-        /** Setup specialist guide assigned for the policy */
+        /** Account executive guide assigned for the policy */
         assignedGuide?: {
             /** The guide's email */
             email: string;
@@ -2428,7 +2458,6 @@ export type {
     XeroTrackingCategory,
     NetSuiteConnection,
     ConnectionLastSync,
-    MergeHRConnectionLastSync,
     QBDReimbursableExportAccountType,
     NetSuiteSubsidiary,
     NetSuiteCustomList,
@@ -2446,7 +2475,6 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     FinancialForceConnectionConfig,
-    FinancialForceConnectionData,
     ACHAccount,
     ApprovalRule,
     ExpenseRule,
@@ -2458,10 +2486,9 @@ export type {
     Subrate,
     ProhibitedExpenses,
     NetSuiteConnectionData,
-    HRConnectionConfigBase,
     MergeHRConnectionConfig,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
-    MergeHRConnectionData,
     Vendor,
+    AIRule,
 };

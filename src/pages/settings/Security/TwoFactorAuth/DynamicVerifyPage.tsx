@@ -89,7 +89,7 @@ function DynamicVerifyPage() {
             stepCounter={{
                 step: 2,
                 text: translate('twoFactorAuth.stepVerify'),
-                total: 3,
+                total: 2,
             }}
             onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, backPath))}
             shouldEnableMaxHeight={false}

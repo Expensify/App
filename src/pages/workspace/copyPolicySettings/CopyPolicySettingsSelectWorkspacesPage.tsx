@@ -44,7 +44,9 @@ function CopyPolicySettingsSelectWorkspacesPage() {
     const currentUserEmail = currentUserPersonalDetails?.email;
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [selectedTargetIDs, setSelectedTargetIDs] = useState<string[]>([]);
+    const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
+    const [selectedTargetIDs, setSelectedTargetIDs] = useState<string[] | null>(null);
+    const resolvedSelectedTargetIDs = selectedTargetIDs ?? copyPolicySettings?.targetPolicyIDs ?? [];
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const isSourceCorporate = sourcePolicy?.type === CONST.POLICY.TYPE.CORPORATE;
@@ -79,7 +81,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
     const listItems: ListItem[] = filteredPolicies.map((policy) => ({
         text: policy.title,
         keyForList: policy.id,
-        isSelected: selectedTargetIDs.includes(policy.id),
+        isSelected: resolvedSelectedTargetIDs.includes(policy.id),
         leftElement: (
             <View style={[styles.mr3]}>
                 <Avatar
@@ -98,7 +100,10 @@ function CopyPolicySettingsSelectWorkspacesPage() {
             return;
         }
         const id = item.keyForList;
-        setSelectedTargetIDs((prev) => (prev.includes(id) ? prev.filter((selectedID) => selectedID !== id) : [...prev, id]));
+        setSelectedTargetIDs((prev) => {
+            const current = prev ?? resolvedSelectedTargetIDs;
+            return current.includes(id) ? current.filter((selectedID) => selectedID !== id) : [...current, id];
+        });
     };
 
     // Scope select-all to the currently visible (filtered) rows so its behavior matches
@@ -110,12 +115,13 @@ function CopyPolicySettingsSelectWorkspacesPage() {
             return;
         }
         setSelectedTargetIDs((prev) => {
-            const areAllVisibleSelected = visibleIDs.every((id) => prev.includes(id));
+            const current = prev ?? resolvedSelectedTargetIDs;
+            const areAllVisibleSelected = visibleIDs.every((id) => current.includes(id));
             if (areAllVisibleSelected) {
                 const visibleSet = new Set(visibleIDs);
-                return prev.filter((id) => !visibleSet.has(id));
+                return current.filter((id) => !visibleSet.has(id));
             }
-            return Array.from(new Set([...prev, ...visibleIDs]));
+            return Array.from(new Set([...current, ...visibleIDs]));
         });
     };
 
@@ -123,7 +129,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         if (!sourcePolicyID) {
             return;
         }
-        setCopyPolicySettingsData({sourcePolicyID, targetPolicyIDs: selectedTargetIDs});
+        setCopyPolicySettingsData({sourcePolicyID, targetPolicyIDs: resolvedSelectedTargetIDs});
         Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
     };
 
@@ -131,11 +137,11 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         showButton: true,
         text: translate('common.next'),
         onConfirm,
-        isDisabled: selectedTargetIDs.length === 0,
+        isDisabled: resolvedSelectedTargetIDs.length === 0,
     };
 
     const textInputOptions: TextInputOptions = {
-        label: translate('workspace.copyPolicySettings.searchPlaceholder'),
+        label: translate('workspace.copyPolicySettings.selectWorkspaces.searchPlaceholder'),
         value: searchValue,
         onChangeText: setSearchValue,
         headerMessage: filteredPolicies.length === 0 && searchValue.length > 0 ? translate('common.noResultsFound') : undefined,
@@ -156,8 +162,8 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                     onBackButtonPress={Navigation.goBack}
                 />
                 <View style={[styles.ph5, styles.pv3]}>
-                    <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.selectWorkspaces')}</Text>
-                    <Text style={[styles.textSupporting]}>{translate('workspace.copyPolicySettings.description')}</Text>
+                    <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.selectWorkspaces.title')}</Text>
+                    <Text style={[styles.textSupporting]}>{translate('workspace.copyPolicySettings.selectWorkspaces.description')}</Text>
                 </View>
                 <View style={[styles.flex1]}>
                     <SelectionList

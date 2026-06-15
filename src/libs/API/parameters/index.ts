@@ -30,6 +30,7 @@ export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPa
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
 export type {default as SyncPolicyToMergeParams} from './SyncPolicyToMergeParams';
 export type {default as SyncPolicyToZenefitsParams} from './SyncPolicyToZenefitsParams';
+export type {default as SyncPolicyToFinancialForceParams} from './SyncPolicyToFinancialForceParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
@@ -111,6 +112,7 @@ export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams
 export type {default as UpdatePolicyAddressParams} from './UpdatePolicyAddressParams';
 export type {default as UpdateLegalNameParams} from './UpdateLegalNameParams';
 export type {default as UpdatePhoneNumberParams} from './UpdatePhoneNumberParams';
+export type {default as UpdatePrivatePersonalDetailsParams} from './UpdatePrivatePersonalDetailsParams';
 export type {default as UpdateNewsletterSubscriptionParams} from './UpdateNewsletterSubscriptionParams';
 export type {default as UpdatePersonalInformationForBankAccountParams} from './UpdatePersonalInformationForBankAccountParams';
 export type {default as UpdatePreferredEmojiSkinToneParams} from './UpdatePreferredEmojiSkinToneParams';
@@ -184,7 +186,6 @@ export type {default as ConnectPolicyToFinancialForceParams} from './ConnectPoli
 export type {default as UpdateFinancialForceGenericTypeParams} from './UpdateFinancialForceGenericTypeParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
-export type {default as OpenWorkspaceRoomsPageParams} from './OpenWorkspaceRoomsPageParams';
 export type {default as OpenPolicyRoomsPageParams} from './OpenPolicyRoomsPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
@@ -200,6 +201,7 @@ export type {default as EditTaskParams} from './EditTaskParams';
 export type {default as ReopenTaskParams} from './ReopenTaskParams';
 export type {default as CompleteTaskParams} from './CompleteTaskParams';
 export type {default as SetNameValuePairParams} from './SetNameValuePairParams';
+export type {default as SetNameValuePairsParams} from './SetNameValuePairsParams';
 export type {default as SetReportFieldParams} from './SetReportFieldParams';
 export type {default as SetReportNameParams} from './SetReportNameParams';
 export type {default as DeleteReportFieldParams} from './DeleteReportFieldParams';
@@ -257,6 +259,7 @@ export type {default as SetPolicyTravelSettingsParams} from './SetPolicyTravelSe
 export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
 export type {default as SetPolicyTagsEnabled} from './SetPolicyTagsEnabled';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';
+export type {default as EnablePolicyInvoiceFieldsParams} from './EnablePolicyInvoiceFieldsParams';
 export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyReportFieldsParams';
 export type {default as EnablePolicyExpensifyCardsParams} from './EnablePolicyExpensifyCardsParams';
 export type {default as UpdateGustoApprovalModeParams} from './UpdateGustoApprovalModeParams';
@@ -282,6 +285,7 @@ export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDista
 export type {default as EnableDistanceRequestTaxParams} from './EnableDistanceRequestTaxParams';
 export type {default as SetCustomUnitDefaultCategoryParams} from './SetCustomUnitDefaultCategoryParams';
 export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolicyDistanceRateValueParams';
+export type {default as UpdatePolicyDistanceRateParams} from './UpdatePolicyDistanceRateParams';
 export type {default as SetPolicyDistanceRatesEnabledParams} from './SetPolicyDistanceRatesEnabledParams';
 export type {default as DeletePolicyDistanceRatesParams} from './DeletePolicyDistanceRatesParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
@@ -334,15 +338,21 @@ export type {default as RejectMoneyRequestInBulkParams} from './RejectMoneyReque
 export type {default as ApproveMoneyRequestOnSearchParams} from './ApproveMoneyRequestOnSearchParams';
 export type {default as PayMoneyRequestOnSearchParams} from './PayMoneyRequestOnSearchParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
+export type {default as DeletePolicyInvoiceField} from './DeletePolicyInvoiceField';
 export type {default as DeletePolicyReportField} from './DeletePolicyReportField';
 export type {default as ConnectPolicyToNetSuiteParams} from './ConnectPolicyToNetSuiteParams';
 export type {default as CreateWorkspaceReportFieldParams} from './CreateWorkspaceReportFieldParams';
+export type {default as CreateWorkspaceInvoiceFieldParams} from './CreateWorkspaceInvoiceFieldParams';
 export type {default as UpdateWorkspaceReportFieldInitialValueParams} from './UpdateWorkspaceReportFieldInitialValueParams';
+export type {default as UpdateWorkspaceInvoiceFieldInitialValueParams} from './UpdateWorkspaceInvoiceFieldInitialValueParams';
 export type {default as EnableWorkspaceReportFieldListValueParams} from './EnableWorkspaceReportFieldListValueParams';
+export type {default as EnableWorkspaceInvoiceFieldListValueParams} from './EnableWorkspaceInvoiceFieldListValueParams';
 export type {default as EnablePolicyInvoicingParams} from './EnablePolicyInvoicingParams';
 export type {default as EnablePolicyTimeTrackingParams} from './EnablePolicyTimeTrackingParams';
 export type {default as CreateWorkspaceReportFieldListValueParams} from './CreateWorkspaceReportFieldListValueParams';
+export type {default as CreateWorkspaceInvoiceFieldListValueParams} from './CreateWorkspaceInvoiceFieldListValueParams';
 export type {default as RemoveWorkspaceReportFieldListValueParams} from './RemoveWorkspaceReportFieldListValueParams';
+export type {default as RemoveWorkspaceInvoiceFieldListValueParams} from './RemoveWorkspaceInvoiceFieldListValueParams';
 export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyExpensifyCardsPageParams';
 export type {default as OpenPolicyTravelPageParams} from './OpenPolicyTravelPageParams';
 export type {default as OpenPolicyEditCardLimitTypePageParams} from './OpenPolicyEditCardLimitTypePageParams';
@@ -372,6 +382,9 @@ export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExp
 export type {default as SetPolicyExpenseMaxAmountNoItemizedReceipt} from './SetPolicyExpenseMaxAmountNoItemizedReceipt';
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
+export type {default as AddPolicyAIRuleParams} from './AddPolicyAIRuleParams';
+export type {default as UpdatePolicyAIRuleParams} from './UpdatePolicyAIRuleParams';
+export type {default as DeletePolicyAIRuleParams} from './DeletePolicyAIRuleParams';
 export type {default as UpdateCustomRules} from './UpdateCustomRules';
 export type {default as SetPolicyBillableModeParams} from './SetPolicyBillableModeParams';
 export type {default as SetPolicyCashExpenseModeParams} from './SetPolicyCashExpenseModeParams';
@@ -553,3 +566,5 @@ export type {default as UpdateAgentAvatarParams} from './UpdateAgentAvatarParams
 export type {default as DeleteAgentParams} from './DeleteAgentParams';
 export type {default as SendExportFileFromConciergeParams} from './SendExportFileFromConciergeParams';
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
+export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
+export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';
