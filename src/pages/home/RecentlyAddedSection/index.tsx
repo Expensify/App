@@ -71,6 +71,13 @@ function RecentlyAddedSection() {
             return expense.reportID;
         }
 
+        // Prefer the transaction thread resolved from the Search snapshot. The main reportActions_ collection
+        // may be empty (e.g. right after clearing Onyx) so getIOUActionForReportID can fail and incorrectly
+        // fall back to the whole parent expense report; the snapshot already carries the correct childReportID.
+        if (expense.threadReportID) {
+            return expense.threadReportID;
+        }
+
         const iouAction = getIOUActionForReportID(expense.reportID, expense.transactionID);
         if (!iouAction) {
             return expense.reportID;
