@@ -1,3 +1,4 @@
+import CONST from '@src/CONST';
 import Direction from './Direction';
 import type {Coordinate, GPSDirectionProps} from './MapViewTypes';
 import useAnimatedTrailingDirectionCoordinate from './useAnimatedTrailingDirectionCoordinate';
@@ -31,7 +32,12 @@ function GPSDirection({directionCoordinates, isTrackingGPS, lastLocation}: GPSDi
         return newDirectionCoordinates;
     };
 
-    return <Direction coordinates={getCoordinates()} />;
+    return (
+        <Direction
+            coordinates={getCoordinates()}
+            belowLayerID={CONST.MAP_VIEW_LAYERS.WAYPOINTS}
+        />
+    );
 }
 
 export default GPSDirection;

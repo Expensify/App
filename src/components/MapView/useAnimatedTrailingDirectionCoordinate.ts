@@ -103,7 +103,7 @@ function useAnimatedTrailingDirectionCoordinate({directionCoordinates, isEnabled
         }
 
         const hasSegmentBoundaryChanged = prevSegmentCountRef.current !== segmentCount || !utils.areCoordinatesEqual(prevLastSegmentStartRef.current, lastSegmentStartCoordinate);
-        const hasTargetCoordinateChanged = utils.areCoordinatesEqual(prevTargetRef.current, targetCoordinate);
+        const hasTargetCoordinateChanged = !utils.areCoordinatesEqual(prevTargetRef.current, targetCoordinate);
 
         prevSegmentCountRef.current = segmentCount;
         prevLastSegmentStartRef.current = lastSegmentStartCoordinate;
