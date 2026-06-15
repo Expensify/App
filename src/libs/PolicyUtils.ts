@@ -2190,14 +2190,14 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
 }
 
 /**
- * This method checks if the active policy has expense chat enabled and is a paid group policy.
+ * This method checks if the active policy is in the groupPoliciesWithChatEnabled list.
  * If true, it returns the active policy itself, else it returns the first policy from groupPoliciesWithChatEnabled.
  *
  * Further, if groupPoliciesWithChatEnabled is empty, then it returns undefined
  * and the user would be taken to the workspace selection page.
  */
 function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
-    if (activePolicy && isGroupPolicy(activePolicy)) {
+    if (activePolicy && groupPoliciesWithChatEnabled.some((policy) => policy?.id === activePolicy.id)) {
         return activePolicy;
     }
 
