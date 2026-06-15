@@ -4545,7 +4545,7 @@ describe('actions/Report', () => {
             expect(failureReportActionData).toBeDefined();
             const revertedAction = (failureReportActionData?.value as OnyxTypes.ReportActions)?.[parentReportActionID];
             const revertedOriginalMessage = revertedAction ? getOriginalMessage(revertedAction) : undefined;
-            expect(revertedOriginalMessage && 'deleted' in revertedOriginalMessage && revertedOriginalMessage.deleted).toBeTruthy();
+            expect(revertedOriginalMessage && 'deleted' in revertedOriginalMessage && revertedOriginalMessage.deleted).toBeNull();
         });
     });
 
