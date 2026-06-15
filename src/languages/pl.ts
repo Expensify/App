@@ -7357,6 +7357,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 deleteRuleConfirmation: 'Na pewno chcesz usunąć tę regułę?',
                 describeRuleTitle: 'Opisz swoją regułę, a Concierge ją utworzy',
                 disclaimer: 'Agenci AI mogą popełniać błędy.',
+                agentCreatedTitle: 'RuleBot został dodany do Twojego obszaru roboczego!',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `<muted-text>Aby egzekwować Twoje reguły agenta, utworzyliśmy dla Ciebie agenta i dodaliśmy go jako administratora do Twojego obszaru roboczego.<br><br>Edytuj dane swojego agenta w sekcji <a href="${agentsRoute}">Konto &gt; Agenci</a>.</muted-text>`,
             },
         },
         planTypePage: {

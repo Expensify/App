@@ -7364,6 +7364,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
                 describeRuleTitle: 'Beschrijf je regel en Concierge maakt hem voor je',
                 disclaimer: 'AI-agents kunnen fouten maken.',
+                agentCreatedTitle: 'RuleBot is toegevoegd aan je werkruimte!',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `<muted-text>Om je agentregels af te dwingen, hebben we een agent voor je gemaakt en deze als beheerder aan je werkruimte toegevoegd.<br><br>Bewerk de gegevens van je agent in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
             },
         },
         planTypePage: {

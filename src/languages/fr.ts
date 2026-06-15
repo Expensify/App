@@ -7431,6 +7431,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
                 describeRuleTitle: 'Décrivez votre règle et Concierge la créera',
                 disclaimer: 'Les agents IA peuvent faire des erreurs.',
+                agentCreatedTitle: 'RuleBot a été ajouté à votre espace de travail !',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `<muted-text>Pour appliquer vos règles d’agent, nous avons créé un agent pour vous et l’avons ajouté comme administrateur de votre espace de travail.<br><br>Modifiez les détails de votre agent dans <a href="${agentsRoute}">Compte &gt; Agents</a>.</muted-text>`,
             },
         },
         planTypePage: {
