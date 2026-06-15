@@ -255,6 +255,7 @@ const webViewStyles = (theme: ThemeColors) =>
             flex: 1,
             lineHeight: variables.fontSizeNormalHeight,
             ...writingDirection.ltr,
+            textAlign: 'left',
         },
     }) satisfies WebViewStyle;
 
