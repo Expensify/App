@@ -24,7 +24,7 @@ function useReportAttributes() {
  * when that specific report's attributes change — not on every global report change.
  */
 function useReportAttributesByID(reportID: string | undefined) {
-    const reportAttributesByIDSelector = (value: {reports?: Record<string, unknown>} | undefined) => (reportID ? value?.reports?.[reportID] : undefined);
+    const reportAttributesByIDSelector = (value: OnyxEntry<ReportAttributesDerivedValue>) => (reportID ? value?.reports?.[reportID] : undefined);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
         selector: reportAttributesByIDSelector,
     });

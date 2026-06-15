@@ -1,3 +1,4 @@
+import {getReportAttributeByID} from '@selectors/Attributes';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {ColorValue, GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -8,7 +9,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import {useReportAttributesByIDs} from '@hooks/useReportAttributes';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -197,12 +198,18 @@ function AvatarWithDisplayName({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const reportAttributes = useReportAttributesByIDs([report?.reportID, report?.parentReportID]);
+    const reportAttributes = useReportAttributes();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const title = getReportName(report, reportAttributes);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const subtitle = getChatRoomSubtitle(report, policy, true, isReportArchived);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, reportAttributes, isParentReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(
+        report,
+        policy,
+        conciergeReportID,
+        getReportAttributeByID(reportAttributes, report?.parentReportID),
+        isParentReportArchived,
+    );
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare, formatPhoneNumber);

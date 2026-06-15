@@ -1,3 +1,4 @@
+import {getReportAttributeByID} from '@selectors/Attributes';
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -448,7 +449,7 @@ function createOptionList(
         }
         const reportID = accountIDToReportIDMap[personalDetail.accountID];
         const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        const reportAttributes = report?.reportID ? reportAttributesDerived?.[report.reportID] : undefined;
+        const reportAttributes = getReportAttributeByID(reportAttributesDerived, report?.reportID);
         const isReportArchived = privateIsArchivedMap[reportID];
         const option = createOption(personalDetail, report, formatPhoneNumber, config, reportAttributes, isReportArchived);
         allPersonalDetailsOptions.push(option);

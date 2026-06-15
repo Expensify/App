@@ -1,5 +1,6 @@
 import {StackActions} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
+import {getReportAttributeByID} from '@selectors/Attributes';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -40,7 +41,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import {useReportAttributesByIDs} from '@hooks/useReportAttributes';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -216,7 +217,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
-    const reportAttributes = useReportAttributesByIDs([parentReport?.reportID, report?.reportID]);
+    const reportAttributes = useReportAttributes();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtil(report), [report]);
@@ -244,7 +245,13 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, isReportArchived), [report, isReportArchived]);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, reportAttributes, isParentReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(
+        report,
+        policy,
+        conciergeReportID,
+        getReportAttributeByID(reportAttributes, report?.parentReportID),
+        isParentReportArchived,
+    );
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);
 
