@@ -174,6 +174,36 @@ describe('getTransactionEditPermissions', () => {
         });
     });
 
+    describe('per diem requests', () => {
+        it('should disable amount and merchant for per diem requests', () => {
+            const perDiemTransaction: Transaction = {
+                ...baseTransaction,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    },
+                },
+            };
+
+            const permissions = getTransactionEditPermissions({
+                ...baseUnreportedParams,
+                transaction: perDiemTransaction,
+            });
+
+            expect(permissions).toMatchObject({
+                canEditCategory: true,
+                canEditDate: true,
+                canEditDescription: true,
+                canEditTag: true,
+                // Amount and merchant are derived from the rate and cannot be edited
+                canEditAmount: false,
+                canEditMerchant: false,
+            } satisfies TransactionEditPermissions);
+        });
+    });
+
     describe('split expenses', () => {
         it('should handle field permissions correctly for split expense children', () => {
             const splitTransaction: Transaction = {
@@ -358,6 +388,24 @@ describe('getTransactionEditPermissions', () => {
             });
 
             expect(permissions).toMatchObject({
+                canEditMerchant: false,
+            } satisfies Partial<TransactionEditPermissions>);
+        });
+
+        it('should respect per diem request restrictions', () => {
+            const permissions = getTransactionEditPermissions({
+                ...baseUnreportedParams,
+                transaction: {
+                    ...unreportedTransaction,
+                    comment: {
+                        type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                        customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL},
+                    },
+                },
+            });
+
+            expect(permissions).toMatchObject({
+                canEditAmount: false,
                 canEditMerchant: false,
             } satisfies Partial<TransactionEditPermissions>);
         });
