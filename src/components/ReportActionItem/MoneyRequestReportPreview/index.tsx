@@ -36,6 +36,10 @@ import type {Transaction} from '@src/types/onyx';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewProps} from './types';
 
+// Delay (ms) before the pressed expense opens on top of the report's wide RHP. Letting the report settle
+// into the wide RHP first makes the two panels open as a cascade rather than appearing at once.
+const PRESSED_EXPENSE_CASCADE_DELAY = 180;
+
 function MoneyRequestReportPreview({
     iouReportID,
     policyID,
@@ -202,7 +206,11 @@ function MoneyRequestReportPreview({
                 Navigation.navigate(reportRoute);
                 setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID)).then(() => {
                     markReportIDAsExpense(childReportID);
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+                    // Let the report's wide RHP settle before opening the pressed expense on top, so the two
+                    // panels open as a cascade rather than at once.
+                    setTimeout(() => {
+                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+                    }, PRESSED_EXPENSE_CASCADE_DELAY);
                 });
                 return;
             }

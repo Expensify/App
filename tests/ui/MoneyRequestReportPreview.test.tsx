@@ -370,14 +370,24 @@ describe('MoneyRequestReportPreview', () => {
 
         afterEach(() => {
             mockResponsiveLayoutOverride = undefined;
+            // Restore the globally-enabled fake timers in case a test opted into real timers.
+            jest.useFakeTimers();
         });
 
-        it('opens the report in the wide RHP and then the pressed expense on top on wide layouts', async () => {
+        it('opens the report in the wide RHP and then the pressed expense on top (after a short delay) on wide layouts', async () => {
+            // The pressed expense opens on a short setTimeout so the report's wide RHP settles first. Use real
+            // timers so that delayed navigation actually fires (afterEach restores the global fake timers).
+            jest.useRealTimers();
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
 
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
 
             // The report opens in the wide RHP first so it sits below, then the pressed expense opens on top
             // of it (back returns to the report, not the Inbox).
