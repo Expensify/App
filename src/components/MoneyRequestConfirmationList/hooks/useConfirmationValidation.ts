@@ -3,6 +3,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
@@ -246,6 +247,15 @@ function useConfirmationValidation({
 
         if (shouldShowTax && !!transaction?.taxCode && !hasTaxRateWithMatchingValue(policy, transaction)) {
             return {errorKey: 'violations.taxOutOfPolicy'};
+        }
+
+        const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
+        if (isDistanceRequest && policy?.id && transaction?.created && customUnitRateID && !['-1', CONST.CUSTOM_UNITS.FAKE_P2P_ID].includes(customUnitRateID)) {
+            const policyRates = DistanceRequestUtils.getMileageRates(policy);
+            const selectedRate = policyRates[customUnitRateID];
+            if (selectedRate && selectedRate.enabled !== false && !DistanceRequestUtils.isRateEligibleForDate(selectedRate, transaction.created)) {
+                return {errorKey: 'violations.customUnitRateOutOfDateRange'};
+            }
         }
 
         // In the new manual expense flow the tax amount is edited inline, so the standalone tax amount step's

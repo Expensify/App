@@ -1,3 +1,4 @@
+import {format, parseISO} from 'date-fns';
 import isEmpty from 'lodash/isEmpty';
 import keyBy from 'lodash/keyBy';
 import reject from 'lodash/reject';
@@ -263,6 +264,18 @@ function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, e
     return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', tagsWithIndexes[i]?.name)).join('. ');
 }
 
+function formatViolationDate(date?: string): string | undefined {
+    if (!date) {
+        return undefined;
+    }
+
+    try {
+        return format(parseISO(date), CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+    } catch {
+        return date;
+    }
+}
+
 /**
  * Extracts unique error messages from errors and actions
  */
@@ -305,7 +318,21 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
  * Returns true if the violation should be cleared, false if it should persist.
  */
 function getIsViolationFixed(violationError: string, params: ViolationFixParams): boolean {
-    const {category, tag, taxCode, taxValue, policyCategories, policyTagLists, policyTaxRates, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy} = params;
+    const {
+        category,
+        tag,
+        taxCode,
+        taxValue,
+        policyCategories,
+        policyTagLists,
+        policyTaxRates,
+        iouAttendees,
+        currentUserPersonalDetails,
+        isAttendeeTrackingEnabled,
+        isControlPolicy,
+        mileageRate,
+        expenseDate,
+    } = params;
 
     const violationValidators: Record<string, () => boolean> = {
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY}`]: () => {
@@ -340,6 +367,12 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.MISSING_ATTENDEES}`]: () => {
             // Attendees violation is fixed if getIsMissingAttendeesViolation returns false
             return !getIsMissingAttendeesViolation(policyCategories, category, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy);
+        },
+        [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE}`]: () => {
+            if (!expenseDate || !mileageRate) {
+                return true;
+            }
+            return DistanceRequestUtils.isRateEligibleForDate(mileageRate, expenseDate);
         },
     };
 
@@ -489,7 +522,29 @@ const ViolationsUtils = {
             const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
             if (customRate && customRate.enabled !== false) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+
+                if (TransactionUtils.isDistanceRequest(updatedTransaction)) {
+                    const transactionDate = updatedTransaction.modifiedCreated ?? updatedTransaction.created;
+                    const isOutOfDateRange = !!transactionDate && !DistanceRequestUtils.isRateEligibleForDate(customRate, transactionDate);
+
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
+
+                    if (isOutOfDateRange) {
+                        newTransactionViolations.push({
+                            name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                            type: CONST.VIOLATION_TYPES.WARNING,
+                            showInReview: true,
+                            data: {
+                                startDate: customRate.startDate,
+                                endDate: customRate.endDate,
+                            },
+                        });
+                    }
+                } else {
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
+                }
             } else {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -792,6 +847,21 @@ const ViolationsUtils = {
                 return translate('violations.conversionSurcharge', surcharge);
             case 'customUnitOutOfPolicy':
                 return translate('violations.customUnitOutOfPolicy');
+            case CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE: {
+                const {startDate, endDate} = violation.data ?? {};
+                const formattedStartDate = formatViolationDate(startDate);
+                const formattedEndDate = formatViolationDate(endDate);
+                if (formattedStartDate && formattedEndDate) {
+                    return translate('violations.customUnitRateOutOfDateRange', {startDate: formattedStartDate, endDate: formattedEndDate});
+                }
+                if (formattedStartDate) {
+                    return translate('violations.customUnitRateOutOfDateRangeStartOnly', {startDate: formattedStartDate});
+                }
+                if (formattedEndDate) {
+                    return translate('violations.customUnitRateOutOfDateRangeEndOnly', {endDate: formattedEndDate});
+                }
+                return '';
+            }
             case 'duplicatedTransaction':
                 return translate('violations.duplicatedTransaction');
             case 'fieldRequired':

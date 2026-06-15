@@ -21,6 +21,7 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     categoryOutOfPolicy: () => 'category',
     conversionSurcharge: () => 'amount',
     customUnitOutOfPolicy: () => 'customUnitRateID',
+    customUnitRateOutOfDateRange: () => 'customUnitRateID',
     duplicatedTransaction: () => 'merchant',
     fieldRequired: () => 'merchant',
     futureDate: () => 'date',

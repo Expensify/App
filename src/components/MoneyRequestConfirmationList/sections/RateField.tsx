@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
@@ -6,8 +6,9 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import DistanceRequestUtils, {type MileageRate} from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -20,6 +21,8 @@ type RateFieldProps = {
     distanceRateCurrency: string;
     unit: Unit | undefined;
     rate: number | undefined;
+    mileageRate: MileageRate;
+    expenseDate: string | undefined;
     didConfirm: boolean;
     isReadOnly: boolean;
     isPolicyExpenseChat: boolean;
@@ -40,6 +43,8 @@ function RateField({
     distanceRateCurrency,
     unit,
     rate,
+    mileageRate,
+    expenseDate,
     didConfirm,
     isReadOnly,
     isPolicyExpenseChat,
@@ -56,16 +61,37 @@ function RateField({
 }: RateFieldProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const {isOffline} = useNetwork();
+
+    const isRateOutOfDateRange = !!expenseDate && !DistanceRequestUtils.isRateEligibleForDate(mileageRate, expenseDate);
+    const rateOutOfDateRangeErrorText = useMemo(() => {
+        if (!isRateOutOfDateRange) {
+            return '';
+        }
+
+        return ViolationsUtils.getViolationTranslation({
+            violation: {
+                name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                type: CONST.VIOLATION_TYPES.WARNING,
+                showInReview: true,
+                data: {
+                    startDate: mileageRate.startDate,
+                    endDate: mileageRate.endDate,
+                },
+            },
+            translate,
+            convertToDisplayString,
+        });
+    }, [convertToDisplayString, expenseDate, isRateOutOfDateRange, mileageRate.endDate, mileageRate.startDate, translate]);
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isRateInteractive = !!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;
 
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED,
-        !!shouldShowRateAutoUpdatedTooltip,
+        !!shouldShowRateAutoUpdatedTooltip && !isRateOutOfDateRange,
     );
 
     return (
@@ -104,7 +130,8 @@ function RateField({
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                 }
             }}
-            brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+            brickRoadIndicator={shouldDisplayDistanceRateError || isRateOutOfDateRange ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+            errorText={shouldDisplayDistanceRateError ? translate('iou.error.invalidRate') : rateOutOfDateRangeErrorText}
             disabled={didConfirm}
             interactive={isRateInteractive}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}

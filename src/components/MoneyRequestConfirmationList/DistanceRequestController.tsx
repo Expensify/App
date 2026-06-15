@@ -124,6 +124,39 @@ function DistanceRequestController({
     ]);
 
     useEffect(() => {
+        const outOfDateRangeErrorKey = 'violations.customUnitRateOutOfDateRange';
+
+        if (!transactionID || !isDistanceRequest || isReadOnly || !policy?.id) {
+            return;
+        }
+
+        if (!customUnitRateID || ['-1', CONST.CUSTOM_UNITS.FAKE_P2P_ID].includes(customUnitRateID)) {
+            clearFormErrors([outOfDateRangeErrorKey]);
+            return;
+        }
+
+        const policyRates = DistanceRequestUtils.getMileageRates(policy);
+        const isRateValidForPolicy =
+            customUnitRateID in policyRates &&
+            policyRates[customUnitRateID].enabled !== false &&
+            (!isMovingTransactionFromTrackExpense || policyRates[customUnitRateID].unit === mileageRate.unit);
+
+        if (!isRateValidForPolicy) {
+            clearFormErrors([outOfDateRangeErrorKey]);
+            return;
+        }
+
+        const expenseDate = transaction?.created;
+        const isOutOfDateRange = !!expenseDate && !DistanceRequestUtils.isRateEligibleForDate(mileageRate, expenseDate);
+
+        if (isOutOfDateRange) {
+            setFormError(outOfDateRangeErrorKey);
+        } else {
+            clearFormErrors([outOfDateRangeErrorKey]);
+        }
+    }, [isDistanceRequest, isReadOnly, transactionID, policy, customUnitRateID, mileageRate, transaction?.created, isMovingTransactionFromTrackExpense, setFormError, clearFormErrors]);
+
+    useEffect(() => {
         if (isFirstUpdatedDistanceAmount.current) {
             return;
         }
