@@ -274,7 +274,7 @@ const ReportChangeApproverModalStackNavigator = createModalStackNavigator<Report
 });
 
 const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettingsNavigatorParamList>({
-    [SCREENS.REPORT_SETTINGS.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Report/ReportSettingsPage').default,
+    [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Report/DynamicReportSettingsPage').default,
     [SCREENS.REPORT_SETTINGS.DYNAMIC_NOTIFICATION_PREFERENCES]: () => require<ReactComponentModule>('../../../../pages/settings/Report/DynamicNotificationPreferencePage').default,
     [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Report/DynamicNamePage').default,
     [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_WRITE_CAPABILITY]: () => require<ReactComponentModule>('../../../../pages/settings/Report/DynamicWriteCapabilityPage').default,
@@ -360,10 +360,10 @@ const DomainCardModalStackNavigator = createModalStackNavigator({
 });
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator<ParticipantsNavigatorParamList>({
-    [SCREENS.REPORT_PARTICIPANTS.ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportParticipantsPage').default,
-    [SCREENS.REPORT_PARTICIPANTS.INVITE]: () => require<ReactComponentModule>('../../../../pages/InviteReportParticipantsPage').default,
-    [SCREENS.REPORT_PARTICIPANTS.DETAILS]: () => require<ReactComponentModule>('../../../../pages/ReportParticipantDetailsPage').default,
-    [SCREENS.REPORT_PARTICIPANTS.ROLE]: () => require<ReactComponentModule>('../../../../pages/ReportParticipantRoleSelectionPage').default,
+    [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/DynamicReportParticipantsPage').default,
+    [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_INVITE]: () => require<ReactComponentModule>('../../../../pages/DynamicReportParticipantsInvitePage').default,
+    [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_DETAILS]: () => require<ReactComponentModule>('../../../../pages/DynamicReportParticipantDetailsPage').default,
+    [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROLE]: () => require<ReactComponentModule>('../../../../pages/DynamicReportParticipantRoleSelectionPage').default,
 });
 
 const RoomMembersModalStackNavigator = createModalStackNavigator<RoomMembersNavigatorParamList>({

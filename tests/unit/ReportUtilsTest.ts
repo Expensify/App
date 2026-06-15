@@ -117,6 +117,7 @@ import {
     getTaskAssigneeChatOnyxData,
     getTitleFieldWithFallback,
     getTransactionDetails,
+    getTransactionReportName,
     getTransactionSortValue,
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
@@ -12692,6 +12693,107 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getTransactionReportName', () => {
+        const mockReportID = '100';
+        const mockTransactionReport: Report = {
+            ...createRandomReport(100, undefined),
+            reportName: 'Transaction Report',
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+
+        beforeEach(async () => {
+            await Onyx.clear();
+        });
+
+        test('uses report param when provided', async () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                transactions: [transaction],
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result).toBe('string');
+        });
+
+        test('returns report name with report param', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                transactions: [transaction],
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result).toBe('string');
+        });
+
+        test('returns reversed transaction message when action is reversed', () => {
+            const reportAction = createRandomReportAction(1);
+
+            jest.spyOn(require('@libs/ReportActionsUtils'), 'isReversedTransaction').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('parentReportAction.reversedTransaction'));
+        });
+
+        test('returns deleted expense message when action is deleted', () => {
+            const reportAction = createRandomReportAction(1);
+
+            jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('parentReportAction.deletedExpense'));
+        });
+
+        test('uses report param from caller', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                transactions: [transaction],
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result).toBe('string');
+        });
+    });
+
     describe('buildOptimisticExpenseReport', () => {
         beforeEach(Onyx.clear);
         // Other describe blocks leave isPaidGroupPolicy stuck on mockReturnValue(true); restore the type-based default so the report-name fallback is driven by the real policy type
@@ -16758,6 +16860,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result).toHaveLength(3);
         });
@@ -16772,6 +16875,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
             expect(result.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
@@ -16788,6 +16892,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result.at(0)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.createExpense'));
             expect(result.at(1)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.trackDistance'));
@@ -16804,6 +16909,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
             expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
@@ -16823,6 +16929,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             // Trigger each onSelected - the function should not throw
@@ -16843,6 +16950,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             expect(result).toHaveLength(3);
@@ -16862,6 +16970,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             // CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE should early-return when iouReportID is undefined
@@ -16881,6 +16990,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             expect(result).toHaveLength(3);
@@ -16900,6 +17010,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             expect(result).toHaveLength(3);
@@ -16915,6 +17026,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
             expect(result.at(1)?.icon).toBe(mockIcons.Location);
             expect(result.at(2)?.icon).toBe(mockIcons.ReceiptPlus);
@@ -17300,6 +17412,7 @@ describe('ReportUtils', () => {
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
             });
 
             expect(options).toHaveLength(3);
@@ -17319,6 +17432,7 @@ describe('ReportUtils', () => {
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
                     ownerBillingGracePeriodEnd: undefined,
+                    currentUserAccountID,
                 });
                 options.at(0)?.onSelected?.();
 
@@ -17350,6 +17464,7 @@ describe('ReportUtils', () => {
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
                     ownerBillingGracePeriodEnd: undefined,
+                    currentUserAccountID,
                 });
                 options.at(0)?.onSelected?.();
 
@@ -17382,6 +17497,7 @@ describe('ReportUtils', () => {
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
                     ownerBillingGracePeriodEnd: undefined,
+                    currentUserAccountID,
                 });
                 options.at(2)?.onSelected?.();
 
