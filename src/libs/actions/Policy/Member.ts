@@ -48,7 +48,6 @@ type WorkspaceMembersRoleData = {
 function hasPolicyAdminsRoomsAccess(role: string | undefined): boolean {
     return (
         role === CONST.POLICY.ROLE.ADMIN ||
-        role === CONST.POLICY.ROLE.AUDITOR ||
         role === CONST.POLICY.ROLE.CARD_ADMIN ||
         role === CONST.POLICY.ROLE.PEOPLE_ADMIN ||
         role === CONST.POLICY.ROLE.PAYMENTS_ADMIN ||
