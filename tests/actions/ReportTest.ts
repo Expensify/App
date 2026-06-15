@@ -4538,12 +4538,14 @@ describe('actions/Report', () => {
 
             expect(optimisticReportActionData).toBeDefined();
             const updatedOptimisticAction = (optimisticReportActionData?.value as OnyxTypes.ReportActions)?.[parentReportActionID];
-            expect(updatedOptimisticAction?.originalMessage && 'deleted' in updatedOptimisticAction.originalMessage && updatedOptimisticAction.originalMessage.deleted).toBeTruthy();
+            const updatedOriginalMessage = updatedOptimisticAction ? getOriginalMessage(updatedOptimisticAction) : undefined;
+            expect(updatedOriginalMessage && 'deleted' in updatedOriginalMessage && updatedOriginalMessage.deleted).toBeTruthy();
             expect(Array.isArray(updatedOptimisticAction?.message) && updatedOptimisticAction?.message.at(0)?.deleted).toBeTruthy();
 
             expect(failureReportActionData).toBeDefined();
             const revertedAction = (failureReportActionData?.value as OnyxTypes.ReportActions)?.[parentReportActionID];
-            expect(revertedAction?.originalMessage && 'deleted' in revertedAction.originalMessage && revertedAction.originalMessage.deleted).toBeNull();
+            const revertedOriginalMessage = revertedAction ? getOriginalMessage(revertedAction) : undefined;
+            expect(revertedOriginalMessage && 'deleted' in revertedOriginalMessage && revertedOriginalMessage.deleted).toBeTruthy();
         });
     });
 
