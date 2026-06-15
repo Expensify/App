@@ -3204,6 +3204,7 @@ describe('SearchUIUtils', () => {
                 nonPersonalAndWorkspaceCardList,
                 conciergeReportID: undefined,
                 convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
             }) as [TransactionCardGroupListItemType[], number, boolean];
 
             const feedNameByCardID = new Map(sections.map((section) => [section.cardID, section.formattedFeedName]));
