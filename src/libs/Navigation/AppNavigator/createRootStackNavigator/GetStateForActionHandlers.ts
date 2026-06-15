@@ -431,6 +431,34 @@ function handleReplaceReportsSplitNavigatorAction(
 }
 
 /**
+ * Strips the key from the focused tab route and marks the tab state as stale so
+ * the tab router rehydrates and assigns a fresh key. This forces React to unmount
+ * and remount the focused split navigator with the pre-inserted screen already in
+ * its initial layout - avoiding the push-transition flash that react-native-screens
+ * would otherwise play when a new screen is added to an existing ScreenStack.
+ */
+function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existingTabState: NavigationState): TabStateForReplacement {
+    const focusedRoute = tabState.routes[tabState.index];
+    if (!focusedRoute || !('key' in focusedRoute)) {
+        return tabState;
+    }
+
+    const patchedRoutes = [...tabState.routes];
+    const routeWithoutKey = {...focusedRoute};
+    delete (routeWithoutKey as Partial<Pick<typeof routeWithoutKey, 'key'>>).key;
+    patchedRoutes[tabState.index] = routeWithoutKey as TabRouteForReplacement;
+
+    return {
+        type: existingTabState.type,
+        key: existingTabState.key,
+        stale: true as const,
+        routeNames: existingTabState.routeNames,
+        routes: patchedRoutes,
+        index: tabState.index,
+    };
+}
+
+/**
  * Handles the REPLACE_FULLSCREEN_UNDER_RHP action.
  *
  * Pre-inserts a destination screen underneath the currently open RHP so that dismissing
@@ -487,7 +515,9 @@ function handleReplaceFullscreenUnderRHP(
         if (!updatedTabState) {
             return null;
         }
-        const updatedTabRoute = {...existingTabRoute, state: updatedTabState} as StackNavigationState<ParamListBase>['routes'][number];
+        const staleTabState = markFocusedTabRouteForRemount(updatedTabState, existingTabState);
+
+        const updatedTabRoute = {...existingTabRoute, state: staleTabState} as StackNavigationState<ParamListBase>['routes'][number];
         // Save original route so handleRemoveFullscreenUnderRHP can fully restore it on cancel.
         preInsertedOriginalTabRoute = existingTabRoute;
         const newRoutes = [...routesWithoutRHP.slice(0, tabNavIndex), updatedTabRoute, ...routesWithoutRHP.slice(tabNavIndex + 1), rhpRoute];
