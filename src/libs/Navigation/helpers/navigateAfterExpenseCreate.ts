@@ -167,9 +167,12 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
         Growl.success('Expense added', 6000, {label: 'View', onPress: navigateToExpenseRHP});
     };
 
-    // Fast path: iouAction already in Onyx (rare here since the FAB-from-outside-Spend path
-    // typically defers the write, but covers retry / non-deferred edge cases).
-    if (iouReportID && getIOUActionForReportID(iouReportID, transactionID)?.reportActionID) {
+    // Fast path: the thread is already resolvable, so show the growl immediately instead of waiting on
+    // the reportActions subscription (which would otherwise hit the 8s safety timeout). This covers:
+    // - personal tracked expenses (unreported/self-DM): there's no iouReportID, but the thread ID is
+    //   passed in directly, so we can build from it right away;
+    // - the iouAction already being in Onyx (retry / non-deferred edge cases).
+    if (providedTransactionThreadReportID || (iouReportID && getIOUActionForReportID(iouReportID, transactionID)?.reportActionID)) {
         const threadReportID = buildThreadFromOnyx();
         showGrowl(threadReportID);
         return;
