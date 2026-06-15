@@ -5056,9 +5056,15 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, currentTaxRates?:
     };
 
     // Recompute transaction violations so toggling tax tracking immediately clears/adds the tax violation,
-    // instead of leaving a stale one until the report reloads.
+    // instead of leaving a stale one until the report reloads. Include the optimistic default tax rates when
+    // they're being added, so the recompute matches the policy we just wrote and doesn't flag a transaction
+    // whose tax code is one of those new rates as out of policy.
     if (policyData) {
-        ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, {tax: {trackingEnabled: enabled}});
+        const taxPolicyUpdate: Partial<Policy> = {tax: {trackingEnabled: enabled}};
+        if (shouldAddDefaultTaxRatesData) {
+            taxPolicyUpdate.taxRates = defaultTaxRates;
+        }
+        ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, taxPolicyUpdate);
     }
 
     const parameters: EnablePolicyTaxesParams = {policyID, enabled};
