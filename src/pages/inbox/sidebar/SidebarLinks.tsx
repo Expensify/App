@@ -89,7 +89,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
     const shouldShowEmptyLHN = optionListItems.length === 0;
 
     // Show the loading skeleton only while report data is loading AND the entire LHN report set is empty
-    // (e.g. switching accounts/delegate sessions or reauthing after an Onyx clear, where openApp() repopulates reports).
+    // (e.g. switching accounts/delegate sessions or re-authenticating after an Onyx clear, where openApp() repopulates reports).
     // Gating on the unfiltered set — rather than the current tab's filtered list — avoids the reconnect flash on the
     // Unread/To-do tabs, where the filtered list is legitimately empty while reports still exist.
     const shouldShowLoadingSkeleton = isLoadingReportData && !hasReportData;
