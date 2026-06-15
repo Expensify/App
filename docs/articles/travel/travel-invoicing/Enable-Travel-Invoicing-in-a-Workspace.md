@@ -50,6 +50,7 @@ If **Travel** does not appear in the workspace, a Workspace Admin will first nee
 - Travel expenses are imported to individual traveler accounts.
 - All charges are grouped into a Travel Invoice statement.
 - Your Workspace is billed based on the selected settlement frequency (for example, monthly).
+- The **Travel** toggle in **More features** is locked, so Travel stays on while Travel Invoicing is enabled. To turn off Travel, switch off Travel Invoicing first.
 
 If a settlement fails:
 - Travel cards are temporarily suspended.

@@ -990,9 +990,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.route,
                         },
-                        [SCREENS.WORKSPACE.WORKFLOWS_ADD_AGENT]: {
-                            path: ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.route,
-                        },
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE]: DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE_ROLE]: DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path,
                         [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: {
@@ -1360,11 +1357,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: {
                             path: ROUTES.RULES_MERCHANT_EDIT.route,
                         },
-                        [SCREENS.WORKSPACE.RULES_AI_NEW]: {
-                            path: ROUTES.RULES_AI_NEW.route,
+                        [SCREENS.WORKSPACE.RULES_AGENT_NEW]: {
+                            path: ROUTES.RULES_AGENT_NEW.route,
                         },
-                        [SCREENS.WORKSPACE.RULES_AI_EDIT]: {
-                            path: ROUTES.RULES_AI_EDIT.route,
+                        [SCREENS.WORKSPACE.RULES_AGENT_EDIT]: {
+                            path: ROUTES.RULES_AGENT_EDIT.route,
                         },
                         [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_IMPORT.route,
@@ -1526,9 +1523,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: {
                     screens: {
-                        [SCREENS.REPORT_SETTINGS.ROOT]: {
-                            path: ROUTES.REPORT_SETTINGS.route,
-                        },
+                        [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT]: DYNAMIC_ROUTES.REPORT_SETTINGS.path,
                         [SCREENS.REPORT_SETTINGS.DYNAMIC_NOTIFICATION_PREFERENCES]: DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.path,
                         [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_NAME]: DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path,
                         [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_WRITE_CAPABILITY]: DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path,
@@ -1686,10 +1681,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.PARTICIPANTS]: {
                     screens: {
-                        [SCREENS.REPORT_PARTICIPANTS.ROOT]: ROUTES.REPORT_PARTICIPANTS.route,
-                        [SCREENS.REPORT_PARTICIPANTS.INVITE]: ROUTES.REPORT_PARTICIPANTS_INVITE.route,
-                        [SCREENS.REPORT_PARTICIPANTS.DETAILS]: ROUTES.REPORT_PARTICIPANTS_DETAILS.route,
-                        [SCREENS.REPORT_PARTICIPANTS.ROLE]: ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.route,
+                        [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT]: DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path,
+                        [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_INVITE]: DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path,
+                        [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_DETAILS]: DYNAMIC_ROUTES.REPORT_PARTICIPANTS_DETAILS.path,
+                        [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROLE]: DYNAMIC_ROUTES.REPORT_PARTICIPANTS_ROLE.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: {
