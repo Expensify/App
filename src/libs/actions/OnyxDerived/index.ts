@@ -6,8 +6,10 @@
  * The primary purpose is to optimize performance by reducing redundant computations. More info can be found in the README.
  */
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import getCollectionDelta from '@libs/getCollectionDelta';
 import Log from '@libs/Log';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
@@ -103,11 +105,20 @@ function init() {
                 const dependencyOnyxKey = dependencies[dependencyIndex];
 
                 if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
+                    // Tracks the previous snapshot for this dependency so we can reconstruct the changed-member
+                    // delta (the removed Onyx `sourceValue`) by diffing against it on each subsequent fire.
+                    let previousCollectionValue: OnyxCollection<unknown>;
                     Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
-                        callback: (value, collectionKey, sourceValue) => {
+                        callback: (value, collectionKey) => {
                             Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
+                            // Diff the new snapshot against the previous one. Structural sharing keeps unchanged
+                            // members reference-equal, so this is a cheap scan. On the connection's initial fire we
+                            // pass `undefined` to force a full recompute, matching the previous `sourceValue ===
+                            // undefined` behavior on the first delivery.
+                            const sourceValue = connectionInitializedFlags.at(dependencyIndex) ? getCollectionDelta<unknown>(value, previousCollectionValue) : undefined;
+                            previousCollectionValue = value;
                             setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
                             recomputeDerivedValue(dependencyOnyxKey, sourceValue, dependencyIndex);
                         },

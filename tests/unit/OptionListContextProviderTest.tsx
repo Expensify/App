@@ -38,19 +38,12 @@ const wrapper: React.FC<{children: React.ReactNode}> = ({children}) => <OptionLi
 
 describe('OptionListContextProvider', () => {
     let onyxState: Record<string, unknown>;
-    let onyxSourceValues: Record<string, unknown>;
 
     beforeEach(() => {
         jest.clearAllMocks();
 
         onyxState = {
             [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {locale: 'en'},
-            [ONYXKEYS.COLLECTION.REPORT]: {},
-            [ONYXKEYS.COLLECTION.POLICY]: {},
-        };
-
-        onyxSourceValues = {
-            [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: onyxState[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES],
             [ONYXKEYS.COLLECTION.REPORT]: {},
             [ONYXKEYS.COLLECTION.POLICY]: {},
             [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {},
@@ -60,25 +53,10 @@ describe('OptionListContextProvider', () => {
         mockUsePersonalDetails.mockReturnValue({});
         mockUsePrivateIsArchivedMap.mockReturnValue({});
 
-        mockUseOnyx.mockImplementation(((key: string) => {
-            if (key === ONYXKEYS.DERIVED.REPORT_ATTRIBUTES) {
-                return [onyxState[key], {sourceValue: onyxSourceValues[key]}];
-            }
-
-            if (key === ONYXKEYS.COLLECTION.REPORT) {
-                return [onyxState[key], {sourceValue: onyxSourceValues[key]}];
-            }
-
-            if (key === ONYXKEYS.COLLECTION.POLICY) {
-                return [onyxState[key], {sourceValue: onyxSourceValues[key]}];
-            }
-
-            if (key === ONYXKEYS.COLLECTION.REPORT_ACTIONS) {
-                return [undefined, {sourceValue: onyxSourceValues[key]}];
-            }
-
-            return [undefined];
-        }) as typeof useOnyx);
+        // The Onyx `sourceValue` metadata was removed; the provider now derives the changed-member
+        // delta by diffing successive values. Tests therefore drive updates by mutating `onyxState`
+        // (the value) between renders rather than injecting a source value.
+        mockUseOnyx.mockImplementation(((key: string) => [onyxState[key], {status: 'loaded'}]) as typeof useOnyx);
     });
 
     it('ignores locale changes before options are initialized', () => {
@@ -92,10 +70,6 @@ describe('OptionListContextProvider', () => {
         onyxState = {
             ...onyxState,
             [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {locale: 'es'},
-        };
-        onyxSourceValues = {
-            ...onyxSourceValues,
-            [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: onyxState[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES],
         };
         rerender({shouldInitialize: false});
 
@@ -119,10 +93,6 @@ describe('OptionListContextProvider', () => {
         onyxState = {
             ...onyxState,
             [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {locale: 'fr'},
-        };
-        onyxSourceValues = {
-            ...onyxSourceValues,
-            [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: onyxState[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES],
         };
         rerender({shouldInitialize: false});
 
@@ -149,10 +119,6 @@ describe('OptionListContextProvider', () => {
             ...onyxState,
             [ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: report},
         };
-        onyxSourceValues = {
-            ...onyxSourceValues,
-            [ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: report},
-        };
         rerender({shouldInitialize: false});
 
         expect(mockProcessReport).toHaveBeenCalled();
@@ -173,8 +139,8 @@ describe('OptionListContextProvider', () => {
 
         mockProcessReport.mockClear();
 
-        onyxSourceValues = {
-            ...onyxSourceValues,
+        onyxState = {
+            ...onyxState,
             [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {[reportActionsKey]: {someAction: {}}},
         };
         rerender({shouldInitialize: false});
@@ -207,11 +173,6 @@ describe('OptionListContextProvider', () => {
             [ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: report},
             [ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: {name: 'Old Workspace'}},
         };
-        onyxSourceValues = {
-            ...onyxSourceValues,
-            [ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: report},
-            [ONYXKEYS.COLLECTION.POLICY]: {},
-        };
 
         mockCreateOptionList.mockReturnValue({
             reports: [oldReportOption],
@@ -232,10 +193,6 @@ describe('OptionListContextProvider', () => {
 
         onyxState = {
             ...onyxState,
-            [ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: {name: 'New Workspace'}},
-        };
-        onyxSourceValues = {
-            ...onyxSourceValues,
             [ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: {name: 'New Workspace'}},
         };
 
@@ -264,10 +221,6 @@ describe('OptionListContextProvider', () => {
 
         onyxState = {
             ...onyxState,
-            [ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: report},
-        };
-        onyxSourceValues = {
-            ...onyxSourceValues,
             [ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: report},
         };
 
