@@ -45,10 +45,8 @@ async function waitForCondition(predicate: () => boolean, label: string): Promis
 }
 
 /**
- * Simulates the server answering the captured ReconnectApp request the way applyHTTPSOnyxUpdates
- * does: response.onyxData (which re-delivers the NVP) is applied before successData (which
- * writes the LAST_FULL_RECONNECT_TIME receipt). Ends with a drain so any would-be re-arm (on
- * pre-fix code the client-now receipt re-triggers the subscription) surfaces before assertions.
+ * Simulates the server response the way applyHTTPSOnyxUpdates does: onyxData (re-delivering the NVP)
+ * before successData (the receipt write), then drains so any re-arm surfaces before assertions.
  */
 async function applyServerResponse(redeliveredNVP: string): Promise<void> {
     await Onyx.merge(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, redeliveredNVP);

@@ -93,9 +93,6 @@ Onyx.connectWithoutView({
     },
 });
 
-// reconnectAppIfFullReconnectBefore is used in the "ForOpenOrReconnect" functions and is not directly associated with the View,
-// so retrieving it using Onyx.connectWithoutView is correct.
-// If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
 let reconnectAppIfFullReconnectBefore = '';
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
@@ -391,8 +388,7 @@ function getOnyxDataForOpenOrReconnect(
     }
 
     if (isOpenApp || isFullReconnect) {
-        // max(now, NVP) — a plain client-now receipt could compare below the NVP demand this
-        // command answers and re-trigger subscribeToFullReconnect; see getFullReconnectSeedTime.
+        // Seed to max(now, NVP); see getFullReconnectSeedTime.
         result.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
@@ -535,10 +531,9 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
 }
 
 /**
- * Fires a full reconnect for the given NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE demand,
- * optimistically seeding the LAST_FULL_RECONNECT_TIME receipt first so the NVP re-delivered by
- * the response cannot re-arm the trigger. The seed write re-enters subscribeToFullReconnect's
- * callback, which is a no-op by construction: the receipt is already at max(now, NVP).
+ * Fires a full reconnect, optimistically seeding the receipt to max(now, NVP) first so the NVP
+ * re-delivered by the response cannot re-arm the trigger. The seed re-enters
+ * subscribeToFullReconnect's callback as a no-op by construction.
  */
 function triggerFullReconnect(fullReconnectBefore: string) {
     Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getFullReconnectSeedTime(fullReconnectBefore));
