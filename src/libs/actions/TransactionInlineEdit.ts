@@ -476,6 +476,7 @@ function getTransactionEditPermissions({
             canEditFieldOfMoneyRequest({
                 reportAction: parentReportAction,
                 fieldToEdit: field,
+                isChatReportArchived,
                 transaction,
                 report: parentReport,
                 policy,

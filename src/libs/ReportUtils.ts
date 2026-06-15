@@ -4889,6 +4889,7 @@ function canEditFieldOfMoneyRequest({
     reportAction,
     fieldToEdit,
     isDeleteAction = false,
+    isChatReportArchived = false,
     outstandingReportsByPolicyID,
     transaction,
     report,
@@ -4898,6 +4899,7 @@ function canEditFieldOfMoneyRequest({
     reportAction: OnyxInputOrEntry<ReportAction>;
     fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>;
     isDeleteAction?: boolean;
+    isChatReportArchived?: boolean;
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     transaction: OnyxEntry<Transaction>;
     report?: OnyxInputOrEntry<Report>;
@@ -4919,11 +4921,6 @@ function canEditFieldOfMoneyRequest({
         CONST.EDIT_REQUEST_FIELD.BILLABLE,
     ];
 
-    const moneyRequestReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
-    const moneyRequestReport = report ?? (moneyRequestReportID ? (getReport(moneyRequestReportID, deprecatedAllReports) ?? ({} as Report)) : ({} as Report));
-    const archivedReportIDs = archivedReportsIDSet ?? buildArchivedReportsIDSet(allReportNameValuePair);
-    const isChatReportArchived = isReportArchivedByID(archivedReportIDs, moneyRequestReport?.chatReportID);
-
     if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, isChatReportArchived, report, policy)) {
         return false;
     }
@@ -4932,6 +4929,9 @@ function canEditFieldOfMoneyRequest({
     if (!restrictedFields.includes(fieldToEdit)) {
         return true;
     }
+
+    const iouMessage = getOriginalMessage(reportAction);
+    const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, deprecatedAllReports) ?? ({} as Report)) : ({} as Report));
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
         return false;
@@ -5002,6 +5002,8 @@ function canEditFieldOfMoneyRequest({
             }
             return true;
         }
+
+        const archivedReportIDs = archivedReportsIDSet ?? buildArchivedReportsIDSet(allReportNameValuePair);
 
         if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, archivedReportIDs)) {
             return false;
