@@ -720,7 +720,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         )}
                     </>
                 ),
-                isEndOptionRow: true,
                 isActive: policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
                 errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),

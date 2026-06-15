@@ -187,7 +187,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler', 'EmptyShelves']);
 
-    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
+    const ownerDetails = useMemo(() => personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails), [personalDetails, policy?.ownerAccountID]);
     const {approvalWorkflows} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
@@ -265,7 +265,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      * Remove selected users from the workspace
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
-    const removeUsers = () => {
+    const removeUsers = useCallback(() => {
         // Check if any of the members are approvers
         const hasApprovers = selectedEmployees.some((email) => isPolicyApprover(policy, email));
 
@@ -301,7 +301,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         setSelectedEmployees([]);
         removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
-    };
+    }, [approvalWorkflows, ownerDetails, personalDetails, policy, policyMemberEmailsToAccountIDs, selectedEmployees, setSelectedEmployees]);
 
     /**
      * Show the modal to confirm removal of the selected members
@@ -555,8 +555,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }, [
         filteredMembers,
-        policy?.ownerAccountID,
-        policy?.owner,
         isPolicyAdmin,
         canWriteMembers,
         currentUserLogin,
@@ -990,7 +988,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         return menuItems;
     }, [
-        isPolicyAdmin,
+        canWriteMembers,
         icons.Table,
         icons.Download,
         icons.Sync,
