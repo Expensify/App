@@ -30,7 +30,6 @@ import ActivateCard from './items/ActivateCard';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
 import AddVirtualCardPersonalDetails from './items/AddVirtualCardPersonalDetails';
-import FixAccountingConnection from './items/FixAccountingConnection';
 import EnterSignerInfo from './items/EnterSignerInfo';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixFailedBilling from './items/FixFailedBilling';
