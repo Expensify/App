@@ -4,6 +4,7 @@ import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-nat
 import type {OnyxEntry} from 'react-native-onyx';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
 import {isSafari} from '@libs/Browser';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -136,7 +137,7 @@ function useReportActionsScroll({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
-    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`);
+    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
 
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
