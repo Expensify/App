@@ -62,6 +62,8 @@ function BaseSearchList({
     selectedTransactions,
     isAttendeesEnabledForMovingPolicy,
     nonPersonalAndWorkspaceCards,
+    stickyHeaderIndices,
+    getItemType,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
@@ -183,6 +185,8 @@ function BaseSearchList({
             drawDistance={250}
             contentContainerStyle={contentContainerStyle}
             maintainVisibleContentPosition={{disabled: true}}
+            stickyHeaderIndices={stickyHeaderIndices}
+            getItemType={getItemType}
         />
     );
 }
