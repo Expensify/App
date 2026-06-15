@@ -171,7 +171,7 @@ function SearchTransactionsChangeReport() {
         if (
             policyForMovingExpensesID &&
             policyForMovingExpenses &&
-            shouldRestrictUserBillableActions(policyForMovingExpenses, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID)
+            shouldRestrictUserBillableActions(policyForMovingExpenses, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)
         ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
