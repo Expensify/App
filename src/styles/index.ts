@@ -3611,6 +3611,15 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 8,
         },
 
+        searchListHeaderTableStickyOverlap: {
+            position: 'relative',
+            zIndex: 10,
+        },
+
+        groupSubHeaderBorderOverlap: {
+            marginTop: -1,
+        },
+
         groupSearchListTableContainerStyle: {
             minHeight: variables.h28,
             paddingBottom: 0,
@@ -4225,6 +4234,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 20,
             width: 335,
             overflow: 'hidden',
+        },
+
+        eReceiptHoverFill: {
+            backgroundColor: colors.green800,
         },
 
         eReceiptBackgroundThumbnail: {
