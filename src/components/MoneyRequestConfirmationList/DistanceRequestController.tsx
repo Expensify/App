@@ -85,6 +85,7 @@ function DistanceRequestController({
     useEffect(() => {
         // We want this effect to run when the transaction is moving from Self DM to an expense chat, or when the policy changes
         const isPolicyChanged = prevPolicy?.id !== policy?.id;
+        const didSwitchPolicy = !!prevPolicy?.id && prevPolicy.id !== policy?.id;
         if (!transactionID || !isDistanceRequest || !isPolicyExpenseChat || (!isMovingTransactionFromTrackExpense && !isPolicyChanged)) {
             return;
         }
@@ -92,7 +93,7 @@ function DistanceRequestController({
         const errorKey = 'iou.error.invalidRate';
         const policyRates = DistanceRequestUtils.getMileageRates(policy);
 
-        if (isPolicyChanged && transaction?.comment?.customUnit?.rateAutoUpdated) {
+        if (didSwitchPolicy && transaction?.comment?.customUnit?.rateAutoUpdated) {
             clearMoneyRequestRateAutoUpdated(transactionID);
         }
 
