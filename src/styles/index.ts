@@ -5072,8 +5072,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchActionsBarContainer: {
+            marginTop: 12,
             marginBottom: 16,
             paddingHorizontal: 20,
+            gap: 8,
             flexDirection: 'row',
             alignItems: 'flex-start',
             justifyContent: 'space-between',

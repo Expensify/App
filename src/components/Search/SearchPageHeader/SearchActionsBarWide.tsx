@@ -25,7 +25,7 @@ function SearchActionsBarWide({queryJSON, searchResults, onSort}: SearchActionsB
     const hasSelectedItems = selected > 0;
 
     return (
-        <View style={[styles.searchActionsBarContainer, styles.gap2, styles.mt3]}>
+        <View style={[styles.searchActionsBarContainer]}>
             {hasSelectedItems ? (
                 <View style={styles.searchBulkActionsButton}>
                     <SearchBulkActionsButton queryJSON={queryJSON} />
