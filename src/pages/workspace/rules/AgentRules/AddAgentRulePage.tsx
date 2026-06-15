@@ -79,7 +79,7 @@ function AddAgentRulePage({
             linkPressedRef.current = true;
             closeModal();
         };
-        const modalPromise = showConfirmModal({
+        showConfirmModal({
             title: translate('workspace.rules.agentRules.agentCreatedTitle'),
             titleStyles: styles.textHeadlineH1,
             prompt: (
@@ -99,16 +99,15 @@ function AddAgentRulePage({
             iconWidth: variables.iconSizeUltraLarge,
             iconHeight: variables.iconSizeUltraLarge,
             iconAdditionalStyles: {borderRadius: variables.iconSizeUltraLarge / 2, overflow: 'hidden', marginTop: 12},
-        });
-        // The modal is rendered by a top-level ModalProvider, so dismissing this RHP leaves the modal on
-        // screen above the workspace it was created from.
-        Navigation.dismissModal();
-        modalPromise.then(() => {
-            if (!linkPressedRef.current) {
-                return;
-            }
-
-            Navigation.navigate(ROUTES.SETTINGS_AGENTS);
+        }).then(() => {
+            Navigation.dismissModal({
+                afterTransition: () => {
+                    if (!linkPressedRef.current) {
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SETTINGS_AGENTS);
+                },
+            });
         });
     };
 
