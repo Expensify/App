@@ -5686,6 +5686,7 @@ const translations = {
             changeCardMonthlyLimitTypeWarning: (limit: number | string) =>
                 `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
             addShippingDetails: 'Add shipping details',
+            addPersonalDetails: 'Add personal details',
             issuedCard: (assignee: string) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
             issuedCardNoShippingDetails: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once shipping details are confirmed.`,
             issuedCardVirtual: (assignee: string, link: string) => `issued ${assignee} a virtual Expensify Card! The ${link} can be used right away.`,

@@ -158,7 +158,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             testID="MissingPersonalDetailsContent"
         >
             <HeaderWithBackButton
-                title={headerTitle ?? translate('workspace.expensifyCard.addShippingDetails')}
+                title={headerTitle ?? translate(isVirtualCard ? 'workspace.expensifyCard.addPersonalDetails' : 'workspace.expensifyCard.addShippingDetails')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>

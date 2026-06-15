@@ -1,4 +1,4 @@
-import {isUserValidatedSelector} from '@selectors/Account';
+import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
 import {createPoliciesForDomainCardsSelector} from '@selectors/Policy';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
@@ -189,6 +189,7 @@ function PaymentMethodList({
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
@@ -384,7 +385,7 @@ function PaymentMethodList({
                     iconHeight: variables.cardIconHeight,
                     isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
-                    shouldShowMissingPersonalDetailsAction: isExpensifyCard(card) && !!card?.nameValuePairs?.isVirtual && hasMissingPersonalDetails,
+                    shouldShowMissingPersonalDetailsAction: !isActingAsDelegate && isExpensifyCard(card) && !!card?.nameValuePairs?.isVirtual && hasMissingPersonalDetails,
                 });
             }
 

@@ -1,3 +1,4 @@
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import useOnyx from '@hooks/useOnyx';
 import {isCard, isCardPendingActivate, isCardPendingIssue, isCardPendingReplace, isCardWithCustomZeroLimit, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
 import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
@@ -10,6 +11,7 @@ function useTimeSensitiveCards() {
     const [cards] = useOnyx(ONYXKEYS.CARD_LIST);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const personalDetailsMissing = arePersonalDetailsMissing(privatePersonalDetails);
 
     const cardsNeedingShippingAddress: Card[] = [];
@@ -40,7 +42,7 @@ function useTimeSensitiveCards() {
 
         const isVirtualCard = !!card.nameValuePairs?.isVirtual;
         if (isVirtualCard) {
-            if (personalDetailsMissing) {
+            if (personalDetailsMissing && !isActingAsDelegate) {
                 virtualCardsNeedingPersonalDetails.push(card);
             }
             continue;

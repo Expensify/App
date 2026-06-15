@@ -5471,6 +5471,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             changeCardSmartLimitTypeWarning: (limit: number | string) => `如果将此卡的限额类型更改为智能限额，新交易将被拒绝，因为未批准的 ${limit} 限额已达到上限。`,
             changeCardMonthlyLimitTypeWarning: (limit: number | string) => `如果您将此卡的限额类型更改为每月，新交易将被拒绝，因为已达到每月 ${limit} 的限额。`,
             addShippingDetails: '添加收货详情',
+            addPersonalDetails: '添加个人信息',
             issuedCard: (assignee: string) => `已为 ${assignee} 发放了一张 Expensify 卡！该卡将在 2–3 个工作日内送达。`,
             issuedCardNoShippingDetails: (assignee: string) => `已为 ${assignee} 发放了一张 Expensify 卡！在确认邮寄详情后将寄出该卡。`,
             issuedCardVirtual: (assignee: string, link: string) => `已向 ${assignee} 发放一张虚拟 Expensify 卡！${link} 可立即使用。`,
