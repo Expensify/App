@@ -2741,9 +2741,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     agentsPage: {
         title: '代理人',
-        subtitle: '通过自定义智能体自动化处理任务。',
+        subtitle: `<muted-text>创建代理来处理你的工作流程，摆脱手工操作，每天节省数小时。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">了解更多</a>。</muted-text>`,
         newAgent: '新代理人',
-        emptyAgents: {title: '尚未创建代理', subtitle: '别再手动处理这些事情了。交给智能代理去执行，为自己节省大量时间。'},
+        emptyAgents: {
+            title: '尚未创建代理',
+            subtitle: `<muted-text><centered-text>别再手动处理各种事务了。改为指示代理来完成，为自己节省大量时间。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">了解更多</a>。</centered-text></muted-text>`,
+        },
         error: {
             genericAdd: '添加此智能体时出现了问题',
             genericUpdate: '更新此代理时出现问题',
@@ -7159,11 +7162,11 @@ ${reportName}
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? '已屏蔽' : '已允许'} ${shownCount > 1 ? '类别' : '类别'}: ${categories}${hiddenCount > 0 ? `，还有 +${hiddenCount} 个` : ''}`,
             },
-            aiRules: {
-                title: 'AI 规则',
+            agentRules: {
+                title: '代理规则',
                 subtitle: '描述在你需要时运行的灵活规则',
-                addRule: '添加 AI 规则',
-                findRule: '查找 AI 规则',
+                addRule: '添加代理规则',
+                findRule: '查找代理规则',
                 addRuleTitle: '添加规则',
                 editRuleTitle: '编辑规则',
                 deleteRule: '删除规则',
@@ -7807,9 +7810,11 @@ ${reportName}
                 }),
                 phraseVerb: {added: '已添加', removed: '已移除', changed: '已更改', set: '设置', applied: '已应用'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} 商家“${value}”` : `商户“${value}”`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `“${value}”`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `将商家 ${adjective} 从“${oldValue}”更改为“${newValue}”` : `商户从“${oldValue}”变更为“${newValue}”`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective}支出类别“${value}”` : `支出类别「${value}」`),
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `「${value}」`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `将${adjective}支出类别从“${oldValue}”修改为“${newValue}”` : `支出类别从“${oldValue}”更改为“${newValue}”`,
                 bodyMaxAmount: '最大金额',
@@ -8084,10 +8089,7 @@ ${reportName}
             [CONST.SEARCH.GROUP_BY.YEAR]: '年',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
         },
-        moneyRequestReport: {
-            emptyStateTitle: '此报表没有任何报销。',
-            accessPlaceHolder: '展开查看详情',
-        },
+        moneyRequestReport: {emptyStateTitle: '暂时没有报销费用', accessPlaceHolder: '展开查看详情'},
         noCategory: '无类别',
         noMerchant: '无商家',
         noTag: '无标签',
@@ -9242,6 +9244,7 @@ ${reportName}
         scanTestDriveTooltip: '<tooltip>发送此收据以\n<strong>完成试用体验！</strong></tooltip>',
         gpsTooltip: '<tooltip>正在进行 GPS 跟踪！完成后，请在下方停止跟踪。</tooltip>',
         hasFilterNegation: '<tooltip>使用 <strong>-has:receipt</strong> 搜索没有收据的报销。</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>我们已根据您的出行日期更新了汇率。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',

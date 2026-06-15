@@ -2832,9 +2832,12 @@ ${amount} pour ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agents',
-        subtitle: 'Créez des agents pour gérer votre flux de travail. Évitez le travail manuel et gagnez des heures dans votre journée.',
+        subtitle: `<muted-text>Créez des agents pour gérer votre flux de travail. Évitez le travail manuel et gagnez des heures chaque jour. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">En savoir plus</a>.</muted-text>`,
         newAgent: 'Nouvel agent',
-        emptyAgents: {title: 'Aucun agent créé', subtitle: 'Arrêtez de faire les choses manuellement. Donnez plutôt des instructions à un agent et gagnez beaucoup de temps.'},
+        emptyAgents: {
+            title: 'Aucun agent créé',
+            subtitle: `<muted-text><centered-text>Arrêtez de tout faire manuellement. Donnez plutôt des instructions à un agent et gagnez beaucoup de temps. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">En savoir plus</a>.</centered-text></muted-text>`,
+        },
         error: {
             genericAdd: "Un problème est survenu lors de l'ajout de cet agent",
             genericUpdate: 'Un problème est survenu lors de la mise à jour de cet agent',
@@ -7415,11 +7418,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
             },
-            aiRules: {
-                title: 'Règles IA',
+            agentRules: {
+                title: 'Règles Agent',
                 subtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin',
-                addRule: 'Ajouter une règle IA',
-                findRule: 'Rechercher une règle d’IA',
+                addRule: 'Ajouter une règle Agent',
+                findRule: 'Rechercher une règle Agent',
                 addRuleTitle: 'Ajouter une règle',
                 editRuleTitle: 'Modifier la règle',
                 deleteRule: 'Supprimer la règle',
@@ -8096,10 +8099,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }),
                 phraseVerb: {added: 'ajouté', removed: 'supprimé', changed: 'modifié', set: 'définir', applied: 'appliqué'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} commerçant « ${value} »` : `commerçant « ${value} »`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `« ${value} »`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} marchand de « ${oldValue} » à « ${newValue} »` : `commerçant de « ${oldValue} » à « ${newValue} »`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `Catégorie de dépense ${adjective} « ${value} »` : `catégorie de dépense « ${value} »`,
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `« ${value} »`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `Catégorie de dépense ${adjective} de « ${oldValue} » à « ${newValue} »` : `catégorie de dépense de « ${oldValue} » à « ${newValue} »`,
                 bodyMaxAmount: 'montant maximal',
@@ -8390,10 +8395,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Années',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
         },
-        moneyRequestReport: {
-            emptyStateTitle: 'Cette note de frais n’a aucune dépense.',
-            accessPlaceHolder: 'Ouvrir pour plus de détails',
-        },
+        moneyRequestReport: {emptyStateTitle: 'Aucune dépense pour l’instant', accessPlaceHolder: 'Ouvrir pour plus de détails'},
         noCategory: 'Aucune catégorie',
         noMerchant: 'Aucun commerçant',
         noTag: 'Aucun tag',
@@ -9578,6 +9580,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
         hasFilterNegation: '<tooltip>Recherchez les dépenses sans reçus à l’aide de <strong>-has:receipt</strong>.</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>Nous avons mis à jour le taux en fonction de votre date de voyage.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Ignorer les modifications ?',

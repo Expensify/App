@@ -232,9 +232,9 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
  */
 function hasPolicyRulesError(policy: OnyxEntry<Policy>): boolean {
     const codingRules = Object.values(policy?.rules?.codingRules ?? {});
-    const aiRules = Object.values(policy?.rules?.aiRules ?? {});
+    const agentRules = Object.values(policy?.rules?.agentRules ?? {});
 
-    return codingRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0) || aiRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
+    return codingRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0) || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
 }
 
 /**
@@ -732,6 +732,13 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     }
 
     return memberEmailsToExclude;
+}
+
+/**
+ * Get excluded users as a Record for use in search selector
+ */
+function getExcludedUsers(employeeList?: PolicyEmployeeList): Record<string, boolean> {
+    return Object.fromEntries(getIneligibleInvitees(employeeList).map((login) => [login, true]));
 }
 
 /**
@@ -2481,6 +2488,7 @@ export {
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
+    getExcludedUsers,
     getMemberAccountIDsForWorkspace,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
