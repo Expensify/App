@@ -18498,18 +18498,18 @@ describe('ReportUtils', () => {
 
         it('returns true when policy is a group policy and all auto-reimbursement conditions are met', () => {
             const report = buildExpenseReportForAutoReimbursement();
-            const policy = buildGroupPolicyForAutoReimbursement();
+            const groupPolicy = buildGroupPolicyForAutoReimbursement();
 
-            expect(canBeAutoReimbursed(report, policy)).toBe(true);
+            expect(canBeAutoReimbursed(report, groupPolicy)).toBe(true);
         });
 
         it('returns false when policy is not a group policy', () => {
             const report = buildExpenseReportForAutoReimbursement();
-            const policy = buildGroupPolicyForAutoReimbursement({
+            const personalPolicy = buildGroupPolicyForAutoReimbursement({
                 type: CONST.POLICY.TYPE.PERSONAL,
             });
 
-            expect(canBeAutoReimbursed(report, policy)).toBe(false);
+            expect(canBeAutoReimbursed(report, personalPolicy)).toBe(false);
         });
 
         it('returns false when policy is empty', () => {
