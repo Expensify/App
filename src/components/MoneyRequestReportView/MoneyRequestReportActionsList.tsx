@@ -363,10 +363,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 readActionSkipped.current = true;
             }
         }
+        // This effect should only run when the newest visible action changes, otherwise every action/report object update can prematurely consume unread state.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report?.reportID, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
 
-    const markAsReadWhenVisibleAndFocused = useCallback(() => {
+    const markAsReadWhenVisibleAndFocused = () => {
         if (!isVisible || !Visibility.hasFocus() || !isFocused) {
             if (!lastMessageTime.current) {
                 lastMessageTime.current = lastAction?.created ?? '';
@@ -395,24 +396,15 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        currentUserAccountID,
-        isFocused,
-        isVisible,
-        lastAction?.created,
-        report?.lastReadTime,
-        report?.reportID,
-        reportActions,
-        reportLoadingState?.hasOnceLoadedReportActions,
-        transactionThreadReport,
-    ]);
+    };
 
     useEffect(() => {
         markAsReadWhenVisibleAndFocused();
+        // This effect should only run when app visibility/focus changes; the helper reads the latest report/action values without making every action update mark the report as read.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
 
+    // A visible browser window can regain OS focus without a visibility change, so rerun the read catch-up on app focus too.
     useAppFocusEvent(markAsReadWhenVisibleAndFocused);
 
     /**

@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {RefObject} from 'react';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
@@ -115,10 +115,11 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         }
 
         readActionSkippedRef.current = true;
+        // This effect should only run when the newest visible action changes, otherwise every action/report object update can prematurely consume unread state.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
 
-    const markAsReadWhenVisibleAndFocused = useCallback(() => {
+    const markAsReadWhenVisibleAndFocused = () => {
         if (didMarkOnReportChangeRef.current) {
             didMarkOnReportChangeRef.current = false;
             return;
@@ -152,24 +153,15 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
         readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
         userActiveSince.current = DateUtils.getDBTime();
-    }, [
-        currentUserAccountID,
-        isFocused,
-        isReportArchived,
-        isScrolledToEnd,
-        isVisible,
-        lastAction?.created,
-        report,
-        reportID,
-        reportLoadingState?.hasOnceLoadedReportActions,
-        sortedVisibleReportActions,
-    ]);
+    };
 
     useEffect(() => {
         markAsReadWhenVisibleAndFocused();
+        // This effect should only run when app visibility/focus changes; the helper reads the latest report/action values without making every action update mark the report as read.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, isFocused, reportLoadingState?.hasOnceLoadedReportActions]);
 
+    // A visible browser window can regain OS focus without a visibility change, so rerun the read catch-up on app focus too.
     useAppFocusEvent(markAsReadWhenVisibleAndFocused);
 
     return {readActionSkippedRef};
