@@ -5963,6 +5963,43 @@ describe('SearchUIUtils', () => {
                 expect(item?.firstApproverAccountID).toBeUndefined();
                 expect(item?.formattedFirstApprover).toBe('');
             });
+
+            it('should ignore a prior approval cycle and use the approval after the latest submit', () => {
+                const staleApprovedAt = '2024-12-10 08:00:00';
+                const resubmittedAt = '2024-12-15 10:00:00';
+                const currentApprovedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            // Prior cycle: approved, then unapproved/resubmitted, so this approval is stale.
+                            'approved-stale': {
+                                reportActionID: 'approved-stale',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: staleApprovedAt,
+                            },
+                            'submitted-1': {
+                                reportActionID: 'submitted-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: resubmittedAt,
+                            },
+                            'approved-current': {
+                                reportActionID: 'approved-current',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: currentApprovedAt,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe(currentApprovedAt);
+                expect(item?.firstApproverAccountID).toBe(approverAccountID);
+            });
         });
     });
 

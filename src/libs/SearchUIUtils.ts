@@ -1470,14 +1470,23 @@ function buildFirstApprovedActionByReportIDMap(data: OnyxTypes.SearchResults['da
         }
         const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
 
+        // A SUBMITTED action starts a new approval cycle, so approvals before the latest one are stale.
+        let latestSubmittedTime = -Infinity;
+        const approvalActions: OnyxTypes.ReportAction[] = [];
+        for (const action of Object.values(data[key])) {
+            if (action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+                latestSubmittedTime = Math.max(latestSubmittedTime, new Date(action.created).getTime());
+            } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED || action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+                approvalActions.push(action);
+            }
+        }
+
+        // The first approver is the earliest approval in the current cycle (after the latest submit).
         let firstApprovalAction: OnyxTypes.ReportAction | undefined;
         let earliestTime = Infinity;
-        for (const action of Object.values(data[key])) {
-            if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.APPROVED && action.actionName !== CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-                continue;
-            }
+        for (const action of approvalActions) {
             const currentTime = new Date(action.created).getTime();
-            if (currentTime < earliestTime) {
+            if (currentTime >= latestSubmittedTime && currentTime < earliestTime) {
                 earliestTime = currentTime;
                 firstApprovalAction = action;
             }
@@ -1860,9 +1869,9 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     let latestExportTime = -Infinity;
     let latestExportAction: OnyxTypes.ReportAction | undefined;
 
-    // Earliest approval action; its actor is the report's first approver.
-    let firstApprovalTime = Infinity;
-    let firstApprovalAction: OnyxTypes.ReportAction | undefined;
+    // A SUBMITTED action starts a new approval cycle, so approvals before the latest one are stale.
+    let latestSubmittedTime = -Infinity;
+    const approvalActions: OnyxTypes.ReportAction[] = [];
 
     for (const action of Object.values(actions)) {
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
@@ -1873,12 +1882,12 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
             }
         }
 
+        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+            latestSubmittedTime = Math.max(latestSubmittedTime, new Date(action.created).getTime());
+        }
+
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED || action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-            const currentTime = new Date(action.created).getTime();
-            if (currentTime < firstApprovalTime) {
-                firstApprovalTime = currentTime;
-                firstApprovalAction = action;
-            }
+            approvalActions.push(action);
         }
 
         if (isMoneyRequestAction(action)) {
@@ -1898,6 +1907,17 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
 
     if (latestExportAction) {
         ctx.lastExportedActionByReportID.set(reportID, latestExportAction);
+    }
+
+    // The first approver is the earliest approval in the current cycle (after the latest submit).
+    let firstApprovalTime = Infinity;
+    let firstApprovalAction: OnyxTypes.ReportAction | undefined;
+    for (const action of approvalActions) {
+        const currentTime = new Date(action.created).getTime();
+        if (currentTime >= latestSubmittedTime && currentTime < firstApprovalTime) {
+            firstApprovalTime = currentTime;
+            firstApprovalAction = action;
+        }
     }
 
     if (firstApprovalAction) {
