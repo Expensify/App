@@ -2695,11 +2695,11 @@ ${amount} para ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agentes',
-        subtitle: 'Automatiza tareas con agentes personalizados.',
+        subtitle: `<muted-text>Crea agentes para gestionar tu flujo de trabajo. Omite el trabajo manual y recupera horas de tu día. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Más información</a>.</muted-text>`,
         newAgent: 'Nuevo agente',
         emptyAgents: {
             title: 'No se han creado agentes.',
-            subtitle: 'Deja de hacer las cosas manualmente. En su lugar, instruye a un agente y ahorra mucho tiempo.',
+            subtitle: `<muted-text><centered-text>Deja de hacerlo todo manualmente. Da instrucciones a un agente y ahórrate mucho tiempo. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Más información</a>.</centered-text></muted-text>`,
         },
         error: {
             genericAdd: 'Hubo un problema al agregar este agente',
@@ -7552,10 +7552,12 @@ ${amount} para ${merchant} - ${date}`,
                 }),
                 phraseVerb: {added: 'añadido', removed: 'eliminado', changed: 'cambió', set: 'establecer', applied: 'aplicado'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} comercio «${value}»` : `comercio «${value}»`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `«${value}»`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} del comerciante de '${oldValue}' a '${newValue}'` : `comercio de '${oldValue}' a '${newValue}'`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `Categoría de gasto ${adjective} «${value}»` : `categoría de gasto «${value}»`,
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `«${value}»`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `Categoría de gasto ${adjective} de '${oldValue}' a '${newValue}'` : `categoría de gasto de '${oldValue}' a '${newValue}'`,
                 bodyMaxAmount: 'importe máximo',
@@ -8160,10 +8162,7 @@ ${amount} para ${merchant} - ${date}`,
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Años',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
         },
-        moneyRequestReport: {
-            emptyStateTitle: 'Este informe no tiene gastos.',
-            accessPlaceHolder: 'Abrir para ver detalles',
-        },
+        moneyRequestReport: {emptyStateTitle: 'Aún no hay gastos', accessPlaceHolder: 'Abrir para ver detalles'},
         noCategory: 'Sin categoría',
         noMerchant: 'Sin comerciante',
         noTag: 'Sin etiqueta',

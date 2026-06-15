@@ -2826,9 +2826,12 @@ ${amount} für ${merchant} – ${date}`,
     },
     agentsPage: {
         title: 'Agenten',
-        subtitle: 'Erstelle Agents, die deinen Workflow übernehmen. Spare dir die manuelle Arbeit und gewinne stundenweise Zeit im Alltag zurück.',
+        subtitle: `<muted-text>Erstellen Sie Agents, die Ihren Workflow übernehmen. Überspringen Sie die manuelle Arbeit und gewinnen Sie Stunden Ihres Tages zurück. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Weitere Infos</a>.</muted-text>`,
         newAgent: 'Neue:r Agent:in',
-        emptyAgents: {title: 'Keine Agenten erstellt', subtitle: 'Hör auf, Dinge manuell zu erledigen. Weise stattdessen eine:n Agent:in an und spare dir eine Menge Zeit.'},
+        emptyAgents: {
+            title: 'Keine Agenten erstellt',
+            subtitle: `<muted-text><centered-text>Hören Sie auf, Dinge manuell zu erledigen. Geben Sie stattdessen einem Agenten Anweisungen und sparen Sie eine Menge Zeit. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Erfahren Sie mehr</a>.</centered-text></muted-text>`,
+        },
         error: {
             genericAdd: 'Beim Hinzufügen dieses Agenten ist ein Problem aufgetreten',
             genericUpdate: 'Beim Aktualisieren dieses Agenten ist ein Problem aufgetreten',
@@ -8062,10 +8065,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 }),
                 phraseVerb: {added: 'hinzugefügt', removed: 'entfernt', changed: 'geändert', set: 'festlegen', applied: 'Angewendet'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} Händler: „${value}“` : `Händler: „${value}“`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `„${value}“`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} Händler von „${oldValue}“ in „${newValue}“ geändert` : `Händler von „${oldValue}“ zu „${newValue}“`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `${adjective} Ausgabenkategorie „${value}“` : `Ausgabenkategorie „${value}“`,
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `„${value}“`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `Ausgabenkategorie (${adjective}) von „${oldValue}“ in „${newValue}“ geändert` : `Ausgabenkategorie von „${oldValue}“ zu „${newValue}“`,
                 bodyMaxAmount: 'Höchstbetrag',
@@ -8356,10 +8361,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahre',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartale',
         },
-        moneyRequestReport: {
-            emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
-            accessPlaceHolder: 'Für Details öffnen',
-        },
+        moneyRequestReport: {emptyStateTitle: 'Noch keine Ausgaben', accessPlaceHolder: 'Für Details öffnen'},
         noCategory: 'Keine Kategorie',
         noMerchant: 'Kein Händler',
         noTag: 'Kein Tag',

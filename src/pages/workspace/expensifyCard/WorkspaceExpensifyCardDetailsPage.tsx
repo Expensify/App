@@ -117,6 +117,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const remainingLimitHintTranslationKey = getLimitHintTranslationKey(card?.nameValuePairs?.limitType);
     const remainingLimitHint = remainingLimitHintTranslationKey ? translate(remainingLimitHintTranslationKey, formattedAvailableSpendAmount) : undefined;
     const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const canEditSpendRules = canWriteExpensifyCard && !!policy?.areRulesEnabled;
     const isDeactivated = card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
     const isCardOpen = card?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
@@ -144,20 +145,23 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
     }, [canWriteExpensifyCard, defaultFundID, fundCardSettings?.hasOnceLoaded, fundCardSettings?.isLoading, policyID]);
 
-    const deactivateCard = async () => {
-        const {action} = await showConfirmModal({
+    const deactivateCard = () => {
+        showConfirmModal({
             title: translate('workspace.card.deactivateCardModal.deactivateCard'),
             shouldSetModalVisibility: false,
             prompt: translate('workspace.card.deactivateCardModal.deactivateConfirmation'),
             confirmText: translate('workspace.card.deactivateCardModal.deactivate'),
             cancelText: translate('common.cancel'),
             danger: true,
-        });
-        if (action === ModalActions.CONFIRM) {
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
             Navigation.goBack(undefined, {
                 afterTransition: () => deactivateCardAction(defaultFundID, card),
             });
-        }
+        });
     };
 
     const handleFreezePress = () => {
@@ -385,7 +389,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                     </OfflineWithFeedback>
 
                     <View style={styles.mt6}>
-                        {canWriteExpensifyCard && (
+                        {canEditSpendRules && (
                             <MenuItem
                                 icon={expensifyIcons.CreditCardLock}
                                 title={translate('cardPage.editSpendRules')}
