@@ -2161,20 +2161,18 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>, currentUserLogin: string)
     );
 }
 
-function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null) {
+function getGroupPaidPolicies(policies: OnyxCollection<Policy> | null) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
     }
-    return Object.values(policies).filter(
-        (policy) => policy?.isPolicyExpenseChatEnabled && isPaidGroupPolicy(policy) && !policy?.isJoinRequestPending && shouldShowPolicy(policy, false, undefined),
-    );
+    return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && !policy?.isJoinRequestPending && shouldShowPolicy(policy, false, undefined));
 }
 
 /**
  * Returns the group workspaces where the user can create a report: paid (Team/Corporate) workspaces,
  * plus Submit workspaces when the SUBMIT_2026 beta is enabled. Submit workspaces are free but still
  * support report creation, so they belong here even though they're excluded from
- * `getGroupPaidPoliciesWithExpenseChatEnabled`.
+ * `getGroupPaidPolicies`.
  *
  * @param isSubmit2026BetaEnabled - Prefer `isBetaEnabled(CONST.BETAS.SUBMIT_2026)` from `usePermissions()`, not raw betas from Onyx.
  */
@@ -2184,8 +2182,8 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
     }
     return Object.values(policies).filter(
         (policy): policy is Policy =>
-            !!policy?.isPolicyExpenseChatEnabled &&
-            !policy?.isJoinRequestPending &&
+            !!policy &&
+            !policy.isJoinRequestPending &&
             (isPaidGroupPolicy(policy) || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) &&
             shouldShowPolicy(policy, false, currentUserLogin),
     );
@@ -2576,7 +2574,7 @@ export {
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
-    getGroupPaidPoliciesWithExpenseChatEnabled,
+    getGroupPaidPolicies,
     getGroupPoliciesWhereReportCanBeCreated,
     getDefaultChatEnabledPolicy,
     getForwardsToAccount,
