@@ -832,6 +832,23 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
 }
 
 /**
+ * Returns a human-readable timezone label for an ISO offset (e.g. `+07:00` -> `GMT+7`, `+00:00` -> `UTC`).
+ */
+function getCancellationDateTimezoneLabel(venueTimezone: string): string {
+    const match = venueTimezone.match(/^([+-])(\d{2}):(\d{2})$/);
+    if (!match) {
+        return 'UTC';
+    }
+    const [, sign, hours, minutes] = match;
+    const hoursNumber = Number(hours);
+    const minutesNumber = Number(minutes);
+    if (hoursNumber === 0 && minutesNumber === 0) {
+        return 'UTC';
+    }
+    return `GMT${sign}${hoursNumber}${minutesNumber > 0 ? `:${minutes}` : ''}`;
+}
+
+/**
  * Returns a formatted cancellation date, preserving the venue's timezone from the ISO string offset.
  * Dates are formatted as follows:
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM, GMT+7
@@ -844,8 +861,10 @@ function getFormattedCancellationDate(isoDateString: string): string {
     const offsetMatch = isoDateString.match(/([+-]\d{2}:\d{2})$/);
     const venueTimezone = offsetMatch ? offsetMatch[1] : 'UTC';
     const date = new Date(isoDateString);
-    const pattern = isThisYear(date) ? 'EEEE, MMM d h:mm a, zzz' : 'EEEE, MMM d, yyyy h:mm a, zzz';
-    return formatInTimeZone(date, venueTimezone, pattern);
+    const pattern = isThisYear(date) ? 'EEEE, MMM d h:mm a' : 'EEEE, MMM d, yyyy h:mm a';
+    // `formatInTimeZone`'s `zzz` token relies on `Intl.DateTimeFormat`, which rejects raw offset strings like
+    // `+07:00`, so the timezone label is derived from the offset and appended manually.
+    return `${formatInTimeZone(date, venueTimezone, pattern)}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
 }
 
 /**
