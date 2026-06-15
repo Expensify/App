@@ -32,7 +32,7 @@ function IOURequestStepTimeWorkspace({route, navigation}: IOURequestStepTimeWork
             navigation={navigation}
             getPolicies={getActivePoliciesWithExpenseChatAndTimeEnabled}
             onSelectWorkspace={(policy) => {
-                const policyExpenseChat = policyExpenseChats?.[policy?.id ?? ''];
+                const policyExpenseChat = policy?.id ? policyExpenseChats?.[policy.id] : undefined;
                 if (!policyExpenseChat) {
                     console.error(`Couldn't find policy expense chat for policyID: ${policy?.id}`);
                     return;

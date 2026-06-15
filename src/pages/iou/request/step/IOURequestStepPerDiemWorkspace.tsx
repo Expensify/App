@@ -38,7 +38,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
             getPolicies={getActivePoliciesWithExpenseChatAndPerDiemEnabled}
             onSelectWorkspace={(policy) => {
                 const {targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
-                    policyExpenseChats?.[policy?.id ?? ''],
+                    policy?.id ? policyExpenseChats?.[policy.id] : undefined,
                     selfDMReport,
                     iouType,
                     defaultExpensePolicy,
