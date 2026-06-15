@@ -520,17 +520,8 @@ function updateFinancialForceSyncMilestones(policyID: string, enabled: boolean, 
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_MILESTONES, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
-function updateFinancialForceReportExportStatus(
-    policyID: string,
-    status: FinancialForceReportExportStatus,
-    previousStatus: FinancialForceConnectionConfig['export']['reportExportStatus'] | null,
-) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceExportUpdate(
-        policyID,
-        CONST.CERTINIA_CONFIG.REPORT_EXPORT_STATUS,
-        status,
-        previousStatus ?? undefined,
-    );
+function updateFinancialForceReportExportStatus(policyID: string, status: FinancialForceReportExportStatus, previousStatus: FinancialForceConnectionConfig['export']['exportStatus'] | null) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceExportUpdate(policyID, CONST.CERTINIA_CONFIG.EXPORT_STATUS, status, previousStatus ?? undefined);
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_REPORT_EXPORT_STATUS, {policyID, exportStatus: status}, {optimisticData, failureData, successData});
 }
 

@@ -1477,9 +1477,6 @@ type FinancialForceExportConfig = {
 
     /** PSA / SRP: company ID for export */
     companyID?: string;
-
-    /** PSA: report-level export status. */
-    reportExportStatus?: 'Approved' | 'Submitted';
 };
 
 /** Certinia auto-sync */

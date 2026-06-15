@@ -34,8 +34,7 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
     const selectedVendor = data?.vendors?.find((vendor) => vendor.id === exportConfig?.vendorAccount);
     const exportStatus = exportConfig?.exportStatus;
     const normalizedExportStatus = getCertiniaExportStatusValue(exportStatus);
-    const reportExportStatus = exportConfig?.reportExportStatus;
-    const normalizedReportExportStatus = getCertiniaReportExportStatusValue(reportExportStatus);
+    const normalizedReportExportStatus = getCertiniaReportExportStatusValue(exportStatus);
     const exportDate = exportConfig?.exportDate;
 
     const preferredExporterRow: ExportRow = {
@@ -49,9 +48,9 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
         preferredExporterRow,
         {
             description: translate('workspace.certinia.reportExportStatus.label'),
-            title: normalizedReportExportStatus ? translate(`workspace.certinia.reportExportStatus.values.${normalizedReportExportStatus}`) : reportExportStatus,
+            title: normalizedReportExportStatus ? translate(`workspace.certinia.reportExportStatus.values.${normalizedReportExportStatus}`) : exportStatus,
             onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS.path, exportPath)),
-            subscribedSettings: [CONST.CERTINIA_CONFIG.REPORT_EXPORT_STATUS],
+            subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_STATUS],
         },
         {
             description: translate('workspace.certinia.exportReimbursable.label'),

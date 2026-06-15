@@ -27,7 +27,7 @@ function CertiniaReportExportStatusPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const {config} = policy?.connections?.financialforce ?? {};
     const exportConfig = config?.export;
-    const selectedReportExportStatus = exportConfig?.reportExportStatus;
+    const selectedReportExportStatus = exportConfig?.exportStatus;
     const selectedReportExportStatusKey = getCertiniaReportExportStatusValue(selectedReportExportStatus);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS.path);
 
@@ -40,7 +40,7 @@ function CertiniaReportExportStatusPage({policy}: WithPolicyConnectionsProps) {
 
     const selectReportExportStatus = (row: ReportExportStatusListItem) => {
         if (row.value !== selectedReportExportStatusKey && policyID) {
-            updateFinancialForceReportExportStatus(policyID, row.value, exportConfig?.reportExportStatus ?? null);
+            updateFinancialForceReportExportStatus(policyID, row.value, exportConfig?.exportStatus ?? null);
         }
         Navigation.goBack(backPath);
     };
@@ -58,10 +58,10 @@ function CertiniaReportExportStatusPage({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={() => Navigation.goBack(backPath)}
             title="workspace.certinia.reportExportStatus.label"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}
-            pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.REPORT_EXPORT_STATUS], config?.pendingFields)}
-            errors={getLatestErrorField(config, CONST.CERTINIA_CONFIG.REPORT_EXPORT_STATUS)}
+            pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.EXPORT_STATUS], config?.pendingFields)}
+            errors={getLatestErrorField(config, CONST.CERTINIA_CONFIG.EXPORT_STATUS)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearFinancialForceErrorField(policyID, CONST.CERTINIA_CONFIG.REPORT_EXPORT_STATUS)}
+            onClose={() => clearFinancialForceErrorField(policyID, CONST.CERTINIA_CONFIG.EXPORT_STATUS)}
         />
     );
 }

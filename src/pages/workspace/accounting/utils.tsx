@@ -329,7 +329,7 @@ function getAccountingIntegrationData(
             const certiniaConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA];
             const certiniaConfig = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
             const certiniaSubscribedExportSettings = certiniaConfig?.hasPSA
-                ? [CONST.CERTINIA_CONFIG.EXPORTER, CONST.CERTINIA_CONFIG.REPORT_EXPORT_STATUS, CONST.CERTINIA_CONFIG.REIMBURSABLE, CONST.CERTINIA_CONFIG.NON_REIMBURSABLE]
+                ? [CONST.CERTINIA_CONFIG.EXPORTER, CONST.CERTINIA_CONFIG.EXPORT_STATUS, CONST.CERTINIA_CONFIG.REIMBURSABLE, CONST.CERTINIA_CONFIG.NON_REIMBURSABLE]
                 : [
                       CONST.CERTINIA_CONFIG.EXPORTER,
                       CONST.CERTINIA_CONFIG.EXPORT_STATUS,
