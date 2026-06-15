@@ -488,7 +488,7 @@ const SCREENS = {
     },
 
     REPORT_SETTINGS: {
-        ROOT: 'Report_Settings_Root',
+        DYNAMIC_ROOT: 'Dynamic_Report_Settings_Root',
         DYNAMIC_NOTIFICATION_PREFERENCES: 'Dynamic_Report_Settings_Notification_Preferences',
         DYNAMIC_SETTINGS_NAME: 'Dynamic_Report_Settings_Name',
         DYNAMIC_SETTINGS_WRITE_CAPABILITY: 'Dynamic_Report_Settings_Write_Capability',
@@ -918,8 +918,8 @@ const SCREENS = {
         RULES_MERCHANT_EDIT: 'Rules_Merchant_Edit',
         RULES_SPEND_MERCHANTS: 'Rules_Spend_Merchants',
         RULES_SPEND_MERCHANT_EDIT: 'Rules_Spend_Merchant_Edit',
-        RULES_AI_NEW: 'Rules_AI_New',
-        RULES_AI_EDIT: 'Rules_AI_Edit',
+        RULES_AGENT_NEW: 'Rules_Agent_New',
+        RULES_AGENT_EDIT: 'Rules_Agent_Edit',
         PER_DIEM: 'Per_Diem',
         PER_DIEM_IMPORT: 'Per_Diem_Import',
         PER_DIEM_IMPORTED: 'Per_Diem_Imported',
@@ -1001,10 +1001,10 @@ const SCREENS = {
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     CHRONOS_SCHEDULE_OOO_ROOT: 'Chronos_Schedule_OOO_Root',
     REPORT_PARTICIPANTS: {
-        ROOT: 'ReportParticipants_Root',
-        INVITE: 'ReportParticipants_Invite',
-        DETAILS: 'ReportParticipants_Details',
-        ROLE: 'ReportParticipants_Role',
+        DYNAMIC_ROOT: 'Dynamic_ReportParticipants_Root',
+        DYNAMIC_INVITE: 'Dynamic_ReportParticipants_Invite',
+        DYNAMIC_DETAILS: 'Dynamic_ReportParticipants_Details',
+        DYNAMIC_ROLE: 'Dynamic_ReportParticipants_Role',
     },
     ROOM_MEMBERS: {
         DYNAMIC_ROOT: 'Dynamic_RoomMembers_Root',
