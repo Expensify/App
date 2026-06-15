@@ -50,7 +50,7 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
         {
             description: translate('workspace.certinia.reportExportStatus.label'),
             title: normalizedReportExportStatus ? translate(`workspace.certinia.reportExportStatus.values.${normalizedReportExportStatus}`) : reportExportStatus,
-            onPress: !exportPath ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS.getRoute(policyID)),
+            onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS.path, exportPath)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.REPORT_EXPORT_STATUS],
         },
         {
