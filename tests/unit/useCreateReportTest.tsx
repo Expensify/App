@@ -39,6 +39,7 @@ jest.mock('@libs/PolicyUtils', () => ({
         return undefined;
     }),
     isPaidGroupPolicy: jest.fn((policy: OnyxEntry<Policy>) => policy?.type === 'team' || policy?.type === 'corporate'),
+    isGroupPolicy: jest.fn((policy: OnyxEntry<Policy>) => policy?.type === 'team' || policy?.type === 'corporate' || policy?.type === 'submit2026'),
 }));
 
 jest.mock('@libs/interceptAnonymousUser', () => jest.fn((cb: () => void) => cb()));

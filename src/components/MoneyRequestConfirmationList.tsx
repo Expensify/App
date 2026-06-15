@@ -254,6 +254,8 @@ function MoneyRequestConfirmationList({
     const previousTransactionCurrency = usePrevious(transaction?.currency);
     const customUnitRateID = getRateID(transaction);
 
+    const shouldShowRateAutoUpdatedTooltip = isDistanceRequest && !!transaction?.comment?.customUnit?.rateAutoUpdated;
+
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
     const prevSubRates = usePrevious(subRates);
 
@@ -527,7 +529,7 @@ function MoneyRequestConfirmationList({
                 isPolicyExpenseChat={isPolicyExpenseChat}
                 expenseMode={{isDistance: isDistanceRequest, isTime: isTimeRequest, isInvoice: isTypeInvoice, isPerDiem: isPerDiemRequest}}
                 distanceFlags={{isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest}}
-                distanceData={{distance, hasRoute, unit, rate, distanceRateName: mileageRate.name, distanceRateCurrency: currency}}
+                distanceData={{distance, hasRoute, unit, rate, distanceRateName: mileageRate.name, distanceRateCurrency: currency, shouldShowRateAutoUpdatedTooltip}}
                 amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
                 requiredFlags={{isCategoryRequired, isMerchantRequired, isDescriptionRequired}}
                 visibilityFlags={{
