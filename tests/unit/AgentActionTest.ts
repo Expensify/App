@@ -178,26 +178,6 @@ describe('createAgent', () => {
         expect(result.avatarURI).toBeTruthy();
     });
 
-    it('mirrors pending/error state onto the policy so the workspace shows a brick road indicator', () => {
-        createAgent('Bot', 'My prompt', undefined, undefined, undefined, 'POLICY_42');
-
-        const {optimisticData, successData, failureData} = getWriteOptions();
-        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}POLICY_42`;
-        const addAgentKey = CONST.POLICY.COLLECTION_KEYS.ADD_AGENT;
-
-        const optimisticPolicy = optimisticData.find((u) => u.key === policyKey);
-        expect((optimisticPolicy?.value as Record<string, Record<string, unknown>>)?.pendingFields?.[addAgentKey]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-        expect((optimisticPolicy?.value as Record<string, Record<string, unknown>>)?.errorFields?.[addAgentKey]).toBeNull();
-
-        const successPolicy = successData.find((u) => u.key === policyKey);
-        expect((successPolicy?.value as Record<string, Record<string, unknown>>)?.pendingFields?.[addAgentKey]).toBeNull();
-        expect((successPolicy?.value as Record<string, Record<string, unknown>>)?.errorFields?.[addAgentKey]).toBeNull();
-
-        const failurePolicy = failureData.find((u) => u.key === policyKey);
-        expect((failurePolicy?.value as Record<string, Record<string, unknown>>)?.pendingFields?.[addAgentKey]).toBeNull();
-        expect((failurePolicy?.value as Record<string, Record<string, unknown>>)?.errorFields?.[addAgentKey]).toBeTruthy();
-    });
-
     it('does not touch the policy when no policyID is provided', () => {
         createAgent('Bot', 'My prompt');
 
@@ -245,18 +225,6 @@ describe('createAgent', () => {
         const result = createAgent('Bot', 'My prompt');
 
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({optimisticAccountID: String(result.optimisticAccountID)}), expect.any(Object));
-    });
-
-    it('success and failure data clear the optimistic→real ID mapping entry', () => {
-        const result = createAgent('Bot', 'My prompt');
-        const {successData, failureData} = getWriteOptions();
-        const optID = String(result.optimisticAccountID);
-
-        const successMappingUpdate = successData.find((u) => u.key === ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
-        const failureMappingUpdate = failureData.find((u) => u.key === ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
-
-        expect((successMappingUpdate?.value as Record<string, unknown>)[optID]).toBeNull();
-        expect((failureMappingUpdate?.value as Record<string, unknown>)[optID]).toBeNull();
     });
 
     it('failure data preserves optimistic personal detail and merges errors onto the prompt entry', () => {

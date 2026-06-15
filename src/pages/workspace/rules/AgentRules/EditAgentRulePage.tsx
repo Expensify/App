@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -20,27 +21,28 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {deletePolicyAIRule, updatePolicyAIRule} from '@userActions/Policy/Rules';
+import {deletePolicyAgentRule, updatePolicyAgentRule} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/EditAIRuleForm';
+import INPUT_IDS from '@src/types/form/EditAgentRuleForm';
 
-type EditAIRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AI_EDIT>;
-type EditAIRuleFormID = typeof ONYXKEYS.FORMS.EDIT_AI_RULE_FORM;
+type EditAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_EDIT>;
+type EditAgentRuleFormID = typeof ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM;
 
-function EditAIRulePage({
+function EditAgentRulePage({
     route: {
         params: {policyID, ruleID},
     },
-}: EditAIRulePageProps) {
+}: EditAgentRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const shouldUseScrollableLayout = useIsInLandscapeMode();
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const policy = usePolicy(policyID);
-    const aiRule = policy?.rules?.aiRules?.[ruleID];
+    const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
 
     const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -52,31 +54,31 @@ function EditAIRulePage({
         }
     };
 
-    const validate = (values: FormOnyxValues<EditAIRuleFormID>): FormInputErrors<EditAIRuleFormID> => {
-        const errors: FormInputErrors<EditAIRuleFormID> = {};
+    const validate = (values: FormOnyxValues<EditAgentRuleFormID>): FormInputErrors<EditAgentRuleFormID> => {
+        const errors: FormInputErrors<EditAgentRuleFormID> = {};
         if (!values[INPUT_IDS.PROMPT].trim()) {
             errors[INPUT_IDS.PROMPT] = translate('common.error.fieldRequired');
         }
         return errors;
     };
 
-    const saveRule = (values: FormOnyxValues<EditAIRuleFormID>): void => {
+    const saveRule = (values: FormOnyxValues<EditAgentRuleFormID>): void => {
         const newPrompt = values[INPUT_IDS.PROMPT];
-        const previousPrompt = aiRule?.prompt ?? '';
+        const previousPrompt = agentRule?.prompt ?? '';
         if (newPrompt !== previousPrompt) {
-            updatePolicyAIRule(policyID, ruleID, newPrompt, previousPrompt);
+            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt);
         }
         Navigation.goBack();
     };
 
     const handleDelete = () => {
-        if (!policy || !aiRule) {
+        if (!policy || !agentRule) {
             return;
         }
 
         showConfirmModal({
-            title: translate('workspace.rules.aiRules.deleteRule'),
-            prompt: translate('workspace.rules.aiRules.deleteRuleConfirmation'),
+            title: translate('workspace.rules.agentRules.deleteRule'),
+            prompt: translate('workspace.rules.agentRules.deleteRuleConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
@@ -85,12 +87,12 @@ function EditAIRulePage({
                 return;
             }
 
-            deletePolicyAIRule(policy, ruleID);
+            deletePolicyAgentRule(policy, ruleID);
             Navigation.goBack();
         });
     };
 
-    if (!aiRule) {
+    if (!agentRule) {
         return <NotFoundPage />;
     }
 
@@ -102,20 +104,21 @@ function EditAIRulePage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
             <ScreenWrapper
-                testID="EditAIRulePage"
+                testID="EditAgentRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
+                shouldEnableMaxHeight={shouldUseScrollableLayout}
             >
-                <HeaderWithBackButton title={translate('workspace.rules.aiRules.editRuleTitle')} />
+                <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
                 <FormProvider
                     ref={formRef}
-                    formID={ONYXKEYS.FORMS.EDIT_AI_RULE_FORM}
+                    formID={ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM}
                     validate={validate}
                     onSubmit={saveRule}
                     submitButtonText={translate('common.save')}
                     style={[styles.flex1, styles.ph5]}
-                    shouldUseScrollView={false}
-                    submitFlexEnabled={false}
+                    shouldUseScrollView={shouldUseScrollableLayout}
+                    submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     shouldValidateOnChange
@@ -124,33 +127,36 @@ function EditAIRulePage({
                     shouldRenderFooterAboveSubmit
                     footerContent={
                         <Button
-                            text={translate('workspace.rules.aiRules.deleteRule')}
+                            text={translate('workspace.rules.agentRules.deleteRule')}
                             onPress={handleDelete}
                             style={[styles.mb4]}
                             large
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AI_RULE_DELETE}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE}
                         />
                     }
                 >
                     <View style={styles.flex1}>
                         <View style={[styles.gap2, styles.mv4]}>
-                            <Text style={[styles.textHeadlineH2]}>{translate('workspace.rules.aiRules.describeRuleTitle')}</Text>
-                            <Text style={[styles.textSupporting]}>{translate('workspace.rules.aiRules.describeRuleSubtitle')}</Text>
+                            <Text style={[styles.textHeadlineH2]}>{translate('workspace.rules.agentRules.describeRuleTitle')}</Text>
+                            <Text style={[styles.textSupporting]}>{translate('workspace.rules.agentRules.describeRuleSubtitle')}</Text>
                         </View>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.PROMPT}
-                            label={translate('workspace.rules.aiRules.describeRuleTitle')}
-                            accessibilityLabel={translate('workspace.rules.aiRules.describeRuleTitle')}
-                            role={CONST.ROLE.PRESENTATION}
-                            onKeyPress={handleKeyPress}
-                            defaultValue={aiRule.prompt}
-                            multiline
-                            containerStyles={[styles.flex1]}
-                            touchableInputWrapperStyle={[styles.flex1]}
-                            textInputContainerStyles={[styles.flex1]}
-                            inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
-                        />
+                        <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.PROMPT}
+                                label={translate('workspace.rules.agentRules.describeRuleTitle')}
+                                accessibilityLabel={translate('workspace.rules.agentRules.describeRuleTitle')}
+                                role={CONST.ROLE.PRESENTATION}
+                                onKeyPress={handleKeyPress}
+                                defaultValue={agentRule.prompt}
+                                multiline
+                                containerStyles={[styles.flex1]}
+                                touchableInputWrapperStyle={[styles.flex1]}
+                                textInputContainerStyles={[styles.flex1]}
+                                inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                            />
+                        </View>
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
                     </View>
                 </FormProvider>
             </ScreenWrapper>
@@ -158,4 +164,4 @@ function EditAIRulePage({
     );
 }
 
-export default EditAIRulePage;
+export default EditAgentRulePage;

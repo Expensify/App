@@ -32,8 +32,8 @@ import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
     formatCardExpiration,
-    getCardCurrency,
     getCardHintText,
+    getCardOrFeedCurrency,
     getDomainCards,
     getTranslationKeyForLimitType,
     isCardFrozen,
@@ -147,7 +147,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     // Cards that are already activated and working (OPEN) and cards shipped but not activated yet can be reported as missing or damaged
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
-    const currency = getCardCurrency(currentCard, cardSettings);
+    const currency = getCardOrFeedCurrency(currentCard, cardSettings);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
     const shouldShowChangePINRow = isUkEuExpensifyCard(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const canRevealPIN = shouldShowChangePINRow && revealedPIN === undefined;
