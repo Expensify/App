@@ -830,6 +830,7 @@ function sendInvoice({
             iouReportID: invoiceReportID,
             transactionID,
             transactionThreadReportID,
+            isInvoice: true,
         });
         removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     } else {

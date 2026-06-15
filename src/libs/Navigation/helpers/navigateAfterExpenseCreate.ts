@@ -4,6 +4,7 @@ import {createTransactionThreadReport, setOptimisticTransactionThread} from '@li
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Growl from '@libs/Growl';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
@@ -86,6 +87,9 @@ type ShowExpenseAddedGrowlParams = {
      * paths that don't know where the user lands), the context is resolved at "View" press time.
      */
     isInbox?: boolean;
+
+    /** Whether this confirmation is for an invoice (changes the toast copy from "Expense added"). */
+    isInvoice?: boolean;
 };
 
 /**
@@ -97,10 +101,12 @@ type ShowExpenseAddedGrowlParams = {
  * to land, then build the thread + show the growl. A safety timeout falls back to a growl
  * without the "View" link if the iouAction never appears.
  */
-function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInbox}: ShowExpenseAddedGrowlParams) {
+function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInbox, isInvoice}: ShowExpenseAddedGrowlParams) {
     if (!transactionID) {
         return;
     }
+
+    const growlMessage = isInvoice ? translateLocal('iou.invoiceSent') : translateLocal('iou.expenseAdded');
 
     const buildThreadFromOnyx = (): string | undefined => {
         const iouReport = iouReportID ? getReportOrDraftReport(iouReportID) : undefined;
@@ -127,7 +133,7 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
     const showGrowl = (threadReportID: string | undefined) => {
         if (!threadReportID) {
             Log.warn('[showExpenseAddedGrowl] Unable to resolve transaction thread reportID; growl without View.');
-            Growl.success('Expense added', CONST.GROWL.DURATION_LONG);
+            Growl.success(growlMessage, CONST.GROWL.DURATION_LONG);
             return;
         }
         const resolvedThreadReportID = threadReportID;
@@ -164,7 +170,7 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
                 });
             });
         };
-        Growl.success('Expense added', 6000, {label: 'View', onPress: navigateToExpenseRHP});
+        Growl.success(growlMessage, 6000, {label: translateLocal('common.view'), onPress: navigateToExpenseRHP});
     };
 
     // Fast path: the thread is already resolvable, so show the growl immediately instead of waiting on
@@ -254,7 +260,7 @@ function navigateAfterExpenseCreate({
         if (shouldAddPendingNewTransactionIDs) {
             addPendingNewTransactionIDs(activeReportID, transactionID);
         }
-        showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInbox: true});
+        showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInbox: true, isInvoice});
         return;
     }
 
@@ -309,7 +315,7 @@ function navigateAfterExpenseCreate({
         Navigation.isNavigationReady().then(navigateToSearch);
     }
 
-    showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInbox: false});
+    showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID: providedTransactionThreadReportID, isInbox: false, isInvoice});
 }
 
 export default navigateAfterExpenseCreate;
