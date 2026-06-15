@@ -1,5 +1,3 @@
-import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
-import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
 import CONST from '@src/CONST';
 import {DEFAULT_STATE} from './state';
 import type {Action, MultifactorAuthenticationState} from './types';
@@ -39,8 +37,6 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             return {...state, authorizationChallenge: action.payload};
         case 'SET_SOFT_PROMPT_APPROVED':
             return {...state, softPromptApproved: action.payload};
-        case 'SET_SCENARIO':
-            return {...state, scenario: action.payload};
         case 'SET_PAYLOAD':
             return {...state, payload: action.payload};
         case 'SET_REGISTRATION_COMPLETE':
@@ -56,36 +52,19 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             return {...state, scenarioResponse: action.payload};
         case 'SET_CANCEL_CONFIRM_VISIBLE':
             return {...state, isCancelConfirmVisible: action.payload};
-        case 'INIT': {
-            // Race guard: drop duplicate INIT — reducer sees latest state, catches stale-closure dispatches.
-            if (state.scenario) {
-                return state;
-            }
-            // We can safely make this assertion because the params type is already type-guarded in both the executeScenario and the actions themselves.
-            // Each scenario config satisfies MultifactorAuthenticationScenarioConfig at definition; the union prevents direct assertion.
-            const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario] as MultifactorAuthenticationScenarioConfig;
-            return {
-                ...DEFAULT_STATE,
-                isModalOpen: true,
-                scenarioName: action.payload.scenario,
-                scenario,
-                payload: action.payload.payload,
-            };
-        }
         case 'CLOSE_MODAL':
             // Also clear isCancelConfirmVisible. CLOSE_MODAL can close the navigator without the
             // flow ever completing (e.g. cancel() short-circuits to CLOSE_MODAL when offline), so
             // SET_FLOW_COMPLETE's clear path doesn't run and the cancel-confirm dialog would
             // otherwise linger over the closing navigator.
-            return {...state, isModalOpen: false, isCancelConfirmVisible: false};
+            return {...state, isCancelConfirmVisible: false};
         case 'RESET':
             return DEFAULT_STATE;
         case 'REREGISTER':
-            // Re-registration restarts the flow in-place: keep the modal mounted so the navigator does not
-            // play the close animation (which would unmount mid-flow and strand the user via RESET).
+            // Re-registration restarts the flow in-place, keeping the current scenario so the
+            // navigator does not unmount mid-flow.
             return {
                 ...DEFAULT_STATE,
-                isModalOpen: true,
                 scenarioName: state.scenarioName,
                 scenario: state.scenario,
                 payload: state.payload,

@@ -1,7 +1,7 @@
+import type {MultifactorAuthenticationResolvedScenarioConfig} from '@components/MultifactorAuthentication/config';
 import type {
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioAdditionalParams,
-    MultifactorAuthenticationScenarioConfig,
     MultifactorAuthenticationScenarioResponse,
 } from '@components/MultifactorAuthentication/config/types';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
@@ -14,10 +14,6 @@ import type {AuthTypeInfo} from '@libs/MultifactorAuthentication/shared/types';
  * `state.X` unchanged.
  */
 type MultifactorAuthenticationState = {
-    /** Whether the MFA modal overlay is open. Separate from scenario lifecycle
-     *  so the close animation can play before state is fully reset. */
-    isModalOpen: boolean;
-
     /** Current error state - stops the flow and navigates to failure outcome */
     error: MFAError | undefined;
 
@@ -40,7 +36,7 @@ type MultifactorAuthenticationState = {
     scenarioName: MultifactorAuthenticationScenario | undefined;
 
     /** Current scenario configuration being executed */
-    scenario: MultifactorAuthenticationScenarioConfig | undefined;
+    scenario: MultifactorAuthenticationResolvedScenarioConfig | undefined;
 
     /** Additional parameters for the current scenario */
     payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
@@ -65,7 +61,6 @@ type MultifactorAuthenticationState = {
 };
 
 const DEFAULT_STATE: MultifactorAuthenticationState = {
-    isModalOpen: false,
     error: undefined,
     continuableError: undefined,
     validateCode: undefined,

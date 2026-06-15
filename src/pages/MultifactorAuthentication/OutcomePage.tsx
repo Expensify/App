@@ -1,6 +1,6 @@
 import React from 'react';
 import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen';
-import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import CONST from '@src/CONST';
 
@@ -14,7 +14,7 @@ function shouldShowServerFailureScreen(error: MFAError): boolean {
 }
 
 function MultifactorAuthenticationOutcomePage() {
-    const {state} = useMultifactorAuthentication();
+    const {state} = useMultifactorAuthenticationInternal();
     const {scenario, error} = state;
 
     if (!scenario) {

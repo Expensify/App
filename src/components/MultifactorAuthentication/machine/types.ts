@@ -1,36 +1,36 @@
-import type {
-    MultifactorAuthenticationScenario,
-    MultifactorAuthenticationScenarioAdditionalParams,
-    MultifactorAuthenticationScenarioConfig,
-} from '@components/MultifactorAuthentication/config/types';
-import type {MultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/state';
+import type {MultifactorAuthenticationScenarioConfigFor} from '@components/MultifactorAuthentication/config';
+import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
+import type CONST from '@src/CONST';
 
-type ScenarioPayload = MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
+/** Modal lifecycle state the view layer reads: the machine's three top-level states. */
+type MfaModalState =
+    | typeof CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.CLOSED
+    | typeof CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.OPEN
+    | typeof CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.CLOSING;
 
 /**
- * The modal lifecycle as seen by the view layer, derived 1:1 from the machine's top-level state:
- * `open` -> 'open', `closing` -> 'closing', `idle` -> 'closed'.
+ * The INIT event that starts a flow, with `scenarioName`, `scenario` config, and `payload` correlated
+ * through `T`. `executeScenario` dispatches it with `T` fixed to the started scenario, so pairing a name
+ * with another scenario's config or params is a compile error at the call site.
+ *
+ * `T` defaults to the full scenario union so the bare event (and {@link MfaEvent}) stays usable as the
+ * actor's event type, where the running scenario is not known statically.
  */
-type MfaModalPhase = 'open' | 'closing' | 'closed';
+type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScenario = MultifactorAuthenticationScenario> = {
+    type: 'INIT';
+    scenarioName: T;
+    scenario: MultifactorAuthenticationScenarioConfigFor<T>;
+    payload: MultifactorAuthenticationScenarioParams<T> | undefined;
+};
 
 /**
- * Machine context: the legacy {@link MultifactorAuthenticationState} minus `isModalOpen`, which is a
- * derivative of the chart rather than stored data. `snapshotToState` maps the snapshot back to the
- * legacy shape plus `modalPhase`, so consumers keep reading `state.X` unchanged.
- */
-type MfaMachineContext = Omit<MultifactorAuthenticationState, 'isModalOpen'>;
-
-/**
- * Events accepted by the machine. PR-5 (Slice 1) only needs the three that drive the
- * `idle -> success -> teardown` lifecycle; semantic input events (validate code, soft prompt, ...) are
+ * Events accepted by the machine. So far only the three that drive the
+ * `closed -> success -> teardown` lifecycle exist; semantic input events (validate code, soft prompt, ...) are
  * added by the slices that introduce their states.
  *
  * CLOSE_MODAL requests the close (flow -> `closing`); MODAL_CLOSED is the navigator's notification
- * that the close animation fully finished (`closing` -> `idle`, which wipes the context).
+ * that the close animation fully finished (`closing` -> `closed`, which wipes the context).
  */
-type MfaEvent =
-    | {type: 'INIT'; scenarioName: MultifactorAuthenticationScenario; scenario: MultifactorAuthenticationScenarioConfig; payload: ScenarioPayload}
-    | {type: 'CLOSE_MODAL'}
-    | {type: 'MODAL_CLOSED'};
+type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'};
 
-export type {MfaMachineContext, MfaEvent, MfaModalPhase, ScenarioPayload};
+export type {MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent};

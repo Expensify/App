@@ -1,29 +1,31 @@
 import type {SnapshotFrom} from 'xstate';
 import type {MultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/state';
-import type {mfaMachine} from './mfaMachine';
-import type {MfaModalPhase} from './types';
+import CONST from '@src/CONST';
+import type mfaMachine from './mfaMachine';
+import type {MfaModalState} from './types';
+
+const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 type MfaSnapshot = SnapshotFrom<typeof mfaMachine>;
 
-/** The machine-derived state consumers read: the legacy shape plus the modal lifecycle phase. */
-type MfaState = MultifactorAuthenticationState & {modalPhase: MfaModalPhase};
+/** The machine-derived state consumers read: the legacy shape plus the modal lifecycle state. */
+type MfaState = MultifactorAuthenticationState & {modalState: MfaModalState};
 
-function getModalPhase(snapshot: MfaSnapshot): MfaModalPhase {
-    if (snapshot.matches('open')) {
-        return 'open';
+function getModalState(snapshot: MfaSnapshot): MfaModalState {
+    if (snapshot.matches(MFA_STATE.OPEN)) {
+        return MFA_STATE.OPEN;
     }
-    return snapshot.matches('closing') ? 'closing' : 'closed';
+    return snapshot.matches(MFA_STATE.CLOSING) ? MFA_STATE.CLOSING : MFA_STATE.CLOSED;
 }
 
 /**
  * Maps the machine snapshot to the state shape consumers read. The modal lifecycle is derived from
- * the chart, not stored: `modalPhase` mirrors the top-level state and drives the navigator's mount,
- * teardown animation, and unmount; `isModalOpen` is the legacy boolean view of it.
+ * the chart, not stored: `modalState` mirrors the top-level state and drives the navigator's mount,
+ * teardown animation, and unmount.
  */
 function snapshotToState(snapshot: MfaSnapshot): MfaState {
-    const modalPhase = getModalPhase(snapshot);
-    return {...snapshot.context, modalPhase, isModalOpen: modalPhase === 'open'};
+    return {...snapshot.context, modalState: getModalState(snapshot)};
 }
 
 export default snapshotToState;
-export type {MfaSnapshot, MfaState};
+export type {MfaState};

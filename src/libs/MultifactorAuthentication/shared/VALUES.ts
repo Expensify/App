@@ -214,6 +214,24 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL,
 ]);
 
+/**
+ * XState node IDs for the MFA machine (src/components/MultifactorAuthentication/machine). Flat: the
+ * hierarchy is already visible in the machine's `states` tree, so nesting here would only duplicate it.
+ * Referencing these instead of bare strings de-duplicates the literals and guards reference typos.
+ *
+ * It does NOT make a wrong machine `initial`/`target` a compile error: XState v5 does not type-check
+ * those against the real node IDs (that gap is by xstate's design). `snapshot.matches(...)`, on the
+ * other hand, is already type-checked by xstate.
+ */
+const MFA_STATE = {
+    CLOSED: 'closed',
+    OPEN: 'open',
+    CLOSING: 'closing',
+    PREPARING: 'preparing',
+    OUTCOME: 'outcome',
+    SUCCESS: 'success',
+} as const;
+
 const SHARED_VALUES = {
     /**
      * Scenario name mappings.
@@ -296,6 +314,9 @@ const SHARED_VALUES = {
         /** Show the outcome screen - continue with normal flow */
         SHOW_OUTCOME_SCREEN: 'SHOW_OUTCOME_SCREEN',
     },
+
+    /** XState node IDs for the MFA state machine. See {@link MFA_STATE}. */
+    MFA_STATE,
 } as const;
 
 export type {ReasonValue};

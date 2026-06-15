@@ -1,7 +1,7 @@
 import React, {useMemo, useReducer} from 'react';
 import type {ReactNode} from 'react';
 import MultifactorAuthenticationActionsContext from './MultifactorAuthenticationActionsContext';
-import {MultifactorAuthenticationContextProvider} from './MultifactorAuthenticationMainContext';
+import MultifactorAuthenticationContextProvider from './MultifactorAuthenticationMainContext';
 import MultifactorAuthenticationStateContext from './MultifactorAuthenticationStateContext';
 import {DEFAULT_STATE, stateReducer} from './stateReducer';
 
