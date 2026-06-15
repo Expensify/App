@@ -35,7 +35,16 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     };
 
     // Escape opens the cancel confirmation; returning false keeps the trap active.
+    // focus-trap fires on keydown, but the confirm modal mounts a `keyup` listener via useEffect
+    // that catches the matching ESC keyup and instantly closes the modal. Swallow that keyup once.
     const interceptFocusTrapEscape = () => {
+        const suppressEscapeKeyup = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                event.stopImmediatePropagation();
+            }
+            document.removeEventListener('keyup', suppressEscapeKeyup, true);
+        };
+        document.addEventListener('keyup', suppressEscapeKeyup, true);
         requestCancel();
         return false;
     };
