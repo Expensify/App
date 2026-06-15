@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isScanRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -50,8 +49,8 @@ type MoneyRequestConfirmationListFooterProps = {
     /** ID of the originating report action when editing */
     reportActionID: string | undefined;
 
-    /** Active transaction (read by hooks + section gates) */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    /** Whether the active transaction is a scan request (drives compact mode) */
+    isScanRequest: boolean;
 
     /** Input policy ID (passed to the Provider so leaf fields read tags/categories from the same policy the parent's validation uses) */
     policyID: string | undefined;
@@ -118,7 +117,7 @@ function MoneyRequestConfirmationListFooter({
     reportID,
     receiptStitchError,
     reportActionID,
-    transaction,
+    isScanRequest,
     policyID,
     policy,
     policyTags,
@@ -146,7 +145,7 @@ function MoneyRequestConfirmationListFooter({
 
     const showMoreFields = compactControls?.showMoreFields ?? false;
     const setShowMoreFields = compactControls?.setShowMoreFields ?? noopSetShowMoreFields;
-    const isCompactMode = !showMoreFields && isScanRequest(transaction) && !isInLandscapeMode;
+    const isCompactMode = !showMoreFields && isScanRequest && !isInLandscapeMode;
 
     return (
         <ConfirmationFieldsProvider
@@ -164,19 +163,14 @@ function MoneyRequestConfirmationListFooter({
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <View>
-                    <InvoiceSenderSection
-                        selectedParticipants={selectedParticipants}
-                        transaction={transaction}
-                    />
+                    <InvoiceSenderSection selectedParticipants={selectedParticipants} />
                     <DistanceMapSection
-                        transaction={transaction}
                         isDistanceRequest={expenseMode.isDistance}
                         isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
                         isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
                     />
                     <PerDiemSection
                         isPerDiemRequest={expenseMode.isPerDiem}
-                        transaction={transaction}
                         policy={policy}
                         shouldDisplayFieldError={errorState.shouldDisplayFieldError}
                         formError={errorState.formError}
@@ -184,7 +178,6 @@ function MoneyRequestConfirmationListFooter({
                 </View>
 
                 <ReceiptSection
-                    transaction={transaction}
                     policy={policy}
                     isPerDiemRequest={expenseMode.isPerDiem}
                     isDistanceRequest={expenseMode.isDistance}

@@ -6,7 +6,8 @@ import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import {deleteReport, notifyNewAction} from '@libs/actions/Report';
+import {notifyNewAction} from '@libs/actions/Report';
+import deleteReport from '@libs/actions/Report/DeleteReport';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -118,6 +119,7 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
+    isGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
 
@@ -1280,6 +1282,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
 
             mockFetch?.resume?.();
@@ -1347,6 +1350,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1870,6 +1874,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2592,6 +2597,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
