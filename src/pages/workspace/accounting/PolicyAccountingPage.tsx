@@ -247,7 +247,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
         const certiniaConfig = policy?.connections?.financialforce?.config;
         const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
-        const certiniaCompanyID = certiniaConfig?.credentials?.companyID ?? '';
+        const certiniaCompanyID = certiniaConfig?.credentials?.companyID;
         const selectedCertiniaCompany = certiniaCompanies.find((company) => company.id === certiniaCompanyID);
         switch (connectedIntegration) {
             case CONST.POLICY.CONNECTIONS.NAME.XERO:
@@ -327,7 +327,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     : {
                           description: translate('workspace.certinia.company'),
                           iconRight: icons.ArrowRight,
-                          title: selectedCertiniaCompany?.name || certiniaCompanyID || translate('common.none'),
+                          title: selectedCertiniaCompany?.name ?? certiniaCompanyID ?? translate('common.none'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting,
