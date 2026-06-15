@@ -8,6 +8,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@libs/Violations/ViolationsUtils', () => {
+    const actual = jest.requireActual<typeof import('@libs/Violations/ViolationsUtils')>('@libs/Violations/ViolationsUtils');
+
+    return {
+        ...actual,
+        syncCustomUnitRateOutOfDateRangeViolation: (violations: import('@src/types/onyx').TransactionViolation[]) => violations,
+    };
+});
+
 jest.mock('@libs/TransactionUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const CONST_MOCK = jest.requireActual('@src/CONST').default as typeof CONST_TYPE;

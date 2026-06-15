@@ -493,6 +493,7 @@ describe('DistanceRequestUtils', () => {
         const boundedRate = {
             customUnitRateID: 'rate_1',
             rate: 65,
+            unit: distanceUnit,
             startDate: '2025-01-01',
             endDate: '2025-12-31',
         };
