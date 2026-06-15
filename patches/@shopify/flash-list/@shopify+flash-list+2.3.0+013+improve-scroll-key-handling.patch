@@ -21,7 +21,8 @@ index 3b69234..eb6a14e 100644
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
 @@ -296,9 +296,24 @@ export class RecyclerViewManager {
              // stale offset, causing the wrong items to be rendered.
-             this.layoutManager.recomputeLayouts(0, initialScrollIndex);
+-            this.layoutManager.recomputeLayouts(0, initialScrollIndex);
++            this.layoutManager.recomputeLayouts(0, this.getDataLength() - 1);
              const initialItemLayout = this.layoutManager.getLayout(initialScrollIndex);
 -            const initialItemOffset = this.propsRef.horizontal
 +            let initialItemOffset = this.propsRef.horizontal
