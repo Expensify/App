@@ -19,6 +19,7 @@ import {
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
+    getExcludedUsers,
     getExpensifyTeamExclusions,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
@@ -3066,6 +3067,43 @@ describe('PolicyUtils', () => {
                 },
             };
             expect(hasPolicyRulesError(policy)).toBe(true);
+        });
+    });
+
+    describe('getExcludedUsers', () => {
+        it('marks every active policy member as excluded', () => {
+            const result = getExcludedUsers(employeeList);
+            expect(result['owner@test.com']).toBe(true);
+            expect(result['admin@test.com']).toBe(true);
+            expect(result['employee@test.com']).toBe(true);
+        });
+
+        it('always excludes Expensify emails', () => {
+            const result = getExcludedUsers(employeeList);
+            for (const email of CONST.EXPENSIFY_EMAILS) {
+                expect(result[email]).toBe(true);
+            }
+        });
+
+        it('does not exclude a member that is pending delete', () => {
+            const list: PolicyEmployeeList = {
+                'employee@test.com': {email: 'employee@test.com', role: 'user', submitsTo: '', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+            const result = getExcludedUsers(list);
+            expect(result['employee@test.com']).toBeUndefined();
+        });
+
+        it('does not exclude a member that has errors', () => {
+            const list: PolicyEmployeeList = {
+                'employee@test.com': {email: 'employee@test.com', role: 'user', submitsTo: '', errors: {error1: 'Something went wrong'}},
+            };
+            const result = getExcludedUsers(list);
+            expect(result['employee@test.com']).toBeUndefined();
+        });
+
+        it('returns only Expensify emails when the employee list is undefined', () => {
+            const result = getExcludedUsers(undefined);
+            expect(Object.keys(result)).toEqual([...CONST.EXPENSIFY_EMAILS]);
         });
     });
 });
