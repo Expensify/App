@@ -114,9 +114,6 @@ function closestPointOnSegment(point: LngLat, startPoint: Coordinate, endPoint: 
 }
 
 function areCoordinatesEqual(coordinate1: Coordinate | undefined, coordinate2: Coordinate | undefined) {
-    if (coordinate1 === coordinate2) {
-        return true;
-    }
     if (!coordinate1 || !coordinate2) {
         return false;
     }

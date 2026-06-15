@@ -8,7 +8,7 @@ type UseAnimatedTrailingDirectionCoordinateParams = {
     isEnabled: boolean;
 
     // Target coordinate of the animation
-    targetCoordinate: Coordinate;
+    targetCoordinate: Coordinate | undefined;
 
     // List of coordinates which together forms a direction.
     directionCoordinates: Coordinate[][];
@@ -93,6 +93,7 @@ function useAnimatedTrailingDirectionCoordinate({directionCoordinates, isEnabled
     };
 
     useEffect(() => {
+        // If the animation is not enabled or the target coordinate is not available, we need to cancel the animation
         if (!isEnabled || !targetCoordinate) {
             cancelAnimation();
             prevSegmentCountRef.current = undefined;

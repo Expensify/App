@@ -1,5 +1,4 @@
 import Mapbox from '@rnmapbox/maps';
-import {useMemo} from 'react';
 import ImageSVG from '@components/ImageSVG';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import getMapMarkerSize from '@hooks/useMapMarkers/getMapMarkerSize';
@@ -14,37 +13,38 @@ const WAYPOINT_ICON_NAMES: Record<MapMarkerType, string> = {
 };
 
 type GPSWaypointLayerProps = {
+    // List of waypoints to render
     waypoints?: WayPoint[];
+    // ID of the layer to render the waypoints below
     belowLayerID?: string;
 };
 
+/**
+ * Waypoints need to be rendered as a layer to be able to render them below the LocationPuck component.
+ */
 function GPSWaypointLayer({waypoints, belowLayerID}: GPSWaypointLayerProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MapStartWaypoint', 'MapStopWaypoint', 'MapWaypoint']);
 
-    const waypointFeatures = useMemo(() => {
-        if (!waypoints?.length) {
-            return [];
-        }
+    const waypointFeatures = !waypoints?.length
+        ? []
+        : waypoints.flatMap((waypoint) => {
+              if (!waypoint.markerType) {
+                  return [];
+              }
 
-        return waypoints.flatMap((waypoint) => {
-            if (!waypoint.markerType) {
-                return [];
-            }
-
-            return [
-                {
-                    type: 'Feature' as const,
-                    geometry: {
-                        type: 'Point' as const,
-                        coordinates: waypoint.coordinate,
-                    },
-                    properties: {
-                        icon: WAYPOINT_ICON_NAMES[waypoint.markerType],
-                    },
-                },
-            ];
-        });
-    }, [waypoints]);
+              return [
+                  {
+                      type: 'Feature',
+                      geometry: {
+                          type: 'Point',
+                          coordinates: waypoint.coordinate,
+                      },
+                      properties: {
+                          icon: WAYPOINT_ICON_NAMES[waypoint.markerType],
+                      },
+                  },
+              ];
+          });
 
     if (waypointFeatures.length === 0) {
         return null;

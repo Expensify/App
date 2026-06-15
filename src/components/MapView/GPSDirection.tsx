@@ -5,7 +5,7 @@ import useAnimatedTrailingDirectionCoordinate from './useAnimatedTrailingDirecti
 function GPSDirection({directionCoordinates, isTrackingGPS, lastLocation}: GPSDirectionProps) {
     const animatedTrailingCoordinate = useAnimatedTrailingDirectionCoordinate({
         isEnabled: isTrackingGPS && !!lastLocation,
-        targetCoordinate: [lastLocation.longitude, lastLocation.latitude],
+        targetCoordinate: lastLocation ? [lastLocation.longitude, lastLocation.latitude] : undefined,
         directionCoordinates,
     });
 
