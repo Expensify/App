@@ -27,7 +27,7 @@ const THREAD_REPORT_ID = '10002';
 const PARENT_ACTION_ID = '9001';
 const IOU_TRANSACTION_ID = '3106135972713435169';
 
-const loadedMetadata: ResultMetadata<ReportActions> = {status: 'loaded'};
+const loadedMetadata: ResultMetadata = {status: 'loaded'};
 
 function asReportActionsOnyxResult(reportActions: ReportActions | undefined): UseOnyxResult<ReportActions> {
     return [reportActions, loadedMetadata];
