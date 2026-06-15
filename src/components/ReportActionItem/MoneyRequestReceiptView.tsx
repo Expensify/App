@@ -645,6 +645,7 @@ function MoneyRequestReceiptView({
                                         <ReportActionItemImage
                                             shouldUseThumbnailImage={!fillSpace}
                                             shouldUseFullHeight={fillSpace}
+                                            canZoomReceipt={canZoomReceipt}
                                             thumbnail={receiptURIs?.thumbnail}
                                             fileExtension={receiptURIs?.fileExtension}
                                             isThumbnail={receiptURIs?.isThumbnail}
