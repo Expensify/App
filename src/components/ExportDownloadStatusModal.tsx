@@ -2,12 +2,17 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {isMobileSafari} from '@libs/Browser';
+import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -38,19 +43,21 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     // isSmallScreenWidth is needed here because the modal type depends on actual screen width, not layout mode
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {environment} = useEnvironment();
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [encryptedAuthToken] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.encryptedAuthToken});
 
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
     const displayedExport = usePreviousDefined(exportDownload);
 
     const state = displayedExport?.state;
     const shouldSendFromConcierge = displayedExport?.shouldSendFromConcierge;
-    const downloadURL = displayedExport?.downloadURL;
+    const fileName = displayedExport?.fileName;
     const failedReportCount = displayedExport?.failedReportCount ?? 0;
     const reportCount = displayedExport?.reportCount ?? 0;
     const isPreparing = state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !shouldSendFromConcierge;
@@ -59,12 +66,25 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
     const isPartialFailure = isReady && failedReportCount > 0;
 
-    useEffect(() => {
-        if (!isReady || !downloadURL || shouldSendFromConcierge) {
+    const downloadFile = () => {
+        if (!fileName || !currentUserLogin) {
             return;
         }
-        fileDownload(translate, downloadURL);
-    }, [isReady, downloadURL, translate, shouldSendFromConcierge]);
+        const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
+        const isCSV = fileName.endsWith('.csv');
+        const secureType = isCSV ? 'csvexport' : 'pdfreport';
+        const downloadName = isCSV ? fileName : `${fileName}.pdf`;
+        const url = `${baseURL}secure?secureType=${secureType}&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadName)}&email=${encodeURIComponent(currentUserLogin)}`;
+        fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), downloadName, '', isMobileSafari());
+    };
+
+    useEffect(() => {
+        if (!isReady || !fileName || shouldSendFromConcierge) {
+            return;
+        }
+        downloadFile();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isReady, fileName, shouldSendFromConcierge]);
 
     const handleSendFromConcierge = () => {
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
@@ -73,13 +93,6 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const handleGoToConcierge = () => {
         onClose();
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
-    };
-
-    const handleDownloadFile = () => {
-        if (!downloadURL) {
-            return;
-        }
-        fileDownload(translate, downloadURL);
     };
 
     const handleClose = () => {
@@ -149,7 +162,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     <Button
                         success
                         text={translate('exportDownload.downloadFile')}
-                        onPress={handleDownloadFile}
+                        onPress={downloadFile}
                         style={styles.w100}
                     />
                     <Button

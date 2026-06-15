@@ -12,6 +12,9 @@ type ExportDownload = {
     /** URL to download the exported file when state is ready */
     downloadURL?: string;
 
+    /** Name of the exported file, used to build the secure download URL when state is ready */
+    fileName?: string;
+
     /** Number of reports included in the export (PDF exports only) */
     reportCount?: number;
 
