@@ -73,9 +73,7 @@ export default function useSelection<DataType extends TableData>({
 
         if (isMobileMissingSelectionMode) {
             turnOnMobileSelectionMode();
-        } else if (isDesktopWithoutSelectableKeys) {
-            turnOffMobileSelectionMode();
-        } else if (isSelectionModeEnabledWithoutSelectableKeys) {
+        } else if (isDesktopWithoutSelectableKeys || isSelectionModeEnabledWithoutSelectableKeys) {
             turnOffMobileSelectionMode();
         }
     }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount]);
@@ -89,13 +87,7 @@ export default function useSelection<DataType extends TableData>({
     }, [isSelectionModeEnabled, selectedKeys.length]);
 
     // When the table filters change, clear the current selection
-    useEffect(() => {
-        if (selectedKeys.length === 0) {
-            return;
-        }
-
-        clearSelection();
-    }, [currentFilters]);
+    useEffect(() => clearSelection(), [currentFilters]);
 
     /**
      * Clear all of the currently selected keys
