@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {hasEReceipt, hasReceiptSource, isDistanceRequest, isFetchingWaypointsFromServer, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+import {hasEReceipt, hasPendingDistanceReceiptRegeneration, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -116,15 +116,10 @@ function ReportActionItemImage({
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const {report: contextReport, transactionThreadReport} = useShowContextMenuState();
     const isMapDistanceRequest = !!transaction && isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
-    const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
-    // After a distance/rate edit the BE regenerates the receipt and invalidates the prior URL, but
-    // the local `receipt.source` only refreshes when the Pusher push arrives. Render `ConfirmedRoute`
-    // (which draws the map from `routes.coordinates`, independent of the URL) while any of these
-    // edits are pending so the thumbnail doesn't briefly try to load the now-404'd URL.
-    const pf = transaction?.pendingFields as Record<string, unknown> | undefined;
-    const hasPendingReceiptRegeneration = !!pf && (!!pf.distance || !!pf.merchant || !!pf.customUnitRateID);
-    const showMapAsImage = isMapDistanceRequest && (hasErrors || !!hasPendingWaypoints || hasPendingReceiptRegeneration);
+    // While the receipt is regenerating its stored URL is stale, so draw the live route from `routes.coordinates`
+    // (via `ConfirmedRoute`) instead of loading the now-404'd image.
+    const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingDistanceReceiptRegeneration(transaction));
 
     if (showMapAsImage) {
         return (
