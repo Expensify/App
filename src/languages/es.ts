@@ -2140,12 +2140,16 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: 'Informar de actividad sospechosa',
         lockAccount: 'Bloquear cuenta',
+        lockMyAccount: 'Bloquear mi cuenta',
         unlockAccount: 'Desbloquear cuenta',
         unlockTitle: 'Hemos recibido tu solicitud',
         unlockDescription: 'Revisaremos la cuenta para verificar que sea seguro desbloquearla y nos comunicaremos a través de Concierge si tenemos alguna pregunta.',
-        compromisedDescription:
-            '¿Notas algo extraño en tu cuenta? Informarlo bloqueará tu cuenta de inmediato, detendrá nuevas transacciones con la Tarjeta Expensify y evitará cualquier cambio en la cuenta.',
-        domainAdminsDescription: 'Para administradores de dominio: Esto también detiene toda la actividad de la Tarjeta Expensify y las acciones administrativas en tus dominios.',
+        findYourSituation: '¡La mayoría de los problemas no requieren bloquear tu cuenta! Busca tu situación a continuación:',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Tarjeta perdida o cargos desconocidos</a>: Cancela tu tarjeta y contacta con Concierge para disputar transacciones desconocidas.',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Acceso no autorizado a la cuenta</a>: Bloquea tu cuenta abajo. Esto bloquea nuevas transacciones con la Tarjeta Expensify, pedidos de tarjetas y cambios en la cuenta. Si eres administrador de dominio, esto también pausa toda la actividad de tarjetas y las acciones de administrador en todo el dominio.',
+        securityTeamFollowUp: 'Nuestro equipo de seguridad hará un seguimiento desde <a href="mailto:risk@expensify.com">risk@expensify.com</a> después del bloqueo.',
         areYouSure: '¿Estás seguro de que deseas bloquear tu cuenta de Expensify?',
         onceLocked: 'Una vez bloqueada, tu cuenta estará restringida hasta que se solicite el desbloqueo y se realice una revisión de seguridad.',
     },
@@ -2691,11 +2695,11 @@ ${amount} para ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agentes',
-        subtitle: 'Automatiza tareas con agentes personalizados.',
+        subtitle: `<muted-text>Crea agentes para gestionar tu flujo de trabajo. Omite el trabajo manual y recupera horas de tu día. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Más información</a>.</muted-text>`,
         newAgent: 'Nuevo agente',
         emptyAgents: {
             title: 'No se han creado agentes.',
-            subtitle: 'Deja de hacer las cosas manualmente. En su lugar, instruye a un agente y ahorra mucho tiempo.',
+            subtitle: `<muted-text><centered-text>Deja de hacerlo todo manualmente. Da instrucciones a un agente y ahórrate mucho tiempo. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Más información</a>.</centered-text></muted-text>`,
         },
         error: {
             genericAdd: 'Hubo un problema al agregar este agente',
@@ -7281,11 +7285,11 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Agencias de viajes',
                 },
             },
-            aiRules: {
-                title: 'Reglas de IA',
+            agentRules: {
+                title: 'Reglas de Agente',
                 subtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas',
-                addRule: 'Añadir regla de IA',
-                findRule: 'Buscar regla de IA',
+                addRule: 'Añadir regla de Agente',
+                findRule: 'Buscar regla de Agente',
                 addRuleTitle: 'Añadir regla',
                 describeRuleTitle: 'Describe tu regla',
                 describeRuleSubtitle: 'Describe tu regla y Concierge la creará',
@@ -7549,10 +7553,12 @@ ${amount} para ${merchant} - ${date}`,
                 }),
                 phraseVerb: {added: 'añadido', removed: 'eliminado', changed: 'cambió', set: 'establecer', applied: 'aplicado'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} comercio «${value}»` : `comercio «${value}»`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `«${value}»`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} del comerciante de '${oldValue}' a '${newValue}'` : `comercio de '${oldValue}' a '${newValue}'`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `Categoría de gasto ${adjective} «${value}»` : `categoría de gasto «${value}»`,
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `«${value}»`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `Categoría de gasto ${adjective} de '${oldValue}' a '${newValue}'` : `categoría de gasto de '${oldValue}' a '${newValue}'`,
                 bodyMaxAmount: 'importe máximo',
@@ -9701,6 +9707,7 @@ ${amount} para ${merchant} - ${date}`,
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
         gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',
         hasFilterNegation: '<tooltip>Busca gastos sin recibos usando <strong>-has:receipt</strong>.</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>Hemos actualizado la tasa según tu fecha de viaje.</tooltip>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',

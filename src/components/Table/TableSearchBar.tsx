@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import SearchBar from '@components/SearchBar';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -45,6 +45,12 @@ function TableSearchBar({label, style}: TableSearchBarProps) {
         activeSearchString,
         tableMethods: {updateSearchString},
     } = useTableContext();
+
+    useEffect(() => {
+        return () => updateSearchString('');
+        // We only want the cleanup to run on unmount to reset the search state
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <SearchBar

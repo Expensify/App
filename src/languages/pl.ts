@@ -2250,10 +2250,14 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: 'Zgłoś podejrzaną aktywność',
         lockAccount: 'Zablokuj konto',
+        lockMyAccount: 'Zablokuj moje konto',
         unlockAccount: 'Odblokuj konto',
-        compromisedDescription:
-            'Zauważyłeś coś niepokojącego na swoim koncie? Zgłoszenie tego natychmiast zablokuje twoje konto, wstrzyma nowe transakcje Kartą Expensify i uniemożliwi wprowadzanie jakichkolwiek zmian na koncie.',
-        domainAdminsDescription: 'Dla administratorów domen: to również wstrzymuje całą aktywność Kart Expensify i działania administracyjne w twoich domenach.',
+        findYourSituation: 'Większość problemów nie wymaga blokowania konta! Znajdź swoją sytuację poniżej:',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Zgubiona karta lub nieznane obciążenia</a>: Anuluj swoją kartę i skontaktuj się z Concierge, żeby zakwestionować nieznane transakcje.',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Nieautoryzowany dostęp do konta</a>: Zablokuj swoje konto poniżej. To zablokuje nowe transakcje Kartą Expensify, zamówienia kart i zmiany na koncie. Jeśli jesteś administratorem domeny, to wstrzyma też całą aktywność kart i działania administratorów w obrębie domeny.',
+        securityTeamFollowUp: 'Nasz zespół ds. bezpieczeństwa skontaktuje się z tobą z adresu <a href="mailto:risk@expensify.com">risk@expensify.com</a> po zablokowaniu.',
         areYouSure: 'Czy na pewno chcesz zablokować swoje konto Expensify?',
         onceLocked: 'Po zablokowaniu Twoje konto będzie ograniczone do czasu złożenia prośby o odblokowanie i przeprowadzenia kontroli bezpieczeństwa',
         unlockTitle: 'Otrzymaliśmy Twoją prośbę',
@@ -2809,9 +2813,12 @@ ${amount} dla ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agenci',
-        subtitle: 'Twórz agentów do obsługi swojego przepływu pracy. Pomiń ręczną pracę i odzyskaj godziny w ciągu dnia.',
+        subtitle: `<muted-text>Twórz agentów, którzy obsłużą twój workflow. Odpuść sobie ręczną pracę i odzyskaj godziny w ciągu dnia. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Dowiedz się więcej</a>.</muted-text>`,
         newAgent: 'Nowy agent',
-        emptyAgents: {title: 'Nie utworzono agentów', subtitle: 'Przestań robić wszystko ręcznie. Zamiast tego wydaj polecenia agentowi i zaoszczędź mnóstwo czasu.'},
+        emptyAgents: {
+            title: 'Nie utworzono agentów',
+            subtitle: `<muted-text><centered-text>Przestań robić wszystko ręcznie. Zamiast tego wydawaj instrukcje agentowi i oszczędzaj mnóstwo czasu. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Dowiedz się więcej</a>.</centered-text></muted-text>`,
+        },
         error: {
             genericAdd: 'Wystąpił problem podczas dodawania tego agenta',
             genericUpdate: 'Wystąpił problem z aktualizacją tego agenta',
@@ -7337,11 +7344,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Zablokowane' : 'Dozwolone'} ${shownCount > 1 ? 'kategorie' : 'kategoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} więcej` : ''}`,
             },
-            aiRules: {
-                title: 'Zasady AI',
+            agentRules: {
+                title: 'Zasady Agenta',
                 subtitle: 'Opisz elastyczne reguły, które działają wtedy, gdy ich potrzebujesz',
-                addRule: 'Dodaj regułę AI',
-                findRule: 'Znajdź regułę AI',
+                addRule: 'Dodaj regułę Agenta',
+                findRule: 'Znajdź regułę Agenta',
                 addRuleTitle: 'Dodaj regułę',
                 editRuleTitle: 'Edytuj regułę',
                 deleteRule: 'Usuń regułę',
@@ -8008,10 +8015,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 }),
                 phraseVerb: {added: 'dodano', removed: 'usunięto', changed: 'zmieniono', set: 'ustaw', applied: 'zastosowano'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} sprzedawca '${value}'` : `sprzedawca „${value}”`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `„${value}”`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `zmieniono ${adjective} sprzedawcę z „${oldValue}” na „${newValue}”` : `sprzedawcę z „${oldValue}” na „${newValue}”`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `${adjective} kategoria wydatków „${value}”` : `kategoria wydatków „${value}”`,
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `„${value}”`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} kategorię wydatków z „${oldValue}” na „${newValue}”` : `kategorię wydatku z „${oldValue}” na „${newValue}”`,
                 bodyMaxAmount: 'maksymalna kwota',
@@ -9482,6 +9491,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         scanTestDriveTooltip: '<tooltip>Wyślij ten paragon, aby\n<strong>zakończyć jazdę próbną!</strong></tooltip>',
         gpsTooltip: '<tooltip>Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.</tooltip>',
         hasFilterNegation: '<tooltip>Wyszukaj wydatki bez paragonów za pomocą <strong>-has:receipt</strong>.</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>Zaktualizowaliśmy stawkę na podstawie daty twojej podróży.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',

@@ -2340,12 +2340,16 @@ const translations = {
     lockAccountPage: {
         reportSuspiciousActivity: 'Report suspicious activity',
         lockAccount: 'Lock account',
+        lockMyAccount: 'Lock my account',
         unlockAccount: 'Unlock account',
         unlockTitle: 'We’ve received your request',
         unlockDescription: 'We’ll review the account to verify it’s safe to unlock and reach out via Concierge with any questions.',
-        compromisedDescription:
-            'Notice something off with your account? Reporting it will immediately lock your account, block new Expensify Card transactions, and prevent any account changes.',
-        domainAdminsDescription: 'For domain admins: This also pauses all Expensify Card activity and admin actions across your domain(s).',
+        findYourSituation: 'Most issues don’t require locking your account! Find your situation below:',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Lost card or unfamiliar charges</a>: Cancel your card and contact Concierge to dispute unknown transactions.',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Unauthorized account access</a>: Lock your account below. This blocks new Expensify Card transactions, card orders, and account changes. If you’re a domain admin, this also pauses all domain-wide card activity and admin actions.',
+        securityTeamFollowUp: 'Our security team will follow up from <a href="mailto:risk@expensify.com">risk@expensify.com</a> after locking.',
         areYouSure: 'Are you sure you want to lock your Expensify account?',
         onceLocked: 'Once locked, your account will be restricted pending an unlock request and a security review',
     },
@@ -2889,11 +2893,11 @@ const translations = {
     },
     agentsPage: {
         title: 'Agents',
-        subtitle: 'Create agents to handle your workflow. Skip the manual work and get hours back in your day.',
+        subtitle: `<muted-text>Create agents to handle your workflow. Skip the manual work and get hours back in your day. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Learn more</a>.</muted-text>`,
         newAgent: 'New agent',
         emptyAgents: {
             title: 'No agents created',
-            subtitle: 'Stop manually doing stuff. Instruct an agent instead and save yourself lots of time.',
+            subtitle: `<muted-text><centered-text>Stop manually doing stuff. Instruct an agent instead and save yourself lots of time. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Learn more</a>.</centered-text></muted-text>`,
         },
         error: {
             genericAdd: 'There was a problem adding this agent',
@@ -7498,11 +7502,11 @@ const translations = {
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Travel agencies',
                 },
             },
-            aiRules: {
-                title: 'AI Rules',
+            agentRules: {
+                title: 'Agent Rules',
                 subtitle: 'Describe flexible rules that run when you need them',
-                addRule: 'Add AI rule',
-                findRule: 'Find AI rule',
+                addRule: 'Add Agent rule',
+                findRule: 'Find Agent rule',
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
                 deleteRule: 'Delete rule',
@@ -7817,9 +7821,11 @@ const translations = {
                     applied: 'applied',
                 },
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} merchant '${value}'` : `merchant '${value}'`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `'${value}'`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} merchant from '${oldValue}' to '${newValue}'` : `merchant from '${oldValue}' to '${newValue}'`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} spend category '${value}'` : `spend category '${value}'`),
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `'${value}'`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} spend category from '${oldValue}' to '${newValue}'` : `spend category from '${oldValue}' to '${newValue}'`,
                 bodyMaxAmount: 'max amount',
@@ -9600,6 +9606,7 @@ const translations = {
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
         hasFilterNegation: '<tooltip>Search for expenses without receipts using <strong>-has:receipt</strong>.</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>We updated the rate based on your travel date.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
