@@ -14,6 +14,9 @@ import ROUTES from '@src/ROUTES';
 // eslint-disable-next-line import/extensions
 const xeroSetupPageModule: unknown = require('@pages/workspace/accounting/xero/XeroSetupPage/index.tsx');
 
+// The `require` above yields `any`, and narrowing it to the module shape needs a type assertion that
+// can't be avoided for this test-only web-entry-point escape hatch, so disable the rule on this line.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const XeroSetupPage = (xeroSetupPageModule as {default: typeof XeroSetupPageType}).default;
 
 const ENVIRONMENT_URL = 'https://new.expensify.com';
