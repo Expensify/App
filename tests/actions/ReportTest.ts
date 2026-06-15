@@ -4538,7 +4538,7 @@ describe('actions/Report', () => {
 
             function isReportActions(value: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>['value']): value is OnyxTypes.ReportActions {
                 return !!value && parentReportActionID in value;
-            };
+            }
 
             expect(optimisticReportActionData).toBeDefined();
             const updatedOptimisticAction = isReportActions(optimisticReportActionData?.value) ? optimisticReportActionData.value[parentReportActionID] : undefined;
