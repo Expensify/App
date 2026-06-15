@@ -34,13 +34,9 @@ function useShouldShowEmptyReportConfirmation(policyID: string | undefined, skip
         },
         [policyID, accountID, hasDismissedConfirmation, skip, reportIDsWithActiveTransactions],
     );
-    const [hasEmptyReport = false] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {
-            selector: hasEmptyReportSelector,
-        },
-        [policyID, accountID, hasDismissedConfirmation, skip, reportIDsWithActiveTransactions],
-    );
+    const [hasEmptyReport = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: hasEmptyReportSelector,
+    });
 
     return hasEmptyReport;
 }

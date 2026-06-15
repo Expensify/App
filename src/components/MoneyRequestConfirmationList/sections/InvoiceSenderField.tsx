@@ -1,5 +1,5 @@
 import {emailSelector} from '@selectors/Session';
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
@@ -56,11 +56,11 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouTy
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
     // canSendInvoice needs the full policy collection to check all admin workspaces
-    const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCanUpdateSenderWorkspaceSelector(selectedParticipants, currentUserLogin, isFromGlobalCreate)}, [
-        selectedParticipants,
-        currentUserLogin,
-        isFromGlobalCreate,
-    ]);
+    const canUpdateSenderWorkspaceSelector = useCallback(
+        (policies: OnyxCollection<OnyxTypes.Policy>) => createCanUpdateSenderWorkspaceSelector(selectedParticipants, currentUserLogin, isFromGlobalCreate)(policies),
+        [selectedParticipants, currentUserLogin, isFromGlobalCreate],
+    );
+    const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: canUpdateSenderWorkspaceSelector});
 
     return (
         <MenuItem

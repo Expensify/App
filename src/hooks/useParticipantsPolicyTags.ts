@@ -1,3 +1,4 @@
+import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx';
@@ -30,9 +31,8 @@ function getPolicyTagsSelector(participants: ParticipantWithPolicyID[]): (allTag
  * @returns Record mapping policyID to PolicyTagLists
  */
 function useParticipantsPolicyTags(participants: ParticipantWithPolicyID[]): Record<string, PolicyTagLists> {
-    const [participantsPolicyTags = getEmptyObject<Record<string, PolicyTagLists>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: getPolicyTagsSelector(participants)}, [
-        participants,
-    ]);
+    const policyTagsSelector = useCallback((allTags: OnyxCollection<PolicyTagLists>) => getPolicyTagsSelector(participants)(allTags), [participants]);
+    const [participantsPolicyTags = getEmptyObject<Record<string, PolicyTagLists>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
 
     return participantsPolicyTags;
 }

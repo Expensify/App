@@ -1,3 +1,4 @@
+import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -30,7 +31,8 @@ function getPoliciesSelector(participants: ParticipantWithPolicyID[]): (allPolic
  * @returns Record mapping policyID to Policy
  */
 function useParticipantsPolicies(participants: ParticipantWithPolicyID[]): Record<string, Policy> {
-    const [participantsPolicies = getEmptyObject<Record<string, Policy>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: getPoliciesSelector(participants)}, [participants]);
+    const policiesSelector = useCallback((allPolicies: OnyxCollection<Policy>) => getPoliciesSelector(participants)(allPolicies), [participants]);
+    const [participantsPolicies = getEmptyObject<Record<string, Policy>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
 
     return participantsPolicies;
 }
