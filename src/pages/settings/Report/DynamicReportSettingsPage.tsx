@@ -6,6 +6,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,16 +27,17 @@ import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ReportSettingsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>;
+type DynamicReportSettingsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT>;
 
-function ReportSettingsPage({report, policy}: ReportSettingsPageProps) {
+function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPageProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_SETTINGS.path);
     const isReportArchived = useReportIsArchived(reportID);
     const isArchivedNonExpenseReport = isArchivedNonExpenseReportUtils(report, isReportArchived);
     // The workspace the report is on, null if the user isn't a member of the workspace
@@ -57,11 +59,11 @@ function ReportSettingsPage({report, policy}: ReportSettingsPageProps) {
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
     return (
-        <ScreenWrapper testID="ReportSettingsPage">
+        <ScreenWrapper testID="DynamicReportSettingsPage">
             <FullPageNotFoundView shouldShow={shouldDisableSettings}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(reportID)))}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (
@@ -130,4 +132,4 @@ function ReportSettingsPage({report, policy}: ReportSettingsPageProps) {
     );
 }
 
-export default withReportOrNotFound()(ReportSettingsPage);
+export default withReportOrNotFound()(DynamicReportSettingsPage);
