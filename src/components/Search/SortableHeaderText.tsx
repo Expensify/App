@@ -81,7 +81,7 @@ export default function SortableHeaderText({text, icon, sortOrder, isActive, tex
                     {!!text && (
                         <Text
                             numberOfLines={1}
-                            style={[styles.textMicroSupporting, styles.flexShrink1, activeColumnStyle, textStyle]}
+                            style={[styles.textMicroSupporting, activeColumnStyle, textStyle]}
                         >
                             {text}
                         </Text>
