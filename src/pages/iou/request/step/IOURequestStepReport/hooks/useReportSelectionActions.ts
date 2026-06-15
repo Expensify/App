@@ -205,7 +205,7 @@ function useReportSelectionActions({
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                         policyTagList,
                         transactions: targetTransactions,
-                        transactionViolations,
+                        allTransactionViolation: transactionViolations,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -228,7 +228,7 @@ function useReportSelectionActions({
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
                 policyTagList,
                 transactions: targetTransactions,
-                transactionViolations,
+                allTransactionViolation: transactionViolations,
             });
             removeTransaction(transaction.transactionID);
         });

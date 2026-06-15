@@ -112,7 +112,7 @@ function SearchTransactionsChangeReport() {
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
                 policyTagList,
                 transactions,
-                transactionViolations,
+                allTransactionViolation: transactionViolations,
             });
             clearSelectedTransactions();
         });
@@ -189,7 +189,7 @@ function SearchTransactionsChangeReport() {
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
             policyTagList,
             transactions,
-            transactionViolations,
+            allTransactionViolation: transactionViolations,
         });
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
@@ -211,7 +211,7 @@ function SearchTransactionsChangeReport() {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             policyTagList,
             transactions,
-            transactionViolations,
+            allTransactionViolation: transactionViolations,
         });
         clearSelectedTransactions();
         Navigation.goBack();

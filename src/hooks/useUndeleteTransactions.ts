@@ -26,7 +26,7 @@ function useUndeleteTransactions() {
             policy,
             policyTagList,
             transactions,
-            transactionViolations,
+            allTransactionViolation: transactionViolations,
         });
     };
 }

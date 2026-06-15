@@ -138,7 +138,7 @@ function IOURequestStepUpgrade({
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
                 policyTagList,
                 transactions,
-                transactionViolations,
+                allTransactionViolation: transactionViolations,
             });
 
             clearSelectedTransactions();

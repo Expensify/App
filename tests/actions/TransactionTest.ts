@@ -32,13 +32,14 @@ import getOnyxValue from '../utils/getOnyxValue';
 import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransactionsReportAction>[0], 'transactions'> & {
+type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransactionsReportAction>[0], 'transactions' | 'allTransactionViolation'> & {
     allTransactions: OnyxCollection<Transaction>;
+    transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
 };
 
-function changeTransactionsReport({allTransactions, transactionIDs, ...rest}: LegacyChangeTransactionsReportProps) {
+function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({transactionIDs, transactions, ...rest});
+    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, ...rest});
 }
 
 const topMostReportID = '23423423';

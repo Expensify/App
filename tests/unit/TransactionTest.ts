@@ -26,7 +26,7 @@ import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransactionsReportAction>[0], 'transactions' | 'transactionViolations'> & {
+type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransactionsReportAction>[0], 'transactions' | 'allTransactionViolation'> & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
@@ -34,7 +34,7 @@ type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransact
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
 function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({transactionIDs, transactions, transactionViolations, ...rest});
+    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, ...rest});
 }
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {

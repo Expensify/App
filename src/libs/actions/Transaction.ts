@@ -833,7 +833,7 @@ type ChangeTransactionsReportProps = {
     policyTagList: OnyxEntry<PolicyTagLists>;
     transactions: Transaction[];
     /** Full TRANSACTION_VIOLATIONS Onyx collection — still needed for `hasViolationsReportUtils` lookups across reports outside the move batch. */
-    transactionViolations: OnyxCollection<TransactionViolation[]>;
+    allTransactionViolation: OnyxCollection<TransactionViolation[]>;
 };
 
 function changeTransactionsReport({
@@ -847,7 +847,7 @@ function changeTransactionsReport({
     policyCategories,
     policyTagList,
     transactions,
-    transactionViolations,
+    allTransactionViolation,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -862,7 +862,7 @@ function changeTransactionsReport({
 
     const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
     for (const id of transactionIDs) {
-        currentTransactionViolations[id] = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+        currentTransactionViolations[id] = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
     }
 
     const optimisticData: Array<
@@ -1126,7 +1126,7 @@ function changeTransactionsReport({
                 ?.duplicates;
             if (duplicateTransactionIDs) {
                 for (const id of duplicateTransactionIDs) {
-                    const siblingViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+                    const siblingViolations = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
@@ -1709,7 +1709,7 @@ function changeTransactionsReport({
 
         const predictedNextStatus = updatedReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN;
 
-        const hasViolations = hasViolationsReportUtils(updatedReport.reportID, transactionViolations, accountID, email ?? '');
+        const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolation, accountID, email ?? '');
         const isDestinationReport = affectedReportID === destinationReportID;
         const shouldFixViolationsForReport = isDestinationReport ? shouldFixViolations : false;
         const shouldUseUnreportedNextStepKey = reportID === CONST.REPORT.UNREPORTED_REPORT_ID && isDestinationReport;

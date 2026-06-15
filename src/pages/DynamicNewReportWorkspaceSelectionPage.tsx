@@ -129,7 +129,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     policyCategories: undefined,
                     policyTagList,
                     transactions,
-                    transactionViolations,
+                    allTransactionViolation: transactionViolations,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values
