@@ -34,9 +34,9 @@ function GPSWaypointLayer({waypoints, belowLayerID}: GPSWaypointLayerProps) {
 
               return [
                   {
-                      type: 'Feature',
+                      type: 'Feature' as const,
                       geometry: {
-                          type: 'Point',
+                          type: 'Point' as const,
                           coordinates: waypoint.coordinate,
                       },
                       properties: {
