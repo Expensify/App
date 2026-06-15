@@ -105,7 +105,7 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
-            isGroupPolicy(policy),
+            isPaidGroupPolicy(policy),
     );
 }
 
