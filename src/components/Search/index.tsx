@@ -1453,31 +1453,33 @@ function Search({
 
     const sortedData = useMemo(
         () =>
-            getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, {policyCategories, fallbackPolicyID: policyForMovingExpensesID}).map(
-                (item) => {
-                    const baseKey = isChat
-                        ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
-                        : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+            getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
+                policyCategories,
+                policyTags,
+                fallbackPolicyID: policyForMovingExpensesID,
+            }).map((item) => {
+                const baseKey = isChat
+                    ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
+                    : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
 
-                    const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
+                const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
 
-                    const isAnyTransactionMatch =
-                        !isChat &&
-                        (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
-                            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-                            return !!newSearchResultKeys?.has(transactionKey);
-                        });
+                const isAnyTransactionMatch =
+                    !isChat &&
+                    (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
+                        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+                        return !!newSearchResultKeys?.has(transactionKey);
+                    });
 
-                    const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
+                const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-                    if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
-                        return item;
-                    }
+                if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
+                    return item;
+                }
 
-                    return {...item, shouldAnimateInHighlight, hash};
-                },
-            ),
-        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, policyCategories, policyForMovingExpensesID, isChat, newSearchResultKeys, hash],
+                return {...item, shouldAnimateInHighlight, hash};
+            }),
+        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, policyCategories, policyTags, policyForMovingExpensesID, isChat, newSearchResultKeys, hash],
     );
 
     useSaveSortedReportIDs(type, sortedData);

@@ -6583,6 +6583,7 @@ const CONST = {
         },
         SORT_BY_COLUMNS: {
             CATEGORY_GL_CODE: 'glcode',
+            TAG_GL_CODE: 'tagglcode',
         },
         GROUP_BY: {
             FROM: 'from',

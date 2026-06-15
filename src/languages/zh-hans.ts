@@ -505,6 +505,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: '头像',
         editor: '编辑',
         restrictions: '限制',
+        tagGLCode: '标记总账代码',
     },
     socials: {
         podcast: '在播客上关注我们',
