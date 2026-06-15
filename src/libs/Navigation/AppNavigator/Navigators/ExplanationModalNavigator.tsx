@@ -1,6 +1,8 @@
 import React from 'react';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import ExplanationModalScreen from '@components/ExplanationModalScreen';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {ExplanationModalNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
@@ -8,6 +10,7 @@ import SCREENS from '@src/SCREENS';
 const Stack = createPlatformStackNavigator<ExplanationModalNavigatorParamList>();
 
 function ExplanationModalNavigator() {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     return (
         <NoDropZone>
             <Stack.Navigator
