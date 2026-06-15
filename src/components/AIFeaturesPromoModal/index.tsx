@@ -7,8 +7,10 @@ import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
+import {isMobileChrome} from '@libs/Browser';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -16,6 +18,7 @@ import CONST from '@src/CONST';
 function AIFeaturesPromoModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
     const canUseCustomAgent = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
 
@@ -82,7 +85,7 @@ function AIFeaturesPromoModal() {
             shouldUseScrollView
             illustrationOuterContainerStyle={styles.p0}
             illustrationAspectRatio={LottieAnimations.SpendAnalysis.w / LottieAnimations.SpendAnalysis.h}
-            contentInnerContainerStyles={styles.mb4}
+            contentInnerContainerStyles={[styles.mb4, shouldUseNarrowLayout && !isMobileChrome() ? styles.aiFeaturesPromotionalContentInnerContainer : {}]}
             modalInnerContainerStyle={styles.pt0}
             titleStyles={styles.mb2}
         />

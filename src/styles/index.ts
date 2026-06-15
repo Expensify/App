@@ -1155,6 +1155,10 @@ const staticStyles = (theme: ThemeColors) =>
             }),
         },
 
+        aiFeaturesPromotionalContentInnerContainer: {
+            minHeight: variables.aiFeaturesPromoModalContentHeight,
+        },
+
         cardBadgeText: {
             color: colors.white,
             fontSize: variables.fontSizeExtraSmall,
