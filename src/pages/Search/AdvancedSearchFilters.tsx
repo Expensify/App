@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -606,6 +607,7 @@ function AdvancedSearchFilters() {
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
     const {currentType, typeFiltersKeys, workspaces, taxRates, searchCards, policies} = useAdvancedSearchFilters();
+    const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
 
     const queryString = useMemo(() => {
         const currentQueryJSON = getCurrentSearchQueryJSON();
@@ -691,6 +693,17 @@ function AdvancedSearchFilters() {
         <>
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
                 <View>
+                    <MenuItemWithTopDescription
+                        icon={icons.Sparkles}
+                        description={translate('search.filters.describeSearch.title')}
+                        shouldShowRightIcon
+                        onPress={singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIBE)))}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER_ITEM}
+                    />
+                    <SpacerView
+                        shouldShow
+                        style={[styles.reportHorizontalRule]}
+                    />
                     {sections.map((section, index) => {
                         if (section.items.length === 0) {
                             return;
