@@ -210,11 +210,14 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
 
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag).
-    // getInternalNewExpensifyPath() already validates the URL is a recognized NewDot origin (prod/staging/dev),
-    // so the extracted path is safe to navigate internally regardless of which NewDot environment the link points to.
-    // This handles server-generated links that hardcode the production domain: the path is environment-independent,
-    // so staging/dev users reach the correct screen within their current environment.
-    if (internalNewExpensifyPath) {
+    // We also navigate internally when the link targets the production domain from a non-production environment:
+    // server-generated messages hardcode new.expensify.com, so staging/dev users would otherwise be sent to
+    // a production tab instead of the equivalent screen in their current environment. The extracted path is
+    // environment-independent (e.g. settings/wallet), so this is safe.
+    // We do NOT extend this to staging/dev links opened from production — those URLs may contain
+    // environment-scoped IDs (reports, policies, cards) that don't exist in production.
+    const isProdNewExpensifyLink = Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL);
+    if (internalNewExpensifyPath && (hasSameOrigin || isProdNewExpensifyLink)) {
         if (isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
             signOutAndRedirectToSignIn();
             return;

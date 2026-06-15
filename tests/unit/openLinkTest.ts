@@ -78,12 +78,12 @@ describe('openLink — cross-environment NewDot navigation', () => {
         expect(mockAsyncOpenURL).not.toHaveBeenCalled();
     });
 
-    it('navigates internally when link is a staging NewDot URL and app is on production', () => {
-        openLink('https://staging.new.expensify.com/settings/wallet', CONST.NEW_EXPENSIFY_URL);
+    it('opens externally when link is a staging NewDot URL and app is on production', () => {
+        // Staging URLs may contain environment-scoped IDs that don't exist in production.
+        openLink('https://staging.new.expensify.com/r/12345', CONST.NEW_EXPENSIFY_URL);
 
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith('settings/wallet');
-        expect(mockAsyncOpenURL).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockAsyncOpenURL).toHaveBeenCalledTimes(1);
     });
 
     it('opens externally for a non-NewDot URL', () => {
