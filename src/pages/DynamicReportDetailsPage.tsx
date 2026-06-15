@@ -455,7 +455,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     if (shouldOpenRoomMembersPage) {
                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
                     } else {
-                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
                     }
                 },
             });
@@ -480,7 +480,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID, Navigation.getActiveRoute()));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS.path));
                 },
             });
         }
@@ -833,6 +833,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         interactive={false}
                         description={translate('workspace.common.workspace')}
                         title={getPolicyName({report})}
+                        numberOfLinesTitle={2}
+                        shouldBreakWord
                     />
                 )}
             </View>

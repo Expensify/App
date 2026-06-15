@@ -1,8 +1,7 @@
 /* eslint-disable max-lines */
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
+import {DeviceEventEmitter, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
@@ -238,6 +237,7 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
+import deleteReport from './DeleteReport';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
 
@@ -4374,46 +4374,6 @@ function addPolicyReport(policyReport: OptimisticChatReport) {
     API.write(WRITE_COMMANDS.ADD_WORKSPACE_ROOM, parameters, {optimisticData, successData, failureData});
 }
 
-/** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
-function deleteReport(reportID: string | undefined, shouldDeleteChildReports = false) {
-    if (!reportID) {
-        Log.warn('[Report] deleteReport called with no reportID');
-        return;
-    }
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const onyxData: Record<string, null> = {
-        [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
-    };
-
-    // Delete linked transactions
-    const reportActionsForReport = allReportActions?.[reportID];
-
-    const transactionIDs = Object.values(reportActionsForReport ?? {})
-        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
-        .map((reportAction) => ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
-
-    for (const transactionID of [...new Set(transactionIDs)]) {
-        onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null;
-    }
-
-    Onyx.multiSet(onyxData);
-
-    if (shouldDeleteChildReports) {
-        for (const reportAction of Object.values(reportActionsForReport ?? {})) {
-            if (!reportAction.childReportID) {
-                continue;
-            }
-            deleteReport(reportAction.childReportID, shouldDeleteChildReports);
-        }
-    }
-
-    // Delete linked IOU report
-    if (report?.iouReportID) {
-        deleteReport(report.iouReportID, shouldDeleteChildReports);
-    }
-}
-
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
@@ -7047,9 +7007,7 @@ function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean) 
         return;
     }
 
-    InteractionManager.runAfterInteractions(() => {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path));
-    });
+    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path), {waitForTransition: true});
 }
 
 function buildOptimisticChangePolicyData({
@@ -7852,7 +7810,6 @@ export {
     completeOnboarding,
     extractRHPVariantFromResponse,
     createNewReport,
-    deleteReport,
     clearAllReportActionDrafts,
     deleteReportComment,
     deleteReportField,

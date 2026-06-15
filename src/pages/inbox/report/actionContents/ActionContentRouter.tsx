@@ -13,10 +13,12 @@ import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import UnreportedTransactionAction from '@components/ReportActionItem/UnreportedTransactionAction';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getChangedApproverActionMessage,
     getCompanyCardConnectionBrokenMessage,
+    getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
@@ -44,11 +46,14 @@ import {
 import {getMovedActionMessage, isExpenseReport} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
+import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import FraudAlertContent from './FraudAlertContent';
 import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
@@ -71,11 +76,8 @@ type ActionContentRouterProps = {
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
-    /** Original report from which the given reportAction is first created */
-    originalReport: OnyxEntry<OnyxTypes.Report>;
-
     /** ID of the original report from which the given reportAction is first created */
-    originalReportID: string;
+    originalReportID?: string;
 
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
@@ -115,12 +117,14 @@ type ActionContentRouterProps = {
 
     /** Toggle whether the payment method popover is active */
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
+
+    /** Whether the user is a track intent user */
+    isTrackIntentUser?: boolean;
 };
 
 function ActionContentRouter({
     action,
     report,
-    originalReport,
     originalReportID,
     iouReport,
     reportID,
@@ -135,9 +139,12 @@ function ActionContentRouter({
     shouldShowBorder,
     isOnSearch,
     setIsPaymentMethodPopoverActive,
+    isTrackIntentUser,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
+
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
 
     // Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped).
     const actionOwnerReportStable = originalReport ?? report;
@@ -250,6 +257,14 @@ function ActionContentRouter({
             />
         );
     }
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR) {
+        return (
+            <ConciergeAutoMatchVendorContent
+                action={action}
+                originalReport={originalReport}
+            />
+        );
+    }
     if (isApprovalFlowAction(action)) {
         return (
             <ApprovalFlowContent
@@ -257,6 +272,7 @@ function ActionContentRouter({
                 policyID={policyID}
                 reportID={reportID}
                 originalReport={originalReport}
+                isTrackIntentUser={isTrackIntentUser ?? false}
             />
         );
     }
@@ -300,7 +316,7 @@ function ActionContentRouter({
                 </ReportActionItemBasicMessage>
             );
         }
-        return <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
+        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(action, translate)} />;
     }
     if (isHandledPolicyChangeLogAction(action)) {
         return (

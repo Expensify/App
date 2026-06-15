@@ -31,6 +31,14 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/123/settings/name?backTo=/home')).toBe('/r/123/details/settings/name?backTo=/home');
     });
 
+    it('redirects old report settings root path to dynamic report settings', () => {
+        expect(getMatchingNewRoute('/r/123/settings')).toBe('/r/123/details/report-settings');
+    });
+
+    it('preserves query params when redirecting report settings root', () => {
+        expect(getMatchingNewRoute('/r/123/settings?backTo=/home')).toBe('/r/123/details/report-settings?backTo=/home');
+    });
+
     it('redirects old task title path', () => {
         expect(getMatchingNewRoute('/r/123/title')).toBe('/r/123/title');
     });
@@ -69,6 +77,15 @@ describe('getBestMatchingPath', () => {
 
     it('redirects old private notes edit path to the new dynamic suffix shape', () => {
         expect(getMatchingNewRoute('/r/123/notes/456/edit')).toBe('/r/123/notes-edit/456');
+    });
+
+    it('redirects old report participants invite path to the dynamic route', () => {
+        expect(getMatchingNewRoute('/r/123/participants/invite')).toBe('/r/123/participants/participants-invite');
+    });
+
+    it('preserves query params when redirecting report participant routes', () => {
+        expect(getMatchingNewRoute('/r/123/participants/invite?backTo=/home')).toBe('/r/123/participants/participants-invite?backTo=/home');
+        expect(getMatchingNewRoute('/r/123/participants/456/role?backTo=/home')).toBe('/r/123/participants/participants-details/456/participants-role?backTo=/home');
     });
 
     it('redirects old workspace overview address path', () => {
