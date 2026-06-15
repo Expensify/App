@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 type MergeHRProviderEntry = {
     /** Human-readable label used in the UI */
     displayName: string;
