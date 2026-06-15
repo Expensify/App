@@ -5,13 +5,20 @@ import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {getDecodedTagName, isTagMissing} from './TagUtils';
-import {getAmount, getCategory, getCurrency, getTag, isTransactionPendingDelete} from './TransactionUtils';
+import {getAmount, getCategory, getCurrency, getTag, isScanning, isTransactionPendingDelete} from './TransactionUtils';
 
 /**
- * Sorts groups alphabetically (A→Z) with empty keys at the end
+ * Sorts groups alphabetically (A→Z) with empty keys at the end. A group containing an in-progress
+ * scan is pinned to the top so the scanning receipt stays visible — a fresh scan has no category/tag,
+ * so its group would otherwise sort to the bottom in the grouped report layout.
  */
 function sortGroupedTransactions(groups: GroupedTransactions[], localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
     return groups.sort((a, b) => {
+        const aHasScanning = a.transactions.some(isScanning);
+        const bHasScanning = b.transactions.some(isScanning);
+        if (aHasScanning !== bHasScanning) {
+            return aHasScanning ? -1 : 1;
+        }
         if (a.groupKey === '' && b.groupKey !== '') {
             return 1;
         }

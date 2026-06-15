@@ -3,6 +3,7 @@ import DatePickerModal from '@components/DatePicker/DatePickerModal';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
 import type {EditableProps} from '@components/TransactionItemRow/EditableCell/types';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -13,12 +14,13 @@ type DateCellProps = {
     showTooltip: boolean;
     isLargeScreenWidth: boolean;
     suffixText?: string;
-    /** When provided, rendered in place of the formatted date (e.g. "Scanning…" while the receipt scan is in progress) */
-    displayTextOverride?: string;
+    /** Renders the scanning label in place of the date while the receipt scan is in progress */
+    isScanning?: boolean;
 } & EditableProps<string>;
 
-function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, displayTextOverride, canEdit, onSave}: DateCellProps) {
+function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, isScanning, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
@@ -26,9 +28,10 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, displayTex
         onSave,
     });
 
-    // The override (e.g. "Scanning…") replaces only the date; any suffix (the narrow layout's category) is still appended.
-    const datePart =
-        displayTextOverride ?? DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    // The scanning label replaces only the date; any suffix (the narrow layout's category) is still appended.
+    const datePart = isScanning
+        ? translate('iou.receiptStatusTitle')
+        : DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
     const displayText = suffixText ? `${datePart} • ${suffixText}` : datePart;
 
     const displayContent = (

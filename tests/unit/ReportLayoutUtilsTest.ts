@@ -74,6 +74,28 @@ describe('groupTransactionsByCategory', () => {
         expect(result.at(2)?.groupKey).toBe('');
     });
 
+    it('pins the group containing a scanning transaction to the top', () => {
+        const report = createMockReport();
+        const transactions = [
+            createMockTransaction({transactionID: '1', category: 'Alpha', amount: -200}),
+            createMockTransaction({transactionID: '2', category: 'Zebra', amount: -500}),
+            createMockTransaction({
+                transactionID: 'scanning',
+                category: '',
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: '',
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            }),
+        ];
+
+        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+
+        // The scanning receipt has no category, so its (empty) group would normally sort last — it must be pinned first instead.
+        expect(result.at(0)?.groupKey).toBe('');
+        expect(result.at(0)?.transactions.some((transaction) => transaction.transactionID === 'scanning')).toBe(true);
+    });
+
     it('sets isExpanded to true for all groups', () => {
         const report = createMockReport();
         const transactions = [createMockTransaction({transactionID: '1', category: 'Travel', amount: -1000}), createMockTransaction({transactionID: '2', category: 'Meals', amount: -500})];

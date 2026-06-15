@@ -36,7 +36,6 @@ import {
     getTaxName,
     isDeletedTransaction as isDeletedTransactionUtil,
     isExpenseUnreported,
-    isScanning,
     isTimeRequest,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -113,7 +112,7 @@ function TransactionItemRowWide({
     totalPerAttendee,
     transactionThreadReportID,
     createdAt,
-    createdDateTextOverride,
+    isScanning,
     isMarkAsDone,
 }: TransactionItemRowWideProps) {
     const styles = useThemeStyles();
@@ -187,7 +186,7 @@ function TransactionItemRowWide({
                         <DateCell
                             canEdit={canEditDate}
                             date={createdAt}
-                            displayTextOverride={createdDateTextOverride}
+                            isScanning={isScanning}
                             onSave={onEditDate}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
@@ -447,7 +446,7 @@ function TransactionItemRowWide({
                             <AmountCell
                                 total={totalPerAttendee ?? 0}
                                 currency={getCurrency(transactionItem)}
-                                isScanning={isScanning(transactionItem)}
+                                isScanning={isScanning}
                             />
                         )}
                     </View>
