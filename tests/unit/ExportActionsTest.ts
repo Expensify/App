@@ -89,13 +89,13 @@ describe('Export actions', () => {
         expect(value).toEqual(expect.objectContaining({state: 'preparing'}));
     });
 
-    test('exportReportsToPDF failureData clears Onyx key on failure', async () => {
+    test('exportReportsToPDF failureData sets failed state on failure', async () => {
         mockFetch.fail?.();
         const exportID = Export.exportReportsToPDF([1]);
         await waitForBatchedUpdates();
 
         const value = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
-        expect(value).toBeUndefined();
+        expect(value).toEqual(expect.objectContaining({state: 'failed'}));
     });
 
     test('clearStaleExportDownloads clears ready/failed entries but preserves preparing ones', async () => {

@@ -84,7 +84,7 @@ const expenseReportQueryJSON: SearchQueryJSON = {
 
 function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedReports {
     return {
-        reportID: 'report1',
+        reportID: '1',
         policyID: 'policy1',
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
         canPay: false,
@@ -119,11 +119,11 @@ describe('useSearchBulkActions - Download as PDF', () => {
         mockSelectedReports = [];
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report1`, {
-            reportID: 'report1',
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+            reportID: '1',
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
-            reportName: 'Report report1',
+            reportName: 'Report 1',
         });
     });
 
@@ -144,7 +144,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report1',
+                reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
                 currency: 'USD',
@@ -173,7 +173,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report1',
+                reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
                 currency: 'USD',
@@ -193,7 +193,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
         });
 
         expect(exportReportToPDF).toHaveBeenCalledTimes(1);
-        expect(exportReportToPDF).toHaveBeenCalledWith({reportID: 'report1'});
+        expect(exportReportToPDF).toHaveBeenCalledWith({reportID: '1'});
     });
 
     it('should not call exportReportToPDF when offline', async () => {
@@ -210,7 +210,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report1',
+                reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
                 currency: 'USD',
@@ -233,14 +233,14 @@ describe('useSearchBulkActions - Download as PDF', () => {
     });
 
     it('should show Download as PDF when multiple reports are selected', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report2`, {
-            reportID: 'report2',
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
+            reportID: '2',
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
-            reportName: 'Report report2',
+            reportName: 'Report 2',
         });
 
-        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: 'report2'})];
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: '2'})];
         mockSelectedTransactions = {
             tx1: {
                 isSelected: true,
@@ -252,7 +252,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report1',
+                reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
                 currency: 'USD',
@@ -268,7 +268,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report2',
+                reportID: '2',
                 policyID: 'policy1',
                 amount: 200,
                 currency: 'USD',
@@ -284,14 +284,14 @@ describe('useSearchBulkActions - Download as PDF', () => {
     });
 
     it('should call exportReportsToPDF for multi-select and set activeExportID', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report2`, {
-            reportID: 'report2',
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
+            reportID: '2',
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
-            reportName: 'Report report2',
+            reportName: 'Report 2',
         });
 
-        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: 'report2'})];
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: '2'})];
         mockSelectedTransactions = {
             tx1: {
                 isSelected: true,
@@ -303,7 +303,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report1',
+                reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
                 currency: 'USD',
@@ -319,7 +319,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report2',
+                reportID: '2',
                 policyID: 'policy1',
                 amount: 200,
                 currency: 'USD',
@@ -339,20 +339,20 @@ describe('useSearchBulkActions - Download as PDF', () => {
         });
 
         expect(exportReportsToPDF).toHaveBeenCalledTimes(1);
-        expect(exportReportsToPDF).toHaveBeenCalledWith(expect.arrayContaining(['report1', 'report2']));
+        expect(exportReportsToPDF).toHaveBeenCalledWith(expect.arrayContaining([1, 2]));
         expect(exportReportToPDF).not.toHaveBeenCalled();
         expect(result.current.activeExportID).toBe('mock-export-id');
     });
 
     it('handleExportModalClose is no-op during preparing state', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report2`, {
-            reportID: 'report2',
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
+            reportID: '2',
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
-            reportName: 'Report report2',
+            reportName: 'Report 2',
         });
 
-        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: 'report2'})];
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: '2'})];
         mockSelectedTransactions = {
             tx1: {
                 isSelected: true,
@@ -364,7 +364,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report1',
+                reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
                 currency: 'USD',
@@ -380,7 +380,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report2',
+                reportID: '2',
                 policyID: 'policy1',
                 amount: 200,
                 currency: 'USD',
