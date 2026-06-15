@@ -583,7 +583,7 @@ function setPolicyCommuterExclusions(
 }
 
 /**
- * Disable the commuter exclusion for a workspace. Pairs with the upcoming Auth
+ * Disable the commuter exclusion for a policy.
  * `DisablePolicyCommuterExclusions` command that removes the policy NVP entirely.
  */
 function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclusions: CommuterExclusions | undefined) {
@@ -596,7 +596,7 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
                 key: policyKey,
                 value: {
                     commuterExclusions: null,
-                    pendingFields: {commuterExclusions: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    pendingFields: {commuterExclusions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     errorFields: {commuterExclusions: null},
                 },
             },

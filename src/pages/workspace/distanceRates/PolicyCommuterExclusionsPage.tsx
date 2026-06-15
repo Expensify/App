@@ -77,14 +77,17 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         }
         setSelectedKey(item.keyForList);
         setInlineError('');
-
-        if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED && existingMethod) {
-            disablePolicyCommuterExclusions(policyID, existingCommuterExclusions);
-            goBackToSettings();
-        }
     };
 
     const onSave = () => {
+        if (selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED) {
+            if (existingMethod) {
+                disablePolicyCommuterExclusions(policyID, existingCommuterExclusions);
+            }
+            goBackToSettings();
+            return;
+        }
+
         const trimmed = fixedDistanceInput.trim();
         const numeric = Number(trimmed);
 
@@ -93,7 +96,6 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             return;
         }
 
-        // No-op when nothing changed - matches the server-side idempotency check.
         if (existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && existingCommuterExclusions?.fixedDistance === numeric) {
             goBackToSettings();
             return;
@@ -179,22 +181,20 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                         alternateNumberOfSupportedLines={2}
                     />
                 </OfflineWithFeedback>
-                {isFixedDistanceSelected && (
-                    <FixedFooter addBottomSafeAreaPadding>
-                        {!!inlineError && (
-                            <FormHelpMessage
-                                message={inlineError}
-                                style={styles.mb3}
-                            />
-                        )}
-                        <Button
-                            success
-                            large
-                            text={translate('common.save')}
-                            onPress={onSave}
+                <FixedFooter addBottomSafeAreaPadding>
+                    {!!inlineError && (
+                        <FormHelpMessage
+                            message={inlineError}
+                            style={styles.mb3}
                         />
-                    </FixedFooter>
-                )}
+                    )}
+                    <Button
+                        success
+                        large
+                        text={translate('common.save')}
+                        onPress={onSave}
+                    />
+                </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
