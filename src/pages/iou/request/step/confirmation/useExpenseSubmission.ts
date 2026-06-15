@@ -951,7 +951,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
-        if (isPerDiemRequest) {
+        if (isPerDiemRequest && action !== CONST.IOU.ACTION.SUBMIT) {
             submitPerDiemExpense(trimmedComment, shouldHandleNavigation, policyRecentlyUsedCategories);
             markSubmitExpenseEnd();
             return;

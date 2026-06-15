@@ -4076,7 +4076,7 @@ function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[])
 }
 
 function openDraftWorkspaceRequest(policyID: string) {
-    if (policyID === '-1' || policyID === CONST.POLICY.ID_FAKE) {
+    if (!policyID || policyID === '-1' || policyID === CONST.POLICY.ID_FAKE) {
         Log.warn('openDraftWorkspaceRequest invalid params', {policyID});
         return;
     }
