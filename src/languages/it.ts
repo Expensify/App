@@ -6982,6 +6982,12 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             },
             commonFeatures: {
                 title: 'Passa al piano Control',
+                collect: {
+                    title: 'Passa al piano Collect',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Il piano Collect parte da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`} <a href="${learnMoreMethodsRoute}">Scopri di più</a> sui nostri piani e prezzi.</muted-text>`,
+                    note: 'Sblocca le funzioni essenziali per la tua attività, tra cui:',
+                },
                 note: 'Sblocca le nostre funzioni più potenti, tra cui:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
