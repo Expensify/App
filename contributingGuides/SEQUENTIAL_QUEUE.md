@@ -55,13 +55,14 @@ This is an observational reference. Where current behavior diverges from apparen
         write    │ read → waitForWrites() → SequentialQueue.waitForIdle()
                  ▼                              (blocks on isReadyPromise)
 ┌────────────────────────────────────────────────────────────┐
-│ SequentialQueue.push()                                       │
+│ SequentialQueue.push()  (async)                              │
 │  • conflictResolver #2 (authoritative: mutate the queue)     │
-│  • PersistedRequests.save  → in-memory SYNC, disk ASYNC      │
-│  • dispatch:                                                 │
-│      offline   → persist only, return (reconnect flushes)    │
-│      running   → defer: isReadyPromise.then(flush)           │
-│      idle      → flush(true) NOW                             │
+│  • PersistedRequests.save  → in-memory SYNC; disk AWAITED    │
+│  • mark isReadyPromise pending (sync, before first await)    │
+│  • await persistencePromise (disk commit) THEN dispatch:     │
+│      offline   → await persist, return (reconnect flushes)   │
+│      running   → defer: isReadyPromise.then(flush(false))    │
+│      idle      → flush(false)                                │
 └───────────────┬──────────────────────────────────────────────┘
                  ▼
 ┌────────────────────────────────────────────────────────────┐
@@ -102,11 +103,12 @@ This is an observational reference. Where current behavior diverges from apparen
 
   disk writes — PERSISTED_* keys; cache + subscribers update SYNC first,
   the returned Onyx promise resolves on STORAGE COMMIT (IDB tx / SQLite WAL):
-   • #1  save()             → PERSISTED_REQUESTS            (in push; NOT awaited before flush)
+   • #1  save()             → PERSISTED_REQUESTS            (in push; AWAITED before flush)
    • #2  processNextRequest → PERSISTED_REQUESTS + ONGOING  (promotion; fire-and-forget)
    •     end / rollback / updateOngoing                     (fire-and-forget)
    •     conflict update / delete                           (awaited by handleConflictActions)
-   ✗  makeXHR (network) gates on auth readiness only — never on a queue disk write
+   ✓  push awaits the #1 disk commit before flush → makeXHR; makeXHR itself still gates
+      only on auth readiness, so the network can no longer fire ahead of the enqueue write
 ```
 
 ## Lifecycle of One Request
@@ -115,7 +117,7 @@ This is the connective narrative — how the blocks interact at runtime for a si
 
 1. **Prepare (synchronous, in `API.index.prepareRequest`).** `optimisticData` is applied to Onyx immediately, so the UI reflects the change at once. The conflict resolver is evaluated **read-only** here, solely to decide whether to *suppress* the optimistic data (`conflictAction.type === 'noAction'`); the rest of the conflict action is ignored at this site. A `requestID` is stamped from a per-tab counter (the field is literally `requestIndex`; `requestID` is read only as a legacy fallback in `getClientRequestIndex` — this doc keeps the conventional name), and `optimisticData` is stripped from the version that will be persisted (it has already been applied).
 
-2. **Push (`SequentialQueue.push`).** The conflict resolver runs a **second** time, now **authoritatively**, against the live persisted requests — this is the evaluation that may mutate the queue (push / replace / delete). The resolver function is then deleted off the request (it cannot be serialized), and `PersistedRequests.save` mutates the in-memory array **synchronously** while issuing the disk write (captured as `persistencePromise`, resolved asynchronously on disk commit and **not** awaited before firing). `push` then dispatches on three conditions: **offline** → persist only and return (reconnect will flush later); **already running** → defer via `isReadyPromise.then(flush)`; **idle** → `flush(true)` now.
+2. **Push (`async SequentialQueue.push`).** The conflict resolver runs a **second** time, now **authoritatively**, against the live persisted requests — this is the evaluation that may mutate the queue (push / replace / delete). The resolver function is then deleted off the request (it cannot be serialized), and `PersistedRequests.save` mutates the in-memory array **synchronously** while issuing the disk write (captured as `persistencePromise`). `push` then marks `isReadyPromise` pending synchronously (before its first `await`, so a READ on the next tick parks behind this write) and **`await`s `persistencePromise` — the disk commit — before flushing**. After the commit it dispatches on three conditions: **offline** → `await` persist and return (reconnect will flush later); **already running** → defer via `isReadyPromise.then(() => flush(false))`; **idle** → `flush(false)`. A network flip to offline *during* the awaited write is handled explicitly: `push` resolves `isReadyPromise` and returns without flushing.
 
 3. **Flush (`flush`).** Five guards run in order — paused, offline, already-running, all-empty (three-legged: queue, `ongoingRequest`, **and** the `QueuedOnyxUpdates` buffer — see [the coordinator](#sequentialqueue-the-coordinator)), **not-leader**. If all pass, `isSequentialQueueRunning` is set, `isReadyPromise` is optionally reset, and a throwaway `PERSISTED_REQUESTS` connection guarantees disk is loaded before `process()` runs (it opts out of connection reuse, because `PersistedRequests` already holds a live `PERSISTED_REQUESTS` connection and reusing it would fire extra callbacks).
 
@@ -135,7 +137,7 @@ The persisted queue exists so an interrupted WRITE survives an app kill. The pie
 **What does _not_ recover:**
 
 - A **File/Blob ongoing request** — `PERSISTED_ONGOING_REQUESTS` holds `null` on disk (the live object was memory-only), so there is nothing to re-drive; the upload is lost.
-- Anything still inside the **persist-before-fire crash window** — fired (or about to fire) but not yet committed to disk; it is not reloaded and not re-driven, even though the server may already have acted. See [Where the request actually hits disk](#where-the-request-actually-hits-disk-and-where-it-doesnt).
+- A request lost in one of the remaining **fire-and-forget persist windows** — the promotion (`processNextRequest`), removal (`endRequestAndRemoveFromQueue`), and rollback writes are not awaited, so a crash between an in-flight request acting on the server and its `multiSet` committing can leave the disk record momentarily stale. The *enqueue* window is no longer one of these: `push` now awaits the `save()` disk commit before flushing, so a freshly-pushed request cannot reach the server while still absent from disk. See [Where the request actually hits disk](#where-the-request-actually-hits-disk-and-where-it-doesnt).
 
 **On sign-out (a different reset):** `Session.cleanupSession()` aborts the in-flight cancellable XHR via `HttpUtils.cancelPendingRequests()` — surfacing as `REQUEST_CANCELLED` to `process()`'s catch (dropped, no data applied) — and clears the persisted queue via `PersistedRequests.clear()`. This is the only inbound path that _aborts_ an in-flight request rather than letting it complete. A bare `Onyx.clear()` (without the abort) resets the mirror to `[]`/`null` through the carve-out path, but because `isInitialized` is already true the init callback does **not** re-fire, so clearing on its own schedules no flush; an in-flight `process()` chain holds local references and is unaffected by the memory wipe.
 
@@ -151,13 +153,13 @@ Each block is described as **the problem it solves → how it works today → sh
 
 **How it works today.**
 - **Single-flight.** `isSequentialQueueRunning` is the re-entry guard: set at the top of `flush()` after the guards pass, cleared in `process().finally`. While set, new pushes defer rather than start a parallel drain.
-- **`push()` dispatch.** As above: offline → persist only; running → defer behind `isReadyPromise.then(flush)`; idle → `flush(true)`. `push` returns the disk-persistence promise but **does not await it** — the queue fires off the synchronous in-memory state.
+- **`push()` dispatch.** `push` is `async`. It marks `isReadyPromise` pending synchronously, then **`await`s the disk-persistence promise before dispatching**: offline → `await` persist, return; running → defer behind `isReadyPromise.then(() => flush(false))`; idle → `flush(false)`. The queue no longer fires off the synchronous in-memory state ahead of the commit.
 - **`flush()` guards, in order.** `isQueuePaused` → `isOfflineNetwork()` → `isSequentialQueueRunning` → all-empty → `!isClientTheLeader()`. The all-empty guard is three-legged — no queued requests, no `ongoingRequest`, **and** an empty `QueuedOnyxUpdates` buffer — so `flush()` doubles as the drain path for buffered updates on a request-empty queue. Leadership is checked **exactly once**, before the running flag flips; the recursive `process()` chain re-checks only `isQueuePaused` and `isOfflineNetwork()`, never leadership.
 - **`process()` recursion.** Pull the next request, run middleware, on success recurse; the recursion terminates when the queue and ongoing request are both empty.
 - **READ-after-WRITE gate.** `waitForIdle()` returns `isReadyPromise`; READs block on it so a READ response cannot clobber optimistic data from in-flight WRITEs on the same keys. See [the state machine](#the-state-machine) for the resolution rule.
 
 **Sharp edges.**
-- `push()` triggers `flush()` from the **synchronous in-memory** save and never awaits `persistencePromise`; the network dispatch (`makeXHR`) gates only on auth readiness, never on the queue's disk write. So a request can reach the server while still absent from disk — a crash in that window loses the queue record even though the server may already have acted. This is the named target of the persist-before-fire work; see [Where the request actually hits disk](#where-the-request-actually-hits-disk-and-where-it-doesnt).
+- `push()` `await`s `persistencePromise` (the enqueue disk commit) before it ever calls `flush()`, so a freshly-pushed request cannot reach the server while still absent from disk — the enqueue crash window is closed. `makeXHR` still gates only on auth readiness (never on a disk write); the ordering guarantee now comes from `push` awaiting the commit, not from `makeXHR`. The *promotion/removal/rollback* writes inside `process()` remain fire-and-forget (see [Where the request actually hits disk](#where-the-request-actually-hits-disk-and-where-it-doesnt)).
 - Leadership being checked once per flush means a leadership change *during* an in-flight drain is not re-evaluated by the running cycle (see [Multi-Tab & Leader Election](#multi-tab--leader-election)).
 
 ## PersistedRequests (the store)
@@ -193,10 +195,10 @@ This is the crux for any crash-safety or persist-before-fire reasoning, so it is
 
 **The Onyx promise is a real disk-commit handle, not a cache handle.** In `OnyxUtils` (`setWithRetry`/`multiSetWithRetry`), the cache is updated and subscribers are notified **synchronously** via `broadcastUpdate`/`keyChanged` — there is a source comment, _"This approach prioritizes fast UI changes without waiting for data to be stored in device storage"_ — and the function then returns the `storage.setItem`/`storage.multiSet` chain. That returned promise resolves only after the storage provider commits: an IndexedDB transaction `complete` event on web, or a SQLite WAL commit on native (`journal_mode=WAL`, `synchronous=NORMAL` — durable across a JS/app crash, weaker than an fsync against OS-level power loss). So `push()`'s `persistencePromise` **does** represent durable persistence. Three caveats bound that statement: a **`null` write** returns `Promise.resolve()` immediately (the storage delete runs fire-and-forget — see below), so for null/delete payloads the promise is *not* a commit handle, and a `multiSet` containing a `null` value covers only its non-null pairs (e.g. `endRequestAndRemoveFromQueue`'s "atomic" promise covers only the array write, not the ongoing-key delete); Onyx's internal `retryOperation` **swallows storage failures** after `MAX_STORAGE_OPERATION_RETRY_ATTEMPTS` (5), resolving anyway; and on web Onyx can silently **degrade to `MemoryOnlyProvider`** when the IndexedDB store cannot be created, after which every "commit" is memory-only.
 
-**But the disk write does not gate the network.** `push()` assigns `persistencePromise`, then on the idle-online path calls `flush(true)` **synchronously on the same tick** before `return persistencePromise` — `flush()` is never chained off `persistencePromise.then(...)`. Because `save()` already updated the in-memory array synchronously, `flush()` → `process()` → `processWithMiddleware()` → `makeXHR()` sees the request immediately and dispatches it. `makeXHR` gates the actual `HttpUtils.xhr` call only on `hasReadRequiredDataFromStorage()` (auth/NetworkStore readiness) — never on the `PERSISTED_REQUESTS` disk write. The request can therefore leave the device while `persistencePromise` is still pending.
+**And on the enqueue path, the disk write now gates the network.** `push` is `async`: it issues `save()` (synchronous in-memory update + the disk write captured as `persistencePromise`), marks `isReadyPromise` pending, then **`await`s `persistencePromise`** and only afterward calls `flush(false)`. So the enqueue commit lands before `flush()` → `process()` → `processWithMiddleware()` → `makeXHR()` ever runs. `makeXHR` itself still gates the `HttpUtils.xhr` call only on `hasReadRequiredDataFromStorage()` (auth/NetworkStore readiness) — it has no disk gate — but the request can no longer leave the device ahead of its enqueue commit, because `push` blocked on that commit first. (The in-flight `#2` promotion `multiSet` is still fire-and-forget; the gate closed is specifically the enqueue window.)
 
 ```
-push()  (online · idle · no conflict)
+async push()  (online · idle · no conflict)
   │
   ├─ save(req)
   │     ├─ persistedRequests.push(req)        ── in-memory mirror: SYNC, authoritative now
@@ -204,20 +206,24 @@ push()  (online · idle · no conflict)
   │              ├─ cache + subscriber broadcast        ── SYNC (same tick)
   │              └─ storage.setItem(...)  ── async → resolves on DISK COMMIT  ▒▒ #1
   │
-  ├─ flush(true)                ── SYNC, same tick · NOT chained off persistencePromise.then
-  │     └─ process()
-  │           ├─ processNextRequest → Onyx.multiSet(PERSISTED_REQUESTS, ONGOING)  ▒▒ #2 (not awaited)
-  │           └─ processWithMiddleware → makeXHR
-  │                 └─ gate: hasReadRequiredDataFromStorage()  (auth only — no disk gate)
-  │                       └─ HttpUtils.xhr(...) ───────────────────────►  NETWORK FIRES
+  ├─ setIsReadyPromisePending()  ── SYNC, before first await (READs park behind us)
   │
-  └─ return persistencePromise  (write() awaits only this; resolves to void)
+  ├─ await persistencePromise    ── ⏸ BLOCKS until #1 disk commit lands
+  │     (if network flipped offline meanwhile → resolveIsReadyPromise() + return, no flush)
+  │
+  └─ flush(false)               ── runs only AFTER #1 committed
+        └─ process()
+              ├─ processNextRequest → Onyx.multiSet(PERSISTED_REQUESTS, ONGOING)  ▒▒ #2 (not awaited)
+              └─ processWithMiddleware → makeXHR
+                    └─ gate: hasReadRequiredDataFromStorage()  (auth only — no disk gate)
+                          └─ HttpUtils.xhr(...) ───────────────────────►  NETWORK FIRES
 
    ╔══════════════════════════════════════════════════════════════════╗
-   ║  CRASH WINDOW:  NETWORK FIRES ──►  ... ──►  #1 disk commit         ║
-   ║  the request can reach (and be acted on by) the server while still ║
-   ║  absent from disk → a crash/reload here loses the queue record and ║
-   ║  it is NOT recovered on restart.                                   ║
+   ║  ORDERING:  #1 disk commit ──►  NETWORK FIRES                     ║
+   ║  the enqueue commit is awaited before the request can reach the    ║
+   ║  server, so a crash before flush cannot lose a not-yet-persisted   ║
+   ║  request. (Remaining fire-and-forget windows: #2 promotion,        ║
+   ║  removal, rollback.)                                               ║
    ╚══════════════════════════════════════════════════════════════════╝
 ```
 
@@ -225,7 +231,7 @@ push()  (online · idle · no conflict)
 
 | When | Function | Key(s) written | Awaited by the control flow? |
 |---|---|---|---|
-| Enqueue | `save()` | `PERSISTED_REQUESTS` | No — returned as `persistencePromise`, not awaited before `flush()` |
+| Enqueue | `save()` | `PERSISTED_REQUESTS` | **Yes** — `push` awaits `persistencePromise` before `flush()` |
 | Promote head → ongoing | `processNextRequest()` | both (atomic `multiSet`) | No — fire-and-forget |
 | Success / non-retryable drop | `endRequestAndRemoveFromQueue()` | both (atomic `multiSet`) | No — fire-and-forget |
 | Retryable failure | `rollbackOngoingRequest()` | both (atomic `multiSet`) | No — fire-and-forget |
@@ -233,7 +239,7 @@ push()  (online · idle · no conflict)
 | Conflict DELETE | `deleteRequestsByIndices()` | `PERSISTED_REQUESTS` | **Yes** — `handleConflictActions` awaits it |
 | In-flight update (e.g. reauth) | `updateOngoingRequest()` | `PERSISTED_ONGOING_REQUESTS` | No |
 
-> `save()`'s disk-write `.catch` is log-only and does not re-throw, so `persistencePromise` resolves to `void` whether the storage commit **succeeded or failed** — even a consumer that awaits it (e.g. `API.write`) cannot detect a failed persist. (Mirrors the missing `.catch` on the `queueFlushedData` chain.) Onyx itself can also swallow a failed commit — the retry caveat above — so the silence has two layers.
+> `save()`'s disk-write `.catch` (and those on `update()` / `deleteRequestsByIndices()`) `Log.alert`s a storage emergency but does **not** re-throw, so `persistencePromise` resolves to `void` whether the storage commit **succeeded or failed** — even a consumer that awaits it (e.g. `push` itself, or `API.write`) cannot detect a failed persist. `push` leans on this deliberately: its `await persistencePromise` is wrapped in a `try/catch` that flushes anyway on rejection, since the request is already in the in-memory queue. Onyx itself can also swallow a failed commit — the retry caveat above — so the silence has two layers.
 
 **Where a request does _not_ hit disk:**
 
@@ -323,14 +329,15 @@ The blocks above describe what the queue does; this is the inbound surface — w
 
 # The State Machine
 
-`SequentialQueue` is driven by six module-level variables plus the shared throttle instance. This table is the densest reference for reasoning about invariants during a refactor.
+`SequentialQueue` is driven by seven module-level variables plus the shared throttle instance. This table is the densest reference for reasoning about invariants during a refactor.
 
 | Variable | Meaning | Set where | Cleared where | Invariant |
 |---|---|---|---|---|
 | `isSequentialQueueRunning` | Single-flight / re-entry guard | top of `flush()` after guards pass | `process().finally` | At most one drain in progress per tab |
 | `currentRequestPromise` | The in-flight `process()` chain (for `getCurrentRequest`) | start of the process chain | the drain-end `process().finally` (set to `null`) | Non-null only while a request is in flight |
 | `isQueuePaused` | **Overloaded:** offline pause **or** `shouldPauseQueue` data-gap sync | `pause()` / a `shouldPauseQueue` response | `unpause()` / `resetQueue()` | While true, nothing is processed |
-| `isReadyPromise` / `resolveIsReadyPromise` | One-shot gate READs block on (READ-after-WRITE ordering) | resolved at module load; **reset** in `flush(true)` | resolved in `finally` (offline or empty) | A READ may proceed only when no WRITE it must follow is pending |
+| `isReadyPromise` / `resolveIsReadyPromise` | One-shot gate READs block on (READ-after-WRITE ordering) | starts **already-resolved** (`Promise.resolve()`) at module load; armed pending via `setIsReadyPromisePending()` — in `push()`'s sync prelude and in `flush(true)` | `resolveIsReadyPromise()` — see the four sites below | A READ may proceed only when no WRITE it must follow is pending |
+| `isReadyPromisePending` | Idempotency guard for `setIsReadyPromisePending()` (prevents orphaning READs parked on a prior pending promise) | `true` when a pending promise is armed | `false` inside `resolveIsReadyPromise` | At most one pending `isReadyPromise` is armed at a time |
 | `shouldFailAllRequests` | Sticky `NETWORK`-key flag → erroring requests are failed and dropped | `NETWORK` Onyx callback | `NETWORK` Onyx callback | Test/debug only |
 | `queueFlushedDataToStore` | In-memory mirror of `QUEUE_FLUSHED_DATA` | the `QUEUE_FLUSHED_DATA` connect-callback echo of `saveQueueFlushedData`'s `Onyx.set` | `clearQueueFlushedData` | Applied only on full drain |
 | `sequentialQueueRequestThrottle` | Shared backoff state (wait time, retry count, pending timeout) | `sleep()` on each generic-error retry | `clear()` on success and every non-retryable outcome | Backoff state never survives a settled request |
@@ -342,9 +349,16 @@ In the drain-end `process().finally`, `resolveIsReadyPromise` runs only when `is
 - **Offline pause** → resolve. The queue cannot process anyway, so READs should be allowed through (they'll show optimistic/stale data, which is acceptable offline).
 - **`shouldPauseQueue` data-gap sync** → do **not** resolve. WRITEs are still pending behind the gap, so READs must keep waiting or they'd clobber in-flight optimistic data.
 
-`unpause()` calls `flush(false)` precisely to **preserve** the existing `isReadyPromise` — swapping in a fresh one would orphan READs already awaiting the old promise.
+**`resolveIsReadyPromise` is now called from four sites**, not just the `finally`. Because `push()` arms the pending promise *before* awaiting the disk write, every early-out path that would otherwise skip the drain has to release parked READs itself, or they would hang:
 
-**Sharp edges.** `isReadyPromise` is a single shared one-shot resolver. If a flush round resets it but never reaches the `finally` that resolves it (e.g. a persistent, unresolvable `shouldPauseQueue` data gap), subsequent READs blocked on `waitForIdle()` have no timeout.
+1. The **drain-end `process().finally`** — when offline or the queue is empty (above).
+2. The **all-empty guard in `flush()`** — e.g. a conflict resolver deleted the only request without pushing a replacement, so there is nothing to drain.
+3. The **not-leader guard in `flush()`** — followers never process the queue, so they resolve immediately (otherwise a follower tab's READs would hang forever after any write).
+4. **`push()` itself**, when the network flips offline *during* the awaited disk write — `flush()`'s offline early-return wouldn't resolve, so `push` resolves and returns without flushing.
+
+`unpause()` calls `flush(false)` precisely to **preserve** the existing `isReadyPromise` — swapping in a fresh one would orphan READs already awaiting the old promise. (`setIsReadyPromisePending()` is idempotent for the same reason: it no-ops when a pending promise is already armed.)
+
+**Sharp edges.** `isReadyPromise` is a single shared one-shot resolver. If a flush round arms it but never reaches any of the four resolve sites (e.g. a persistent, unresolvable `shouldPauseQueue` data gap), subsequent READs blocked on `waitForIdle()` have no timeout.
 
 ---
 
@@ -448,7 +462,7 @@ Tests are useful here as evidence of the **intended contract** — what the team
 | Suite | What it pins as contract |
 |---|---|
 | `tests/unit/APITest.ts` | Offline-persist, online-flush, persisted-until-backend-response, retry/backoff for 5xx + Auth-down (asserts ~3 fetches with throttle waits), reauthentication + ordering, WRITE-blocks-READ, pause/unpause, no-duplicates + enable-feature conflict collapsing, supportal-411 no-retry + `failureData` |
-| `tests/unit/SequentialQueueTest.ts` | Push/persist counts, conflict resolution (replace/push/noAction, incl. replace-while-ongoing), move-to-ongoing persistence, startup hydration of the ongoing request, `queueFlushedData` lifecycle, `ALREADY_CREATED` treated as success without retry |
+| `tests/unit/SequentialQueueTest.ts` | Push/persist counts, conflict resolution (replace/push/noAction, incl. replace-while-ongoing — now `async`/awaited since `push` is async), move-to-ongoing persistence, startup hydration of the ongoing request, `queueFlushedData` lifecycle, `ALREADY_CREATED` treated as success without retry, **and the persist-before-fire edges: `waitForIdle` resolves without flushing when the network goes offline during persist, and a disk-write failure during persist does not strand `isReadyPromise` or block the queue** |
 | `tests/unit/PersistedRequests.ts` | Save/remove/processNext/update/updateOngoing, File/Blob handling, cross-tab follower reconciliation; the `Issue 3a`/`3c` cases assert the **durable** ongoing-request behavior (`processNextRequest` always persists via `multiSet`) — a legacy test title references the vestigial `persistWhenOngoing` flag |
 | `tests/unit/RequestConflictUtilsTest.ts` | Pure push/replace/delete/noAction resolver logic |
 | `tests/actions/QueuedOnyxUpdatesTest.ts` | Account-scoped update filtering on flush |
@@ -465,7 +479,7 @@ The suites rely on `resetQueue()` (resets the four core coordinator vars — run
 - **True mid-flight-crash-then-restart recovery** — startup hydration is simulated by manually seeding `PERSISTED_ONGOING_REQUESTS`.
 - **`waitForIdle` is used only as a drain helper** in tests (pagination, attachments, workspace-upgrade, network, middleware), never asserted as a READ-blocks-on-WRITE ordering guarantee.
 
-**Behavior pinned to today's ordering.** `APITest.ts` › `API.write() persistence guarantees` › `'Issue 1: should persist the request before applying optimistic data'` currently asserts `optimisticDataApplied === true` and `requestPersistedBeforeOptimistic === false` — i.e. it pins the **current** optimistic-before-persist ordering, with a comment to flip the final assertion once persist-before-fire lands. (Sibling `Issue 2`/`Issue 5` cases in the same block are written to the post-fix behavior, so the block is internally mixed.)
+**Two distinct orderings — don't conflate them.** Persist-before-**fire** (await the disk commit before the network XHR) is in effect today and is the behavior described throughout this doc. Persist-before-**optimistic** (persist the request *before* applying `optimisticData` to Onyx in `prepareRequest`) is a *separate*, still-open ordering: `optimisticData` is applied in `prepareRequest`, before `push` is ever called, so the persist-before-fire await does not affect it. `APITest.ts` › `API.write() persistence guarantees` › `'Issue 1: should persist the request before applying optimistic data'` asserts `optimisticDataApplied === true` and `requestPersistedBeforeOptimistic === false` — it pins that optimistic-before-persist ordering, and its "flip the final assertion" comment refers to the persist-before-optimistic fix (not yet shipped). The sibling `Issue 2` case stalls the write promise on an unresolved `PERSISTED_REQUESTS` `Onyx.set`, asserting `push` awaits persistence (the current persist-before-fire behavior), though its describe-block header comment still reads "BUG" — an upstream test inconsistency, not a behavior claim of this doc.
 
 ---
 
