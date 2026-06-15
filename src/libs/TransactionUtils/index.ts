@@ -1405,6 +1405,58 @@ function hasOnlyPendingCardTransactions(transactions: Array<OnyxEntry<Transactio
 }
 
 /**
+ * Returns the root of a card transaction's authorization chain.
+ *
+ * A posted/clearing Expensify Card transaction carries `parentTransactionID` pointing at the root pending auth's
+ * `transactionID`. The root pending auth has an empty `parentTransactionID`, so it is its own chain root.
+ */
+function getCardAuthChainRoot(transaction: OnyxEntry<Transaction>): string | undefined {
+    if (transaction?.parentTransactionID) {
+        return transaction.parentTransactionID;
+    }
+    return transaction?.transactionID;
+}
+
+/**
+ * Returns the set of pending Expensify Card transaction IDs that are already superseded by a posted transaction
+ * from the same authorization chain.
+ *
+ * When a card transaction settles while the client is offline, the backend moves the pending auth to a hidden
+ * report and clears it from clients via a realtime Onyx update. A client that missed that update keeps the stale
+ * pending row in Onyx, so it renders as a duplicate next to the posted row. Grouping by auth chain lets us hide a
+ * pending row whenever its posted counterpart is present, while leaving a genuinely pending row (no posted sibling)
+ * untouched.
+ */
+function getSupersededPendingCardTransactionIDs(transactions: Array<OnyxEntry<Transaction>>): Set<string> {
+    const settledChainRoots = new Set<string>();
+    for (const transaction of transactions) {
+        if (isExpensifyCardTransaction(transaction) && !isPending(transaction)) {
+            const chainRoot = getCardAuthChainRoot(transaction);
+            if (chainRoot) {
+                settledChainRoots.add(chainRoot);
+            }
+        }
+    }
+
+    const supersededTransactionIDs = new Set<string>();
+    if (settledChainRoots.size === 0) {
+        return supersededTransactionIDs;
+    }
+
+    for (const transaction of transactions) {
+        if (!transaction || !isExpensifyCardTransaction(transaction) || !isPending(transaction)) {
+            continue;
+        }
+        const chainRoot = getCardAuthChainRoot(transaction);
+        if (chainRoot && settledChainRoots.has(chainRoot)) {
+            supersededTransactionIDs.add(transaction.transactionID);
+        }
+    }
+
+    return supersededTransactionIDs;
+}
+
+/**
  * Show a confirm modal explaining that pending card transactions cannot be submitted.
  */
 function showPendingCardTransactionsBlockModal(
@@ -2994,6 +3046,7 @@ export {
     isDuplicate,
     isPending,
     hasOnlyPendingCardTransactions,
+    getSupersededPendingCardTransactionIDs,
     showPendingCardTransactionsBlockModal,
     isOnHold,
     getWaypoints,
