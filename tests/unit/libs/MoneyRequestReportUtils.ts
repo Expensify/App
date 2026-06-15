@@ -90,3 +90,74 @@ describe('getAllNonDeletedTransactions', () => {
         expect(result.map((t) => t.transactionID)).toContain(orphanedTransaction.transactionID);
     });
 });
+
+describe('getAllNonDeletedTransactions - Expensify Card pending/posted dedup', () => {
+    function makeCardTransaction(transactionID: string, status: Transaction['status'], parentTransactionID = ''): Transaction {
+        return {
+            ...transactionR14932,
+            transactionID,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            status,
+            parentTransactionID,
+        };
+    }
+
+    // Pass empty reportActions + includeOrphanedTransactions so the existing action-based filtering keeps every
+    // transaction, isolating the card pending/posted dedup behaviour.
+    function getTransactions(transactions: Record<string, Transaction>) {
+        return getAllNonDeletedTransactions(transactions, [], false, true);
+    }
+
+    test('hides the pending card auth when its posted counterpart is present', () => {
+        const pending = makeCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
+        const posted = makeCardTransaction('clear1', CONST.TRANSACTION.STATUS.POSTED, 'auth1');
+
+        const result = getTransactions({auth1: pending, clear1: posted});
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.transactionID).toBe('clear1');
+    });
+
+    test('keeps a pending card auth that has no posted counterpart', () => {
+        const pending = makeCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
+
+        const result = getTransactions({auth1: pending});
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.transactionID).toBe('auth1');
+    });
+
+    test('hides every pending auth in a chain (incremental auths + clearing)', () => {
+        const rootAuth = makeCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
+        const incrementalAuth = makeCardTransaction('auth1b', CONST.TRANSACTION.STATUS.PENDING, 'auth1');
+        const posted = makeCardTransaction('clear1', CONST.TRANSACTION.STATUS.POSTED, 'auth1');
+
+        const result = getTransactions({auth1: rootAuth, auth1b: incrementalAuth, clear1: posted});
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.transactionID).toBe('clear1');
+    });
+
+    test('does not touch non-card pending transactions', () => {
+        const pending = {...transactionR14932, transactionID: 'cashPending', bank: '', status: CONST.TRANSACTION.STATUS.PENDING, parentTransactionID: ''};
+        const posted = {...transactionR14932, transactionID: 'cashPosted', bank: '', status: CONST.TRANSACTION.STATUS.POSTED, parentTransactionID: 'cashPending'};
+
+        const result = getTransactions({cashPending: pending, cashPosted: posted});
+
+        expect(result).toHaveLength(2);
+    });
+
+    test('does not dedup across unrelated card auth chains', () => {
+        const cardAPending = makeCardTransaction('authA', CONST.TRANSACTION.STATUS.PENDING);
+        const cardAPosted = makeCardTransaction('clearA', CONST.TRANSACTION.STATUS.POSTED, 'authA');
+        const cardBPending = makeCardTransaction('authB', CONST.TRANSACTION.STATUS.PENDING);
+
+        const result = getTransactions({authA: cardAPending, clearA: cardAPosted, authB: cardBPending});
+
+        const ids = result.map((transaction) => transaction.transactionID);
+        expect(result).toHaveLength(2);
+        expect(ids).toContain('clearA');
+        expect(ids).toContain('authB');
+        expect(ids).not.toContain('authA');
+    });
+});
