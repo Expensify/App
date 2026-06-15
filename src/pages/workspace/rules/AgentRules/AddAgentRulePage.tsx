@@ -90,6 +90,7 @@ function AddAgentRulePage({
             ),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
+            shouldUseSuccessStyleForConfirm: true,
             iconSource: BotAvatarBlue,
             iconFill: false,
             shouldCenterIcon: true,
