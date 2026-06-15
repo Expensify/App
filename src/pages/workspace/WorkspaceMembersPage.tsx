@@ -591,7 +591,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     if (isSubmitPolicy(policy)) {
         roleFilterOptions.push({
-            text: translate('common.editor'),
+            text: translate('workspace.people.editors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.EDITORS,
         });
     }

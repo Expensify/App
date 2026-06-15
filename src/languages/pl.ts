@@ -6278,6 +6278,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             admins: 'Administratorzy przestrzeni roboczej',
             approvers: 'Osoby zatwierdzające',
             auditors: 'Audytorzy',
+            editors: 'Edytorzy',
             emptyRoleFilter: {title: 'Żadni członkowie nie pasują do tego filtra', subtitle: 'Zaproś członka lub zmień filtr powyżej.'},
             configureHRSync: (providerName: string) => `Skonfiguruj synchronizację ${providerName}.`,
             syncWithHR: (providerName: string) => `Synchronizuj z ${providerName}`,

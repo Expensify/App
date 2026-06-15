@@ -6340,6 +6340,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             admins: 'Administrateurs de l’espace de travail',
             approvers: 'Approbateurs',
             auditors: 'Auditeurs',
+            editors: 'Éditeurs',
             emptyRoleFilter: {title: 'Aucun membre ne correspond à ce filtre', subtitle: 'Invitez un membre ou modifiez le filtre ci-dessus.'},
             configureHRSync: (providerName: string) => `Configurer la synchronisation ${providerName}.`,
             syncWithHR: (providerName: string) => `Synchroniser avec ${providerName}`,
