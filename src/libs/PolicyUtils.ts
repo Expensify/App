@@ -100,12 +100,7 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
 function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy =>
-            !!policy &&
-            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            !!policy.name &&
-            !!policy.id &&
-            !!getPolicyRole(policy, currentUserLogin) &&
-            policy.isPolicyExpenseChatEnabled,
+            !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id && !!getPolicyRole(policy, currentUserLogin),
     );
 }
 
@@ -1627,7 +1622,7 @@ function canSendInvoiceFromWorkspace(policy: OnyxEntry<Policy>): boolean {
 /** Whether the user can submit per diem expense from the workspace */
 function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolean {
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-    return !!policy?.isPolicyExpenseChatEnabled && !isEmptyObject(perDiemCustomUnit) && !!perDiemCustomUnit?.enabled;
+    return !isEmptyObject(perDiemCustomUnit) && !!perDiemCustomUnit?.enabled;
 }
 
 /** Whether the user can send invoice */
@@ -2199,7 +2194,7 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
  * and the user would be taken to the workspace selection page.
  */
 function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
-    if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isGroupPolicy(activePolicy)) {
+    if (activePolicy && isGroupPolicy(activePolicy)) {
         return activePolicy;
     }
 
