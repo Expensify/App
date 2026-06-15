@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
+import {resetValidateActionCodeSent} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,6 +16,7 @@ function MissingPersonalDetails({route: {params: {cardID = ''} = {}}}) {
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, draftValuesMetadata);
 
     const handleComplete = useCallback(() => {
+        resetValidateActionCodeSent();
         Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.getRoute(cardID));
     }, [cardID]);
 
