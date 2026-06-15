@@ -1,11 +1,12 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConnectToHRFlow from '@components/ConnectToHRFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
@@ -18,6 +19,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -25,6 +27,7 @@ import {openPolicyHRPage} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -85,6 +88,11 @@ function WorkspaceHRPage({
     connectedCards.sort(byName);
     disconnectedCards.sort(byName);
 
+    const filterCard = (card: HRCardDescriptor, searchInput: string) => {
+        return tokenizedSearch([card], searchInput, (c) => [c.displayName]).length > 0;
+    };
+    const [inputValue, setInputValue, filteredDisconnectedCards] = useSearchResults(disconnectedCards, filterCard);
+
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const handleConnect = (setupLink: string | undefined) => {
@@ -106,6 +114,26 @@ function WorkspaceHRPage({
         // eslint-disable-next-line react-hooks/purity -- random key forces remount on every press, even for the same provider
         setActiveHRFlow({setupLink, key: Math.random()});
     };
+
+    const maybeSearchBar = disconnectedCards.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
+        <SearchBar
+            label={translate('search.searchPlaceholder')}
+            inputValue={inputValue}
+            onChangeText={setInputValue}
+            shouldShowEmptyState={!filteredDisconnectedCards.length}
+            style={styles.ml0}
+        />
+    );
+    const filteredDisconnectedHRProviderCards = filteredDisconnectedCards.map((card) => (
+        <HRProviderCard
+            key={card.key}
+            card={card}
+            policy={policy}
+            handleConnect={() => handleConnect(card.setupLink)}
+            canWriteMoreFeatures={canWriteMoreFeatures}
+            showReadOnlyModal={showReadOnlyModal}
+        />
+    ));
 
     return (
         <AccessOrNotFoundWrapper
@@ -156,17 +184,12 @@ function WorkspaceHRPage({
                                         showReadOnlyModal={showReadOnlyModal}
                                     />
                                 ))}
-                                {connectedCards.length === 0 &&
-                                    disconnectedCards.map((card) => (
-                                        <HRProviderCard
-                                            key={card.key}
-                                            card={card}
-                                            policy={policy}
-                                            handleConnect={() => handleConnect(card.setupLink)}
-                                            canWriteMoreFeatures={canWriteMoreFeatures}
-                                            showReadOnlyModal={showReadOnlyModal}
-                                        />
-                                    ))}
+                                {connectedCards.length === 0 && (
+                                    <>
+                                        {maybeSearchBar}
+                                        {filteredDisconnectedHRProviderCards}
+                                    </>
+                                )}
                             </View>
 
                             {connectedCards.length > 0 && disconnectedCards.length > 0 && !connectedCards.some((c) => c.isInitialSyncInProgress) && (
@@ -176,16 +199,8 @@ function WorkspaceHRPage({
                                     titleStyle={[styles.textNormal, styles.colorMuted]}
                                     textStyle={[styles.flex1, styles.userSelectNone, styles.textNormal, styles.colorMuted]}
                                 >
-                                    {disconnectedCards.map((card) => (
-                                        <HRProviderCard
-                                            key={card.key}
-                                            card={card}
-                                            policy={policy}
-                                            handleConnect={() => handleConnect(card.setupLink)}
-                                            canWriteMoreFeatures={canWriteMoreFeatures}
-                                            showReadOnlyModal={showReadOnlyModal}
-                                        />
-                                    ))}
+                                    {maybeSearchBar}
+                                    {filteredDisconnectedHRProviderCards}
                                 </CollapsibleSection>
                             )}
                         </Section>
