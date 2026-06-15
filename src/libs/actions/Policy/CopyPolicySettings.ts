@@ -10,7 +10,23 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 
-type Part = 'overview' | 'members' | 'reports' | 'accounting' | 'categories' | 'tags' | 'taxes' | 'workflows' | 'rules' | 'codingRules' | 'distanceRates' | 'perDiem' | 'invoices' | 'travel';
+type Part =
+    | 'overview'
+    | 'members'
+    | 'reports'
+    | 'accounting'
+    | 'categories'
+    | 'tags'
+    | 'taxes'
+    | 'workflows'
+    | 'rules'
+    | 'codingRules'
+    | 'distanceRates'
+    | 'perDiem'
+    | 'invoices'
+    | 'travel'
+    | 'timeTracking'
+    | 'receiptPartners';
 
 const PARTS_TO_POLICY_FIELDS = {
     overview: ['outputCurrency', 'address', 'description'],
@@ -42,6 +58,8 @@ const PARTS_TO_POLICY_FIELDS = {
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
     invoices: ['areInvoicesEnabled', 'invoice'],
     travel: ['isTravelEnabled', 'travelSettings'],
+    timeTracking: [],
+    receiptPartners: [],
 } as const satisfies Record<Part, ReadonlyArray<keyof Policy>>;
 
 type PolicyFieldsForPart = (typeof PARTS_TO_POLICY_FIELDS)[Part][number];
@@ -101,9 +119,45 @@ function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDis
     return {customUnits: patch};
 }
 
+/** Replaces receiptPartners on the target; omits employees and ephemeral Uber UI state. */
+function buildReceiptPartnersPatch(sourcePolicy: Policy): Pick<Policy, 'receiptPartners'> | undefined {
+    const sourceReceiptPartners = sourcePolicy.receiptPartners;
+    if (!sourceReceiptPartners) {
+        return undefined;
+    }
+
+    const sourceUber = sourceReceiptPartners.uber;
+    const uberPatch = sourceUber
+        ? {
+              ...(sourceUber.enabled !== undefined ? {enabled: sourceUber.enabled} : {}),
+              ...(sourceUber.autoInvite !== undefined ? {autoInvite: sourceUber.autoInvite} : {}),
+              ...(sourceUber.autoRemove !== undefined ? {autoRemove: sourceUber.autoRemove} : {}),
+              ...(sourceUber.organizationID !== undefined ? {organizationID: sourceUber.organizationID} : {}),
+              ...(sourceUber.organizationName !== undefined ? {organizationName: sourceUber.organizationName} : {}),
+              ...(sourceUber.centralBillingAccountEmail !== undefined ? {centralBillingAccountEmail: sourceUber.centralBillingAccountEmail} : {}),
+          }
+        : undefined;
+
+    return {
+        receiptPartners: {
+            ...(sourceReceiptPartners.enabled !== undefined ? {enabled: sourceReceiptPartners.enabled} : {}),
+            ...(uberPatch ? {uber: uberPatch} : {}),
+        },
+    };
+}
+
+/** Merges source units.time onto the target without generating IDs. */
+function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | undefined {
+    const sourceTime = sourcePolicy.units?.time;
+    if (!sourceTime) {
+        return undefined;
+    }
+    return {units: {time: sourceTime}};
+}
+
 /**
  * Returns the partial Policy patch derived from the selected `parts`, excluding fields whose
- * mapping is handled separately (customUnits, categories, tags collection keys).
+ * mapping is handled separately (customUnits, timeTracking, receiptPartners, categories, tags collection keys).
  */
 function buildPolicyFieldPatch(sourcePolicy: Policy, parts: Part[]): Partial<Policy> {
     const patch: Partial<Policy> = {};
@@ -172,7 +226,23 @@ function buildCopyPolicySettingsData(
     const isTagsSelected = parts.includes('tags');
     const isDistanceSelected = parts.includes('distanceRates');
     const isPerDiemSelected = parts.includes('perDiem');
+    const isTimeTrackingSelected = parts.includes('timeTracking');
+    const isReceiptPartnersSelected = parts.includes('receiptPartners');
     const isCodingRulesSelected = parts.includes('codingRules');
+    const timeTrackingPendingFields = isTimeTrackingSelected
+        ? {
+              isTimeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              timeTrackingDefaultRate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+          }
+        : {};
+    const timeTrackingClearedPendingFields = isTimeTrackingSelected
+        ? {
+              isTimeTrackingEnabled: null,
+              timeTrackingDefaultRate: null,
+          }
+        : {};
+    const receiptPartnersPendingFields = isReceiptPartnersSelected ? {receiptPartners: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    const receiptPartnersClearedPendingFields = isReceiptPartnersSelected ? {receiptPartners: null} : {};
 
     const sourceCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicy.id}` as const;
     const sourceTagsKey = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicy.id}` as const;
@@ -194,6 +264,8 @@ function buildCopyPolicySettingsData(
     for (const targetPolicy of targetPolicies) {
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
         const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
+        const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
+        const receiptPartnersPatch = isReceiptPartnersSelected ? buildReceiptPartnersPatch(sourcePolicy) : undefined;
         const codingRulesPatch = isCodingRulesSelected
             ? {
                   rules: {
@@ -213,8 +285,17 @@ function buildCopyPolicySettingsData(
                 ...targetPolicy,
                 ...policyFieldPatch,
                 ...(customUnitsPatch ? {customUnits: {...targetPolicy.customUnits, ...customUnitsPatch.customUnits}} : {}),
+                ...(timeTrackingPatch
+                    ? {
+                          units: {
+                              ...targetPolicy.units,
+                              ...timeTrackingPatch.units,
+                          },
+                      }
+                    : {}),
+                ...(receiptPartnersPatch ? {receiptPartners: receiptPartnersPatch.receiptPartners} : {}),
                 ...codingRulesPatch,
-                pendingFields: {...targetPolicy.pendingFields, ...pendingFields},
+                pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields, ...receiptPartnersPendingFields},
             },
         });
 
@@ -223,7 +304,7 @@ function buildCopyPolicySettingsData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
-                pendingFields: clearedPendingFields,
+                pendingFields: {...clearedPendingFields, ...timeTrackingClearedPendingFields, ...receiptPartnersClearedPendingFields},
                 errors: null,
             },
         });

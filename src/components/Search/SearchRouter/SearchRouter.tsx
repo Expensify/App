@@ -1,4 +1,4 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
@@ -25,6 +25,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {scrollToRight} from '@libs/InputUtils';
 import backHistory from '@libs/Navigation/helpers/backHistory';
@@ -72,7 +73,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const personalDetails = usePersonalDetails();
+    const sortedActions = useSortedActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
@@ -139,9 +142,20 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
 
-                const option = createOptionFromReport(contextualReport, personalDetails, contextualReportNVP, contextualReportPolicy, undefined, {
-                    showPersonalDetails: true,
-                });
+                const option = createOptionFromReport(
+                    contextualReport,
+                    personalDetails,
+                    contextualReportNVP,
+                    contextualReportPolicy,
+                    sortedActions,
+                    undefined,
+                    {
+                        showPersonalDetails: true,
+                    },
+                    undefined,
+                    undefined,
+                    isTrackIntentUser,
+                );
                 reportForContextualSearch = option;
             }
 
@@ -203,8 +217,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             styles.activeComponentBG,
             contextualReport,
             personalDetails,
+            sortedActions,
             contextualReportNVP,
             contextualReportPolicy,
+            isTrackIntentUser,
         ],
     );
 
@@ -372,7 +388,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         onRouterClose();
     });
-    const updateAndScrollToFocusedIndex = useCallback(() => listRef.current?.updateAndScrollToFocusedIndex(searchQueryItems?.length ?? 1, true), [searchQueryItems?.length]);
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
@@ -421,7 +436,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 searchQueryItems={searchQueryItems}
                 getAdditionalSections={getAdditionalSections}
                 onListItemPress={onListItemPress}
-                onHighlightFirstItem={updateAndScrollToFocusedIndex}
+                shouldHighlightFirstItem
                 ref={listRef}
                 textInputRef={textInputRef}
                 autocompleteSubstitutions={autocompleteSubstitutions}
