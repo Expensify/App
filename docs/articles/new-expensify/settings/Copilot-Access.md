@@ -28,7 +28,7 @@ Copilots can access another user’s Expensify account to:
 
 To grant someone access to your account:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Copilot**.
 2. In the **Copilot: Delegated Access** section, click **Add a copilot**.
 3. Search for the user by **name** or **email**.
 4. Choose the access level:
@@ -44,13 +44,13 @@ To grant someone access to your account:
 
 To **remove a Copilot**:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Copilot**.
 2. In the **Copilot: Delegated Access** section, click the **three-dot menu** next to their name.
 3. Select **Remove Copilot**, then confirm.
 
 To **change a Copilot's access level**:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Copilot**.
 2. In the **Copilot: Delegated Access** section, click the **three-dot menu** next to their name.
 3. Choose **Change Access Level**.
 4. Select **Full Access** or **Limited Access** and confirm your choice.
@@ -73,7 +73,7 @@ You'll see a **dual avatar** in the bottom-left corner confirming you're in Copi
 
 If you've been added as a Copilot for another user, you can remove your own access at any time without involving the account owner.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Copilot**.
 2. In the **Copilot: Delegated access** section, find the account under **You can access these accounts:**.
 3. Select the three dots **(⋮)** next to the account name.
 4. Select **Remove my copilot access**.
