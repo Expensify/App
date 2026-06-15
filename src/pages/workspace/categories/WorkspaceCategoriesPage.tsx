@@ -216,12 +216,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const navigateToCategory = useCallback(
         (category: PolicyCategories[string]) => {
             const path = isQuickSettingsFlow
-                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.name, backTo)
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(category.name))
                 : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(category.name));
 
             Navigation.navigate(path);
         },
-        [backTo, isQuickSettingsFlow, policyId],
+        [isQuickSettingsFlow],
     );
 
     const handleCategoryToggle = useCallback(

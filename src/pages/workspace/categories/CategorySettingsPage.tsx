@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -48,11 +49,11 @@ import SCREENS from '@src/SCREENS';
 
 type CategorySettingsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS>
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS>;
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS>;
 
 function CategorySettingsPage({route: {params, name}, navigation}: CategorySettingsPageProps) {
     const {policyID, categoryName} = params;
-    const backTo = 'backTo' in params ? params.backTo : undefined;
+    const backTo = 'backTo' in params && typeof params.backTo === 'string' ? params.backTo : undefined;
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -70,7 +71,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
-    const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
+    const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS;
+    const settingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.path);
     const {
         taskReport: setupCategoryTaskReport,
         taskParentReport: setupCategoryTaskParentReport,
@@ -92,7 +94,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const policyHasTags = hasTags(policyTags);
 
     const navigateBack = () => {
-        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
+        Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : undefined);
     };
 
     const isFocused = useIsFocused();

@@ -468,9 +468,14 @@ const DYNAMIC_ROUTES = {
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
+    SETTINGS_CATEGORY_SETTINGS: {
+        path: 'category-settings/:categoryName',
+        entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT],
+        getRoute: (categoryName: string) => `category-settings/${encodeURIComponent(categoryName)}` as const,
+    },
     SETTINGS_CATEGORY_EDIT: {
         path: 'category-edit',
-        entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+        entryScreens: [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     SETTINGS_CATEGORIES_SETTINGS: {
         path: 'manage-settings',
@@ -499,31 +504,31 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_CATEGORY_DEFAULT_TAX_RATE: {
         path: 'tax-rate',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
         path: 'flag-amounts',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     WORKSPACE_CATEGORY_DESCRIPTION_HINT: {
         path: 'description-hint',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     WORKSPACE_CATEGORY_REQUIRED_FIELDS: {
         path: 'required-fields',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     WORKSPACE_CATEGORY_APPROVER: {
         path: 'approver',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
         path: 'require-receipts-over',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER: {
         path: 'require-itemized-receipts-over',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     NOTIFICATION_PREFERENCES: {
         path: 'notification-preferences',
@@ -1825,11 +1830,6 @@ const ROUTES = {
         route: 'settings/:policyID/categories',
 
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories`, backTo),
-    },
-    SETTINGS_CATEGORY_SETTINGS: {
-        route: 'settings/:policyID/category/:categoryName',
-
-        getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}`, backTo),
     },
     SETTINGS_CATEGORIES_IMPORT: {
         route: 'settings/:policyID/categories/import',
