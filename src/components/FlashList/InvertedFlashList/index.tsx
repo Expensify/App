@@ -15,13 +15,11 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
     ref: FlatListRefType;
 };
 
-function InvertedFlashList<T>({data, keyExtractor, ...restProps}: InvertedFlashListProps<T>) {
+function InvertedFlashList<T>(props: InvertedFlashListProps<T>) {
     return (
         <FlashList<T>
-            {...restProps}
+            {...props}
             inverted
-            data={data}
-            keyExtractor={keyExtractor}
             CellRendererComponent={CellRendererComponent}
         />
     );
