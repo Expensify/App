@@ -47,6 +47,7 @@ import {
     isProcessingReport,
     isReportApproved,
     isReportManager,
+    isReportPendingDelete,
     isSettled,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -343,6 +344,12 @@ function getIOUReportActionWithBadge(
             continue;
         }
         const iouReport = getReportOrDraftReport(action.childReportID);
+
+        // A report deleted offline still lives in Onyx (pendingFields.preview === DELETE) until the queue flushes,
+        // so skip it here — otherwise its preview keeps surfacing a stale "Mark as done"/action badge in the LHN.
+        if (isReportPendingDelete(iouReport)) {
+            continue;
+        }
 
         if (!iouReport) {
             // Fallback for p2p IOUs when the IOU report isn't loaded in Onyx yet (e.g. right after login).
