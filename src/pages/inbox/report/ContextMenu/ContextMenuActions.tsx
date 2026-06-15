@@ -37,6 +37,7 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
+    getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
@@ -52,6 +53,7 @@ import {
     getDynamicExternalWorkflowSubmitFailedActionMessage,
     getExportIntegrationMessageHTML,
     getForeignCurrencyDefaultTaxUpdateMessage,
+    getForwardedReportActionMessage,
     getForwardsToUpdateMessage,
     getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
@@ -60,6 +62,7 @@ import {
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getMarkedReimbursedMessage,
+    getMccGroupCategoryMessage,
     getMemberChangeMessageFragment,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
@@ -185,7 +188,9 @@ import {
     isSelfDM,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
+import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from '@libs/SpendRuleChangeLogUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {isExpenseSplit, isPerDiemRequest} from '@libs/TransactionUtils';
 import {setDownload} from '@userActions/Download';
@@ -220,6 +225,7 @@ import type {
     ReportAttributesDerivedValue,
     Report as ReportType,
     Transaction,
+    TransactionViolations,
 } from '@src/types/onyx';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -297,6 +303,7 @@ type ContextMenuActionPayload = {
     originalReport: OnyxEntry<ReportType>;
     isHarvestReport?: boolean;
     isTryNewDotNVPDismissed?: boolean;
+    isTrackIntentUser?: boolean;
     childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
@@ -314,6 +321,7 @@ type ContextMenuActionPayload = {
     currentUserPersonalDetails: ReturnType<typeof useCurrentUserPersonalDetails>;
     encryptedAuthToken: string;
     iouTransaction: OnyxEntry<Transaction>;
+    iouTransactionViolations: OnyxEntry<TransactionViolations>;
     bankAccountList: OnyxEntry<BankAccountList>;
     isOffline: boolean;
     conciergeReportID: string | undefined;
@@ -602,7 +610,10 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy, currentUserAccountID).canUnholdRequest;
         },
-        onPress: (closePopover, {moneyRequestAction, iouTransaction, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails}) => {
+        onPress: (
+            closePopover,
+            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails},
+        ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
                 return;
@@ -610,13 +621,27 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             if (closePopover) {
                 hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID),
+                    changeMoneyRequestHoldStatus(
+                        moneyRequestAction,
+                        iouTransaction,
+                        isOffline,
+                        currentUserPersonalDetails?.login ?? '',
+                        currentUserPersonalDetails.accountID,
+                        iouTransactionViolations,
+                    ),
                 );
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID);
+            changeMoneyRequestHoldStatus(
+                moneyRequestAction,
+                iouTransaction,
+                isOffline,
+                currentUserPersonalDetails?.login ?? '',
+                currentUserPersonalDetails.accountID,
+                iouTransactionViolations,
+            );
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.UNHOLD,
@@ -632,7 +657,10 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy, currentUserAccountID).canHoldRequest;
         },
-        onPress: (closePopover, {moneyRequestAction, iouTransaction, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails}) => {
+        onPress: (
+            closePopover,
+            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails},
+        ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
                 return;
@@ -640,13 +668,27 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             if (closePopover) {
                 hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID),
+                    changeMoneyRequestHoldStatus(
+                        moneyRequestAction,
+                        iouTransaction,
+                        isOffline,
+                        currentUserPersonalDetails?.login ?? '',
+                        currentUserPersonalDetails.accountID,
+                        iouTransactionViolations,
+                    ),
                 );
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID);
+            changeMoneyRequestHoldStatus(
+                moneyRequestAction,
+                iouTransaction,
+                isOffline,
+                currentUserPersonalDetails?.login ?? '',
+                currentUserPersonalDetails.accountID,
+                iouTransactionViolations,
+            );
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,
@@ -836,6 +878,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 isHarvestReport,
                 isTryNewDotNVPDismissed,
+                isTrackIntentUser,
                 movedFromReport,
                 movedToReport,
                 childReport,
@@ -847,7 +890,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 harvestReportOriginalID,
                 currentUserPersonalDetails,
                 bankAccountList,
-                conciergeReportID,
                 reportAttributes,
                 originalReportOfUnapprovedTransaction,
             },
@@ -861,7 +903,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                 const content = selection || messageHtml;
                 if (isReportPreviewAction) {
                     const iouReportID = getIOUReportIDFromReportActionPreview(reportAction);
-                    const displayMessage = getReportPreviewMessage(iouReportID, conciergeReportID, reportAction, undefined, undefined, undefined, undefined, undefined, true);
+                    const displayMessage = getReportPreviewMessage({
+                        reportOrID: iouReportID,
+                        iouReportAction: reportAction,
+                        isCopyAction: true,
+                        reportAttributes,
+                    });
                     Clipboard.setString(displayMessage);
                 } else if (isTaskActionReportActionsUtils(reportAction)) {
                     const {text, html} = getTaskReportActionMessage(translate, reportAction);
@@ -975,6 +1022,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getRequireCompanyCardsEnabledMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
                     Clipboard.setString(getAutoReimbursementMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE) {
+                    Clipboard.setString(getCategoryTaxRateMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY) {
+                    Clipboard.setString(getMccGroupCategoryMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
                     Clipboard.setString(getInvoiceCompanyNameUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {
@@ -1029,7 +1080,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                     if (harvesting) {
                         setClipboardMessage(translate('iou.automaticallySubmitted'));
                     } else {
-                        Clipboard.setString(translate('iou.submitted', getOriginalMessage(reportAction)?.message));
+                        Clipboard.setString(
+                            shouldShowMarkAsDone({
+                                policy,
+                                isTrackIntentUser,
+                                report,
+                            })
+                                ? translate('iou.markedAsDone', getOriginalMessage(reportAction)?.message)
+                                : translate('iou.submitted', getOriginalMessage(reportAction)?.message),
+                        );
                     }
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
@@ -1045,7 +1104,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     if (automaticAction) {
                         setClipboardMessage(translate('iou.automaticallyForwarded'));
                     } else {
-                        Clipboard.setString(translate('iou.forwarded'));
+                        Clipboard.setString(getForwardedReportActionMessage(reportAction, translate));
                     }
                 } else if (isRejectedAction(reportAction)) {
                     Clipboard.setString(translate('iou.rejectedThisReport'));
@@ -1130,6 +1189,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getDeletedApprovalRuleMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE)) {
                     setClipboardMessage(getUpdatedApprovalRuleMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE)) {
+                    setClipboardMessage(getAddExpensifyCardRuleMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE)) {
+                    setClipboardMessage(getUpdateExpensifyCardRuleMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE)) {
+                    setClipboardMessage(getRemoveExpensifyCardRuleMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
                     setClipboardMessage(getUpdatedManualApprovalThresholdMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET)) {

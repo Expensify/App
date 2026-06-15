@@ -101,12 +101,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
         // Clear the URL only after we navigate away to avoid a brief Not Found flash.
-        TransitionTracker.runAfterTransitions({
+        const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
                 requestAnimationFrame(clearDeleteTransactionNavigateBackUrl);
             },
             waitForUpcomingTransition: true,
         });
+        return () => handle.cancel();
     }, [isFocused, deleteTransactionNavigateBackUrl]);
 
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);

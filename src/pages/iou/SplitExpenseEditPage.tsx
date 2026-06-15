@@ -1,3 +1,4 @@
+import {policyTypeSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -15,6 +16,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
@@ -33,11 +35,11 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getGroupPaidPoliciesWithExpenseChatEnabled, getTagLists} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getGroupPaidPoliciesWithExpenseChatEnabled, getTagLists, isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isReportInGroupPolicy, isSelfDM} from '@libs/ReportUtils';
+import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -74,6 +76,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 
+    const personalPolicy = usePersonalPolicy();
     const effectivePolicy = useSplitEffectivePolicy(currentReport, splitExpenseDraftTransaction, transaction);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
@@ -116,7 +119,10 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const draftTransactionReport = getReportOrDraftReport(splitExpenseDraftTransaction?.reportID);
     const isSelfDMSplit = isSelfDM(draftTransactionReport);
     const isExpenseUnreported = isSelfDMSplit;
-    const isPolicyExpenseChat = isReportInGroupPolicy(draftTransactionReport);
+    const [draftTransactionPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${draftTransactionReport?.policyID}`, {
+        selector: policyTypeSelector,
+    });
+    const isPolicyExpenseChat = isGroupPolicyByType(draftTransactionPolicyType);
 
     const originalTransactionCategory = transaction?.category ?? '';
     const originalTransactionTag = transaction?.tag ?? '';
@@ -161,7 +167,15 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
     const isOdometerDistance = isOdometerDistanceRequest(splitExpenseDraftTransaction);
-    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: effectivePolicy});
+    const {
+        unit,
+        rate,
+        name: rateName,
+    } = DistanceRequestUtils.getRate({
+        transaction: splitExpenseDraftTransaction,
+        policy: effectivePolicy,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+    });
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
     const currentAmount =
         isDistance && distance && rate

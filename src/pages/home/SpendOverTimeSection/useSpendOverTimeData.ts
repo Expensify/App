@@ -100,7 +100,6 @@ function useSpendOverTimeData() {
                       translate,
                       formatPhoneNumber,
                       bankAccountList: undefined,
-                      allReportMetadata: undefined,
                       conciergeReportID: undefined,
                       convertToDisplayString,
                       reportAttributesDerivedValue: reportAttributes,

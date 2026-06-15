@@ -1,5 +1,5 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
-import type {ForwardedRef} from 'react';
+import type {RefObject} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SelectedTransactions} from '@components/Search/types';
@@ -17,6 +17,7 @@ type BaseSearchListProps = Pick<
     | 'keyExtractor'
     | 'showsVerticalScrollIndicator'
     | 'onLayout'
+    | 'stickyHeaderIndices'
 > & {
     /** The data to display in the list */
     data: SearchListItem[];
@@ -37,7 +38,7 @@ type BaseSearchListProps = Pick<
     onSelectRow: (item: SearchListItem) => void;
 
     /** The ref to the list */
-    ref: ForwardedRef<FlashListRef<SearchListItem>>;
+    ref: RefObject<FlashListRef<SearchListItem> | null>;
 
     /** The function to scroll to an index */
     scrollToIndex?: (index: number, animated?: boolean) => void;
@@ -50,6 +51,9 @@ type BaseSearchListProps = Pick<
 
     /** Non-personal and workspace cards for triggering re-render via extraData */
     nonPersonalAndWorkspaceCards?: CardList;
+
+    /** Function to determine item type for FlashList recycling */
+    getItemType?: (item: SearchListItem, index: number) => string | number | undefined;
 };
 
 export default BaseSearchListProps;

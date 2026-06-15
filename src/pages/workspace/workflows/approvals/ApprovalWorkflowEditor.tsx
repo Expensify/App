@@ -58,6 +58,14 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     const getApprovalPendingAction = useCallback(
         (index: number) => {
+            // The approver's own `pendingAction` takes precedence — it's set when an approver was
+            // seeded from an optimistic agent creation (Workflows > Add agent) and the
+            // CREATE_AGENT response hasn't arrived yet. Showing opacity here is exactly what
+            // signals to the admin that the agent is still being confirmed by the server.
+            const approverPendingAction = approvalWorkflow?.approvers.at(index)?.pendingAction;
+            if (approverPendingAction) {
+                return approverPendingAction;
+            }
             let pendingAction: PendingAction | undefined;
             if (index === 0) {
                 if (approvalWorkflow?.members) {
@@ -124,8 +132,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     );
 
     const handleExpensesFromPress = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID));
-    }, [policyID]);
+        const firstApproverEmail = approvalWorkflow.approvers?.at(0)?.email ?? '';
+        const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail) : undefined;
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
+    }, [approvalWorkflow.action, approvalWorkflow.approvers, policyID]);
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {

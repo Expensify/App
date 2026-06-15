@@ -75,6 +75,8 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
             approvalLimit: employee.approvalLimit,
             overLimitForwardsTo: employee.overLimitForwardsTo,
             overLimitForwardsToDisplayName: getOverLimitForwardsToDisplayName(employee.overLimitForwardsTo, personalDetailsByEmail),
+            pendingAction: employee.pendingAction,
+            errors: employee.errors,
         });
 
         // If we've already seen this approver, break to prevent infinite loop
