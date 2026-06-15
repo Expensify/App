@@ -318,7 +318,15 @@ function SidebarOrderedReportsContextProvider({
     }, [orderedReportIDs, reportsToDisplayInLHN, activeTab, stickyReportTab, stickyReportID]);
 
     // The count shown in each tab's badge, derived from the full "All" set (not the currently filtered view).
-    const inboxTabCounts = useMemo(() => SidebarUtils.getInboxTabCounts(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
+    // Recompute only when the reportAttributes derived value settles (or when a non-REPORT rebuild trigger like
+    // priority mode / betas changes), not on every raw REPORT write. reportsToDisplayInLHN reacts to raw REPORT
+    // writes one paint before reportAttributes catches up, so counting on those writes would read an intermediate
+    // requiresAttention state and flash the To-do badge (#93521).
+    const inboxTabCounts = useMemo(
+        () => SidebarUtils.getInboxTabCounts(orderedReportIDs, reportsToDisplayInLHN),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [reportAttributes, priorityMode, betas],
+    );
 
     // Get the actual reports based on the filtered IDs
     const getOrderedReports = useCallback(
