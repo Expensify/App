@@ -134,7 +134,7 @@ function getCopyPolicySettingsStep(update: {value?: unknown} | undefined): Pick<
         return undefined;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- value is the COPY_POLICY_SETTINGS lifecycle step
     return update.value as Pick<CopyPolicySettings, 'currentStep'>;
 }
 
