@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -17,14 +17,14 @@ type ReportActionsListItemRendererProps = {
     /** The transaction thread report's parentReportAction */
     parentReportActionForTransactionThread: OnyxEntry<ReportAction>;
 
-    /** Position index of the report action in the overall report FlatList view */
-    index: number;
-
     /** Report for this action */
     report: OnyxEntry<Report>;
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport: OnyxEntry<Report>;
+
+    /** The chat report associated with the report for this action (report.chatReportID) */
+    chatReport?: OnyxEntry<Report>;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
@@ -50,30 +50,19 @@ type ReportActionsListItemRendererProps = {
     /** Animate highlight action in few seconds */
     shouldHighlight?: boolean;
 
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
+    /** Whether the action is the "Created" action of a harvest-created expense report */
+    isHarvestCreatedExpenseReport?: boolean;
 
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
-
-    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed: boolean | undefined;
-    /** Whether the report is archived */
-    isReportArchived: boolean;
-
-    /** Report name value pairs origin */
-    reportNameValuePairsOrigin?: string;
-
-    /** Report name value pairs originalID */
-    reportNameValuePairsOriginalID?: string;
+    /** Whether context menu should be disabled for the active Concierge draft */
+    shouldDisableContextMenuForConciergeDraft?: boolean;
 };
 
 function ReportActionsListItemRenderer({
     reportAction,
     parentReportAction,
-    index,
     report,
     transactionThreadReport,
+    chatReport,
     displayAsGroup,
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
@@ -83,12 +72,8 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     shouldHighlight = false,
     parentReportActionForTransactionThread,
-    userBillingFundID,
-    personalDetails,
-    isTryNewDotNVPDismissed = false,
-    isReportArchived = false,
-    reportNameValuePairsOrigin,
-    reportNameValuePairsOriginalID,
+    isHarvestCreatedExpenseReport = false,
+    shouldDisableContextMenuForConciergeDraft = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -175,13 +160,8 @@ function ReportActionsListItemRenderer({
                 report={report}
                 action={action}
                 transactionThreadReport={transactionThreadReport}
-                index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                personalDetails={personalDetails}
-                userBillingFundID={userBillingFundID}
-                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                isReportArchived={isReportArchived}
             />
         );
     }
@@ -192,20 +172,17 @@ function ReportActionsListItemRenderer({
             parentReportAction={parentReportAction}
             report={report}
             transactionThreadReport={transactionThreadReport}
+            chatReport={chatReport}
             parentReportActionForTransactionThread={parentReportActionForTransactionThread}
             action={action}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
-            index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
-            personalDetails={personalDetails}
-            userBillingFundID={userBillingFundID}
-            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-            reportNameValuePairsOrigin={reportNameValuePairsOrigin}
-            reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
+            isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
+            shouldDisplayContextMenu={!shouldDisableContextMenuForConciergeDraft}
         />
     );
 }

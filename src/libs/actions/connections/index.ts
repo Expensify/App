@@ -11,12 +11,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {syncMergeHR} from './MergeHR';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
 function removePolicyConnection(policy: Policy, connectionName: PolicyConnectionName) {
     const policyID = policy.id;
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -26,6 +27,7 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION
             | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION
             | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION
+            | typeof ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN
         >
     > = [
         {
@@ -63,6 +65,14 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             value: null,
         },
     ];
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`,
+            value: null,
+        });
+    }
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
@@ -135,11 +145,8 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.ZENEFITS: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_ZENEFITS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZENEFITS_SYNC_TITLE};
         }
-        case CONST.POLICY.CONNECTIONS.NAME.MERGE_HR: {
-            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_MERGE_HR, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.MERGE_HR_SYNC_TITLE};
-        }
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
-            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_CONNECTION};
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_TITLE};
         }
         default:
             return undefined;
@@ -158,6 +165,12 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
         return;
     }
     const policyID = policy.id;
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+        syncMergeHR(policy);
+        return;
+    }
+
     const syncConnectionData = getSyncConnectionParameters(connectionName);
 
     if (!syncConnectionData) {
@@ -340,6 +353,9 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
             break;
         case CONST.POLICY.CONNECTIONS.NAME.QBD:
             stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_TITLE;
             break;
         default:
             stageInProgress = null;

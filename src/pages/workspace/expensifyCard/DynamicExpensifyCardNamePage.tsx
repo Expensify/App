@@ -40,7 +40,7 @@ function DynamicExpensifyCardNamePage({route}: DynamicExpensifyCardNamePageProps
     const card = cardsList?.[cardID];
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath);
+        Navigation.goBack(backPath, {compareParams: false});
     }, [backPath]);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>) => {
@@ -64,6 +64,8 @@ function DynamicExpensifyCardNamePage({route}: DynamicExpensifyCardNamePageProps
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="WorkspaceEditCardNamePage"

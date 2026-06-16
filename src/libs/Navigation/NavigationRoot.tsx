@@ -1,5 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import {findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
@@ -13,9 +13,9 @@ import useThemePreference from '@hooks/useThemePreference';
 import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
 import {setupNavigationFocusReturn, teardownNavigationFocusReturn} from '@libs/NavigationFocusReturn';
+import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
-import {getBaseTheme} from '@styles/theme/utils';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -25,11 +25,14 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import getNavigationBaseTheme from './getNavigationBaseTheme';
 import getActiveTabName from './helpers/getActiveTabName';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import getPathFromState from './helpers/getPathFromState';
+import getStateToResetAfterLogout from './helpers/getStateToResetAfterLogout';
 import {isSplitNavigatorName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
@@ -72,7 +75,7 @@ function parseAndLogRoute(state: NavigationState) {
     if (currentPath.includes('/transition')) {
         Log.info('Navigating from transition link from OldDot using short lived authToken');
     } else {
-        Log.info('Navigating to route', false, {path: currentPath});
+        Log.info('Navigating to route', false, {path: sanitizeUrlForLogging(currentPath)});
     }
 
     Navigation.setIsNavigationReady();
@@ -159,7 +162,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(() => {
-        const defaultNavigationTheme = getBaseTheme(themePreference) === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
+        const defaultNavigationTheme = getNavigationBaseTheme(themePreference);
 
         return {
             ...defaultNavigationTheme,
@@ -214,33 +217,26 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     }, [shouldUseNarrowLayout]);
 
     useEffect(() => {
-        // Since the NAVIGATORS.REPORTS_SPLIT_NAVIGATOR url is "/" and it has to be used as an URL for SignInPage,
-        // this navigator should be the only one in the navigation state after logout.
+        // After logout, reset the nav state so a logged-out user can't stay on a protected or
+        // consumed route.
         const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
         if (!hasUserLoggedOut || !navigationRef.isReady()) {
             return;
         }
 
-        const rootState = navigationRef.getRootState();
-        const lastRoute = rootState.routes.at(-1);
-        if (!lastRoute) {
+        const stateToReset = getStateToResetAfterLogout(navigationRef.getRootState());
+        if (!stateToReset) {
             return;
         }
 
-        // REPORTS_SPLIT_NAVIGATOR will persist after user logout, because it is used both for logged-in and logged-out users
-        // That's why for ReportsSplit we need to explicitly clear params when resetting navigation state,
-        // However in case other routes (related to login/logout) appear in nav state, then we want to preserve params for those
-        const isReportSplitNavigatorMounted = lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
-        navigationRef.reset({
-            ...rootState,
-            index: 0,
-            routes: [
-                {
-                    ...lastRoute,
-                    params: isReportSplitNavigatorMounted ? undefined : lastRoute.params,
-                },
-            ],
-        });
+        try {
+            navigationRef.reset(stateToReset);
+        } catch (error) {
+            // A synthesized reset state can be rejected by RN; fall back to a known-valid
+            // SCREENS.HOME (PublicScreens maps "/" → SignInPage) instead of leaving a blank screen.
+            Log.alert('[NavigationRoot] Post-logout navigation reset failed', {error: String(error)});
+            navigationRef.reset({index: 0, routes: [{name: SCREENS.HOME}]});
+        }
     }, [authenticated, previousAuthenticated]);
 
     const handleStateChange = (state: NavigationState | undefined) => {

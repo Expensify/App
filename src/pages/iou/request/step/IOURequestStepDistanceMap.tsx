@@ -9,6 +9,7 @@ import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceReque
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -142,6 +143,7 @@ function IOURequestStepDistanceMap({
 
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
 
     const setDistanceRequestData = useDistanceRequestData({
         policy,
@@ -230,6 +232,7 @@ function IOURequestStepDistanceMap({
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,
+        action,
         report,
         policy,
         transaction,
@@ -240,6 +243,7 @@ function IOURequestStepDistanceMap({
         waypoints,
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
+        currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backTo,
         backToReport,
         shouldSkipConfirmation,
@@ -349,6 +353,7 @@ function IOURequestStepDistanceMap({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
+                    delegateAccountID,
                 });
             }
             transactionWasSaved.current = true;
@@ -383,6 +388,7 @@ function IOURequestStepDistanceMap({
         parentReportNextStep,
         recentWaypoints,
         distanceOriginalPolicy,
+        delegateAccountID,
     ]);
 
     const renderItem = useCallback(

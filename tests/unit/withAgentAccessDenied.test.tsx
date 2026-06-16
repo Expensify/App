@@ -5,14 +5,18 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import withAgentAccessDenied from '@libs/Navigation/AppNavigator/withAgentAccessDenied';
+import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
     goBack: jest.fn(),
     dismissModal: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
+    isActiveRoute: jest.fn(() => false),
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
@@ -46,7 +50,26 @@ describe('withAgentAccessDenied', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('shows access denied view for agent account', async () => {
+    beforeEach(() => {
+        (Navigation.navigate as jest.Mock).mockClear();
+        (Navigation.isActiveRoute as jest.Mock).mockReturnValue(false);
+    });
+
+    it('redirects agent account to the profile page instead of rendering the wrapped component', async () => {
+        await TestHelper.signInWithTestUser(1, 'agent_123@expensify.ai');
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByTestId('protected-content')).toBeNull();
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PROFILE.getRoute());
+        });
+    });
+
+    it('shows access denied view instead of redirecting when agent is already on the redirect target', async () => {
+        (Navigation.isActiveRoute as jest.Mock).mockReturnValue(true);
         await TestHelper.signInWithTestUser(1, 'agent_123@expensify.ai');
         await waitForBatchedUpdatesWithAct();
 
@@ -56,6 +79,7 @@ describe('withAgentAccessDenied', () => {
         await waitFor(() => {
             expect(screen.queryByTestId('protected-content')).toBeNull();
             expect(screen.getByText('Not so fast...')).toBeDefined();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
     });
 
@@ -68,7 +92,7 @@ describe('withAgentAccessDenied', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('protected-content')).toBeDefined();
-            expect(screen.queryByText('Not so fast...')).toBeNull();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
     });
 });

@@ -15,7 +15,6 @@ import UserPills from '@components/UserPills';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
@@ -49,7 +48,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const styles = useThemeStyles();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const personalDetailsByEmail = usePersonalDetailsByEmail();
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -60,6 +58,14 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     const getApprovalPendingAction = useCallback(
         (index: number) => {
+            // The approver's own `pendingAction` takes precedence — it's set when an approver was
+            // seeded from an optimistic agent creation (Workflows > Add agent) and the
+            // CREATE_AGENT response hasn't arrived yet. Showing opacity here is exactly what
+            // signals to the admin that the agent is still being confirmed by the server.
+            const approverPendingAction = approvalWorkflow?.approvers.at(index)?.pendingAction;
+            if (approverPendingAction) {
+                return approverPendingAction;
+            }
             let pendingAction: PendingAction | undefined;
             if (index === 0) {
                 if (approvalWorkflow?.members) {
@@ -126,8 +132,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     );
 
     const handleExpensesFromPress = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID));
-    }, [policyID]);
+        const firstApproverEmail = approvalWorkflow.approvers?.at(0)?.email ?? '';
+        const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail) : undefined;
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
+    }, [approvalWorkflow.action, approvalWorkflow.approvers, policyID]);
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
@@ -175,7 +183,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
                     const isApproverInMultipleWorkflows = !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
-                    const limitDescription = getApprovalLimitDescription({approver, currency, translate, convertToDisplayString, personalDetailsByEmail});
+                    const limitDescription = getApprovalLimitDescription({approver, currency, translate, convertToDisplayString});
                     const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
 
                     return (

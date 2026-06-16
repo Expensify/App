@@ -1,8 +1,8 @@
 ---
 title: Create Expense Categories
 description: Add categories to use for coding expenses.
-keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline]
-internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes and inline category creation from the expense flow. Does not cover personal expense rules or accounting integration setup.
+keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, receipt requirements, require receipts over, require itemized receipts over, CSV import categories]
+internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes, receipt requirement columns in CSV import, and inline category creation from the expense flow. Does not cover personal expense rules or accounting integration setup.
 ---
 
 
@@ -10,7 +10,7 @@ In Expensify, categories represent your **chart of accounts, GL accounts, expens
 
 Workspace Admins can create categories manually, or import them automatically when connecting an accounting system such as QuickBooks, Xero, NetSuite, or Sage Intacct. Once categories are available, they can be enabled or disabled as needed. Over time, Expensify also learns how categories are applied to specific merchants and suggests them automatically.
 
-The Categories table displays the category **Name**, **GL Code** (if assigned), and whether it's **Enabled** for workspace members to use.
+The Categories table displays the category **Name**, **GL Code** (if assigned), the assigned **Approver** (on the Control plan), and whether it's **Enabled** for workspace members to use.
 
 ![The Categories tab]({{site.url}}/assets/images/NewExpensify_ManageCategories_1.png){:width="100%"}
 
@@ -50,9 +50,26 @@ The new category is immediately applied to the expense and added to the workspac
 2. Click your **workspace name**.
 3. Click **Categories**.
 4. Click the **three-dot menu**, then select **Import Spreadsheet**.
-5. Format your spreadsheet using the required columns.
+5. Format your spreadsheet using the supported columns listed below.
 6. Download the template using **Download CSV** if needed.
-7. Upload your completed file and follow the prompts.
+7. Upload your completed file and follow the prompts to map each column.
+
+The following columns are supported:
+
+| Column | Required | Plan |
+|---|---|---|
+| **Name** | Yes | All |
+| **Enabled** | No | All |
+| **GL Code** | No | Control |
+| **Require receipts over** | No | Control |
+| **Require itemized receipts over** | No | Control |
+
+For the **Require receipts over** and **Require itemized receipts over** columns, use one of the following values:
+
+- `default` — Keep the existing workspace or category setting (no change).
+- `required` — Always require a receipt (or itemized receipt), regardless of amount.
+- `not_required` — Never require a receipt (or itemized receipt).
+- A number (e.g., `2500`) — Require a receipt (or itemized receipt) for expenses over that amount in cents.
 
 ---
 
@@ -126,6 +143,19 @@ Expensify learns your category preferences over time and suggests them automatic
 - If you manually change a category, Expensify remembers the update.
 - Existing expenses are not updated retroactively.
 - These suggestions are based on patterns and may vary by user.
+
+## How to set default categories by MCC code
+
+Expensify can automatically assign a default category based on the merchant's MCC (Merchant Category Code). For example, you can set all airline expenses to default to a "Flights" category.
+
+To manage MCC default categories:
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4.  Click **More**
+5. Click **Settings**. 
+6. Update the default category for any MCC group (e.g., Airlines, Gas, Groceries).
 
 ## Workspace Merchant Rules
 

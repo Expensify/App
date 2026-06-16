@@ -134,7 +134,6 @@ function SelectCountryStep({disableAutoFocus}: {disableAutoFocus?: boolean}) {
                 disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
-                shouldScrollToFocusedIndex={false}
                 shouldScrollToFocusedIndexOnMount={false}
                 addBottomSafeAreaPadding
                 shouldStopPropagation

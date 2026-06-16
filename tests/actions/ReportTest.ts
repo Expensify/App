@@ -3,7 +3,6 @@ import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/glob
 import {renderHook} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
-import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -17,6 +16,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStepNew} from '@libs/NextStepUtils';
+import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
@@ -117,7 +117,9 @@ jest.mock('@libs/Sound', () => ({
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
+    navigate: jest.fn((_route: string, options?: {afterTransition?: () => void}) => {
+        options?.afterTransition?.();
+    }),
     getActiveRoute: jest.fn().mockReturnValue(''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     dismissModalWithReport: jest.fn(),
@@ -1581,7 +1583,7 @@ describe('actions/Report', () => {
         jest.runOnlyPendingTimers();
         await waitForBatchedUpdates();
 
-        const httpCalls = (HttpUtils.xhr as Mock).mock.calls;
+        const httpCalls = (HttpUtils.xhr as jest.Mock).mock.calls;
 
         const addCommentCalls = httpCalls.filter(([command]) => command === 'AddComment');
         const deleteCommentCalls = httpCalls.filter(([command]) => command === 'DeleteComment');
@@ -2780,7 +2782,6 @@ describe('actions/Report', () => {
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
-                betas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
@@ -2820,7 +2821,6 @@ describe('actions/Report', () => {
                 selectedInterestedFeatures,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
-                betas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
@@ -3125,7 +3125,17 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, undefined, newPolicy, 1, '', true, false, false);
+            Report.changeReportPolicy({
+                report: expenseReport,
+                parentReport: undefined,
+                policy: newPolicy,
+                currentUserAccountID: 1,
+                email: '',
+                managerLogin: '',
+                hasViolationsParam: true,
+                isChangePolicyTrainingModalDismissed: false,
+                isASAPSubmitBetaEnabled: false,
+            });
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore
@@ -3172,7 +3182,17 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, parentReport, newPolicy, 1, '', false, false, false);
+            Report.changeReportPolicy({
+                report: expenseReport,
+                parentReport,
+                policy: newPolicy,
+                currentUserAccountID: 1,
+                email: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isChangePolicyTrainingModalDismissed: false,
+                isASAPSubmitBetaEnabled: false,
+            });
             await waitForBatchedUpdates();
 
             // Then the expense report chatReportID and parentReportID should be updated to the new expense chat reportID
@@ -3229,7 +3249,17 @@ describe('actions/Report', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
-            Report.changeReportPolicy(expenseReport, undefined, newPolicy, 1, '', false, false, false);
+            Report.changeReportPolicy({
+                report: expenseReport,
+                parentReport: undefined,
+                policy: newPolicy,
+                currentUserAccountID: 1,
+                email: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isChangePolicyTrainingModalDismissed: false,
+                isASAPSubmitBetaEnabled: false,
+            });
             await waitForBatchedUpdates();
 
             const updatedReport = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
@@ -3312,7 +3342,17 @@ describe('actions/Report', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
-            Report.changeReportPolicy(expenseReport, undefined, newPolicy, 1, '', false, false, false);
+            Report.changeReportPolicy({
+                report: expenseReport,
+                parentReport: undefined,
+                policy: newPolicy,
+                currentUserAccountID: 1,
+                email: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isChangePolicyTrainingModalDismissed: false,
+                isASAPSubmitBetaEnabled: false,
+            });
             await waitForBatchedUpdates();
 
             // Then the report total should correctly include expense (-1000) and refund (+500) = -500
@@ -3383,7 +3423,17 @@ describe('actions/Report', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
-            Report.changeReportPolicy(expenseReport, undefined, newPolicy, 1, '', false, false, false);
+            Report.changeReportPolicy({
+                report: expenseReport,
+                parentReport: undefined,
+                policy: newPolicy,
+                currentUserAccountID: 1,
+                email: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isChangePolicyTrainingModalDismissed: false,
+                isASAPSubmitBetaEnabled: false,
+            });
             await waitForBatchedUpdates();
 
             // Then only AUD transaction should contribute to total (-1000), USD is excluded
@@ -3426,8 +3476,9 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
-                currentUserAccountID: 1,
-                email: '',
+                currentUser: {accountID: 1},
+                submitterLogin: ownerEmail,
+                managerLogin: '',
                 hasViolationsParam: true,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
@@ -3516,8 +3567,9 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 parentReport: undefined,
                 policy: newPolicy,
-                currentUserAccountID: 1,
-                email: '',
+                currentUser: {accountID: 1},
+                submitterLogin: ownerEmail,
+                managerLogin: '',
                 hasViolationsParam: true,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
@@ -3559,8 +3611,9 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
-                currentUserAccountID: 1,
-                email: '',
+                currentUser: {accountID: 1},
+                submitterLogin: '',
+                managerLogin: '',
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
@@ -3588,8 +3641,9 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 parentReport: undefined,
                 policy: targetPolicy,
-                currentUserAccountID: 1,
-                email: '',
+                currentUser: {accountID: 1},
+                submitterLogin: '',
+                managerLogin: '',
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
@@ -3616,8 +3670,9 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
-                currentUserAccountID: 1,
-                email: '',
+                currentUser: {accountID: 1},
+                submitterLogin: '',
+                managerLogin: '',
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
@@ -3644,8 +3699,9 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
-                currentUserAccountID: 1,
-                email: '',
+                currentUser: {accountID: 1},
+                submitterLogin: '',
+                managerLogin: '',
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
@@ -3674,8 +3730,9 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
-                currentUserAccountID: 1,
-                email: '',
+                currentUser: {accountID: 1},
+                submitterLogin: '',
+                managerLogin: '',
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
@@ -3725,8 +3782,9 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 parentReport: undefined,
                 policy: targetPolicy,
-                currentUserAccountID: 1,
-                email: 'current-user@expensifail.com',
+                currentUser: {accountID: 1, email: 'current-user@expensifail.com'},
+                submitterLogin: ownerEmail,
+                managerLogin: '',
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
@@ -3960,7 +4018,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace and invite the submitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, ownerEmail);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -4027,7 +4085,7 @@ describe('actions/Report', () => {
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
             const formatPhoneNumber = (phoneNumber: string) => phoneNumber;
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, formatPhoneNumber, {}, TEST_USER_ACCOUNT_ID);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, formatPhoneNumber, {}, TEST_USER_ACCOUNT_ID, ownerEmail);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -4072,6 +4130,7 @@ describe('actions/Report', () => {
                 reportID: iouReport.reportID,
                 amount: 5000,
                 modifiedAmount: 6000,
+                convertedAmount: 6000,
             };
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -4084,7 +4143,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with reportTransactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, ownerEmail, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the transaction amounts should be negated optimistically
@@ -4099,6 +4158,7 @@ describe('actions/Report', () => {
             });
             expect(updatedTransaction?.amount).toBe(-5000);
             expect(updatedTransaction?.modifiedAmount).toBe(-6000);
+            expect(updatedTransaction?.convertedAmount).toBe(-6000);
         });
 
         it('should convert IOU report to expense report with correct policyID when reportTransactions are provided', async () => {
@@ -4129,7 +4189,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with transactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, ownerEmail, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the report should be converted to an expense report with the new policyID
@@ -4152,13 +4212,13 @@ describe('actions/Report', () => {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.IOU,
             };
-            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, undefined as unknown as OnyxTypes.Policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID);
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, undefined as unknown as OnyxTypes.Policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, '');
             expect(result).toBeUndefined();
         });
 
         it('should return undefined when iouReport is missing', () => {
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
-            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID);
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, '');
             expect(result).toBeUndefined();
         });
     });
@@ -4171,7 +4231,17 @@ describe('actions/Report', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             const policy = createRandomPolicy(Number(1));
-            Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
+            Report.buildOptimisticChangePolicyData({
+                report,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                currentUserEmail: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+            });
             expect(buildNextStepNew).toHaveBeenCalledWith({
                 report,
                 policy,
@@ -4211,7 +4281,17 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const {optimisticData, successData, failureData} = Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
+            const {optimisticData, successData, failureData} = Report.buildOptimisticChangePolicyData({
+                report,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                currentUserEmail: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+            });
 
             // Find the transaction optimistic data
             const transactionOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -4259,7 +4339,17 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const {optimisticData} = Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
+            const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                report,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                currentUserEmail: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+            });
 
             // Should NOT find transaction optimistic data when currencies are the same
             const transactionOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -4294,7 +4384,17 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const {optimisticData} = Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
+            const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                report,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                currentUserEmail: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+            });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
             const transactionOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -4342,7 +4442,17 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${nonMatchingTransactionID}`, nonMatchingTransaction);
             await waitForBatchedUpdates();
 
-            const {optimisticData} = Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
+            const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                report,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                currentUserEmail: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+            });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
             const matchingOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${matchingTransactionID}`);
@@ -4398,7 +4508,6 @@ describe('actions/Report', () => {
             userReportedIntegration: null,
             introSelected: {choice: engagementChoice},
             isSelfTourViewed: false,
-            betas: [CONST.BETAS.ALL],
         });
 
         await waitForBatchedUpdates();
@@ -5171,6 +5280,7 @@ describe('actions/Report', () => {
                 undefined,
                 undefined,
                 undefined,
+                undefined,
                 CONST.DEFAULT_TIME_ZONE,
             );
 
@@ -5185,6 +5295,7 @@ describe('actions/Report', () => {
                 TestHelper.translateLocal,
                 TEST_USER_ACCOUNT_ID,
                 INTRO_SELECTED,
+                undefined,
                 undefined,
                 undefined,
                 undefined,
@@ -5218,6 +5329,7 @@ describe('actions/Report', () => {
                 undefined,
                 undefined,
                 undefined,
+                undefined,
                 CONST.DEFAULT_TIME_ZONE,
             );
             await waitForBatchedUpdates();
@@ -5248,6 +5360,7 @@ describe('actions/Report', () => {
                 undefined,
                 undefined,
                 undefined,
+                undefined,
                 CONST.DEFAULT_TIME_ZONE,
             );
             await waitForBatchedUpdates();
@@ -5273,7 +5386,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(EXISTING_CHILD_REPORT, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
+            Report.explain(EXISTING_CHILD_REPORT, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -5299,6 +5412,7 @@ describe('actions/Report', () => {
                 REPORT_ACTION,
                 TestHelper.translateLocal,
                 TEST_USER_ACCOUNT_ID,
+                undefined,
                 undefined,
                 undefined,
                 undefined,
@@ -5332,6 +5446,7 @@ describe('actions/Report', () => {
                 TEST_USER_ACCOUNT_ID,
                 INTRO_SELECTED,
                 testBetas,
+                undefined,
                 undefined,
                 undefined,
                 CONST.DEFAULT_TIME_ZONE,
@@ -5379,6 +5494,7 @@ describe('actions/Report', () => {
                 undefined,
                 isSelfTourViewed,
                 undefined,
+                undefined,
                 CONST.DEFAULT_TIME_ZONE,
             );
             await waitForBatchedUpdates();
@@ -5425,6 +5541,7 @@ describe('actions/Report', () => {
                 TestHelper.translateLocal,
                 TEST_USER_ACCOUNT_ID,
                 INTRO_SELECTED,
+                undefined,
                 undefined,
                 undefined,
                 undefined,
@@ -6577,6 +6694,10 @@ describe('actions/Report', () => {
         const TEST_USER_LOGIN = 'test@user.com';
         const PARTICIPANT_1_LOGIN = 'participant1@test.com';
         const PARTICIPANT_1_ACCOUNT_ID = 2;
+        const KNOWN_PARTICIPANTS_PERSONAL_DETAILS = {
+            [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN, displayName: 'Test user account'},
+            [PARTICIPANT_1_ACCOUNT_ID]: {accountID: PARTICIPANT_1_ACCOUNT_ID, login: PARTICIPANT_1_LOGIN, displayName: 'Participant One'},
+        };
 
         beforeEach(async () => {
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
@@ -6628,7 +6749,7 @@ describe('actions/Report', () => {
 
             // When create group chat is called
             Report.navigateToAndCreateGroupChat(
-                [TEST_USER_LOGIN, PARTICIPANT_1_LOGIN],
+                KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 GROUP_CHAT_NAME,
                 TEST_USER_LOGIN,
                 GROUP_CHAT_REPORT_ID,
@@ -6683,7 +6804,7 @@ describe('actions/Report', () => {
 
             // When create group chat is called with an avatar URI and isSelfTourViewed=true
             Report.navigateToAndCreateGroupChat(
-                [TEST_USER_LOGIN, PARTICIPANT_1_LOGIN],
+                KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 GROUP_CHAT_NAME,
                 TEST_USER_LOGIN,
                 GROUP_CHAT_REPORT_ID,
@@ -6718,7 +6839,7 @@ describe('actions/Report', () => {
 
             // When create group chat is called with isSelfTourViewed=true but onboarding already completed
             Report.navigateToAndCreateGroupChat(
-                [TEST_USER_LOGIN, PARTICIPANT_1_LOGIN],
+                KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 GROUP_CHAT_NAME,
                 TEST_USER_LOGIN,
                 GROUP_CHAT_REPORT_ID,
@@ -6745,7 +6866,7 @@ describe('actions/Report', () => {
 
             // When create group chat is called with an avatarFile
             Report.navigateToAndCreateGroupChat(
-                [TEST_USER_LOGIN, PARTICIPANT_1_LOGIN],
+                KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 'Avatar File Group',
                 TEST_USER_LOGIN,
                 GROUP_CHAT_REPORT_ID,
@@ -6774,9 +6895,18 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             await waitForBatchedUpdates();
 
-            // When create group chat is called with a participant not in allPersonalDetails
+            // When create group chat is called with a participant not in allPersonalDetails (flagged as an optimistic personal detail)
+            const unknownParticipantAccountID = getAccountIDsByLogins([UNKNOWN_PARTICIPANT_LOGIN]).at(0) ?? CONST.DEFAULT_NUMBER_ID;
             Report.navigateToAndCreateGroupChat(
-                [TEST_USER_LOGIN, UNKNOWN_PARTICIPANT_LOGIN],
+                {
+                    [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN, displayName: 'Test user account'},
+                    [unknownParticipantAccountID]: {
+                        accountID: unknownParticipantAccountID,
+                        login: UNKNOWN_PARTICIPANT_LOGIN,
+                        displayName: UNKNOWN_PARTICIPANT_LOGIN,
+                        isOptimisticPersonalDetail: true,
+                    },
+                },
                 'Optimistic Group',
                 TEST_USER_LOGIN,
                 GROUP_CHAT_REPORT_ID,
@@ -7351,14 +7481,13 @@ describe('actions/Report', () => {
             expect(result?.failureData).toBeDefined();
         });
 
-        it('should return guided setup data when betas are explicitly passed', async () => {
+        it('should return guided setup data for ADMIN choice', async () => {
             await setupUserWithConciergeChat();
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const betas: OnyxTypes.Beta[] = [CONST.BETAS.SUGGESTED_FOLLOWUPS];
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, betas);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -7376,7 +7505,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.SUBMIT, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined, isSelfTourViewed);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, isSelfTourViewed);
 
             expect(result).toBeDefined();
             const guidedSetupData = JSON.parse(result?.guidedSetupData ?? '[]') as Array<{type: string; task?: string; completedTaskReportActionID?: string}>;
@@ -8085,6 +8214,68 @@ describe('actions/Report', () => {
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const result = ReportUtils.buildOptimisticAddCommentReportAction({text: 'test comment', delegateAccountIDParam: undefined});
             expect(result.reportAction.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('buildOptimisticModifiedExpenseReportAction delegateAccountID forwarding', () => {
+        const DELEGATE_ACCOUNT_ID = 999;
+
+        it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, DELEGATE_ACCOUNT_ID);
+            expect(result.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, undefined);
+            expect(result.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('buildOptimisticIOUReportAction delegateAccountID forwarding', () => {
+        const DELEGATE_ACCOUNT_ID = 998;
+
+        it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
+            const result = ReportUtils.buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                comment: '',
+                participants: [],
+                transactionID: '1',
+                delegateAccountIDParam: DELEGATE_ACCOUNT_ID,
+            });
+            expect(result.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
+            const result = ReportUtils.buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                comment: '',
+                participants: [],
+                transactionID: '1',
+                delegateAccountIDParam: undefined,
+            });
+            expect(result.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('buildOptimisticReportPreview delegateAccountID forwarding', () => {
+        const DELEGATE_ACCOUNT_ID = 997;
+
+        it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
+            const chatReport = {reportID: 'chat1'} as OnyxTypes.Report;
+            const iouReport = {reportID: 'iou1', ownerAccountID: 1, managerID: 2} as OnyxTypes.Report;
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, DELEGATE_ACCOUNT_ID);
+            expect(result.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
+            const chatReport = {reportID: 'chat2'} as OnyxTypes.Report;
+            const iouReport = {reportID: 'iou2', ownerAccountID: 1, managerID: 2} as OnyxTypes.Report;
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, undefined);
+            expect(result.delegateAccountID).toBeUndefined();
         });
     });
 });

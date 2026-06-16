@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
+import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
 jest.mock('@libs/actions/IOU/Duplicate', () => ({
     bulkDuplicateExpenses: jest.fn(),
@@ -23,17 +24,21 @@ jest.mock('@libs/actions/Search', () => ({
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
     approveMoneyRequestOnSearch: jest.fn(),
-    bulkDeleteReports: jest.fn(),
     getLastPolicyBankAccountID: jest.fn(),
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
     getPayOption: jest.fn(() => ({shouldEnableBulkPayOption: false, isFirstTimePayment: false})),
     getReportType: jest.fn(),
+    getSearchPayOnyxData: jest.fn(() => ({})),
     getTotalFormattedAmount: jest.fn(() => ''),
     isCurrencySupportWalletBulkPay: jest.fn(() => false),
-    payMoneyRequestOnSearch: jest.fn(),
     submitMoneyRequestOnSearch: jest.fn(),
     unholdMoneyRequestOnSearch: jest.fn(),
+}));
+
+jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
+    payInvoice: jest.fn(),
+    payMoneyRequest: jest.fn(),
 }));
 
 jest.mock('@libs/actions/MergeTransaction', () => ({
@@ -125,6 +130,11 @@ jest.mock('@hooks/useDefaultExpensePolicy', () => ({
     default: () => mockDefaultExpensePolicy,
 }));
 
+jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
+    __esModule: true,
+    default: () => ({policyForMovingExpensesID: 'policy1'}),
+}));
+
 const mockClearSelectedTransactions = jest.fn();
 const mockSelectAllMatchingItems = jest.fn();
 let mockSelectedTransactions: SelectedTransactions = {};
@@ -132,13 +142,18 @@ let mockSelectedReports: SelectedReports[] = [];
 let mockAreAllMatchingItemsSelected = false;
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({
+    useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
         selectedReports: mockSelectedReports,
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
+    }),
+    useSearchResultsContext: () => ({
         currentSearchResults: undefined,
     }),
-    useSearchActionsContext: () => ({
+    useSearchQueryContext: () => ({
+        currentSearchKey: undefined,
+    }),
+    useSearchSelectionActions: () => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
         selectAllMatchingItems: mockSelectAllMatchingItems,
     }),
@@ -154,6 +169,11 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
         email: 'test@example.com',
     })),
 }));
+
+jest.mock('@hooks/usePaymentContext', () => {
+    const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../../utils/mockUsePaymentContext');
+    return mockUsePaymentContext;
+});
 
 const baseQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense status:all',
@@ -202,7 +222,10 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
         reportID: 'report1',
         policyID: 'policy1',
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
-        allActions: [CONST.SEARCH.ACTION_TYPES.VIEW],
+        canPay: false,
+        canApprove: false,
+        canSubmit: false,
+        canChangeApprover: false,
         total: 100,
         currency: 'USD',
         chatReportID: undefined,
@@ -821,6 +844,46 @@ describe('useSearchBulkActions - duplicate option', () => {
                 }),
             }),
         );
+    });
+
+    it('should duplicate a grouped child transaction that only exists in selected transaction metadata', async () => {
+        const txnID = '1302';
+        const txn = {...createRandomTransaction(1), transactionID: txnID, reportID: 'report1', managedCard: false, category: 'Grouped child', amount: 9000};
+
+        mockSelectedTransactions = {
+            [txnID]: makeSelectedTransaction({reportID: 'report1', transaction: txn}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
+        });
+
+        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+
+        expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
+            expect.objectContaining({
+                transactionIDs: [txnID],
+                allTransactions: expect.objectContaining({
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`]: expect.objectContaining({transactionID: txnID, category: 'Grouped child', amount: 9000}),
+                }),
+            }),
+        );
+    });
+
+    it('should not show duplicate option for a grouped child managed-card transaction from selected transaction metadata', async () => {
+        const txnID = '1303';
+        const txn = {...createRandomTransaction(1), transactionID: txnID, reportID: 'report1', managedCard: true};
+
+        mockSelectedTransactions = {
+            [txnID]: makeSelectedTransaction({reportID: 'report1', transaction: txn}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
+
+        expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
     });
 
     it('should not show duplicate option for per-diem expense on non-default workspace', async () => {

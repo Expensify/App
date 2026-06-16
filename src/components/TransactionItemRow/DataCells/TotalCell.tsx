@@ -8,13 +8,15 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToBackendAmount, convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString, getCurrencyDecimals, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getTransactionDetails, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
-import {getCurrency as getTransactionCurrency, isDeletedTransaction, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
+import {isGroupPolicy} from '@libs/PolicyUtils';
+import {isExpenseReport, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
+import {getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, isDeletedTransaction, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {Policy, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 type TotalCellProps = TransactionDataCellProps &
@@ -42,15 +44,16 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
     const {convertToDisplayString} = useCurrencyListActions();
     const currency = getTransactionCurrency(transactionItem);
 
+    const effectiveReport = report ?? transactionItem.report;
+    const effectivePolicy = policy ?? transactionItem.policy;
     const isDeleted = isDeletedTransaction(transactionItem);
-    const amount = getTransactionDetails(transactionItem, undefined, undefined, isDeleted)?.amount;
+    const isFromExpenseReport = (!isEmptyObject(effectiveReport) && isExpenseReport(effectiveReport)) || isGroupPolicy(effectivePolicy);
+    const amount = getTransactionAmount(transactionItem, isFromExpenseReport, transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, isDeleted);
     let amountToDisplay = convertToDisplayString(amount, currency);
     if (isScanning(transactionItem)) {
         amountToDisplay = translate('iou.receiptStatusTitle');
     }
 
-    const effectiveReport = report ?? transactionItem.report;
-    const effectivePolicy = policy ?? transactionItem.policy;
     const iouType = getTransactionItemIouType({...transactionItem, report: effectiveReport});
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isUnreportedExpense = isExpenseUnreported(transactionItem);
@@ -121,10 +124,11 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
     // Some currencies display with a space between symbol and amount (e.g., "CZK 100.00") in convertToDisplayString (in preview).
     // We detect this spacing and apply matching padding to the input to prevent visual flicker when entering edit mode.
     // See: https://github.com/Expensify/App/pull/83127#issuecomment-4240055145
+    const sanitizedCurrency = sanitizeCurrencyCode(currency);
     const hasSymbolSpaceInPreview = formatToParts(preferredLocale, 0, {
         style: 'currency',
-        currency,
-        minimumFractionDigits: getCurrencyDecimals(currency),
+        currency: sanitizedCurrency,
+        minimumFractionDigits: getCurrencyDecimals(sanitizedCurrency),
         maximumFractionDigits: CONST.DEFAULT_CURRENCY_DECIMALS,
     }).some((part) => part.type === 'literal' && part.value.trim() === '');
 

@@ -62,7 +62,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     const [typeSelected, setTypeSelected] = useState(initialLimitType);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const [expirationToggle, setExpirationToggle] = useState(!!card?.nameValuePairs?.validFrom);
-    const currency = useCurrencyForExpensifyCard({policyID});
+    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
     const personalDetails = usePersonalDetails();
     const assigneePersonalDetails = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
@@ -75,7 +75,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path);
 
     const goBack = () => {
-        Navigation.goBack(backPath);
+        Navigation.goBack(backPath, {compareParams: false});
     };
 
     const fetchCardLimitTypeData = () => {
@@ -207,6 +207,8 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="WorkspaceEditCardLimitTypePage"
@@ -251,11 +253,11 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
                                 <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5, styles.mv3]} />
                                 <View style={[styles.ph5]}>
                                     <ToggleSettingOptionRow
-                                        title={translate('workspace.card.issueNewCard.setExpiryDate')}
-                                        subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.setExpiryDateDescription') : ''}
+                                        title={translate('workspace.card.issueNewCard.addExpirationDate')}
+                                        subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
                                         isActive={expirationToggle}
                                         onToggle={setExpirationToggle}
-                                        switchAccessibilityLabel={translate('workspace.card.issueNewCard.setExpiryDate')}
+                                        switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
                                         shouldPlaceSubtitleBelowSwitch
                                         wrapperStyle={[styles.mv3]}
                                     />
