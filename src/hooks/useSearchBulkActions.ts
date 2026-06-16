@@ -15,6 +15,7 @@ import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKe
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import {clearExportDownload} from '@libs/actions/Export';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -2094,10 +2095,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (activeExportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !activeExportDownload?.shouldSendFromConcierge) {
             return;
         }
+        if (activeExportID) {
+            clearExportDownload(activeExportID, activeExportDownload);
+        }
         setActiveExportID(undefined);
         selectAllMatchingItems(false);
         clearSelectedTransactions(undefined, true);
-    }, [activeExportDownload?.state, activeExportDownload?.shouldSendFromConcierge, selectAllMatchingItems, clearSelectedTransactions]);
+    }, [activeExportID, activeExportDownload, selectAllMatchingItems, clearSelectedTransactions]);
 
     return {
         headerButtonsOptions,
