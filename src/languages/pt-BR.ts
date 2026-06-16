@@ -6188,12 +6188,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Selecione os recursos para copiar',
                 description: 'Selecione as configurações que deseja sobrescrever nos seus espaços de trabalho existentes.',
                 accountingMismatch: ({part}: {part: string}) => `Você só pode copiar ${part} se todos os espaços de trabalho usarem o mesmo sistema contábil e a mesma conexão da empresa.`,
+                travelAddressMismatch: 'Você só pode copiar viagens se cada espaço de trabalho selecionado tiver um endereço da empresa.',
             },
             confirmSettings: {
                 title: 'Vamos garantir que está tudo certo.',
                 description: ({workspaceName}: {workspaceName: string}) =>
                     `Vamos copiar as seguintes configurações de <strong>${workspaceName}</strong> para os espaços de trabalho que você especificou`,
-                travelAddressRequired: 'Para copiar viagens, cada espaço de trabalho selecionado precisa de um endereço da empresa. Adicione um a cada espaço de trabalho e tente novamente.',
             },
             confirmWorkflows: {
                 continue: 'Continuar sem membros',

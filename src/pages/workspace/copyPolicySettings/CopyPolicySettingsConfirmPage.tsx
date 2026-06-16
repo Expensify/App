@@ -25,7 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function CopyPolicySettingsConfirmPage() {
     const route = useRoute<PlatformStackRouteProp<PolicyCopySettingsNavigatorParamList, typeof SCREENS.POLICY_COPY_SETTINGS.CONFIRM>>();
@@ -51,13 +50,6 @@ function CopyPolicySettingsConfirmPage() {
     // entity, which requires accepting Expensify Travel terms. Capture that consent here.
     const requiresTravelTermsConsent = parts.includes('travel') && isSourceProvisionedForTravel(sourcePolicy);
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
-
-    // Spotnana creates an entity per target during provisioning and requires a company address for
-    // it, so block the copy until every selected target has one (mirrors the BookTravelButton gate).
-    // Copying "overview" carries the source address onto every target, so it resolves a missing
-    // target address as long as the source itself has one - skip the block in that case.
-    const willCopySourceAddress = parts.includes('overview') && !isEmptyObject(sourcePolicy?.address);
-    const isTravelAddressMissing = requiresTravelTermsConsent && !willCopySourceAddress && targetPolicies.some((policy) => isEmptyObject(policy.address));
 
     useEffect(() => {
         if (!sourcePolicyID || !hasLoadedCopyPolicySettings || !hasLoadedPolicies || parts.length || targetPolicyIDs.length) {
@@ -155,15 +147,12 @@ function CopyPolicySettingsConfirmPage() {
                             />
                         </>
                     )}
-                    {isTravelAddressMissing && (
-                        <Text style={[styles.formError, styles.mb3]}>{translate('workspace.copyPolicySettings.confirmSettings.travelAddressRequired')}</Text>
-                    )}
                     <Button
                         success
                         large
                         text={translate('workspace.copyPolicySettings.title')}
                         onPress={handleCopyPolicySettings}
-                        isDisabled={parts.length === 0 || targetPolicyIDs.length === 0 || (requiresTravelTermsConsent && !hasAcceptedTravelTerms) || isTravelAddressMissing}
+                        isDisabled={parts.length === 0 || targetPolicyIDs.length === 0 || (requiresTravelTermsConsent && !hasAcceptedTravelTerms)}
                     />
                 </FixedFooter>
             </ScreenWrapper>

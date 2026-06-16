@@ -6246,12 +6246,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description: 'Sélectionnez les paramètres à écraser sur vos espaces de travail existants.',
                 accountingMismatch: ({part}: {part: string}) =>
                     `Vous ne pouvez copier ${part} que si tous les espaces de travail utilisent le même système de comptabilité et la même connexion d’entreprise.`,
+                travelAddressMismatch: 'Vous ne pouvez copier les voyages que si chaque espace de travail sélectionné dispose d’une adresse d’entreprise.',
             },
             confirmSettings: {
                 title: 'Assurons-nous que tout est correct.',
                 description: ({workspaceName}: {workspaceName: string}) =>
                     `Nous copierons les paramètres suivants de <strong>${workspaceName}</strong> vers les espaces de travail que vous avez indiqués`,
-                travelAddressRequired: 'Pour copier les voyages, chaque espace de travail sélectionné doit avoir une adresse d’entreprise. Ajoutez-en une à chaque espace de travail, puis réessayez.',
             },
             confirmWorkflows: {
                 continue: 'Continuer sans membres',

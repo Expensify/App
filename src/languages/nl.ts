@@ -6189,12 +6189,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Selecteer functies om te kopiëren',
                 description: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
                 accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
+                travelAddressMismatch: 'Je kunt reizen alleen kopiëren als elke geselecteerde werkruimte een bedrijfsadres heeft.',
             },
             confirmSettings: {
                 title: 'Laten we controleren of alles er goed uitziet.',
                 description: ({workspaceName}: {workspaceName: string}) =>
                     `We kopiëren de volgende instellingen van <strong>${workspaceName}</strong> naar de werkruimtes die je hebt opgegeven`,
-                travelAddressRequired: 'Om reizen te kopiëren, heeft elke geselecteerde werkruimte een bedrijfsadres nodig. Voeg er een toe aan elke werkruimte en probeer het opnieuw.',
             },
             confirmWorkflows: {
                 continue: 'Doorgaan zonder leden',

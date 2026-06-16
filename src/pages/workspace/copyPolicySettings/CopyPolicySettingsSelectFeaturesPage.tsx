@@ -72,6 +72,12 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const isCodingCompatible = areAllTargetsAccountingCompatible(sourcePolicy, targetPolicies);
     const isAccountingPartCompatible = areAllTargetsCompatibleForAccountingPart(sourcePolicy, targetPolicies);
 
+    // Provisioning a target for travel creates a Spotnana entity, which requires a company address.
+    // The source address only reaches a target when "overview" is also copied, so without overview a
+    // target that lacks an address can't be provisioned.
+    const sourceHasAddress = !isEmptyObject(sourcePolicy?.address);
+    const hasTargetWithoutAddress = targetPolicies.some((policy) => isEmptyObject(policy?.address));
+
     const [memberCount = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: createFilteredMemberCountSelector(sourcePolicy?.employeeList, sourcePolicy?.owner, currentUserPersonalDetails.login),
     });
@@ -129,6 +135,11 @@ function CopyPolicySettingsSelectFeaturesPage() {
         if (isCodingPart(part)) {
             return !isCodingCompatible;
         }
+        // Travel needs a company address on every target. When the source has no address either,
+        // copying "overview" can't supply one, so travel can never be provisioned - hard-disable it.
+        if (part === 'travel') {
+            return hasTargetWithoutAddress && !sourceHasAddress;
+        }
         return false;
     };
 
@@ -144,7 +155,14 @@ function CopyPolicySettingsSelectFeaturesPage() {
         ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...CODING_PARTS_TIED_TO_CONNECTION.filter((part) => availablePartSet.has(part))]))
         : selectedAvailableFeatures;
 
-    const isFeatureDisabled = (part: Part): boolean => isPartIncompatible(part) || (isAccountingSelected && isCodingPart(part));
+    const isOverviewSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.OVERVIEW);
+
+    // Travel needs every target to have a company address. The source address only reaches a target
+    // when "overview" is copied, so when a target lacks one require overview (and a source address to
+    // copy). isPartIncompatible already hard-disables the case where the source has no address.
+    const isTravelAddressMismatch = (part: Part): boolean => part === 'travel' && hasTargetWithoutAddress && !(isOverviewSelected && sourceHasAddress);
+
+    const isFeatureDisabled = (part: Part): boolean => isPartIncompatible(part) || (isAccountingSelected && isCodingPart(part)) || isTravelAddressMismatch(part);
 
     const getSourceDescription = (part: Part): string | undefined => {
         switch (part) {
@@ -199,6 +217,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
     };
 
     const getAlternateText = (part: Part): string | undefined => {
+        if (isTravelAddressMismatch(part)) {
+            return translate('workspace.copyPolicySettings.selectSettings.travelAddressMismatch');
+        }
         if (isAccountingMismatch(part)) {
             return translate('workspace.copyPolicySettings.selectSettings.accountingMismatch', {
                 part: translate(FEATURE_ROWS.find((row) => row.part === part)?.labelKey ?? 'workspace.common.accounting').toLowerCase(),

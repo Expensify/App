@@ -6222,12 +6222,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 description: 'Wählen Sie die Einstellungen aus, die in Ihren bestehenden Arbeitsbereichen überschrieben werden sollen.',
                 accountingMismatch: ({part}: {part: string}) =>
                     `Sie können ${part} nur kopieren, wenn alle Arbeitsbereiche dasselbe Buchhaltungssystem und dieselbe Unternehmensverbindung verwenden.`,
+                travelAddressMismatch: 'Sie können Reisen nur kopieren, wenn jeder ausgewählte Arbeitsbereich eine Unternehmensadresse hat.',
             },
             confirmSettings: {
                 title: 'Stellen wir sicher, dass alles richtig aussieht.',
                 description: ({workspaceName}: {workspaceName: string}) =>
                     `Wir kopieren die folgenden Einstellungen von <strong>${workspaceName}</strong> in die von Ihnen angegebenen Arbeitsbereiche`,
-                travelAddressRequired: 'Um Reisen zu kopieren, benötigt jeder ausgewählte Arbeitsbereich eine Unternehmensadresse. Fügen Sie zu jedem Arbeitsbereich eine hinzu und versuchen Sie es erneut.',
             },
             confirmWorkflows: {
                 continue: 'Ohne Mitglieder fortfahren',

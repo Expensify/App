@@ -6274,11 +6274,11 @@ const translations = {
                 title: 'Select settings',
                 description: 'Select the settings to overwrite on your existing workspaces.',
                 accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
+                travelAddressMismatch: 'You can only copy travel if every selected workspace has a company address.',
             },
             confirmSettings: {
                 title: 'Let’s make sure everything looks right.',
                 description: ({workspaceName}: {workspaceName: string}) => `We’ll copy the following settings from <strong>${workspaceName}</strong> to the workspaces you’ve specified.`,
-                travelAddressRequired: 'To copy travel, every selected workspace needs a company address. Add one to each workspace, then try again.',
             },
             confirmWorkflows: {
                 continue: 'Continue without members',

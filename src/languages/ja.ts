@@ -6141,11 +6141,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'コピーする機能を選択します',
                 description: '既存のワークスペースで上書きする設定を選択します。',
                 accountingMismatch: ({part}: {part: string}) => `すべてのワークスペースが同じ会計システムと会社接続を使用している場合にのみ、${part} をコピーできます。`,
+                travelAddressMismatch: '出張をコピーできるのは、選択したすべてのワークスペースに会社の住所がある場合のみです。',
             },
             confirmSettings: {
                 title: 'すべて正しく表示されているか確認しましょう。',
                 description: ({workspaceName}: {workspaceName: string}) => `次の設定を<strong>${workspaceName}</strong>から指定したワークスペースにコピーします`,
-                travelAddressRequired: '出張をコピーするには、選択したすべてのワークスペースに会社の住所が必要です。各ワークスペースに住所を追加してから、もう一度お試しください。',
             },
             confirmWorkflows: {
                 continue: 'メンバーなしで続行',

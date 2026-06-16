@@ -6184,12 +6184,12 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 description: 'Wybierz ustawienia, które chcesz nadpisać w swoich istniejących przestrzeniach roboczych.',
                 accountingMismatch: ({part}: {part: string}) =>
                     `Możesz skopiować ${part} tylko wtedy, gdy wszystkie przestrzenie robocze używają tego samego systemu księgowego i połączenia z firmą.`,
+                travelAddressMismatch: 'Podróże możesz skopiować tylko wtedy, gdy każda wybrana przestrzeń robocza ma adres firmy.',
             },
             confirmSettings: {
                 title: 'Upewnijmy się, że wszystko wygląda poprawnie.',
                 description: ({workspaceName}: {workspaceName: string}) =>
                     `Skopiujemy następujące ustawienia z <strong>${workspaceName}</strong> do wskazanych przez ciebie przestrzeni roboczych`,
-                travelAddressRequired: 'Aby skopiować podróże, każda wybrana przestrzeń robocza musi mieć adres firmy. Dodaj go do każdej przestrzeni roboczej i spróbuj ponownie.',
             },
             confirmWorkflows: {
                 continue: 'Kontynuuj bez członków',
