@@ -157,6 +157,7 @@ describe('CopyPolicySettingsUtils', () => {
             codingRulesCount: 1,
             hasInvoiceConfiguration: true,
             isCollectPolicy: false,
+            currentUserHasLegalName: true,
         };
 
         it('always shows overview', () => {
@@ -190,6 +191,23 @@ describe('CopyPolicySettingsUtils', () => {
             const travelPolicy = createRandomPolicy(3);
             travelPolicy.isTravelEnabled = true;
             expect(isCopyPolicySettingsPartEnabledOnSource('travel', {...baseContext, policy: travelPolicy})).toBe(true);
+        });
+
+        it('hides travel for a provisioned source when the current user has no legal name', () => {
+            const provisionedPolicy = createRandomPolicy(4);
+            provisionedPolicy.isTravelEnabled = true;
+            provisionedPolicy.travelSettings = {spotnanaCompanyID: 'COMPANY_123'};
+
+            // No legal name: the user could not complete the terms-acceptance step, so hide travel.
+            expect(isCopyPolicySettingsPartEnabledOnSource('travel', {...baseContext, policy: provisionedPolicy, currentUserHasLegalName: false})).toBe(false);
+
+            // With a legal name, the provisioned source still offers travel.
+            expect(isCopyPolicySettingsPartEnabledOnSource('travel', {...baseContext, policy: provisionedPolicy, currentUserHasLegalName: true})).toBe(true);
+
+            // An unprovisioned source only copies the toggle, so the legal-name gate does not apply.
+            const unprovisionedTravelPolicy = createRandomPolicy(5);
+            unprovisionedTravelPolicy.isTravelEnabled = true;
+            expect(isCopyPolicySettingsPartEnabledOnSource('travel', {...baseContext, policy: unprovisionedTravelPolicy, currentUserHasLegalName: false})).toBe(true);
         });
 
         it('shows receipt partners when the feature or Uber connection is enabled on the source', () => {

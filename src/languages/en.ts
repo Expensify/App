@@ -6278,6 +6278,7 @@ const translations = {
             confirmSettings: {
                 title: 'Let’s make sure everything looks right.',
                 description: ({workspaceName}: {workspaceName: string}) => `We’ll copy the following settings from <strong>${workspaceName}</strong> to the workspaces you’ve specified.`,
+                travelAddressRequired: 'To copy travel, every selected workspace needs a company address. Add one to each workspace, then try again.',
             },
             confirmWorkflows: {
                 continue: 'Continue without members',

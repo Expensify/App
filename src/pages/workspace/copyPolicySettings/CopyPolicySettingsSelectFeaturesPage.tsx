@@ -29,6 +29,7 @@ import {
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
+import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {createFilteredMemberCountSelector, createInvoiceConfigurationTextSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
@@ -60,6 +61,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicyID}`);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
@@ -110,6 +112,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         codingRulesCount,
         hasInvoiceConfiguration: !!sourcePolicy?.areInvoicesEnabled && !!invoiceConfigurationText,
         isCollectPolicy: isCollectPolicy(sourcePolicy),
+        currentUserHasLegalName: !areTravelPersonalDetailsMissing(privatePersonalDetails),
     };
 
     useEffect(() => {
