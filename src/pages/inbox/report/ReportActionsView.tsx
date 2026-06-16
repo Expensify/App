@@ -143,7 +143,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         // resolves so a session that locked to `now` before the anchor loaded is
         // pulled back to keep the unread message visible.
         startSession(oldestUnreadReportAction?.created);
-    }, [isConciergeMainDM, startSession, canStartConciergeSession, oldestUnreadReportAction]);
+    }, [isConciergeMainDM, startSession, canStartConciergeSession, oldestUnreadReportAction?.created]);
 
     // On native the component stays mounted in the navigation stack, so the
     // effect above never re-fires (its isConciergeMainDM dep is always true).
