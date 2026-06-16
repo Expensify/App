@@ -44,7 +44,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 // Mock the session actions the page calls so `signInWithValidateCode` doesn't hit the API and the
-// deferred `handleExitToNavigation` handoff is assertable.
+// deferred `handleExitToNavigation` handoff can be asserted.
 jest.mock('@userActions/Session', () => ({
     initAutoAuthState: jest.fn(),
     signInWithValidateCode: jest.fn(),
