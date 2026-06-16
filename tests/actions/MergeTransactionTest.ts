@@ -114,12 +114,12 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
     const sourceTransactionThreadID = 'source-transaction-thread-123';
     const sourceIOUAction: ReportAction = {
         reportActionID: sourceIOUActionID,
+        reportID: sourceExpenseReport.reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         created: '2024-01-01 12:00:00',
         originalMessage: {
             IOUTransactionID: sourceTransaction.transactionID,
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            IOUReportID: sourceExpenseReport.reportID,
         } as OriginalMessageIOU,
         childReportID: sourceTransactionThreadID,
         message: [{type: 'TEXT', text: 'Source IOU action'}],
@@ -134,12 +134,12 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
     const targetTransactionThreadID = 'target-transaction-thread-456';
     const targetIOUAction: ReportAction = {
         reportActionID: targetIOUActionID,
+        reportID: targetReport.reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         created: '2024-01-01 12:00:00',
         originalMessage: {
             IOUTransactionID: targetTransaction.transactionID,
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            IOUReportID: targetReport.reportID,
         } as OriginalMessageIOU,
         childReportID: targetTransactionThreadID,
         message: [{type: 'TEXT', text: 'Target IOU action'}],
@@ -1103,12 +1103,12 @@ describe('mergeTransactionRequest', () => {
 
             let sourceIOUAction: OnyxEntry<ReportAction> = {
                 reportActionID: 'source-action-123',
+                reportID: sourceReportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: '2024-01-01 12:00:00',
                 originalMessage: {
                     IOUTransactionID: sourceTransaction.transactionID,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    IOUReportID: sourceReportID,
                 } as OriginalMessageIOU,
                 message: [{type: 'TEXT', text: 'Test IOU message'}],
             };
@@ -1290,12 +1290,12 @@ describe('mergeTransactionRequest', () => {
 
             const sourceIOUAction: ReportAction = {
                 reportActionID: 'source-action-123',
+                reportID: selfDMReportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: '2024-01-01 12:00:00',
                 originalMessage: {
                     IOUTransactionID: sourceTransaction.transactionID,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    IOUReportID: selfDMReportID,
                 } as OriginalMessageIOU,
                 message: [{type: 'TEXT', text: 'Test IOU message'}],
             };
