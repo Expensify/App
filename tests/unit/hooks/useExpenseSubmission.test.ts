@@ -9,6 +9,8 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 
 const mockRequestMoneyAction = jest.fn();
 const mockTrackExpenseAction = jest.fn();
+const mockSubmitPerDiemExpenseAction = jest.fn();
+const mockSubmitPerDiemExpenseForSelfDMAction = jest.fn();
 const mockCleanupAfterExpenseCreate = jest.fn();
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
 const mockResolveChatTargetForSubmitCleanup = jest.fn();
@@ -16,6 +18,11 @@ const mockResolveChatTargetForSubmitCleanup = jest.fn();
 jest.mock('@userActions/IOU/TrackExpense', () => ({
     requestMoney: (...args: unknown[]) => mockRequestMoneyAction(...args),
     trackExpense: (...args: unknown[]) => mockTrackExpenseAction(...args),
+}));
+
+jest.mock('@userActions/IOU/PerDiem', () => ({
+    submitPerDiemExpense: (...args: unknown[]) => mockSubmitPerDiemExpenseAction(...args),
+    submitPerDiemExpenseForSelfDM: (...args: unknown[]) => mockSubmitPerDiemExpenseForSelfDMAction(...args),
 }));
 
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
@@ -106,6 +113,38 @@ function buildTransaction(overrides: Partial<Transaction> = {}): Transaction {
     } as Transaction;
 }
 
+function buildReportAction(overrides: Partial<ReportAction> = {}): ReportAction {
+    return {
+        reportActionID: 'report-action-1',
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        created: '2026-04-24',
+        ...overrides,
+    };
+}
+
+function buildPerDiemTransaction(overrides: Partial<Transaction> = {}): Transaction {
+    return buildTransaction({
+        amount: 200,
+        merchant: 'Per diem',
+        comment: {
+            comment: 'Trip per diem',
+            customUnit: {
+                customUnitID: 'per-diem-custom-unit',
+                customUnitRateID: 'per-diem-rate',
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                subRates: [{id: 'sub-rate-1', name: 'Meals', quantity: 1, rate: 200}],
+                attributes: {
+                    dates: {
+                        start: '2026-04-24',
+                        end: '2026-04-24',
+                    },
+                },
+            },
+        },
+        ...overrides,
+    });
+}
+
 function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[0]> = {}): Parameters<typeof useExpenseSubmission>[0] {
     const transaction = buildTransaction();
     return {
@@ -190,16 +229,13 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             // Move-from-track SUBMIT: the action writes the transaction under the EXISTING tracked transaction id,
             // so cleanup must reference that same id — not a fresh rand64() optimistic one.
             const EXISTING_TRACKED_TRANSACTION_ID = 'tracked-transaction-99';
-            const linkedTrackedExpenseReportAction = {
+            const linkedTrackedExpenseReportAction = buildReportAction({
                 reportActionID: 'linked-action-1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                created: '2026-04-24',
                 originalMessage: {
                     IOUTransactionID: EXISTING_TRACKED_TRANSACTION_ID,
-                    IOUReportID: 'tracked-report-1',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
-            } as unknown as ReportAction;
+            });
             const movedTransaction = buildTransaction({
                 linkedTrackedExpenseReportAction,
                 linkedTrackedExpenseReportID: 'tracked-report-1',
@@ -243,6 +279,54 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             expect(mockResolveChatTargetForSubmitCleanup).not.toHaveBeenCalled();
             expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: 'iou-chat-77'}));
+        });
+
+        it('routes tracked per diem SUBMIT through requestMoney so the original tracked expense is moved', async () => {
+            const existingTrackedTransactionID = 'tracked-per-diem-transaction-1';
+            const linkedTrackedExpenseReportAction = buildReportAction({
+                reportActionID: 'tracked-per-diem-action-1',
+                childReportID: 'tracked-per-diem-thread-1',
+                originalMessage: {
+                    IOUTransactionID: existingTrackedTransactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            });
+            const perDiemTransaction = buildPerDiemTransaction({
+                linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID: 'tracked-per-diem-report-1',
+            });
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        action: CONST.IOU.ACTION.SUBMIT,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockRequestMoneyAction).toHaveBeenCalledTimes(1);
+            expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    action: CONST.IOU.ACTION.SUBMIT,
+                    existingTransaction: perDiemTransaction,
+                    transactionParams: expect.objectContaining({
+                        linkedTrackedExpenseReportAction,
+                        linkedTrackedExpenseReportID: 'tracked-per-diem-report-1',
+                    }),
+                }),
+            );
+            expect(mockSubmitPerDiemExpenseAction).not.toHaveBeenCalled();
+            expect(mockSubmitPerDiemExpenseForSelfDMAction).not.toHaveBeenCalled();
         });
     });
 
@@ -293,6 +377,33 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: params.transactions.at(0)}));
         });
     });
+
+    describe('per diem path', () => {
+        it('keeps initial self-DM per diem tracking on submitPerDiemExpenseForSelfDM', async () => {
+            const perDiemTransaction = buildPerDiemTransaction();
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSubmitPerDiemExpenseForSelfDMAction).toHaveBeenCalledTimes(1);
+            expect(mockRequestMoneyAction).not.toHaveBeenCalled();
+        });
+    });
 });
 
 describe('useExpenseSubmission action-bailout safety', () => {
@@ -323,7 +434,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
 
     it('skips cleanup/nav when a multi-transaction SUBMIT batch has any iteration that bails (defense-in-depth — preserves the failed item draft)', async () => {
         // Cast keeps the fixture minimal — pre-validation only needs truthy presence.
-        const linkedTracked = {linkedTrackedExpenseReportAction: {reportActionID: 'a-1'} as unknown as ReportAction, linkedTrackedExpenseReportID: 'r-1'};
+        const linkedTracked = {linkedTrackedExpenseReportAction: buildReportAction({reportActionID: 'a-1'}), linkedTrackedExpenseReportID: 'r-1'};
         const transaction1 = buildTransaction({transactionID: 't-1', ...linkedTracked});
         const transaction2 = buildTransaction({transactionID: 't-2', ...linkedTracked});
         mockRequestMoneyAction.mockReturnValueOnce({iouReport: {reportID: 'iou-1'}}).mockReturnValueOnce({});
