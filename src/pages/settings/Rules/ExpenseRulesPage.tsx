@@ -9,7 +9,6 @@ import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericE
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionList/types';
 import PersonalExpenseRulesTable, {PersonalExpenseRuleRowData} from '@components/Tables/PersonalExpenseRulesTable';
 import Text from '@components/Text';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -71,8 +70,8 @@ function ExpenseRulesPage() {
         keyForList: getKeyForList(rule, index),
         merchant: rule.merchantToMatch,
         changes: formatExpenseRuleChanges(rule, translate),
-        pendingAction: rule.pendingAction,
         errors: rule.errors,
+        pendingAction: rule.pendingAction,
         disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         action: () => navigateToEditRulePage(getKeyForList(rule, index)),
     }));
@@ -212,7 +211,9 @@ function ExpenseRulesPage() {
                 {!shouldDisplayButtonsInSeparateLine && hasRules && headerButton}
             </HeaderWithBackButton>
             {shouldDisplayButtonsInSeparateLine && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
+
             {!hasRules && !isLoading && headerContent}
+
             {!hasRules && isLoading && (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -220,6 +221,7 @@ function ExpenseRulesPage() {
                     reasonAttributes={loadingReasonAttributes}
                 />
             )}
+
             {!isLoading && (
                 <PersonalExpenseRulesTable
                     selectedKeys={selectedRules}
@@ -228,6 +230,7 @@ function ExpenseRulesPage() {
                     EmptyStateComponent={emptyStateComponent}
                 />
             )}
+
             <ConfirmModal
                 isVisible={deleteConfirmModalVisible}
                 onConfirm={handleDeleteRules}

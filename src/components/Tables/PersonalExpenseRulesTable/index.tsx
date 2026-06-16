@@ -95,6 +95,7 @@ export default function PersonalExpenseRulesTable({EmptyStateComponent, personal
             keyExtractor={(rule) => rule.keyForList}
         >
             {!hasRules && EmptyStateComponent}
+
             {hasRules && (
                 <>
                     {personalExpenseRules.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('expenseRulesPage.findRule')} />}

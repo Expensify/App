@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import {PersonalExpenseRuleRowData} from '.';
 
 type PersonalExpenseRulesTableRowProps = {
@@ -30,6 +31,7 @@ export default function PersonalExpenseRulesTableRow({item, rowIndex, shouldUseN
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={{context: 'personalExpenseRulesTableRow'}}
+            sentryLabel={CONST.SENTRY_LABEL.EXPENSE_RULES.TABLE_ROW}
             onPress={item.action}
             offlineWithFeedback={{
                 errors: item.errors,

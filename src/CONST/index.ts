@@ -8068,6 +8068,9 @@ const CONST = {
             SORTABLE_HEADER: 'Search-SortableHeader',
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
         },
+        EXPENSE_RULES: {
+            TABLE_ROW: 'ExpenseRules-TableRow',
+        },
         TABLE: {
             EDITABLE_CELL: 'Table-EditableCell',
         },
