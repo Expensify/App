@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import type * as ReactNavigation from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
@@ -96,19 +97,43 @@ jest.mock('@hooks/usePrevious', () => jest.fn());
 
 const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.MockedFunction<typeof useCurrentUserPersonalDetails>;
 
-jest.mock('@pages/inbox/report/ReportActionsList', () =>
-    jest.fn(({sortedReportActions}: {sortedReportActions: OnyxTypes.ReportAction[]}) => {
-        if (sortedReportActions && sortedReportActions.length > 0) {
-            return null; // Simulate normal content
-        }
-        return null;
-    }),
+// PR 6 makes the ReportActionsList body hook-driven, so we mount the REAL body (no longer a prop-fed
+// child) and observe what it feeds the list via InvertedFlashList's `data`. The heavy scroll/marker
+// hooks have their own unit tests, so they are stubbed here to isolate the body's visibility/skeleton
+// logic — the actual subject of these tests.
+jest.mock('@components/FlashList/InvertedFlashList', () => jest.fn(() => null));
+jest.mock('@hooks/useUnreadMarker', () => jest.fn(() => ({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1})));
+jest.mock('@hooks/useMarkAsRead', () => jest.fn(() => ({markNewestActionAsRead: jest.fn(), completeSkippedMarkAsRead: jest.fn()})));
+jest.mock('@hooks/useReportActionsScroll', () =>
+    jest.fn(() => ({
+        listRef: {current: null},
+        trackVerticalScrolling: jest.fn(),
+        onViewableItemsChanged: jest.fn(),
+        isFloatingMessageCounterVisible: false,
+        isActionBadgeAboveViewport: false,
+        scrollToBottomAndMarkReportAsRead: jest.fn(),
+        scrollToActionBadgeTarget: jest.fn(),
+        flushPendingScrollToBottom: jest.fn(),
+        shouldBeAlignedToTop: false,
+        shouldFocusToTopOnMount: false,
+        initialScrollKey: undefined,
+        shouldAutoscrollToBottom: false,
+        onLoad: jest.fn(),
+    })),
 );
+jest.mock('@pages/inbox/report/FloatingMessageCounter', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/ReportActionsListPaddingView', () => {
+    const reactModule = jest.requireActual<typeof React>('react');
+    return jest.fn(({children}: {children: React.ReactNode}) => reactModule.createElement(reactModule.Fragment, null, children));
+});
 jest.mock('@pages/inbox/report/UserTypingEventListener', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => null));
 
-const mockReportActionsList: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionsList');
+const mockInvertedFlashList: jest.MockedFunction<(props: {data?: OnyxTypes.ReportAction[]}) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
 const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionItemCreated');
+
+/** Returns the report actions the body fed into the (mocked) inverted list on its latest render. */
+const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0)?.data;
 
 jest.mock('@libs/actions/Report', () => ({
     updateLoadingInitialReportAction: jest.fn(),
@@ -440,8 +465,8 @@ describe('ReportActionsView', () => {
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionsList).toHaveBeenCalled();
-            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
             expect(passedActions?.length).toBeGreaterThanOrEqual(1);
             expect(passedActions?.at(0)?.reportActionID).toBe(CONST.CONCIERGE_GREETING_ACTION_ID);
         });
@@ -507,7 +532,7 @@ describe('ReportActionsView', () => {
             // Welcome should not be shown since user has sent a message
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
             // ReportActionsList should be rendered with filtered actions
-            expect(mockReportActionsList).toHaveBeenCalled();
+            expect(mockInvertedFlashList).toHaveBeenCalled();
         });
     });
 
@@ -600,8 +625,8 @@ describe('ReportActionsView', () => {
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionsList).toHaveBeenCalled();
-            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
             expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
@@ -618,8 +643,8 @@ describe('ReportActionsView', () => {
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionsList).toHaveBeenCalled();
-            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(true);
         });
@@ -651,8 +676,8 @@ describe('ReportActionsView', () => {
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionsList).toHaveBeenCalled();
-            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
             // After user sends a message, the greeting stays visible alongside session actions
             expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'new-user-msg')).toBe(true);
@@ -669,8 +694,8 @@ describe('ReportActionsView', () => {
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionsList).toHaveBeenCalled();
-            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
             // With no session, old messages should not be shown
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
@@ -715,8 +740,8 @@ describe('ReportActionsView', () => {
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionsList).toHaveBeenCalled();
-            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
             // New user with no prior messages — onboarding messages pass through (no filtering)
             expect(passedActions?.some((a) => a.reportActionID === 'onboarding-msg')).toBe(true);
         });
@@ -752,7 +777,7 @@ describe('ReportActionsView', () => {
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
-            expect(mockReportActionsList).toHaveBeenCalled();
+            expect(mockInvertedFlashList).toHaveBeenCalled();
         });
 
         it('should show a skeleton on a cold load when hasOnceLoadedReportActions is false and there are no cached actions', () => {
