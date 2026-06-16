@@ -10,7 +10,7 @@ import type UpdateBeneficialOwnersForBankAccountParams from './parameters/Update
 
 type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
-type FinancialForceReportExportStatus = 'Approved' | 'Submitted';
+type FinancialForceReportExportStatus = ValueOf<typeof CONST.CERTINIA_REPORT_EXPORT_STATUS>;
 
 const WRITE_COMMANDS = {
     IMPORT_CSV_TRANSACTIONS: 'ImportCSVTransactions',

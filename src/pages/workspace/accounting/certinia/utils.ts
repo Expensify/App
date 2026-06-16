@@ -20,7 +20,7 @@ type CertiniaDimensionParam = TupleToUnion<typeof CERTINIA_DIMENSION_PARAMS>;
 
 type CertiniaMappingValue = ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
 type CertiniaExportStatus = ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
-type CertiniaReportExportStatus = 'Approved' | 'Submitted';
+type CertiniaReportExportStatus = ValueOf<typeof CONST.CERTINIA_REPORT_EXPORT_STATUS>;
 
 function dimensionParamToNumber(dimension: string): number {
     return Number(dimension.replace('dimension', ''));
@@ -53,9 +53,9 @@ function getCertiniaReportExportStatusValue(status: string | undefined): Certini
     const normalizedStatus = getCertiniaExportStatusValue(status);
     switch (normalizedStatus) {
         case CONST.CERTINIA_EXPORT_STATUS.APPROVED:
-            return 'Approved';
+            return CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED;
         case CONST.CERTINIA_EXPORT_STATUS.SUBMITTED:
-            return 'Submitted';
+            return CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED;
         default:
             return undefined;
     }

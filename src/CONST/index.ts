@@ -3017,6 +3017,11 @@ const CONST = {
         SUBMITTED: 'SUBMITTED',
     },
 
+    CERTINIA_REPORT_EXPORT_STATUS: {
+        APPROVED: 'Approved',
+        SUBMITTED: 'Submitted',
+    },
+
     CERTINIA_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
         REPORT_SUBMITTED: 'REPORT_SUBMITTED',

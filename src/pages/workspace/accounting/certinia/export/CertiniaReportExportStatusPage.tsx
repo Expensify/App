@@ -19,7 +19,7 @@ type ReportExportStatusListItem = ListItem & {
     value: CertiniaReportExportStatus;
 };
 
-const REPORT_EXPORT_STATUSES: CertiniaReportExportStatus[] = ['Approved', 'Submitted'];
+const REPORT_EXPORT_STATUSES: CertiniaReportExportStatus[] = Object.values(CONST.CERTINIA_REPORT_EXPORT_STATUS);
 
 function CertiniaReportExportStatusPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -51,6 +51,7 @@ function CertiniaReportExportStatusPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="CertiniaReportExportStatusPage"
+            shouldBeBlocked={!config?.hasPSA}
             data={data}
             onSelectRow={selectReportExportStatus}
             shouldSingleExecuteRowSelect

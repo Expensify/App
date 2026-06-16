@@ -1393,7 +1393,7 @@ type FinancialForceExportDestination = ValueOf<typeof CONST.CERTINIA_EXPORT_DEST
 type FinancialForceParentTagMappingMode = ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>;
 
 /** Certinia PSA expense report export status */
-type FinancialForceReportExportStatus = 'Approved' | 'Submitted';
+type FinancialForceReportExportStatus = ValueOf<typeof CONST.CERTINIA_REPORT_EXPORT_STATUS>;
 
 /** Keys on {@link FinancialForceConnectionConfig} tracked for offline pending / error field state */
 type FinancialForceOfflineStateKeys = ValueOf<typeof CONST.CERTINIA_CONFIG>;

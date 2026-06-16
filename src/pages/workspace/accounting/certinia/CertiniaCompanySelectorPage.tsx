@@ -27,6 +27,7 @@ function CertiniaCompanySelectorPage({policy}: WithPolicyConnectionsProps) {
     const companyID = config?.credentials?.companyID;
     const companies = data?.companies ?? [];
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
+    const shouldShowCompanySelector = !!config?.hasPSA && config?.hasPSAOnly === false;
 
     const dataOptions: CompanyListItem[] = companies.map((company) => ({
         value: company.id,
@@ -58,6 +59,7 @@ function CertiniaCompanySelectorPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="CertiniaCompanySelectorPage"
+            shouldBeBlocked={!shouldShowCompanySelector}
             data={dataOptions}
             onSelectRow={selectCompany}
             shouldSingleExecuteRowSelect

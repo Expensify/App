@@ -4931,8 +4931,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             reportExportStatus: {
                 label: '経費レポートステータス',
                 values: {
-                    Approved: '承認済み',
-                    Submitted: '送信済み',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: '承認済み',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: '送信済み',
                 },
             },
             exportDate: {

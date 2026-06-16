@@ -5078,8 +5078,8 @@ const translations = {
             reportExportStatus: {
                 label: 'Expense report status',
                 values: {
-                    Approved: 'Approved',
-                    Submitted: 'Submitted',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: 'Approved',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: 'Submitted',
                 },
             },
             exportDate: {

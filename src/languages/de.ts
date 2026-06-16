@@ -4988,8 +4988,8 @@ ${amount} für ${merchant} – ${date}`,
             reportExportStatus: {
                 label: 'Status der Spesenabrechnung',
                 values: {
-                    Approved: 'Genehmigt',
-                    Submitted: 'Übermittelt',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: 'Genehmigt',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: 'Übermittelt',
                 },
             },
             exportDate: {
