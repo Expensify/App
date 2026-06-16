@@ -13,6 +13,7 @@ function useWorkspacesTabIndicatorStatus(): WorkspacesTabIndicatorStatusResult {
 
     const {policyErrorStatus, policyInfoStatus, domainStatus, policyIDWithErrors} = usePolicyIndicatorChecks();
 
+    // Workspaces tab indicator priority: policy errors (red) > domain errors (red) > policy info statuses (green).
     const errorStatus = policyErrorStatus ?? domainStatus;
     const status = errorStatus ?? policyInfoStatus;
     const indicatorColor = errorStatus ? theme.danger : theme.success;
