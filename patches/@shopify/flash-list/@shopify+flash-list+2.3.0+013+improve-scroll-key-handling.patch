@@ -51,7 +51,7 @@ index 18e59ce..a972c93 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 @@ -566,10 +566,22 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
-             }, 1000);
+             }, 500);
              pauseOffsetCorrection.current = true;
              const additionalOffset = (_c = initialScrollIndexParams === null || initialScrollIndexParams === void 0 ? void 0 : initialScrollIndexParams.viewOffset) !== null && _c !== void 0 ? _c : 0;
 -            const offset = horizontal
