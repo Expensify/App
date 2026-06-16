@@ -1,6 +1,7 @@
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
+ * / (_ / -_) _ \/ -_) __/ _ \`/ __/ -_) _  /
  * \___/\__/_//_/\__/_/  \_,_/\__/\__/\_,_/
  *
  * This file was automatically generated. Please consider these alternatives before manually editing it:
@@ -862,7 +863,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Cette discussion est avec ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `C’est ici que <strong>${submitterDisplayName}</strong> soumettra des dépenses à <strong>${workspaceName}</strong>. Utilisez simplement le bouton +.`,
-        beginningOfChatHistoryPolicyExpenseChatTrack: 'C\u2019est ici que vous suivrez vos dépenses',
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'C’est ici que vous suivrez vos dépenses',
         beginningOfChatHistorySelfDM: 'Ceci est votre espace personnel. Utilisez-le pour vos notes, tâches, brouillons et rappels.',
         beginningOfChatHistorySystemDM: 'Bienvenue ! Procédons à la configuration.',
         chatWithAccountManager: 'Discutez avec votre gestionnaire de compte ici',
@@ -7428,15 +7429,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
             },
             agentRules: {
-                title: 'Règles Agent',
-                subtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin.',
-                addRule: 'Ajouter une règle Agent',
-                findRule: 'Rechercher une règle Agent',
+                title: 'Règles d’agent',
+                subtitle: 'Définissez des règles pour déterminer comment les agents IA gèrent les dépenses dans cet espace de travail.',
+                addRule: 'Ajouter une règle d’agent',
+                findRule: 'Rechercher une règle d’agent',
                 addRuleTitle: 'Ajouter une règle',
                 editRuleTitle: 'Modifier la règle',
                 deleteRule: 'Supprimer la règle',
                 deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
-                describeRuleTitle: 'Décrivez votre règle et Concierge la créera',
+                describeRuleTitle: 'Décrivez la règle que votre agent IA doit suivre',
                 disclaimer: 'Les agents IA peuvent faire des erreurs.',
                 agentCreatedTitle: 'RuleBot a été ajouté à votre espace de travail !',
                 agentCreatedDescription: (agentsRoute: string) =>
