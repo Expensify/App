@@ -1,15 +1,14 @@
 import type {SnapshotFrom} from 'xstate';
-import type {MultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/state';
 import CONST from '@src/CONST';
 import type MFAMachine from './mfaMachine';
-import type {MfaModalState} from './types';
+import type {MfaContext, MfaModalState} from './types';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 type MfaSnapshot = SnapshotFrom<typeof MFAMachine>;
 
-/** The machine-derived state consumers read: the legacy shape plus the modal lifecycle state. */
-type MfaState = MultifactorAuthenticationState & {modalState: MfaModalState};
+/** The machine-derived state consumers read: the wired context subset plus the modal lifecycle state. */
+type MfaState = MfaContext & {modalState: MfaModalState};
 
 function getModalState(snapshot: MfaSnapshot): MfaModalState {
     if (snapshot.matches(MFA_STATE.OPEN)) {
