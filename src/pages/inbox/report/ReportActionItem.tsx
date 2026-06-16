@@ -36,7 +36,6 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -97,6 +96,9 @@ type ReportActionItemProps = {
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
+    /** The chat report associated with the report for this action (report.chatReportID) */
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -153,6 +155,7 @@ function ReportActionItem({
     action,
     report,
     transactionThreadReport,
+    chatReport,
     linkedReportActionID,
     displayAsGroup,
     parentReportAction,
@@ -171,8 +174,7 @@ function ReportActionItem({
 }: ReportActionItemProps) {
     const reportID = report?.reportID ?? action?.reportID;
     const originalReportID = useOriginalReportID(report?.reportID, action);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`, {selector: getStableReportSelector});
 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
@@ -209,8 +211,6 @@ function ReportActionItem({
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
 
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
-
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     const highlightedBackgroundColorIfNeeded = isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {};
 
@@ -473,7 +473,7 @@ function ReportActionItem({
 
     const whisperedTo = getWhisperedTo(action);
 
-    const iouReportID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUReportID ? getOriginalMessage(action)?.IOUReportID?.toString() : undefined;
+    const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
     const isWhisper = whisperedTo.length > 0 && getTransactionsWithReceipts(iouReportID).length === 0;
 
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesUtils(iouReport, transactionsOnIOUReport);
@@ -594,7 +594,6 @@ function ReportActionItem({
                                                                 action={action}
                                                                 report={report}
                                                                 reportID={reportID}
-                                                                originalReport={originalReport}
                                                                 originalReportID={originalReportID}
                                                                 iouReport={iouReport}
                                                                 displayAsGroup={displayAsGroup}

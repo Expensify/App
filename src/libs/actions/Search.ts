@@ -1199,7 +1199,11 @@ function rejectMoneyRequestsOnSearch(
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
-function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void, translate: LocalizedTranslate) {
+function exportSearchItemsToCSV(
+    {query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams,
+    onDownloadFailed: () => void,
+    translate: LocalizedTranslate,
+) {
     const reportIDSet = new Set<string>();
     const transactionIDSet = new Set(transactionIDList);
     for (const reportID of reportIDList) {
@@ -1230,6 +1234,8 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
         jsonQuery,
         reportIDList: Array.from(reportIDSet),
         transactionIDList,
+        isBasicExport,
+        exportColumnLabels,
     }) as Params;
 
     const formData = new FormData();
@@ -1244,7 +1250,7 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
     return fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams): string {
+function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -1263,11 +1269,13 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
             value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED},
         },
     ];
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,
         reportIDList,
         transactionIDList,
+        isBasicExport,
+        exportColumnLabels,
         exportID,
     }) as QueueExportSearchItemsToCSVParams;
 
