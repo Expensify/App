@@ -1,9 +1,4 @@
-import React from 'react';
-import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
-import ROUTES from '@src/ROUTES';
-
-function AddDomainVerifyAccountPage() {
-    return <VerifyAccountPageBase navigateBackTo={ROUTES.WORKSPACES_ADD_DOMAIN} />;
+{
+  "file": "src/pages/domain/AddDomainVerifyAccountPage.tsx",
+  "content": "import React from 'react';\nimport VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';\nimport ROUTES from '@src/ROUTES';\nimport {setTwoFactorAuthExemptEmailForDomain} from '@libs/actions/Domain';\nimport type {SetTwoFactorAuthExemptEmailForDomainParams} from '@libs/API/parameters/SetTwoFactorAuthExemptEmailForDomainParams';\n\nfunction AddDomainVerifyAccountPage() {\n    const handleTwoFactorAuthRequired = (params: SetTwoFactorAuthExemptEmailForDomainParams) => {\n        setTwoFactorAuthExemptEmailForDomain(params);\n    };\n\n    return (\n        <VerifyAccountPageBase \n            navigateBackTo={ROUTES.WORKSPACES_ADD_DOMAIN}\n            onTwoFactorAuthRequired={handleTwoFactorAuthRequired}\n        />\n    );\n}\n\nexport default AddDomainVerifyAccountPage;"
 }
-
-export default AddDomainVerifyAccountPage;
