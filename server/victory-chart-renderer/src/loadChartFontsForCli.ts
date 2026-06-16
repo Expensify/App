@@ -1,11 +1,12 @@
-import {Skia} from '@shopify/react-native-skia';
 import type {DataModule, SkTypeface} from '@shopify/react-native-skia';
+import {Skia} from '@shopify/react-native-skia';
 import {dirname, isAbsolute, join} from 'node:path';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import type {ChartDefaultTypeface} from '@components/Charts/types/chartSkiaTypefaceTypes';
 import buildSkiaFontManager from '@components/Charts/utils/buildSkiaFontManager';
 import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from '@components/Charts/utils/chartFontAssets';
 import loadChartTypefacesFromAssets from '@components/Charts/utils/loadChartTypefacesFromAssets';
+import Log from '@libs/Log';
 
 function resolveBundledAssetPath(source: DataModule | string): string {
     let assetPath: string | null = null;
@@ -36,7 +37,7 @@ async function loadTypefaceFromAsset(source: DataModule | string): Promise<SkTyp
 }
 
 function logChartFontLoadError(assetKey: string, error: unknown): void {
-    console.error('Chart font asset failed to load', {
+    Log.error('Chart font asset failed to load', {
         assetKey,
         error: error instanceof Error ? error.message : String(error),
     });

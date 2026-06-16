@@ -107,6 +107,10 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
 
 // Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging
 // callback methods are passed in here so we can decouple the logging library from the logging methods.
+type LogType = Logger & {
+    error: (message: string, extraData?: Record<string, unknown>) => void;
+};
+
 const Log = new Logger({
     serverLoggingCallback,
     clientLoggingCallback: (message, extraData) => {
@@ -115,7 +119,8 @@ const Log = new Logger({
     maxLogLinesBeforeFlush: 150,
     isDebug: true,
     getContextEmail: getCurrentUserEmail,
-});
+}) as LogType;
+Log.error = () => {};
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
 // eslint-disable-next-line no-restricted-properties
