@@ -39,11 +39,25 @@ type AnimatedSubmitButtonProps = WithSentryLabel & {
 
     // The report id for which the button is displayed
     reportID?: string;
+
+    /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
+    isMarkAsDone?: boolean;
 };
 
 const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingExpenseAction;
 
-function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled, isDEWSubmission, sentryLabel, reportID}: AnimatedSubmitButtonProps) {
+function AnimatedSubmitButton({
+    success,
+    text,
+    onPress,
+    isSubmittingAnimationRunning,
+    onAnimationFinish,
+    isDisabled,
+    sentryLabel,
+    isMarkAsDone,
+    isDEWSubmission,
+    reportID,
+}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isAnimationRunning = isSubmittingAnimationRunning;
@@ -151,7 +165,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                 >
                     <Button
                         success={success}
-                        text={showLoading ? text : translate('common.submitted')}
+                        text={showLoading ? text : translate(isMarkAsDone ? 'common.markedAsDoneStatus' : 'common.submitted')}
                         isLoading={showLoading}
                         icon={!showLoading ? icon : undefined}
                         isDisabled
