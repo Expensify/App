@@ -1,19 +1,25 @@
-import React, {useEffect, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
 import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
 import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
 import useOnyx from '@hooks/useOnyx';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import {handleExitToNavigation, initAutoAuthState, signInWithValidateCode} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Session as SessionType} from '@src/types/onyx';
 import type ValidateLoginPageProps from './types';
 
 const autoAuthStateSelector = (session: OnyxEntry<SessionType>) => session?.autoAuthState;
+
+/** If a separate-session magic-link sign-in hasn't completed in this long, it's likely stuck. */
+const STUCK_DIRECT_SIGN_IN_TIMEOUT_MS = 30 * 1000;
 
 function ValidateLoginPage({
     route: {
@@ -38,16 +44,22 @@ function ValidateLoginPage({
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo) && isValidValidateCode(validateCode);
     const isNavigatingToExitTo = isSignedIn && !!exitTo;
+    // Fresh-session magic-link sign-in. Not gated on `isSignedIn` because `autoAuthState` lands
+    // before `authToken` (separate Onyx broadcasts); that gap would otherwise flash a blank page.
+    // Keeps the loader up across SIGNING_IN → JUST_SIGNED_IN until the redirect unmounts the page.
+    // Excludes 2FA: it can't complete from here, so the 2FA modal (below) handles it instead of an
+    // indefinite loader.
+    const isCompletingDirectSignIn =
+        !exitTo && !login && !is2FARequired && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
 
     useEffect(() => {
         setHasInitialized(true);
 
         if (isUserClickedSignIn) {
-            // The user clicked the option to sign in the current tab
-            Navigation.isNavigationReady().then(() => {
-                Navigation.goBack();
-            });
+            // Just signed in via the magic link with no cached `login` (separate-session sign-in).
+            // The redirect Home lives in the focus effect below (not here) so returning to the
+            // consumed `/v/...` via browser Back re-fires it instead of getting stuck on the loader.
             return;
         }
         initAutoAuthState(autoAuthStateWithDefault);
@@ -65,6 +77,22 @@ function ValidateLoginPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Redirect Home after a separate-session magic-link sign-in. On a focus effect (not mount-only)
+    // so that returning to the consumed `/v/...` via browser Back re-fires it — the route can linger
+    // in the stack when forceReplace is downgraded to a push, and a mount-only effect wouldn't re-run.
+    useFocusEffect(
+        useCallback(() => {
+            if (!isUserClickedSignIn) {
+                return;
+            }
+            // Wait for protected routes (HOME mounts async); forceReplace so Home doesn't stack on the
+            // consumed `/v/...` route.
+            Navigation.waitForProtectedRoutes().then(() => {
+                Navigation.navigate(ROUTES.HOME, {forceReplace: true});
+            });
+        }, [isUserClickedSignIn]),
+    );
+
     useEffect(() => {
         if (!!login || !cachedAccountID || !is2FARequired) {
             if (exitTo) {
@@ -79,10 +107,24 @@ function ValidateLoginPage({
         });
     }, [login, cachedAccountID, is2FARequired, exitTo]);
 
+    // waitForProtectedRoutes()/authToken can hang (lazy AuthScreens chunk fails, token
+    // never lands). We can't recover the consumed code here, but surface a stuck sign-in to
+    // Sentry/Log instead of leaving an indefinitely silent spinner. Observability only — no
+    // navigation/UX change. Cleared on unmount (successful redirect) or when the state changes.
+    useEffect(() => {
+        if (!isCompletingDirectSignIn) {
+            return;
+        }
+        const timeoutID = setTimeout(() => {
+            Log.alert('[ValidateLoginPage] Magic-link sign-in appears stuck (protected routes / authToken not ready)', {autoAuthState: autoAuthStateWithDefault});
+        }, STUCK_DIRECT_SIGN_IN_TIMEOUT_MS);
+        return () => clearTimeout(timeoutID);
+    }, [isCompletingDirectSignIn, autoAuthStateWithDefault]);
+
     return (
         <>
             {autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.FAILED && !is2FARequired && <ExpiredValidateCodeModal />}
-            {(autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.FAILED) && is2FARequired && !isSignedIn && !!login && (
+            {(autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.FAILED) && is2FARequired && !isSignedIn && (
                 <JustSignedInModal is2FARequired />
             )}
             {autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && !exitTo && !!login && <JustSignedInModal is2FARequired={false} />}
@@ -93,8 +135,9 @@ function ValidateLoginPage({
                     code={validateCode}
                 />
             )}
-            {(!effectiveAutoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) && (
+            {((!effectiveAutoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) || isCompletingDirectSignIn) && (
                 <FullScreenLoadingIndicator
+                    testID="validate-login-loading"
                     reasonAttributes={{
                         context: 'ValidateLoginPage',
                         isSigningIn: autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN,

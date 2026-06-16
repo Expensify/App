@@ -1,10 +1,11 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
-import ConfirmModal from '@components/ConfirmModal';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,7 +46,7 @@ function NetSuiteImportCustomFieldView({
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isRemoveModalOpen, setIsRemoveModalOpen] = useState<boolean>(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const config = policy?.connections?.netsuite?.options?.config;
     const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
@@ -81,7 +82,6 @@ function NetSuiteImportCustomFieldView({
                 );
             }
         }
-        setIsRemoveModalOpen(false);
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField));
     }, [allRecords, customField, importCustomField, policyID, valueIndex]);
 
@@ -140,21 +140,23 @@ function NetSuiteImportCustomFieldView({
                         icon={icons.Trashcan}
                         title={translate('common.remove')}
                         disabled={!!config?.pendingFields?.[importCustomField]}
-                        onPress={() => setIsRemoveModalOpen(true)}
+                        onPress={() => {
+                            showConfirmModal({
+                                title: translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removeTitle`),
+                                prompt: translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removePrompt`),
+                                confirmText: translate('common.remove'),
+                                cancelText: translate('common.cancel'),
+                                danger: true,
+                            }).then((result) => {
+                                if (result.action !== ModalActions.CONFIRM) {
+                                    return;
+                                }
+                                removeRecord();
+                            });
+                        }}
                     />
                 </OfflineWithFeedback>
             )}
-
-            <ConfirmModal
-                title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removeTitle`)}
-                isVisible={isRemoveModalOpen}
-                onConfirm={removeRecord}
-                onCancel={() => setIsRemoveModalOpen(false)}
-                prompt={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removePrompt`)}
-                confirmText={translate('common.remove')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
         </ConnectionLayout>
     );
 }

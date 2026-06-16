@@ -212,7 +212,6 @@ const reportAction1: OnyxTypes.ReportAction = {
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID,
-        IOUReportID: report1.reportID,
     },
     reportID: report1.reportID,
 };
@@ -227,7 +226,6 @@ const reportAction2: OnyxTypes.ReportAction = {
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID2,
-        IOUReportID: report2.reportID,
     },
     reportID: report2.reportID,
 };
@@ -242,7 +240,6 @@ const reportAction3: OnyxTypes.ReportAction = {
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID3,
-        IOUReportID: report3.reportID,
     },
     reportID: report3.reportID,
 };
@@ -257,7 +254,6 @@ const reportAction4: OnyxTypes.ReportAction = {
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: transactionID4,
-        IOUReportID: report3.reportID,
     },
     reportID: report3.reportID,
 };
@@ -729,7 +725,6 @@ const reportActionListItems = [
         keyForList: reportAction1.reportActionID,
         originalMessage: {
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            IOUReportID: report1.reportID,
             IOUTransactionID: transactionID,
         },
         reportName: report1.reportName,
@@ -778,7 +773,6 @@ const reportActionListItems = [
         keyForList: reportAction2.reportActionID,
         originalMessage: {
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            IOUReportID: report2.reportID,
             IOUTransactionID: transactionID2,
         },
         reportName: report2.reportName,
@@ -797,7 +791,6 @@ const reportActionListItems = [
         keyForList: reportAction3.reportActionID,
         originalMessage: {
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            IOUReportID: report3.reportID,
             IOUTransactionID: transactionID3,
         },
         reportName: report3.reportName,
@@ -816,7 +809,6 @@ const reportActionListItems = [
         keyForList: reportAction4.reportActionID,
         originalMessage: {
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            IOUReportID: report3.reportID,
             IOUTransactionID: transactionID4,
         },
         reportName: report3.reportName,
@@ -5638,7 +5630,6 @@ describe('SearchUIUtils', () => {
                                 originalMessage: {
                                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                                     IOUTransactionID: filterTestTxID,
-                                    IOUReportID: filterTestReportID,
                                 },
                             },
                         },
@@ -8633,7 +8624,6 @@ describe('SearchUIUtils', () => {
                 originalMessage: {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     IOUTransactionID: 'differentUsers',
-                    IOUReportID: report2.reportID,
                 },
             };
 
@@ -9555,6 +9545,7 @@ describe('SearchUIUtils', () => {
                         actorAccountID: TEST_ACCOUNT_ID,
                         avatar: '',
                         childReportID: TEST_CHILD_REPORT_ID,
+                        reportID: TEST_REPORT_ID,
                         created: '2024-01-01 00:00:00',
                         lastModified: '2024-01-01 00:00:00',
                         message: [
@@ -9570,7 +9561,6 @@ describe('SearchUIUtils', () => {
                             },
                         ],
                         originalMessage: {
-                            IOUReportID: Number(TEST_REPORT_ID),
                             IOUTransactionID: TEST_TRANSACTION_ID,
                             amount: TEST_AMOUNT,
                             comment: `${TEST_DISTANCE} miles`,
@@ -9772,10 +9762,10 @@ describe('SearchUIUtils', () => {
                             actorAccountID: TEST_ACCOUNT_ID,
                             avatar: '',
                             childReportID: TEST_CHILD_REPORT_ID,
+                            reportID: '0',
                             created: TEST_DATETIME,
                             lastModified: TEST_DATETIME,
                             originalMessage: {
-                                IOUReportID: 0,
                                 IOUTransactionID: TEST_TRANSACTION_ID,
                                 amount: TEST_AMOUNT_HKD,
                                 comment: `${TEST_DISTANCE_KM} kilometers`,
@@ -9853,6 +9843,7 @@ describe('SearchUIUtils', () => {
                         actorAccountID: TEST_ACCOUNT_ID,
                         avatar: '',
                         childReportID: TEST_CHILD_REPORT_ID,
+                        reportID: '0',
                         created: TEST_DATETIME,
                         lastModified: TEST_DATETIME,
                         message: [
@@ -9864,7 +9855,6 @@ describe('SearchUIUtils', () => {
                             },
                         ],
                         originalMessage: {
-                            IOUReportID: 0,
                             IOUTransactionID: TEST_TRANSACTION_ID,
                             amount: TEST_AMOUNT_HKD,
                             comment: `${TEST_DISTANCE_KM} kilometers`,
@@ -9941,7 +9931,6 @@ describe('SearchUIUtils', () => {
                 originalMessage: {
                     type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                     IOUTransactionID: mockTransaction.transactionID,
-                    IOUReportID: report1.reportID,
                 },
             } as OnyxTypes.ReportAction;
 
