@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
@@ -19,8 +19,8 @@ function CurrencyPopup({label, onBackButtonPress, onChange, closeOverlay, value,
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
 
-    const currencyOptions = useMemo(() => getCurrencyOptions(currencyList, getCurrencySymbol), [currencyList, getCurrencySymbol]);
-    const currencyValue = useMemo(() => currencyOptions.find((option) => option.value === value), [currencyOptions, value]);
+    const currencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
+    const currencyValue = currencyOptions.find((option) => option.value === value);
 
     return (
         <SingleSelectPopup

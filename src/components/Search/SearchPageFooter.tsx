@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Button from '@components/Button';
 import Text from '@components/Text';
@@ -46,34 +46,28 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
     // claim Enter at top priority without bubbling so Enter only opens the currency popover instead of also opening the expense.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, () => {}, {isActive: isTotalButtonFocused, shouldBubble: false, shouldPreventDefault: false});
 
-    const handleCurrencyChange = useCallback(
-        (item: SingleSelectItem<string> | undefined) => {
-            if (isOffline) {
-                return;
-            }
+    const handleCurrencyChange = (item: SingleSelectItem<string> | undefined) => {
+        if (isOffline) {
+            return;
+        }
 
-            const nextCurrency = item?.value ?? defaultCurrency;
-            if (!nextCurrency) {
-                return;
-            }
-            onCurrencyChange(nextCurrency === defaultCurrency ? undefined : nextCurrency);
-        },
-        [defaultCurrency, isOffline, onCurrencyChange],
-    );
+        const nextCurrency = item?.value ?? defaultCurrency;
+        if (!nextCurrency) {
+            return;
+        }
+        onCurrencyChange(nextCurrency === defaultCurrency ? undefined : nextCurrency);
+    };
 
-    const renderCurrencyPopup: FilterPopupButtonProps['PopoverComponent'] = useCallback(
-        ({closeOverlay, isExpanded}) => (
-            <CurrencyPopup
-                key={currency ?? defaultCurrency}
-                value={currency}
-                closeOverlay={closeOverlay}
-                onChange={handleCurrencyChange}
-                searchPlaceholder={translate('common.search')}
-                defaultValue={defaultCurrency}
-                shouldShowList={isExpanded}
-            />
-        ),
-        [currency, defaultCurrency, handleCurrencyChange, translate],
+    const renderCurrencyPopup: FilterPopupButtonProps['PopoverComponent'] = ({closeOverlay, isExpanded}) => (
+        <CurrencyPopup
+            key={currency ?? defaultCurrency}
+            value={currency}
+            closeOverlay={closeOverlay}
+            onChange={handleCurrencyChange}
+            searchPlaceholder={translate('common.search')}
+            defaultValue={defaultCurrency}
+            shouldShowList={isExpanded}
+        />
     );
 
     const totalButton = (props: ButtonComponentProps) => (
