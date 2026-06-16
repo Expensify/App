@@ -2847,10 +2847,6 @@ describe('actions/Report', () => {
                     [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
-            const reports: OnyxCollection<OnyxTypes.Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`]: conciergeChat,
-            };
-
             // LOOKING_AROUND posts the onboarding tasks to the Concierge chat (not the #admins room)
             const engagementChoice = CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
             const {onboardingMessages} = getOnboardingMessages();
@@ -2862,7 +2858,7 @@ describe('actions/Report', () => {
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
-                reports,
+                conciergeChat,
             });
 
             // The onboarding optimistic data should target the existing Concierge chat
@@ -2897,10 +2893,6 @@ describe('actions/Report', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, selfDMReport);
             await waitForBatchedUpdates();
-            const reports: OnyxCollection<OnyxTypes.Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`]: conciergeChat,
-                [`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`]: selfDMReport,
-            };
 
             // PERSONAL_SPEND routes the onboarding to the user's self-DM
             const engagementChoice = CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
@@ -2913,7 +2905,7 @@ describe('actions/Report', () => {
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
-                reports,
+                conciergeChat,
             });
 
             // The existing self-DM should be reused, so no new self-DM is created
@@ -2935,10 +2927,6 @@ describe('actions/Report', () => {
                     [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
-            const reports: OnyxCollection<OnyxTypes.Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`]: conciergeChat,
-            };
-
             const engagementChoice = CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
             const {onboardingMessages} = getOnboardingMessages();
 
@@ -2949,7 +2937,7 @@ describe('actions/Report', () => {
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
-                reports,
+                conciergeChat,
             });
 
             // A new self-DM is created and added to the optimistic data
