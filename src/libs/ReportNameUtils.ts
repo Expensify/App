@@ -860,10 +860,12 @@ function computeChatThreadReportName(
         if (transactions) {
             linkedTransactions = linkedTransaction ? [linkedTransaction] : [];
         }
+        const linkedTransactionReport = linkedTransaction?.reportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTransaction.reportID}`] : undefined;
         let formattedName = getTransactionReportName({
             translate,
             reportAction: parentReportAction,
             transactions: linkedTransactions,
+            report: linkedTransactionReport,
         });
 
         if (isArchivedNonExpense) {

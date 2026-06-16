@@ -63,7 +63,10 @@ function BaseSearchList({
     isAttendeesEnabledForMovingPolicy,
     nonPersonalAndWorkspaceCards,
     stickyHeaderIndices,
+    stickyHeaderConfig,
     getItemType,
+    disabledIndexes,
+    overrideItemLayout,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
@@ -93,6 +96,7 @@ function BaseSearchList({
         setHasKeyBeenPressed,
         isFocused,
         captureOnInputs: false,
+        ...(disabledIndexes ? {disabledIndexes} : {}),
     });
 
     const handleFocusByIndex = (index: number, event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
@@ -186,7 +190,9 @@ function BaseSearchList({
             contentContainerStyle={contentContainerStyle}
             maintainVisibleContentPosition={{disabled: true}}
             stickyHeaderIndices={stickyHeaderIndices}
+            stickyHeaderConfig={stickyHeaderConfig}
             getItemType={getItemType}
+            overrideItemLayout={overrideItemLayout}
         />
     );
 }
