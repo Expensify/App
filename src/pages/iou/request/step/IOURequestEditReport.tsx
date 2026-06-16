@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
@@ -73,6 +74,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const reports = useChangeTransactionsReportReports(transactionIDs, allTransactions, selectedReport);
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
@@ -81,6 +83,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
+        const reportsForCall = newReport?.reportID ? {[`${ONYXKEYS.COLLECTION.REPORT}${newReport.reportID}`]: newReport, ...reports} : reports;
 
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
@@ -95,6 +98,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 allTransactions,
                 policyTagList,
                 allTransactionViolation: transactionViolations,
+                reports: reportsForCall,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -117,6 +121,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             allTransactions,
             policyTagList,
             allTransactionViolation: transactionViolations,
+            reports,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();

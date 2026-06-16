@@ -10,6 +10,7 @@ import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -75,6 +76,8 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const transactionIDsForReports = Object.keys(selectedTransactions).length ? Object.keys(selectedTransactions) : selectedTransactionIDs;
+    const reports = useChangeTransactionsReportReports(transactionIDsForReports, allTransactions, undefined);
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
@@ -126,6 +129,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     allTransactions,
                     policyTagList,
                     allTransactionViolation: transactionViolations,
+                    reports,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values

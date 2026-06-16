@@ -3,6 +3,7 @@ import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
@@ -106,6 +107,7 @@ function useReportSelectionActions({
     const {removeTransaction} = useSearchSelectionActions();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+    const reports = useChangeTransactionsReportReports(transaction?.transactionID ? [transaction.transactionID] : [], allTransactions, undefined);
 
     const buildParticipants = (report: OnyxEntry<Report>) => [
         {
@@ -190,6 +192,7 @@ function useReportSelectionActions({
 
                 if (isEditing) {
                     const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
+                    const reportsForCall = report?.reportID ? {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report, ...reports} : reports;
                     changeTransactionsReport({
                         transactionIDs: [transaction.transactionID],
                         isASAPSubmitBetaEnabled,
@@ -202,6 +205,7 @@ function useReportSelectionActions({
                         allTransactions,
                         policyTagList,
                         allTransactionViolation: transactionViolations,
+                        reports: reportsForCall,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -225,6 +229,7 @@ function useReportSelectionActions({
                 allTransactions,
                 policyTagList,
                 allTransactionViolation: transactionViolations,
+                reports,
             });
             removeTransaction(transaction.transactionID);
         });

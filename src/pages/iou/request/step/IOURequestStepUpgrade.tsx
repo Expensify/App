@@ -10,6 +10,7 @@ import {useSearchSelectionActions, useSearchSelectionContext} from '@components/
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useActivePolicy from '@hooks/useActivePolicy';
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -109,6 +110,8 @@ function IOURequestStepUpgrade({
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    // The destination is an optimistic report created at click time, so it isn't yet in Onyx.
+    const reports = useChangeTransactionsReportReports(selectedTransactionsKeys, allTransactions, undefined);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const ownerAccountID = selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID;
 
@@ -152,6 +155,7 @@ function IOURequestStepUpgrade({
                 allTransactions,
                 policyTagList,
                 allTransactionViolation: transactionViolations,
+                reports,
             });
 
             clearSelectedTransactions();
@@ -249,6 +253,7 @@ function IOURequestStepUpgrade({
         allPolicyTags,
         createReportForCurrentUser,
         transactionViolations,
+        reports,
     ]);
 
     const participant = transaction?.participants?.[0];

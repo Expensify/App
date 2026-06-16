@@ -1,5 +1,6 @@
 import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -59,6 +60,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [chatReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${chatReport?.policyID}`);
+    const reports = useChangeTransactionsReportReports([...selectedIds], selectedTransactions, reportToConfirm);
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
@@ -96,6 +98,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         allTransactions: selectedTransactions,
                         policyTagList,
                         allTransactionViolation: transactionViolations,
+                        reports,
                     });
                 }
             },
