@@ -77,40 +77,25 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
                             >
                                 {item.login}
                             </Text>
-                            {shouldUseNarrowTableLayout && item.isPrimaryContact && (
-                                <Badge
-                                    text={translate('domain.admins.primaryContact')}
-                                    badgeStyles={styles.ml0}
-                                />
-                            )}
                         </View>
                     </View>
 
-                    {!shouldUseNarrowTableLayout ? (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
-                            {item.isPrimaryContact && (
-                                <Badge
-                                    text={translate('domain.admins.primaryContact')}
-                                    badgeStyles={styles.ml0}
-                                />
-                            )}
-                            <Icon
-                                src={icons.ArrowRight}
-                                fill={theme.icon}
-                                additionalStyles={[styles.alignSelfCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
+                        {item.isPrimaryContact && (
+                            <Badge
+                                text={translate('domain.admins.primaryContact')}
+                                badgeStyles={styles.ml0}
+                                isCondensed={shouldUseNarrowTableLayout}
                             />
-                        </View>
-                    ) : (
+                        )}
                         <Icon
                             src={icons.ArrowRight}
                             fill={theme.icon}
-                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                            additionalStyles={[styles.alignSelfCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
                             width={variables.iconSizeNormal}
                             height={variables.iconSizeNormal}
                         />
-                    )}
+                    </View>
                 </>
             )}
         </Table.Row>
