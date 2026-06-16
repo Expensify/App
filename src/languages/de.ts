@@ -9622,6 +9622,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         expenseLevelExport: 'Alle Daten – Ausgabenebene',
         exportInProgress: 'Export wird ausgeführt',
         conciergeWillSend: 'Concierge wird dir die Datei in Kürze senden.',
+        currentView: 'Aktuelle Ansicht exportieren',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

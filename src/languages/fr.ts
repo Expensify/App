@@ -9653,6 +9653,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         expenseLevelExport: 'Toutes les données - niveau dépense',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
+        currentView: 'Exporter la vue actuelle',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
