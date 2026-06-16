@@ -6275,6 +6275,8 @@ const translations = {
                 conciergeNotificationTitle: 'Concierge will let you know',
                 conciergeNotificationDescription: 'When the process is completed, Concierge will send you a message.',
                 copyCompleted: 'Your workspace settings have been copied.',
+                copyFailedTitle: 'Copy failed',
+                tryAgain: 'Try again',
             },
         },
         emptyWorkspace: {
