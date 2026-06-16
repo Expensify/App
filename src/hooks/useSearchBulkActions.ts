@@ -671,21 +671,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             if (areAllMatchingItemsSelected) {
-                const result = await showConfirmModal({
-                    title: translate('search.exportSearchResults.title'),
-                    prompt: translate('search.exportSearchResults.description'),
-                    confirmText: translate('search.exportSearchResults.title'),
-                    cancelText: translate('common.cancel'),
-                });
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
                 if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
                     return;
                 }
                 const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
                 const exportParameters = getCSVExportParameters(isBasicExport, queryJSON);
-                queueExportSearchItemsToCSV({
+                const exportID = queueExportSearchItemsToCSV({
                     query: status,
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
@@ -693,8 +684,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
                 });
-                selectAllMatchingItems(false);
-                clearSelectedTransactions();
+                setActiveExportID(exportID);
                 return;
             }
 
@@ -735,9 +725,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             selectedTransactionsKeys,
             translate,
             clearSelectedTransactions,
-            showConfirmModal,
             hash,
-            selectAllMatchingItems,
             currentSearchResults?.data,
             getCSVExportParameters,
         ],
