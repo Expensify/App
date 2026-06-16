@@ -73,7 +73,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                                         styles.ml0,
                                         styles.justifyContentCenter,
                                         styles.borderNone,
-                                        StyleUtils.getMinimumWidth(40),
+                                        StyleUtils.getMinimumWidth(variables.componentSizeNormal),
                                         StyleUtils.getBackgroundColorStyle(badgeColors.backgroundColor),
                                     ]}
                                     textStyles={StyleUtils.getColorStyle(badgeColors.textColor)}
@@ -103,7 +103,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                                     styles.ml0,
                                     styles.justifyContentCenter,
                                     styles.borderNone,
-                                    StyleUtils.getMinimumWidth(40),
+                                    StyleUtils.getMinimumWidth(variables.componentSizeNormal),
                                     StyleUtils.getBackgroundColorStyle(badgeColors.backgroundColor),
                                 ]}
                                 textStyles={StyleUtils.getColorStyle(badgeColors.textColor)}

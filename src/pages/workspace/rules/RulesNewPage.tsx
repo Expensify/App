@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -22,6 +23,8 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const {policyID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'ReportReceipt']);
 
     return (
@@ -30,6 +33,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
+            shouldBeBlocked={!isRulesRevampEnabled}
         >
             <ScreenWrapper testID={RulesNewPage.displayName}>
                 <HeaderWithBackButton title={translate('workspace.rules.newRule.title')} />

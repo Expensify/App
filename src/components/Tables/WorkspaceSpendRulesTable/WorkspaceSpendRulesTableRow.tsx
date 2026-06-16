@@ -93,7 +93,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                                     <Badge
                                         text={item.actionLabel}
                                         icon={item.isBlock ? Expensicons.CircleSlash : Expensicons.Checkmark}
-                                        badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
+                                        badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(variables.componentSizeNormal)]}
                                         error={item.isBlock}
                                         success={!item.isBlock}
                                         isCondensed
@@ -117,7 +117,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                                 <Badge
                                     text={item.actionLabel}
                                     icon={item.isBlock ? Expensicons.CircleSlash : Expensicons.Checkmark}
-                                    badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
+                                    badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(variables.componentSizeNormal)]}
                                     error={item.isBlock}
                                     success={!item.isBlock}
                                     isCondensed

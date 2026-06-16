@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,6 +33,8 @@ function RulesRequireFieldsPage({
     const {policy} = policyData;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
@@ -73,6 +76,7 @@ function RulesRequireFieldsPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
+            shouldBeBlocked={!isRulesRevampEnabled}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
