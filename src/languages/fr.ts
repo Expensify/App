@@ -1,6 +1,7 @@
 /**
  *   _____                      __         __
  *  / ___/__ ___  ___ _______ _/ /____ ___/ /
+ * / (_ / -_) _ \/ -_) __/ _ \`/ __/ -_) _  /
  * \___/\__/_//_/\__/_/  \_,_/\__/\__/\_,_/
  *
  * This file was automatically generated. Please consider these alternatives before manually editing it:
@@ -862,7 +863,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Cette discussion est avec ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `C’est ici que <strong>${submitterDisplayName}</strong> soumettra des dépenses à <strong>${workspaceName}</strong>. Utilisez simplement le bouton +.`,
-        beginningOfChatHistoryPolicyExpenseChatTrack: 'C\u2019est ici que vous suivrez vos dépenses',
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'C’est ici que vous suivrez vos dépenses',
         beginningOfChatHistorySelfDM: 'Ceci est votre espace personnel. Utilisez-le pour vos notes, tâches, brouillons et rappels.',
         beginningOfChatHistorySystemDM: 'Bienvenue ! Procédons à la configuration.',
         chatWithAccountManager: 'Discutez avec votre gestionnaire de compte ici',
@@ -6246,7 +6247,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 accountingMismatch: ({part}: {part: string}) =>
                     `Vous ne pouvez copier ${part} que si tous les espaces de travail utilisent le même système de comptabilité et la même connexion d’entreprise.`,
             },
-
             confirmSettings: {
                 title: 'Assurons-nous que tout est correct.',
                 description: ({workspaceName}: {workspaceName: string}) =>
@@ -7060,9 +7060,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             approvalSubmitReport: {
                 title: 'Approuver les notes de frais',
                 description:
-                    'Examinez, approuvez et gardez vos dépenses sous contrôle en un seul endroit. Les workflows d’approbation vous aident à maîtriser les coûts, à faire respecter les politiques de l’entreprise et à rembourser vos employés plus rapidement.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Les approbations de notes de frais sont disponibles avec les offres Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                    'Examinez, approuvez et gardez vos dépenses sous contrôle en un seul endroit. Les workflows d’approbation vous aident à maîtriser les coûts, à appliquer les politiques de votre entreprise et à rembourser vos employés plus rapidement.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Les workflows d’approbation sont uniquement disponibles avec l’offre Collect, à partir de <strong>${formattedPrice}</strong> par membre actif et par mois.</muted-text>`,
             },
             companyCardSubmit: {
                 title: 'Cartes d’entreprise',
@@ -7238,7 +7238,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour déverrouiller cette fonctionnalité.`,
             },
-
             agentsPromoBanner: {
                 title: 'Vous ne voyez pas la règle dont vous avez besoin ? Ajoutez un agent',
                 subtitle: 'Ajoutez des règles complexes et réduisez les approbations manuelles grâce à des agents personnalisés.',

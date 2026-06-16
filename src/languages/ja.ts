@@ -6585,7 +6585,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Continuous Reconciliation が正しく機能するように、この口座が、旅行の請求書決済用口座（末尾が ${lastFourPAN} の口座）と一致していることを確認してください。`,
             },
-
             syncTravelInvoicingSettlements: '出張請求の精算を同期',
         },
         export: {
@@ -6941,9 +6940,10 @@ ${reportName}
             },
             approvalSubmitReport: {
                 title: 'レポートを承認',
-                description: '経費を確認・承認し、支出を一元管理できます。承認ワークフローを使うと、コストの管理、社内ポリシーの順守、従業員への迅速な立替精算が可能になります。',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>レポートの承認機能は Collect プランと Control プランでご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `月あたりメンバー1人につき。` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
+                description:
+                    '申請の確認と承認、支出の管理をすべて一か所で行うことができます。承認ワークフローを使えば、コストの管理、社内ポリシーの順守、従業員への迅速な精算が可能になります。',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>承認ワークフローは、アクティブメンバー1人あたり月額<strong>${formattedPrice}</strong>からの Collect プランでのみご利用いただけます。</muted-text>`,
             },
             companyCardSubmit: {
                 title: '会社カード',
@@ -7116,7 +7116,6 @@ ${reportName}
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `[その他の機能](${moreFeaturesLink})に移動し、${featureName} を有効にしてこの機能を利用できるようにしてください。`,
             },
-
             agentsPromoBanner: {
                 title: '必要なルールが見つかりませんか？エージェントを追加してください',
                 subtitle: '複雑なルールを追加し、カスタムエージェントで手動承認を減らしましょう。',

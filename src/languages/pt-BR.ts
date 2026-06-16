@@ -6193,7 +6193,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 description: ({workspaceName}: {workspaceName: string}) =>
                     `Vamos copiar as seguintes configurações de <strong>${workspaceName}</strong> para os espaços de trabalho que você especificou`,
             },
-
             confirmWorkflows: {
                 continue: 'Continuar sem membros',
                 description: 'Copiar fluxos de trabalho sem membros não copiará os fluxos de aprovação. As configurações de envio e pagamento ainda serão copiadas.',
@@ -6994,9 +6993,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             approvalSubmitReport: {
                 title: 'Aprovar relatórios',
                 description:
-                    'Revise, aprove e mantenha os gastos sob controle em um só lugar. Os fluxos de aprovação ajudam você a controlar custos, aplicar as políticas da empresa e reembolsar seus funcionários mais rápido.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Relatórios de aprovação estão disponíveis nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+                    'Revise, aprove e mantenha os gastos sob controle em um só lugar. Fluxos de aprovação ajudam você a controlar custos, aplicar as políticas da empresa e reembolsar seus funcionários mais rápido.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Os fluxos de aprovação estão disponíveis apenas no plano Collect, a partir de <strong>${formattedPrice}</strong> por membro ativo por mês.</muted-text>`,
             },
             companyCardSubmit: {
                 title: 'Cartões corporativos',
@@ -7171,7 +7170,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vá para [mais recursos](${moreFeaturesLink}) e ative ${featureName} para desbloquear este recurso.`,
             },
-
             agentsPromoBanner: {
                 title: 'Não encontrou a regra que precisa? Adicione um agente',
                 subtitle: 'Adicione regras complexas e reduza aprovações manuais com agentes personalizados.',

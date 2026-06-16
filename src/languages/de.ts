@@ -6222,7 +6222,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 accountingMismatch: ({part}: {part: string}) =>
                     `Sie können ${part} nur kopieren, wenn alle Arbeitsbereiche dasselbe Buchhaltungssystem und dieselbe Unternehmensverbindung verwenden.`,
             },
-
             confirmSettings: {
                 title: 'Stellen wir sicher, dass alles richtig aussieht.',
                 description: ({workspaceName}: {workspaceName: string}) =>
@@ -7036,8 +7035,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 title: 'Berichte genehmigen',
                 description:
                     'Prüfen, genehmigen und Ausgaben an einem Ort im Blick behalten. Genehmigungs-Workflows helfen Ihnen, Kosten zu kontrollieren, Unternehmensrichtlinien durchzusetzen und Ihre Mitarbeitenden schneller zu erstatten.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Genehmigen-Berichte sind in den Collect- und Control-Tarifen verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Genehmigungs-Workflows sind nur im Collect-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> pro aktivem Mitglied und Monat.</muted-text>`,
             },
             companyCardSubmit: {
                 title: 'Firmenkarten',
@@ -7213,7 +7212,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Gehe zu [weitere Funktionen](${moreFeaturesLink}) und aktiviere ${featureName}, um diese Funktion freizuschalten.`,
             },
-
             agentsPromoBanner: {
                 title: 'Sie sehen die benötigte Regel nicht? Fügen Sie eine:n Agent:in hinzu',
                 subtitle: 'Fügen Sie komplexe Regeln hinzu und reduzieren Sie manuelle Genehmigungen mit benutzerdefinierten Agenten.',

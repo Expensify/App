@@ -6211,7 +6211,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 accountingMismatch: ({part}: {part: string}) =>
                     `Puoi copiare ${part} solo se tutti gli spazi di lavoro usano lo stesso sistema di contabilità e la stessa connessione aziendale.`,
             },
-
             confirmSettings: {
                 title: 'Assicuriamoci che sia tutto corretto.',
                 description: ({workspaceName}: {workspaceName: string}) => `Copieremo le seguenti impostazioni da <strong>${workspaceName}</strong> agli spazi di lavoro che hai specificato`,
@@ -7015,11 +7014,11 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     `<muted-text>Le approvazioni sono disponibili nei piani Collect e Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             approvalSubmitReport: {
-                title: 'Approva report',
+                title: 'Approva i report',
                 description:
-                    'Esamina, approva e tieni sotto controllo le spese in un unico posto. I flussi di approvazione ti aiutano a controllare i costi, far rispettare le policy aziendali e rimborsare più velocemente i tuoi dipendenti.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Le approvazioni dei report sono disponibili con i piani Collect e Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
+                    'Esamina, approva e mantieni le spese sotto controllo in un unico posto. I flussi di approvazione ti aiutano a controllare i costi, far rispettare le politiche aziendali e rimborsare più velocemente i tuoi dipendenti.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>I flussi di approvazione sono disponibili solo nel piano Collect, a partire da <strong>${formattedPrice}</strong> per membro attivo al mese.</muted-text>`,
             },
             companyCardSubmit: {
                 title: 'Carte aziendali',
@@ -7196,7 +7195,6 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vai su [altre funzionalità](${moreFeaturesLink}) e abilita ${featureName} per sbloccare questa funzione.`,
             },
-
             agentsPromoBanner: {
                 title: 'Non vedi la regola che ti serve? Aggiungi un agente',
                 subtitle: 'Aggiungi regole complesse e riduci le approvazioni manuali con agenti personalizzati.',

@@ -6184,7 +6184,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 accountingMismatch: ({part}: {part: string}) =>
                     `Możesz skopiować ${part} tylko wtedy, gdy wszystkie przestrzenie robocze używają tego samego systemu księgowego i połączenia z firmą.`,
             },
-
             confirmSettings: {
                 title: 'Upewnijmy się, że wszystko wygląda poprawnie.',
                 description: ({workspaceName}: {workspaceName: string}) =>
@@ -6989,11 +6988,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     `<muted-text>Zatwierdzanie jest dostępne w planach Collect i Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka za miesiąc.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
             approvalSubmitReport: {
-                title: 'Zatwierdź raporty',
+                title: 'Zatwierdzaj raporty',
                 description:
-                    'Przeglądaj, zatwierdzaj i kontroluj wydatki w jednym miejscu. Ścieżki zatwierdzania pomagają ci kontrolować koszty, egzekwować firmowe zasady i szybciej zwracać pracownikom wydatki.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Raporty do zatwierdzenia są dostępne w planach Collect i Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka za miesiąc.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+                    'Przeglądaj, zatwierdzaj i kontroluj wydatki w jednym miejscu. Procesy akceptacji pomagają kontrolować koszty, egzekwować zasady firmowe i szybciej zwracać pracownikom wydatki.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Przepływy zatwierdzania są dostępne tylko w planie Collect, zaczynającym się od <strong>${formattedPrice}</strong> za aktywnego członka miesięcznie.</muted-text>`,
             },
             companyCardSubmit: {
                 title: 'Firmowe karty',
@@ -7169,7 +7168,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Przejdź do [więcej funkcji](${moreFeaturesLink}) i włącz ${featureName}, aby odblokować tę funkcję.`,
             },
-
             agentsPromoBanner: {title: 'Nie widzisz potrzebnej reguły? Dodaj agenta', subtitle: 'Dodaj złożone reguły i ogranicz ręczne akceptacje dzięki własnym agentom.', cta: 'Wypróbuj'},
             merchantRules: {
                 title: 'Sprzedawca',

@@ -1753,7 +1753,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (actor, actorType, _eta, _etaType) => {
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Esperando a que <strong>tú</strong> lo marques como listo.`;
@@ -6054,7 +6053,6 @@ ${amount} para ${merchant} - ${date}`,
                 accountingMismatch: ({part}: {part: string}) =>
                     `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
             },
-
             confirmSettings: {
                 title: 'Vamos a asegurarnos de que todo se vea bien.',
                 description: ({workspaceName}: {workspaceName: string}) =>
@@ -6835,9 +6833,9 @@ ${amount} para ${merchant} - ${date}`,
             approvalSubmitReport: {
                 title: 'Aprobar informes',
                 description:
-                    'Revisa, aprueba y mantén los gastos bajo control en un solo lugar. Los flujos de aprobación te ayudan a controlar los costos, hacer cumplir las políticas de la empresa y reembolsar a tus empleados más rápido.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Los informes de aprobación están disponibles en los planes Recopilar y Controlar, desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                    'Revisa, aprueba y mantén los gastos bajo control en un solo lugar. Los flujos de aprobación te ayudan a controlar los costes, hacer cumplir las políticas de la empresa y reembolsar a tus empleados más rápido.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Los flujos de aprobación solo están disponibles en el plan Recopilar, desde <strong>${formattedPrice}</strong> por miembro activo al mes.</muted-text>`,
             },
             categories: {
                 title: 'Categorías',
@@ -7209,7 +7207,6 @@ ${amount} para ${merchant} - ${date}`,
                 enableWorkflows: (moreFeaturesLink) =>
                     `Ve a [Más características](${moreFeaturesLink}) y habilita los flujos de trabajo, luego añade aprobaciones para desbloquear esta función.`,
             },
-
             customRules: {
                 title: 'Reglas personalizadas',
                 cardSubtitle: 'Aquí es donde se definen las reglas de tu equipo, para que todos sepan lo que esta cubierto.',

@@ -6816,10 +6816,10 @@ ${reportName}
                     `<muted-text>审批功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             approvalSubmitReport: {
-                title: '批准报销报告',
-                description: '在同一处审核、批准并跟踪支出。审批流程帮助你控制成本、执行公司政策，并更快报销员工。',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>“审批报销单”功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                title: '审批报销报告',
+                description: '在同一位置审阅、批准并掌控支出进度。审批流程帮助你控制成本、执行公司政策，并更快报销员工费用。',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>审批工作流仅适用于 Collect 方案，起价为每位活跃成员每月 <strong>${formattedPrice}</strong>。</muted-text>`,
             },
             companyCardSubmit: {
                 title: '公司卡枚',
@@ -8884,7 +8884,6 @@ ${reportName}
                 subtitle: (amountOwed: number, cardEnding: string) =>
                     `您对以 ${cardEnding} 结尾的银行卡上金额为 ${amountOwed} 的扣款提出了争议。在与您的银行解决该争议之前，您的账户将被锁定。`,
             },
-
             cardAuthenticationRequired: {
                 title: '您的支付卡尚未完全通过身份验证。',
                 subtitle: (cardEnding: string) => `请完成身份验证流程，以激活以 ${cardEnding} 结尾的付款卡。`,

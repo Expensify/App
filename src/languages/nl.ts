@@ -6194,7 +6194,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description: ({workspaceName}: {workspaceName: string}) =>
                     `We kopiëren de volgende instellingen van <strong>${workspaceName}</strong> naar de werkruimtes die je hebt opgegeven`,
             },
-
             confirmWorkflows: {
                 continue: 'Doorgaan zonder leden',
                 description: 'Workflows kopiëren zonder leden zal goedkeuringsworkflows niet kopiëren. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
@@ -6996,9 +6995,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             approvalSubmitReport: {
                 title: 'Rapporten goedkeuren',
                 description:
-                    'Beoordeel, keur goed en houd uitgaven op één plek onder controle. Goedkeuringsworkflows helpen je kosten te beheersen, bedrijfsbeleid te handhaven en je medewerker sneller terug te betalen.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Rapporten goedkeuren is beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
+                    'Beoordeel, keur goed en bewaak alle uitgaven op één plek. Goedkeuringsworkflows helpen je kosten te beheersen, bedrijfsbeleid te handhaven en je medewerkers sneller terug te betalen.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Goedkeuringsworkflows zijn alleen beschikbaar in het Collect-abonnement, vanaf <strong>${formattedPrice}</strong> per actieve deelnemer per maand.</muted-text>`,
             },
             companyCardSubmit: {
                 title: 'Bedrijfskaarten',
@@ -7173,7 +7172,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,
             },
-
             agentsPromoBanner: {
                 title: 'Zie je de regel die je nodig hebt niet? Voeg een agent toe',
                 subtitle: 'Voeg complexe regels toe en verminder handmatige goedkeuringen met aangepaste agents.',
