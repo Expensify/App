@@ -3517,7 +3517,7 @@ ${amount} per ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Stato',
-        statusExplanation: "Aggiungi un'emoji per dare a colleghi e amici un modo semplice per capire cosa sta succedendo. Puoi anche aggiungere un messaggio, se vuoi!",
+        statusExplanation: "Imposta il tuo stato con un'emoji e un messaggio facoltativo.",
         today: 'Oggi',
         clearStatus: 'Cancella stato',
         save: 'Salva',
