@@ -153,20 +153,21 @@ function ActionContentRouter({
     const reportOwnerAccountID = report?.ownerAccountID;
 
     if (isIOURequestReportAction(action)) {
-        if (report?.type !== CONST.REPORT.TYPE.CHAT) {
-            return null;
-        }
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
         const isSplitBill = moneyRequestOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
         const isSplitScanWithNoAmount = isSplitBill && moneyRequestOriginalMessage?.amount === 0;
         const shouldShowSplitPreview = isSplitBill || isSplitScanWithNoAmount;
-        if (report.chatType !== CONST.REPORT.CHAT_TYPE.SELF_DM && !shouldShowSplitPreview) {
+
+        // In a workspace/group chat the per-action preview lives in the linked expense report, so only SELF_DM
+        // chats and split bills render an inline preview here. Expense reports (non-chat) render it directly.
+        if (report?.type === CONST.REPORT.TYPE.CHAT && report.chatType !== CONST.REPORT.CHAT_TYPE.SELF_DM && !shouldShowSplitPreview) {
             return null;
         }
         return (
             <ChatTransactionPreview
                 action={action}
                 reportID={reportID}
+                chatReportID={report?.type === CONST.REPORT.TYPE.CHAT ? reportID : report?.chatReportID}
                 iouReport={iouReport}
                 shouldShowSplitPreview={shouldShowSplitPreview}
                 transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
