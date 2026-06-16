@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -22,7 +22,6 @@ type QuickbooksOnlineSetupPageProps = PlatformStackScreenProps<SettingsNavigator
 function QuickbooksOnlineSetupPage({route}: QuickbooksOnlineSetupPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const webViewRef = useRef<WebView>(null);
     const policyID = route.params.policyID;
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
@@ -56,7 +55,6 @@ function QuickbooksOnlineSetupPage({route}: QuickbooksOnlineSetupPageProps) {
             />
             <FullPageOfflineBlockingView>
                 <WebView
-                    ref={webViewRef}
                     source={{
                         uri: getQuickbooksOnlineSetupLink(policyID),
                         headers: {

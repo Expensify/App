@@ -26,9 +26,7 @@ function XeroSetupPage({route}: XeroSetupPageProps) {
             return;
         }
         openLink(getXeroSetupLink(policyID), environmentURL);
-        Navigation.goBack();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [is2FAEnabled]);
+    }, [is2FAEnabled, policyID, environmentURL]);
 
     if (!is2FAEnabled) {
         return (

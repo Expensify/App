@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -24,7 +24,6 @@ type XeroSetupPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, t
 function XeroSetupPage({route}: XeroSetupPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const webViewRef = useRef<WebView>(null);
     const policyID = route.params.policyID;
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
@@ -72,7 +71,6 @@ function XeroSetupPage({route}: XeroSetupPageProps) {
             />
             <FullPageOfflineBlockingView>
                 <WebView
-                    ref={webViewRef}
                     source={{
                         uri: getXeroSetupLink(policyID),
                         headers: {

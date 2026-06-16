@@ -1,6 +1,6 @@
+import {useEffect} from 'react';
 import useEnvironment from '@hooks/useEnvironment';
 import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/QuickbooksOnline';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {openLink} from '@userActions/Link';
@@ -14,9 +14,11 @@ function QuickbooksOnlineSetupPage({route}: QuickbooksOnlineSetupPageProps) {
     const policyID = route.params.policyID;
 
     // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
-    enablePolicyTaxes(policyID, false);
-    openLink(getQuickbooksOnlineSetupLink(policyID), environmentURL);
-    Navigation.goBack();
+    useEffect(() => {
+        enablePolicyTaxes(policyID, false);
+        openLink(getQuickbooksOnlineSetupLink(policyID), environmentURL);
+    }, [policyID, environmentURL]);
+
     return null;
 }
 
