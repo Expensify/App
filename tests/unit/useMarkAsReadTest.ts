@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useMarkAsRead from '@hooks/useMarkAsRead';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -97,10 +97,22 @@ describe('useMarkAsRead', () => {
         expect(readNewestAction).not.toHaveBeenCalled();
     });
 
-    it('flags readActionSkippedRef when the report is unread but the list is not scrolled to the end', () => {
+    it('completes a skipped mark-as-read on demand when the report is unread but the list is not scrolled to the end', () => {
         const {result} = renderMarkAsRead({isScrolledToEnd: false});
+        readNewestAction.mockClear();
 
-        expect(result.current.readActionSkippedRef.current).toBe(true);
+        act(() => result.current.completeSkippedMarkAsRead());
+
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false);
+    });
+
+    it('does not complete a mark-as-read when none was skipped', () => {
+        const {result} = renderMarkAsRead({isScrolledToEnd: true});
+        readNewestAction.mockClear();
+
+        act(() => result.current.completeSkippedMarkAsRead());
+
+        expect(readNewestAction).not.toHaveBeenCalled();
     });
 
     it('marks read from a notification even when the app is not visible, and clears the referrer param', () => {
