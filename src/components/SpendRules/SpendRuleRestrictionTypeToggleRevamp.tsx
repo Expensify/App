@@ -66,6 +66,4 @@ function SpendRuleRestrictionTypeToggleRevamp({restrictionAction, onSelect, labe
     );
 }
 
-SpendRuleRestrictionTypeToggleRevamp.displayName = 'SpendRuleRestrictionTypeToggleRevamp';
-
 export default SpendRuleRestrictionTypeToggleRevamp;

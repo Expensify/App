@@ -35,7 +35,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             shouldBeBlocked={!isRulesRevampEnabled}
         >
-            <ScreenWrapper testID={RulesNewPage.displayName}>
+            <ScreenWrapper testID="RulesNewPage">
                 <HeaderWithBackButton title={translate('workspace.rules.newRule.title')} />
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.rules.newRule.subtitle')}</Text>
                 <View style={styles.mh5}>
@@ -68,7 +68,5 @@ function RulesNewPage({route}: RulesNewPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesNewPage.displayName = 'RulesNewPage';
 
 export default RulesNewPage;

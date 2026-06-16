@@ -81,7 +81,7 @@ function RulesRequireFieldsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesRequireFieldsPage.displayName}
+                testID="RulesRequireFieldsPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.requireFields.title')}
@@ -133,7 +133,5 @@ function RulesRequireFieldsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesRequireFieldsPage.displayName = 'RulesRequireFieldsPage';
 
 export default RulesRequireFieldsPage;
