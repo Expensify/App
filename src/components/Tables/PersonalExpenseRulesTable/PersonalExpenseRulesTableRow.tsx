@@ -59,16 +59,14 @@ export default function PersonalExpenseRulesTableRow({item, rowIndex, shouldUseN
                     )}
 
                     {shouldUseNarrowTableLayout && (
-                        <View>
-                            <View style={[styles.gap1]}>
-                                <Text numberOfLines={1}>item.merchant</Text>
-                                <Text
-                                    numberOfLines={1}
-                                    style={styles.textLabel}
-                                >
-                                    {item.changes}
-                                </Text>
-                            </View>
+                        <View style={[styles.gap1, styles.flex1]}>
+                            <Text numberOfLines={1}>{item.merchant}</Text>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.textLabel, styles.textSupporting]}
+                            >
+                                {item.changes}
+                            </Text>
                         </View>
                     )}
 

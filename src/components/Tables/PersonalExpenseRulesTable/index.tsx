@@ -80,6 +80,7 @@ export default function PersonalExpenseRulesTable({personalExpenseRules, selecte
     return (
         <Table
             selectionEnabled
+            title={translate('expenseRulesPage.title')}
             initialSortColumn="merchant"
             data={personalExpenseRules}
             selectedKeys={selectedKeys}
