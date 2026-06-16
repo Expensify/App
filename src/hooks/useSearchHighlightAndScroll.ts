@@ -63,6 +63,7 @@ function useSearchHighlightAndScroll({
         selector: transactionIDsToHighlightSelector,
     });
     const searchResultsData = searchResults?.data;
+    const hasManualHighlightTransactionIDs = Object.values(transactionIDsToHighlight ?? {}).some(Boolean);
 
     const prevTransactionsIDs = Object.keys(previousTransactions ?? {});
     const newTransactions: Transaction[] = [];
@@ -104,9 +105,10 @@ function useSearchHighlightAndScroll({
             // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
             // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
             // entries the user creates from the RHP until they close it.
-            const isSearchStillActive = isFocused || isSearchTopmostFullScreenRoute();
+            const shouldRefreshBehindRHP = isChat || hasManualHighlightTransactionIDs;
+            const isSearchStillActive = isFocused || (isSearchTopmostFullScreenRoute() && shouldRefreshBehindRHP);
             if (!isSearchStillActive || isOffline) {
-                hasPendingSearchRef.current = true;
+                hasPendingSearchRef.current = isOffline || shouldRefreshBehindRHP;
                 return;
             }
             hasPendingSearchRef.current = false;
@@ -160,6 +162,7 @@ function useSearchHighlightAndScroll({
         searchResultsData,
         isOffline,
         searchResults?.search?.isLoading,
+        hasManualHighlightTransactionIDs,
     ]);
 
     useEffect(() => {
