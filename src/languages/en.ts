@@ -330,6 +330,8 @@ const translations = {
         showLess: 'Show less',
         plusMore: ({count}: {count: number}) => `+${count} more`,
         merchant: 'Merchant',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `Search ${merchant} on Google`,
         change: 'Change',
         category: 'Category',
         vendor: 'Vendor',

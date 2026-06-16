@@ -313,6 +313,8 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: 'Afficher moins',
         plusMore: ({count}: {count: number}) => `+${count} de plus`,
         merchant: 'Commerçant',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `Rechercher ${merchant} sur Google`,
         change: 'Modifier',
         category: 'Catégorie',
         vendor: 'Fournisseur',
