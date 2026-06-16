@@ -148,6 +148,21 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/settings/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/settings/p123/tags/tag-settings/10/Meals?parentTagsFilter=Food');
     });
 
+    it('redirects old workspace tag routes to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/tags/settings')).toBe('/workspaces/p123/tags/tags-settings');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/workspaces/p123/tags/tag-create');
+    });
+
+    it('preserves query params when redirecting old workspace tag routes', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/tags/settings?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/new?backTo=/home')).toBe('/workspaces/p123/tags/tag-create?backTo=/home');
+    });
+
+    it('does not redirect the new workspace tag dynamic routes', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/tag-create')).toBe(undefined);
+    });
+
     it('redirects old flag comment path to report-based dynamic route', () => {
         expect(getMatchingNewRoute('/flag/123/456')).toBe('/r/123/flag/123/456');
     });

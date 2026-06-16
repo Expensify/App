@@ -27,6 +27,8 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
     '/workspaces/*/categories/settings': '/workspaces/$1/categories/categories-settings',
     '/workspaces/*/categories/new': '/workspaces/$1/categories/category-new',
+    '/workspaces/*/tags/settings': '/workspaces/$1/tags/tags-settings',
+    '/workspaces/*/tags/new': '/workspaces/$1/tags/tag-create',
     '/settings/*/categories/settings': '/settings/$1/categories/manage-settings',
     '/settings/*/categories/new': '/settings/$1/categories/category-create',
     '/workspaces/*/accounting/*/card-reconciliation/account': '/workspaces/$1/accounting/$2/card-reconciliation/account-reconciliation-settings',
