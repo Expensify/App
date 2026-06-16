@@ -154,8 +154,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
             return;
         }
         startSession(oldestUnreadReportAction?.created);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to currentReportID returning to this report
-    }, [currentReportID, reportID, isConciergeMainDM, canStartConciergeSession, startSession]);
+    }, [currentReportID, reportID, isConciergeMainDM, canStartConciergeSession, startSession, oldestUnreadReportAction?.created]);
 
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
     const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;

@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useRef} from 'react';
+import {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getContinuousChain} from '@libs/PaginationUtils';
@@ -6,6 +6,7 @@ import {getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import useInitial from './useInitial';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 
@@ -44,10 +45,13 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
     );
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`);
 
-    const initialReportLastReadTime = useRef(report?.lastReadTime);
+    // Snapshot the first non-undefined lastReadTime so the unread anchor stays stable.
+    // On a cold open the report can be undefined on first render; useInitial waits for the
+    // first defined (pre-read) value instead of latching undefined like a first-render ref,
+    // so the unread anchor can still resolve after the report loads.
+    const initialReportLastReadTime = useInitial(report?.lastReadTime);
 
     const id = useMemo(() => {
-        /* eslint-disable react-hooks/refs -- initialReportLastReadTime snapshots lastRead at first render for stable unread deep-link anchor */
         if (treatAsNoPaginationAnchor) {
             return undefined;
         }
@@ -60,14 +64,12 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
             return undefined;
         }
 
-        const initialLastReadTime = initialReportLastReadTime.current;
-        if (!initialLastReadTime || !sortedAllReportActions?.length) {
+        if (!initialReportLastReadTime || !sortedAllReportActions?.length) {
             return undefined;
         }
 
-        return sortedAllReportActions.findLast((reportAction) => reportAction.created > initialLastReadTime)?.reportActionID;
-        /* eslint-enable react-hooks/refs */
-    }, [treatAsNoPaginationAnchor, reportActionID, shouldLinkToOldestUnreadReportAction, sortedAllReportActions]);
+        return sortedAllReportActions.findLast((reportAction) => reportAction.created > initialReportLastReadTime)?.reportActionID;
+    }, [treatAsNoPaginationAnchor, reportActionID, shouldLinkToOldestUnreadReportAction, sortedAllReportActions, initialReportLastReadTime]);
 
     const {
         data: reportActions,
