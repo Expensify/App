@@ -16,9 +16,7 @@ describe('SafeString', () => {
         expect(SafeString(0)).toBe('0');
         expect(SafeString(true)).toBe('true');
         expect(SafeString(false)).toBe('false');
-        expect(SafeString(() => 1)).toBe(`function () {
-      return 1;
-    }`);
+        expect(SafeString(() => 1)).toBe('() => 1');
         expect(SafeString(BigInt(10))).toBe('10');
         const sym = Symbol('x');
         expect(SafeString(sym)).toBe(String(sym));
