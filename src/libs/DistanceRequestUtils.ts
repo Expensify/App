@@ -617,6 +617,30 @@ function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID
 }
 
 /**
+ * Returns whether the selected custom unit rate is out of its valid date range for the given expense date.
+ */
+function isCustomUnitRateOutOfDateRange({
+    customUnitRateID,
+    policy,
+    expenseDate,
+}: {
+    customUnitRateID: string | undefined;
+    policy: OnyxEntry<Policy>;
+    expenseDate: string | undefined;
+}): boolean {
+    if (!expenseDate || isUnsetDistanceCustomUnitRateID(customUnitRateID) || !policy?.customUnits || !customUnitRateID) {
+        return false;
+    }
+
+    const mileageRate = getRateByCustomUnitRateID({customUnitRateID, policy});
+    if (!mileageRate || mileageRate.enabled === false) {
+        return false;
+    }
+
+    return !isRateEligibleForDate(mileageRate, expenseDate);
+}
+
+/**
  * Returns whether the calculated distance expense amount (distance * rate) is within the backend's safe limit.
  * The backend WAF rejects amounts exceeding 12 digits (999,999,999,999 cents).
  *
@@ -698,6 +722,7 @@ export default {
     isDistanceAmountWithinLimit,
     normalizeOdometerText,
     prepareTextForDisplay,
+    isCustomUnitRateOutOfDateRange,
     isRateEligibleForDate,
     isUnsetDistanceCustomUnitRateID,
     getBestEligibleRate,

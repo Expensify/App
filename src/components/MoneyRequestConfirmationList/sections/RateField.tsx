@@ -41,36 +41,6 @@ type RateFieldProps = {
     shouldShowRateAutoUpdatedTooltip?: boolean;
 };
 
-function isRateOutOfDateRangeForConfirmation({
-    customUnitRateID,
-    policy,
-    mileageRate,
-    expenseDate,
-}: {
-    customUnitRateID: string | undefined;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    mileageRate: MileageRate;
-    expenseDate: string | undefined;
-}): boolean {
-    if (!expenseDate || !policy?.id) {
-        return false;
-    }
-
-    const selectedCustomUnitRateID = customUnitRateID;
-    if (!selectedCustomUnitRateID || DistanceRequestUtils.isUnsetDistanceCustomUnitRateID(selectedCustomUnitRateID)) {
-        return false;
-    }
-
-    const policyRates = DistanceRequestUtils.getMileageRates(policy);
-    const isRateValidForPolicy = selectedCustomUnitRateID in policyRates && policyRates[selectedCustomUnitRateID].enabled !== false;
-
-    if (!isRateValidForPolicy) {
-        return false;
-    }
-
-    return !DistanceRequestUtils.isRateEligibleForDate(mileageRate, expenseDate);
-}
-
 function RateField({
     distanceRateName,
     distanceRateCurrency,
@@ -99,7 +69,7 @@ function RateField({
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const {isOffline} = useNetwork();
 
-    const isRateOutOfDateRange = isRateOutOfDateRangeForConfirmation({customUnitRateID, policy, mileageRate, expenseDate});
+    const isRateOutOfDateRange = DistanceRequestUtils.isCustomUnitRateOutOfDateRange({customUnitRateID, policy, expenseDate});
     const rateOutOfDateRangeErrorText = isRateOutOfDateRange
         ? ViolationsUtils.getViolationTranslation({
               violation: {
