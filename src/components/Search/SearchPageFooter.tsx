@@ -44,7 +44,6 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
 
     // The SearchList registers a global Enter shortcut that opens the focused expense. While the total button is focused,
     // claim Enter at top priority without bubbling so Enter only opens the currency popover instead of also opening the expense.
-    // shouldPreventDefault is false so the focused button still activates and opens the popover.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, () => {}, {isActive: isTotalButtonFocused, shouldBubble: false, shouldPreventDefault: false});
 
     const handleCurrencyChange = useCallback(
@@ -64,8 +63,6 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
 
     const renderCurrencyPopup: FilterPopupButtonProps['PopoverComponent'] = useCallback(
         ({closeOverlay, isExpanded}) => (
-            // The popover subtree stays mounted while the page is focused, so key it by the active currency to
-            // re-seed the selector's internal state when the footer currency changes (e.g. reset to default).
             <CurrencyPopup
                 key={currency ?? defaultCurrency}
                 value={currency}
@@ -102,7 +99,6 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
 
     return (
         <View style={[styles.borderTop, styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
-            {/* The real content stays mounted (hidden) while loading so the footer keeps the same height and nothing shifts when the skeleton is shown. */}
             <View
                 style={[
                     shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,

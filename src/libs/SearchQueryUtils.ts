@@ -2204,7 +2204,7 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
 
 /**
  * Returns the query used to fetch footer totals in a separate snapshot from the user-facing search,
- * dropping any grouping so grouped list header/row totals are not converted.
+ * dropping any grouping so grouped list header/row totals are shown in the original currency.
  *
  * targetCurrency scopes the returned hash so the footer-conversion snapshot can't collide with (and
  * overwrite) the live search snapshot, keeping the live search in its original currency.
@@ -2219,10 +2219,8 @@ function buildFlatQueryWithoutGroupBy(queryJSON: Readonly<SearchQueryJSON>, targ
     }
 
     const defaultQueryJSON = getDefaultSearchQueryJSON();
-    // Sort only changes the totals when a limit restricts which rows are summed, so keep the original sort in that
-    // case to convert over the same first-N rows the search shows. Without a limit the sum is order-independent, so
-    // reset to the default sort to keep the flat footer query canonical (lets a no-currency grouped footer reuse the
-    // existing ungrouped snapshot instead of firing an extra request).
+    // Sort only affects totals when a limit is set. Without a limit, reset sort so equivalent footer
+    // total queries can reuse the existing ungrouped snapshot instead of making another request.
     const shouldPreserveSort = queryJSON.limit !== undefined;
     const flatQueryJSON = {
         ...queryJSON,
