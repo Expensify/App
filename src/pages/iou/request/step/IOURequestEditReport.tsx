@@ -133,7 +133,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             {
                 value: optimisticReport.reportID,
                 keyForList: optimisticReport.reportID,
-                policyID: optimisticReport.policyID,
+                policyID: policyForNewReport?.id,
             },
             optimisticReport,
         );
