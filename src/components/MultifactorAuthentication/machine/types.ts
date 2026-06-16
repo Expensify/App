@@ -9,7 +9,7 @@ import type CONST from '@src/CONST';
  * fields back here as they wire them in; the full shape still lives in the Context/reducer layer for
  * its own consumers.
  */
-type MfaContext = Pick<MultifactorAuthenticationState, 'error' | 'scenarioName' | 'scenario' | 'payload' | 'isFlowComplete' | 'isCancelConfirmVisible'>;
+type MfaContext = Pick<MultifactorAuthenticationState, 'error' | 'scenarioName' | 'scenario' | 'payload' | 'isCancelConfirmVisible'>;
 
 /** Modal lifecycle state the view layer reads: the machine's three top-level states. */
 type MfaModalState =

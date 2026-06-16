@@ -12,7 +12,6 @@ const DEFAULT_CONTEXT: MfaContext = {
     scenarioName: DEFAULT_STATE.scenarioName,
     scenario: DEFAULT_STATE.scenario,
     payload: DEFAULT_STATE.payload,
-    isFlowComplete: DEFAULT_STATE.isFlowComplete,
     isCancelConfirmVisible: DEFAULT_STATE.isCancelConfirmVisible,
 };
 
@@ -49,7 +48,6 @@ const MFAMachine = setup({
                 payload: event.payload,
             };
         }),
-        markFlowComplete: assign({isFlowComplete: true}),
         navigateToSuccessOutcome: () => {
             // runAfterTransition defers the push until the modal-open transition settles, so the
             // success screen slides in with a measured width (Android animation race).
@@ -99,7 +97,7 @@ const MFAMachine = setup({
                     initial: MFA_STATE.SUCCESS,
                     states: {
                         [MFA_STATE.SUCCESS]: {
-                            entry: ['markFlowComplete', 'navigateToSuccessOutcome'],
+                            entry: ['navigateToSuccessOutcome'],
                         },
                     },
                 },
