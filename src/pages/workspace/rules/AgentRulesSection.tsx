@@ -80,7 +80,7 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
                                     <MenuItemWithTopDescription
                                         title={(rule.title ?? rule.prompt).replaceAll(/\s+/g, ' ').trim()}
                                         numberOfLinesTitle={1}
-                                        wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
+                                        wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv2]}
                                         shouldShowRightIcon
                                         onPress={() => {
                                             if (!canWriteRules) {
