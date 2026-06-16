@@ -177,7 +177,6 @@ export default {
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
     cropBorderWidth: 1,
-    aiFeaturesPromoModalContentHeight: 122,
     emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
     emptyLHNIconHeight: 16,
     emptySelectionListIconWidth: 120,

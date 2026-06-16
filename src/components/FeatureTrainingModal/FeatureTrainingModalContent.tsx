@@ -4,11 +4,9 @@ import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import OfflineIndicator from '@components/OfflineIndicator';
-import RenderHTML from '@components/RenderHTML';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import FeatureTrainingModalTextContent from './FeatureTrainingModalTextContent';
 import type {FeatureTrainingModalContentProps as BaseFeatureTrainingModalContentProps, BaseFeatureTrainingModalProps} from './index';
 
 type FeatureTrainingModalContentProps = Pick<
@@ -75,25 +73,20 @@ function FeatureTrainingModalContent({
 }: FeatureTrainingModalContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     return (
         <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
-            {!!title && !!description && (
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [shouldRenderHTMLDescription ? styles.mb5 : styles.mb10], contentInnerContainerStyles]}>
-                    {!!subtitle && <Text style={[styles.textLabel, styles.textBold, styles.textSuccess]}>{subtitle}</Text>}
-                    {typeof title === 'string' ? <Text style={[styles.textHeadlineH1, titleStyles]}>{title}</Text> : title}
-                    {shouldRenderHTMLDescription ? (
-                        <View style={[styles.flexRow, styles.w100, styles.mb2, styles.renderHTML]}>
-                            <RenderHTML html={description} />
-                        </View>
-                    ) : (
-                        <Text style={styles.textSupporting}>{description}</Text>
-                    )}
-                    {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
-                    {children}
-                </View>
-            )}
+            <FeatureTrainingModalTextContent
+                title={title}
+                subtitle={subtitle}
+                description={description}
+                secondaryDescription={secondaryDescription}
+                titleStyles={titleStyles}
+                contentInnerContainerStyles={contentInnerContainerStyles}
+                shouldRenderHTMLDescription={shouldRenderHTMLDescription}
+            >
+                {children}
+            </FeatureTrainingModalTextContent>
             {shouldShowDismissModalOption && (
                 <CheckboxWithLabel
                     label={translate('featureTraining.doNotShowAgain')}

@@ -16,6 +16,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import FeatureTrainingModalContent from './FeatureTrainingModalContent';
 import FeatureTrainingModalIllustration from './FeatureTrainingModalIllustration';
+import FeatureTrainingModalTextContent from './FeatureTrainingModalTextContent';
 import type {BaseFeatureTrainingModalProps, FeatureTrainingModalCarouselProps, FeatureTrainingModalPageProps} from './index';
 
 // A page is considered "viewable" — and `currentPage` updates — only once it occupies at least
@@ -109,6 +110,20 @@ function FeatureTrainingModalCarouselBody({
     const horizontalListRef = useRef<RNFlatList<FeatureTrainingModalPageProps>>(null);
     const lastReportedPage = useRef(0);
 
+    const [contentMinHeight, setContentMinHeight] = useState<number | undefined>(undefined);
+    const measuredHeightsRef = useRef<Record<number, number>>({});
+    const handleProbeLayout = (index: number) => (event: LayoutChangeEvent) => {
+        const measured = event.nativeEvent.layout.height;
+        if (measuredHeightsRef.current[index] === measured) {
+            return;
+        }
+        measuredHeightsRef.current[index] = measured;
+        if (Object.keys(measuredHeightsRef.current).length < pages.length) {
+            return;
+        }
+        setContentMinHeight(Math.max(...Object.values(measuredHeightsRef.current)));
+    };
+
     // FlatList's `onViewableItemsChanged` must keep a stable identity (it errors otherwise).
     // The handler reads the latest `onPageChange` via a ref so the callback identity never changes.
     const onPageChangeRef = useRef(onPageChange);
@@ -171,6 +186,36 @@ function FeatureTrainingModalCarouselBody({
                 setCarouselViewportWidth(newWidth);
             }}
         >
+            {carouselViewportWidth > 0 && contentMinHeight === undefined && (
+                // Probe layer is used to measure the tallest page to lock the modal height
+                // when moving between pages with different content lengths.
+                <View
+                    pointerEvents="none"
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                    style={[styles.pAbsolute, styles.l0, styles.t0, {width: carouselViewportWidth, opacity: 0}]}
+                >
+                    {pages.map((page, index) => (
+                        <View
+                            // The pages array is static for the modal's lifetime, so the index is a stable key.
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`FeatureTrainingModalCarousel-probe-${index}`}
+                            style={styles.mh5}
+                        >
+                            <FeatureTrainingModalTextContent
+                                title={page.title}
+                                subtitle={page.subtitle}
+                                description={page.description}
+                                secondaryDescription={page.secondaryDescription}
+                                titleStyles={titleStyles}
+                                contentInnerContainerStyles={contentInnerContainerStyles}
+                                shouldRenderHTMLDescription={shouldRenderHTMLDescription}
+                                onLayout={handleProbeLayout(index)}
+                            />
+                        </View>
+                    ))}
+                </View>
+            )}
             {carouselViewportWidth > 0 && (
                 <>
                     <View>
@@ -228,7 +273,7 @@ function FeatureTrainingModalCarouselBody({
                         shouldShowConfirmationLoader={shouldShowConfirmationLoader}
                         canConfirmWhileOffline={canConfirmWhileOffline}
                         titleStyles={titleStyles}
-                        contentInnerContainerStyles={contentInnerContainerStyles}
+                        contentInnerContainerStyles={[contentInnerContainerStyles, contentMinHeight !== undefined && {minHeight: contentMinHeight}]}
                         contentOuterContainerStyles={contentOuterContainerStyles}
                         shouldRenderHTMLDescription={shouldRenderHTMLDescription}
                     />
