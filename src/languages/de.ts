@@ -4978,8 +4978,9 @@ ${amount} für ${merchant} – ${date}`,
             exportStatus: {
                 label: 'Status der zu zahlenden Rechnung',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Abschließen',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Abschließen',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In Bearbeitung',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Genehmigt',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Übermittelt',
                 },
             },

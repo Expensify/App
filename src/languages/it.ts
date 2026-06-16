@@ -4962,8 +4962,9 @@ ${amount} per ${merchant} - ${date}`,
             exportStatus: {
                 label: 'Stato fattura da pagare',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Completa',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Completa',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In corso',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Approvato',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Inviato',
                 },
             },
