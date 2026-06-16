@@ -1,8 +1,9 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -36,7 +37,14 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
+    const [isTotalButtonFocused, setIsTotalButtonFocused] = useState(false);
+
     const valueTextStyle = useMemo(() => (isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong]), [isOffline, styles]);
+
+    // The SearchList registers a global Enter shortcut that opens the focused expense. While the total button is focused,
+    // claim Enter at top priority without bubbling so Enter only opens the currency popover instead of also opening the expense.
+    // shouldPreventDefault is false so the focused button still activates and opens the popover.
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, () => {}, {isActive: isTotalButtonFocused, shouldBubble: false, shouldPreventDefault: false});
 
     const handleCurrencyChange = useCallback(
         (item: SingleSelectItem<string> | undefined) => {
@@ -84,6 +92,8 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
             iconRightFill={theme.icon}
             iconRightHoverFill={theme.iconHovered}
             onPress={props.onPress}
+            onFocus={() => setIsTotalButtonFocused(true)}
+            onBlur={() => setIsTotalButtonFocused(false)}
         />
     );
 
