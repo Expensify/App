@@ -36,7 +36,6 @@ This is an observational reference. Where current behavior diverges from apparen
 - [Test Coverage](#test-coverage)
 - [Configuration Constants](#configuration-constants)
 - [Key Modules Reference](#key-modules-reference)
-- [Relationship to Other Docs](#relationship-to-other-docs)
 
 ## Architecture Diagram
 
@@ -44,70 +43,44 @@ This is an observational reference. Where current behavior diverges from apparen
  feature code
      │  API.write(command, params, onyxData, conflictResolver)
      ▼
-┌────────────────────────────────────────────────────────────┐
-│ API.index — prepareRequest                                   │
-│  • apply optimisticData to Onyx (UI updates NOW)             │
-│  • evaluate conflictResolver #1 (read-only: skip optimistic?)│
-│  • stamp requestIndex++  (per-tab counter; requestID legacy) │
-│  • strip optimisticData from the persisted request           │
-└───────────────┬──────────────────────────────────────────────┘
-        write    │ read → waitForWrites() → SequentialQueue.waitForIdle()
-                 ▼                              (blocks on isReadyPromise)
-┌────────────────────────────────────────────────────────────┐
-│ SequentialQueue.push()  (async)                              │
-│  • conflictResolver #2 (authoritative: mutate the queue)     │
-│  • PersistedRequests.save  → in-memory SYNC; disk AWAITED    │
-│  • mark isReadyPromise pending (sync, before first await)    │
-│  • await persistencePromise (disk commit) THEN dispatch:     │
-│      offline   → await persist, return (reconnect flushes)   │
-│      running   → defer: isReadyPromise.then(flush(false))    │
-│      idle      → flush(false)                                │
-└───────────────┬──────────────────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│ API.index — prepareRequest                     │
+│  apply optimisticData · conflictResolver #1     │
+│  (read-only) · stamp requestID · strip          │
+│  optimisticData from the persisted request      │
+└───────────────┬──────────────────────────────┘
+        write    │ read → waitForIdle()  (blocks on isReadyPromise)
                  ▼
-┌────────────────────────────────────────────────────────────┐
-│ flush(shouldResetPromise)                                    │
-│  guards (in order): paused? · offline? · already running? ·  │
-│                     all empty? (queue · ongoing · buffered   │
-│                     onyx updates) · NOT the leader?          │
-│  → isSequentialQueueRunning = true                           │
-│  → (maybe) reset isReadyPromise                              │
-│  → load PERSISTED_REQUESTS, then process()                   │
-└───────────────┬──────────────────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│ SequentialQueue.push()  (async)                 │
+│  conflictResolver #2 (authoritative) · persist  │
+│  (PersistedRequests.save) · await disk commit,  │
+│  THEN dispatch:  offline → return (reconnect    │
+│  flushes) · running → defer · idle → flush()    │
+└───────────────┬──────────────────────────────┘
                  ▼
-┌────────────────────────────────────────────────────────────┐
-│ process()  (recurses until queue empty)                      │
-│  • processNextRequest(): head → ongoingRequest               │
-│       (atomic multiSet of both keys; returns LOCAL ref)      │
-│  • processWithMiddleware(request, isFromSequentialQueue=true) │
-│        makeXHR → Logging → … → SaveResponseInOnyx →           │
-│                                FraudMonitoring                │
-│  • .then  → (pause if shouldPauseQueue) → remove request →    │
-│             save queueFlushedData → throttle.clear → RECURSE  │
-│  • .catch → error ladder (drop / treat-as-success /          │
-│             retry+backoff / give-up)                         │
-└───────────────┬──────────────────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│ flush()   — leader-only, single-flight          │
+│  guards pass → load queue → process()           │
+└───────────────┬──────────────────────────────┘
                  ▼
-┌────────────────────────────────────────────────────────────┐
-│ process().finally   (the drain-end block, inside flush)     │
-│  • isSequentialQueueRunning = false                          │
-│  • resolve isReadyPromise IFF offline OR queue empty         │
-│  • if queue empty: flush QueuedOnyxUpdates,                  │
-│                    then apply + clear queueFlushedData       │
-└────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│ process()  (drains FIFO, recurses)              │
+│  promote head → ongoing → middleware chain      │
+│  success → remove + recurse                     │
+│  error   → ladder (drop / retry / give up)      │
+└───────────────┬──────────────────────────────┘
+                 ▼
+┌──────────────────────────────────────────────┐
+│ drain-end (process().finally)                   │
+│  clear running flag · resolve isReadyPromise ·  │
+│  on empty queue → flush buffered Onyx updates   │
+└──────────────────────────────────────────────┘
 
   boundary collaborators (contract only — linked, not owned here):
    • ActiveClientManager  → isClientTheLeader()  (web multi-tab)
    • NetworkState         → getIsOffline()        (see NETWORK_STATE_DETECTION.md)
    • OnyxUpdateManager    → resolves shouldPauseQueue data gaps, then unpause()
-
-  disk writes — PERSISTED_* keys; cache + subscribers update SYNC first,
-  the returned Onyx promise resolves on STORAGE COMMIT (IDB tx / SQLite WAL):
-   • #1  save()             → PERSISTED_REQUESTS            (in push; AWAITED before flush)
-   • #2  processNextRequest → PERSISTED_REQUESTS + ONGOING  (promotion; fire-and-forget)
-   •     end / rollback / updateOngoing                     (fire-and-forget)
-   •     conflict update / delete                           (awaited by handleConflictActions)
-   ✓  push awaits the #1 disk commit before flush → makeXHR; makeXHR itself still gates
-      only on auth readiness, so the network can no longer fire ahead of the enqueue write
 ```
 
 ## Lifecycle of One Request
@@ -505,23 +478,17 @@ Defined in `src/CONST/index.ts` under `CONST.NETWORK` (retry/backoff subset rele
 
 # Key Modules Reference
 
-| Module | Responsibility |
-|---|---|
-| `src/libs/Network/SequentialQueue.ts` | Leader-tab serial executor for persisted WRITE requests: persist-then-flush one at a time through the middleware with throttle/backoff and the error ladder; gates dependent READs via `isReadyPromise`. |
-| `src/libs/actions/PersistedRequests.ts` | In-memory mirror (`persistedRequests` + `ongoingRequest`) of the offline write queue, reconciled with the `PERSISTED_REQUESTS` / `PERSISTED_ONGOING_REQUESTS` keys; in-memory authoritative after init. |
-| `src/libs/RequestThrottle.ts` | Per-instance exponential-backoff timing: jittered first wait, doubling capped at the max, retry-count gate, argument-less reject as the give-up signal. |
-| `src/libs/actions/QueuedOnyxUpdates.ts` | In-memory buffer of WRITE-response Onyx updates, held until the queue drains then flushed (with a not-signed-in preserved-keys filter) — anti-flicker. |
-| `src/libs/actions/OnyxUpdates.ts` (`applyHTTPSOnyxUpdates`) | Routes WRITE-type responses through `queueOnyxUpdates` and READ-type through `Onyx.update` immediately; home of `doesClientNeedToBeUpdated`. |
-| `src/libs/API/index.ts` | Public facade: `prepareRequest` applies optimistic data + stamps `requestID`; routes `write`→queue, `read`→`waitForWrites` then fire-and-forget, `makeRequestWithSideEffects`→immediate. |
-| `src/libs/Request.ts` (`processWithMiddleware`) | Folds the middleware chain over `makeXHR(request)`; first-registered is innermost, response handlers fire in registration order. |
-| `src/libs/Middleware/SaveResponseInOnyx.ts` | Penultimate middleware; sole producer of `shouldPauseQueue` (on a `previousUpdateID` gap); persists server Onyx updates. |
-| `src/libs/Middleware/Reauthentication.ts` | Re-throws on `isFromSequentialQueue` so the queue retries; reacts to 407 by reauthenticating; may throw `new Error('Failed to reauthenticate')`. |
-| `src/libs/ActiveClientManager/` | Leader election across web tabs (`isClientTheLeader`); no-op (always leader) on native. |
-| `QUEUE_FLUSHED_DATA` (Onyx key) + `SequentialQueue.saveQueueFlushedData` | Distinct Onyx-persisted buffer applied only on full drain; sole producer is `App.getOnyxDataForOpenOrReconnect` carrying `HAS_LOADED_APP = true`. |
+A code-location index — concept → file. The behavior lives in the sections above; this is just where to find it.
 
----
-
-# Relationship to Other Docs
-
-- [Network State Detection](NETWORK_STATE_DETECTION.md) — **how** the app detects connectivity and decides it is offline (the hard-stop model the queue's `getIsOffline()` gate reads).
-- [Offline UX Patterns](philosophies/OFFLINE.md) — **how features should respond** to being offline (optimistic patterns A/B/C/D), which the `API.write`/`read` contract implements.
+| Module | Responsibility | Section |
+|---|---|---|
+| `src/libs/Network/SequentialQueue.ts` | The coordinator: persist-then-flush, drain loop, error ladder, `isReadyPromise` READ gate. | [SequentialQueue](#sequentialqueue-the-coordinator) |
+| `src/libs/actions/PersistedRequests.ts` | In-memory-authoritative mirror of the `PERSISTED_REQUESTS` / `PERSISTED_ONGOING_REQUESTS` keys. | [PersistedRequests](#persistedrequests-the-store) |
+| `src/libs/RequestThrottle.ts` | Jittered exponential backoff + the give-up signal. | [RequestThrottle](#requestthrottle-backoff) |
+| `src/libs/actions/QueuedOnyxUpdates.ts` | In-memory buffer of WRITE-response Onyx updates, flushed on drain (anti-flicker). | [QueuedOnyxUpdates](#queuedonyxupdates-and-queueflusheddata) |
+| `src/libs/actions/OnyxUpdates.ts` | `applyHTTPSOnyxUpdates` WRITE/READ routing; `doesClientNeedToBeUpdated`. | [QueuedOnyxUpdates](#queuedonyxupdates-and-queueflusheddata) |
+| `src/libs/API/index.ts` | Public facade: `prepareRequest`; `write`/`read`/`makeRequestWithSideEffects` routing. | [Public Contract](#public-contract-the-api-layer) |
+| `src/libs/Request.ts` | `processWithMiddleware` — folds the middleware chain over `makeXHR`. | [Middleware](#the-middleware-chain-boundary) |
+| `src/libs/Middleware/SaveResponseInOnyx.ts` | Penultimate middleware; sole producer of `shouldPauseQueue`. | [Middleware](#the-middleware-chain-boundary) |
+| `src/libs/Middleware/Reauthentication.ts` | Re-throws on `isFromSequentialQueue`; handles 407 reauth. | [Middleware](#the-middleware-chain-boundary) |
+| `src/libs/ActiveClientManager/` | Web-tab leader election; always-leader on native. | [Multi-Tab](#multi-tab--leader-election) |
