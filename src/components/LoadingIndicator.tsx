@@ -1,19 +1,10 @@
 import React from 'react';
-import type { ActivityIndicatorProps as RNActivityIndicatorProps, StyleProp, ViewStyle } from 'react-native';
-import { StyleSheet, View } from 'react-native';
+import type {ActivityIndicatorProps as RNActivityIndicatorProps, StyleProp, ViewStyle} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type { SkeletonSpanReasonAttributes } from '@libs/telemetry/useSkeletonSpan';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ActivityIndicator from './ActivityIndicator';
-
-
-
-
-
-
-
-
-
 
 type LoadingIndicatorIconSize = RNActivityIndicatorProps['size'];
 
