@@ -1,6 +1,4 @@
 import React, {useCallback, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
@@ -79,7 +77,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     };
 
     const navigateBackToMembers = () => {
-        InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {waitForTransition: true});
     };
 
     const importMembers = async () => {
@@ -96,6 +94,13 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
 
+        const controlPolicyOnlyRoles = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
+        const hasControlPolicyOnlyRole =
+            membersRolesColumn !== -1 &&
+            spreadsheet?.data?.at(membersRolesColumn)?.some((role, index) => {
+                const memberRole = containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '');
+                return controlPolicyOnlyRoles.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === memberRole);
+            });
         const controlPolicyColumns = [
             CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO,
             CONST.CSV_IMPORT_COLUMNS.APPROVE_TO,
@@ -104,20 +109,14 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1,
             CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2,
         ];
-        const hasAuditorRole =
-            membersRolesColumn !== -1 &&
-            spreadsheet?.data
-                ?.at(membersRolesColumn)
-                ?.some((role, index) => (containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR);
-
         const hasControlPolicyColumns = controlPolicyColumns.some((column) => columns.includes(column));
-        const isRequiredControlPolicy = hasControlPolicyColumns || hasAuditorRole;
+        const isRequiredControlPolicy = hasControlPolicyColumns || hasControlPolicyOnlyRole;
 
         if (isRequiredControlPolicy && !isControlPolicy) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(
                     route.params.policyID,
-                    hasAuditorRole ? CONST.UPGRADE_FEATURE_INTRO_MAPPING.auditor.alias : CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
+                    hasControlPolicyOnlyRole ? CONST.UPGRADE_FEATURE_INTRO_MAPPING.controlPolicyRoles.alias : CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
                     Navigation.getActiveRoute(),
                 ),
             );

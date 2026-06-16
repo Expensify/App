@@ -5,14 +5,18 @@ import {
     FEATURE_ROWS,
     getAccountingConnectionIdentity,
     getConnectionCompanyID,
+    getReceiptPartnersCopySettingsDescription,
+    getTimeTrackingCopySettingsDescription,
     isCopyPolicySettingsPartEnabledOnSource,
     isTargetCompatibleForAccountingPart,
 } from '@libs/CopyPolicySettingsUtils';
 import type {CopyPolicySettingsSourceFeatureContext} from '@libs/CopyPolicySettingsUtils';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import createRandomPolicy from '../utils/collections/policies';
+import {translateLocal} from '../utils/TestHelper';
 
 function makePolicyWithConnection(connectionName: ConnectionName, connectionPayload: Record<string, unknown>): Policy {
     const base = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
@@ -25,6 +29,8 @@ function makePolicyWithConnection(connectionName: ConnectionName, connectionPayl
 }
 
 describe('CopyPolicySettingsUtils', () => {
+    beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
+
     describe('getConnectionCompanyID', () => {
         it('returns realmId for QuickBooks Online', () => {
             const policy = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.QBO, {config: {realmId: 'REALM-123'}});
@@ -186,6 +192,53 @@ describe('CopyPolicySettingsUtils', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('travel', {...baseContext, policy: travelPolicy})).toBe(true);
         });
 
+        it('shows receipt partners when the feature or Uber connection is enabled on the source', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('receiptPartners', baseContext)).toBe(false);
+
+            const enabledOnlyPolicy = createRandomPolicy(9);
+            enabledOnlyPolicy.receiptPartners = {enabled: true};
+            expect(isCopyPolicySettingsPartEnabledOnSource('receiptPartners', {...baseContext, policy: enabledOnlyPolicy})).toBe(true);
+
+            const connectedUberPolicy = createRandomPolicy(10);
+            connectedUberPolicy.receiptPartners = {uber: {organizationID: 'org-123', organizationName: 'Acme Uber'}};
+            expect(isCopyPolicySettingsPartEnabledOnSource('receiptPartners', {...baseContext, policy: connectedUberPolicy})).toBe(true);
+        });
+
+        it('describes receipt partners with the connected Uber organization name', () => {
+            const policy = createRandomPolicy(11);
+            policy.receiptPartners = {enabled: true, uber: {organizationName: 'Acme Uber Org'}};
+
+            expect(getReceiptPartnersCopySettingsDescription(policy, translateLocal)).toBe('Acme Uber Org');
+        });
+
+        it('shows time tracking only when the feature is enabled on the source', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', baseContext)).toBe(false);
+
+            const timeTrackingPolicy = createRandomPolicy(5);
+            timeTrackingPolicy.units = {time: {enabled: true, rate: 75}};
+            expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', {...baseContext, policy: timeTrackingPolicy})).toBe(true);
+
+            const disabledWithRatePolicy = createRandomPolicy(6);
+            disabledWithRatePolicy.units = {time: {enabled: false, rate: 50}};
+            expect(isCopyPolicySettingsPartEnabledOnSource('timeTracking', {...baseContext, policy: disabledWithRatePolicy})).toBe(false);
+        });
+
+        it('describes time tracking without currency when a default rate exists', () => {
+            const policy = createRandomPolicy(7);
+            policy.units = {time: {enabled: true, rate: 75}};
+
+            expect(getTimeTrackingCopySettingsDescription(policy, translateLocal)).toBe(
+                `${translateLocal('common.enabled')}, ${translateLocal('workspace.moreFeatures.timeTracking.defaultHourlyRate')}: 75`,
+            );
+        });
+
+        it('describes time tracking as enabled when no default rate is set', () => {
+            const policy = createRandomPolicy(8);
+            policy.units = {time: {enabled: true}};
+
+            expect(getTimeTrackingCopySettingsDescription(policy, translateLocal)).toBe(translateLocal('common.enabled'));
+        });
+
         it('hides distance rates when the feature flag is off even if rates exist', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', baseContext)).toBe(false);
 
@@ -280,6 +333,8 @@ describe('CopyPolicySettingsUtils', () => {
             expect(parts).toContain('perDiem');
             expect(parts).toContain('invoices');
             expect(parts).toContain('travel');
+            expect(parts).toContain('timeTracking');
+            expect(parts).toContain('receiptPartners');
         });
     });
 });
