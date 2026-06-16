@@ -42,11 +42,6 @@ type RecentlyAddedExpense = {
     transaction?: Transaction;
 };
 
-/** The insertion timestamp drives ordering. */
-function getInsertionSortKey(transaction: Transaction): string {
-    return transaction.inserted ?? '';
-}
-
 /**
  * Returns the signed-in user's most recently added expenses, ordered by insertion timestamp (most recent first)
  * and capped at CONST.HOME.SECTION_VISIBLE_LIMIT. Ordering is independent of the expense date.
@@ -139,8 +134,9 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 return ownerAccountID === undefined || ownerAccountID === accountID;
             })
             .sort((firstTransaction, secondTransaction) => {
-                const firstKey = getInsertionSortKey(firstTransaction);
-                const secondKey = getInsertionSortKey(secondTransaction);
+                // The insertion timestamp drives ordering, most recent first.
+                const firstKey = firstTransaction.inserted ?? '';
+                const secondKey = secondTransaction.inserted ?? '';
                 if (firstKey === secondKey) {
                     return 0;
                 }
