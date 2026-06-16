@@ -14,6 +14,8 @@ const SENSITIVE_KEYS = new Set([
     'pin',
     'pan',
     'cvv',
+    'expiration',
+    'expirationDate',
     'password',
     'token',
     'otp',

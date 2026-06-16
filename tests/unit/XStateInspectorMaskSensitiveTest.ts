@@ -83,14 +83,14 @@ describe('maskInspectionEvent', () => {
 
     it('masks card secrets and registration key material under their own keys when they travel outside a response body', () => {
         const masked = maskInspectionEvent({
-            event: {type: 'CARD_DETAILS_REVEALED', cardID: 'card-1', pan: '4111111111111111', cvv: '123'},
+            event: {type: 'CARD_DETAILS_REVEALED', cardID: 'card-1', pan: '4111111111111111', expiration: '12/30', cvv: '123'},
             snapshot: {
                 input: {keyInfo: {rawId: 'cred-id', type: 'biometrics-hsm', response: {clientDataJSON: 'eyJjaGFsbGVuZ2UiOiJub25jZSJ9', biometric: {publicKey: 'cred-id', algorithm: -7}}}},
             },
         });
 
         expect(masked).toEqual({
-            event: {type: 'CARD_DETAILS_REVEALED', cardID: 'card-1', pan: SENSITIVE_VALUE_MASK, cvv: SENSITIVE_VALUE_MASK},
+            event: {type: 'CARD_DETAILS_REVEALED', cardID: 'card-1', pan: SENSITIVE_VALUE_MASK, expiration: SENSITIVE_VALUE_MASK, cvv: SENSITIVE_VALUE_MASK},
             snapshot: {
                 input: {
                     keyInfo: {
