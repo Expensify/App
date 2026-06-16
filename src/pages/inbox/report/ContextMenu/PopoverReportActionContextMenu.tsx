@@ -407,12 +407,12 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteReportComment(
                     report,
                     reportAction,
+                    reportActionsRef.current ?? undefined,
                     ancestorsRef.current,
                     isReportArchived,
                     isOriginalReportArchived,
                     email ?? '',
                     visibleReportActionsData ?? undefined,
-                    reportActionsRef.current ?? undefined,
                 );
             };
         }
