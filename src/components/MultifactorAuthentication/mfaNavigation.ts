@@ -19,6 +19,16 @@ const mfaNavigationRef = createNavigationContainerRef<MultifactorAuthenticationM
 // Outcome screens are terminal states the flow ends on.
 const OUTCOME_SCREENS = new Set<string>([SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS, SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE]);
 
+// Screens that live inside this independent overlay navigator. REVOKE and AUTHORIZE_TRANSACTION are intentionally excluded: they
+// render in the main RHP modal stack, not this tree.
+const MFA_OVERLAY_SCREENS = new Set<string>([
+    MFA_INITIAL_SCREEN,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE,
+]);
+
 let pendingNavigation: {screen: string; params?: Record<string, unknown>} | undefined;
 
 /**
@@ -88,5 +98,5 @@ function resetMfaNavigation() {
     hasInitialLaidOut = false;
 }
 
-export {MFA_INITIAL_SCREEN, mfaNavigationRef, navigate, handleInitialScreenLayout, resetMfaNavigation};
+export {MFA_INITIAL_SCREEN, MFA_OVERLAY_SCREENS, mfaNavigationRef, navigate, handleInitialScreenLayout, resetMfaNavigation};
 export type {MultifactorAuthenticationModalNavigatorInternalParamList};
