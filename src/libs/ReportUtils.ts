@@ -154,7 +154,6 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
-    isPolicyMemberWithoutPendingDelete,
     isPolicyOwner,
     isSubmitAndClose,
     shouldShowPolicy,
@@ -2648,25 +2647,7 @@ function isPayer(
     reportPolicy?: OnyxInputOrEntry<Policy>,
     onlyShowPayElsewhere = false,
 ) {
-    const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`];
-
-    // If the report belongs to a workspace, verify the user is still a member
-    // When a user leaves a workspace, they may no longer have access to the policy data,
-    // or the policy.role/employeeList may be stale
-    // Skip this check for IOU reports (personal 1:1 expenses) since they can inherit a policyID
-    // from the chat report but the payer may not be a member of that workspace
-    if (!isIOUReport(iouReport) && iouReport?.policyID && iouReport.policyID !== CONST.POLICY.ID_FAKE) {
-        // No policy data means user likely left the workspace
-        if (!policy) {
-            return false;
-        }
-        // For paid group policies, verify membership via employeeList (only when loaded)
-        // employeeList may be lazily loaded/partial, so only check if it's present
-        if (isPaidGroupPolicy(iouReport) && !isEmptyObject(policy?.employeeList) && !isPolicyMemberWithoutPendingDelete(currentUserEmailParam, policy)) {
-            return false;
-        }
-    }
-
+    const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = iouReport?.managerID === currentAccountID;
