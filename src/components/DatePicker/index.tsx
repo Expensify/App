@@ -50,6 +50,7 @@ function DatePicker({
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const textInputRef = useRef<BaseTextInputRef | null>(null);
     const anchorRef = useRef<View>(null);
+    const prevWindowWidthRef = useRef(windowWidth);
     const [isInverted, setIsInverted] = useState(false);
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.
@@ -141,7 +142,21 @@ function DatePicker({
 
     useEffect(() => {
         calculatePopoverPosition();
-    }, [calculatePopoverPosition, windowWidth]);
+    }, []);
+
+    useEffect(() => {
+        const delta = windowWidth - prevWindowWidthRef.current;
+        prevWindowWidthRef.current = windowWidth;
+
+        if (delta === 0) {
+            return;
+        }
+
+        setPopoverPosition((prev) => ({
+            ...prev,
+            horizontal: prev.horizontal + delta,
+        }));
+    }, [windowWidth]);
 
     // Combined ref: updates textInputRef (needed for blur() in showDatePickerModal) and connects
     // autoFocusCallbackRef only when autoFocus=true so useAutoFocusInput's useFocusEffect cleanup
