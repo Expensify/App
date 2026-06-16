@@ -224,7 +224,21 @@ function SearchPage({route}: SearchPageProps) {
         const defaultCurrency = defaultFooterCurrency ?? metadataCurrency;
         const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== defaultCurrency;
         const isServerTotalConfirmed = !hasCustomFooterCurrency || (validGroupBy ? footerTotalMetadata?.currency === selectedCurrency : metadataCurrency === selectedCurrency);
-        const shouldUseConvertedSelectedTotal = shouldUseClientTotal && hasCustomFooterCurrency && !!validGroupBy && footerTotalMetadata?.currency === selectedCurrency;
+        const canConvertSelectedTotal = shouldUseClientTotal && hasCustomFooterCurrency && !!validGroupBy && footerTotalMetadata?.currency === selectedCurrency;
+        // The footer conversion snapshot only covers the first flat page, so a selected row from a later page (or a
+        // selected group header) may have no converted amount. Only label the selected total as the target currency
+        // when every selected row is convertible; otherwise the sum would mix converted and native amounts, so fall
+        // back to the default-currency client total instead.
+        const areAllSelectedRowsConverted =
+            canConvertSelectedTotal &&
+            !!footerTotalData &&
+            selectedTransactionsKeys.every((key) => {
+                const transaction = selectedTransactions[key];
+                const convertedTransactionKey = transaction?.transaction?.transactionID ? `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transaction.transactionID}` : key;
+                const convertedTransaction: unknown = (footerTotalData as Record<string, unknown>)[convertedTransactionKey];
+                return getNumberMember(convertedTransaction, 'groupAmount') !== undefined;
+            });
+        const shouldUseConvertedSelectedTotal = canConvertSelectedTotal && areAllSelectedRowsConverted;
         const isFooterGrandTotalLoading = !shouldUseClientTotal && hasCustomFooterCurrency && !!validGroupBy && !!footerTotalMetadata?.isLoading;
         let currency;
         if (shouldUseConvertedSelectedTotal) {
