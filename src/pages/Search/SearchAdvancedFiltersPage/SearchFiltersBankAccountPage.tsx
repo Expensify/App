@@ -49,36 +49,33 @@ function BankAccountPicker({bankAccountList, initialSelectedIDs}: BankAccountPic
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedBankAccountIDs, setSelectedBankAccountIDs] = useState<string[]>(initialSelectedIDs);
 
-    const buildItem = useCallback(
-        (bankAccount: OnyxTypes.BankAccount): BankAccountFilterItem | undefined => {
-            const bankAccountID = bankAccount?.accountData?.bankAccountID;
-            if (!bankAccountID) {
-                return undefined;
-            }
-            const value = bankAccountID.toString();
-            const bankName = bankAccount?.accountData?.additionalData?.bankName;
-            const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles, maxIconSize: isLargeScreenWidth ? variables.w28 : undefined});
-            const leftElement = (
-                <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <Icon
-                        src={icon}
-                        width={iconSize}
-                        height={iconSize}
-                        additionalStyles={iconStyles}
-                    />
-                </View>
-            );
+    const buildItem = (bankAccount: OnyxTypes.BankAccount): BankAccountFilterItem | undefined => {
+        const bankAccountID = bankAccount?.accountData?.bankAccountID;
+        if (!bankAccountID) {
+            return undefined;
+        }
+        const value = bankAccountID.toString();
+        const bankName = bankAccount?.accountData?.additionalData?.bankName;
+        const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles, maxIconSize: isLargeScreenWidth ? variables.w28 : undefined});
+        const leftElement = (
+            <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <Icon
+                    src={icon}
+                    width={iconSize}
+                    height={iconSize}
+                    additionalStyles={iconStyles}
+                />
+            </View>
+        );
 
-            return {
-                text: getBankAccountSearchLabel(bankAccount),
-                keyForList: value,
-                value,
-                isSelected: selectedBankAccountIDs.includes(value),
-                leftElement,
-            };
-        },
-        [styles, isLargeScreenWidth, selectedBankAccountIDs],
-    );
+        return {
+            text: getBankAccountSearchLabel(bankAccount),
+            keyForList: value,
+            value,
+            isSelected: selectedBankAccountIDs.includes(value),
+            leftElement,
+        };
+    };
 
     const {openItems, closedItems} = useMemo(() => {
         const open: BankAccountFilterItem[] = [];
