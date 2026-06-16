@@ -81,7 +81,6 @@ jest.mock('@pages/home/TimeSensitiveSection', () => mockSection('TimeSensitiveSe
 jest.mock('@pages/home/GettingStartedSection', () => mockSection('GettingStartedSection'));
 jest.mock('@pages/home/ForYouSection', () => mockSection('ForYouSection'));
 jest.mock('@pages/home/UpcomingTravelSection', () => mockSection('UpcomingTravelSection'));
-// RecentlyAddedSection does not exist yet (Phase 2). `virtual: true` lets us register the mock before the module is created.
 jest.mock('@pages/home/RecentlyAddedSection', () => mockSection('RecentlyAddedSection'), {virtual: true});
 jest.mock('@pages/home/YourSpendSection', () => mockSection('YourSpendSection'));
 jest.mock('@pages/home/SpendOverTimeSection', () => mockSection('SpendOverTimeSection'));
