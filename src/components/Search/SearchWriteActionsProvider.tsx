@@ -527,6 +527,4 @@ function SearchWriteActionsProvider({
     return <SearchRowSelectionActionsContext value={rowSelectionActionsValue}>{children}</SearchRowSelectionActionsContext>;
 }
 
-SearchWriteActionsProvider.displayName = 'SearchWriteActionsProvider';
-
 export default SearchWriteActionsProvider;
