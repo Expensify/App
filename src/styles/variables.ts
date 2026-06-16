@@ -139,6 +139,7 @@ export default {
     tableSwitchColumnWidth: 58,
     tableCaretColumnWidth: 20,
     domainTableActionColumnWidth: 64,
+    domainAdminsTableActionColumnWidth: 140,
     workspaceTableActionColumnWidth: 64,
     sectionMenuItemHeight: 52,
     sectionMenuItemHeightCompact: 44,

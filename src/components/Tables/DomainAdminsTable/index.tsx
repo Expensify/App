@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import DomainAdminsTableRow from './DomainAdminsTableRow';
 
-type DomainAdminsTableColumnKey = 'admin' | 'primaryContact' | 'actions';
+type DomainAdminsTableColumnKey = 'admin' | 'actions';
 
 type DomainAdminRowData = TableData & {
     accountID: number;
@@ -43,18 +43,13 @@ export default function DomainAdminsTable({admins}: DomainAdminsTableProps) {
             sortable: true,
         },
         {
-            key: 'primaryContact',
-            label: '',
-            sortable: false,
-            styling: {
-                containerStyles: [styles.justifyContentCenter],
-            },
-        },
-        {
             key: 'actions',
             label: '',
             sortable: false,
-            width: variables.tableCaretColumnWidth,
+            width: variables.domainAdminsTableActionColumnWidth,
+            styling: {
+                containerStyles: [styles.justifyContentEnd, styles.pr3],
+            },
         },
     ];
 
