@@ -289,7 +289,9 @@ describe('GoogleTagManagerTest', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Then we publish a workspace_created event only once
+        // Then we publish the standard workspace_created event only once. This path always builds the workspace with the
+        // "Track expenses for my business" intent (see TrackExpense.ts), which never meets the sales-eligible criteria, so
+        // it can never publish workspace_created_sales_eligible.
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, accountID, email);
     });
