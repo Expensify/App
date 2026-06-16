@@ -8,7 +8,6 @@ import usePermissions from '@hooks/usePermissions';
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
@@ -108,8 +107,7 @@ function useReportSelectionActions({
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
-    const [persistedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
-    const targetTransactions = persistedTransaction ? [persistedTransaction] : [];
+    const targetTransactions = transaction ? [transaction] : [];
 
     const buildParticipants = (report: OnyxEntry<Report>) => [
         {
