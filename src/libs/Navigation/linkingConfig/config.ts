@@ -1030,6 +1030,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_TAG_CREATE]: DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORT]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path,
                         [SCREENS.WORKSPACE.DYNAMIC_SPEND_CATEGORY_SELECTOR]: DYNAMIC_ROUTES.SPEND_CATEGORY_SELECTOR.path,
@@ -1124,9 +1125,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.route,
-                        },
-                        [SCREENS.WORKSPACE.TAG_CREATE]: {
-                            path: ROUTES.WORKSPACE_TAG_CREATE.route,
                         },
                         [SCREENS.WORKSPACE.TAG_EDIT]: {
                             path: ROUTES.WORKSPACE_TAG_EDIT.route,

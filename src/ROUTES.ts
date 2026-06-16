@@ -568,6 +568,10 @@ const DYNAMIC_ROUTES = {
         path: 'category-new',
         entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
     },
+    WORKSPACE_TAG_CREATE: {
+        path: 'tag-create',
+        entryScreens: [SCREENS.WORKSPACE.TAGS],
+    },
     SPEND_CATEGORY_SELECTOR: {
         path: 'spend-category-selector/:groupID',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS],
@@ -2564,10 +2568,6 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/tags` as const;
         },
-    },
-    WORKSPACE_TAG_CREATE: {
-        route: 'workspaces/:policyID/tags/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/tags/new` as const,
     },
     WORKSPACE_EDIT_TAGS: {
         route: 'workspaces/:policyID/tags/:orderWeight/edit',

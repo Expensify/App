@@ -509,7 +509,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [isQuickSettingsFlow, policyID, backTo]);
 
     const navigateToCreateTagPage = () => {
-        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path) : ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
+        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path));
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
