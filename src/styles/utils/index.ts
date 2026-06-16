@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
-import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/PresetAvatarCatalog';
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/UserAvatarCatalog';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
@@ -1841,8 +1841,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getSearchTableGroupRowBorderStyle: (isFirstItem?: boolean, isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
         borderRadius: 0,
-        borderTopWidth: isFirstItem ? 0 : 1,
-        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        borderWidth: isFirstItem ? 0 : 1,
+        borderColor: theme.transparent,
+        borderTopColor: isSelected ? theme.buttonHoveredBG : theme.border,
+
         ...(isLastItem ? styles.tableBottomRadius : {}),
     }),
 
