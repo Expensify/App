@@ -17,13 +17,12 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
-import {getFormattedCreated, hasReceipt, isDistanceRequest} from '@libs/TransactionUtils';
-import {setCustomUnitRateID, setMoneyRequestCreated} from '@userActions/IOU/MoneyRequest';
+import {getFormattedCreated, hasReceipt} from '@libs/TransactionUtils';
+import {setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import {updateMoneyRequestDate} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
@@ -123,20 +122,17 @@ function IOURequestStepDate({
         } else {
             setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
 
-            const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report);
-            if (isDistanceRequest(transaction) && (isPolicyExpenseChat || isTrackExpense)) {
-                const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
-                const rateID = DistanceRequestUtils.getCustomUnitRateID({
-                    reportID,
-                    isPolicyExpenseChat,
-                    policy: effectivePolicy,
-                    lastSelectedDistanceRates,
-                    isTrackDistanceExpense: isTrackExpense,
-                    expenseDate: newCreated,
-                });
-                const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
-                setCustomUnitRateID(transactionID, rateID, transaction, effectivePolicy, rateID !== currentRateID);
-            }
+            updateDistanceRateOnExpenseDateChange({
+                transactionID,
+                transaction,
+                newCreated,
+                reportID,
+                isPolicyExpenseChat: isPolicyExpenseChatReportUtil(report),
+                isTrackExpense,
+                policy,
+                policyForTrackExpense,
+                lastSelectedDistanceRates,
+            });
         }
 
         navigateBack();

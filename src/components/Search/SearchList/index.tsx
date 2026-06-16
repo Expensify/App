@@ -122,12 +122,11 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
 
-    /** Precomputed boolean: shouldShowAttendees applied to the user's policy-for-moving-expenses.
-     * Drilled instead of the policy object to avoid ref churn on unrelated policy updates. */
-    isAttendeesEnabledForMovingPolicy?: boolean;
-
     /** Whether the action column should use its wider variant (e.g. when there is at least one deleted transaction) */
     isActionColumnWide?: boolean;
+
+    /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses) */
+    isAttendeesEnabledForMovingPolicy?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
@@ -208,8 +207,8 @@ function SearchList({
     newTransactions = [],
     nonPersonalAndWorkspaceCards,
     hasLoadedAllTransactions,
-    isAttendeesEnabledForMovingPolicy,
     isActionColumnWide,
+    isAttendeesEnabledForMovingPolicy,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -628,7 +627,6 @@ function SearchList({
                         canSelectMultiple={canSelectMultiple}
                         item={item}
                         columns={columns}
-                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
@@ -669,7 +667,6 @@ function SearchList({
             ownerBillingGracePeriodEnd,
             nonPersonalAndWorkspaceCards,
             ListFooterComponent,
-            isAttendeesEnabledForMovingPolicy,
             handleUndelete,
             firstVisibleIndex,
             lastVisibleIndex,
