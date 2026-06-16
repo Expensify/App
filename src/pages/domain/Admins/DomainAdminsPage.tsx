@@ -1,5 +1,5 @@
 import {adminAccountIDsSelector, adminPendingActionSelector, domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -61,34 +61,32 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 
     const technicalContactEmail = technicalContactSettings?.technicalContactEmail;
 
-    const admins: DomainAdminRowData[] = useMemo(() => {
-        return (adminAccountIDs ?? [])
-            .filter((accountID) => {
-                const details = personalDetails?.[accountID];
-                return !!details?.login || !!details?.displayName;
-            })
-            .map((accountID) => {
-                const details = personalDetails?.[accountID];
-                const login = details?.login ?? '';
-                const errors = domainErrors?.adminErrors?.[accountID]?.errors;
-                const pendingAction = domainPendingAction?.[accountID]?.pendingAction;
-                const isPendingActionDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const admins: DomainAdminRowData[] = (adminAccountIDs ?? [])
+        .filter((accountID) => {
+            const details = personalDetails?.[accountID];
+            return !!details?.login || !!details?.displayName;
+        })
+        .map((accountID) => {
+            const details = personalDetails?.[accountID];
+            const login = details?.login ?? '';
+            const errors = domainErrors?.adminErrors?.[accountID]?.errors;
+            const pendingAction = domainPendingAction?.[accountID]?.pendingAction;
+            const isPendingActionDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-                return {
-                    keyForList: String(accountID),
-                    accountID,
-                    login,
-                    name: formatPhoneNumber(getDisplayNameOrDefault(details)),
-                    email: formatPhoneNumber(login),
-                    isPrimaryContact: !!technicalContactEmail && !!login && technicalContactEmail === login,
-                    errors: getLatestError(errors),
-                    pendingAction,
-                    disabled: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
-                    action: () => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, accountID)),
-                    dismissError: () => clearAdminError(domainAccountID, accountID),
-                };
-            });
-    }, [adminAccountIDs, personalDetails, domainErrors, domainPendingAction, technicalContactEmail, formatPhoneNumber, domainAccountID]);
+            return {
+                keyForList: String(accountID),
+                accountID,
+                login,
+                name: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                email: formatPhoneNumber(login),
+                isPrimaryContact: !!technicalContactEmail && !!login && technicalContactEmail === login,
+                errors: getLatestError(errors),
+                pendingAction,
+                disabled: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
+                action: () => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, accountID)),
+                dismissError: () => clearAdminError(domainAccountID, accountID),
+            };
+        });
 
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
