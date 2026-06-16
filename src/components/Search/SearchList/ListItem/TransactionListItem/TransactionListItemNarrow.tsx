@@ -50,7 +50,11 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     const {isSelected} = useRowSelection(item.keyForList);
 
     const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
-        if (isDeletedTransaction && !canSelectMultiple) {
+        // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
+        if (isDeletedTransaction) {
+            if (canSelectMultiple) {
+                onCheckboxPress?.(item);
+            }
             return;
         }
         onSelectRow(item, transactionPreviewData, event);

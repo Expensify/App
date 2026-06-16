@@ -95,7 +95,11 @@ function TransactionListItemWide<TItem extends ListItem>({
         if (isEditingCell) {
             return;
         }
-        if (isDeletedTransaction && !canSelectMultiple) {
+        // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
+        if (isDeletedTransaction) {
+            if (canSelectMultiple) {
+                onCheckboxPress?.(item);
+            }
             return;
         }
         onSelectRow(item, transactionPreviewData, event);
