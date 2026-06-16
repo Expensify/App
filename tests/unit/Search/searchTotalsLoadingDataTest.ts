@@ -200,6 +200,26 @@ describe('search loading totals handling', () => {
         expect(flatQueryWithoutCurrency?.hash).toBe(ungroupedQueryJSON.hash);
     });
 
+    it('scopes an already-ungrouped footer totals query hash by target currency without colliding with the live snapshot', () => {
+        // Given an ungrouped search
+        const ungroupedQueryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`);
+        if (!ungroupedQueryJSON) {
+            throw new Error('Query JSON should be defined for test setup');
+        }
+
+        // When the footer requests converted totals for two different currencies
+        const footerQueryForAUD = buildFlatQueryWithoutGroupBy(ungroupedQueryJSON, 'AUD');
+        const footerQueryForEUR = buildFlatQueryWithoutGroupBy(ungroupedQueryJSON, 'EUR');
+        const footerQueryWithoutCurrency = buildFlatQueryWithoutGroupBy(ungroupedQueryJSON);
+
+        // Then each currency yields a distinct hash that does not match the live ungrouped snapshot hash
+        expect(footerQueryForAUD?.hash).not.toBe(ungroupedQueryJSON.hash);
+        expect(footerQueryForEUR?.hash).not.toBe(ungroupedQueryJSON.hash);
+        expect(footerQueryForAUD?.hash).not.toBe(footerQueryForEUR?.hash);
+        // And requesting without a currency leaves the live snapshot hash untouched
+        expect(footerQueryWithoutCurrency?.hash).toBe(ungroupedQueryJSON.hash);
+    });
+
     it('dedupes concurrent search requests by hash and offset', async () => {
         const queryJSON = getQueryJSON();
         let resolveSearch: (value: unknown) => void = () => {};

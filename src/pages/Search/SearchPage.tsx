@@ -165,7 +165,9 @@ function SearchPage({route}: SearchPageProps) {
             }
 
             const isResettingToDefault = nextCurrency === fallbackDefaultCurrency;
-            const flatQueryJSON = validGroupBy && !isResettingToDefault ? buildFlatQueryWithoutGroupBy(currentSearchQueryJSON, nextCurrency) : undefined;
+            // Fetch converted footer totals in a currency-scoped snapshot for both grouped and ungrouped searches so
+            // the live search snapshot stays in its original currency.
+            const flatQueryJSON = !isResettingToDefault ? buildFlatQueryWithoutGroupBy(currentSearchQueryJSON, nextCurrency) : undefined;
 
             setFooterCurrencyState({
                 searchHash: currentSearchHash,
@@ -174,32 +176,21 @@ function SearchPage({route}: SearchPageProps) {
                 footerTotalHash: flatQueryJSON?.hash,
             });
 
-            if (validGroupBy) {
-                if (!flatQueryJSON) {
-                    return;
-                }
-
-                handleSearchAction({
-                    queryJSON: flatQueryJSON,
-                    searchKey: undefined,
-                    offset: 0,
-                    shouldCalculateTotals: true,
-                    isLoading: false,
-                    targetCurrency: nextCurrency,
-                });
+            // Resetting to the default currency reads the existing native live snapshot, so no extra request is needed.
+            if (!flatQueryJSON) {
                 return;
             }
 
             handleSearchAction({
-                queryJSON: currentSearchQueryJSON,
-                searchKey: currentSearchKey,
+                queryJSON: flatQueryJSON,
+                searchKey: undefined,
                 offset: 0,
                 shouldCalculateTotals: true,
                 isLoading: false,
                 targetCurrency: nextCurrency,
             });
         },
-        [currentSearchHash, currentSearchKey, currentSearchQueryJSON, defaultFooterCurrency, handleSearchAction, metadata?.currency, validGroupBy],
+        [currentSearchHash, currentSearchQueryJSON, defaultFooterCurrency, handleSearchAction, metadata?.currency],
     );
 
     const footerData = useMemo(() => {
@@ -223,8 +214,8 @@ function SearchPage({route}: SearchPageProps) {
         const shouldUseClientTotal = !metadataCount || (selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter);
         const defaultCurrency = defaultFooterCurrency ?? metadataCurrency;
         const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== defaultCurrency;
-        const isServerTotalConfirmed = !hasCustomFooterCurrency || (validGroupBy ? footerTotalMetadata?.currency === selectedCurrency : metadataCurrency === selectedCurrency);
-        const canConvertSelectedTotal = shouldUseClientTotal && hasCustomFooterCurrency && !!validGroupBy && footerTotalMetadata?.currency === selectedCurrency;
+        const isServerTotalConfirmed = !hasCustomFooterCurrency || footerTotalMetadata?.currency === selectedCurrency;
+        const canConvertSelectedTotal = shouldUseClientTotal && hasCustomFooterCurrency && footerTotalMetadata?.currency === selectedCurrency;
         // The footer conversion snapshot only covers the first flat page, so a selected row from a later page (or a
         // selected group header) may have no converted amount. Only label the selected total as the target currency
         // when every selected row is convertible; otherwise the sum would mix converted and native amounts, so fall
@@ -239,7 +230,7 @@ function SearchPage({route}: SearchPageProps) {
                 return getNumberMember(convertedTransaction, 'groupAmount') !== undefined;
             });
         const shouldUseConvertedSelectedTotal = canConvertSelectedTotal && areAllSelectedRowsConverted;
-        const isFooterGrandTotalLoading = !shouldUseClientTotal && hasCustomFooterCurrency && !!validGroupBy && !!footerTotalMetadata?.isLoading;
+        const isFooterGrandTotalLoading = !shouldUseClientTotal && hasCustomFooterCurrency && !!footerTotalMetadata?.isLoading;
         let currency;
         if (shouldUseConvertedSelectedTotal) {
             currency = selectedCurrency;
@@ -259,7 +250,7 @@ function SearchPage({route}: SearchPageProps) {
                 const convertedTransaction: unknown = shouldUseConvertedSelectedTotal && footerTotalData ? (footerTotalData as Record<string, unknown>)[convertedTransactionKey] : undefined;
                 return acc - (getNumberMember(convertedTransaction, 'groupAmount') ?? transaction.groupAmount ?? -Math.abs(transaction.amount));
             }, 0);
-        } else if (hasCustomFooterCurrency && validGroupBy) {
+        } else if (hasCustomFooterCurrency) {
             total = isServerTotalConfirmed ? footerTotalMetadata?.total : metadataTotal;
         } else {
             total = metadataTotal;
@@ -281,7 +272,6 @@ function SearchPage({route}: SearchPageProps) {
         selectedTransactionsKeys,
         searchData,
         shouldAllowFooterTotals,
-        validGroupBy,
     ]);
 
     const onSortPressedCallback = useCallback(() => {

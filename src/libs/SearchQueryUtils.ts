@@ -2203,19 +2203,19 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
 }
 
 /**
- * Returns the same search query without grouping filters so footer totals can be fetched in a
- * separate snapshot without converting grouped list header totals.
+ * Returns the query used to fetch footer totals in a separate snapshot from the user-facing search,
+ * dropping any grouping so grouped list header/row totals are not converted.
  *
- * When targetCurrency is provided, the returned query's hash is scoped by that currency. The base
- * hash is computed from the query string only (targetCurrency is not part of it), so without scoping
- * this flat query would share a snapshot key with the user-facing ungrouped search (e.g. plain
- * `type:expense`). That collision would let the hidden footer-conversion response overwrite the
- * cached ungrouped snapshot and make it render totals in the footer currency it never requested.
+ * targetCurrency scopes the returned hash so the footer-conversion snapshot can't collide with (and
+ * overwrite) the live search snapshot, keeping the live search in its original currency.
  */
 function buildFlatQueryWithoutGroupBy(queryJSON: Readonly<SearchQueryJSON>, targetCurrency?: string): Readonly<SearchQueryJSON> | undefined {
     const hasGroupCurrencyFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY);
     if (!queryJSON.groupBy && !hasGroupCurrencyFilter) {
-        return queryJSON;
+        if (!targetCurrency) {
+            return queryJSON;
+        }
+        return {...queryJSON, hash: hashText(`${queryJSON.hash}:${targetCurrency}`, 2 ** 32)};
     }
 
     const defaultQueryJSON = getDefaultSearchQueryJSON();
