@@ -30,7 +30,7 @@ export default function PersonalExpenseRulesTableRow({item, rowIndex, shouldUseN
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={{context: 'personalExpenseRulesTableRow'}}
-            onClick={item.action}
+            onPress={item.action}
             offlineWithFeedback={{
                 errors: item.errors,
                 pendingAction: item.pendingAction,

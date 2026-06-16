@@ -36,6 +36,8 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+const getKeyForList = (rule: ExpenseRule, index: number) => `${getKeyForRule(rule)}-${index}`;
+
 function ExpenseRulesPage() {
     const {translate} = useLocalize();
     useDocumentTitle(translate('expenseRulesPage.title'));
@@ -65,14 +67,14 @@ function ExpenseRulesPage() {
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const isInSelectionMode = shouldUseNarrowLayout ? canSelectMultiple : selectedRules.length > 0;
 
-    const personalExpenseRules: PersonalExpenseRuleRowData[] = expenseRules.map((rule) => ({
-        keyForList: getKeyForRule(rule),
+    const personalExpenseRules: PersonalExpenseRuleRowData[] = expenseRules.map((rule, index) => ({
+        keyForList: getKeyForList(rule, index),
         merchant: rule.merchantToMatch,
         changes: formatExpenseRuleChanges(rule, translate),
         pendingAction: rule.pendingAction,
         errors: rule.errors,
         disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        action: () => navigateToEditRulePage(getKeyForRule(rule)),
+        action: () => navigateToEditRulePage(getKeyForList(rule, index)),
     }));
 
     const navigateToNewRulePage = () => {
@@ -84,8 +86,10 @@ function ExpenseRulesPage() {
         if (!keyForList) {
             return;
         }
+
         const hash = keyForList.substring(0, keyForList.indexOf('-'));
         const expenseRule = expenseRules.find((rule) => getKeyForRule(rule) === hash);
+
         if (!expenseRule) {
             return;
         }
