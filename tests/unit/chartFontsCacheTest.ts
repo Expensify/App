@@ -16,14 +16,14 @@ const mockFontProviderMake = jest.fn(() => ({
 jest.mock("@shopify/react-native-skia", () => ({
   Skia: {
     Data: {
-      fromURI: (...args: unknown[]) => mockFromURI(...args),
+      fromURI: (uri: string) => mockFromURI(uri),
     },
     Typeface: {
-      MakeFreeTypeFaceFromData: (...args: unknown[]) =>
-        mockMakeFreeTypeFaceFromData(...args),
+      MakeFreeTypeFaceFromData: (data: unknown) =>
+        mockMakeFreeTypeFaceFromData(data),
     },
     TypefaceFontProvider: {
-      Make: (...args: unknown[]) => mockFontProviderMake(...args),
+      Make: () => mockFontProviderMake(),
     },
   },
 }));

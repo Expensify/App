@@ -6,6 +6,7 @@ import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Chart
 import Log from '@libs/Log';
 import buildSkiaFontManager from './buildSkiaFontManager';
 import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from './chartFontAssets';
+import loadChartTypefacesFromAssets from './loadChartTypefacesFromAssets';
 
 const EMPTY_CHART_FONTS: ChartFontsValue = {
     typefaces: Object.fromEntries((Object.keys(CHART_SKIA_TYPEFACE_ASSETS) as ChartSkiaTypefaceKey[]).map((key) => [key, null])) as ChartDefaultTypeface,
@@ -56,40 +57,12 @@ function logChartFontLoadError(assetKey: string, error: unknown): void {
     });
 }
 
-async function loadTypefaceFromAssetSafely(assetKey: string, source: DataModule | string): Promise<SkTypeface | null> {
-    try {
-        return await loadTypefaceFromAsset(source);
-    } catch (error: unknown) {
-        logChartFontLoadError(assetKey, error);
-        return null;
-    }
+function hasAnyLoadedTypeface(typefaces: ChartDefaultTypeface): boolean {
+    return Object.values(typefaces).some((typeface) => typeface !== null);
 }
 
 async function loadChartSkiaTypefaces(): Promise<ChartDefaultTypeface> {
-    const typefaceKeys = Object.keys(CHART_SKIA_TYPEFACE_ASSETS) as ChartSkiaTypefaceKey[];
-    const results = await Promise.allSettled(
-        typefaceKeys.map(async (typefaceKey) => {
-            const typeface = await loadTypefaceFromAssetSafely(typefaceKey, CHART_SKIA_TYPEFACE_ASSETS[typefaceKey]);
-            return [typefaceKey, typeface] as const;
-        }),
-    );
-
-    const entries = results.map((result, index) => {
-        const typefaceKey = typefaceKeys[index];
-
-        if (result.status === 'fulfilled') {
-            return result.value;
-        }
-
-        logChartFontLoadError(typefaceKey, result.reason);
-        return [typefaceKey, null] as const;
-    });
-
-    return Object.fromEntries(entries) as ChartDefaultTypeface;
-}
-
-function hasAnyLoadedTypeface(typefaces: ChartDefaultTypeface): boolean {
-    return Object.values(typefaces).some((typeface) => typeface !== null);
+    return loadChartTypefacesFromAssets(CHART_SKIA_TYPEFACE_ASSETS, async (_assetKey, source) => loadTypefaceFromAsset(source), logChartFontLoadError) as Promise<ChartDefaultTypeface>;
 }
 
 async function buildChartFontsValue(typefaces: ChartDefaultTypeface): Promise<ChartFontsValue> {
@@ -98,19 +71,11 @@ async function buildChartFontsValue(typefaces: ChartDefaultTypeface): Promise<Ch
     }
 
     const fontMgr = buildSkiaFontManager(typefaces);
-    const supplementalResults = await Promise.allSettled(
-        Object.entries(CHART_FONT_MGR_SUPPLEMENTAL_ASSETS).map(async ([familyName, asset]) => {
-            const typeface = await loadTypefaceFromAssetSafely(familyName, asset);
+    const supplementalTypefaces = await loadChartTypefacesFromAssets(CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, async (_familyName, asset) => loadTypefaceFromAsset(asset), logChartFontLoadError);
 
-            if (typeface) {
-                fontMgr.registerFont(typeface, familyName);
-            }
-        }),
-    );
-
-    for (const result of supplementalResults) {
-        if (result.status === 'rejected') {
-            logChartFontLoadError('supplemental', result.reason);
+    for (const [familyName, typeface] of Object.entries(supplementalTypefaces)) {
+        if (typeface) {
+            fontMgr.registerFont(typeface, familyName);
         }
     }
 
