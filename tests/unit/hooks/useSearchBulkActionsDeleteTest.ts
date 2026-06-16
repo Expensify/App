@@ -6,6 +6,7 @@ import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, SearchResults} from '@src/types/onyx';
+import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -123,6 +124,11 @@ jest.mock('@hooks/useDefaultExpensePolicy', () => ({
     default: () => undefined,
 }));
 
+jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
+    __esModule: true,
+    default: () => ({policyForMovingExpensesID: 'policy1'}),
+}));
+
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({}),
 }));
@@ -153,6 +159,9 @@ jest.mock('@libs/SearchUIUtils', () => ({
     shouldShowDeleteOption: () => mockShouldShowDeleteOption,
     getSelectedGroupFilterEntry: jest.fn(),
     navigateToSearchRHP: jest.fn(),
+    getValidGroupBy: jest.fn(),
+    getColumnsToShow: jest.fn(() => []),
+    getSearchColumnTranslationKey: jest.fn(),
 }));
 
 jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
@@ -211,6 +220,11 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
         email: 'test@example.com',
     })),
 }));
+
+jest.mock('@hooks/usePaymentContext', () => {
+    const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../../utils/mockUsePaymentContext');
+    return mockUsePaymentContext;
+});
 
 // ---------------------------------------------------------------------------
 // Helpers
