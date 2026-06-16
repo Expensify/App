@@ -1,4 +1,5 @@
 import React from 'react';
+import {Platform} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
@@ -33,7 +34,7 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
             >
                 <Icon
                     src={ConciergeAvatar}
-                    fill={theme.icon}
+                    fill={Platform.select({web: theme.icon})}
                     width={28}
                     height={28}
                 />
