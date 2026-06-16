@@ -37,6 +37,7 @@ type SingleSelectProps<T> = SearchFilterCommonProps & {
     /** Custom height for each item in the list */
     itemHeight?: number;
 
+    shouldUseFixedPopoverHeight?: boolean;
     allowDeselect?: boolean;
     hasTitle?: boolean;
     hasHeader?: boolean;
@@ -53,6 +54,7 @@ function SingleSelect<T extends string>({
     hasTitle,
     hasHeader,
     itemHeight,
+    shouldUseFixedPopoverHeight,
     footer,
     allowDeselect,
     onChange,
@@ -127,6 +129,7 @@ function SingleSelect<T extends string>({
             hasTitle={hasTitle}
             isSearchable={isSearchable}
             itemHeight={itemHeight ?? variables.optionRowHeight}
+            shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
         >
             <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
                 <SelectionList
