@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
-import Mapbox, {setAccessToken} from '@rnmapbox/maps';
+import Mapbox from '@rnmapbox/maps';
 import {useEffect, useRef, useState} from 'react';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -12,23 +12,22 @@ import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import GPSDirection from './GPSDirection';
 import GPSWaypointLayer from './GPSWaypointLayer';
+import LOCATION_PUCK_LAYER_ID from './locationPuckLayerId';
 import type {GPSMapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
+import useAccessToken from './useAccessToken';
 import utils from './utils';
 
-// The native Mapbox SDK renders the user-location puck on its own dedicated layer. We draw the route below
-// that layer so the puck always stays on top of the line. The layer id differs per platform.
-const LOCATION_PUCK_LAYER_ID = Platform.select({ios: 'puck', android: 'mapbox-location-indicator-layer'});
 const LOCATION_PUCK_PULSING = {
     isEnabled: true,
-    color: '#0185FF',
+    color: CONST.MAP_CURRENT_LOCATION_FILL_COLOR,
     radius: 40.0,
 };
 
 const CURRENT_LOCATION_PUCK_IMAGE = 'current-location-puck-image';
 
-function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, waypoints, directionCoordinates: directionCoordinatesProp, isTrackingGPS}: GPSMapViewProps) {
+function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, waypoints, directionCoordinates: directionCoordinatesProp, isTrackingGPS, hasEverTrackedGPS}: GPSMapViewProps) {
     const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
     const noWaypoints = !waypoints || waypoints.length === 0;
 
@@ -37,21 +36,13 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocationPuck']);
+    const isAccessTokenSet = useAccessToken({accessToken});
 
     const cameraRef = useRef<Mapbox.Camera>(null);
 
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
     const [shouldUseImmediateFollowTransition, setShouldUseImmediateFollowTransition] = useState(noWaypoints);
-    const [isAccessTokenSet, setIsAccessTokenSet] = useState(false);
     const [lastLocation, setLastLocation] = useState<{longitude: number; latitude: number} | undefined>();
-
-    const [hasEverTrackedGPS, setHasEverTrackedGPS] = useState(!!isTrackingGPS);
-    useEffect(() => {
-        if (!isTrackingGPS) {
-            return;
-        }
-        setHasEverTrackedGPS(true);
-    }, [isTrackingGPS]);
 
     // Determines if map can be panned to user's detected location without bothering the user. It will return
     // false if user has already started dragging the map or if there are one or more waypoints present and the GPS trip is not active.
@@ -77,31 +68,13 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
             waypoints.map((waypoint) => waypoint.coordinate),
             directionCoordinates,
         );
-        cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
+        cameraRef.current?.fitBounds(northEast, southWest, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
     });
-
-    useEffect(() => {
-        setAccessToken(accessToken).then((token) => {
-            if (!token) {
-                return;
-            }
-            setIsAccessTokenSet(true);
-        });
-    }, [accessToken]);
-
-    useEffect(() => {
-        setAccessToken(accessToken).then((token) => {
-            if (!token) {
-                return;
-            }
-            setIsAccessTokenSet(true);
-        });
-    }, [accessToken]);
 
     const centerMap = () => {
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
         if (!isTrackingGPS && (waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1)) {
-            const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
+            const {southWest, northEast} = utils.getBounds(waypointCoordinates, directionCoordinates);
             cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
             return;
         }
@@ -189,8 +162,10 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
                         // To ensure that waypoints are shown below the location puck we need to pass its belowLayerID
                         // which on iOS is not ready on the first render, so we pass it only after user has started a GPS trip
                         // Android does not support dynamic belowLayerID prop change, so we pass key to remount this component instead
-                        key={hasEverTrackedGPS || isTrackingGPS ? 'below-location-puck' : 'default'}
-                        belowLayerID={hasEverTrackedGPS || isTrackingGPS ? LOCATION_PUCK_LAYER_ID : undefined}
+                        key={hasEverTrackedGPS ? 'below-location-puck' : 'default'}
+                        // The native Mapbox SDK renders the user-location puck on its own dedicated layer. We render waypoints below
+                        // that layer so the puck always stays on top of the line. The layer id differs per platform.
+                        belowLayerID={hasEverTrackedGPS ? LOCATION_PUCK_LAYER_ID : undefined}
                     />
 
                     <GPSDirection

@@ -39,9 +39,12 @@ type ButtonsProps = {
 
     /** Captured GPS points */
     gpsPoints: GPSPoint[][];
+
+    /** Function to call when the GPS trip has started for the first time after the GPS screen has been opened */
+    setHasEverTrackedGPS: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError, reportID, unit, gpsPoints}: ButtonsProps) {
+function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError, setHasEverTrackedGPS, reportID, unit, gpsPoints}: ButtonsProps) {
     const [startPermissionsFlow, setStartPermissionsFlow] = useState(false);
     const [showLocationRequiredModal, setShowLocationRequiredModal] = useState(false);
     const [showZeroDistanceModal, setShowZeroDistanceModal] = useState(false);
@@ -89,6 +92,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
 
         initGpsDraft(reportID, unit);
         startGpsTripNotification(translate, reportID, unit);
+        setHasEverTrackedGPS(true);
     };
 
     const resumeGpsTrip = async () => {

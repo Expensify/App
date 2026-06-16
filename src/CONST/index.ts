@@ -8843,6 +8843,8 @@ const CONST = {
         WAYPOINTS: 'waypoints',
     },
 
+    MAP_CURRENT_LOCATION_FILL_COLOR: '#0185FF',
+
     PARTNER_ID: {
         EXPENSIFY: 1,
         IPHONE: 14,

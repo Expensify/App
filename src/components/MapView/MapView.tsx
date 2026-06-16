@@ -1,6 +1,6 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import type {MapState} from '@rnmapbox/maps';
-import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
+import Mapbox, {MarkerView} from '@rnmapbox/maps';
 import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -24,6 +24,7 @@ import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
+import useAccessToken from './useAccessToken';
 import useDistanceUnit from './useDistanceUnit';
 import utils from './utils';
 
@@ -58,7 +59,7 @@ function MapView({
     const currentPosition = userLocation ?? initialLocation;
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
-    const [isAccessTokenSet, setIsAccessTokenSet] = useState(false);
+    const isAccessTokenSet = useAccessToken({accessToken});
 
     const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
 
@@ -175,15 +176,6 @@ function MapView({
         }
         setIsIdle(false);
     }, [isOffline]);
-
-    useEffect(() => {
-        setAccessToken(accessToken).then((token) => {
-            if (!token) {
-                return;
-            }
-            setIsAccessTokenSet(true);
-        });
-    }, [accessToken]);
 
     const setMapIdle = (e: MapState) => {
         if (e.gestures.isGestureActive) {
