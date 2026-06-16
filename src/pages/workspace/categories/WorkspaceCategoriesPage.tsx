@@ -706,7 +706,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             selectedKeys={selectedCategoryKeys}
                             shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                             shouldShowApproverColumn={shouldShowApproverColumn}
-                            onRowSelectionChange={(selectedRowKeys) => setSelectedCategoryKeys(selectedRowKeys)}
+                            onRowSelectionChange={setSelectedCategoryKeys}
                             EmptyStateComponent={emptyStateContent}
                         />
                     </>

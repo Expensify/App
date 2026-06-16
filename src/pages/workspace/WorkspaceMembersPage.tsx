@@ -712,7 +712,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         selectedKeys={selectedEmployees}
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
-                        onRowSelectionChange={(selectedRows) => setSelectedEmployees(selectedRows)}
+                        onRowSelectionChange={setSelectedEmployees}
                     />
                 </>
             )}
