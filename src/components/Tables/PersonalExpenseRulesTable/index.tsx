@@ -2,6 +2,7 @@ import {ListRenderItemInfo} from '@shopify/flash-list';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -23,6 +24,7 @@ type PersonalExpenseRulesTableProps = {
 
 export default function PersonalExpenseRulesTable({personalExpenseRules}: PersonalExpenseRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const personalExpenseRulesTableColumns: Array<TableColumn<PersonalExpenseRulesTableColumnKey>> = [
         {
@@ -67,6 +69,7 @@ export default function PersonalExpenseRulesTable({personalExpenseRules}: Person
         <PersonalExpenseRulesTableRow
             item={item}
             rowIndex={index}
+            shouldUseNarrowTableLayout={shouldUseNarrowLayout || isMediumScreenWidth}
         />
     );
 

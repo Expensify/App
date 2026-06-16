@@ -1,6 +1,7 @@
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import TableRow from '@components/Table/TableRow';
+import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
@@ -11,9 +12,10 @@ import {PersonalExpenseRuleRowData} from '.';
 type PersonalExpenseRulesTableRowProps = {
     item: PersonalExpenseRuleRowData;
     rowIndex: number;
+    shouldUseNarrowTableLayout: boolean;
 };
 
-export default function PersonalExpenseRulesTableRow({item, rowIndex}: PersonalExpenseRulesTableRowProps) {
+export default function PersonalExpenseRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: PersonalExpenseRulesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -36,31 +38,45 @@ export default function PersonalExpenseRulesTableRow({item, rowIndex}: PersonalE
         >
             {({hovered}) => (
                 <>
-                    <View>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={item.merchant}
-                            />
+                    {!shouldUseNarrowTableLayout && (
+                        <View>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={item.merchant}
+                                />
+                            </View>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={item.changes}
+                                />
+                            </View>
                         </View>
-                    </View>
-                    <View>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={item.changes}
-                            />
+                    )}
+
+                    {shouldUseNarrowTableLayout && (
+                        <View>
+                            <View style={[styles.gap1]}>
+                                <Text numberOfLines={1}>item.merchant</Text>
+                                <Text
+                                    numberOfLines={1}
+                                    style={styles.textLabel}
+                                >
+                                    {item.changes}
+                                </Text>
+                            </View>
                         </View>
-                    </View>
+                    )}
 
                     <Icon
                         src={icons.ArrowRight}
                         fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
+                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
                     />
                 </>
             )}
