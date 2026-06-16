@@ -19,6 +19,17 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isActiveRoute: jest.fn(() => false),
 }));
 
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native');
+    const react = jest.requireActual<typeof import('react')>('react');
+    return {
+        ...actualNav,
+        useFocusEffect: (effect: React.EffectCallback) => {
+            react.useEffect(effect, [effect]);
+        },
+    };
+});
+
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
 
 function ProtectedContent() {
