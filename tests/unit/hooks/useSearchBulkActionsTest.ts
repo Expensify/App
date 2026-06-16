@@ -118,6 +118,11 @@ jest.mock('@hooks/useDefaultExpensePolicy', () => ({
     default: () => undefined,
 }));
 
+jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
+    __esModule: true,
+    default: () => ({policyForMovingExpensesID: undefined}),
+}));
+
 jest.mock('@hooks/usePaymentContext', () => ({
     __esModule: true,
     default: () => ({
