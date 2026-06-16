@@ -102,13 +102,17 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
     const canonicalPage = useMemo(() => pages.find((p) => p.serverSteps.includes(enablePaymentsStep))?.pageName, [enablePaymentsStep]);
 
     useEffect(() => {
+        if (userWallet?.isLoading || (!hasFreshData && !isOffline)) {
+            return;
+        }
+
         if (!canonicalPage || urlPage === canonicalPage) {
             return;
         }
 
         // This is a URL correction, so replace the current route instead of pushing a duplicate instance of this screen.
         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({page: canonicalPage}), {forceReplace: true});
-    }, [canonicalPage, urlPage]);
+    }, [canonicalPage, hasFreshData, isOffline, urlPage, userWallet?.isLoading]);
 
     const isUserWalletEmpty = isEmptyObject(userWallet);
     if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {
