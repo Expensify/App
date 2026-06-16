@@ -344,11 +344,10 @@ function openReportFromDeepLink(
                         }
 
                         // Drop a non-report deep link captured before the user finished onboarding (#91437).
-                        // Scope this to routes without a reportID: a report deep link self-heals in navigateHandler
-                        // below (it falls back to the last accessed report/Concierge when the report isn't
-                        // accessible), so dropping those would lose a legitimate first-time sign-up link (e.g. an
-                        // invite). The "Not here" flash only comes from workspace/policy routes, which a freshly
-                        // onboarded account can't access anyway.
+                        // Only routes without a reportID can reach the "Not here" page. A report URL falls through
+                        // to navigateHandler below, which opens the report when it's accessible and otherwise
+                        // Concierge, never AccessOrNotFoundWrapper, so blanket-dropping report URLs would lose a
+                        // legitimate first-time sign-up link (e.g. an invite to a report).
                         if (initialHasCompletedGuidedSetupFlow === false && !reportID) {
                             return;
                         }
