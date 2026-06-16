@@ -12,6 +12,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import {clearPreservedSearchNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import Navigation from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONFIG from '@src/CONFIG';
@@ -205,6 +206,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 return;
             }
             clearPreservedSearchNavigatorStates();
+            Navigation.isNavigationReady().then(() => Navigation.resetToHome());
             const restrictedToken = response.restrictedToken;
             const policyID = activePolicyID;
 
@@ -294,6 +296,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
             }
 
             clearPreservedSearchNavigatorStates();
+            Navigation.isNavigationReady().then(() => Navigation.resetToHome());
 
             const requesterEmail = response.requesterEmail;
             const authToken = response.authToken;
