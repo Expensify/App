@@ -74,7 +74,10 @@ function isWithdrawalIDGroup(value: SearchResultDataType[keyof SearchResultDataT
     return typeof value === 'object' && value !== null && 'entryID' in value && typeof value.entryID === 'number';
 }
 
-function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchWithdrawalIDGroup[] {
+// A settlement that is exportable: it belongs to exactly one workspace, so its policyID is guaranteed present.
+type ExportableSettlementGroup = SearchWithdrawalIDGroup & {policyID: string};
+
+function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): ExportableSettlementGroup[] {
     if (!searchData) {
         return [];
     }
@@ -97,19 +100,21 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
         }
     }
 
-    const settlementGroups: SearchWithdrawalIDGroup[] = [];
+    const settlementGroups: ExportableSettlementGroup[] = [];
     for (const [key, value] of Object.entries(searchData)) {
         if (!selectedGroupKeys.has(key) || !isWithdrawalIDGroup(value) || getSettlementStatus(value.state) === CONST.SEARCH.SETTLEMENT_STATUS.FAILED) {
             continue;
         }
 
+        const {policyID} = value;
+
         // A settlement that bills more than one workspace has no single policyID to scope the statement to, so the
         // backend omits it. Such a settlement can't be exported by a workspace admin without leaking the other
         // workspaces' expenses, so it isn't exportable - skip it like a failed settlement.
-        if (!value.policyID) {
+        if (!policyID) {
             continue;
         }
-        settlementGroups.push(value);
+        settlementGroups.push({...value, policyID});
     }
 
     return settlementGroups;
@@ -137,10 +142,6 @@ function getExpensifyCardStatementSelection(
 
     const feedsByKey = new Map<string, ExpensifyCardStatementFeed>();
     for (const settlementGroup of selectedSettlementGroups) {
-        if (!settlementGroup.policyID) {
-            continue;
-        }
-
         const feedKey = `${settlementGroup.policyID}:${settlementGroup.feedCountry ?? ''}`;
         const existingFeed = feedsByKey.get(feedKey);
         if (existingFeed) {
@@ -175,24 +176,6 @@ function getExpensifyCardStatementParamsFromFeed(feed: ExpensifyCardStatementFee
     };
 }
 
-function getExpensifyCardStatementParams(
-    queryJSON: SearchQueryJSON | undefined,
-    selectedTransactions: SelectedTransactions | undefined,
-    searchData: SearchResultDataType | undefined,
-): ExpensifyCardStatementParams | undefined {
-    const selection = getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchData);
-    if (!selection || selection.hasMultipleFeeds || selection.feeds.length !== 1) {
-        return undefined;
-    }
-
-    const feed = selection.feeds.at(0);
-    if (!feed) {
-        return undefined;
-    }
-
-    return getExpensifyCardStatementParamsFromFeed(feed);
-}
-
 function downloadExpensifyCardStatementPDF(translate: LocalizedTranslate, fileName: string, statementKey: string, currentUserEmail: string, encryptedAuthToken: string): Promise<void> {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `Expensify_Card_Statement_${statementKey}.pdf`;
@@ -201,4 +184,4 @@ function downloadExpensifyCardStatementPDF(translate: LocalizedTranslate, fileNa
 }
 
 export type {ExpensifyCardStatementParams};
-export {downloadExpensifyCardStatementPDF, getExpensifyCardStatementParams, getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch};
+export {downloadExpensifyCardStatementPDF, getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch};

@@ -1,7 +1,15 @@
-import {getExpensifyCardStatementParams, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch} from '@libs/ExpensifyCardStatementUtils';
+import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch} from '@libs/ExpensifyCardStatementUtils';
 import type {SearchQueryJSON, SelectedTransactions} from '@src/components/Search/types';
 import CONST from '@src/CONST';
 import type {SearchResultDataType, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
+
+// Mirrors how production turns a selection into download params (useSearchBulkActions.exportExpensifyCardStatementPDF):
+// the export is only offered for a single feed, otherwise the multi-feed alert is shown instead.
+function getStatementParamsForExport(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType) {
+    const selection = getExpensifyCardStatementSelection(queryJSON, selectedTransactions, searchData);
+    const feed = selection && !selection.hasMultipleFeeds ? selection.feeds.at(0) : undefined;
+    return feed ? getExpensifyCardStatementParamsFromFeed(feed) : undefined;
+}
 
 const expensifyCardStatementQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense policyID:policy1 withdrawal-type:expensify-card withdrawn>=2026-05-01 withdrawn<=2026-05-31 groupBy:withdrawal-id',
@@ -119,7 +127,7 @@ describe('ExpensifyCardStatementUtils', () => {
         expect(selection?.hasMultipleFeeds).toBe(false);
         expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', entryIDs: [123]}]);
 
-        const params = getExpensifyCardStatementParams(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+        const params = getStatementParamsForExport(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
         expect(params).toEqual({
             policyID: 'policy1',
             feedCountry: 'US',
@@ -134,7 +142,7 @@ describe('ExpensifyCardStatementUtils', () => {
 
         // A settlement with no policyID can't be scoped to one workspace, so it is skipped entirely - no dead-end menu item.
         expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
-        expect(getExpensifyCardStatementParams(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+        expect(getStatementParamsForExport(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
     });
 
     it('exports the valid feed when a mixed-workspace settlement is also selected', () => {
@@ -169,7 +177,7 @@ describe('ExpensifyCardStatementUtils', () => {
 
         const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
         expect(selection?.hasMultipleFeeds).toBe(true);
-        expect(getExpensifyCardStatementParams(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+        expect(getStatementParamsForExport(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
     });
 
     it('hides the export when a transaction-narrowing filter is active', () => {
