@@ -117,7 +117,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         return;
                     }
                     setOnboardingCompanySize(selectedCompanySize);
-                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
                 }}
                 pressOnEnter
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
