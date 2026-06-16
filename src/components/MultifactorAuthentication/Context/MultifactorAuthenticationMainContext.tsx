@@ -15,11 +15,14 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useNetwork from '@hooks/useNetwork';
 import getPlatform from '@libs/getPlatform';
 import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
+import CONST from '@src/CONST';
 import type {DeviceBiometrics} from '@src/types/onyx';
 import MultifactorAuthenticationExternalAPIContext from './MultifactorAuthenticationExternalApiContext';
 import type {MultifactorAuthenticationExecuteScenarioArgs, MultifactorAuthenticationExternalAPI} from './MultifactorAuthenticationExternalApiContext';
 import MultifactorAuthenticationInternalApiContext from './MultifactorAuthenticationInternalApiContext';
 import type {MultifactorAuthenticationInternalApi} from './MultifactorAuthenticationInternalApiContext';
+
+const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
 
@@ -64,9 +67,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const executeScenario = async <T extends MultifactorAuthenticationScenario>(scenarioName: T, ...args: MultifactorAuthenticationExecuteScenarioArgs<T>): Promise<void> => {
         const [params] = args;
 
-        // Perf short-circuit: once a scenario is active the machine ignores INIT, so skip the redundant
-        // captureCredentialsState() native call + breadcrumb on the happy path.
-        if (state.scenario) {
+            // Perf short-circuit: while the modal is open or closing the machine drops INIT, so skip the
+        // redundant captureCredentialsState() native call + breadcrumb on the happy path.
+        if (state.modalState !== MFA_STATE.CLOSED) {
             return;
         }
 
