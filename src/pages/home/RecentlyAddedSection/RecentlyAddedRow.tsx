@@ -15,8 +15,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 
-const FALLBACK_ICON_SIZE = 20;
-
 /** Width of the date column, shared with the section's column header so labels line up with the values. */
 const DATE_COLUMN_WIDTH = 72;
 
@@ -37,33 +35,16 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator}: RecentlyAdded
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {convertToDisplayString} = useCurrencyListActions();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Receipt']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const formattedDate = DateUtils.formatWithUTCTimeZone(expense.created, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
 
-    const thumbnail = expense.transaction ? (
+    const thumbnail = (
         <ReceiptCell
             transactionItem={expense.transaction}
             isSelected={false}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
         />
-    ) : (
-        <View
-            style={[
-                StyleUtils.getWidthAndHeightStyle(shouldUseNarrowLayout ? variables.h36 : variables.w28, shouldUseNarrowLayout ? variables.w40 : variables.h32),
-                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
-                styles.alignItemsCenter,
-                styles.justifyContentCenter,
-                StyleUtils.getBackgroundColorStyle(theme.border),
-            ]}
-        >
-            <Icon
-                src={icons.Receipt}
-                fill={theme.icon}
-                width={FALLBACK_ICON_SIZE}
-                height={FALLBACK_ICON_SIZE}
-            />
-        </View>
     );
 
     return (

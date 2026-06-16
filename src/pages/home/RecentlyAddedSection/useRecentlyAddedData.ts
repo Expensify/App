@@ -39,7 +39,7 @@ type RecentlyAddedExpense = {
     threadReportID?: string;
 
     /** The full transaction, used to render the receipt thumbnail */
-    transaction?: Transaction;
+    transaction: Transaction;
 };
 
 /**
