@@ -59,7 +59,6 @@ function BaseSearchList({
     contentContainerStyle,
     flattenedItemsLength,
     selectedTransactions,
-    isAttendeesEnabledForMovingPolicy,
     nonPersonalAndWorkspaceCards,
     stickyHeaderIndices,
     stickyHeaderConfig,
@@ -165,8 +164,8 @@ function BaseSearchList({
     }, [setHasKeyBeenPressed]);
 
     const extraData = useMemo(
-        () => [focusedIndex, columns, selectedTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
-        [focusedIndex, columns, selectedTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
+        () => [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards],
+        [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards],
     );
 
     return (

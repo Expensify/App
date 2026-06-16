@@ -444,8 +444,6 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         /** Whether the item's action is loading */
         isLoading?: boolean;
         columns?: SearchColumnType[];
-        /** Precomputed shouldShowAttendees(SUBMIT, policyForMovingExpenses) */
-        isAttendeesEnabledForMovingPolicy?: boolean;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
@@ -468,7 +466,6 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
     'showTooltip' | 'canSelectMultiple' | 'onSelectionButtonPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'onSelectRow' | 'nonPersonalAndWorkspaceCards' | 'onUndelete'
 > & {
-    isAttendeesEnabledForMovingPolicy?: boolean;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
