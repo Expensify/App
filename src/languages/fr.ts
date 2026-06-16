@@ -6251,6 +6251,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Assurons-nous que tout est correct.',
                 description: ({workspaceName}: {workspaceName: string}) =>
                     `Nous copierons les paramètres suivants de <strong>${workspaceName}</strong> vers les espaces de travail que vous avez indiqués`,
+                travelAddressRequired: 'Pour copier les voyages, chaque espace de travail sélectionné doit avoir une adresse d’entreprise. Ajoutez-en une à chaque espace de travail, puis réessayez.',
             },
             confirmWorkflows: {
                 continue: 'Continuer sans membres',

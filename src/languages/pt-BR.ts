@@ -6193,6 +6193,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Vamos garantir que está tudo certo.',
                 description: ({workspaceName}: {workspaceName: string}) =>
                     `Vamos copiar as seguintes configurações de <strong>${workspaceName}</strong> para os espaços de trabalho que você especificou`,
+                travelAddressRequired: 'Para copiar viagens, cada espaço de trabalho selecionado precisa de um endereço da empresa. Adicione um a cada espaço de trabalho e tente novamente.',
             },
             confirmWorkflows: {
                 continue: 'Continuar sem membros',

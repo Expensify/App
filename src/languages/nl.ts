@@ -6194,6 +6194,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Laten we controleren of alles er goed uitziet.',
                 description: ({workspaceName}: {workspaceName: string}) =>
                     `We kopiëren de volgende instellingen van <strong>${workspaceName}</strong> naar de werkruimtes die je hebt opgegeven`,
+                travelAddressRequired: 'Om reizen te kopiëren, heeft elke geselecteerde werkruimte een bedrijfsadres nodig. Voeg er een toe aan elke werkruimte en probeer het opnieuw.',
             },
             confirmWorkflows: {
                 continue: 'Doorgaan zonder leden',

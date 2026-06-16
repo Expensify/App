@@ -6227,6 +6227,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Stellen wir sicher, dass alles richtig aussieht.',
                 description: ({workspaceName}: {workspaceName: string}) =>
                     `Wir kopieren die folgenden Einstellungen von <strong>${workspaceName}</strong> in die von Ihnen angegebenen Arbeitsbereiche`,
+                travelAddressRequired: 'Um Reisen zu kopieren, benötigt jeder ausgewählte Arbeitsbereich eine Unternehmensadresse. Fügen Sie zu jedem Arbeitsbereich eine hinzu und versuchen Sie es erneut.',
             },
             confirmWorkflows: {
                 continue: 'Ohne Mitglieder fortfahren',

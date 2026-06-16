@@ -6038,6 +6038,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             confirmSettings: {
                 title: '让我们确认一切都正确无误。',
                 description: ({workspaceName}: {workspaceName: string}) => `我们会将以下设置从 <strong>${workspaceName}</strong> 复制到你指定的工作区`,
+                travelAddressRequired: '要复制差旅，每个所选工作区都需要有公司地址。请为每个工作区添加地址，然后重试。',
             },
             confirmWorkflows: {
                 continue: '继续且无成员',

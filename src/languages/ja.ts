@@ -6145,6 +6145,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             confirmSettings: {
                 title: 'すべて正しく表示されているか確認しましょう。',
                 description: ({workspaceName}: {workspaceName: string}) => `次の設定を<strong>${workspaceName}</strong>から指定したワークスペースにコピーします`,
+                travelAddressRequired: '出張をコピーするには、選択したすべてのワークスペースに会社の住所が必要です。各ワークスペースに住所を追加してから、もう一度お試しください。',
             },
             confirmWorkflows: {
                 continue: 'メンバーなしで続行',

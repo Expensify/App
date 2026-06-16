@@ -6189,6 +6189,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Upewnijmy się, że wszystko wygląda poprawnie.',
                 description: ({workspaceName}: {workspaceName: string}) =>
                     `Skopiujemy następujące ustawienia z <strong>${workspaceName}</strong> do wskazanych przez ciebie przestrzeni roboczych`,
+                travelAddressRequired: 'Aby skopiować podróże, każda wybrana przestrzeń robocza musi mieć adres firmy. Dodaj go do każdej przestrzeni roboczej i spróbuj ponownie.',
             },
             confirmWorkflows: {
                 continue: 'Kontynuuj bez członków',
