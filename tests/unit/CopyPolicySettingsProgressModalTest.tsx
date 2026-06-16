@@ -19,6 +19,7 @@ type MockConfirmModalProps = {
     shouldShowCancelButton?: boolean;
     shouldHandleNavigationBack?: boolean;
     success?: boolean;
+    danger?: boolean;
 };
 
 let lastModalProps: MockConfirmModalProps | undefined;
@@ -48,6 +49,13 @@ jest.mock('@libs/actions/Report', () => ({
     navigateToConciergeChat: jest.fn(),
 }));
 
+const mockNavigate = jest.fn();
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: (route: string) => {
+        mockNavigate(route);
+    },
+}));
+
 jest.mock('@src/selectors/Onboarding', () => ({
     hasSeenTourSelector: () => true,
 }));
@@ -71,6 +79,7 @@ describe('CopyPolicySettingsProgressModal', () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
         jest.clearAllMocks();
+        mockNavigate.mockClear();
     });
 
     afterEach(async () => {
@@ -249,6 +258,105 @@ describe('CopyPolicySettingsProgressModal', () => {
             renderModal();
 
             expect(lastModalProps?.shouldHandleNavigationBack).toBe(true);
+        });
+    });
+
+    describe('failure state', () => {
+        const sourcePolicyID = 'test-policy-123';
+
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {
+                currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING,
+                sourcePolicyID,
+            });
+            await Onyx.merge(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS, {state: CONST.POLICY.COPY_SETTINGS_NVP_STATE.FAILED});
+            await waitForBatchedUpdates();
+        });
+
+        it('should be visible when in loading state and backend reports failed', () => {
+            renderModal();
+
+            expect(lastModalProps?.isVisible).toBe(true);
+        });
+
+        it('should show failed title', () => {
+            renderModal();
+
+            expect(lastModalProps?.title).toBe('workspace.copyPolicySettings.progress.copyFailedTitle');
+        });
+
+        it('should show default error message when backend error is not provided', () => {
+            renderModal();
+
+            expect(lastModalProps?.prompt).toBe('workspace.copyPolicySettings.error');
+        });
+
+        it('should show backend error message when provided', async () => {
+            const backendError = 'Something went wrong on the server';
+            await Onyx.merge(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS, {
+                state: CONST.POLICY.COPY_SETTINGS_NVP_STATE.FAILED,
+                error: backendError,
+            });
+            await waitForBatchedUpdates();
+
+            renderModal();
+
+            expect(lastModalProps?.prompt).toBe(backendError);
+        });
+
+        it('should show try again as confirm and dismiss as cancel', () => {
+            renderModal();
+
+            expect(lastModalProps?.confirmText).toBe('common.tryAgain');
+            expect(lastModalProps?.cancelText).toBe('common.dismiss');
+            expect(lastModalProps?.shouldShowCancelButton).toBe(true);
+        });
+
+        it('should show danger styling', () => {
+            renderModal();
+
+            expect(lastModalProps?.danger).toBe(true);
+        });
+
+        it('should clear state and navigate to copy settings flow on confirm (try again)', () => {
+            renderModal();
+
+            act(() => {
+                lastModalProps?.onConfirm?.();
+            });
+
+            expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+        });
+
+        it('should clear state without navigation on cancel (dismiss)', () => {
+            renderModal();
+
+            act(() => {
+                lastModalProps?.onCancel?.();
+            });
+
+            expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
+        it('should not navigate when sourcePolicyID is not available', async () => {
+            // Clear and set fresh state without sourcePolicyID
+            await Onyx.clear();
+            await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {
+                currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING,
+            });
+            await Onyx.merge(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS, {state: CONST.POLICY.COPY_SETTINGS_NVP_STATE.FAILED});
+            await waitForBatchedUpdates();
+
+            renderModal();
+
+            act(() => {
+                lastModalProps?.onConfirm?.();
+            });
+
+            expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).not.toHaveBeenCalled();
         });
     });
 });
