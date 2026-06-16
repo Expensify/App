@@ -2832,9 +2832,12 @@ ${amount} pour ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agents',
-        subtitle: 'Créez des agents pour gérer votre flux de travail. Évitez le travail manuel et gagnez des heures dans votre journée.',
+        subtitle: `<muted-text>Créez des agents pour gérer votre flux de travail. Évitez le travail manuel et gagnez des heures chaque jour. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">En savoir plus</a>.</muted-text>`,
         newAgent: 'Nouvel agent',
-        emptyAgents: {title: 'Aucun agent créé', subtitle: 'Arrêtez de faire les choses manuellement. Donnez plutôt des instructions à un agent et gagnez beaucoup de temps.'},
+        emptyAgents: {
+            title: 'Aucun agent créé',
+            subtitle: `<muted-text><centered-text>Arrêtez de tout faire manuellement. Donnez plutôt des instructions à un agent et gagnez beaucoup de temps. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">En savoir plus</a>.</centered-text></muted-text>`,
+        },
         error: {
             genericAdd: "Un problème est survenu lors de l'ajout de cet agent",
             genericUpdate: 'Un problème est survenu lors de la mise à jour de cet agent',
@@ -4848,6 +4851,7 @@ ${amount} pour ${merchant} - ${date}`,
             bankTransactions: 'Transactions bancaires',
             travelInvoicingDescription: 'Les frais de voyage seront exportés sous forme de transactions bancaires vers le compte Xero indiqué ci-dessous.',
             xeroBankAccount: 'Compte bancaire Xero',
+            bankAccount: 'Compte bancaire',
             xeroBankAccountDescription: 'Choisissez où les dépenses seront enregistrées comme transactions bancaires.',
             exportExpensesDescription: 'Les notes de frais seront exportées sous forme de facture d’achat avec la date et le statut sélectionnés ci-dessous.',
             purchaseBillDate: 'Date de facture d’achat',
@@ -6673,6 +6677,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             exportCompanyCard: 'Exporter les dépenses de carte d’entreprise en tant que',
             exportDate: 'Date d’exportation',
             defaultVendor: 'Fournisseur par défaut',
+            defaultAccount: 'Compte par défaut',
             autoSync: 'Synchronisation automatique',
             autoSyncDescription: 'Synchronisez automatiquement NetSuite et Expensify, chaque jour. Exportez les notes de frais finalisées en temps réel',
             reimbursedReports: 'Synchroniser les notes de frais remboursées',
@@ -7019,6 +7024,12 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             },
             commonFeatures: {
                 title: 'Passer au forfait Contrôle',
+                collect: {
+                    title: 'Passer au forfait Collect',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Le plan Collect commence à <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`} <a href="${learnMoreMethodsRoute}">En savoir plus</a> sur nos plans et nos tarifs.</muted-text>`,
+                    note: 'Débloquez les fonctionnalités essentielles pour votre entreprise, notamment :',
+                },
                 note: 'Débloquez nos fonctionnalités les plus puissantes, notamment :',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -7415,18 +7426,20 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
             },
-            aiRules: {
-                title: 'Règles IA',
-                subtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin',
-                addRule: 'Ajouter une règle IA',
-                findRule: 'Rechercher une règle d’IA',
+            agentRules: {
+                title: 'Règles Agent',
+                subtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin.',
+                addRule: 'Ajouter une règle Agent',
+                findRule: 'Rechercher une règle Agent',
                 addRuleTitle: 'Ajouter une règle',
                 editRuleTitle: 'Modifier la règle',
                 deleteRule: 'Supprimer la règle',
                 deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
-                describeRuleTitle: 'Décrivez votre règle',
-                describeRuleSubtitle: 'Décrivez votre règle et Concierge la créera',
+                describeRuleTitle: 'Décrivez votre règle et Concierge la créera',
                 disclaimer: 'Les agents IA peuvent faire des erreurs.',
+                agentCreatedTitle: 'RuleBot a été ajouté à votre espace de travail !',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `<muted-text>Pour appliquer vos règles d’agent, nous avons créé un agent pour vous et l’avons ajouté comme administrateur de votre espace de travail.<br><br>Modifiez les détails de votre agent dans <a href="${agentsRoute}">Compte &gt; Agents</a>.</muted-text>`,
             },
         },
         planTypePage: {
@@ -8096,10 +8109,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }),
                 phraseVerb: {added: 'ajouté', removed: 'supprimé', changed: 'modifié', set: 'définir', applied: 'appliqué'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} commerçant « ${value} »` : `commerçant « ${value} »`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `« ${value} »`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} marchand de « ${oldValue} » à « ${newValue} »` : `commerçant de « ${oldValue} » à « ${newValue} »`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `Catégorie de dépense ${adjective} « ${value} »` : `catégorie de dépense « ${value} »`,
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `« ${value} »`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `Catégorie de dépense ${adjective} de « ${oldValue} » à « ${newValue} »` : `catégorie de dépense de « ${oldValue} » à « ${newValue} »`,
                 bodyMaxAmount: 'montant maximal',
@@ -8390,10 +8405,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Années',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
         },
-        moneyRequestReport: {
-            emptyStateTitle: 'Cette note de frais n’a aucune dépense.',
-            accessPlaceHolder: 'Ouvrir pour plus de détails',
-        },
+        moneyRequestReport: {emptyStateTitle: 'Aucune dépense pour l’instant', accessPlaceHolder: 'Ouvrir pour plus de détails'},
         noCategory: 'Aucune catégorie',
         noMerchant: 'Aucun commerçant',
         noTag: 'Aucun tag',
@@ -9578,6 +9590,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
         hasFilterNegation: '<tooltip>Recherchez les dépenses sans reçus à l’aide de <strong>-has:receipt</strong>.</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>Nous avons mis à jour le taux en fonction de votre date de voyage.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Ignorer les modifications ?',
@@ -9640,6 +9653,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         expenseLevelExport: 'Toutes les données - niveau dépense',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
+        currentView: 'Exporter la vue actuelle',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

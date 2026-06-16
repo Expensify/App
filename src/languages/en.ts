@@ -2893,11 +2893,11 @@ const translations = {
     },
     agentsPage: {
         title: 'Agents',
-        subtitle: 'Create agents to handle your workflow. Skip the manual work and get hours back in your day.',
+        subtitle: `<muted-text>Create agents to handle your workflow. Skip the manual work and get hours back in your day. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Learn more</a>.</muted-text>`,
         newAgent: 'New agent',
         emptyAgents: {
             title: 'No agents created',
-            subtitle: 'Stop manually doing stuff. Instruct an agent instead and save yourself lots of time.',
+            subtitle: `<muted-text><centered-text>Stop manually doing stuff. Instruct an agent instead and save yourself lots of time. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Learn more</a>.</centered-text></muted-text>`,
         },
         error: {
             genericAdd: 'There was a problem adding this agent',
@@ -4932,6 +4932,7 @@ const translations = {
             bankTransactions: 'Bank transactions',
             travelInvoicingDescription: 'Travel expenses will export as bank transactions to the Xero account specified below.',
             xeroBankAccount: 'Xero bank account',
+            bankAccount: 'Bank account',
             xeroBankAccountDescription: 'Choose where expenses will post as bank transactions.',
             exportExpensesDescription: 'Reports will export as a purchase bill with the date and status selected below.',
             purchaseBillDate: 'Purchase bill date',
@@ -6710,6 +6711,7 @@ const translations = {
             exportCompanyCard: 'Export company card expenses as',
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
+            defaultAccount: 'Default account',
             autoSync: 'Auto-sync',
             autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day. Export finalized report in realtime',
             reimbursedReports: 'Sync reimbursed reports',
@@ -7183,6 +7185,12 @@ const translations = {
             },
             commonFeatures: {
                 title: 'Upgrade to the Control plan',
+                collect: {
+                    title: 'Upgrade to the Collect plan',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>The Collect plan starts at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`} <a href="${learnMoreMethodsRoute}">Learn more</a> about our plans and pricing.</muted-text>`,
+                    note: 'Unlock essential features to run your business, including:',
+                },
                 note: 'Unlock our most powerful features, including:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -7502,18 +7510,20 @@ const translations = {
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Travel agencies',
                 },
             },
-            aiRules: {
-                title: 'AI Rules',
-                subtitle: 'Describe flexible rules that run when you need them',
-                addRule: 'Add AI rule',
-                findRule: 'Find AI rule',
+            agentRules: {
+                title: 'Agent Rules',
+                subtitle: 'Describe flexible rules that run when you need them.',
+                addRule: 'Add Agent rule',
+                findRule: 'Find Agent rule',
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
                 deleteRule: 'Delete rule',
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
-                describeRuleTitle: 'Describe your rule',
-                describeRuleSubtitle: 'Describe your rule and Concierge will build it',
+                describeRuleTitle: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
+                agentCreatedTitle: 'RuleBot has been added to your workspace!',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
             },
         },
         planTypePage: {
@@ -7821,9 +7831,11 @@ const translations = {
                     applied: 'applied',
                 },
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} merchant '${value}'` : `merchant '${value}'`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `'${value}'`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} merchant from '${oldValue}' to '${newValue}'` : `merchant from '${oldValue}' to '${newValue}'`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} spend category '${value}'` : `spend category '${value}'`),
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `'${value}'`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} spend category from '${oldValue}' to '${newValue}'` : `spend category from '${oldValue}' to '${newValue}'`,
                 bodyMaxAmount: 'max amount',
@@ -8433,7 +8445,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
         },
         moneyRequestReport: {
-            emptyStateTitle: 'This report has no expenses.',
+            emptyStateTitle: 'No expenses yet',
             accessPlaceHolder: 'Open for details',
         },
         noCategory: 'No category',
@@ -9604,6 +9616,7 @@ const translations = {
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
         hasFilterNegation: '<tooltip>Search for expenses without receipts using <strong>-has:receipt</strong>.</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>We updated the rate based on your travel date.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
@@ -9659,6 +9672,7 @@ const translations = {
     },
     export: {
         basicExport: 'Basic export',
+        currentView: 'Export current view',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',

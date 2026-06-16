@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -176,6 +177,7 @@ function SearchAutocompleteList({
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({enabled: true, isSearching: !!autocompleteQueryValue.trim(), betas: betas ?? []});
 
@@ -225,6 +227,7 @@ function SearchAutocompleteList({
             personalDetails,
             sortedActions,
             conciergeReportID,
+            isTrackIntentUser,
         }).options;
     }, [
         listOptions,
@@ -240,6 +243,7 @@ function SearchAutocompleteList({
         personalDetails,
         sortedActions,
         conciergeReportID,
+        isTrackIntentUser,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);

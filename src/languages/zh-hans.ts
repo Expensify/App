@@ -2741,9 +2741,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     agentsPage: {
         title: '代理人',
-        subtitle: '通过自定义智能体自动化处理任务。',
+        subtitle: `<muted-text>创建代理来处理你的工作流程，摆脱手工操作，每天节省数小时。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">了解更多</a>。</muted-text>`,
         newAgent: '新代理人',
-        emptyAgents: {title: '尚未创建代理', subtitle: '别再手动处理这些事情了。交给智能代理去执行，为自己节省大量时间。'},
+        emptyAgents: {
+            title: '尚未创建代理',
+            subtitle: `<muted-text><centered-text>别再手动处理各种事务了。改为指示代理来完成，为自己节省大量时间。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">了解更多</a>。</centered-text></muted-text>`,
+        },
         error: {
             genericAdd: '添加此智能体时出现了问题',
             genericUpdate: '更新此代理时出现问题',
@@ -4698,6 +4701,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             bankTransactions: '银行交易',
             travelInvoicingDescription: '差旅费用将作为银行交易导出到下面指定的 Xero 账户。',
             xeroBankAccount: 'Xero 银行账户',
+            bankAccount: '银行账户',
             xeroBankAccountDescription: '选择报销费用将作为银行交易入账的位置。',
             exportExpensesDescription: '报表将按照在下方选择的日期和状态导出为采购账单。',
             purchaseBillDate: '采购账单日期',
@@ -6451,6 +6455,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             exportCompanyCard: '导出公司卡费用为',
             exportDate: '导出日期',
             defaultVendor: '默认供应商',
+            defaultAccount: '默认账户',
             autoSync: '自动同步',
             autoSyncDescription: '每天自动同步 NetSuite 和 Expensify。实时导出已完成报表',
             reimbursedReports: '同步已报销报表',
@@ -6780,6 +6785,12 @@ ${reportName}
             },
             commonFeatures: {
                 title: '升级到 Control 方案',
+                collect: {
+                    title: '升级到 Collect 方案',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Collect 方案起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}，<a href="${learnMoreMethodsRoute}">了解更多</a>我们的方案和定价。</muted-text>`,
+                    note: '解锁助力您业务发展的核心功能，包括：',
+                },
                 note: '解锁我们最强大的功能，包括：',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -7159,18 +7170,20 @@ ${reportName}
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? '已屏蔽' : '已允许'} ${shownCount > 1 ? '类别' : '类别'}: ${categories}${hiddenCount > 0 ? `，还有 +${hiddenCount} 个` : ''}`,
             },
-            aiRules: {
-                title: 'AI 规则',
-                subtitle: '描述在你需要时运行的灵活规则',
-                addRule: '添加 AI 规则',
-                findRule: '查找 AI 规则',
+            agentRules: {
+                title: '代理规则',
+                subtitle: '描述在你需要时运行的灵活规则。',
+                addRule: '添加代理规则',
+                findRule: '查找代理规则',
                 addRuleTitle: '添加规则',
                 editRuleTitle: '编辑规则',
                 deleteRule: '删除规则',
                 deleteRuleConfirmation: '确定要删除此规则吗？',
-                describeRuleTitle: '描述你的规则',
-                describeRuleSubtitle: '描述你的规则，我们会由 Concierge 为你创建',
+                describeRuleTitle: '描述你的规则，我们会由 Concierge 为你创建',
                 disclaimer: 'AI 智能体可能会犯错。',
+                agentCreatedTitle: 'RuleBot 已添加到你的工作区!',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `<muted-text>为了执行你的代理规则，我们为你创建了一个代理，并将其添加为你工作区的管理员。<br><br>你可以在 <a href="${agentsRoute}">“账户”&gt;“代理”</a> 中编辑代理的详细信息。</muted-text>`,
             },
         },
         planTypePage: {
@@ -7807,9 +7820,11 @@ ${reportName}
                 }),
                 phraseVerb: {added: '已添加', removed: '已移除', changed: '已更改', set: '设置', applied: '已应用'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} 商家“${value}”` : `商户“${value}”`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `“${value}”`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `将商家 ${adjective} 从“${oldValue}”更改为“${newValue}”` : `商户从“${oldValue}”变更为“${newValue}”`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective}支出类别“${value}”` : `支出类别「${value}」`),
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `「${value}」`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `将${adjective}支出类别从“${oldValue}”修改为“${newValue}”` : `支出类别从“${oldValue}”更改为“${newValue}”`,
                 bodyMaxAmount: '最大金额',
@@ -8084,10 +8099,7 @@ ${reportName}
             [CONST.SEARCH.GROUP_BY.YEAR]: '年',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
         },
-        moneyRequestReport: {
-            emptyStateTitle: '此报表没有任何报销。',
-            accessPlaceHolder: '展开查看详情',
-        },
+        moneyRequestReport: {emptyStateTitle: '暂时没有报销费用', accessPlaceHolder: '展开查看详情'},
         noCategory: '无类别',
         noMerchant: '无商家',
         noTag: '无标签',
@@ -9242,6 +9254,7 @@ ${reportName}
         scanTestDriveTooltip: '<tooltip>发送此收据以\n<strong>完成试用体验！</strong></tooltip>',
         gpsTooltip: '<tooltip>正在进行 GPS 跟踪！完成后，请在下方停止跟踪。</tooltip>',
         hasFilterNegation: '<tooltip>使用 <strong>-has:receipt</strong> 搜索没有收据的报销。</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>我们已根据您的出行日期更新了汇率。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',
@@ -9303,6 +9316,7 @@ ${reportName}
         expenseLevelExport: '所有数据 - 报销级别',
         exportInProgress: '导出进行中',
         conciergeWillSend: 'Concierge 将很快把文件发送给你。',
+        currentView: '导出当前视图',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

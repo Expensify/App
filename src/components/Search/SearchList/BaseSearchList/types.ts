@@ -18,6 +18,8 @@ type BaseSearchListProps = Pick<
     | 'showsVerticalScrollIndicator'
     | 'onLayout'
     | 'stickyHeaderIndices'
+    | 'stickyHeaderConfig'
+    | 'overrideItemLayout'
 > & {
     /** The data to display in the list */
     data: SearchListItem[];
@@ -54,6 +56,9 @@ type BaseSearchListProps = Pick<
 
     /** Function to determine item type for FlashList recycling */
     getItemType?: (item: SearchListItem, index: number) => string | number | undefined;
+
+    /** Indexes to skip during keyboard arrow navigation */
+    disabledIndexes?: readonly number[];
 };
 
 export default BaseSearchListProps;
