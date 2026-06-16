@@ -3,23 +3,26 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SubscriptionPlanDowngradeBlocked from '@components/SubscriptionPlanDowngradeBlocked';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@navigation/Navigation';
 import {formatSubscriptionEndDate} from '@pages/settings/Subscription/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-function SubscriptionPlanDowngradeBlockedPage() {
+function DynamicSubscriptionPlanDowngradeBlockedPage() {
     const {translate} = useLocalize();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const formattedSubscriptionEndDate = formatSubscriptionEndDate(privateSubscription?.endDate);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.DOWNGRADE_BLOCKED.path);
     const onClosePress = () => {
-        Navigation.goBack();
+        Navigation.goBack(backPath);
     };
     return (
         <ScreenWrapper
-            testID="SubscriptionPlanDowngradeBlockedPage"
+            testID="DynamicSubscriptionPlanDowngradeBlockedPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -38,4 +41,4 @@ function SubscriptionPlanDowngradeBlockedPage() {
     );
 }
 
-export default SubscriptionPlanDowngradeBlockedPage;
+export default DynamicSubscriptionPlanDowngradeBlockedPage;
