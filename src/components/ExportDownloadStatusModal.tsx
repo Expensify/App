@@ -73,9 +73,8 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
         const isCSV = fileName.endsWith('.csv');
         const secureType = isCSV ? 'csvexport' : 'pdfreport';
-        const downloadName = isCSV ? fileName : `${fileName}.pdf`;
-        const url = `${baseURL}secure?secureType=${secureType}&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadName)}&email=${encodeURIComponent(currentUserLogin)}`;
-        fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), downloadName, '', isMobileSafari());
+        const url = `${baseURL}secure?secureType=${secureType}&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(fileName)}&email=${encodeURIComponent(currentUserLogin)}`;
+        fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), fileName, '', isMobileSafari());
     };
 
     useEffect(() => {
