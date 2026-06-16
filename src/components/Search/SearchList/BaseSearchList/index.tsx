@@ -60,8 +60,12 @@ function BaseSearchList({
     flattenedItemsLength,
     newTransactions,
     selectedTransactions,
-    isAttendeesEnabledForMovingPolicy,
     nonPersonalAndWorkspaceCards,
+    stickyHeaderIndices,
+    stickyHeaderConfig,
+    getItemType,
+    disabledIndexes,
+    overrideItemLayout,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
@@ -91,6 +95,7 @@ function BaseSearchList({
         setHasKeyBeenPressed,
         isFocused,
         captureOnInputs: false,
+        ...(disabledIndexes ? {disabledIndexes} : {}),
     });
 
     const handleFocusByIndex = (index: number, event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
@@ -160,8 +165,8 @@ function BaseSearchList({
     }, [setHasKeyBeenPressed]);
 
     const extraData = useMemo(
-        () => [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
-        [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
+        () => [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards],
+        [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards],
     );
 
     return (
@@ -183,6 +188,10 @@ function BaseSearchList({
             drawDistance={250}
             contentContainerStyle={contentContainerStyle}
             maintainVisibleContentPosition={{disabled: true}}
+            stickyHeaderIndices={stickyHeaderIndices}
+            stickyHeaderConfig={stickyHeaderConfig}
+            getItemType={getItemType}
+            overrideItemLayout={overrideItemLayout}
         />
     );
 }
