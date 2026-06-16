@@ -7,8 +7,12 @@ import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/Victo
 import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 import useTheme from '@hooks/useTheme';
+import {getLocalizedVictoryChartLabelText} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/localizeVictoryChartLabelText';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
-type VictoryChartLabelsProps = LabelItem;
+type VictoryChartLabelsProps = LabelItem & {
+    timezone?: SelectedTimezone;
+};
 
 type ProcessedLine = {
     lineX: number;
@@ -23,10 +27,11 @@ type ProcessedLine = {
  * Renders floating Skia text labels (from `<victorylabel>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
-function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle'}: VictoryChartLabelsProps) {
+function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle', timezone}: VictoryChartLabelsProps) {
     const typefaces = useChartTypefaces();
     const theme = useTheme();
-    const processedLines = text.split('\n').reduce(
+    const displayText = getLocalizedVictoryChartLabelText(text, timezone);
+    const processedLines = displayText.split('\n').reduce(
         (acc, line, index) => {
             const lineColor = resolveChartThemeColor(color?.[index], theme);
             const lineFontSize = fontSize?.[index];

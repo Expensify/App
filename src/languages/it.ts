@@ -6982,6 +6982,12 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             },
             commonFeatures: {
                 title: 'Passa al piano Control',
+                collect: {
+                    title: 'Passa al piano Collect',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Il piano Collect parte da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`} <a href="${learnMoreMethodsRoute}">Scopri di più</a> sui nostri piani e prezzi.</muted-text>`,
+                    note: 'Sblocca le funzioni essenziali per la tua attività, tra cui:',
+                },
                 note: 'Sblocca le nostre funzioni più potenti, tra cui:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -7380,15 +7386,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             },
             agentRules: {
                 title: 'Regole Agente',
-                subtitle: 'Descrivi regole flessibili che vengono eseguite quando ne hai bisogno',
+                subtitle: 'Descrivi regole flessibili che vengono eseguite quando ne hai bisogno.',
                 addRule: 'Aggiungi regola Agente',
                 findRule: 'Trova regola Agente',
                 addRuleTitle: 'Aggiungi regola',
                 editRuleTitle: 'Modifica regola',
                 deleteRule: 'Elimina regola',
                 deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
-                describeRuleTitle: 'Descrivi la tua regola',
-                describeRuleSubtitle: 'Descrivi la tua regola e Concierge la creerà',
+                describeRuleTitle: 'Descrivi la tua regola e Concierge la creerà',
                 disclaimer: 'Gli agenti IA possono commettere errori.',
                 agentCreatedTitle: 'RuleBot è stato aggiunto al tuo spazio di lavoro!',
                 agentCreatedDescription: (agentsRoute: string) =>

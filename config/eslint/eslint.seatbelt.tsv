@@ -68,7 +68,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	134
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	133
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -262,7 +262,6 @@
 "../../src/components/MoneyReportHeaderActions/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/MoneyReportHeaderModals.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/components/MoneyRequestAmountInput.tsx"	"react-hooks/immutability"	2
-"../../src/components/MoneyRequestConfirmationList.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/components/MoneyRequestConfirmationList.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/MoneyRequestConfirmationList/ConfirmationFooterContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationList/hooks/useDistanceRequestState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -504,7 +503,6 @@
 "../../src/hooks/useAnimatedHighlightStyle/index.ts"	"react-hooks/set-state-in-effect"	2
 "../../src/hooks/useAssignCard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useAutoCreateTrackWorkspace.ts"	"no-restricted-imports"	1
-"../../src/hooks/useAutoFocusInput.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/hooks/useAutoUpdateTimezone.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useAutocompleteSuggestions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useBasePopoverReactionList/index.ts"	"no-restricted-syntax"	2
@@ -523,7 +521,6 @@
 "../../src/hooks/useDebounceNonReactive.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDebouncedState.ts"	"react-hooks/refs"	2
 "../../src/hooks/useDebouncedValue.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useDialogContainerFocus/index.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/hooks/useDialogContainerFocus/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDiscardChangesConfirmation/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDomainGroupFilter.ts"	"react-hooks/set-state-in-effect"	1
@@ -1109,7 +1106,7 @@
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchSavePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/Search/SearchTransactionsChangeReport.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/Search/SearchTransactionsChangeReport.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/Search/SearchTransactionsChangeReport.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/Share/ShareRootPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Share/ShareTab.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ShareCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1357,7 +1354,6 @@
 "../../src/pages/workspace/accounting/intacct/export/SageIntacctReimbursableExpensesDestinationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/intacct/import/SageIntacctAddUserDimensionPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/accounting/intacct/import/SageIntacctAddUserDimensionPage.tsx"	"rulesdir/no-default-id-values"	1
-"../../src/pages/workspace/accounting/intacct/import/SageIntacctEditUserDimensionsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/accounting/intacct/import/SageIntacctMappingsTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/intacct/import/SageIntacctToggleMappingsPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenSetupContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1367,7 +1363,6 @@
 "../../src/pages/workspace/accounting/netsuite/advanced/NetSuiteJournalEntryApprovalLevelSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/advanced/NetSuiteVendorBillApprovalLevelSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteDateSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesDestinationSelectPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesDestinationSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesJournalPostingPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteInvoiceItemPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1378,7 +1373,6 @@
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/subPages/ConfirmCustomSegmentList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/subPages/CustomListMappingStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/subPages/CustomSegmentMappingStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldView.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectsPage.tsx"	"no-restricted-syntax"	2
@@ -1460,7 +1454,6 @@
 "../../src/pages/workspace/expensifyCard/WorkspaceEditCardLimitPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceEditCardLimitTypePage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/pages/workspace/expensifyCard/issueNew/LimitTypeStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/issueNew/spendRules/SetSpendRulesStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/hr/HRProviderCard.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1

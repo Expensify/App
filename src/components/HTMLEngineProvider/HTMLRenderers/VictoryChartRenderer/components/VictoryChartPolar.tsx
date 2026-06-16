@@ -8,6 +8,7 @@ import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderer
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import useTheme from '@hooks/useTheme';
 import ThemeContext from '@styles/theme/context/ThemeContext';
+import useCurrentTimezone from '@hooks/useCurrentTimezone';
 import VictoryChartCategories from './VictoryChartCategories';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
@@ -23,6 +24,7 @@ type VictoryChartPolarProps = {
 function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
     const {tnode, data, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
     const theme = useTheme();
+    const timezone = useCurrentTimezone();
     const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
 
     const chartContent = (
@@ -35,8 +37,9 @@ function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
             ))}
             {labelItems.map((labelItem) => (
                 <VictoryChartLabel
-                    key={`label-${labelItem.x}-${labelItem.y}`}
+                    key={`label-${labelItem.x}-${labelItem.y}-${timezone}`}
                     {...labelItem}
+                    timezone={timezone}
                 />
             ))}
             {legendItems.map((legendItem) => (

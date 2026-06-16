@@ -6979,6 +6979,12 @@ ${amount} para ${merchant} - ${date}`,
             },
             commonFeatures: {
                 title: 'Mejorar al plan Controlar',
+                collect: {
+                    title: 'Mejorar al plan Recopilar',
+                    startsAtFull: (learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing) =>
+                        `<muted-text>El plan Recopilar comienza desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`} <a href="${learnMoreMethodsRoute}">Más información</a> sobre nuestros planes y precios.</muted-text>`,
+                    note: 'Desbloquea las funciones esenciales para tu negocio, incluyendo:',
+                },
                 note: 'Desbloquea nuestras funciones más potentes, incluyendo:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing) =>
@@ -7289,12 +7295,11 @@ ${amount} para ${merchant} - ${date}`,
             },
             agentRules: {
                 title: 'Reglas de Agente',
-                subtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas',
+                subtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas.',
                 addRule: 'Añadir regla de Agente',
                 findRule: 'Buscar regla de Agente',
                 addRuleTitle: 'Añadir regla',
-                describeRuleTitle: 'Describe tu regla',
-                describeRuleSubtitle: 'Describe tu regla y Concierge la creará',
+                describeRuleTitle: 'Describe tu regla y Concierge la creará',
                 editRuleTitle: 'Editar regla',
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',

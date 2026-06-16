@@ -9,6 +9,7 @@ import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/Victory
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 import useTheme from '@hooks/useTheme';
 import ThemeContext from '@styles/theme/context/ThemeContext';
+import useCurrentTimezone from '@hooks/useCurrentTimezone';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
@@ -25,6 +26,7 @@ type VictoryChartCartesianProps = {
 function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianProps) {
     const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
     const theme = useTheme();
+    const timezone = useCurrentTimezone();
     const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
 
     const resolvedXAxis = xAxis
@@ -56,8 +58,9 @@ function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianPr
                     <VictoryChartRenderArgsProvider value={renderArgs}>
                         {labelItems.map((labelItem) => (
                             <VictoryChartLabel
-                                key={`label-${labelItem.x}-${labelItem.y}`}
+                                key={`label-${labelItem.x}-${labelItem.y}-${timezone}`}
                                 {...labelItem}
+                                timezone={timezone}
                             />
                         ))}
                         {legendItems.map((legendItem) => (

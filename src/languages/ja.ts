@@ -6908,6 +6908,12 @@ ${reportName}
             },
             commonFeatures: {
                 title: 'Controlプランにアップグレード',
+                collect: {
+                    title: 'Collectプランにアップグレード',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Collect プランは <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。プランと料金の詳細は <a href="${learnMoreMethodsRoute}">こちら</a> をご覧ください。</muted-text>`,
+                    note: '以下を含む、ビジネスに欠かせない機能をアンロックしましょう：',
+                },
                 note: '以下を含む、最も強力な機能をアンロックしましょう：',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -7298,15 +7304,14 @@ ${reportName}
             },
             agentRules: {
                 title: 'エージェント ルール',
-                subtitle: '必要なときに実行される柔軟なルールを記述します',
+                subtitle: '必要なときに実行される柔軟なルールを記述します。',
                 addRule: 'エージェント ルールを追加',
                 findRule: 'エージェント ルールを検索',
                 addRuleTitle: 'ルールを追加',
                 editRuleTitle: 'ルールを編集',
                 deleteRule: 'ルールを削除',
                 deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
-                describeRuleTitle: 'ルールの内容を記入してください',
-                describeRuleSubtitle: 'ルールの内容を入力すると、Concierge が自動作成します',
+                describeRuleTitle: 'ルールの内容を入力すると、Concierge が自動作成します',
                 disclaimer: 'AI エージェントは間違える場合があります。',
                 agentCreatedTitle: 'RuleBot がワークスペースに追加されました!',
                 agentCreatedDescription: (agentsRoute: string) =>

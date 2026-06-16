@@ -6955,6 +6955,12 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             },
             commonFeatures: {
                 title: 'Ulepsz do planu Control',
+                collect: {
+                    title: 'Ulepsz do planu Collect',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Plan Collect zaczyna się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`} <a href="${learnMoreMethodsRoute}">Dowiedz się więcej</a> o naszych planach i cenach.</muted-text>`,
+                    note: 'Odblokuj kluczowe funkcje dla swojej firmy, w tym:',
+                },
                 note: 'Odblokuj nasze najpotężniejsze funkcje, w tym:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -7348,15 +7354,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             },
             agentRules: {
                 title: 'Zasady Agenta',
-                subtitle: 'Opisz elastyczne reguły, które działają wtedy, gdy ich potrzebujesz',
+                subtitle: 'Opisz elastyczne reguły, które działają wtedy, gdy ich potrzebujesz.',
                 addRule: 'Dodaj regułę Agenta',
                 findRule: 'Znajdź regułę Agenta',
                 addRuleTitle: 'Dodaj regułę',
                 editRuleTitle: 'Edytuj regułę',
                 deleteRule: 'Usuń regułę',
                 deleteRuleConfirmation: 'Na pewno chcesz usunąć tę regułę?',
-                describeRuleTitle: 'Opisz swoją regułę',
-                describeRuleSubtitle: 'Opisz swoją regułę, a Concierge ją utworzy',
+                describeRuleTitle: 'Opisz swoją regułę, a Concierge ją utworzy',
                 disclaimer: 'Agenci AI mogą popełniać błędy.',
                 agentCreatedTitle: 'RuleBot został dodany do Twojego obszaru roboczego!',
                 agentCreatedDescription: (agentsRoute: string) =>
