@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useLayoutEffect, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -6,14 +6,25 @@ import {easing} from '@components/Modal/ReanimatedModal/utils';
 
 const EXPAND_COLLAPSE_DURATION = 300;
 
-function useExpandCollapseAnimation(isExpanded: boolean) {
+function useExpandCollapseAnimation(isExpanded: boolean, shouldAddBorderHeight: boolean, resetKey?: string) {
     const contentHeight = useSharedValue(0);
     const hasExpanded = useSharedValue(isExpanded);
     const [isRendered, setIsRendered] = useState(isExpanded);
+    const prevResetKeyRef = useRef<string | undefined>(undefined);
 
+    // FlashList may recycle this cell for a different group — reset measured height when the row identity changes.
+    useLayoutEffect(() => {
+        if (prevResetKeyRef.current !== undefined && prevResetKeyRef.current !== resetKey) {
+            contentHeight.set(0);
+            setIsRendered(isExpanded);
+        }
+        prevResetKeyRef.current = resetKey;
+    }, [resetKey, isExpanded, contentHeight]);
+
+    // Keep Reanimated shared value in sync with prop (matches AnimatedCollapsible).
     hasExpanded.set(isExpanded);
-    // Matches the pattern in AnimatedCollapsible — mount content synchronously on expand,
-    // unmount asynchronously after collapse animation via scheduleOnRN callback.
+
+    // Mount content for collapse animation once expanded; unmount after animation via scheduleOnRN callback.
     if (isExpanded && !isRendered) {
         setIsRendered(true);
     }
@@ -32,7 +43,7 @@ function useExpandCollapseAnimation(isExpanded: boolean) {
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => ({
-        height: animatedHeight.get(),
+        height: animatedHeight.get() + (shouldAddBorderHeight ? 1 : 0),
         overflow: 'hidden',
     }));
 
