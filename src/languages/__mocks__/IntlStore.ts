@@ -4,7 +4,7 @@ import flattenObject from '@src/languages/flattenObject';
 import type {FlatTranslationsObject, TranslationPaths} from '@src/languages/types';
 
 class IntlStore {
-    private static currentLocale: Locale | undefined = 'en';
+    private static currentLocale: Locale = 'en';
 
     private static localeCache = new Map<Locale, FlatTranslationsObject>([
         [
@@ -58,11 +58,12 @@ class IntlStore {
 
     static get<TPath extends TranslationPaths>(key: TPath, locale?: Locale) {
         const localeToUse = locale && this.localeCache.has(locale) ? locale : this.currentLocale;
-        if (!localeToUse) {
-            return null;
-        }
         const translations = this.localeCache.get(localeToUse);
         return translations?.[key] ?? null;
+    }
+
+    static subscribe(): () => void {
+        return () => {};
     }
 }
 

@@ -15,7 +15,7 @@ type StatusProps = {
 
 function Status({optionItem}: StatusProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const emojiCode = optionItem.status?.emojiCode ?? '';
@@ -26,7 +26,13 @@ function Status({optionItem}: StatusProps) {
     const statusText = optionItem.status?.text ?? '';
     const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
     const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
-    const formattedDate = DateUtils.getStatusUntilDate(translate, statusClearAfterDate, optionItem?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
+    const formattedDate = DateUtils.getStatusUntilDate(
+        translate,
+        statusClearAfterDate,
+        optionItem?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
+        currentSelectedTimezone,
+        preferredLocale,
+    );
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
     return (

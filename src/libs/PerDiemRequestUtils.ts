@@ -1,11 +1,13 @@
-import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, startOfDay} from 'date-fns';
+import {addDays, differenceInDays, differenceInMinutes, isSameDay, startOfDay} from 'date-fns';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
+import DateUtils from './DateUtils';
 import type {OptionTree} from './OptionsListUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
@@ -211,21 +213,18 @@ function getSubratesForDisplay(subrate: Subrate | undefined, qtyText: string) {
     return `${subrate.name}, ${qtyText}: ${subrate.quantity}`;
 }
 
-/**
- * param {string} dateTimeString
- * returns {string} example: 2023-05-16 11:10 PM
- */
-function formatDateTimeTo12Hour(dateTimeString: string): string {
-    if (!dateTimeString) {
+function getTimeForDisplay(transaction: OnyxEntry<Transaction>, locale: Locale) {
+    const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
+    if (!customUnitRateDate.start || !customUnitRateDate.end) {
         return '';
     }
-    const date = new Date(dateTimeString);
-    return format(date, 'hh:mm a, yyyy-MM-dd');
-}
-
-function getTimeForDisplay(transaction: OnyxEntry<Transaction>) {
-    const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    return `${formatDateTimeTo12Hour(customUnitRateDate.start)} - ${formatDateTimeTo12Hour(customUnitRateDate.end)}`;
+    const startDate = new Date(customUnitRateDate.start);
+    const endDate = new Date(customUnitRateDate.end);
+    if (isSameDay(startDate, endDate)) {
+        return `${DateUtils.formatToLocalTime(customUnitRateDate.start, locale)} - ${DateUtils.formatToLocalTime(customUnitRateDate.end, locale)}, ${DateUtils.formatToMediumDate(customUnitRateDate.start, locale)}`;
+    }
+    const formatEndpoint = (date: string) => `${DateUtils.formatToLocalTime(date, locale)}, ${DateUtils.formatToMediumDate(date, locale)}`;
+    return `${formatEndpoint(customUnitRateDate.start)} - ${formatEndpoint(customUnitRateDate.end)}`;
 }
 
 function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {

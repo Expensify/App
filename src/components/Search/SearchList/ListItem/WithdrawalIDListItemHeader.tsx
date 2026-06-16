@@ -69,7 +69,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
@@ -78,10 +78,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const accountLabel = `${formattedBankName} ${maskedNumber}`;
 
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles, maxIconSize: isLargeScreenWidth ? variables.w28 : undefined});
-    const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
-        withdrawalIDItem.debitPosted,
-        DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-    );
+    const formattedWithdrawalDate = DateUtils.formatTransactionListDate(withdrawalIDItem.debitPosted, preferredLocale);
     const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
     const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
     const statusBadge = !!badgeProps && (

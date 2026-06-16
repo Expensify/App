@@ -11,7 +11,7 @@ import type {ExpenseReportListItemRowNarrowProps} from './types';
 
 function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSelectMultiple, isSelectAllChecked, isIndeterminate, isDisabledCheckbox}: ExpenseReportListItemRowNarrowProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
@@ -20,10 +20,8 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
     const filteredTransactions = item.transactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const expenseCount = (filteredTransactions?.length ? filteredTransactions.length : undefined) ?? item.transactionCount ?? 0;
     const expenseCountText = translate('iou.expenseCount', {count: expenseCount});
-    const formattedDate = DateUtils.formatWithUTCTimeZone(
-        item.created ?? '',
-        DateUtils.doesDateBelongToAPastYear(item.created ?? '') ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-    );
+    const itemCreated = item.created ?? '';
+    const formattedDate = DateUtils.formatTransactionListDate(itemCreated, preferredLocale);
 
     const amountText = isScanning ? translate('iou.receiptStatusTitle') : convertToDisplayString(totalDisplaySpend, currency);
     const groupAccessibilityLabel = [item.reportName, amountText, formattedDate, expenseCountText].filter(Boolean).join(', ');

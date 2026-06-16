@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import DateUtils from '@libs/DateUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -42,7 +43,7 @@ function DatePicker({
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const announcementMessage = label ? `${label}, ${translate('common.calendarOpened')}` : translate('common.calendarOpened');
@@ -185,8 +186,8 @@ function DatePicker({
                     accessibilityLabel={label}
                     role={CONST.ROLE.COMBOBOX}
                     accessibilityState={{expanded: isModalVisible}}
-                    value={selectedDate}
-                    placeholder={placeholder ?? translate('common.dateFormat')}
+                    value={selectedDate ? DateUtils.formatToLocalizedShortDate(selectedDate, preferredLocale) : ''}
+                    placeholder={placeholder ?? DateUtils.getLocalizedDatePlaceholder(preferredLocale)}
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}

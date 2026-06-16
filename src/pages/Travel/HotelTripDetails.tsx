@@ -19,7 +19,7 @@ type HotelTripDetailsProps = {
 
 function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
     const cancellationMapping: Record<string, string> = {
         [CONST.CANCELLATION_POLICY.UNKNOWN]: translate('travel.hotelDetails.cancellationPolicies.unknown'),
@@ -28,10 +28,11 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
         [CONST.CANCELLATION_POLICY.PARTIALLY_REFUNDABLE]: translate('travel.hotelDetails.cancellationPolicies.partiallyRefundable'),
     };
 
-    const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
-    const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
-    const cancellationText = reservation.cancellationDeadline
-        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(new Date(reservation.cancellationDeadline))}`
+    const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
+    const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
+    const cancellation = reservation.cancellationDeadline ? DateUtils.getFormattedTransportDateAndHour(new Date(reservation.cancellationDeadline), preferredLocale) : null;
+    const cancellationText = cancellation
+        ? `${translate('travel.hotelDetails.cancellationUntil')} ${cancellation.date} ${cancellation.hour}`
         : cancellationMapping[reservation.cancellationPolicy ?? CONST.CANCELLATION_POLICY.UNKNOWN];
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;

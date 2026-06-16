@@ -69,19 +69,19 @@ describe('SearchQueryUtils', () => {
         test('returns full range display when both boundaries exist', () => {
             const result = getDateRangeDisplayValueFromFormValue('2025-03-01,2025-03-10');
 
-            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true));
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true, false, CONST.LOCALES.EN));
         });
 
         test('returns single boundary display when only one boundary exists', () => {
             const result = getDateRangeDisplayValueFromFormValue('2025-03-01');
 
-            expect(result).toBe(DateUtils.formatToReadableString('2025-03-01'));
+            expect(result).toBe(DateUtils.formatToReadableString('2025-03-01', CONST.LOCALES.EN));
         });
 
         test('falls back to inclusive boundaries when range value is invalid', () => {
             const result = getDateRangeDisplayValueFromFormValue('invalid', '2025-03-01', '2025-03-10');
 
-            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-02', '2025-03-09', true));
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-02', '2025-03-09', true, false, CONST.LOCALES.EN));
         });
 
         test('returns empty string when no valid range boundaries exist', () => {

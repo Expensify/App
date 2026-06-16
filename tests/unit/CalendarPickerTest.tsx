@@ -15,7 +15,7 @@ type MockReactNativePrimitives = {
     View: ComponentType<MockViewProps>;
 };
 
-const monthNames = DateUtils.getMonthNames();
+const monthNames = DateUtils.getMonthNames(CONST.LOCALES.EN);
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),

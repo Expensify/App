@@ -872,8 +872,8 @@ describe('MergeTransactionUtils', () => {
             const billableResult = getDisplayValue('billable', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
 
             // Then it should return translated Yes/No values
-            expect(reimbursableResult).toBe('common.yes');
-            expect(billableResult).toBe('common.no');
+            expect(reimbursableResult).toBe(translateLocal('common.yes'));
+            expect(billableResult).toBe(translateLocal('common.no'));
         });
 
         it('should format amount with currency', () => {
@@ -966,7 +966,7 @@ describe('MergeTransactionUtils', () => {
             const result = getDisplayValue('reportID', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
 
             // Then it should return translated "None"
-            expect(result).toBe('common.none');
+            expect(result).toBe(translateLocal('common.none'));
         });
 
         it("should return transaction's reportName when available for reportID", () => {
