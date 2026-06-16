@@ -54,7 +54,10 @@ function CopyPolicySettingsConfirmPage() {
 
     // Spotnana creates an entity per target during provisioning and requires a company address for
     // it, so block the copy until every selected target has one (mirrors the BookTravelButton gate).
-    const isTravelAddressMissing = requiresTravelTermsConsent && targetPolicies.some((policy) => isEmptyObject(policy.address));
+    // Copying "overview" carries the source address onto every target, so it resolves a missing
+    // target address as long as the source itself has one - skip the block in that case.
+    const willCopySourceAddress = parts.includes('overview') && !isEmptyObject(sourcePolicy?.address);
+    const isTravelAddressMissing = requiresTravelTermsConsent && !willCopySourceAddress && targetPolicies.some((policy) => isEmptyObject(policy.address));
 
     useEffect(() => {
         if (!sourcePolicyID || !hasLoadedCopyPolicySettings || !hasLoadedPolicies || parts.length || targetPolicyIDs.length) {
