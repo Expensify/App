@@ -220,6 +220,24 @@ describe('search loading totals handling', () => {
         expect(footerQueryWithoutCurrency?.hash).toBe(ungroupedQueryJSON.hash);
     });
 
+    it('preserves the original sort in the flat footer totals query when a limit restricts which rows are summed', () => {
+        // Given a grouped search with a non-default sort and a limit
+        const sortedLimitedQueryJSON = buildSearchQueryJSON(
+            `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} group-by:${CONST.SEARCH.GROUP_BY.CATEGORY} sort-by:${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT} sort-order:${CONST.SEARCH.SORT_ORDER.ASC} limit:10`,
+        );
+        if (!sortedLimitedQueryJSON) {
+            throw new Error('Query JSON should be defined for test setup');
+        }
+
+        // When the footer builds the flat totals query
+        const flatQueryJSON = buildFlatQueryWithoutGroupBy(sortedLimitedQueryJSON);
+
+        // Then the original sort is kept so the totals cover the same first-N rows the search shows
+        expect(flatQueryJSON?.sortBy).toBe(sortedLimitedQueryJSON.sortBy);
+        expect(flatQueryJSON?.sortOrder).toBe(sortedLimitedQueryJSON.sortOrder);
+        expect(flatQueryJSON?.limit).toBe(sortedLimitedQueryJSON.limit);
+    });
+
     it('dedupes concurrent search requests by hash and offset', async () => {
         const queryJSON = getQueryJSON();
         let resolveSearch: (value: unknown) => void = () => {};

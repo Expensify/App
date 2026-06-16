@@ -2219,12 +2219,17 @@ function buildFlatQueryWithoutGroupBy(queryJSON: Readonly<SearchQueryJSON>, targ
     }
 
     const defaultQueryJSON = getDefaultSearchQueryJSON();
+    // Sort only changes the totals when a limit restricts which rows are summed, so keep the original sort in that
+    // case to convert over the same first-N rows the search shows. Without a limit the sum is order-independent, so
+    // reset to the default sort to keep the flat footer query canonical (lets a no-currency grouped footer reuse the
+    // existing ungrouped snapshot instead of firing an extra request).
+    const shouldPreserveSort = queryJSON.limit !== undefined;
     const flatQueryJSON = {
         ...queryJSON,
         groupBy: undefined,
         view: defaultQueryJSON.view,
-        sortBy: defaultQueryJSON.sortBy,
-        sortOrder: defaultQueryJSON.sortOrder,
+        sortBy: shouldPreserveSort ? queryJSON.sortBy : defaultQueryJSON.sortBy,
+        sortOrder: shouldPreserveSort ? queryJSON.sortOrder : defaultQueryJSON.sortOrder,
         flatFilters: queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY),
     };
 
