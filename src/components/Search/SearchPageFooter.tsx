@@ -64,7 +64,10 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
 
     const renderCurrencyPopup: FilterPopupButtonProps['PopoverComponent'] = useCallback(
         ({closeOverlay, isExpanded}) => (
+            // The popover subtree stays mounted while the page is focused, so key it by the active currency to
+            // re-seed the selector's internal state when the footer currency changes (e.g. reset to default).
             <CurrencyPopup
+                key={currency ?? defaultCurrency}
                 value={currency}
                 closeOverlay={closeOverlay}
                 onChange={handleCurrencyChange}
