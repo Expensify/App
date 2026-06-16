@@ -41,7 +41,7 @@ You can filter the member list by role to quickly find specific groups of member
    - **All members** – Shows all workspace members (default).
    - **Admins** – Shows only members with the Admin role.
    - **Approvers** – Shows only members who are designated approvers.
-   - **Card Admins** – Shows only members with the Card Admin role.
+   - **Card Admins** – Shows only members with the Card Admin role (Control workspaces only).
    - **Auditors** – Shows only members with the Auditor role (Control workspaces only).
 
 The member list updates immediately to show only members matching the selected role. You can also combine the role filter with the search bar to narrow results further.
