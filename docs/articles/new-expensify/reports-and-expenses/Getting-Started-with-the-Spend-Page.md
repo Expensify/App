@@ -72,48 +72,28 @@ Each row represents an expense and includes:
 
 ---
 
-# How to Use Filters to Find Reports and Expenses
-Filters help you narrow down expenses or reports so you can find exactly what you need—fast. This is especially useful when you're working with a large dataset or trying to take specific actions, such as reporting unsubmitted expenses.
-
-**Filters can help you:**
-
-- **Add unreported expenses to a report**: Use filters to find unreported expenses, and then add them to a report with just a few clicks.
-- **Quickly search and locate specific reports using filters**  
-  On the **Spend** page, filter by:
-  - **Workspace**
-  - **Submitter**
-  - **Report status** (e.g., Open, Approved, Reimbursed)
-
-## How to apply advanced filters in New Expensify
-
-You can filter your **expenses** and **reports** using dropdowns, search bars, and the **Filters** button on the **Spend** page.
-
-- **Expenses** can be filtered by `Date`, `Merchant`, `Category`, `Tag`, `Amount`, `Reimbursable`, `Billable`, `Status` (e.g. Unreported, Deleted)
-
-- **Reports** can be filtered by `Submitter`, `Workspace`, `Report Status` (e.g. Draft, Outstanding, Approved, Paid), `Date`
+## How to apply filters in New Expensify
 
 Web:
 
-1. Go to the **Spend** page.
-2. Click the **Filters** button.
-3. A popover opens showing available filters.
-4. Hover over a filter to see its options.
-5. For selection-based filters (e.g., Category, Tag, Status), click a value to apply the filter immediately.
-6. For text input-based filters, enter a value and click **Apply**.
-7. For date-based filters, select **Custom date** or **Custom range**, set the value, and click **Apply**.
-8. For amount-based filters, select a comparison option (e.g., greater than, less than, or between), enter the value, and click **Apply**.
+1. In the navigation tabs on the left, click **Spend**.
+2. Click **Filters**.
+3. Click **Type** and select **Expense**, **Expense Report**, **Chat**, **Invoice**, **Trip**, or **Task**.
+5. Select the filters you want to apply. Available filters vary based on the selected **Type**.
+
+Selected filter values are applied to the list immediately.
 
 Mobile:
 
-1. Go to the **Spend** page.
-2. Tap the **Filters** button.
-3. The advanced filters open in a full-screen view.
-4. Tap any filter to see its options.
-5. Set a value and tap **Apply** to confirm the selection.
-6. Tap **Apply** again on the filter list to apply your filters.
-7. To clear active filters, tap **Reset** at the bottom of the filter list.
+1. In the navigation tabs on the bottom, tap **Spend**. 
+2. Tap the **Filters** icon next to the search box. 
+3. Tap **Type** and select **Expense**, **Expense Report**, **Chat**, **Invoice**, **Trip**, or **Task**.
+4. Tap **Save**.
+5. Select the filters you want to apply. Available filters vary based on the selected **Type**.
+6. Tap **Save** after selecting each filter.
+7. Tap **View Results**. 
 
-You can also type search operators directly into the search box on the **Spend** page while viewing **Reports** or **Expenses** under **Explore**. [Learn how to use search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
+For more advanced filtering, you can enter search operators directly into the search box on the **Spend** page. [Learn how to use search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
 
 ## How filtering works on the Spend page
 
