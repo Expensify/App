@@ -88,7 +88,7 @@ describe('subscribeToFullReconnect', () => {
         jest.restoreAllMocks();
     });
 
-    it('fires exactly one ReconnectApp across a full response cycle on a client clock behind the server (headline regression)', async () => {
+    it('fires exactly one ReconnectApp across a full response cycle on a client clock behind the server', async () => {
         await triggerFullReconnectDemand(SERVER_DEMAND);
 
         await applyServerResponse(SERVER_DEMAND);
