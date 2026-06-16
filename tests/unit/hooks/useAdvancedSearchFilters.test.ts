@@ -422,7 +422,7 @@ describe('useAdvancedSearchFilters', () => {
             });
         });
 
-        it('hides bank account filter when business accounts are not in OPEN state', async () => {
+        it('shows bank account filter when business accounts are not in OPEN state so historical expenses paid from a closed account stay searchable', async () => {
             const bankAccountID = 42;
             await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
                 [bankAccountID]: {
@@ -440,7 +440,7 @@ describe('useAdvancedSearchFilters', () => {
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
-                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
             });
         });
 

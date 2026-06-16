@@ -2,7 +2,6 @@ import {filterCardsHiddenFromSearch} from '@selectors/Card';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {emailSelector} from '@selectors/Session';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getSearchEligibleBankAccounts} from '@libs/BankAccountUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
@@ -342,7 +341,9 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: s
 
     const shouldDisplayCategoryFilter = shouldDisplayFilter(hasNonPersonalPolicyCategories ? 1 : 0, policyDerived?.areCategoriesEnabled ?? false, selectedPolicyCategories?.length > 0);
     const shouldDisplayTagFilter = shouldDisplayFilter(hasTags ? 1 : 0, policyDerived?.areTagsEnabled ?? false, !!selectedPolicyTagLists);
-    const shouldDisplayBankAccountFilter = shouldDisplayFilter(Object.keys(getSearchEligibleBankAccounts(bankAccountList)).length, true);
+    // Count every business account, not just OPEN ones, so historical expenses paid from a now-closed settlement account stay searchable.
+    const hasBusinessBankAccount = Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
+    const shouldDisplayBankAccountFilter = shouldDisplayFilter(hasBusinessBankAccount ? 1 : 0, true);
     const shouldDisplayTaxFilter = shouldDisplayFilter(policyDerived?.hasAnyTaxRates ? 1 : 0, policyDerived?.areTaxEnabled ?? false);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
 
