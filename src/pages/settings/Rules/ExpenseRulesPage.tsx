@@ -161,6 +161,25 @@ function ExpenseRulesPage() {
         </View>
     );
 
+    const emptyStateComponent = (
+        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+            <GenericEmptyStateComponent
+                {...genericIllustration}
+                title={translate('expenseRulesPage.emptyRules.title')}
+                subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                buttons={[
+                    {
+                        success: true,
+                        buttonAction: navigateToNewRulePage,
+                        icon: icons.Plus,
+                        buttonText: translate('expenseRulesPage.newRule'),
+                    },
+                ]}
+            />
+        </ScrollView>
+    );
+
     const loadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'ExpenseRulesPage.loading',
         isLoading,
@@ -194,24 +213,6 @@ function ExpenseRulesPage() {
             </HeaderWithBackButton>
             {shouldDisplayButtonsInSeparateLine && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
             {!hasRules && !isLoading && headerContent}
-            {!hasRules && !isLoading && (
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                    <GenericEmptyStateComponent
-                        {...genericIllustration}
-                        title={translate('expenseRulesPage.emptyRules.title')}
-                        subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
-                        headerStyles={styles.emptyStateCardIllustrationContainer}
-                        buttons={[
-                            {
-                                success: true,
-                                buttonAction: navigateToNewRulePage,
-                                icon: icons.Plus,
-                                buttonText: translate('expenseRulesPage.newRule'),
-                            },
-                        ]}
-                    />
-                </ScrollView>
-            )}
             {!hasRules && isLoading && (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -219,11 +220,12 @@ function ExpenseRulesPage() {
                     reasonAttributes={loadingReasonAttributes}
                 />
             )}
-            {hasRules && (
+            {!isLoading && (
                 <PersonalExpenseRulesTable
                     selectedKeys={selectedRules}
                     personalExpenseRules={personalExpenseRules}
                     onRowSelectionChange={setSelectedRules}
+                    EmptyStateComponent={emptyStateComponent}
                 />
             )}
             <ConfirmModal

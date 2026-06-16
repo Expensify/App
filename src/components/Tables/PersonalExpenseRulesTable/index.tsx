@@ -21,12 +21,13 @@ export type PersonalExpenseRuleRowData = TableData & {
 };
 
 type PersonalExpenseRulesTableProps = {
+    EmptyStateComponent: React.ReactElement;
     personalExpenseRules: PersonalExpenseRuleRowData[];
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function PersonalExpenseRulesTable({personalExpenseRules, selectedKeys, onRowSelectionChange}: PersonalExpenseRulesTableProps) {
+export default function PersonalExpenseRulesTable({EmptyStateComponent, personalExpenseRules, selectedKeys, onRowSelectionChange}: PersonalExpenseRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -77,6 +78,8 @@ export default function PersonalExpenseRulesTable({personalExpenseRules, selecte
         />
     );
 
+    const hasRules = personalExpenseRules.length > 0;
+
     return (
         <Table
             selectionEnabled
@@ -91,9 +94,14 @@ export default function PersonalExpenseRulesTable({personalExpenseRules, selecte
             onRowSelectionChange={onRowSelectionChange}
             keyExtractor={(rule) => rule.keyForList}
         >
-            {personalExpenseRules.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('expenseRulesPage.findRule')} />}
-            <Table.Header />
-            <Table.Body />
+            {!hasRules && EmptyStateComponent}
+            {hasRules && (
+                <>
+                    {personalExpenseRules.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('expenseRulesPage.findRule')} />}
+                    <Table.Header />
+                    <Table.Body />
+                </>
+            )}
         </Table>
     );
 }
