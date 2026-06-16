@@ -1,6 +1,5 @@
 import {useCallback, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
 
@@ -24,15 +23,27 @@ export default function useSingleExecution() {
                 isExecutingRef.current = true;
 
                 const execution = action(...params);
-                InteractionManager.runAfterInteractions(() => {
-                    if (!(execution instanceof Promise)) {
-                        setIsExecuting(false);
-                        return;
-                    }
-                    execution.finally(() => {
-                        setIsExecuting(false);
+
+                // Defer one event loop tick before checking transitions.
+                // This mirrors InteractionManager.runAfterInteractions semantics:
+                // by the next macrotask, React will have committed the navigation
+                // state change (useLayoutEffect → TransitionTracker.startTransition),
+                // so runAfterTransitions will correctly wait for active transitions.
+                // Without navigation, no transitions are active and the callback
+                // fires immediately in that same tick (~0-16ms total delay).
+                setTimeout(() => {
+                    TransitionTracker.runAfterTransitions({
+                        callback: () => {
+                            if (!(execution instanceof Promise)) {
+                                setIsExecuting(false);
+                                return;
+                            }
+                            execution.finally(() => {
+                                setIsExecuting(false);
+                            });
+                        },
                     });
-                });
+                }, 0);
             },
         [],
     );
