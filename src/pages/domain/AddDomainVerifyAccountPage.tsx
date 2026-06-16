@@ -1,9 +1,4 @@
-import React from 'react';
-import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
-import ROUTES from '@src/ROUTES';
-
-function AddDomainVerifyAccountPage() {
-    return <VerifyAccountPageBase navigateBackTo={ROUTES.WORKSPACES_ADD_DOMAIN} />;
+{
+  "file": "src/pages/domain/AddDomainVerifyAccountPage.tsx",
+  "content": "import React from 'react';\nimport VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';\nimport ROUTES from '@src/ROUTES';\n\ntype AddDomainVerifyAccountPageProps = {\n    route: {\n        params: {\n            domainAccountID: number;\n            targetEmail: string;\n            twoFactorAuthCode?: string;\n        };\n    };\n};\n\nfunction AddDomainVerifyAccountPage({route}: AddDomainVerifyAccountPageProps) {\n    return (\n        <VerifyAccountPageBase\n            navigateBackTo={ROUTES.WORKSPACES_ADD_DOMAIN}\n            domainAccountID={route.params.domainAccountID}\n            targetEmail={route.params.targetEmail}\n            twoFactorAuthCode={route.params.twoFactorAuthCode}\n        />\n    );\n}\n\nexport default AddDomainVerifyAccountPage;"
 }
-
-export default AddDomainVerifyAccountPage;
