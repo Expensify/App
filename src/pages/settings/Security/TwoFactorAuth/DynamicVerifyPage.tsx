@@ -47,11 +47,11 @@ function DynamicVerifyPage() {
     }, []);
 
     useEffect(() => {
-        if (!account?.requiresTwoFactorAuth || !account.codesAreCopied) {
+        if (!account?.requiresTwoFactorAuth || !account.codesAreCopied || account.twoFactorAuthSecretKey) {
             return;
         }
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path, backPath), {forceReplace: true});
-    }, [account?.codesAreCopied, account?.requiresTwoFactorAuth, backPath]);
+    }, [account?.codesAreCopied, account?.requiresTwoFactorAuth, account?.twoFactorAuthSecretKey, backPath]);
 
     /**
      * Splits the two-factor auth secret key in 4 chunks
