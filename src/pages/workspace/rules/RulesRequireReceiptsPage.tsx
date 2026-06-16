@@ -115,8 +115,12 @@ function RulesRequireReceiptsPage({
             const receiptValue = receiptEnabled ? values.maxExpenseAmountNoReceipt : '';
             const itemizedValue = itemizedEnabled ? values.maxExpenseAmountNoItemizedReceipt : '';
 
-            setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt);
-            setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt);
+            if (receiptChanged) {
+                setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt);
+            }
+            if (itemizedChanged) {
+                setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt);
+            }
             Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
         },
         [
