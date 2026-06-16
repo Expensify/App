@@ -165,7 +165,7 @@ function SearchPage({route}: SearchPageProps) {
             }
 
             const isResettingToDefault = nextCurrency === fallbackDefaultCurrency;
-            const flatQueryJSON = validGroupBy && !isResettingToDefault ? buildFlatQueryWithoutGroupBy(currentSearchQueryJSON) : undefined;
+            const flatQueryJSON = validGroupBy && !isResettingToDefault ? buildFlatQueryWithoutGroupBy(currentSearchQueryJSON, nextCurrency) : undefined;
 
             setFooterCurrencyState({
                 searchHash: currentSearchHash,
