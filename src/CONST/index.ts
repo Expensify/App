@@ -4297,6 +4297,7 @@ const CONST = {
         NEW_RATE: 'New Rate',
         RATE_DECIMALS: 3,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
+        UNSET_DISTANCE_RATE_ID: '-1',
         MILES_TO_KILOMETERS: 1.609344,
         KILOMETERS_TO_MILES: 0.621371,
         RATE_STATUS: {

@@ -172,7 +172,7 @@ function DistanceRequestController({
 
     useEffect(() => {
         if (
-            !['-1', CONST.CUSTOM_UNITS.FAKE_P2P_ID].includes(customUnitRateID) ||
+            !DistanceRequestUtils.isUnsetDistanceCustomUnitRateID(customUnitRateID) ||
             !isDistanceRequest ||
             !isPolicyExpenseChat ||
             !transactionID ||

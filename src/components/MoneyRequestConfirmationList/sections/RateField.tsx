@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
@@ -56,12 +56,13 @@ function isRateOutOfDateRangeForConfirmation({
         return false;
     }
 
-    if (!customUnitRateID || ['-1', CONST.CUSTOM_UNITS.FAKE_P2P_ID].includes(customUnitRateID)) {
+    const selectedCustomUnitRateID = customUnitRateID;
+    if (!selectedCustomUnitRateID || DistanceRequestUtils.isUnsetDistanceCustomUnitRateID(selectedCustomUnitRateID)) {
         return false;
     }
 
     const policyRates = DistanceRequestUtils.getMileageRates(policy);
-    const isRateValidForPolicy = customUnitRateID in policyRates && policyRates[customUnitRateID].enabled !== false;
+    const isRateValidForPolicy = selectedCustomUnitRateID in policyRates && policyRates[selectedCustomUnitRateID].enabled !== false;
 
     if (!isRateValidForPolicy) {
         return false;
@@ -99,25 +100,21 @@ function RateField({
     const {isOffline} = useNetwork();
 
     const isRateOutOfDateRange = isRateOutOfDateRangeForConfirmation({customUnitRateID, policy, mileageRate, expenseDate});
-    const rateOutOfDateRangeErrorText = useMemo(() => {
-        if (!isRateOutOfDateRange) {
-            return '';
-        }
-
-        return ViolationsUtils.getViolationTranslation({
-            violation: {
-                name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
-                type: CONST.VIOLATION_TYPES.WARNING,
-                showInReview: true,
-                data: {
-                    startDate: mileageRate.startDate ?? undefined,
-                    endDate: mileageRate.endDate ?? undefined,
-                },
-            },
-            translate,
-            convertToDisplayString,
-        });
-    }, [convertToDisplayString, isRateOutOfDateRange, mileageRate.endDate, mileageRate.startDate, translate]);
+    const rateOutOfDateRangeErrorText = isRateOutOfDateRange
+        ? ViolationsUtils.getViolationTranslation({
+              violation: {
+                  name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                  type: CONST.VIOLATION_TYPES.WARNING,
+                  showInReview: true,
+                  data: {
+                      startDate: mileageRate.startDate ?? undefined,
+                      endDate: mileageRate.endDate ?? undefined,
+                  },
+              },
+              translate,
+              convertToDisplayString,
+          })
+        : '';
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isRateInteractive = !!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;

@@ -269,11 +269,7 @@ function formatViolationDate(date?: string): string | undefined {
         return undefined;
     }
 
-    try {
-        return format(parseISO(date), CONST.DATE.MONTH_DAY_YEAR_FORMAT);
-    } catch {
-        return date;
-    }
+    return format(parseISO(date), CONST.DATE.MONTH_DAY_YEAR_FORMAT);
 }
 
 /**

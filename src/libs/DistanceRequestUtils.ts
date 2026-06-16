@@ -343,6 +343,17 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
 }
 
 /**
+ * Returns whether the distance custom unit rate ID is unset or represents a non-workspace rate (P2P or placeholder).
+ */
+function isUnsetDistanceCustomUnitRateID(customUnitRateID: string | undefined): boolean {
+    if (!customUnitRateID) {
+        return true;
+    }
+
+    return customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || customUnitRateID === CONST.CUSTOM_UNITS.UNSET_DISTANCE_RATE_ID;
+}
+
+/**
  * Checks if a mileage rate is eligible for a given expense date.
  * A rate is eligible if the date falls within its startDate/endDate bounds (inclusive).
  * Missing bounds mean unbounded in that direction.
@@ -688,6 +699,7 @@ export default {
     normalizeOdometerText,
     prepareTextForDisplay,
     isRateEligibleForDate,
+    isUnsetDistanceCustomUnitRateID,
     getBestEligibleRate,
     getRateDateLabel,
 };
