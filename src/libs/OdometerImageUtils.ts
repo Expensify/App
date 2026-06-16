@@ -11,9 +11,9 @@ function getOdometerImageName(image: FileObject | string | null | undefined): st
 
 /**
  * A re-mint-invariant identity for an odometer image, used in the discard-changes baseline diff.
- * Re-minting a blob (on resume/reload, or revoke/recreate) yields a fresh `uri` but keeps `name` and `size`,
- * so `name|size` stays stable across re-mints while a different file changes it. Native images are `file://`
- * strings that never re-mint, so the string itself is already a stable identity.
+ * `uri` changes on every re-mint, but `name|size|lastModified` is preserved across the draft round-trip, so it
+ * stays stable on resume/reload while still changing for a real swap (`lastModified` disambiguates a different
+ * file that happens to share name + size). Native images are stable `file://` strings, so we use them directly
  */
 function getOdometerImageIdentity(image: FileObject | string | null | undefined): string {
     if (!image) {
@@ -22,7 +22,7 @@ function getOdometerImageIdentity(image: FileObject | string | null | undefined)
     if (typeof image === 'string') {
         return image;
     }
-    return `${image.name ?? ''}|${image.size ?? ''}`;
+    return `${image.name ?? ''}|${image.size ?? ''}|${image.lastModified ?? ''}`;
 }
 
 function getOdometerImageType(image: FileObject | string | null | undefined): string | undefined {

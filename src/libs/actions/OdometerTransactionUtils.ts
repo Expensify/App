@@ -47,6 +47,8 @@ function setMoneyRequestOdometerImage(transaction: OnyxEntry<Transaction>, image
                   name: file.name,
                   type: file.type,
                   size: file.size,
+                  // Part of the re-mint-invariant identity (getOdometerImageIdentity) so a swap to a same-name/same-size file is still detected
+                  ...(file.lastModified !== undefined && {lastModified: file.lastModified}),
               };
     const transactionID = transaction?.transactionID;
     const existingImage = transaction?.comment?.[imageKey];
@@ -120,7 +122,7 @@ async function serializeOdometerDraftImage(image: FileObject | string | null | u
     }
 }
 
-function deserializeOdometerDraftImage(image: string | undefined, transactionID: string, imageType: OdometerImageType): FileObject | string | undefined {
+function deserializeOdometerDraftImage(image: string | undefined, transactionID: string, imageType: OdometerImageType, lastModified?: number): FileObject | string | undefined {
     if (!image) {
         return undefined;
     }
@@ -136,6 +138,8 @@ function deserializeOdometerDraftImage(image: string | undefined, transactionID:
             name: file.name,
             type: file.type,
             size: file.size,
+            // Restore the original `lastModified` (base64ToFile resets it to Date.now()) so the re-minted image keeps its identity
+            ...(lastModified !== undefined && {lastModified}),
         };
     } catch (error) {
         Log.warn('Failed to deserialize odometer draft image from base64', {error});
@@ -152,11 +156,16 @@ async function saveOdometerDraft({startReading, endReading, startImage, endImage
         return;
     }
 
+    const startImageLastModified = typeof startImage === 'object' ? startImage?.lastModified : undefined;
+    const endImageLastModified = typeof endImage === 'object' ? endImage?.lastModified : undefined;
+
     const odometerDraft: OdometerDraft = {
         ...(startReading !== undefined && {odometerStartReading: startReading}),
         ...(endReading !== undefined && {odometerEndReading: endReading}),
         ...(serializedStartImage && {odometerStartImage: serializedStartImage}),
         ...(serializedEndImage && {odometerEndImage: serializedEndImage}),
+        ...(serializedStartImage && startImageLastModified !== undefined && {odometerStartImageLastModified: startImageLastModified}),
+        ...(serializedEndImage && endImageLastModified !== undefined && {odometerEndImageLastModified: endImageLastModified}),
     };
 
     await Onyx.set(ONYXKEYS.ODOMETER_DRAFT, odometerDraft);
@@ -174,8 +183,9 @@ function buildOdometerCommentFromDraft(transactionID: string, odometerDraft: Ony
         return;
     }
 
-    const startImage = deserializeOdometerDraftImage(odometerDraft.odometerStartImage, transactionID, CONST.IOU.ODOMETER_IMAGE_TYPE.START) ?? null;
-    const endImage = deserializeOdometerDraftImage(odometerDraft.odometerEndImage, transactionID, CONST.IOU.ODOMETER_IMAGE_TYPE.END) ?? null;
+    const startImage =
+        deserializeOdometerDraftImage(odometerDraft.odometerStartImage, transactionID, CONST.IOU.ODOMETER_IMAGE_TYPE.START, odometerDraft.odometerStartImageLastModified) ?? null;
+    const endImage = deserializeOdometerDraftImage(odometerDraft.odometerEndImage, transactionID, CONST.IOU.ODOMETER_IMAGE_TYPE.END, odometerDraft.odometerEndImageLastModified) ?? null;
 
     // Free the previous blob URL before the merge drops the reference - covers both replace and wipe-to-null; helper no-ops if non-blob or unchanged.
     revokeOdometerImageUri(currentComment?.odometerStartImage, startImage);
@@ -246,7 +256,7 @@ type OdometerUnsavedChangesState = {
 
 /**
  * Decide whether the odometer screen has unsaved changes worth a "Discard changes?" prompt. Both checks ignore
- * non-user noise: images diff on a re-mint-invariant identity (name|size), and the typing guard skips mid-edit readings
+ * non-user noise: images diff on a re-mint-invariant identity (name|size|lastModified), and the typing guard skips mid-edit readings
  */
 function getOdometerHasUnsavedChanges(state: OdometerUnsavedChangesState): boolean {
     if (!state.isGuardActive) {

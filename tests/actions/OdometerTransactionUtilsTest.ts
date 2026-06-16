@@ -2,7 +2,13 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import '@libs/actions/IOU/MoneyRequest';
-import {getOdometerHasUnsavedChanges, isOdometerDraftPendingHydration, removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
+import {
+    getOdometerHasUnsavedChanges,
+    isOdometerDraftPendingHydration,
+    removeMoneyRequestOdometerImage,
+    saveOdometerDraft,
+    setMoneyRequestOdometerImage,
+} from '@libs/actions/OdometerTransactionUtils';
 import type {OdometerUnsavedChangesState} from '@libs/actions/OdometerTransactionUtils';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {getOdometerImageIdentity} from '@libs/OdometerImageUtils';
@@ -222,6 +228,33 @@ describe('actions/OdometerTransactionUtils', () => {
         });
     });
 
+    describe('saveOdometerDraft', () => {
+        afterEach(() => Onyx.set(ONYXKEYS.ODOMETER_DRAFT, null));
+
+        // The image's lastModified must be persisted alongside the serialized image so the re-minted image can
+        // restore it and keep its identity stable across the draft round-trip.
+        it('persists the image lastModified into the draft', () => {
+            const startImage = {uri: 'blob:start', name: 'a.jpg', type: 'image/jpeg', size: 1234, lastModified: 1700000000000};
+
+            return saveOdometerDraft({startImage})
+                .then(() => getOnyxValue(ONYXKEYS.ODOMETER_DRAFT))
+                .then((odometerDraft) => {
+                    expect(odometerDraft?.odometerStartImageLastModified).toBe(1700000000000);
+                });
+        });
+
+        // A native/string image (or one without lastModified) must not write a stray lastModified field.
+        it('omits lastModified when the image does not carry one', () => {
+            const startImage = {uri: 'blob:start', name: 'a.jpg', type: 'image/jpeg', size: 1234};
+
+            return saveOdometerDraft({startImage})
+                .then(() => getOnyxValue(ONYXKEYS.ODOMETER_DRAFT))
+                .then((odometerDraft) => {
+                    expect(odometerDraft?.odometerStartImageLastModified).toBeUndefined();
+                });
+        });
+    });
+
     describe('isOdometerDraftPendingHydration (directional)', () => {
         it('returns false when there is no draft (no save-for-later flow)', () => {
             expect(isOdometerDraftPendingHydration(undefined, {odometerStart: 120, odometerEnd: 300})).toBe(false);
@@ -402,6 +435,22 @@ describe('actions/OdometerTransactionUtils', () => {
             const a = {uri: 'blob:abc', name: 'a.jpg', type: 'image/jpeg', size: 1234};
             const b = {uri: 'blob:xyz', name: 'b.jpg', type: 'image/jpeg', size: 5678};
             expect(getOdometerImageIdentity(b)).not.toBe(getOdometerImageIdentity(a));
+        });
+
+        // Two genuinely different files can share the same filename AND byte size; lastModified disambiguates them so
+        // the discard guard still fires on the swap (the collision the name|size-only identity missed).
+        it('changes when the user swaps to a same-name/same-size file with a different lastModified', () => {
+            const a = {uri: 'blob:abc', name: 'a.jpg', type: 'image/jpeg', size: 1234, lastModified: 1000};
+            const b = {uri: 'blob:xyz', name: 'a.jpg', type: 'image/jpeg', size: 1234, lastModified: 2000};
+            expect(getOdometerImageIdentity(b)).not.toBe(getOdometerImageIdentity(a));
+        });
+
+        // lastModified is preserved across the draft round-trip, so a re-mint that keeps name + size + lastModified
+        // (only the uri changes) must stay invariant - the discard guard must not fire on a resume/reload.
+        it('is invariant under a re-mint that keeps name + size + lastModified (new uri only)', () => {
+            const original = {uri: 'blob:abc', name: 'a.jpg', type: 'image/jpeg', size: 1234, lastModified: 1000};
+            const reminted = {uri: 'blob:xyz', name: 'a.jpg', type: 'image/jpeg', size: 1234, lastModified: 1000};
+            expect(getOdometerImageIdentity(reminted)).toBe(getOdometerImageIdentity(original));
         });
 
         it('uses the uri string directly for native images', () => {
