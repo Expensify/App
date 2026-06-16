@@ -440,41 +440,15 @@ function SearchWriteActionsProvider({
                             }
                             return [mapEmptyReportToSelectedEntry(item)];
                         }
-                        return item.transactions
-                            .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => {
-                                const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                                const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                                const [key, entry] = mapTransactionItemToSelectedEntry({
-                                    item: transactionItem,
-                                    itemTransaction,
-                                    originalItemTransaction,
-                                    currentUserLogin: currentUserEmail,
-                                    currentUserAccountID: accountID,
-                                    archivedReportsIDSet,
-                                    outstandingReportsByPolicyID,
-                                    selfDMReport,
-                                    isProduction,
-                                    allowNegativeAmount: true,
-                                    parentReport: itemParentReport,
-                                });
-                                return [key, {...entry, groupKey: item.keyForList}] as [string, SelectedTransactionInfo];
-                            });
-                    });
-                    return Object.fromEntries(allSelections);
-                }
-
-                // When items are not grouped, data is TransactionListItemType[] not TransactionGroupListItemType[]
-                return Object.fromEntries(
-                    filteredData
-                        .filter(isTransactionListItemType)
-                        .filter((t) => !isTransactionPendingDelete(t))
-                        .map((transactionItem) => {
-                            const itemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                            const originalItemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                        const entries: Array<[string, SelectedTransactionInfo]> = [];
+                        for (const transactionItem of item.transactions) {
+                            if (isTransactionPendingDelete(transactionItem)) {
+                                continue;
+                            }
+                            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
+                            const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                             const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                            return mapTransactionItemToSelectedEntry({
+                            const [key, entry] = mapTransactionItemToSelectedEntry({
                                 item: transactionItem,
                                 itemTransaction,
                                 originalItemTransaction,
@@ -487,8 +461,42 @@ function SearchWriteActionsProvider({
                                 allowNegativeAmount: true,
                                 parentReport: itemParentReport,
                             });
+                            entries.push([key, {...entry, groupKey: item.keyForList}]);
+                        }
+                        return entries;
+                    });
+                    return Object.fromEntries(allSelections);
+                }
+
+                // When items are not grouped, data is TransactionListItemType[] not TransactionGroupListItemType[]
+                const entries: Array<[string, SelectedTransactionInfo]> = [];
+                for (const transactionItem of filteredData) {
+                    if (!isTransactionListItemType(transactionItem)) {
+                        continue;
+                    }
+                    if (isTransactionPendingDelete(transactionItem)) {
+                        continue;
+                    }
+                    const itemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
+                    const originalItemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                    const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
+                    entries.push(
+                        mapTransactionItemToSelectedEntry({
+                            item: transactionItem,
+                            itemTransaction,
+                            originalItemTransaction,
+                            currentUserLogin: currentUserEmail,
+                            currentUserAccountID: accountID,
+                            archivedReportsIDSet,
+                            outstandingReportsByPolicyID,
+                            selfDMReport,
+                            isProduction,
+                            allowNegativeAmount: true,
+                            parentReport: itemParentReport,
                         }),
-                );
+                    );
+                }
+                return Object.fromEntries(entries);
             },
             {data: filteredData, totalSelectableItemsCount},
         );

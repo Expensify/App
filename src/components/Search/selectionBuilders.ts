@@ -3,7 +3,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
-import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {OutstandingReportsByPolicyIDDerivedValue, Report, Transaction} from '@src/types/onyx';
 import type {TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
@@ -39,7 +39,7 @@ function mapTransactionItemToSelectedEntry({
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
-    const isUnreported = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isUnreported = isExpenseUnreported(item);
     const reportForSplit = item.report ?? (isUnreported ? selfDMReport : undefined);
 
     return [
@@ -190,17 +190,19 @@ function prepareTransactionsList({
  */
 function deriveSelectedReports(transactionIDs: SelectedTransactions, data: SearchData): SelectedReports[] {
     if (data.length && data.every(isTransactionReportGroupListItemType)) {
-        return data
-            .filter((item) => {
-                if (!isMoneyRequestReport(item)) {
-                    return false;
-                }
-                if (item.transactions.length === 0) {
-                    return !!item.keyForList && transactionIDs[item.keyForList]?.isSelected;
-                }
-                return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
-            })
-            .map((item) => ({
+        const result: SelectedReports[] = [];
+        for (const item of data) {
+            if (!isMoneyRequestReport(item)) {
+                continue;
+            }
+            const isSelected =
+                item.transactions.length === 0
+                    ? !!item.keyForList && transactionIDs[item.keyForList]?.isSelected
+                    : item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
+            if (!isSelected) {
+                continue;
+            }
+            result.push({
                 reportID: item.reportID,
                 action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 total: item.total ?? CONST.DEFAULT_NUMBER_ID,
@@ -216,33 +218,36 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
                 parentReportActionID: item.parentReportActionID,
                 parentReportID: item.parentReportID,
                 type: item.type,
-            }));
+            });
+        }
+        return result;
     }
     if (data.length && data.every(isTransactionListItemType)) {
-        return data
-            .filter(({keyForList}) => !!keyForList && transactionIDs[keyForList]?.isSelected)
-            .map((item) => {
-                const total = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : (item.amount ?? CONST.DEFAULT_NUMBER_ID);
-                const action = item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
-
-                return {
-                    reportID: item.reportID,
-                    action,
-                    total,
-                    policyID: item.policyID,
-                    canPay: item.canPay,
-                    canApprove: item.canApprove,
-                    canSubmit: item.canSubmit,
-                    canChangeApprover: item.canChangeApprover,
-                    currency: item.currency,
-                    chatReportID: item.report?.chatReportID,
-                    managerID: item.report?.managerID,
-                    ownerAccountID: item.report?.ownerAccountID,
-                    parentReportActionID: item.report?.parentReportActionID,
-                    parentReportID: item.report?.parentReportID,
-                    type: item.report?.type,
-                };
+        const result: SelectedReports[] = [];
+        for (const item of data) {
+            if (!item.keyForList || !transactionIDs[item.keyForList]?.isSelected) {
+                continue;
+            }
+            const total = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : (item.amount ?? CONST.DEFAULT_NUMBER_ID);
+            result.push({
+                reportID: item.reportID,
+                action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                total,
+                policyID: item.policyID,
+                canPay: item.canPay,
+                canApprove: item.canApprove,
+                canSubmit: item.canSubmit,
+                canChangeApprover: item.canChangeApprover,
+                currency: item.currency,
+                chatReportID: item.report?.chatReportID,
+                managerID: item.report?.managerID,
+                ownerAccountID: item.report?.ownerAccountID,
+                parentReportActionID: item.report?.parentReportActionID,
+                parentReportID: item.report?.parentReportID,
+                type: item.report?.type,
             });
+        }
+        return result;
     }
     return [];
 }

@@ -121,14 +121,14 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         });
     };
 
-    const selectAllMatchingItems: SearchSelectionActionsValue['selectAllMatchingItems'] = (on) => {
+    const selectAllMatchingItems: SearchSelectionActionsValue['selectAllMatchingItems'] = (shouldSelectAll) => {
         setSelectionState((prevState) => {
-            if (prevState.areAllMatchingItemsSelected === on) {
+            if (prevState.areAllMatchingItemsSelected === shouldSelectAll) {
                 return prevState;
             }
             return {
                 ...prevState,
-                areAllMatchingItemsSelected: on,
+                areAllMatchingItemsSelected: shouldSelectAll,
             };
         });
     };
