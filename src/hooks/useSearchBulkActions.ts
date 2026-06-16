@@ -2096,7 +2096,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
         setActiveExportID(undefined);
         selectAllMatchingItems(false);
-        clearSelectedTransactions();
+        clearSelectedTransactions(undefined, true);
     }, [activeExportDownload?.state, activeExportDownload?.shouldSendFromConcierge, selectAllMatchingItems, clearSelectedTransactions]);
 
     return {
