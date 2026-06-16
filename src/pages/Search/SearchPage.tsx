@@ -40,6 +40,15 @@ type FooterCurrencyState = {
     footerTotalHash: number | undefined;
 };
 
+function getNumberMember(value: unknown, memberName: string): number | undefined {
+    if (!value || typeof value !== 'object') {
+        return undefined;
+    }
+
+    const memberValue: unknown = Reflect.get(value, memberName);
+    return typeof memberValue === 'number' ? memberValue : undefined;
+}
+
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.spend'));
@@ -99,9 +108,14 @@ function SearchPage({route}: SearchPageProps) {
     }
 
     const metadata = searchResults?.search;
+    const metadataCount = metadata?.count;
+    const metadataCurrency = metadata?.currency;
+    const metadataTotal = metadata?.total;
+    const searchData = searchResults?.data;
     const validGroupBy = getValidGroupBy(currentSearchQueryJSON?.groupBy);
     const [footerTotalSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${footerCurrencyState.footerTotalHash}`);
     const footerTotalMetadata = isCurrentFooterState && footerCurrencyState.footerTotalHash !== undefined ? footerTotalSnapshot?.search : undefined;
+    const footerTotalData = footerTotalSnapshot?.data;
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
@@ -193,58 +207,65 @@ function SearchPage({route}: SearchPageProps) {
             return {count: undefined, total: undefined, currency: undefined};
         }
 
-        const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
-        const defaultCurrency = defaultFooterCurrency ?? metadata?.currency;
+        const selectedExpenseCount = selectedTransactionsKeys.reduce((count, key) => {
+            if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+                const group: unknown = searchData ? Reflect.get(searchData, key) : undefined;
+                return count + (getNumberMember(group, 'count') ?? 0);
+            }
+            const item = selectedTransactions[key];
+            if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
+                return count;
+            }
+            return count + 1;
+        }, 0);
+        const areAllSelectedForFooter = areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount);
+        const shouldUseClientTotal = !metadataCount || (selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter);
+        const defaultCurrency = defaultFooterCurrency ?? metadataCurrency;
         const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== defaultCurrency;
-        const isServerTotalConfirmed = !hasCustomFooterCurrency || (validGroupBy ? footerTotalMetadata?.currency === selectedCurrency : metadata?.currency === selectedCurrency);
+        const isServerTotalConfirmed = !hasCustomFooterCurrency || (validGroupBy ? footerTotalMetadata?.currency === selectedCurrency : metadataCurrency === selectedCurrency);
+        const shouldUseConvertedSelectedTotal = shouldUseClientTotal && hasCustomFooterCurrency && !!validGroupBy && footerTotalMetadata?.currency === selectedCurrency;
         const isFooterGrandTotalLoading = !shouldUseClientTotal && hasCustomFooterCurrency && !!validGroupBy && !!footerTotalMetadata?.isLoading;
         let currency;
-        if (shouldUseClientTotal) {
+        if (shouldUseConvertedSelectedTotal) {
+            currency = selectedCurrency;
+        } else if (shouldUseClientTotal) {
             currency = defaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
         } else if (isServerTotalConfirmed) {
-            currency = selectedCurrency ?? footerTotalMetadata?.currency ?? defaultCurrency ?? metadata?.currency;
+            currency = selectedCurrency ?? footerTotalMetadata?.currency ?? defaultCurrency ?? metadataCurrency;
         } else {
-            currency = metadata?.currency ?? defaultCurrency;
+            currency = metadataCurrency ?? defaultCurrency;
         }
-        const numberOfExpense = shouldUseClientTotal
-            ? selectedTransactionsKeys.reduce((count, key) => {
-                  if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-                      const group = currentSearchResults?.data?.[key as keyof typeof currentSearchResults.data] as {count?: number} | undefined;
-                      return count + (group?.count ?? 0);
-                  }
-                  const item = selectedTransactions[key];
-                  if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
-                      return count;
-                  }
-                  return count + 1;
-              }, 0)
-            : metadata?.count;
+        const numberOfExpense = shouldUseClientTotal ? selectedExpenseCount : metadataCount;
         let total;
         if (shouldUseClientTotal) {
-            total = selectedTransactionItems.reduce((acc, transaction) => {
-                return acc - (transaction.groupAmount ?? -Math.abs(transaction.amount));
+            total = selectedTransactionsKeys.reduce((acc, key) => {
+                const transaction = selectedTransactions[key];
+                const convertedTransactionKey = transaction.transaction?.transactionID ? `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transaction.transactionID}` : key;
+                const convertedTransaction: unknown = shouldUseConvertedSelectedTotal && footerTotalData ? Reflect.get(footerTotalData, convertedTransactionKey) : undefined;
+                return acc - (getNumberMember(convertedTransaction, 'groupAmount') ?? transaction.groupAmount ?? -Math.abs(transaction.amount));
             }, 0);
         } else if (hasCustomFooterCurrency && validGroupBy) {
-            total = isServerTotalConfirmed ? footerTotalMetadata?.total : metadata?.total;
+            total = isServerTotalConfirmed ? footerTotalMetadata?.total : metadataTotal;
         } else {
-            total = metadata?.total;
+            total = metadataTotal;
         }
 
         return {count: numberOfExpense, total, currency, isLoading: isFooterGrandTotalLoading};
     }, [
         areAllMatchingItemsSelected,
-        currentSearchResults,
         defaultFooterCurrency,
+        footerTotalData,
         footerTotalMetadata?.currency,
         footerTotalMetadata?.isLoading,
         footerTotalMetadata?.total,
-        metadata?.count,
-        metadata?.currency,
-        metadata?.total,
+        metadataCount,
+        metadataCurrency,
+        metadataTotal,
         selectedCurrency,
         selectedTransactions,
         selectedTransactionsKeys,
+        searchData,
         shouldAllowFooterTotals,
         validGroupBy,
     ]);
