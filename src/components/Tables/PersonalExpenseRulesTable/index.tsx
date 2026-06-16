@@ -1,4 +1,5 @@
 import {ListRenderItemInfo} from '@shopify/flash-list';
+import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
@@ -21,9 +22,11 @@ export type PersonalExpenseRuleRowData = TableData & {
 
 type PersonalExpenseRulesTableProps = {
     personalExpenseRules: PersonalExpenseRuleRowData[];
+    selectedKeys: string[];
+    onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function PersonalExpenseRulesTable({personalExpenseRules}: PersonalExpenseRulesTableProps) {
+export default function PersonalExpenseRulesTable({personalExpenseRules, selectedKeys, onRowSelectionChange}: PersonalExpenseRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -79,10 +82,12 @@ export default function PersonalExpenseRulesTable({personalExpenseRules}: Person
             selectionEnabled
             initialSortColumn="merchant"
             data={personalExpenseRules}
+            selectedKeys={selectedKeys}
             columns={personalExpenseRulesTableColumns}
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             renderItem={renderPersonalExpenseRuleItem}
+            onRowSelectionChange={onRowSelectionChange}
             keyExtractor={(rule) => rule.keyForList}
         >
             {personalExpenseRules.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('expenseRulesPage.findRule')} />}

@@ -20,17 +20,14 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchResults from '@hooks/useSearchResults';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDraftRule, deleteExpenseRules, setDraftRule} from '@libs/actions/User';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,21 +36,21 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-const getKeyForList = (rule: ExpenseRule, index: number) => `${getKeyForRule(rule)}-${index}`;
-
 function ExpenseRulesPage() {
-    const {translate, localeCompare} = useLocalize();
-    const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
-    const illustrations = useMemoizedLazyIllustrations(['Flash']);
-    const genericIllustration = useGenericEmptyStateIllustration();
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {translate} = useLocalize();
     useDocumentTitle(translate('expenseRulesPage.title'));
+
+    const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const genericIllustration = useGenericEmptyStateIllustration();
+    const illustrations = useMemoizedLazyIllustrations(['Flash']);
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
+    const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
+
     const [selectedRules, setSelectedRules] = useState<string[]>([]);
     const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
-    const styles = useThemeStyles();
 
     useEffect(() => {
         // Clear selection when rule is changed as hash is outdated
@@ -64,7 +61,7 @@ function ExpenseRulesPage() {
     const hasRules = expenseRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
     const isLoading = !hasRules && isLoadingOnyxValue(expenseRulesResult);
 
-    const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
+    const canSelectMultiple = !shouldUseNarrowLayout || isMobileSelectionModeEnabled;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const isInSelectionMode = shouldUseNarrowLayout ? canSelectMultiple : selectedRules.length > 0;
 
@@ -77,15 +74,6 @@ function ExpenseRulesPage() {
         disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         action: () => navigateToEditRulePage(getKeyForRule(rule)),
     }));
-
-    const toggleRule = (rule: ListItem) => {
-        setSelectedRules((prev) => {
-            if (prev.includes(rule.keyForList)) {
-                return prev.filter((key) => key !== rule.keyForList);
-            }
-            return [...prev, rule.keyForList];
-        });
-    };
 
     const navigateToNewRulePage = () => {
         clearDraftRule();
@@ -109,14 +97,6 @@ function ExpenseRulesPage() {
             tax: expenseRule.tax?.field_id_TAX ? expenseRule.tax.field_id_TAX.externalID : undefined,
         });
         Navigation.navigate(ROUTES.SETTINGS_RULES_EDIT.getRoute(hash));
-    };
-
-    const onSelectRow = (item: ListItem) => {
-        if (shouldUseNarrowLayout && isMobileSelectionModeEnabled) {
-            toggleRule(item);
-            return;
-        }
-        navigateToEditRulePage(item.keyForList);
     };
 
     const handleDeleteRules = () => {
@@ -235,7 +215,13 @@ function ExpenseRulesPage() {
                     reasonAttributes={loadingReasonAttributes}
                 />
             )}
-            {hasRules && <PersonalExpenseRulesTable personalExpenseRules={personalExpenseRules} />}
+            {hasRules && (
+                <PersonalExpenseRulesTable
+                    selectedKeys={selectedRules}
+                    personalExpenseRules={personalExpenseRules}
+                    onRowSelectionChange={setSelectedRules}
+                />
+            )}
             <ConfirmModal
                 isVisible={deleteConfirmModalVisible}
                 onConfirm={handleDeleteRules}

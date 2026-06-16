@@ -1,3 +1,4 @@
+import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import TableRow from '@components/Table/TableRow';
@@ -39,7 +40,7 @@ export default function PersonalExpenseRulesTableRow({item, rowIndex, shouldUseN
             {({hovered}) => (
                 <>
                     {!shouldUseNarrowTableLayout && (
-                        <View>
+                        <>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <TextWithTooltip
                                     shouldShowTooltip
@@ -54,7 +55,7 @@ export default function PersonalExpenseRulesTableRow({item, rowIndex, shouldUseN
                                     text={item.changes}
                                 />
                             </View>
-                        </View>
+                        </>
                     )}
 
                     {shouldUseNarrowTableLayout && (
