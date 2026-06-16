@@ -141,7 +141,7 @@ type UberReceiptPartner = {
     /**
      * form data for uber partner
      */
-    connectFormData: string;
+    connectFormData?: string;
     /**
      * auto invite for uber connection
      */
@@ -1389,6 +1389,12 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 /** Certinia (FinancialForce) export destination — FFA Payable Invoice vs PSA Expense Report */
 type FinancialForceExportDestination = ValueOf<typeof CONST.CERTINIA_EXPORT_DESTINATION>;
 
+/** Certinia export statuses that apply to FFA payable invoices */
+type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.COMPLETE | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
+
+/** Certinia export statuses that apply to PSA reports */
+type FinancialForceReportExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.SUBMITTED;
+
 /** Certinia PSA parent tag mapping mode */
 type FinancialForceParentTagMappingMode = ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>;
 
@@ -2044,13 +2050,16 @@ type CodingRule = {
     errors?: OnyxCommon.Errors;
 };
 
-/** Policy AI rule data model */
-type AIRule = {
+/** Policy Agent rule data model */
+type AgentRule = {
     /** Unique identifier for the rule */
     ruleID: string;
 
-    /** The AI prompt (i.e. the rule defined with natural language) */
+    /** The Agent prompt (i.e. the rule defined with natural language) */
     prompt: string;
+
+    /** Short one-line summary generated server-side from the prompt */
+    title?: string;
 
     /** When this rule was created */
     created: string;
@@ -2273,8 +2282,8 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** A set of coding rules for automatic expense field population based on merchant matching */
             codingRules?: Record<string, CodingRule>;
 
-            /** A set of AI rules defined with natural language - The rules are run by the "RuleBot" */
-            aiRules?: Record<string, AIRule>;
+            /** A set of Agent rules defined with natural language - The rules are run by the "RuleBot" */
+            agentRules?: Record<string, AgentRule>;
         };
 
         /** The "RuleBot" agent account ID */
@@ -2327,9 +2336,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
-
-        /** Whether the Invoice Fields feature is enabled */
-        areInvoiceFieldsEnabled?: boolean;
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
@@ -2497,6 +2503,8 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     FinancialForceConnectionConfig,
+    FinancialForceFFAExportStatus,
+    FinancialForceReportExportStatus,
     ACHAccount,
     ApprovalRule,
     ExpenseRule,
@@ -2512,5 +2520,5 @@ export type {
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,
-    AIRule,
+    AgentRule,
 };

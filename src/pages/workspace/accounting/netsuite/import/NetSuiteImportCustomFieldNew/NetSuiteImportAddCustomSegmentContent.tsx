@@ -7,6 +7,7 @@ import type {FormRef} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -46,6 +47,7 @@ const pages = [
 function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValues}: NetSuiteImportAddCustomSegmentContentProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const formRef = useRef<FormRef | null>(null);
 
     const config = policy?.connections?.netsuite?.options?.config;
@@ -117,10 +119,12 @@ function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValu
         );
     }
 
+    const headerTitle = `workspace.netsuite.import.importCustomFields.customSegments.${customSegmentType ? `addForm.${customSegmentType}AddTitle` : 'addText'}` as TranslationPaths;
+
     return (
         <ConnectionLayout
             displayName="NetSuiteImportAddCustomSegmentContent"
-            headerTitle={`workspace.netsuite.import.importCustomFields.customSegments.${customSegmentType ? `addForm.${customSegmentType}AddTitle` : 'addText'}` as TranslationPaths}
+            headerTitle={headerTitle}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -134,6 +138,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValu
                 <InteractiveStepSubPageHeader
                     currentStepIndex={pageIndex}
                     stepNames={CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT.STEP_INDEX_LIST}
+                    currentStepAccessibilityDescription={translate(headerTitle)}
                 />
             </View>
             <View style={[styles.flex1, styles.mt3]}>
