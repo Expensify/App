@@ -7520,7 +7520,7 @@ const translations = {
                 editRuleTitle: 'Edit rule',
                 deleteRule: 'Delete rule',
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
-                describeRuleTitle: 'Describe your AI agent rule',
+                describeRuleTitle: 'Describe the rule for your AI agent to follow',
                 disclaimer: 'AI agents can make mistakes.',
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
