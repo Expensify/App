@@ -36,9 +36,6 @@ type OriginalMessageIOU = {
     /** The ID of the `IOU` transaction */
     IOUTransactionID?: string;
 
-    /** ID of the `IOU` report */
-    IOUReportID?: string;
-
     /** ID of the expense report */
     expenseReportID?: string;
 
@@ -74,28 +71,16 @@ type OriginalMessageIOU = {
 
     /** The bank account id */
     bankAccountID?: number;
-} & (
-    | {
-          /** How much was transaction */
-          amount: number;
 
-          /** Currency of the transaction money */
-          currency: string;
+    /** How much was transaction */
+    amount?: number;
 
-          /** Only exists when we are sending money */
-          IOUDetails?: IOUDetails;
-      }
-    | {
-          /** How much was transaction */
-          amount?: number;
+    /** Currency of the transaction money */
+    currency?: string;
 
-          /** Currency of the transaction money */
-          currency?: string;
-
-          /** Only exists when we are sending money */
-          IOUDetails: IOUDetails;
-      }
-);
+    /** Only exists when we are sending money */
+    IOUDetails?: IOUDetails;
+};
 
 /** Names of moderation decisions */
 type DecisionName = ValueOf<
@@ -606,11 +591,17 @@ type OriginalMessagePolicyChangeLog = {
     /** Previous end date of the custom unit rate (yyyy-MM-dd) */
     oldEndDate?: string;
 
-    /** Tax percentage of the new tax rate linked to distance rate */
+    /** Tax percentage of the new tax rate linked to distance rate or category */
     newTaxPercentage?: string;
 
-    /** Tax percentage of the old tax rate linked to distance rate */
+    /** Tax percentage of the old tax rate linked to distance rate or category */
     oldTaxPercentage?: string;
+
+    /** Name of the new tax rate (without percentage) for category default tax rate */
+    newTaxName?: string;
+
+    /** Name of the old tax rate (without percentage) for category default tax rate */
+    oldTaxName?: string;
 
     /** Added/Updated tag name */
     tagName?: string;

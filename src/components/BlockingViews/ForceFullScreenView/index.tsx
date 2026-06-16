@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useFullScreenBlockingViewActions} from '@components/FullScreenBlockingViewContextProvider';
@@ -9,16 +9,17 @@ function ForceFullScreenView({children, shouldForceFullScreen = false}: ForceFul
     const route = useRoute();
     const styles = useThemeStyles();
     const {addRouteKey, removeRouteKey} = useFullScreenBlockingViewActions();
+    const isFocused = useIsFocused();
 
     useEffect(() => {
-        if (!shouldForceFullScreen) {
+        if (!shouldForceFullScreen || !isFocused) {
             return;
         }
 
         addRouteKey(route.key);
 
         return () => removeRouteKey(route.key);
-    }, [addRouteKey, removeRouteKey, route.key, shouldForceFullScreen]);
+    }, [addRouteKey, removeRouteKey, route.key, shouldForceFullScreen, isFocused]);
 
     if (shouldForceFullScreen) {
         return <View style={styles.forcedBlockingViewContainer}>{children}</View>;

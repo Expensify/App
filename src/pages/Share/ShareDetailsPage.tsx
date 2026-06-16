@@ -147,7 +147,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                                 ?.filter((u) => u.accountID !== personalDetail.accountID)
                                 .map((u) => ({
                                     login: u.login ?? '',
-                                    accountID: u.accountID,
                                 })) ?? [],
                         personalDetails,
                         newReportObject: report,
