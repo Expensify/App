@@ -137,9 +137,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether the action column should use its wider variant (e.g. when there is at least one deleted transaction) */
     isActionColumnWide?: boolean;
 
-    /** Resolved footer search currency for nested subgroup transaction fetches */
-    targetCurrency?: string;
-
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
 };
@@ -224,7 +221,6 @@ function SearchList({
     hasLoadedAllTransactions,
     isAttendeesEnabledForMovingPolicy,
     isActionColumnWide,
-    targetCurrency,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -639,7 +635,6 @@ function SearchList({
                         keyForList={item.keyForList}
                         isFirstItem={index === firstVisibleIndex}
                         isLastItem={index === lastVisibleIndex && !ListFooterComponent}
-                        targetCurrency={targetCurrency}
                     />
                 </Animated.View>
             );
@@ -670,7 +665,6 @@ function SearchList({
             handleUndelete,
             firstVisibleIndex,
             lastVisibleIndex,
-            targetCurrency,
             expandedGroups,
             onToggleGroup,
             bankAccountList,

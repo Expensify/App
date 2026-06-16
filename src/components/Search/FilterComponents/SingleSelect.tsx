@@ -40,9 +40,7 @@ type SingleSelectProps<T> = SearchFilterCommonProps & {
     /** When true, keep the popover list area at the maximum height while filtering */
     shouldUseFixedPopoverHeight?: boolean;
 
-    /** Whether clicking the selected item should clear it */
     allowDeselect?: boolean;
-
     hasTitle?: boolean;
     hasHeader?: boolean;
 };

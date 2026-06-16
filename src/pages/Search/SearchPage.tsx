@@ -102,13 +102,6 @@ function SearchPage({route}: SearchPageProps) {
     const validGroupBy = getValidGroupBy(currentSearchQueryJSON?.groupBy);
     const [footerTotalSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${footerCurrencyState.footerTotalHash}`);
     const footerTotalMetadata = isCurrentFooterState && footerCurrencyState.footerTotalHash !== undefined ? footerTotalSnapshot?.search : undefined;
-    const footerSearchTargetCurrency = useMemo(() => {
-        if (!isCurrentFooterState) {
-            return metadata?.currency;
-        }
-
-        return selectedCurrency ?? defaultFooterCurrency ?? metadata?.currency;
-    }, [defaultFooterCurrency, isCurrentFooterState, metadata?.currency, selectedCurrency]);
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
@@ -157,18 +150,18 @@ function SearchPage({route}: SearchPageProps) {
                 return;
             }
 
-            const isResettingToDefault = currency === undefined || nextCurrency === fallbackDefaultCurrency;
-            const flatQueryJSON = validGroupBy ? buildFlatQueryWithoutGroupBy(currentSearchQueryJSON) : undefined;
+            const isResettingToDefault = nextCurrency === fallbackDefaultCurrency;
+            const flatQueryJSON = validGroupBy && !isResettingToDefault ? buildFlatQueryWithoutGroupBy(currentSearchQueryJSON) : undefined;
 
             setFooterCurrencyState({
                 searchHash: currentSearchHash,
                 selectedCurrency: currency,
                 defaultCurrency: fallbackDefaultCurrency,
-                footerTotalHash: validGroupBy && !isResettingToDefault ? flatQueryJSON?.hash : undefined,
+                footerTotalHash: flatQueryJSON?.hash,
             });
 
             if (validGroupBy) {
-                if (isResettingToDefault || !flatQueryJSON) {
+                if (!flatQueryJSON) {
                     return;
                 }
 
@@ -204,12 +197,18 @@ function SearchPage({route}: SearchPageProps) {
         const selectedTransactionItems = Object.values(selectedTransactions);
         const defaultCurrency = defaultFooterCurrency ?? metadata?.currency;
         const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== defaultCurrency;
-        const isSelectedSubtotalLoading =
-            shouldUseClientTotal && hasCustomFooterCurrency && selectedTransactionItems.some((transaction) => !!transaction.groupCurrency && transaction.groupCurrency !== selectedCurrency);
+        const isSelectedSubtotalConfirmed =
+            hasCustomFooterCurrency && selectedTransactionItems.length > 0 && selectedTransactionItems.every((transaction) => transaction.groupCurrency === selectedCurrency);
+        const isServerTotalConfirmed = !hasCustomFooterCurrency || (validGroupBy ? footerTotalMetadata?.currency === selectedCurrency : metadata?.currency === selectedCurrency);
         const isFooterGrandTotalLoading = !shouldUseClientTotal && hasCustomFooterCurrency && !!validGroupBy && !!footerTotalMetadata?.isLoading;
-        const currency = shouldUseClientTotal
-            ? (selectedCurrency ?? defaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency)
-            : (selectedCurrency ?? footerTotalMetadata?.currency ?? defaultCurrency ?? metadata?.currency);
+        let currency;
+        if (shouldUseClientTotal) {
+            currency = isSelectedSubtotalConfirmed ? selectedCurrency : (defaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency);
+        } else if (isServerTotalConfirmed) {
+            currency = selectedCurrency ?? footerTotalMetadata?.currency ?? defaultCurrency ?? metadata?.currency;
+        } else {
+            currency = metadata?.currency ?? defaultCurrency;
+        }
         const numberOfExpense = shouldUseClientTotal
             ? selectedTransactionsKeys.reduce((count, key) => {
                   if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
@@ -226,16 +225,15 @@ function SearchPage({route}: SearchPageProps) {
         let total;
         if (shouldUseClientTotal) {
             total = selectedTransactionItems.reduce((acc, transaction) => {
-                const shouldUseGroupAmount = !hasCustomFooterCurrency || transaction.groupCurrency === selectedCurrency;
-                return acc - (shouldUseGroupAmount ? (transaction.groupAmount ?? -Math.abs(transaction.amount)) : -Math.abs(transaction.amount));
+                return acc - (transaction.groupAmount ?? -Math.abs(transaction.amount));
             }, 0);
         } else if (hasCustomFooterCurrency && validGroupBy) {
-            total = footerTotalMetadata?.total;
+            total = isServerTotalConfirmed ? footerTotalMetadata?.total : metadata?.total;
         } else {
             total = metadata?.total;
         }
 
-        return {count: numberOfExpense, total, currency, isLoading: isSelectedSubtotalLoading || isFooterGrandTotalLoading};
+        return {count: numberOfExpense, total, currency, isLoading: isFooterGrandTotalLoading};
     }, [
         areAllMatchingItemsSelected,
         currentSearchResults,
@@ -283,7 +281,6 @@ function SearchPage({route}: SearchPageProps) {
                         footerData={footerData}
                         footerDefaultCurrency={defaultFooterCurrency ?? metadata?.currency}
                         isFooterTotalLoading={isFooterTotalLoading}
-                        targetCurrency={footerSearchTargetCurrency}
                         onFooterCurrencyChange={handleFooterCurrencyChange}
                         shouldShowFooter={shouldShowFooter}
                         onSortPressedCallback={onSortPressedCallback}
@@ -301,7 +298,6 @@ function SearchPage({route}: SearchPageProps) {
                         footerData={footerData}
                         footerDefaultCurrency={defaultFooterCurrency ?? metadata?.currency}
                         isFooterTotalLoading={isFooterTotalLoading}
-                        targetCurrency={footerSearchTargetCurrency}
                         onFooterCurrencyChange={handleFooterCurrencyChange}
                         handleSearchAction={handleSearchAction}
                         onSortPressedCallback={onSortPressedCallback}

@@ -88,7 +88,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     onUndelete,
-    targetCurrency,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
@@ -194,7 +193,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
             isOffline,
-            ...(targetCurrency && {targetCurrency}),
         });
     };
 
@@ -211,7 +209,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
             isOffline,
-            ...(targetCurrency && {targetCurrency}),
         });
     };
 
@@ -253,9 +250,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
             isOffline,
-            ...(targetCurrency && {targetCurrency}),
         });
-    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, isOffline, targetCurrency, transactionsSnapshot?.search?.isLoading]);
+    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
 
     const wasScreenFocusedRef = useRef(isScreenFocused);
     useEffect(() => {
@@ -278,9 +274,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
             isOffline,
-            ...(targetCurrency && {targetCurrency}),
         });
-    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, isOffline, targetCurrency, transactionsSnapshot?.search?.isLoading]);
+    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
 
     const handleToggle = () => {
         setIsExpanded((prev) => {

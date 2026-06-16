@@ -767,7 +767,7 @@ function search({
         return;
     }
 
-    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}${targetCurrency ? `_${targetCurrency}` : ''}`;
+    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
     if (inFlightSearchRequests.has(dedupeKey)) {
         return;
     }

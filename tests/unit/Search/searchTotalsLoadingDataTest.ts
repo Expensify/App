@@ -1,7 +1,7 @@
 import {search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildFlatQueryWithoutGroupBy, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -166,5 +166,52 @@ describe('search loading totals handling', () => {
             targetCurrency: 'AUD',
             shouldCalculateTotals: true,
         });
+    });
+
+    it('removes grouping filters when building a flat footer totals query', () => {
+        const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} group-by:${CONST.SEARCH.GROUP_BY.CATEGORY} group-currency:AUD`);
+        if (!queryJSON) {
+            throw new Error('Grouped query JSON should be defined for test setup');
+        }
+
+        const flatQueryJSON = buildFlatQueryWithoutGroupBy(queryJSON);
+
+        expect(flatQueryJSON?.groupBy).toBeUndefined();
+        expect(flatQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY)).toBe(false);
+    });
+
+    it('dedupes concurrent search requests by hash and offset', async () => {
+        const queryJSON = getQueryJSON();
+        let resolveSearch: (value: unknown) => void = () => {};
+        const pendingSearch = new Promise((resolve) => {
+            resolveSearch = resolve;
+        });
+        getMakeRequestWithSideEffectsMock().mockReturnValue(pendingSearch);
+
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            shouldCalculateTotals: true,
+            isLoading: false,
+            skipWaitForWrites: true,
+            targetCurrency: 'AUD',
+        });
+        const secondSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            shouldCalculateTotals: true,
+            isLoading: false,
+            skipWaitForWrites: true,
+            targetCurrency: 'USD',
+        });
+
+        expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(1);
+        expect(JSON.parse(getLastSearchRequestParams().jsonQuery)).toMatchObject({targetCurrency: 'AUD'});
+        expect(secondSearch).toBeUndefined();
+
+        resolveSearch({jsonCode: CONST.JSON_CODE.SUCCESS});
+        await firstSearch;
     });
 });

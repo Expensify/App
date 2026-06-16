@@ -40,7 +40,6 @@ type SearchPageWideProps = {
     };
     footerDefaultCurrency: string | undefined;
     isFooterTotalLoading: boolean;
-    targetCurrency: string | undefined;
     onFooterCurrencyChange: (currency: string | undefined) => void;
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
@@ -60,7 +59,6 @@ function SearchPageWide({
     footerData,
     footerDefaultCurrency,
     isFooterTotalLoading,
-    targetCurrency,
     onFooterCurrencyChange,
     handleSearchAction,
     onSortPressedCallback,
@@ -151,7 +149,6 @@ function SearchPageWide({
                                         onSearchListScroll={scrollHandler}
                                         onSortPressedCallback={onSortPressedCallback}
                                         searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                                        targetCurrency={targetCurrency}
                                         onDestinationVisible={endSubmitNavigationSpans}
                                         onContentReady={onSearchContentReady}
                                     />

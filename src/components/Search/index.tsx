@@ -34,7 +34,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
-import {search, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -116,8 +116,6 @@ type SearchProps = {
     onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
     searchRequestResponseStatusCode?: number | null;
-    /** Resolved footer search currency used for per-subgroup nested transaction refreshes */
-    targetCurrency?: string;
     onContentReady?: () => void;
 
     /** Callback from the parent (SearchPageNarrow) to end submit-expense navigation spans.
@@ -311,7 +309,6 @@ function Search({
     isMobileSelectionModeEnabled,
     onSortPressedCallback,
     searchRequestResponseStatusCode,
-    targetCurrency,
     onContentReady,
     onDestinationVisible,
 }: SearchProps) {
@@ -804,38 +801,6 @@ function Search({
         });
     }, [filteredDataLength, handleSearch, offset, queryJSON, currentSearchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
 
-    const previousTargetCurrency = usePrevious(targetCurrency);
-
-    // Footer currency changes fetch converted totals in a separate flat-query snapshot (SearchPage).
-    // Grouped individual transactions live in per-subgroup snapshots; refresh loaded nested snapshots with targetCurrency.
-    useEffect(() => {
-        if (!isFocused || !validGroupBy || isExpenseReportType || !targetCurrency || previousTargetCurrency === undefined || previousTargetCurrency === targetCurrency) {
-            return;
-        }
-
-        for (const groupItem of baseFilteredData as TransactionGroupListItemType[]) {
-            const nestedHash = hashToString(groupItem.transactionsQueryJSON?.hash);
-            if (!nestedHash || !groupItem.transactionsQueryJSON) {
-                continue;
-            }
-
-            const snapshot = groupByTransactionSnapshots[nestedHash];
-            if (!snapshot?.data) {
-                continue;
-            }
-
-            search({
-                queryJSON: groupItem.transactionsQueryJSON,
-                searchKey: undefined,
-                offset: snapshot.search?.offset ?? 0,
-                shouldCalculateTotals: false,
-                isLoading: false,
-                isOffline,
-                targetCurrency,
-            });
-        }
-    }, [baseFilteredData, groupByTransactionSnapshots, isExpenseReportType, isFocused, isOffline, previousTargetCurrency, targetCurrency, validGroupBy]);
-
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
 
@@ -1302,7 +1267,6 @@ function Search({
                     offset: 0,
                     shouldCalculateTotals: false,
                     isLoading: false,
-                    targetCurrency,
                 });
                 return;
             }
@@ -1430,7 +1394,6 @@ function Search({
             offset,
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
-            targetCurrency,
         ],
     );
 
@@ -1978,7 +1941,6 @@ function Search({
                     isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     isActionColumnWide={isTask || hasDeletedTransaction}
-                    targetCurrency={targetCurrency}
                 />
             </Animated.View>
         </SearchScopeProvider>

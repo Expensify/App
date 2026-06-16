@@ -13,8 +13,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {SingleSelectItem} from './FilterComponents/SingleSelect';
 import CurrencyPopup from './FilterDropdowns/CurrencyPopup';
-import DropdownButton from './FilterDropdowns/DropdownButton';
-import type {DropdownButtonComponentProps, DropdownButtonProps} from './FilterDropdowns/DropdownButton';
+import FilterPopupButton from './FilterDropdowns/FilterPopupButton';
+import type {ButtonComponentProps, FilterPopupButtonProps} from './FilterDropdowns/FilterPopupButton';
 
 type SearchPageFooterProps = {
     count: number | undefined;
@@ -53,7 +53,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
         [defaultCurrency, isOffline, onCurrencyChange],
     );
 
-    const renderCurrencyPopup: DropdownButtonProps['PopoverComponent'] = useCallback(
+    const renderCurrencyPopup: FilterPopupButtonProps['PopoverComponent'] = useCallback(
         ({closeOverlay, isExpanded}) => (
             <CurrencyPopup
                 value={currency}
@@ -67,7 +67,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
         [currency, defaultCurrency, handleCurrencyChange, translate],
     );
 
-    const totalButton: DropdownButtonProps['ButtonComponent'] = (props: DropdownButtonComponentProps) => (
+    const totalButton = (props: ButtonComponentProps) => (
         <Button
             ref={props.ref}
             accessibilityLabel={translate('common.totalSpend')}
@@ -107,13 +107,10 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
             </View>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                 <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
-                <DropdownButton
-                    label={translate('common.currency')}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL_CURRENCY}
-                    value={currency ?? null}
+                <FilterPopupButton
                     PopoverComponent={renderCurrencyPopup}
-                    ButtonComponent={totalButton}
-                    anchorAlignment={{
+                    renderButton={totalButton}
+                    popoverAnchorAlignment={{
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     }}

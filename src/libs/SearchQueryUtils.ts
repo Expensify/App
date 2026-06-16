@@ -2203,21 +2203,26 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
 }
 
 /**
- * Returns the same search query without groupBy/groupCurrency so footer totals can be fetched in a
+ * Returns the same search query without grouping filters so footer totals can be fetched in a
  * separate snapshot without converting grouped list header totals.
  */
 function buildFlatQueryWithoutGroupBy(queryJSON: Readonly<SearchQueryJSON>): Readonly<SearchQueryJSON> | undefined {
-    if (!queryJSON.groupBy) {
+    const hasGroupCurrencyFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY);
+    if (!queryJSON.groupBy && !hasGroupCurrencyFilter) {
         return queryJSON;
     }
 
-    return buildSearchQueryJSON(
-        buildSearchQueryString({
-            ...queryJSON,
-            groupBy: undefined,
-            groupCurrency: undefined,
-        }),
-    );
+    const defaultQueryJSON = getDefaultSearchQueryJSON();
+    const flatQueryJSON = {
+        ...queryJSON,
+        groupBy: undefined,
+        view: defaultQueryJSON.view,
+        sortBy: defaultQueryJSON.sortBy,
+        sortOrder: defaultQueryJSON.sortOrder,
+        flatFilters: queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY),
+    };
+
+    return buildSearchQueryJSON(buildSearchQueryString(flatQueryJSON));
 }
 
 export {

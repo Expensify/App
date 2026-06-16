@@ -60,7 +60,6 @@ type SearchPageNarrowProps = {
     };
     footerDefaultCurrency: string | undefined;
     isFooterTotalLoading: boolean;
-    targetCurrency: string | undefined;
     onFooterCurrencyChange: (currency: string | undefined) => void;
     shouldShowFooter: boolean;
     onSortPressedCallback: () => void;
@@ -84,7 +83,6 @@ function SearchPageNarrow({
     footerData,
     footerDefaultCurrency,
     isFooterTotalLoading,
-    targetCurrency,
     onFooterCurrencyChange,
     shouldShowFooter,
     onSortPressedCallback,
@@ -374,7 +372,6 @@ function SearchPageNarrow({
                                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                             onSearchListScroll={scrollHandler}
                                             searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                                            targetCurrency={targetCurrency}
                                             onDestinationVisible={endSubmitNavigationSpans}
                                             onContentReady={onSearchContentReady}
                                             hasFilterBars={hasFilterBars}
@@ -417,7 +414,6 @@ function SearchPageNarrow({
                                             handleSearch={handleSearchAction}
                                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                             searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                                            targetCurrency={targetCurrency}
                                             onDestinationVisible={endSubmitNavigationSpans}
                                             onContentReady={onSearchContentReady}
                                             hasFilterBars={hasFilterBars}
