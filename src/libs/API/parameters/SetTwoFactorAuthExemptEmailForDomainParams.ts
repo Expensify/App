@@ -1,8 +1,3 @@
-type SetTwoFactorAuthExemptEmailForDomainParams = {
-    domainAccountID: number;
-    targetEmail: string;
-    enabled: boolean;
-    twoFactorAuthCode?: string;
-};
-
-export default SetTwoFactorAuthExemptEmailForDomainParams;
+{
+  "error": "The issue description mentions problems with 2FA setup screen unresponsiveness during new-domain login, but none of the provided source files appear to directly handle the 2FA setup screen functionality. Without seeing the actual component that implements the 'Enable two-factor authentication' button and its handlers, I cannot provide a specific fix. Please provide the source file that contains the 2FA setup screen implementation (likely a component that renders the authentication flow for new domains)."
+}
