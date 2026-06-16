@@ -7,7 +7,7 @@ index 51b6f8c..d4ca252 100644
                  recyclerViewManager.isInitialScrollComplete = true;
                  pauseOffsetCorrection.current = false;
 -            }, 100);
-+            }, 1000);
++            }, 500);
              pauseOffsetCorrection.current = true;
              const additionalOffset = (_c = initialScrollIndexParams === null || initialScrollIndexParams === void 0 ? void 0 : initialScrollIndexParams.viewOffset) !== null && _c !== void 0 ? _c : 0;
              const offset = horizontal
