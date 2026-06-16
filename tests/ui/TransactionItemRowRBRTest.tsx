@@ -73,9 +73,9 @@ const createBaseReportAction = (id: number, overrides = {}) => ({
 const createIOUReportAction = () =>
     createBaseReportAction(1, {
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        reportID: MOCK_REPORT_ID,
         childReportID: MOCK_REPORT_ID,
         originalMessage: {
-            IOUReportID: MOCK_REPORT_ID,
             amount: -100,
             currency: 'USD',
             comment: '',

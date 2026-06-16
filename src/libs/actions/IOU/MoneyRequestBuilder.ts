@@ -486,10 +486,10 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         // If it's CREATE and IOUReportID is 0, MoneyRequestAction returns null because the IOU report doesn't exist.
         const patchedSelfDMIouAction = {
             ...iou.action,
+            reportID: selfDMReportID,
             originalMessage: {
                 ...(getOriginalMessage(iou.action) ?? {}),
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-                IOUReportID: undefined,
             },
         } as OnyxTypes.ReportAction;
         onyxData.optimisticData?.push({
