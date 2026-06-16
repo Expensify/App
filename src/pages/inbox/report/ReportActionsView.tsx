@@ -137,9 +137,13 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         if (!isConciergeMainDM || !canStartConciergeSession) {
             return;
         }
-        startSession(oldestUnreadReportAction ? report?.lastReadTime : undefined);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- startSession is stable; captured values at mount only
-    }, [isConciergeMainDM, startSession, canStartConciergeSession]);
+        // Anchor the session to the unread action's created time, a stable pre-read
+        // boundary, rather than the live report.lastReadTime which readNewestAction
+        // bumps to `now` when the report opens. Re-runs when oldestUnreadReportAction
+        // resolves so a session that locked to `now` before the anchor loaded is
+        // pulled back to keep the unread message visible.
+        startSession(oldestUnreadReportAction?.created);
+    }, [isConciergeMainDM, startSession, canStartConciergeSession, oldestUnreadReportAction]);
 
     // On native the component stays mounted in the navigation stack, so the
     // effect above never re-fires (its isConciergeMainDM dep is always true).
@@ -149,7 +153,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         if (!isConciergeMainDM || !canStartConciergeSession || currentReportID !== reportID) {
             return;
         }
-        startSession(oldestUnreadReportAction ? report?.lastReadTime : undefined);
+        startSession(oldestUnreadReportAction?.created);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to currentReportID returning to this report
     }, [currentReportID, reportID, isConciergeMainDM, canStartConciergeSession, startSession]);
 
