@@ -14,7 +14,7 @@ import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID, PersonalCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -79,8 +79,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: undefined;
     [SCREENS.SETTINGS.PROFILE.TIMEZONE]: undefined;
     [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: undefined;
-    [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: undefined;
-    [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
     [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
         fieldToFocus?: string;
     };
@@ -223,9 +221,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: undefined;
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_ADD_NEW]: undefined;
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_BANK_CONNECTION]: {
-        feed: PersonalCardFeed;
-    };
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION]: {
         cardID: string;
     };
@@ -429,6 +424,7 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
         categoryId?: string;
+        upgradePlanType?: ValueOf<typeof CONST.POLICY.TYPE>;
     };
     [SCREENS.WORKSPACE.DOWNGRADE]: {
         policyID?: string;
@@ -1265,12 +1261,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: {
-        policyID: string;
-        feed: CompanyCardFeedWithDomainID;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
-    };
     [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
@@ -1973,7 +1963,6 @@ type MoneyRequestNavigatorParamList = {
         reportActionID?: string;
     };
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: undefined;
-    [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: undefined;
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: {
         action: IOUAction;
@@ -2168,6 +2157,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
+        backToReport?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes | undefined;
     };
@@ -2176,12 +2166,14 @@ type MoneyRequestNavigatorParamList = {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
+        backToReport?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes | undefined;
     };
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         reportID: string;
+        backToReport?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes | undefined;
         action: IOUAction;
@@ -2201,6 +2193,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
+        backToReport?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes | undefined;
     };
@@ -2317,7 +2310,6 @@ type TeachersUniteNavigatorParamList = {
     [SCREENS.SAVE_THE_WORLD.ROOT]: undefined;
     [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.I_KNOW_A_TEACHER]: undefined;
-    [SCREENS.INTRO_SCHOOL_PRINCIPAL]: undefined;
     [SCREENS.I_AM_A_TEACHER]: undefined;
 };
 
@@ -2914,22 +2906,10 @@ type OnboardingModalNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
     };
-    [SCREENS.ONBOARDING.ACCOUNTING]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
-    };
-    [SCREENS.ONBOARDING.INTERESTED_FEATURES]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
-    };
-    [SCREENS.ONBOARDING.WORK_EMAIL]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
-    };
-    [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
-    };
+    [SCREENS.ONBOARDING.ACCOUNTING]: undefined;
+    [SCREENS.ONBOARDING.INTERESTED_FEATURES]: undefined;
+    [SCREENS.ONBOARDING.WORK_EMAIL]: undefined;
+    [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: undefined;
     [SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
