@@ -155,9 +155,19 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                             {translate('exportDownload.readyPartialBody', {
                                 count: reportCount,
                                 total: reportCount + failedReportCount,
-                                concierge: '',
-                            })}
-                            <TextLink onPress={handleGoToConcierge}>Concierge</TextLink>.
+                                concierge: '\u0000',
+                            })
+                                .split('\u0000')
+                                .map((part, i) =>
+                                    i === 0 ? (
+                                        part
+                                    ) : (
+                                        <Text key={`concierge-${part}`}>
+                                            <TextLink onPress={handleGoToConcierge}>Concierge</TextLink>
+                                            {part}
+                                        </Text>
+                                    ),
+                                )}
                         </Text>
                     ) : (
                         <Text style={styles.mb5}>{translate('exportDownload.readyBody')}</Text>
