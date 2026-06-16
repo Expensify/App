@@ -1,13 +1,15 @@
+import {ListRenderItemInfo} from '@shopify/flash-list';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import PersonalExpenseRulesTableRow from './PersonalExpenseRulesTableRow';
 
-type PersonalExpenseRulesTableColumnKey = 'merchant' | 'changes' | 'actions';
+export type PersonalExpenseRulesTableColumnKey = 'merchant' | 'changes' | 'actions';
 
-type PersonalExpenseRuleRowData = TableData & {
+export type PersonalExpenseRuleRowData = TableData & {
     merchant: string;
     changes: string;
     pendingAction: PendingAction;
@@ -60,14 +62,22 @@ export default function PersonalExpenseRulesTable({personalExpenseRules}: Person
         return results.length > 0;
     };
 
+    const renderPersonalExpenseRuleItem = ({item, index}: ListRenderItemInfo<PersonalExpenseRuleRowData>) => (
+        <PersonalExpenseRulesTableRow
+            item={item}
+            rowIndex={index}
+        />
+    );
+
     return (
         <Table
             selectionEnabled
+            initialSortColumn="merchant"
             data={personalExpenseRules}
             columns={personalExpenseRulesTableColumns}
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
-            initialSortColumn="merchant"
+            renderItem={renderPersonalExpenseRuleItem}
             keyExtractor={(rule) => rule.keyForList}
         >
             <Table.Header />
