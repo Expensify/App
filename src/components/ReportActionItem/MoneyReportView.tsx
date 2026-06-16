@@ -33,8 +33,8 @@ import {
     getReportFieldMaps,
     hasUpdatedTotal,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
+    isGroupPolicyExpenseReport as isGroupPolicyExpenseReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
-    isPaidGroupPolicyExpenseReport as isPaidGroupPolicyExpenseReportUtils,
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
@@ -111,11 +111,14 @@ function MoneyReportView({
     // instead of waiting for the optimistic delete to be removed from Onyx.
     // While offline the deleted expense is still rendered, so keep counting it to stay consistent with the visible transaction list.
     const visibleTransactions = transactions.filter((transaction) => isOffline || !isTransactionPendingDelete(transaction));
-    const isSingleNonReimbursableExpense = isSingleTransactionReport(report, visibleTransactions) && visibleTransactions.at(0)?.reimbursable === false;
-    // The reimbursable/non-reimbursable rows duplicate the Total for a single non-reimbursable expense, so suppress only those rows.
-    // Billable and tax rows convey distinct information and must still show.
-    const shouldShowReimbursabilityBreakdown = !isSingleNonReimbursableExpense && !!nonReimbursableSpend;
-    const shouldShowBreakdown = shouldShowReimbursabilityBreakdown || !!billableTotal || (!!taxTotal && isTaxEnabled);
+    const isSingleExpenseReport = isSingleTransactionReport(report, visibleTransactions);
+    // For a one-expense report the Total/Billable/Tax rows just repeat the expense's own amount (shown on its Amount field,
+    // including the converted value), so hide the whole report-level breakdown block.
+    const shouldShowReimbursabilityRow = !!nonReimbursableSpend;
+    const shouldShowBillableRow = !!billableTotal;
+    const shouldShowTaxRow = !!taxTotal && isTaxEnabled;
+    const shouldShowBreakdown = !isSingleExpenseReport && (shouldShowReimbursabilityRow || shouldShowBillableRow || shouldShowTaxRow);
+    const shouldShowTotalRow = shouldShowTotal && !isSingleExpenseReport;
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
@@ -149,13 +152,13 @@ function MoneyReportView({
     );
     const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && isReportFieldOfTypeTitle(enabledReportFields.at(0));
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
-    const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
+    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
-    const areFieldsEnabledForReport = isInvoiceReport ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
     const shouldShowReportField =
         !isClosedExpenseReportWithNoExpenses &&
-        (isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
+        (isGroupPolicyExpenseReport || isInvoiceReport) &&
+        !!policy?.areReportFieldsEnabled &&
         (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
         !sortedPolicyReportFields.every(shouldHideSingleReportField);
 
@@ -184,8 +187,8 @@ function MoneyReportView({
                 {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
-                        {(isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
-                            areFieldsEnabledForReport &&
+                        {(isGroupPolicyExpenseReport || isInvoiceReport) &&
+                            !!policy?.areReportFieldsEnabled &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (shouldHideSingleReportField(reportField)) {
@@ -232,7 +235,7 @@ function MoneyReportView({
                                     </OfflineWithFeedback>
                                 );
                             })}
-                        {shouldShowTotal && (
+                        {shouldShowTotalRow && (
                             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                                 <View style={[styles.flex1, styles.justifyContentCenter]}>
                                     <Text
@@ -272,10 +275,10 @@ function MoneyReportView({
                         {!!shouldShowBreakdown && (
                             <>
                                 {[
-                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityBreakdown},
-                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityBreakdown},
-                                    {label: 'common.billable', value: formattedBillableAmount, show: !!billableTotal},
-                                    {label: 'common.tax', value: formattedTaxAmount, show: !!taxTotal && isTaxEnabled},
+                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityRow},
+                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityRow},
+                                    {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
+                                    {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
                                 ]
                                     .filter(({show}) => show)
                                     .map(({label, value}) => (
@@ -306,7 +309,7 @@ function MoneyReportView({
                     </>
                 )}
             </View>
-            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotal) && renderThreadDivider}
+            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotalRow) && renderThreadDivider}
         </>
     );
 }
