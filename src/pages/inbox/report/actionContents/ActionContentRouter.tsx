@@ -168,7 +168,7 @@ function ActionContentRouter({
                 action={action}
                 reportID={reportID}
                 chatReportID={report?.type === CONST.REPORT.TYPE.CHAT ? reportID : report?.chatReportID}
-                iouReport={iouReport}
+                iouReport={report?.type === CONST.REPORT.TYPE.CHAT ? iouReport : report}
                 shouldShowSplitPreview={shouldShowSplitPreview}
                 transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
             />
