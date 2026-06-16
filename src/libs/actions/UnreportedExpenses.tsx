@@ -1,36 +1,4 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import * as API from '@libs/API';
-import {READ_COMMANDS} from '@libs/API/types';
-import ONYXKEYS from '@src/ONYXKEYS';
-
-function fetchUnreportedExpenses(offset: number) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS,
-            value: true,
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS,
-            value: false,
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS,
-            value: false,
-        },
-    ];
-
-    API.read(READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE, {offset}, {optimisticData, successData, failureData});
+{
+  "file": "src/libs/actions/UnreportedExpenses.tsx",
+  "content": "import type {OnyxUpdate} from 'react-native-onyx';\nimport Onyx from 'react-native-onyx';\nimport * as API from '@libs/API';\nimport {READ_COMMANDS} from '@libs/API/types';\nimport ONYXKEYS from '@src/ONYXKEYS';\n\ntype OpenUnreportedExpensesPageParams = {\n    offset: number;\n};\n\nfunction fetchUnreportedExpenses(offset: number) {\n    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS>> = [\n        {\n            onyxMethod: Onyx.METHOD.MERGE,\n            key: ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS,\n            value: true,\n        },\n    ];\n\n    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS>> = [\n        {\n            onyxMethod: Onyx.METHOD.MERGE,\n            key: ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS,\n            value: false,\n        },\n    ];\n\n    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS>> = [\n        {\n            onyxMethod: Onyx.METHOD.MERGE,\n            key: ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS,\n            value: false,\n        },\n    ];\n\n    const params: OpenUnreportedExpensesPageParams = {offset};\n    API.read(READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE, params, {optimisticData, successData, failureData});\n}\n\n// eslint-disable-next-line import/prefer-default-export\nexport {fetchUnreportedExpenses};"
 }
-
-// eslint-disable-next-line import/prefer-default-export
-export {fetchUnreportedExpenses};
