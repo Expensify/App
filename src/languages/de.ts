@@ -3526,7 +3526,7 @@ ${amount} für ${merchant} – ${date}`,
     },
     statusPage: {
         status: 'Status',
-        statusExplanation: 'Füge ein Emoji hinzu, damit Kolleg:innen und Freund:innen leicht sehen, was los ist. Optional kannst du auch eine Nachricht hinzufügen!',
+        statusExplanation: 'Legen Sie Ihren Status mit einem Emoji und einer optionalen Nachricht fest.',
         today: 'Heute',
         clearStatus: 'Status löschen',
         save: 'Speichern',
@@ -4980,8 +4980,9 @@ ${amount} für ${merchant} – ${date}`,
             exportStatus: {
                 label: 'Status der zu zahlenden Rechnung',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Abschließen',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Abschließen',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In Bearbeitung',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Genehmigt',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Übermittelt',
                 },
             },
@@ -7013,6 +7014,12 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             },
             commonFeatures: {
                 title: 'Upgrade auf den Control-Tarif',
+                collect: {
+                    title: 'Upgrade auf den Collect-Tarif',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Der Collect-Tarif beginnt bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}. <a href="${learnMoreMethodsRoute}">Erfahre mehr</a> über unsere Tarife und Preise.</muted-text>`,
+                    note: 'Schalte wichtige Funktionen für dein Unternehmen frei, darunter:',
+                },
                 note: 'Schalte unsere leistungsstärksten Funktionen frei, darunter:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -9630,6 +9637,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         expenseLevelExport: 'Alle Daten – Ausgabenebene',
         exportInProgress: 'Export wird ausgeführt',
         conciergeWillSend: 'Concierge wird dir die Datei in Kürze senden.',
+        currentView: 'Aktuelle Ansicht exportieren',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

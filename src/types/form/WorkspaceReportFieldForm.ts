@@ -18,7 +18,7 @@ type WorkspaceReportFieldForm = Form<
     InputID,
     {
         [INPUT_IDS.NAME]: string;
-        [INPUT_IDS.TYPE]: PolicyReportFieldType;
+        [INPUT_IDS.TYPE]: PolicyReportFieldType | '';
         [INPUT_IDS.INITIAL_VALUE]: string;
         [INPUT_IDS.LIST_VALUES]: string[];
         [INPUT_IDS.DISABLED_LIST_VALUES]: boolean[];

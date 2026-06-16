@@ -8,6 +8,7 @@ import {
 } from '@libs/actions/connections/FinancialForce';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {FinancialForceFFAExportStatus} from '@src/types/onyx/Policy';
 
 const CERTINIA_DIMENSION_PARAMS = [
     CONST.CERTINIA_CONFIG.CODING_DIMENSION1,
@@ -17,6 +18,8 @@ const CERTINIA_DIMENSION_PARAMS = [
 ] as const;
 
 type CertiniaDimensionParam = TupleToUnion<typeof CERTINIA_DIMENSION_PARAMS>;
+
+const CERTINIA_FFA_EXPORT_STATUSES: FinancialForceFFAExportStatus[] = [CONST.CERTINIA_EXPORT_STATUS.COMPLETE, CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS];
 
 type CertiniaMappingValue = ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
 type CertiniaExportStatus = ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
@@ -35,18 +38,36 @@ function getDimensionLabel(dimension: CertiniaDimensionParam, translate: LocaleC
     return translate(`workspace.certinia.import.dimensions.${dimension}` as TranslationPaths);
 }
 
+function normalizeCertiniaExportStatus(status: string): string {
+    return status.trim().toUpperCase().replaceAll(/\s+/g, '_');
+}
+
+/**
+ * Maps a stored export status onto its native value. The config holds native values ("Complete", "In Progress",
+ * "Approved", "Submitted"), but older app versions wrote uppercase identifiers ("APPROVED", "IN_PROGRESS",
+ * "SUBMITTED"), so both forms are matched case- and separator-insensitively.
+ */
 function getCertiniaExportStatusValue(status: string | undefined): CertiniaExportStatus | undefined {
     if (!status) {
         return undefined;
     }
 
-    const normalizedStatus = status.trim().toUpperCase().replaceAll(/\s+/g, '_');
-    const found = Object.values(CONST.CERTINIA_EXPORT_STATUS).find((s) => s === normalizedStatus);
-    if (found !== undefined) {
-        return found;
+    const normalizedStatus = normalizeCertiniaExportStatus(status);
+    return Object.values(CONST.CERTINIA_EXPORT_STATUS).find((value) => normalizeCertiniaExportStatus(value) === normalizedStatus);
+}
+
+/**
+ * Same as getCertiniaExportStatusValue, but only returns statuses that apply to FFA payable invoices.
+ * The uppercase identifier "APPROVED" maps to COMPLETE: it was only ever written by the pre-native FFA
+ * picker, whose "APPROVED" option was labeled "Complete". The native PSA value "Approved" stays excluded.
+ */
+function getCertiniaFFAExportStatusValue(status: string | undefined): FinancialForceFFAExportStatus | undefined {
+    if (status === 'APPROVED') {
+        return CONST.CERTINIA_EXPORT_STATUS.COMPLETE;
     }
 
-    return undefined;
+    const value = getCertiniaExportStatusValue(status);
+    return CERTINIA_FFA_EXPORT_STATUSES.find((ffaStatus) => ffaStatus === value);
 }
 
 function getCertiniaReportExportStatusValue(status: string | undefined): CertiniaReportExportStatus | undefined {
@@ -90,9 +111,10 @@ function isCertiniaDimensionParam(dimension: string): dimension is CertiniaDimen
 
 export {
     CERTINIA_DIMENSION_PARAMS,
+    CERTINIA_FFA_EXPORT_STATUSES,
     dimensionParamToNumber,
-    getCertiniaExportStatusValue,
     getCertiniaReportExportStatusValue,
+    getCertiniaFFAExportStatusValue,
     getDimensionLabel,
     getDisplayTypeLabel,
     isCertiniaDimensionParam,

@@ -3536,7 +3536,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Statut',
-        statusExplanation: 'Ajoutez un emoji pour permettre à vos collègues et amis de savoir facilement ce qui se passe. Vous pouvez aussi ajouter un message si vous le souhaitez !',
+        statusExplanation: 'Définissez votre statut avec un emoji et un message facultatif.',
         today: 'Aujourd’hui',
         clearStatus: 'Effacer le statut',
         save: 'Enregistrer',
@@ -4991,8 +4991,9 @@ ${amount} pour ${merchant} - ${date}`,
             exportStatus: {
                 label: 'Statut de facture à payer',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Terminé',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Terminé',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'En cours',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Approuvé',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Soumis',
                 },
             },
@@ -7038,6 +7039,12 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             },
             commonFeatures: {
                 title: 'Passer au forfait Contrôle',
+                collect: {
+                    title: 'Passer au forfait Collect',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Le plan Collect commence à <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`} <a href="${learnMoreMethodsRoute}">En savoir plus</a> sur nos plans et nos tarifs.</muted-text>`,
+                    note: 'Débloquez les fonctionnalités essentielles pour votre entreprise, notamment :',
+                },
                 note: 'Débloquez nos fonctionnalités les plus puissantes, notamment :',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -9661,6 +9668,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         expenseLevelExport: 'Toutes les données - niveau dépense',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
+        currentView: 'Exporter la vue actuelle',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

@@ -3394,7 +3394,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Estado',
-        statusExplanation: 'Añade un emoji para que tus colegas y amigos puedan saber fácilmente qué está pasando. ¡También puedes añadir un mensaje opcionalmente!',
+        statusExplanation: 'Configura tu estado con un emoji y un mensaje opcional.',
         today: 'Hoy',
         clearStatus: 'Borrar estado',
         save: 'Guardar',
@@ -4861,8 +4861,9 @@ ${amount} para ${merchant} - ${date}`,
             exportStatus: {
                 label: 'Estado de factura por pagar',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Completar',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Completar',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'En curso',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Aprobado',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
                 },
             },
@@ -6993,6 +6994,12 @@ ${amount} para ${merchant} - ${date}`,
             },
             commonFeatures: {
                 title: 'Mejorar al plan Controlar',
+                collect: {
+                    title: 'Mejorar al plan Recopilar',
+                    startsAtFull: (learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing) =>
+                        `<muted-text>El plan Recopilar comienza desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`} <a href="${learnMoreMethodsRoute}">Más información</a> sobre nuestros planes y precios.</muted-text>`,
+                    note: 'Desbloquea las funciones esenciales para tu negocio, incluyendo:',
+                },
                 note: 'Desbloquea nuestras funciones más potentes, incluyendo:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing) =>
@@ -9783,6 +9790,7 @@ ${amount} para ${merchant} - ${date}`,
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
         exportInProgress: 'Exportación en curso',
         conciergeWillSend: 'Concierge te enviará el archivo en breve.',
+        currentView: 'Exportar vista actual',
     },
     exportDownload: {
         preparingTitle: 'Preparando descarga...',

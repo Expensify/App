@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
-import {getCertiniaExportStatusValue, getCertiniaReportExportStatusValue} from '@pages/workspace/accounting/certinia/utils';
+import {getCertiniaFFAExportStatusValue, getCertiniaReportExportStatusValue} from '@pages/workspace/accounting/certinia/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -33,9 +33,9 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
     const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.path}` : undefined;
     const selectedVendor = data?.vendors?.find((vendor) => vendor.id === exportConfig?.vendorAccount);
     const exportStatus = exportConfig?.exportStatus;
-    const normalizedExportStatus = getCertiniaExportStatusValue(exportStatus);
+    const normalizedFFAExportStatus = getCertiniaFFAExportStatusValue(exportStatus);
     const normalizedReportExportStatus = getCertiniaReportExportStatusValue(exportStatus);
-    const exportDate = exportConfig?.exportDate;
+    const exportDate = Object.values(CONST.CERTINIA_EXPORT_DATE).find((value) => value === exportConfig?.exportDate);
 
     const preferredExporterRow: ExportRow = {
         description: translate('workspace.accounting.preferredExporter'),
@@ -72,13 +72,13 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
         preferredExporterRow,
         {
             description: translate('workspace.certinia.exportStatus.label'),
-            title: normalizedExportStatus ? translate(`workspace.certinia.exportStatus.values.${normalizedExportStatus}`) : exportStatus,
+            title: normalizedFFAExportStatus ? translate(`workspace.certinia.exportStatus.values.${normalizedFFAExportStatus}`) : undefined,
             onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS.path, exportPath)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_STATUS],
         },
         {
             description: translate('workspace.certinia.exportDate.label'),
-            title: exportDate ? translate(`workspace.certinia.exportDate.values.${exportDate}`) : exportConfig?.exportDate,
+            title: exportDate ? translate(`workspace.certinia.exportDate.values.${exportDate}`) : undefined,
             onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE.path, exportPath)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_DATE],
         },
