@@ -38,7 +38,7 @@ type HeaderProps = {
     /** Whether this is the screen-level header (registers dialog label and focus). Only HeaderWithBackButton should set this. */
     isScreenHeader?: boolean;
 
-    /** Whether to skip focus of the first interactive element inside the header after the RHP transition for screen reader announcement. */
+    /** Whether to skip focus of the first interactive element inside the header after the RHP transition for screen reader announcement.  */
     shouldSkipFocusAfterTransition?: boolean;
 };
 

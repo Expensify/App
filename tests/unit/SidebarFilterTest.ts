@@ -17,6 +17,7 @@ jest.mock('@libs/Permissions');
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
     IS_LOADING_APP: 'isLoadingApp',
+    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
     BETAS: 'betas',
@@ -959,6 +960,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
+                                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                                 ...reportCollectionDataSet,
                             }),
                         )

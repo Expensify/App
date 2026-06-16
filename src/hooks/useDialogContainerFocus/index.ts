@@ -31,6 +31,7 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
         }
         let cancelled = false;
         let frameId: number;
+        // Deferred past useAutoFocusInput's InteractionManager + Promise chain.
         const interactionHandle = TransitionTracker.runAfterTransitions({
             callback: () => {
                 if (cancelled) {
