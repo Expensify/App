@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import type {TableData} from '@components/Table';
@@ -11,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type DomainGroupRowData = TableData & {
@@ -20,6 +22,7 @@ type DomainGroupRowData = TableData & {
     isDefault: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     action: () => void;
     dismissError: () => void;
 };
@@ -39,10 +42,17 @@ export default function DomainGroupsTableRow({item, rowIndex, shouldUseNarrowTab
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator']);
 
     const memberCountSubtitle = translate('domain.groups.memberCount', {count: item.memberCount});
     const accessibilityLabel = [item.name, memberCountSubtitle, item.isDefault ? translate('common.default') : null].filter(Boolean).join(', ');
+
+    const brickRoadIndicator = !!item.brickRoadIndicator && (
+        <Icon
+            src={icons.DotIndicator}
+            fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
+        />
+    );
 
     return (
         <Table.Row
@@ -82,13 +92,16 @@ export default function DomainGroupsTableRow({item, rowIndex, shouldUseNarrowTab
                                     isCondensed
                                 />
                             )}
-                            <Icon
-                                src={icons.ArrowRight}
-                                fill={theme.icon}
-                                additionalStyles={[styles.alignSelfCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                {brickRoadIndicator}
+                                <Icon
+                                    src={icons.ArrowRight}
+                                    fill={theme.icon}
+                                    additionalStyles={[styles.alignSelfCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                />
+                            </View>
                         </View>
                     )}
 
@@ -112,7 +125,8 @@ export default function DomainGroupsTableRow({item, rowIndex, shouldUseNarrowTab
                                 )}
                             </View>
 
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}>
+                                {brickRoadIndicator}
                                 <Icon
                                     src={icons.ArrowRight}
                                     fill={theme.icon}

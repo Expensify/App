@@ -14,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {hasDomainGroupDetailsErrors} from '@libs/DomainUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -47,10 +48,13 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
 
     const groupRows: DomainGroupRowData[] = groups.map((group) => {
         const isDefault = group.id === defaultGroupID;
-        const groupPendingActions = pendingActions?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${group.id}`];
-        const groupErrorMessage = getLatestError(domainErrors?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${group.id}`]?.errors);
+        const groupKey: `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}` = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${group.id}`;
+        const groupErrors = domainErrors?.[groupKey];
+        const groupPendingActions = pendingActions?.[groupKey];
+        const groupErrorMessage = getLatestError(groupErrors?.errors);
         const isFailedCreate = groupPendingActions?.createGroup === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyValueObject(groupErrorMessage);
         const isPendingDelete = isSecurityGroupPendingDeleteSelector(group.id)(pendingActions);
+        const hasDetailsErrors = hasDomainGroupDetailsErrors(groupErrors) && !isPendingDelete;
 
         return {
             keyForList: group.id,
@@ -59,6 +63,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
             memberCount: Object.keys(group.details.shared).length,
             isDefault,
             errors: groupErrorMessage,
+            brickRoadIndicator: hasDetailsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             pendingAction: groupPendingActions?.deleteGroup ?? groupPendingActions?.createGroup ?? Object.values(groupPendingActions ?? {}).find(Boolean),
             disabled: isPendingDelete || isFailedCreate,
             action: () => Navigation.navigate(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, group.id)),

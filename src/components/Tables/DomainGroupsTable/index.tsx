@@ -39,7 +39,7 @@ export default function DomainGroupsTable({groups}: DomainGroupsTableProps) {
             key: 'actions',
             label: '',
             sortable: false,
-            width: variables.tableCaretColumnWidth,
+            width: variables.domainTableActionColumnWidth,
             styling: {
                 containerStyles: [styles.justifyContentEnd, styles.pr3],
             },
