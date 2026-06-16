@@ -19,7 +19,7 @@ This document covers **how the queue works today**. For sibling concerns:
 - **How the app decides it is offline** (the hard-stop model, failure tracking, reachability) → [Network State Detection](NETWORK_STATE_DETECTION.md).
 - **How features should behave when offline** (optimistic UX patterns A/B/C/D) → [Offline UX Patterns](philosophies/OFFLINE.md).
 
-This is an observational reference. Where current behavior diverges from apparent intent, that is noted neutrally in a **Sharp edges** subsection on the relevant block, and genuinely intent-ambiguous items are collected in [Open Questions](#open-questions-needs-maintainer-confirmation). All references use module and function **names**, not line numbers, so the doc survives refactors — read it in terms of blocks and their relationships.
+This is an observational reference. Where current behavior diverges from apparent intent, that is noted neutrally in a **Sharp edges** subsection on the relevant block. All references use module and function **names**, not line numbers, so the doc survives refactors — read it in terms of blocks and their relationships.
 
 ## Contents
 
@@ -36,7 +36,6 @@ This is an observational reference. Where current behavior diverges from apparen
 - [Test Coverage](#test-coverage)
 - [Configuration Constants](#configuration-constants)
 - [Key Modules Reference](#key-modules-reference)
-- [Open Questions](#open-questions-needs-maintainer-confirmation)
 - [Relationship to Other Docs](#relationship-to-other-docs)
 
 ## Architecture Diagram
@@ -183,7 +182,7 @@ Onyx (since 3.0.46) fires `set`/`multiSet` subscription callbacks **synchronousl
 - **Two carve-outs** still adopt disk: a `null` value (e.g. from `Onyx.clear()`) falls through to the disk-load/re-init path (the guard is gated on `val != null`); and genuinely-new cross-tab requests identified by an unknown `requestID`.
 
 **Sharp edges.**
-- The `PERSISTED_ONGOING_REQUESTS` callback **is guarded against own-write echoes, but differently** from the array: it early-returns when the value's `requestIndex` is in `knownOngoingRequestIDs` (a set fed by `processNextRequest` and `updateOngoingRequest`). It never consults `pendingOnyxWrites`; `knownOngoingRequestIDs` is its only own-write guard (the set also catches stale serialized copies a write-counter cannot). Two paths remain adopted unconditionally — a `null` echo and a value with an unknown (or missing) `requestIndex`; whether the set alone is sufficient for those is an [open question](#open-questions-needs-maintainer-confirmation). The same callback also fires `triggerInitializationCallback()` (= `flush`) post-init when a new ongoing request appears — a mid-session flush trigger (see [Inbound Consumers](#inbound-consumers-who-calls-the-queue)).
+- The `PERSISTED_ONGOING_REQUESTS` callback **is guarded against own-write echoes, but differently** from the array: it early-returns when the value's `requestIndex` is in `knownOngoingRequestIDs` (a set fed by `processNextRequest` and `updateOngoingRequest`). It never consults `pendingOnyxWrites`; `knownOngoingRequestIDs` is its only own-write guard (the set also catches stale serialized copies a write-counter cannot). Two paths are adopted unconditionally — a `null` echo and a value with an unknown (or missing) `requestIndex`. The same callback also fires `triggerInitializationCallback()` (= `flush`) post-init when a new ongoing request appears — a mid-session flush trigger (see [Inbound Consumers](#inbound-consumers-who-calls-the-queue)).
 - The `pendingOnyxWrites` counter is a hand-rolled ordering mechanism reimplementing a guarantee the data layer doesn't provide. It is correct only as long as every own write is wrapped and increments/decrements stay balanced (`clear()`'s bare ongoing-key write is the one exception — see above).
 - Structural `deepEqual` removal is keyed on object shape, not identity. If a request object is mutated mid-flight by middleware (e.g. optimistic-ID rewriting, a `shouldRetry` flag, `File` stripping on serialization, an added rollback marker), a later `deepEqual` can fail to match the original.
 - `persistWhenOngoing` is a **vestigial field**. It is read only for logging (in `processNextRequest`, `SequentialQueue`, and `RequestsQueuesState`) and is never assigned by any production write path — ongoing-request persistence is unconditional, gated only by `shouldPersistOngoingRequest` (serializability). Every production read resolves to `undefined`; it is safe to remove.
@@ -381,7 +380,7 @@ Notes:
 - **Success path** does not live here. `SaveResponseInOnyx` applies the server's `onyxData` + `successData` + `finallyData`; for WRITE-type responses that is routed through [`QueuedOnyxUpdates`](#queuedonyxupdates-and-queueflusheddata) (deferred until drain).
 - **`shouldFailAllRequests` vs. give-up** differ: the former applies failure **and** finally data; the give-up branch applies **only** failure data.
 
-**Sharp edges.** For all non-`OPEN_APP` commands, a genuinely transient-but-long backend outage that exceeds the retry cap **silently drops** the user's optimistic write (applying `failureData`, no modal). Whether this is intended product behavior is an [open question](#open-questions-needs-maintainer-confirmation).
+**Sharp edges.** For all non-`OPEN_APP` commands, a transient-but-long backend outage that exceeds the retry cap **drops** the user's optimistic write: `failureData` is applied (not `finallyData`), the request is removed from the queue, and **no modal** is shown. The failure modal (`setIsOpenAppFailureModalOpen`) fires for `OPEN_APP` only.
 
 ---
 
@@ -515,15 +514,6 @@ Defined in `src/CONST/index.ts` under `CONST.NETWORK` (retry/backoff subset rele
 | `src/libs/Middleware/Reauthentication.ts` | Re-throws on `isFromSequentialQueue` so the queue retries; reacts to 407 by reauthenticating; may throw `new Error('Failed to reauthenticate')`. |
 | `src/libs/ActiveClientManager/` | Leader election across web tabs (`isClientTheLeader`); no-op (always leader) on native. |
 | `QUEUE_FLUSHED_DATA` (Onyx key) + `SequentialQueue.saveQueueFlushedData` | Distinct Onyx-persisted buffer applied only on full drain; sole producer is `App.getOnyxDataForOpenOrReconnect` carrying `HAS_LOADED_APP = true`. |
-
----
-
-# Open Questions (needs maintainer confirmation)
-
-Two items remain genuinely intent-ambiguous and need a maintainer to ratify, not assert as fact.
-
-1. **Silent give-up data loss for non-`OPEN_APP` commands.** After the retry cap, the request is dropped with `failureData` applied and **no modal**. Is this the intended product behavior, or should more commands surface a failure to the user?
-2. **Sufficiency of `knownOngoingRequestIDs` as the sole guard on the `PERSISTED_ONGOING_REQUESTS` callback.** Unlike the array callback, it does not consult `pendingOnyxWrites` — `knownOngoingRequestIDs` is its only own-write guard (see [PersistedRequests](#persistedrequests-the-store)). Two paths are still adopted unconditionally: a `null` echo and a value with an unknown/missing `requestIndex`. Is the set genuinely sufficient for those two paths, or should the array callback's fuller protection be mirrored here?
 
 ---
 
