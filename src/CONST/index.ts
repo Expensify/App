@@ -2745,6 +2745,8 @@ const CONST = {
 
     MULTI_LEVEL_TAGS_FILE_NAME: 'MultiLevelTags.csv',
 
+    DEFAULT_ATTACHMENT_FILENAME: 'chat_attachment',
+
     ATTACHMENT_TYPE: {
         REPORT: 'r',
         NOTE: 'n',

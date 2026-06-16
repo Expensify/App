@@ -19,6 +19,7 @@ import {
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
+    getExcludedUsers,
     getExpensifyTeamExclusions,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
@@ -1707,16 +1708,34 @@ describe('PolicyUtils', () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
         });
-        it('should return empty array if no admins in policies', () => {
+        it('should return empty array if no admins in policies', async () => {
+            const bankAccountID = '1';
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        additionalData: {policyID: '1'},
+                    },
+                },
+            });
             const policies = {
                 '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
             };
-            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
             expect(result).toHaveLength(0);
         });
-        it('should return array with admins', () => {
+        it('should return array with admins from the bank account workspace', async () => {
+            const bankAccountID = '1';
             const currentUserLogin = adminEmail;
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        additionalData: {policyID: '1'},
+                    },
+                },
+            });
 
             const policies = {
                 '1': {
@@ -1729,7 +1748,7 @@ describe('PolicyUtils', () => {
                 },
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
             };
-            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
             expect(result).toHaveLength(1);
         });
         it('should not return user with already shared bank account', async () => {
@@ -1739,6 +1758,7 @@ describe('PolicyUtils', () => {
                 1: {
                     methodID: 12345,
                     accountData: {
+                        additionalData: {policyID: '1'},
                         sharees: [adminEmail],
                     },
                 },
@@ -1760,6 +1780,14 @@ describe('PolicyUtils', () => {
         });
         it('should not return current user for sharing account', async () => {
             const bankAccountID = '1';
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        additionalData: {policyID: '1'},
+                    },
+                },
+            });
 
             const policies = {
                 '1': {
@@ -1768,13 +1796,6 @@ describe('PolicyUtils', () => {
                     role: CONST.POLICY.ROLE.ADMIN,
                     employeeList: {
                         [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
-                    },
-                },
-                '2': {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    employeeList: {
                         [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
                     },
                 },
@@ -1883,6 +1904,77 @@ describe('PolicyUtils', () => {
             };
             const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, '1');
             expect(result).toBe(true);
+        });
+    });
+
+    describe('hasEligibleActiveAdminFromWorkspaces', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return true when another admin is available in the bank account workspace', async () => {
+            const bankAccountID = '1';
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        additionalData: {policyID: '1'},
+                    },
+                },
+            });
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, bankAccountID);
+            expect(result).toBe(true);
+        });
+        it('should return false when the user only joined another workspace as a member', async () => {
+            const bankAccountID = '1';
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        additionalData: {policyID: '1'},
+                    },
+                },
+            });
+
+            const policies = {
+                // The bank account's own workspace - current user is the only admin, no one to share with
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                // Another user's workspace the current user only joined as a member - has its own admin
+                '2': {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.USER,
+                    employeeList: {
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.USER},
+                    },
+                },
+            };
+            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, bankAccountID);
+            expect(result).toBe(false);
         });
     });
 
@@ -3087,6 +3179,43 @@ describe('PolicyUtils', () => {
                 },
             };
             expect(hasPolicyRulesError(policy)).toBe(true);
+        });
+    });
+
+    describe('getExcludedUsers', () => {
+        it('marks every active policy member as excluded', () => {
+            const result = getExcludedUsers(employeeList);
+            expect(result['owner@test.com']).toBe(true);
+            expect(result['admin@test.com']).toBe(true);
+            expect(result['employee@test.com']).toBe(true);
+        });
+
+        it('always excludes Expensify emails', () => {
+            const result = getExcludedUsers(employeeList);
+            for (const email of CONST.EXPENSIFY_EMAILS) {
+                expect(result[email]).toBe(true);
+            }
+        });
+
+        it('does not exclude a member that is pending delete', () => {
+            const list: PolicyEmployeeList = {
+                'employee@test.com': {email: 'employee@test.com', role: 'user', submitsTo: '', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+            const result = getExcludedUsers(list);
+            expect(result['employee@test.com']).toBeUndefined();
+        });
+
+        it('does not exclude a member that has errors', () => {
+            const list: PolicyEmployeeList = {
+                'employee@test.com': {email: 'employee@test.com', role: 'user', submitsTo: '', errors: {error1: 'Something went wrong'}},
+            };
+            const result = getExcludedUsers(list);
+            expect(result['employee@test.com']).toBeUndefined();
+        });
+
+        it('returns only Expensify emails when the employee list is undefined', () => {
+            const result = getExcludedUsers(undefined);
+            expect(Object.keys(result)).toEqual([...CONST.EXPENSIFY_EMAILS]);
         });
     });
 });

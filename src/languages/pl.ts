@@ -1643,6 +1643,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Przenieś do raportu',
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
+        submitReportTo: {
+            subtitle: 'Wybierz członka przestrzeni roboczej lub wpisz adres e‑mail osoby, która powinna otrzymać to zgłoszenie.',
+            emailLabel: 'Adres e-mail',
+            workspaceMembers: 'Członkowie przestrzeni roboczej',
+            sendExpense: 'Wyślij swój wydatek do dowolnej osoby',
+            sendExpenseSubtitle: 'Zaproś dowolną osobę do Expensify, używając jej adresu e-mail lub numeru telefonu.',
+        },
         changeApprover: {
             title: 'Zmień osobę zatwierdzającą',
             header: (workflowSettingLink: string) =>
@@ -1700,13 +1707,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Możesz jednocześnie zduplikować maksymalnie ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} wydatków. Wybierz mniej wydatków i spróbuj ponownie.`,
         deleted: 'Usunięto',
-        submitReportTo: {
-            subtitle: 'Wybierz członka przestrzeni roboczej lub wpisz adres e‑mail osoby, która powinna otrzymać to zgłoszenie.',
-            emailLabel: 'Adres e-mail',
-            workspaceMembers: 'Członkowie przestrzeni roboczej',
-            sendExpense: 'Wyślij swój wydatek do dowolnej osoby',
-            sendExpenseSubtitle: 'Zaproś dowolną osobę do Expensify, używając jej adresu e-mail lub numeru telefonu.',
-        },
     },
     transactionMerge: {
         listPage: {
@@ -3512,7 +3512,7 @@ ${amount} dla ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Status',
-        statusExplanation: 'Dodaj emotikon, aby ułatwić współpracownikom i znajomym zorientowanie się, co się dzieje. Opcjonalnie możesz dodać też wiadomość!',
+        statusExplanation: 'Ustaw swój status za pomocą emotikony i opcjonalnej wiadomości.',
         today: 'Dzisiaj',
         clearStatus: 'Wyczyść status',
         save: 'Zapisz',
@@ -4813,6 +4813,7 @@ ${amount} dla ${merchant} - ${date}`,
             bankTransactions: 'Transakcje bankowe',
             travelInvoicingDescription: 'Wydatki na podróże zostaną wyeksportowane jako transakcje bankowe na konto Xero wskazane poniżej.',
             xeroBankAccount: 'Konto bankowe Xero',
+            bankAccount: 'Konto bankowe',
             xeroBankAccountDescription: 'Wybierz, gdzie wydatki będą księgowane jako transakcje bankowe.',
             exportExpensesDescription: 'Raporty zostaną wyeksportowane jako rachunek zakupu z datą i statusem wybranymi poniżej.',
             purchaseBillDate: 'Data rachunku zakupu',
@@ -6619,6 +6620,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             exportCompanyCard: 'Eksportuj wydatki z firmowej karty jako',
             exportDate: 'Data eksportu',
             defaultVendor: 'Domyślny dostawca',
+            defaultAccount: 'Domyślne konto',
             autoSync: 'Automatyczna synchronizacja',
             autoSyncDescription: 'Synchronizuj NetSuite i Expensify automatycznie, każdego dnia. Eksportuj sfinalizowany raport w czasie rzeczywistym',
             reimbursedReports: 'Synchronizuj rozliczone raporty',
@@ -6960,6 +6962,12 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             },
             commonFeatures: {
                 title: 'Ulepsz do planu Control',
+                collect: {
+                    title: 'Ulepsz do planu Collect',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Plan Collect zaczyna się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`} <a href="${learnMoreMethodsRoute}">Dowiedz się więcej</a> o naszych planach i cenach.</muted-text>`,
+                    note: 'Odblokuj kluczowe funkcje dla swojej firmy, w tym:',
+                },
                 note: 'Odblokuj nasze najpotężniejsze funkcje, w tym:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -7353,16 +7361,18 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             },
             agentRules: {
                 title: 'Zasady Agenta',
-                subtitle: 'Opisz elastyczne reguły, które działają wtedy, gdy ich potrzebujesz',
+                subtitle: 'Opisz elastyczne reguły, które działają wtedy, gdy ich potrzebujesz.',
                 addRule: 'Dodaj regułę Agenta',
                 findRule: 'Znajdź regułę Agenta',
                 addRuleTitle: 'Dodaj regułę',
                 editRuleTitle: 'Edytuj regułę',
                 deleteRule: 'Usuń regułę',
                 deleteRuleConfirmation: 'Na pewno chcesz usunąć tę regułę?',
-                describeRuleTitle: 'Opisz swoją regułę',
-                describeRuleSubtitle: 'Opisz swoją regułę, a Concierge ją utworzy',
+                describeRuleTitle: 'Opisz swoją regułę, a Concierge ją utworzy',
                 disclaimer: 'Agenci AI mogą popełniać błędy.',
+                agentCreatedTitle: 'RuleBot został dodany do Twojego obszaru roboczego!',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `<muted-text>Aby egzekwować Twoje reguły agenta, utworzyliśmy dla Ciebie agenta i dodaliśmy go jako administratora do Twojego obszaru roboczego.<br><br>Edytuj dane swojego agenta w sekcji <a href="${agentsRoute}">Konto &gt; Agenci</a>.</muted-text>`,
             },
         },
         planTypePage: {
@@ -8318,10 +8328,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Lata',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartały',
         },
-        moneyRequestReport: {
-            emptyStateTitle: 'Ten raport nie zawiera żadnych wydatków.',
-            accessPlaceHolder: 'Otwórz, aby zobaczyć szczegóły',
-        },
+        moneyRequestReport: {emptyStateTitle: 'Brak wydatków', accessPlaceHolder: 'Otwórz, aby zobaczyć szczegóły'},
         noCategory: 'Brak kategorii',
         noMerchant: 'Brak sprzedawcy',
         noTag: 'Brak tagu',
@@ -9561,6 +9568,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce wyśle Ci plik.',
+        currentView: 'Eksportuj bieżący widok',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
