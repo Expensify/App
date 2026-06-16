@@ -113,6 +113,7 @@ function MultifactorAuthenticationModalNavigator() {
         // spec of Animations.SLIDE_FROM_RIGHT (Animated.timing defaults to inOut(ease)). The navigator
         // unmounts on transitionEnd, so any fade longer than the slide gets cut mid-animation.
         backdropProgress.set(withTiming(0, {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_OUT_WEB, easing: Easing.inOut(Easing.ease)}));
+
         // MODAL_CLOSED re-enters the closed state, which flips modalState to closed and unmounts this navigator.
         // If this callback is cancelled (unmount mid-close), the machine's closeFallback timer takes
         // over: it re-enters closed on its own, wiping the context and the mfaNavigation buffer.
