@@ -16,6 +16,9 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // protected routes are available) — not just the final args.
 const mockWaitForProtectedRoutes = {resolve: () => {}};
 
+// Standalone fn so assertions don't access `navigationRef.reset` unbound (unbound-method lint rule).
+const mockNavigationReset = jest.fn();
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
@@ -29,6 +32,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isActiveRoute: jest.fn(() => false),
+    // Dereference inside the closure (not at factory time) — the factory runs before the const below
+    // is initialized, so capturing `mockNavigationReset` directly would freeze `undefined`.
+    navigationRef: {
+        reset: (...args: unknown[]) => {
+            mockNavigationReset(...args);
+        },
+        isReady: () => true,
+    },
 }));
 
 const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
@@ -164,10 +175,10 @@ describe('ValidateLoginPage', () => {
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
 
-    it('Should show the 2FA-required prompt (not an infinite loader) for a separate-session sign-in needing 2FA', async () => {
-        // Separate session: no cached `login`, signed in via the link but 2FA is required so authToken
-        // never lands. Without the fix isCompletingDirectSignIn keeps the loader up forever; instead we
-        // must surface the "2FA required" prompt and never redirect Home.
+    it('Should show the 2FA-required prompt (not an infinite loader) when 2FA is needed and no validate code is cached', async () => {
+        // Genuinely-stuck fallback: 2FA is required but there's no cached `credentials.validateCode`, so
+        // the sign-in page can't render the authenticator stage and there's nowhere to send the user.
+        // Surface the informational "2FA required" prompt and never redirect Home or loop on a loader.
         await act(async () => {
             await Onyx.set(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
             await Onyx.set(ONYXKEYS.SESSION, {
@@ -179,6 +190,30 @@ describe('ValidateLoginPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByTestId('validate-login-loading')).toBeNull();
+        expect(mockNavigationReset).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
+    });
+
+    it('Should redirect to the sign-in page to enter the 2FA code when a validate code is cached', async () => {
+        // Initiating browser: the magic-link attempt stored `credentials.validateCode` and 2FA is
+        // required. SignInPage reuses that code to render the authenticator-code stage, so we replace
+        // the consumed /v/ route with the sign-in page instead of the dead-end "2FA required" modal.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN,
+            });
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                accountID: 1,
+                validateCode: '123456',
+            });
+        });
+
+        renderPage({accountID: '1', validateCode: '123456'});
+        await waitForBatchedUpdatesWithAct();
+        // isNavigationReady() resolves on a microtask, then we reset the public stack to the SignInPage.
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: SCREENS.HOME}]});
     });
 });

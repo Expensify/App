@@ -7,12 +7,13 @@ import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
 import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
 import useOnyx from '@hooks/useOnyx';
 import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import {handleExitToNavigation, initAutoAuthState, signInWithValidateCode} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Session as SessionType} from '@src/types/onyx';
 import type ValidateLoginPageProps from './types';
 
@@ -40,7 +41,17 @@ function ValidateLoginPage({
     const effectiveAutoAuthState = hasInitialized ? autoAuthState : undefined;
     const autoAuthStateWithDefault = effectiveAutoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
     const is2FARequired = !!account?.requiresTwoFactorAuth;
-    const cachedAccountID = credentials?.accountID;
+    // A magic-link sign-in that needs 2FA completes on the sign-in page: it reuses the stored
+    // `credentials.validateCode`, and SignInPage renders the authenticator-code stage once
+    // `requiresTwoFactorAuth` + that code are present. Send the user there to enter their code instead
+    // of the informational "2FA required" modal, which is a dead end. Gated on a post-attempt state so
+    // a stale cached code can't redirect prematurely; excludes `exitTo` (its own navigation handles it).
+    const canCompleteTwoFactorOnSignIn =
+        !exitTo &&
+        is2FARequired &&
+        !isSignedIn &&
+        !!credentials?.validateCode &&
+        (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.FAILED);
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo) && isValidValidateCode(validateCode);
     const isNavigatingToExitTo = isSignedIn && !!exitTo;
@@ -94,18 +105,22 @@ function ValidateLoginPage({
     );
 
     useEffect(() => {
-        if (!!login || !cachedAccountID || !is2FARequired) {
-            if (exitTo) {
-                handleExitToNavigation(exitTo);
-            }
+        if (canCompleteTwoFactorOnSignIn) {
+            // Show the sign-in page so its ValidateCodeForm renders the authenticator-code stage.
+            // ROUTES.HOME ('home') is nested under the authenticated TAB_NAVIGATOR, so navigate/goBack
+            // to it no-op from the public /v/ route; reset the stack to SCREENS.HOME instead — the same
+            // mechanism logout uses to surface the public SignInPage. The "2FA required" modal stays
+            // rendered as the fallback so a failed hand-off shows it, not a blank or an endless loader.
+            Navigation.isNavigationReady().then(() => {
+                navigationRef.reset({index: 0, routes: [{name: SCREENS.HOME}]});
+            });
             return;
         }
 
-        // The user clicked the option to sign in the current tab
-        Navigation.isNavigationReady().then(() => {
-            Navigation.goBack();
-        });
-    }, [login, cachedAccountID, is2FARequired, exitTo]);
+        if (exitTo) {
+            handleExitToNavigation(exitTo);
+        }
+    }, [canCompleteTwoFactorOnSignIn, exitTo]);
 
     // waitForProtectedRoutes()/authToken can hang (lazy AuthScreens chunk fails, token
     // never lands). We can't recover the consumed code here, but surface a stuck sign-in to
