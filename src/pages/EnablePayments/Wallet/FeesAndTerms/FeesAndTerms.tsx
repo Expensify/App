@@ -9,7 +9,6 @@ import {acceptWalletTerms, clearPersonalBankAccount} from '@userActions/BankAcco
 import {resetWalletAdditionalDetailsDraft, updateCurrentStep} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import FeesStep from './substeps/FeesStep';
 import TermsStep from './substeps/TermsStep';
 
@@ -27,7 +26,7 @@ function FeesAndTerms() {
         });
         clearPersonalBankAccount();
         resetWalletAdditionalDetailsDraft();
-        Navigation.goBack(ROUTES.SETTINGS_WALLET);
+        Navigation.goBack();
     };
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- will be migrated to useSubPage in the EnablePayments navigation refactor PR
