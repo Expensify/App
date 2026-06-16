@@ -365,6 +365,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Adds padding to the left of the text when there is no icon. */
         shouldPutLeftPaddingWhenNoIcon?: boolean;
 
+        /** Whether to apply icon left padding to HTML-rendered titles. */
+        shouldApplyIconPaddingToHTMLTitle?: boolean;
+
         /** Handles what to do when the item is focused */
         onFocus?: () => void;
 
@@ -575,6 +578,7 @@ function MenuItem({
     contentFit = 'cover',
     isPaneMenu = true,
     shouldPutLeftPaddingWhenNoIcon = false,
+    shouldApplyIconPaddingToHTMLTitle = false,
     onFocus,
     onBlur,
     avatarID,
@@ -1024,7 +1028,7 @@ function MenuItem({
                                                                 fsClass={forwardedFSClass}
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
-                                                                    <View style={[styles.renderHTMLTitle, iconLeftPadding]}>
+                                                                    <View style={[styles.renderHTMLTitle, shouldApplyIconPaddingToHTMLTitle && iconLeftPadding]}>
                                                                         <RenderHTML html={processedTitle} />
                                                                     </View>
                                                                 )}

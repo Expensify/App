@@ -58,6 +58,8 @@ import IndividualExpenseRulesSectionRevamp from './IndividualExpenseRulesSection
 
 const RULES_TAB = CONST.TAB.RULES;
 
+const DEFAULT_SPEND_RULE_ID = 'default-rule';
+
 type RulesTab = (typeof RULES_TAB)[keyof typeof RULES_TAB];
 
 const RULES_TAB_VALUES = new Set<string>(Object.values(RULES_TAB));
@@ -130,8 +132,8 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         const blockLabel = translate('workspace.rules.spendRules.block');
 
         const defaultRule: SpendRuleTableItem = {
-            keyForList: 'default-rule',
-            ruleID: 'default-rule',
+            keyForList: DEFAULT_SPEND_RULE_ID,
+            ruleID: DEFAULT_SPEND_RULE_ID,
             isDefault: true,
             isBlock: true,
             disabled: true,
@@ -272,7 +274,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         }
 
         for (const ruleID of selectedSpendRuleKeys) {
-            if (ruleID === 'default-rule') {
+            if (ruleID === DEFAULT_SPEND_RULE_ID) {
                 continue;
             }
 
