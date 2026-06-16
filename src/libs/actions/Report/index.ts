@@ -1,5 +1,6 @@
 /* eslint-disable max-lines */
 import {Str} from 'expensify-common';
+import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -6452,12 +6453,22 @@ function deleteAppReport({
     const parentReportAction = parentReportID && reportActionID ? allReportActions?.[parentReportID]?.[reportActionID] : undefined;
 
     if (reportActionID) {
+        // Mirror the per-transaction delete path: mark the preview's message as deleted so `isDeletedAction` treats it as
+        // removed. `pendingAction` alone isn't inspected by `isDeletedAction`, so without this the chat keeps surfacing a
+        // stale "Mark as done"/action badge in the LHN while the report is queued for deletion offline.
+        const deletedPreviewMessage = Array.isArray(parentReportAction?.message) ? cloneDeep(parentReportAction.message) : undefined;
+        const firstPreviewMessage = deletedPreviewMessage?.at(0);
+        if (firstPreviewMessage) {
+            firstPreviewMessage.deleted = DateUtils.getDBTime();
+        }
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {
                 [reportActionID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    ...(deletedPreviewMessage ? {message: deletedPreviewMessage} : {}),
                 },
             },
         });

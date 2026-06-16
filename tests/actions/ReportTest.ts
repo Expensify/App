@@ -16,7 +16,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStepNew} from '@libs/NextStepUtils';
-import {getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isDeletedAction} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import CONST from '@src/CONST';
@@ -3105,6 +3105,76 @@ describe('actions/Report', () => {
 
             // The hasOutstandingChildRequest should still remain true as there is a second outstanding report.
             expect(report?.hasOutstandingChildRequest).toBe(true);
+        });
+
+        it('should mark the chat report preview action as deleted so the LHN action badge clears', async () => {
+            // Given a workspace chat with a single expense report and its report preview action
+            const fakePolicy: OnyxTypes.Policy = {
+                ...createRandomPolicy(7),
+                role: 'admin',
+                ownerAccountID: currentUserAccountID,
+            };
+            const chatReport: OnyxTypes.Report = {
+                ...createRandomReport(30, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: fakePolicy.id,
+                isOwnPolicyExpenseChat: true,
+            };
+            const reportPreviewActionID = '300';
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(31, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: currentUserAccountID,
+                policyID: fakePolicy.id,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                chatReportID: chatReport.reportID,
+                parentReportID: chatReport.reportID,
+                parentReportActionID: reportPreviewActionID,
+            };
+            const reportPreview: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(Number(reportPreviewActionID)),
+                reportActionID: reportPreviewActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                message: [{type: 'COMMENT', html: 'Report preview', text: 'Report preview'}],
+                originalMessage: {
+                    linkedReportID: expenseReport.reportID,
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reportPreview.reportActionID]: reportPreview,
+            });
+            await waitForBatchedUpdates();
+
+            // When deleting the whole expense report (the path taken when it has multiple transactions, e.g. after duplicating)
+            Report.deleteAppReport({
+                report: expenseReport,
+                selfDMReport: undefined,
+                currentUserEmailParam: '',
+                currentUserAccountIDParam: currentUserAccountID,
+                reportTransactions: {},
+                allTransactionViolations: {},
+                bankAccountList: {},
+            });
+            await waitForBatchedUpdates();
+
+            const chatReportActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            // Then the report preview action is treated as deleted, so the badge logic skips it
+            expect(isDeletedAction(chatReportActions?.[reportPreviewActionID])).toBe(true);
         });
     });
 
