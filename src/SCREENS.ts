@@ -782,7 +782,7 @@ const SCREENS = {
         INVITE_MESSAGE_APPROVER: 'Workspace_Invite_Message_Approver',
         CATEGORIES: 'Workspace_Categories',
         TAGS: 'Workspace_Tags',
-        TAGS_SETTINGS: 'Tags_Settings',
+        DYNAMIC_TAGS_SETTINGS: 'Dynamic_Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
         TAGS_IMPORT: 'Tags_Import',
         TAGS_IMPORT_MULTI_LEVEL_SETTINGS: 'Tags_Import_Multi_Level_Settings',
