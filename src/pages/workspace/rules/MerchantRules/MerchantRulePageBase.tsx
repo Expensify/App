@@ -109,6 +109,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Folder', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
+    const getItemIcon = (icon: IconAsset) => (isRulesRevampEnabled ? icon : undefined);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -321,7 +322,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     required: true,
                     title: form?.merchantToMatch,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID)),
-                    icon: icons.Basket,
+                    icon: getItemIcon(icons.Basket),
                 },
             ],
         },
@@ -333,7 +334,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     description: translate('common.merchant'),
                     title: form?.merchant,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT.getRoute(policyID, ruleID)),
-                    icon: icons.Basket,
+                    icon: getItemIcon(icons.Basket),
                 },
                 hasCategories()
                     ? {
@@ -341,7 +342,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                           description: translate('common.category'),
                           title: categoryDisplayName,
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID, ruleID)),
-                          icon: icons.Folder,
+                          icon: getItemIcon(icons.Folder),
                       }
                     : undefined,
                 ...(hasTags()
@@ -354,7 +355,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                   description: name,
                                   title: formTag ? getCleanedTagName(formTag) : undefined,
                                   onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID, ruleID, orderWeight)),
-                                  icon: icons.Tag,
+                                  icon: getItemIcon(icons.Tag),
                               };
                           })
                     : []),
@@ -364,7 +365,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                           description: translate('common.tax'),
                           title: taxDisplayName(),
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID)),
-                          icon: icons.InvoiceGeneric,
+                          icon: getItemIcon(icons.InvoiceGeneric),
                       }
                     : undefined,
                 {
@@ -373,14 +374,14 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     title: form?.comment ? Parser.replace(form.comment) : undefined,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_DESCRIPTION.getRoute(policyID, ruleID)),
                     shouldRenderAsHTML: true,
-                    icon: icons.Pencil,
+                    icon: getItemIcon(icons.Pencil),
                 },
                 {
                     key: 'reimbursable',
                     description: translate('common.reimbursable'),
                     title: getBooleanTitle(form?.reimbursable, translate),
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID, ruleID)),
-                    icon: icons.Paycheck,
+                    icon: getItemIcon(icons.Paycheck),
                 },
                 isBillableEnabled
                     ? {
@@ -388,7 +389,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                           description: translate('common.billable'),
                           title: getBooleanTitle(form?.billable, translate),
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_BILLABLE.getRoute(policyID, ruleID)),
-                          icon: icons.Paycheck,
+                          icon: getItemIcon(icons.Paycheck),
                       }
                     : undefined,
             ],

@@ -2,26 +2,18 @@ import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
-import Icon from '@components/Icon';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 type SpendRuleRestrictionTypeToggleProps = {
     restrictionAction: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
     onSelect: (action: ValueOf<typeof CONST.SPEND_RULES.ACTION>) => void;
-    label?: string;
-    shouldShowHelperText?: boolean;
-    icon?: IconAsset;
 };
 
-function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect, label, shouldShowHelperText = true, icon}: SpendRuleRestrictionTypeToggleProps) {
+function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect}: SpendRuleRestrictionTypeToggleProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
 
     const isAllowSelected = restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW;
@@ -31,17 +23,8 @@ function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect, label, sho
 
     return (
         <>
-            <View style={[styles.flexRow, !!icon && styles.alignItemsCenter]}>
-                {!!icon && (
-                    <Icon
-                        src={icon}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                        fill={theme.icon}
-                        additionalStyles={[styles.mr3]}
-                    />
-                )}
-                <Text style={[styles.flex1, styles.pr3, styles.alignSelfCenter]}>{label ?? translate('workspace.rules.spendRules.restrictionType')}</Text>
+            <View style={[styles.flexRow]}>
+                <Text style={[styles.flex1, styles.pr3, styles.alignSelfCenter]}>{translate('workspace.rules.spendRules.restrictionType')}</Text>
                 <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal]}>
                     <Button
                         text={translate('workspace.rules.spendRules.allow')}
@@ -67,7 +50,7 @@ function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect, label, sho
                     />
                 </View>
             </View>
-            {shouldShowHelperText && <Text style={[styles.mutedNormalTextLabel, styles.pt3]}>{restrictionTypeHelperText}</Text>}
+            <Text style={[styles.mutedNormalTextLabel, styles.pt3]}>{restrictionTypeHelperText}</Text>
         </>
     );
 }
