@@ -1,23 +1,29 @@
 import {adminAccountIDsSelector, adminPendingActionSelector, domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Badge from '@components/Badge';
 import Button from '@components/Button';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import type {DomainAdminRowData} from '@components/Tables/DomainAdminsTable';
+import DomainAdminsTable from '@components/Tables/DomainAdminsTable';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDomainAdminsSettingsErrors} from '@libs/DomainUtils';
+import {getLatestError} from '@libs/ErrorUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
-import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import {clearAdminError} from '@userActions/Domain';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -28,9 +34,10 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {domainAccountID} = route.params;
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     useDomainDocumentTitle(domainName, 'domain.domainAdmins');
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['UserShield']);
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
 
@@ -52,26 +59,36 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
-    const getCustomRightElement = (accountID: number) => {
-        const technicalContactEmail = technicalContactSettings?.technicalContactEmail;
-        const login = personalDetails?.[accountID]?.login;
-        if (!technicalContactEmail || !login || technicalContactEmail !== login) {
-            return null;
-        }
-        return <Badge text={translate('domain.admins.primaryContact')} />;
-    };
+    const technicalContactEmail = technicalContactSettings?.technicalContactEmail;
 
-    const getCustomRowProps = (accountID: number) => ({
-        errors: domainErrors?.adminErrors?.[accountID]?.errors,
-        pendingAction: domainPendingAction?.[accountID]?.pendingAction,
-    });
+    const admins: DomainAdminRowData[] = useMemo(() => {
+        return (adminAccountIDs ?? [])
+            .filter((accountID) => {
+                const details = personalDetails?.[accountID];
+                return !!details?.login || !!details?.displayName;
+            })
+            .map((accountID) => {
+                const details = personalDetails?.[accountID];
+                const login = details?.login ?? '';
+                const errors = domainErrors?.adminErrors?.[accountID]?.errors;
+                const pendingAction = domainPendingAction?.[accountID]?.pendingAction;
+                const isPendingActionDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    const getCustomListHeader = () => (
-        <CustomListHeader
-            canSelectMultiple={false}
-            leftHeaderText={translate('domain.admins.title')}
-        />
-    );
+                return {
+                    keyForList: String(accountID),
+                    accountID,
+                    login,
+                    name: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                    email: formatPhoneNumber(login),
+                    isPrimaryContact: !!technicalContactEmail && !!login && technicalContactEmail === login,
+                    errors: getLatestError(errors),
+                    pendingAction,
+                    disabled: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
+                    action: () => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, accountID)),
+                    dismissError: () => clearAdminError(domainAccountID, accountID),
+                };
+            });
+    }, [adminAccountIDs, personalDetails, domainErrors, domainPendingAction, technicalContactEmail, formatPhoneNumber, domainAccountID]);
 
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -99,19 +116,27 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     ) : null;
 
     return (
-        <BaseDomainMembersPage
-            domainAccountID={domainAccountID}
-            accountIDs={adminAccountIDs ?? []}
-            headerTitle={translate('domain.admins.title')}
-            searchPlaceholder={translate('domain.admins.findAdmin')}
-            headerIcon={illustrations.UserShield}
-            headerContent={headerContent}
-            getCustomListHeader={getCustomListHeader}
-            getCustomRightElement={getCustomRightElement}
-            getCustomRowProps={getCustomRowProps}
-            onDismissError={(item) => clearAdminError(domainAccountID, item.accountID)}
-            onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
-        />
+        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
+                shouldShowOfflineIndicatorInWideScreen
+                testID="DomainAdminsPage"
+            >
+                <HeaderWithBackButton
+                    title={translate('domain.admins.title')}
+                    onBackButtonPress={Navigation.goBack}
+                    icon={illustrations.UserShield}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader
+                    shouldDisplayHelpButton
+                >
+                    {!shouldDisplayButtonsInSeparateLine && headerContent}
+                </HeaderWithBackButton>
+                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                <DomainAdminsTable admins={admins} />
+            </ScreenWrapper>
+        </DomainNotFoundPageWrapper>
     );
 }
 
