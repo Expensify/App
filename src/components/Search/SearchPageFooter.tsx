@@ -85,7 +85,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
             text={convertToDisplayString(total, currency)}
             textStyles={valueTextStyle}
             textHoverStyles={StyleUtils.getColorStyle(theme.linkHover)}
-            isDisabled={isOffline}
+            isDisabled={isOffline || isTotalLoading}
             small
             shouldShowRightIcon
             iconRight={icons.DownArrow}
