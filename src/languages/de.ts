@@ -6972,12 +6972,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Entfernungsraten sind im Collect-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
-            controlPolicyRoles: {
-                title: 'Rollen für Richtliniensteuerung',
-                description: 'Verwenden Sie spezialisierte Rollen wie Auditor und Karten-Admin, um Mitgliedern nur den Zugriff zu gewähren, den sie benötigen.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Spezialisierte Arbeitsbereichsrollen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
-            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Mehrere Genehmigungsstufen',
                 description:
@@ -7083,6 +7077,12 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     'Erstelle, versende und verfolge professionelle Rechnungen – alles in Expensify. Erhalte dein Geld schneller mit integrierten Zahlungen und vollständiger Transparenz in Echtzeit.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Die Rechnungsstellung ist in den Collect- und Control-Tarifen verfügbar, beginnend ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
+            controlPolicyRoles: {
+                title: 'Rollen für Richtliniensteuerung',
+                description: 'Verwenden Sie spezialisierte Rollen wie Auditor und Karten-Admin, um Mitgliedern nur den Zugriff zu gewähren, den sie benötigen.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Spezialisierte Arbeitsbereichsrollen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
         },
         downgrade: {
