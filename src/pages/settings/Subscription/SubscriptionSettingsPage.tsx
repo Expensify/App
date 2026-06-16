@@ -45,7 +45,11 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     }, [isAppLoading, shouldShowPage]);
 
     if (!shouldShowPage && isAppLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SubscriptionSettingsPage', isAppLoading: !!isAppLoading, shouldShowPage};
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'SubscriptionSettingsPage',
+            isAppLoading: !!isAppLoading,
+            shouldShowPage,
+        };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
@@ -57,9 +61,14 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
         <ScreenWrapper
             testID="SubscriptionSettingsPage"
             shouldShowOfflineIndicatorInWideScreen
-            shouldOffsetForGlobalNavBar
         >
-            <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+            <View
+                style={{
+                    width: '100%',
+                    maxWidth: variables.cardMaxWidth,
+                    alignSelf: 'center',
+                }}
+            >
                 <HeaderWithBackButton
                     title={translate('workspace.common.subscription')}
                     onBackButtonPress={() => {
@@ -80,7 +89,12 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                     style={[
                         styles.flex1,
                         shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
-                        {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                        {
+                            width: '100%',
+                            maxWidth: variables.cardMaxWidth,
+                            alignSelf: 'center',
+                            paddingHorizontal: 20,
+                        },
                     ]}
                 >
                     <CardSection />

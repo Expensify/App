@@ -108,7 +108,7 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
     }
 
     return (
-        <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, styles.justifyContentCenter, containerStyle]}>
+        <View style={[styles.flexRow, styles.ph10, styles.mb5, styles.gap2, styles.mw100, styles.w100, styles.justifyContentCenter, containerStyle]}>
             {promotedActions.map(({key, onSelected, translationKey, icon}) => (
                 <View
                     style={[styles.flex1, styles.mw50]}

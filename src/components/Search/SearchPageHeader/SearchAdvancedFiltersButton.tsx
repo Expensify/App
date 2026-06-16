@@ -72,7 +72,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
         : ({onPress, ref, isExpanded}: ButtonComponentProps) => (
               <Button
                   ref={ref}
-                  small
+                  medium
                   accessibilityLabel={translate('search.filtersHeader')}
                   text={translate('search.filtersHeader')}
                   icon={expensifyIcons.Filter}

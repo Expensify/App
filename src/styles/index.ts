@@ -801,9 +801,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         buttonSmall: {
             borderRadius: variables.buttonBorderRadius,
-            minHeight: 24,
-            minWidth: 24,
-            paddingHorizontal: 8,
+            minHeight: variables.componentSizeSmall,
+            minWidth: variables.componentSizeSmall,
+            paddingHorizontal: 10,
             backgroundColor: theme.buttonDefaultBG,
         },
 
@@ -1310,7 +1310,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerText: {
             color: theme.heading,
-            ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
         },
 
@@ -3918,6 +3918,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         cardSectionIllustrationContainer: {
             height: variables.sectionIllustrationHeight,
+            marginTop: 12,
+            marginHorizontal: 12,
+            borderRadius: 8,
+            overflow: 'hidden',
+            width: 'auto',
+            alignSelf: 'stretch',
         },
 
         twoFAIllustration: {
@@ -4486,8 +4492,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         purposeMenuItem: {
             backgroundColor: theme.cardBG,
-            borderRadius: 8,
-            paddingHorizontal: 8,
+            borderRadius: variables.componentBorderRadiusNormal,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
+            paddingLeft: 8,
+            paddingRight: 20,
             alignItems: 'center',
             marginBottom: 8,
         },
@@ -6617,7 +6626,15 @@ const dynamicStyles = (theme: ThemeColors) =>
             };
         },
 
-        getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
+        getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => ({
+            ...(shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
+            marginTop: 12,
+            marginHorizontal: 12,
+            borderRadius: 8,
+            overflow: 'hidden' as const,
+            width: 'auto' as const,
+            alignSelf: 'stretch' as const,
+        }),
 
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 

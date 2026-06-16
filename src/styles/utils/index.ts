@@ -1159,7 +1159,7 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
 
     if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL) {
         return {
-            height: 24,
+            height: variables.componentSizeSmall,
         };
     }
 

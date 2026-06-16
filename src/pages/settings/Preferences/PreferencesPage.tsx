@@ -56,7 +56,6 @@ function PreferencesPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID="PreferencesPage"
-            shouldOffsetForGlobalNavBar
         >
             <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
                 <HeaderWithBackButton

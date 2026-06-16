@@ -41,7 +41,9 @@ function HelpPage() {
     const partnerManagerDetails = account?.partnerManagerAccountID ? personalDetails?.[account.partnerManagerAccountID] : null;
     const guideDetails = account?.guideDetails?.email ? getPersonalDetailByEmail(account.guideDetails.email) : null;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
@@ -128,9 +130,14 @@ function HelpPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID="HelpPage"
-            shouldOffsetForGlobalNavBar
         >
-            <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+            <View
+                style={{
+                    width: '100%',
+                    maxWidth: variables.cardMaxWidth,
+                    alignSelf: 'center',
+                }}
+            >
                 <HeaderWithBackButton
                     title={translate('common.help')}
                     shouldUseHeadlineHeader
@@ -145,7 +152,12 @@ function HelpPage() {
                     style={[
                         styles.flex1,
                         shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
-                        {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                        {
+                            width: '100%',
+                            maxWidth: variables.cardMaxWidth,
+                            alignSelf: 'center',
+                            paddingHorizontal: 20,
+                        },
                     ]}
                 >
                     <Section

@@ -68,7 +68,6 @@ function InsightsPage() {
             testID="InsightsPage"
             includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicatorInWideScreen
-            shouldOffsetForGlobalNavBar
         >
             {shouldUseNarrowLayout && topBar}
             <ScrollView contentContainerStyle={styles.homePageContentContainer}>

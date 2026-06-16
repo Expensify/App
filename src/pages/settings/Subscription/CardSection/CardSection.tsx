@@ -230,7 +230,7 @@ function CardSection() {
             isCentralPane
             titleStyles={styles.textStrong}
             subtitleMuted
-            banner={BillingBanner}
+            banner={BillingBanner ? <View style={{marginTop: 12, marginHorizontal: 12, borderRadius: 8, overflow: 'hidden', alignSelf: 'stretch'}}>{BillingBanner}</View> : undefined}
             containerStyles={{marginHorizontal: 0}}
         >
             <View style={[styles.mt8, styles.mb3, styles.flexRow]}>

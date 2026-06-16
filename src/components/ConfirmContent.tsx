@@ -199,7 +199,7 @@ function ConfirmContent({
                     <View style={[styles.flexRow, isTitleLoading ? styles.justifyContentBetween : {}, styles.alignItemsCenter, isCentered ? {} : styles.mb4, titleContainerStyles]}>
                         <Header
                             title={title}
-                            textStyles={titleStyles}
+                            textStyles={[{fontSize: variables.fontSizeXLarge, lineHeight: variables.lineHeightSizeH1}, titleStyles]}
                         />
                         {isTitleLoading && (
                             <ActivityIndicator

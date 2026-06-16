@@ -63,7 +63,9 @@ function TroubleshootPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     useDocumentTitle(translate('initialSettingsPage.aboutPage.troubleshoot'));
     const [isLoading, setIsLoading] = useState(false);
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {
+        selector: isTrackingSelector,
+    });
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
     const {resetOptions} = useOptionsList({shouldInitialize: false});
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
@@ -193,9 +195,14 @@ function TroubleshootPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID="TroubleshootPage"
-            shouldOffsetForGlobalNavBar
         >
-            <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+            <View
+                style={{
+                    width: '100%',
+                    maxWidth: variables.cardMaxWidth,
+                    alignSelf: 'center',
+                }}
+            >
                 <HeaderWithBackButton
                     title={translate('initialSettingsPage.aboutPage.troubleshoot')}
                     shouldShowBackButton={shouldUseNarrowLayout}
@@ -205,13 +212,27 @@ function TroubleshootPage() {
                     shouldUseHeadlineHeader
                 />
             </View>
-            {isLoading && <FullScreenLoadingIndicator reasonAttributes={{context: 'TroubleshootPage', isLoading} satisfies SkeletonSpanReasonAttributes} />}
+            {isLoading && (
+                <FullScreenLoadingIndicator
+                    reasonAttributes={
+                        {
+                            context: 'TroubleshootPage',
+                            isLoading,
+                        } satisfies SkeletonSpanReasonAttributes
+                    }
+                />
+            )}
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View
                     style={[
                         styles.flex1,
                         shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
-                        {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                        {
+                            width: '100%',
+                            maxWidth: variables.cardMaxWidth,
+                            alignSelf: 'center',
+                            paddingHorizontal: 20,
+                        },
                     ]}
                 >
                     <Section

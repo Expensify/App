@@ -267,7 +267,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 style={[styles.defaultModalContainer]}
                 testID="WorkspaceMoreFeaturesPage"
                 shouldShowOfflineIndicatorInWideScreen
-                shouldOffsetForGlobalNavBar
             >
                 <HeaderWithBackButton
                     shouldUseHeadlineHeader

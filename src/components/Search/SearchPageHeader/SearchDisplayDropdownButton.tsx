@@ -74,6 +74,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
             label={translate('search.display.label')}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
             value={null}
+            medium
             PopoverComponent={displayPopup}
         />
     );

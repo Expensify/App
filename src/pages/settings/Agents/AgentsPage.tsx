@@ -129,7 +129,6 @@ function AgentsPage() {
             shouldShowOfflineIndicatorInWideScreen
             shouldMobileOfflineIndicatorStickToBottom={false}
             offlineIndicatorStyle={styles.mtAuto}
-            shouldOffsetForGlobalNavBar
         >
             <HeaderWithBackButton
                 onBackButtonPress={() => Navigation.goBack()}

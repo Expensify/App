@@ -30,7 +30,7 @@ function GetStartedTravel({policyID, canWriteTravelFeature, showReadOnlyModal}: 
             illustrationBackgroundColor={colors.tangerine700}
             illustration={illustrations.PendingTravel}
             illustrationStyle={styles.travelCardIllustration}
-            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
+            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter, styles.cardSectionIllustrationContainer]}
             titleStyles={styles.textHeadlineH1}
             footer={
                 canWriteTravelFeature ? (

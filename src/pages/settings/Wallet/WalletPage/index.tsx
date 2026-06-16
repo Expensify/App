@@ -93,7 +93,9 @@ function WalletPage() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const delegateAccountID = useDelegateAccountID();
     const isUserValidated = userAccount?.validated ?? false;
@@ -134,7 +136,10 @@ function WalletPage() {
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
     const hasEligibleActiveAdmin = hasEligibleActiveAdminFromWorkspaces(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
-    const walletLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', shouldShowLoadingSpinner};
+    const walletLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'WalletPage',
+        shouldShowLoadingSpinner,
+    };
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
         // In order to prevent a loop, only update state of the spinner if there is a change
@@ -232,10 +237,16 @@ function WalletPage() {
             return;
         }
         if (accountPolicyID) {
-            navigateToBankAccountRoute({policyID: accountPolicyID, backTo: ROUTES.SETTINGS_WALLET});
+            navigateToBankAccountRoute({
+                policyID: accountPolicyID,
+                backTo: ROUTES.SETTINGS_WALLET,
+            });
             return;
         }
-        navigateToBankAccountRoute({bankAccountID, backTo: ROUTES.SETTINGS_WALLET});
+        navigateToBankAccountRoute({
+            bankAccountID,
+            backTo: ROUTES.SETTINGS_WALLET,
+        });
     };
 
     const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
@@ -380,7 +391,13 @@ function WalletPage() {
 
         if (result.action === ModalActions.CONFIRM) {
             const savedColumnLayout = savedColumnLayouts?.[selectedCard.cardID];
-            deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard, allTransactions, allReports, savedColumnLayout});
+            deletePersonalCard({
+                cardID: selectedCard.cardID,
+                card: selectedCard,
+                allTransactions,
+                allReports,
+                savedColumnLayout,
+            });
         }
         setSelectedCard(undefined);
     }, [selectedCard, showConfirmModal, translate, allTransactions, allReports, savedColumnLayouts]);
@@ -432,7 +449,13 @@ function WalletPage() {
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
     const headerWithBackButton = (
-        <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+        <View
+            style={{
+                width: '100%',
+                maxWidth: variables.cardMaxWidth,
+                alignSelf: 'center',
+            }}
+        >
             <HeaderWithBackButton
                 title={translate('common.wallet')}
                 shouldUseHeadlineHeader
@@ -662,12 +685,14 @@ function WalletPage() {
     }, [bottomMountItem, confirmDeleteCard, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isLoadingApp) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', isLoadingApp: !!isLoadingApp};
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'WalletPage',
+            isLoadingApp: !!isLoadingApp,
+        };
         return (
             <ScreenWrapper
                 testID="WalletPage"
                 shouldShowOfflineIndicatorInWideScreen
-                shouldOffsetForGlobalNavBar
             >
                 {headerWithBackButton}
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
@@ -684,7 +709,6 @@ function WalletPage() {
         <ScreenWrapper
             testID="WalletPage"
             shouldShowOfflineIndicatorInWideScreen
-            shouldOffsetForGlobalNavBar
         >
             {headerWithBackButton}
             <ScrollView style={styles.pt3}>
@@ -692,7 +716,12 @@ function WalletPage() {
                     style={[
                         styles.flex1,
                         shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
-                        {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                        {
+                            width: '100%',
+                            maxWidth: variables.cardMaxWidth,
+                            alignSelf: 'center',
+                            paddingHorizontal: 20,
+                        },
                     ]}
                 >
                     <OfflineWithFeedback

@@ -55,7 +55,9 @@ function ProfilePage() {
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
     const scrollViewRef = useRef<RNScrollView>(null);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -181,9 +183,14 @@ function ProfilePage() {
             includeSafeAreaPaddingBottom={false}
             testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
-            shouldOffsetForGlobalNavBar
         >
-            <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+            <View
+                style={{
+                    width: '100%',
+                    maxWidth: variables.cardMaxWidth,
+                    alignSelf: 'center',
+                }}
+            >
                 <HeaderWithBackButton
                     title={translate('common.profile')}
                     onBackButtonPress={() => {
@@ -211,7 +218,12 @@ function ProfilePage() {
                         style={[
                             styles.flex1,
                             shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
-                            {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                            {
+                                width: '100%',
+                                maxWidth: variables.cardMaxWidth,
+                                alignSelf: 'center',
+                                paddingHorizontal: 20,
+                            },
                         ]}
                     >
                         <Section

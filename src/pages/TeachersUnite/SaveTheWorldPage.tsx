@@ -135,7 +135,6 @@ function SaveTheWorldPage() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            shouldOffsetForGlobalNavBar
         >
             <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
                 <HeaderWithBackButton

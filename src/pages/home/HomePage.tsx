@@ -53,6 +53,7 @@ function HomePage() {
                     shouldShowOfflineIndicatorInWideScreen
                     testID="HomePage"
                     enableEdgeToEdgeBottomSafeAreaPadding={false}
+                    shouldDisableGlobalNavBarHeightOffset
                     bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.HOME} />}
                     bottomContentStyle={styles.overflowVisible}
                 >

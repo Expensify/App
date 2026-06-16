@@ -154,6 +154,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     illustrationBackgroundColor={theme.fallbackIconColor}
                     illustration={illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
+                    illustrationContainerStyle={{marginTop: 12, marginHorizontal: 12, borderRadius: 8, overflow: 'hidden', width: 'auto', alignSelf: 'stretch'}}
                     titleStyles={styles.textHeadlineH1}
                     containerStyles={{marginHorizontal: 0}}
                     buttonInnerStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
