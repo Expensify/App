@@ -183,9 +183,10 @@ Onyx (since 3.0.46) fires `set`/`multiSet` subscription callbacks **synchronousl
 - **Two carve-outs** still adopt disk: a `null` value (e.g. from `Onyx.clear()`) falls through to the disk-load/re-init path (the guard is gated on `val != null`); and genuinely-new cross-tab requests identified by an unknown `requestID`.
 
 **Sharp edges.**
-- The `PERSISTED_ONGOING_REQUESTS` callback **is guarded against own-write echoes, but differently** from the array: it early-returns when the value's `requestIndex` is in `knownOngoingRequestIDs` (a set fed by `processNextRequest` and `updateOngoingRequest`). It never consults `pendingOnyxWrites`, and two paths are unguarded — a `null` echo and a value with an unknown (or missing) `requestIndex` are adopted unconditionally (see [Open Questions](#open-questions-needs-maintainer-confirmation)). The same callback also fires `triggerInitializationCallback()` (= `flush`) post-init when a new ongoing request appears — a mid-session flush trigger (see [Inbound Consumers](#inbound-consumers-who-calls-the-queue)).
+- The `PERSISTED_ONGOING_REQUESTS` callback **is guarded against own-write echoes, but differently** from the array: it early-returns when the value's `requestIndex` is in `knownOngoingRequestIDs` (a set fed by `processNextRequest` and `updateOngoingRequest`). It never consults `pendingOnyxWrites`; `knownOngoingRequestIDs` is its only own-write guard (the set also catches stale serialized copies a write-counter cannot). Two paths remain adopted unconditionally — a `null` echo and a value with an unknown (or missing) `requestIndex`; whether the set alone is sufficient for those is an [open question](#open-questions-needs-maintainer-confirmation). The same callback also fires `triggerInitializationCallback()` (= `flush`) post-init when a new ongoing request appears — a mid-session flush trigger (see [Inbound Consumers](#inbound-consumers-who-calls-the-queue)).
 - The `pendingOnyxWrites` counter is a hand-rolled ordering mechanism reimplementing a guarantee the data layer doesn't provide. It is correct only as long as every own write is wrapped and increments/decrements stay balanced (`clear()`'s bare ongoing-key write is the one exception — see above).
 - Structural `deepEqual` removal is keyed on object shape, not identity. If a request object is mutated mid-flight by middleware (e.g. optimistic-ID rewriting, a `shouldRetry` flag, `File` stripping on serialization, an added rollback marker), a later `deepEqual` can fail to match the original.
+- `persistWhenOngoing` is a **vestigial field**. It is read only for logging (in `processNextRequest`, `SequentialQueue`, and `RequestsQueuesState`) and is never assigned by any production write path — ongoing-request persistence is unconditional, gated only by `shouldPersistOngoingRequest` (serializability). Every production read resolves to `undefined`; it is safe to remove.
 
 ## Where the request actually hits disk (and where it doesn't)
 
@@ -413,7 +414,7 @@ Three concerns cut across every block.
 **How it works today.** `SaveResponseInOnyx` is the **sole producer** of `shouldPauseQueue`: it sets the flag when the command is not in `requestsToIgnoreLastUpdateID` and `OnyxUpdates.doesClientNeedToBeUpdated` reports a `previousUpdateID` gap, after stashing the update info. `process()` then `pause()`s — the flag flips first, but the just-processed request is still removed and its `queueFlushedData` saved before the recursion early-returns on the pause. The actual gap fetch runs in a **decoupled** `OnyxUpdateManager` flow that fetches the missing range, applies the deferred updates in order, and then calls `unpause()`. Within this concern `pause()` has two inbound callers — `applyOnyxUpdatesReliably` (on detecting a missing-updates fetch) and `DeferredOnyxUpdates` — with `unpause()` called once the gap is filled.
 
 **Sharp edges.**
-- `isQueuePaused` conflates this data-gap pause with the offline pause (see [the state machine](#why-isreadypromise-resolves-on-offline-not-on-paused)).
+- The in-code source comment at the `resolveIsReadyPromise` decision claims `isQueuePaused` is set for offline pauses as well as `shouldPauseQueue` data-gap syncs. That is **inaccurate**: no offline path ever calls `pause()` (its only callers are the `shouldPauseQueue` response, `DeferredOnyxUpdates`, and `applyOnyxUpdatesReliably`); offline is handled entirely by the separate `isOfflineNetwork()` gate. The decision logic itself is correct — it keys on `isOfflineNetwork()` — only the explanatory comment is wrong (see [the state machine](#why-isreadypromise-resolves-on-offline-not-on-paused)).
 - `shouldPauseQueue` rides on the response object, so any middleware registered after `SaveResponseInOnyx` that returned a *new* response object would strip the flag. Today the only later middleware is `FraudMonitoring`, which returns the response unchanged — so the flag survives, but the in-code comment claiming `SaveResponseInOnyx` "must be last" is stale (see [Middleware](#the-middleware-chain-boundary)).
 
 ---
@@ -431,8 +432,8 @@ Three concerns cut across every block.
 
 **Sharp edges.**
 - The chain order is implicit import-time module state; there is no runtime assertion that `SaveResponseInOnyx` is penultimate or that `Reauthentication` precedes it.
-- `SaveResponseInOnyx`'s early-return guard is effectively **dead code**: `onyxUpdates` defaults to `response.onyxData ?? []`, and an empty array is truthy, so `!onyxUpdates` is never true. It does not short-circuit empty responses.
-- The in-code "must be last" comment on `SaveResponseInOnyx` is stale (`FraudMonitoring` follows it).
+- `SaveResponseInOnyx`'s early-return guard has a **dead term**: `onyxUpdates` defaults to `response.onyxData ?? []`, and an empty array is truthy, so the `!onyxUpdates` leg of the guard is never true — a response's empty `onyxData` cannot short-circuit the middleware. The sibling `successData`/`failureData`/`finallyData` legs still fire, so the `if` as a whole is not dead — only its empty-`onyxData` short-circuit is.
+- The in-code "must be last" comment on `SaveResponseInOnyx` is **inaccurate**: `FraudMonitoring` is registered after it. The current order is safe only **incidentally** — `FraudMonitoring` returns the response object unchanged, so the `shouldPauseQueue` flag riding on it survives. The load-bearing invariant is "no middleware after `SaveResponseInOnyx` may mutate or replace the response," not literal lastness; nothing enforces either form.
 
 ---
 
@@ -519,14 +520,10 @@ Defined in `src/CONST/index.ts` under `CONST.NETWORK` (retry/backoff subset rele
 
 # Open Questions (needs maintainer confirmation)
 
-These are intent-ambiguous from the code alone — flagged for a maintainer to ratify or correct, not asserted as fact.
+Two items remain genuinely intent-ambiguous and need a maintainer to ratify, not assert as fact.
 
-1. **`persistWhenOngoing` appears vestigial.** It is read/logged (in `processNextRequest`, `SequentialQueue`, `RequestsQueuesState`) but **never assigned** by any production write-path function (only in test fixtures); production persistence branches on `shouldPersistOngoingRequest`. Is it safe to remove, or is it a reserved hook?
-2. **`SaveResponseInOnyx`'s early-return guard is dead code** (`!onyxUpdates` is never true because `onyxUpdates` defaults to `[]`). Was empty-response short-circuiting intended (i.e. should it test array length), or is the guard genuinely obsolete?
-3. **Silent give-up data loss for non-`OPEN_APP` commands.** After the retry cap, the request is dropped with `failureData` applied and **no modal**. Is this the intended product behavior, or should more commands surface a failure to the user?
-4. **Unguarded paths in the `PERSISTED_ONGOING_REQUESTS` callback.** The callback has an own-write guard (`knownOngoingRequestIDs`) but never consults `pendingOnyxWrites`, and `null` echoes and values with an unknown/missing `requestIndex` are adopted unconditionally — a weaker shield than the array callback's. Are these knowingly-accepted gaps, or should the array callback's full protection be mirrored here?
-5. **The stale "`SaveResponseInOnyx` must be last" comment** vs. `FraudMonitoring` being registered after it. Is `FraudMonitoring`-after-`SaveResponseInOnyx` intentional (relying on it returning the response unchanged), and should the comment + ordering be made enforceable?
-6. **The `isQueuePaused` offline source comment is inaccurate.** The comment at the `resolveIsReadyPromise` decision in `SequentialQueue` states *"isQueuePaused is true for both offline pauses AND shouldPauseQueue (data gap sync)"*, but no offline path ever calls `pause()` — the only callers are the `shouldPauseQueue` response, `DeferredOnyxUpdates`, and `applyOnyxUpdatesReliably`. Offline is handled by the separate `isOfflineNetwork()` gate. Should the comment be corrected to drop the offline claim?
+1. **Silent give-up data loss for non-`OPEN_APP` commands.** After the retry cap, the request is dropped with `failureData` applied and **no modal**. Is this the intended product behavior, or should more commands surface a failure to the user?
+2. **Sufficiency of `knownOngoingRequestIDs` as the sole guard on the `PERSISTED_ONGOING_REQUESTS` callback.** Unlike the array callback, it does not consult `pendingOnyxWrites` — `knownOngoingRequestIDs` is its only own-write guard (see [PersistedRequests](#persistedrequests-the-store)). Two paths are still adopted unconditionally: a `null` echo and a value with an unknown/missing `requestIndex`. Is the set genuinely sufficient for those two paths, or should the array callback's fuller protection be mirrored here?
 
 ---
 
