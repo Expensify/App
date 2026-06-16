@@ -46,6 +46,10 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
     const [foregroundLocationPermissionsGranted, setForegroundLocationPermissionsGranted] = useState<boolean | null>(null);
     // Request foreground location permissions if not granted yet to determine if we can use followUserLocation prop on the map camera
     useFocusEffect(() => {
+        if (isOffline) {
+            return;
+        }
+
         let ignore = false;
         requestForegroundPermissionsAsync().then(({granted}) => {
             if (ignore) {
@@ -98,7 +102,8 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
             }
         }
         prevWaypointsLength.current = currentLength;
-        // eslint-disable-next-line react-hooks/exhaustive-deps - only run when waypoints length changes
+        // only run when waypoints length changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [waypoints?.length]);
 
     useFocusEffect(() => {
