@@ -224,7 +224,7 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('returns HAS_MERGE_HR_COMPLETE_SETUP when merge HR setup is needed', async () => {
+        it('returns HAS_MERGE_HR_SETUP_NEEDED when merge HR setup is needed', async () => {
             await act(async () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: {email: userID},
@@ -251,11 +251,11 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.policyErrorStatus).toBeUndefined();
-            expect(result.current.policyInfoStatus).toBe(CONST.INDICATOR_STATUS.HAS_MERGE_HR_COMPLETE_SETUP);
+            expect(result.current.policyInfoStatus).toBe(CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED);
             expect(result.current.policyIDWithErrors).toBeUndefined();
         });
 
-        it('does not return HAS_MERGE_HR_COMPLETE_SETUP for non-admin users', async () => {
+        it('does not return HAS_MERGE_HR_SETUP_NEEDED for non-admin users', async () => {
             await act(async () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: {email: otherUserID},
@@ -435,7 +435,7 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS);
-            expect(result.current.policyInfoStatus).toBe(CONST.INDICATOR_STATUS.HAS_MERGE_HR_COMPLETE_SETUP);
+            expect(result.current.policyInfoStatus).toBe(CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED);
         });
     });
 

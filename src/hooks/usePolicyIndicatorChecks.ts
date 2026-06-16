@@ -47,7 +47,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     };
 
     const policyInfoChecks: Partial<Record<IndicatorStatus, Policy | undefined>> = {
-        [CONST.INDICATOR_STATUS.HAS_MERGE_HR_COMPLETE_SETUP]: cleanPolicies.find((policy) => isPolicyAdmin(policy) && isMergeHRCompleteSetupNeeded(policy)),
+        [CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED]: cleanPolicies.find((policy) => isPolicyAdmin(policy) && isMergeHRCompleteSetupNeeded(policy)),
     };
 
     const domainChecks: Partial<Record<IndicatorStatus, boolean>> = {

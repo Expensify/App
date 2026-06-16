@@ -49,10 +49,10 @@ const TEST_CASES = {
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR,
     },
-    hasMergeHRCompleteSetup: {
-        name: 'has Merge HR complete setup needed',
+    hasMergeHRSetupNeeded: {
+        name: 'has Merge HR setup needed',
         indicatorColor: defaultTheme.success,
-        status: CONST.INDICATOR_STATUS.HAS_MERGE_HR_COMPLETE_SETUP,
+        status: CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED,
         policyIDWithErrors: undefined,
     },
 } as const satisfies Record<string, IndicatorTestCase>;
@@ -107,7 +107,7 @@ const getMockForTestCase = ({name}: IndicatorTestCase) =>
                           },
                       }
                     : {}),
-                ...(name === TEST_CASES.hasMergeHRCompleteSetup.name
+                ...(name === TEST_CASES.hasMergeHRSetupNeeded.name
                     ? {
                           [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
                               config: {integration: 'workday'},
