@@ -335,6 +335,7 @@ function getIOUReportActionWithBadge(
     currentUserLogin: string,
     currentUserAccountID: number,
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
+    allReports?: OnyxCollection<OnyxTypes.Report>,
 ): {reportAction: OnyxEntry<ReportAction>; actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>} {
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
     let earliestAction: ReportAction | undefined;
@@ -343,7 +344,9 @@ function getIOUReportActionWithBadge(
         if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
             continue;
         }
-        const iouReport = getReportOrDraftReport(action.childReportID);
+        // Prefer the report from the fresh `allReports` snapshot (when supplied by the reportAttributes derived value)
+        // over the module-level Onyx cache, which can be stale mid-recompute and surface a deleted report's badge.
+        const iouReport = getReportOrDraftReport(action.childReportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`]);
 
         // A report deleted offline still lives in Onyx (pendingFields.preview === DELETE) until the queue flushes,
         // so skip it here — otherwise its preview keeps surfacing a stale "Mark as done"/action badge in the LHN.
