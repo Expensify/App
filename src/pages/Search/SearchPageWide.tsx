@@ -8,7 +8,7 @@ import {useSearchSidebarContentOffsetStyle} from '@components/Navigation/SearchS
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
 import SearchPageHeaderWide from '@components/Search/SearchPageHeader/SearchPageHeaderWide';
@@ -59,12 +59,15 @@ function SearchPageWide({
     const {isOffline} = useNetwork();
     const {shouldUseLiveData} = useSearchResultsContext();
     const {currentSearchKey} = useSearchQueryContext();
+    const {hasSelectedTransactions} = useSearchSelectionContext();
 
-    // Selection-independent footer reservation for the offline-indicator offset. The footer itself
-    // (SearchSelectionFooter) decides its own visibility from the live selection; reading selection here too
-    // would re-render the whole wide layout (and the <Search> list) on every checkbox press.
+    // The offline-indicator offset must track the footer's real visibility. SearchSelectionFooter shows on a
+    // selection even when server totals are absent (e.g. expense-report searches), so a totals-only check leaves
+    // the indicator unreserved and it drops onto its own line. Reading `hasSelectedTransactions` re-renders only
+    // this component on selection changes (its memoized JSX keeps the <Search> subtree from re-rendering;
+    // verified via profiling), so the heavy list is unaffected.
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
-    const shouldReserveFooterSpace = shouldAllowFooterTotals && !!searchResults?.search?.count;
+    const shouldReserveFooterSpace = hasSelectedTransactions || (shouldAllowFooterTotals && !!searchResults?.search?.count);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);
 
