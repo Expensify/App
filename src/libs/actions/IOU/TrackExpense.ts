@@ -962,7 +962,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         );
     }
 
-    // Check if the report is a draft. Prefer the caller-supplied flag to avoid an extra Onyx lookup.
+    // Check if the report is a draft
     const isDraftReportLocal = isDraftChatReport ?? isDraftReport(chatReport?.reportID);
 
     let createdWorkspaceParams: CreateWorkspaceParams | undefined;

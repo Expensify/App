@@ -2721,13 +2721,6 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
     return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
-function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isDraftReportParam: boolean): boolean {
-    if (isDraftReportParam) {
-        return false;
-    }
-    return isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
-}
-
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
     if (!(isMoneyRequestReport(moneyRequestReport) || isInvoiceReport(moneyRequestReport)) || isReportArchived) {
         return false;
@@ -13055,7 +13048,6 @@ export {
     canAccessReport,
     isReportNotFound,
     canAddTransaction,
-    isReportIneligibleForMoveExpenses,
     canDeleteTransaction,
     canBeAutoReimbursed,
     canCreateRequest,
