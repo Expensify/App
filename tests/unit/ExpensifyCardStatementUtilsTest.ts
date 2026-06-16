@@ -65,6 +65,8 @@ function makeSettlementSelection(groupKey: string, selectedTransactionCount: num
 }
 
 function makeSearchData(groups: Record<string, SearchWithdrawalIDGroup>): SearchResultDataType {
+    // The util only reads the group_-prefixed entries, so a record of those is a sufficient fixture.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return groups as unknown as SearchResultDataType;
 }
 
@@ -75,7 +77,7 @@ function makeSettlementGroup(overrides: Partial<SearchWithdrawalIDGroup> = {}): 
         total: 1000,
         currency: 'USD',
         accountNumber: '1234',
-        bankName: 'American Express' as SearchWithdrawalIDGroup['bankName'],
+        bankName: CONST.BANK_NAMES.AMERICAN_EXPRESS,
         debitPosted: '2026-05-31',
         state: 8,
         policyID: 'policy1',
@@ -91,8 +93,9 @@ describe('ExpensifyCardStatementUtils', () => {
     });
 
     it('returns undefined when no selected transaction maps to a settlement group', () => {
+        // A plain transaction key (not group_-prefixed) can't resolve to a settlement.
         const selectedTransactions: SelectedTransactions = {
-            '123': makeSelectedTransaction(),
+            txn123: makeSelectedTransaction(),
         };
 
         expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, {})).toBeUndefined();

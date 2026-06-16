@@ -10,7 +10,7 @@ import {getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUt
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
-import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+import type {SearchResultDataType, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
 jest.mock('@libs/actions/Report', () => ({
@@ -182,9 +182,11 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
     };
 }
 
-function makeCurrentSearchResults(data: SearchResultDataType): SearchResults {
+function makeCurrentSearchResults(groups: Record<string, SearchWithdrawalIDGroup>): SearchResults {
     return {
-        data,
+        // The hook only reads the group_-prefixed entries, so a record of those is a sufficient fixture.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        data: groups as unknown as SearchResultDataType,
         search: {
             offset: 0,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -403,7 +405,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 policyID: 'policy1',
                 feedCountry: 'US',
             },
-        } as unknown as SearchResultDataType);
+        });
 
         expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, mockSelectedTransactions, mockCurrentSearchResults?.data)).toBeDefined();
 
@@ -433,7 +435,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 policyID: 'policy1',
                 feedCountry: 'US',
             },
-        } as unknown as SearchResultDataType);
+        });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
@@ -470,7 +472,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 policyID: 'policy1',
                 feedCountry: 'US',
             },
-        } as unknown as SearchResultDataType);
+        });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
@@ -523,7 +525,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 policyID: 'policy2',
                 feedCountry: 'US',
             },
-        } as unknown as SearchResultDataType);
+        });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
@@ -556,7 +558,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 debitPosted: '2026-05-31',
                 state: 8,
             },
-        } as unknown as SearchResultDataType);
+        });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
@@ -600,7 +602,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 policyID: 'policy1',
                 feedCountry: 'US',
             },
-        } as unknown as SearchResultDataType);
+        });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
@@ -657,7 +659,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 policyID: 'policy1',
                 feedCountry: 'US',
             },
-        } as unknown as SearchResultDataType);
+        });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
