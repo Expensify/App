@@ -41,6 +41,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
     IntroSelected,
+    LastSelectedDistanceRates,
     Policy,
     PolicyCategories,
     PolicyTagLists,
@@ -190,6 +191,7 @@ type GetIouParamsInput = {
 type TransactionInlineEditParams = GetIouParamsInput & {
     hash: number | undefined;
     isOffline: boolean;
+    lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
 };
 
 /**
@@ -294,6 +296,7 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
         transactionViolations: allTransactionViolations,
         isOffline: params.isOffline,
         hash: params.hash,
+        lastSelectedDistanceRates: params.lastSelectedDistanceRates,
     });
 }
 

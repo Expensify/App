@@ -15,6 +15,8 @@ import {
     updateMoneyRequestTag,
 } from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
@@ -1732,6 +1734,119 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // Then the raw caller value flows into the API params instead of the rounded display value (5.56).
             expect(params.distance).toBe(5.555);
+        });
+    });
+
+    describe('updateMoneyRequestDate distance rate recalculation', () => {
+        it('calls UpdateMoneyRequestDistanceRate with created when a workspace distance expense date change selects a different rate', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => {});
+            const transactionID = 'distance_date_recalc';
+            const transactionThreadReportID = 'thread_date_recalc';
+            const expenseReportID = 'expense_report_date_recalc';
+            const policyID = 'policy_date_recalc';
+            const rate2025 = 'rate_2025';
+            const rate2026 = 'rate_2026';
+
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: expenseReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+            };
+            const transactionThread: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: expenseReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: expenseReportID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-06-15',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 10,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        customUnitRateID: rate2025,
+                    },
+                },
+            };
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                customUnits: {
+                    unitId: {
+                        attributes: {unit: 'mi'},
+                        customUnitID: 'unitId',
+                        defaultCategory: 'Car',
+                        enabled: true,
+                        name: 'Distance',
+                        rates: {
+                            [rate2025]: {
+                                currency: 'USD',
+                                customUnitRateID: rate2025,
+                                enabled: true,
+                                name: '2025 mileage',
+                                rate: 65.5,
+                                startDate: '2025-01-01',
+                                endDate: '2025-12-31',
+                            },
+                            [rate2026]: {
+                                currency: 'USD',
+                                customUnitRateID: rate2026,
+                                enabled: true,
+                                name: '2026 mileage',
+                                rate: 70,
+                                startDate: '2026-01-01',
+                                endDate: '2026-12-31',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThread);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await waitForBatchedUpdates();
+
+            updateMoneyRequestDate({
+                transactionID,
+                transactionThreadReport: transactionThread,
+                parentReport: expenseReport,
+                transactions: {},
+                transactionViolations: {},
+                value: '2026-06-15',
+                policy,
+                policyTags: {},
+                policyCategories: {},
+                currentUserAccountIDParam: 1,
+                currentUserEmailParam: 'test@test.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+                isOffline: false,
+                delegateAccountID: undefined,
+            });
+
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
+                expect.objectContaining({
+                    transactionID,
+                    customUnitRateID: rate2026,
+                    created: '2026-06-15',
+                }),
+                expect.anything(),
+            );
+
+            writeSpy.mockRestore();
         });
     });
 });

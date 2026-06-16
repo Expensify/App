@@ -5,11 +5,12 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
-import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, hasDependentTags, isGroupPolicy, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticModifiedExpenseReportAction,
@@ -26,9 +27,13 @@ import {
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {
+    calculateTaxAmount,
     getAmount,
     getClearedPendingFields,
+    getDefaultTaxCode,
+    getDistanceInMeters,
     getMerchant,
+    getTaxValue,
     getUpdatedTransaction,
     hasSubmissionBlockingViolationInReport,
     haveWaypointAddressesChanged,
@@ -45,12 +50,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type LastSelectedDistanceRates from '@src/types/onyx/LastSelectedDistanceRates';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {Routes, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllReports, getAllTransactions, getAllTransactionViolations, getPolicyTagsData, getRecentAttendees} from '.';
+import {setLastSelectedDistanceRate} from './MoneyRequest';
 import {getUpdatedMoneyRequestReportData, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
 
 type UpdateMoneyRequestData<TKey extends OnyxKey> = {
@@ -75,6 +82,7 @@ type UpdateMoneyRequestDateParams = {
     isOffline: boolean;
     hash?: number;
     delegateAccountID: number | undefined;
+    lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
 };
 
 type SearchSnapshotOnyxData = {
@@ -142,6 +150,81 @@ function getSearchSnapshotUpdates({
     };
 }
 
+type DistanceRateTaxUpdates = {
+    updatedTaxAmount?: number;
+    updatedTaxCode?: string;
+    updatedTaxValue?: string;
+};
+
+function getDistanceRateTaxUpdatesForTransaction({
+    policy,
+    transaction,
+    customUnitRateID,
+}: {
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    customUnitRateID: string;
+}): DistanceRateTaxUpdates {
+    if (!isTaxTrackingEnabled(true, policy, true) || !transaction) {
+        return {};
+    }
+
+    const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
+    const taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID ?? defaultTaxCode;
+    const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, transaction.comment?.customUnit?.distanceUnit));
+    const taxValue = taxRateExternalID ? getTaxValue(policy, transaction, taxRateExternalID) : undefined;
+    const mileageRates = DistanceRequestUtils.getMileageRates(policy);
+    const rateCurrency = mileageRates[customUnitRateID]?.currency ?? transaction.currency;
+    const updatedTaxAmount = convertToBackendAmount(calculateTaxAmount(taxValue, taxableAmount, getCurrencyDecimals(rateCurrency)));
+
+    return {
+        updatedTaxAmount,
+        updatedTaxCode: taxRateExternalID,
+        updatedTaxValue: taxValue,
+    };
+}
+
+function getRecalculatedWorkspaceDistanceRateIDForExpenseDate({
+    transaction,
+    transactionThreadReport,
+    parentReport,
+    policy,
+    expenseDate,
+    lastSelectedDistanceRates,
+}: {
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    expenseDate: string;
+    lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
+}): string | undefined {
+    if (!transaction || !policy || !isGroupPolicy(policy) || !isDistanceRequestTransactionUtils(transaction)) {
+        return undefined;
+    }
+
+    const currentRateID = transaction.comment?.customUnit?.customUnitRateID;
+    if (!currentRateID || currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+        return undefined;
+    }
+
+    const reportID = parentReport?.reportID ?? transactionThreadReport?.reportID ?? transaction.reportID;
+    const newRateID = DistanceRequestUtils.getCustomUnitRateID({
+        reportID,
+        isPolicyExpenseChat: true,
+        policy,
+        lastSelectedDistanceRates,
+        expenseDate,
+    });
+
+    if (newRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+        return undefined;
+    }
+
+    return newRateID;
+}
+
 /** Updates the created date of an expense */
 function updateMoneyRequestDate({
     transactionID,
@@ -160,7 +243,44 @@ function updateMoneyRequestDate({
     isOffline,
     hash,
     delegateAccountID,
+    lastSelectedDistanceRates,
 }: UpdateMoneyRequestDateParams) {
+    const transaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const newRateID = getRecalculatedWorkspaceDistanceRateIDForExpenseDate({
+        transaction,
+        transactionThreadReport,
+        parentReport,
+        policy,
+        expenseDate: value,
+        lastSelectedDistanceRates,
+    });
+    const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+
+    if (newRateID && newRateID !== currentRateID && transaction && policy) {
+        setLastSelectedDistanceRate(policy, newRateID);
+        const taxUpdates = getDistanceRateTaxUpdatesForTransaction({policy, transaction, customUnitRateID: newRateID});
+        updateMoneyRequestDistanceRate({
+            transaction,
+            transactionThreadReport,
+            parentReport,
+            rateID: newRateID,
+            created: value,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+            parentReportNextStep,
+            delegateAccountID,
+            hash,
+            transactions,
+            transactionViolations,
+            ...taxUpdates,
+        });
+        return;
+    }
+
     const transactionChanges: TransactionChanges = {
         created: value,
     };
@@ -1032,6 +1152,7 @@ function updateMoneyRequestDistanceRate({
     transactionThreadReport,
     parentReport,
     rateID,
+    created,
     policy,
     policyTagList,
     policyCategories,
@@ -1043,11 +1164,15 @@ function updateMoneyRequestDistanceRate({
     updatedTaxValue,
     parentReportNextStep,
     delegateAccountID,
+    hash,
+    transactions,
+    transactionViolations,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     rateID: string;
+    created?: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -1059,9 +1184,13 @@ function updateMoneyRequestDistanceRate({
     updatedTaxValue?: string;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     delegateAccountID: number | undefined;
+    hash?: number;
+    transactions?: OnyxCollection<OnyxTypes.Transaction>;
+    transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
+        ...(created ? {created} : {}),
         ...(typeof updatedTaxAmount === 'number' ? {taxAmount: updatedTaxAmount} : {}),
         ...(updatedTaxCode ? {taxCode: updatedTaxCode} : {}),
         ...(updatedTaxValue ? {taxValue: updatedTaxValue} : {}),
@@ -1083,7 +1212,7 @@ function updateMoneyRequestDistanceRate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID);
+        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
@@ -1099,8 +1228,12 @@ function updateMoneyRequestDistanceRate({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
+            hash,
             delegateAccountID,
         });
+        if (created && transaction?.transactionID && transactions && transactionViolations) {
+            removeTransactionFromDuplicateTransactionViolation(data.onyxData, transaction.transactionID, transactions, transactionViolations);
+        }
     }
     const {params, onyxData} = data;
     // `taxAmount` & `taxCode` only needs to be updated in the optimistic data, so we need to remove them from the params
