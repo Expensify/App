@@ -15,15 +15,9 @@ type SingleSelectItem<T> = {
     searchableText?: string;
 };
 
-type SingleSelectProps<T> = SearchFilterCommonProps & {
+type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefined> & {
     /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
-
-    /** The currently selected item */
-    value: SingleSelectItem<T> | undefined;
-
-    /** Function to call when changes are applied */
-    onChange: (item: SingleSelectItem<T> | undefined) => void;
 
     /** Whether the search input should be displayed */
     isSearchable?: boolean;

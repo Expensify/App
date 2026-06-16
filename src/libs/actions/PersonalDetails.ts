@@ -7,11 +7,9 @@ import type {
     OpenPublicProfilePageParams,
     SetPersonalDetailsAndShipExpensifyCardsParams,
     UpdateAutomaticTimezoneParams,
-    UpdateDateOfBirthParams,
     UpdateDisplayNameParams,
     UpdateHomeAddressParams,
     UpdateLegalNameParams,
-    UpdatePhoneNumberParams,
     UpdatePrivatePersonalDetailsParams,
     UpdatePronounsParams,
     UpdateSelectedTimezoneParams,
@@ -29,7 +27,6 @@ import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {DateOfBirthForm} from '@src/types/form';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails, SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
@@ -181,62 +178,6 @@ function updateLegalName(
         optimisticData,
     });
     Navigation.goBack();
-}
-
-/**
- * @param dob - date of birth
- */
-function updateDateOfBirth({dob}: DateOfBirthForm) {
-    const parameters: UpdateDateOfBirthParams = {dob};
-
-    API.write(WRITE_COMMANDS.UPDATE_DATE_OF_BIRTH, parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    dob,
-                },
-            },
-        ],
-    });
-
-    Navigation.goBack();
-}
-
-function updatePhoneNumber(phoneNumber: string, currentPhoneNumber: string) {
-    const parameters: UpdatePhoneNumberParams = {phoneNumber};
-    API.write(WRITE_COMMANDS.UPDATE_PHONE_NUMBER, parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    phoneNumber,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    phoneNumber: currentPhoneNumber,
-                    errorFields: {
-                        phoneNumber: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('privatePersonalDetails.error.invalidPhoneNumber'),
-                    },
-                },
-            },
-        ],
-    });
-}
-
-function clearPhoneNumberError() {
-    Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
-        errorFields: {
-            phoneNumber: null,
-        },
-    });
 }
 
 function updateAddress(addresses: Address[], street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
@@ -600,12 +541,9 @@ export {
     updateAddress,
     updateAutomaticTimezone,
     updateAvatar,
-    updateDateOfBirth,
     setDisplayName,
     updateDisplayName,
     updateLegalName,
-    updatePhoneNumber,
-    clearPhoneNumberError,
     updatePronouns,
     updateSelectedTimezone,
     updatePrivatePersonalDetails,
