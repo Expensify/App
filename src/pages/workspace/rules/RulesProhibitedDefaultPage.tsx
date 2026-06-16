@@ -1,5 +1,7 @@
-import React from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,11 +16,36 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {setPolicyProhibitedExpense} from '@userActions/Policy/Policy';
+import {setPolicyProhibitedExpense, setPolicyProhibitedExpenses} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {ProhibitedExpenses} from '@src/types/onyx/Policy';
 
 type ProhibitedExpensesProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT>;
+
+type ProhibitedExpenseKey = ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>;
+
+const PROHIBITED_EXPENSE_KEYS = Object.values(CONST.POLICY.PROHIBITED_EXPENSES);
+
+function getProhibitedExpensesState(prohibitedExpenses?: ProhibitedExpenses): Record<ProhibitedExpenseKey, boolean> {
+    const state: Record<ProhibitedExpenseKey, boolean> = {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES};
+
+    for (const key of PROHIBITED_EXPENSE_KEYS) {
+        state[key] = prohibitedExpenses?.[key] ?? false;
+    }
+
+    return state;
+}
+
+function buildProhibitedExpensesToSave(draftProhibitedExpenses: Record<ProhibitedExpenseKey, boolean>): ProhibitedExpenses {
+    const prohibitedExpensesToSave: ProhibitedExpenses = {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES};
+
+    for (const key of PROHIBITED_EXPENSE_KEYS) {
+        prohibitedExpensesToSave[key] = draftProhibitedExpenses[key];
+    }
+
+    return prohibitedExpensesToSave;
+}
 
 function RulesProhibitedDefaultPage({
     route: {
@@ -31,6 +58,33 @@ function RulesProhibitedDefaultPage({
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+
+    const initialProhibitedExpenses = useMemo(() => getProhibitedExpensesState(policy?.prohibitedExpenses), [policy?.prohibitedExpenses]);
+    const [draftProhibitedExpenses, setDraftProhibitedExpenses] = useState(initialProhibitedExpenses);
+
+    const hasChanges = useMemo(
+        () => PROHIBITED_EXPENSE_KEYS.some((key) => draftProhibitedExpenses[key] !== initialProhibitedExpenses[key]),
+        [draftProhibitedExpenses, initialProhibitedExpenses],
+    );
+
+    const handleSave = useCallback(() => {
+        if (!hasChanges) {
+            Navigation.goBack();
+            return;
+        }
+
+        const prohibitedExpensesToSave = buildProhibitedExpensesToSave(draftProhibitedExpenses);
+
+        setPolicyProhibitedExpenses(policyID, prohibitedExpensesToSave, policy?.prohibitedExpenses);
+        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+    }, [draftProhibitedExpenses, hasChanges, policy?.prohibitedExpenses, policyID]);
+
+    const handleToggle = useCallback((prohibitedExpense: ProhibitedExpenseKey) => {
+        setDraftProhibitedExpenses((previousProhibitedExpenses) => ({
+            ...previousProhibitedExpenses,
+            [prohibitedExpense]: !previousProhibitedExpenses[prohibitedExpense],
+        }));
+    }, []);
 
     return (
         <AccessOrNotFoundWrapper
@@ -47,17 +101,18 @@ function RulesProhibitedDefaultPage({
                     title={translate(isRevamp ? 'workspace.rules.generalTab.flagReceiptLineItems' : 'workspace.rules.individualExpenseRules.prohibitedExpenses')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <ScrollView addBottomSafeAreaPadding>
-                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>
+                <ScrollView
+                    style={isRevamp ? [styles.flexGrow1] : undefined}
+                    contentContainerStyle={isRevamp ? [styles.ph5, styles.pb5] : undefined}
+                    addBottomSafeAreaPadding
+                >
+                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, isRevamp ? undefined : styles.mh5, styles.mb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.prohibitedDefaultDescription')}</Text>
                     </Text>
 
-                    {Object.values(CONST.POLICY.PROHIBITED_EXPENSES).map((prohibitedExpense) => (
-                        <OfflineWithFeedback
-                            pendingAction={policy?.prohibitedExpenses?.pendingFields?.[prohibitedExpense]}
-                            key={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
-                        >
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mh5, styles.mb5]}>
+                    {PROHIBITED_EXPENSE_KEYS.map((prohibitedExpense) => {
+                        const switchComponent = (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, isRevamp ? undefined : styles.mh5, styles.mb5]}>
                                 <Text
                                     style={[styles.flex1, styles.mr2]}
                                     accessible={false}
@@ -66,16 +121,44 @@ function RulesProhibitedDefaultPage({
                                     {translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
                                 </Text>
                                 <Switch
-                                    isOn={policy?.prohibitedExpenses?.[prohibitedExpense] ?? false}
+                                    isOn={isRevamp ? draftProhibitedExpenses[prohibitedExpense] : (policy?.prohibitedExpenses?.[prohibitedExpense] ?? false)}
                                     accessibilityLabel={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
                                     onToggle={() => {
+                                        if (isRevamp) {
+                                            handleToggle(prohibitedExpense);
+                                            return;
+                                        }
                                         setPolicyProhibitedExpense(policyID, prohibitedExpense, policy?.prohibitedExpenses);
                                     }}
                                 />
                             </View>
-                        </OfflineWithFeedback>
-                    ))}
+                        );
+
+                        if (isRevamp) {
+                            return <View key={prohibitedExpense}>{switchComponent}</View>;
+                        }
+
+                        return (
+                            <OfflineWithFeedback
+                                pendingAction={policy?.prohibitedExpenses?.pendingFields?.[prohibitedExpense]}
+                                key={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
+                            >
+                                {switchComponent}
+                            </OfflineWithFeedback>
+                        );
+                    })}
                 </ScrollView>
+                {isRevamp && (
+                    <View style={[styles.ph5, styles.pb5]}>
+                        <Button
+                            success
+                            large
+                            text={translate('common.save')}
+                            onPress={handleSave}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_RECEIPT_LINE_ITEMS_SAVE}
+                        />
+                    </View>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
