@@ -19,7 +19,7 @@ const DEFAULT_CONTEXT: MultifactorAuthenticationState = DEFAULT_STATE;
  * No state is `final`: one long-lived actor serves every MFA flow (a top-level final state would
  * stop it).
  */
-const mfaMachine = setup({
+const MFAMachine = setup({
     // `{} as T` inside setup({types}) is XState v5's documented typing idiom (the values are erased
     // at runtime and only carry types); there is no assertion-free way to express it.
     /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
@@ -114,4 +114,4 @@ const mfaMachine = setup({
     },
 });
 
-export default mfaMachine;
+export default MFAMachine;

@@ -6,7 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
-import {mfaMachine, snapshotToState} from '@components/MultifactorAuthentication/machine';
+import {MFAMachine, snapshotToState} from '@components/MultifactorAuthentication/machine';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
@@ -33,7 +33,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const platform = getPlatform();
     const biometrics = useBiometrics();
 
-    const [snapshot, send] = useMachine(mfaMachine);
+    const [snapshot, send] = useMachine(MFAMachine);
     const state = snapshotToState(snapshot);
 
     useEffect(() => {
