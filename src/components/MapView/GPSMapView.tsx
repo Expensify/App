@@ -261,16 +261,6 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
             </View>
         </View>
     ) : (
-        <GPSPendingMapView />
-    );
-}
-
-function GPSPendingMapView() {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
-
-    return (
         <PendingMapView
             title={translate('distance.mapPending.title')}
             subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
