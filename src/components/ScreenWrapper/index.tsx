@@ -1,7 +1,8 @@
 import {NavigationRouteContext, useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
+import type {Route} from '@react-navigation/native';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import type {ReactNode} from 'react';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, Keyboard} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
@@ -38,6 +39,8 @@ import ScreenWrapperOfflineIndicatorContext from './ScreenWrapperOfflineIndicato
 import type {ScreenWrapperOfflineIndicatorsProps} from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperOfflineIndicators from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperStatusContext from './ScreenWrapperStatusContext';
+
+const FallbackRouteContext = createContext<Route<string> | undefined>(undefined);
 
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
@@ -197,7 +200,8 @@ function ScreenWrapper({
     // usePreventRemove calls e.preventDefault() unconditionally whenever the guard is active, so guarding these instances would consume the
     // MFA navigator's own stack actions (e.g. replacing the magic-code page with the Face ID prompt, or popping the outcome screen on close),
     // blocking transitions within the flow. Guard only the outer NewDot ScreenWrapper, never the ScreenWrappers inside the MFA overlay.
-    const route = useContext(NavigationRouteContext);
+    // NavigationRouteContext is undefined when tests mock @react-navigation/native without re-exporting it, so fall back to a noop context to keep useContext valid.
+    const route = useContext(NavigationRouteContext ?? FallbackRouteContext);
     const isMfaOverlayScreen = !!route && MFA_OVERLAY_SCREENS.has(route.name);
 
     usePreventRemove(isSingleNewDotEntry && doesInitialURLMatchActiveRoute && !shouldBlockSingleEntryOldAppExit && !isMfaOverlayScreen, () => {
