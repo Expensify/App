@@ -2,6 +2,8 @@ import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import {useEffect} from 'react';
+import AccountUtils from '@libs/AccountUtils';
+import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -85,6 +87,19 @@ function useOnboardingFlowRouter() {
                     return;
                 }
 
+                // Pause the onboarding redirect while the required-2FA overlay is active. The user must complete
+                // required 2FA setup first; auto-resetting to onboarding on every transition fights the 2FA wizard,
+                // corrupts its dynamic base route, and flashes the overlay. Once 2FA finishes, the success page clears
+                // twoFactorAuthSetupInProgress and explicitly starts onboarding.
+                if (AccountUtils.shouldShowRequire2FAPage(account, !!isOnboardingCompleted)) {
+                    Log.info('[Require2FA] Pausing onboarding redirect during required 2FA setup', false, {
+                        requiresTwoFactorAuth: account?.requiresTwoFactorAuth,
+                        needsTwoFactorAuthSetup: account?.needsTwoFactorAuthSetup,
+                        twoFactorAuthSetupInProgress: account?.twoFactorAuthSetupInProgress,
+                    });
+                    return;
+                }
+
                 // Explicitly start the onboarding flow when onboarding is not completed.
                 // We use startOnboardingFlow (which calls resetRoot) instead of Navigation.navigate because
                 // navigate goes through the router where OnboardingGuard would block the navigation.
@@ -125,6 +140,9 @@ function useOnboardingFlowRouter() {
         account?.isFromPublicDomain,
         account?.hasAccessibleDomainPolicies,
         account?.validated,
+        account?.requiresTwoFactorAuth,
+        account?.needsTwoFactorAuthSetup,
+        account?.twoFactorAuthSetupInProgress,
         onboardingCompanySize,
         onboardingPurposeSelected,
         onboardingInitialPath,

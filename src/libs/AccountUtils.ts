@@ -21,6 +21,21 @@ function isDelegateOnlySubmitter(account: OnyxEntry<Account>): boolean {
  *
  * @return true if the user has extended access, false otherwise
  */
+/**
+ * Whether the required-2FA overlay should be shown for the current account state.
+ */
+function shouldShowRequire2FAPage(account: OnyxEntry<Account>, hasCompletedGuidedSetupFlow: boolean): boolean {
+    return (!!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth) || (!!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlow);
+}
+
+/**
+ * Whether the user is in the forced 2FA setup flow during incomplete onboarding
+ * (domain-migration / required-2FA-before-onboarding scenario).
+ */
+function isForced2FAOnboardingSetup(account: OnyxEntry<Account>, hasCompletedGuidedSetupFlow: boolean): boolean {
+    return !!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlow;
+}
+
 function hasValidateCodeExtendedAccess(account: OnyxEntry<Account>): boolean {
     const extendedAccessTimestamp = account?.validateCodeExtendedAccessExpires;
     if (extendedAccessTimestamp) {
@@ -34,4 +49,4 @@ function hasValidateCodeExtendedAccess(account: OnyxEntry<Account>): boolean {
     return false;
 }
 
-export default {isValidateCodeFormSubmitting, isDelegateOnlySubmitter, hasValidateCodeExtendedAccess};
+export default {isValidateCodeFormSubmitting, isDelegateOnlySubmitter, shouldShowRequire2FAPage, isForced2FAOnboardingSetup, hasValidateCodeExtendedAccess};

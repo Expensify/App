@@ -16,9 +16,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import AccountUtils from '@libs/AccountUtils';
 import Clipboard from '@libs/Clipboard';
 import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -27,6 +29,7 @@ import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuth
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
@@ -55,9 +58,12 @@ function DynamicTwoFactorAuthPage() {
     };
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
 
     const isUserValidated = account?.validated ?? false;
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
+    const isForcedOnboardingSetup = AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow);
+    const effectiveIs2FAEnabled = is2FAEnabled && !isForcedOnboardingSetup;
     const accountLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'DynamicTwoFactorAuthPage', isLoading: !!account?.isLoading};
 
     const recoveryCodes = account?.recoveryCodes;
@@ -70,14 +76,21 @@ function DynamicTwoFactorAuthPage() {
             return;
         }
 
-        if (isFocused && is2FAEnabled) {
+        if (isFocused && effectiveIs2FAEnabled) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
             });
             return;
         }
 
-        if (isLoadingOnyxValue(accountMetadata) || is2FAEnabled || account?.recoveryCodes || !isUserValidated) {
+        if (isFocused && is2FAEnabled && isForcedOnboardingSetup) {
+            Log.info('[Require2FA] Skipping enabled-page bounce during forced onboarding setup', false, {
+                requiresTwoFactorAuth: account?.requiresTwoFactorAuth,
+                twoFactorAuthSetupInProgress: account?.twoFactorAuthSetupInProgress,
+            });
+        }
+
+        if (isLoadingOnyxValue(accountMetadata) || effectiveIs2FAEnabled || account?.recoveryCodes || !isUserValidated) {
             return;
         }
 
@@ -87,7 +100,7 @@ function DynamicTwoFactorAuthPage() {
 
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled]);
+    }, [isUserValidated, accountMetadata.status, isFocused, effectiveIs2FAEnabled]);
 
     return (
         <TwoFactorAuthWrapper

@@ -4,7 +4,9 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useDynamicForwardPath from '@hooks/useDynamicForwardPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
+import AccountUtils from '@libs/AccountUtils';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
+import Log from '@libs/Log';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -14,10 +16,12 @@ import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openLink} from '@userActions/Link';
 import {clearTwoFactorAuthData, quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
+import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SuccessPageBase from './SuccessPageBase';
 
@@ -34,9 +38,16 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const isSecuritySettingsFlow = focusedRoute?.name === SCREENS.SETTINGS.SECURITY;
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
+    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
+    const isForced2FAOnboardingSetup = AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow);
 
     const goBack = () => {
         if (isUSDBankAccountFlow) {
@@ -58,6 +69,28 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const onButtonPress = () => {
         if (CONFIG.IS_HYBRID_APP && isClassicRedirectDismissed && !isClassicRedirectBlocked) {
             closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
+            return;
+        }
+        if (isForced2FAOnboardingSetup) {
+            Log.info('[Require2FA] Completing forced onboarding 2FA setup, dismissing 2FA modal before onboarding', false, {
+                requiresTwoFactorAuth: account?.requiresTwoFactorAuth,
+                twoFactorAuthSetupInProgress: account?.twoFactorAuthSetupInProgress,
+            });
+            clearTwoFactorAuthData(true);
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
+                afterTransition: () => {
+                    startOnboardingFlow({
+                        onboardingValuesParam: onboardingValues ?? undefined,
+                        isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                        hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                        currentOnboardingCompanySize: onboardingCompanySize,
+                        currentOnboardingPurposeSelected: onboardingPurposeSelected,
+                        onboardingInitialPath,
+                        onboardingValues,
+                        isAccountValidated: !!account?.validated,
+                    });
+                },
+            });
             return;
         }
         // For the Settings > Security entry, keep the 2FA RHP open on the Enabled page instead of dismissing it

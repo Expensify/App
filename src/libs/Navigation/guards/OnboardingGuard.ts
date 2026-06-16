@@ -5,9 +5,11 @@ import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedTo
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import AccountUtils from '@libs/AccountUtils';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -15,6 +17,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Account, Onboarding} from '@src/types/onyx';
 import type {GuardResult, NavigationGuard} from './types';
 
@@ -114,6 +117,33 @@ function getOnboardingRoute(): Route {
     }) as Route;
 }
 
+function getShouldShowRequire2FAPage(): boolean {
+    return AccountUtils.shouldShowRequire2FAPage(account, hasCompletedGuidedSetupFlowSelector(onboarding) ?? false);
+}
+
+function isTwoFactorSetupRouteName(screenName: string | undefined): boolean {
+    return isTwoFactorSetupScreen(screenName) || screenName === SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH;
+}
+
+function isTargetTwoFactorSetupRoute(action: NavigationAction): boolean {
+    if (!action.payload) {
+        return false;
+    }
+
+    // Use getDeepestFocusedScreen (not findFocusedRoute) because action payloads for NAVIGATE/PUSH are not full
+    // NavigationStates (they have no `routes` array) and would crash findFocusedRoute. getDeepestFocusedScreen safely
+    // handles state-with-routes, nested state, and the NAVIGATE `params.screen` shape.
+    const screenName = getDeepestFocusedScreen(action.payload as Parameters<typeof getDeepestFocusedScreen>[0])?.name;
+
+    return isTwoFactorSetupRouteName(screenName);
+}
+
+function isCurrentlyOnTwoFactorSetupRoute(state: NavigationState): boolean {
+    const screenName = getDeepestFocusedScreen(state)?.name;
+
+    return isTwoFactorSetupRouteName(screenName);
+}
+
 function shouldPreventReset(state: NavigationState, action: NavigationAction) {
     if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
         return false;
@@ -121,6 +151,15 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
 
     const currentFocusedRoute = findFocusedRoute(state);
     const targetFocusedRoute = findFocusedRoute(action?.payload as NavigationState);
+
+    // Allow required 2FA setup navigation even when the user is currently on onboarding.
+    if (getShouldShowRequire2FAPage() && isTargetTwoFactorSetupRoute(action)) {
+        Log.info('[OnboardingGuard] Allowing RESET to 2FA setup while required-2FA overlay is active', false, {
+            currentScreen: currentFocusedRoute?.name,
+            targetScreen: targetFocusedRoute?.name,
+        });
+        return false;
+    }
 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
@@ -163,6 +202,15 @@ const OnboardingGuard: NavigationGuard = {
     evaluate: (state, action, context): GuardResult => {
         if (shouldPreventReset(state, action)) {
             return {type: 'BLOCK', reason: 'Cannot reset to non-onboarding screen while on onboarding'};
+        }
+
+        if (getShouldShowRequire2FAPage() && (isTargetTwoFactorSetupRoute(action) || isCurrentlyOnTwoFactorSetupRoute(state))) {
+            Log.info('[OnboardingGuard] Allowing navigation to 2FA setup while required-2FA overlay is active', false, {
+                actionType: action.type,
+                targetScreen: action.payload ? getDeepestFocusedScreen(action.payload as Parameters<typeof getDeepestFocusedScreen>[0])?.name : undefined,
+                currentScreen: getDeepestFocusedScreen(state)?.name,
+            });
+            return {type: 'ALLOW'};
         }
 
         const isTransitioning = context.currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS);

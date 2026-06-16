@@ -539,4 +539,69 @@ describe('OnboardingGuard', () => {
             expect(result.reason).toBe('Cannot reset to non-onboarding screen while on onboarding');
         });
     });
+
+    describe('required 2FA setup exception', () => {
+        const required2FAAccount = {
+            twoFactorAuthSetupInProgress: true,
+            requiresTwoFactorAuth: true,
+            needsTwoFactorAuthSetup: false,
+        };
+
+        const onboardingRootState: NavigationState = {
+            key: 'root',
+            index: 0,
+            routeNames: [SCREENS.ONBOARDING.PURPOSE],
+            routes: [{key: 'purpose', name: SCREENS.ONBOARDING.PURPOSE}],
+            stale: false,
+            type: 'root',
+        };
+
+        const twoFactorSetupState: NavigationState = {
+            key: 'root',
+            index: 0,
+            routeNames: [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT],
+            routes: [{key: '2fa-root', name: SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT}],
+            stale: false,
+            type: 'root',
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, required2FAAccount);
+            await waitForBatchedUpdates();
+        });
+
+        it('should ALLOW RESET to 2FA setup when required-2FA overlay is active', () => {
+            const resetTo2FA: NavigationAction = {
+                type: CONST.NAVIGATION_ACTIONS.RESET,
+                payload: {
+                    key: 'root',
+                    index: 0,
+                    routeNames: [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT],
+                    routes: [{key: '2fa-root', name: SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT}],
+                    stale: false,
+                    type: 'root',
+                },
+            };
+
+            const result = OnboardingGuard.evaluate(onboardingRootState, resetTo2FA, authenticatedContext);
+
+            expect(result.type).toBe('ALLOW');
+        });
+
+        it('should ALLOW navigation while user is on a 2FA setup screen', () => {
+            const result = OnboardingGuard.evaluate(twoFactorSetupState, mockAction, authenticatedContext);
+
+            expect(result.type).toBe('ALLOW');
+        });
+
+        it('should still REDIRECT unrelated navigation when required-2FA overlay is active', () => {
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+
+            expect(result.type).toBe('REDIRECT');
+            expect(result.route).toContain('onboarding');
+        });
+    });
 });
