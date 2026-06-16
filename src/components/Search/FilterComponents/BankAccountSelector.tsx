@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import MultiSelect from './MultiSelect';
 
-type BankAccountSelectorProps = {
+type BankAccountSelectorProps = SearchFilterCommonProps & {
     value: string[] | undefined;
     onChange: (bankAccounts: string[]) => void;
 };
@@ -25,7 +26,7 @@ type BankAccountItem = {
     leftElement: React.JSX.Element;
 };
 
-function BankAccountSelector({value = [], onChange}: BankAccountSelectorProps) {
+function BankAccountSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: BankAccountSelectorProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -66,6 +67,10 @@ function BankAccountSelector({value = [], onChange}: BankAccountSelectorProps) {
             value={selectedBankAccounts}
             items={sortedBankAccountItems}
             isSearchable={sortedBankAccountItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            selectionListTextInputStyle={selectionListTextInputStyle}
+            selectionListStyle={selectionListStyle}
+            autoFocus={autoFocus}
+            footer={footer}
             onChange={(bankAccounts) => onChange(bankAccounts.map((item) => item.value))}
         />
     );

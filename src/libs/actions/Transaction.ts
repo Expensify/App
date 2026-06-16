@@ -20,7 +20,7 @@ import {translateLocal} from '@libs/Localize';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getDistanceRateCustomUnitRate, hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
     getIOUActionForReportID,
@@ -1064,10 +1064,10 @@ function changeTransactionsReport({
         const actionType = isUnreported ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE;
         const newIOUAction = {
             ...oldIOUAction,
+            reportID,
             originalMessage: {
                 ...originalMessage,
                 IOUTransactionID: originalMessage?.IOUTransactionID ?? transaction.transactionID,
-                IOUReportID: reportID,
                 type: actionType,
             },
             reportActionID: optimisticMoneyRequestReportActionID,
@@ -1162,7 +1162,7 @@ function changeTransactionsReport({
         // Auto-select a valid default distance rate when moving to a workspace where the current rate is invalid,
         // and recalculate derived fields (amount, merchant, currency) to match the new rate.
         let transactionForViolations = transaction;
-        if (isPaidGroupPolicy(policy) && policy?.id && isDistanceRequest(transaction)) {
+        if (isGroupPolicy(policy) && policy?.id && isDistanceRequest(transaction)) {
             const currentRateID = transaction.comment?.customUnit?.customUnitRateID;
             const currentRate = currentRateID ? getDistanceRateCustomUnitRate(policy, currentRateID) : undefined;
             if (!currentRateID || !currentRate || currentRate.enabled === false) {
@@ -1262,7 +1262,7 @@ function changeTransactionsReport({
 
         let transactionReimbursable = transaction.reimbursable;
         // 2. Calculate transaction violations if moving transaction to a workspace
-        if (isPaidGroupPolicy(policy) && policy?.id) {
+        if (isGroupPolicy(policy) && policy?.id) {
             const violationData = ViolationsUtils.getViolationsOnyxData({
                 updatedTransaction: transactionForViolations,
                 transactionViolations: currentTransactionViolations[transaction.transactionID] ?? [],
@@ -1659,7 +1659,7 @@ function changeTransactionsReport({
 
     const reportTransactions = getReportTransactions(reportID);
     for (const transaction of reportTransactions) {
-        if (!isPaidGroupPolicy(policy) || !policy?.id) {
+        if (!isGroupPolicy(policy) || !policy?.id) {
             continue;
         }
         const violationData = ViolationsUtils.getViolationsOnyxData({
@@ -1810,6 +1810,10 @@ function changeTransactionsReport({
     });
 }
 
+function getDefaultP2PMileageRate() {
+    API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null);
+}
+
 function mergeTransactionIdsHighlightOnSearchRoute(type: SearchDataTypes, data: Record<string, boolean> | null) {
     return Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[type]: data});
 }
@@ -1845,6 +1849,7 @@ export {
     revert,
     changeTransactionsReport,
     setTransactionReport,
+    getDefaultP2PMileageRate,
     mergeTransactionIdsHighlightOnSearchRoute,
     getDuplicateTransactionDetails,
 };

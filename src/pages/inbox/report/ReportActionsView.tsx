@@ -48,7 +48,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         hasNewerActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
-        reportActionPages,
         transactionThreadReportID,
         transactionThreadReport,
         parentReportActionForTransactionThread,
@@ -243,7 +242,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 hasNewerActions={hasNewerActions}
                 oldestUnreadReportAction={oldestUnreadReportAction}
                 sortedAllReportActionsForPagination={sortedAllReportActions ?? []}
-                reportActionPages={reportActionPages}
                 treatAsNoPaginationAnchor={treatAsNoPaginationAnchor}
                 setTreatAsNoPaginationAnchor={setTreatAsNoPaginationAnchor}
                 listID={listID}

@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -117,6 +118,7 @@ function useAutocompleteSuggestions({
     const sortedActions = useSortedActions();
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const {autocomplete, ranges = []} = parsedQuery ?? {};
@@ -248,6 +250,7 @@ function useAutocompleteSuggestions({
                 sortedActions,
                 conciergeReportID,
                 excludeFromSuggestionsOnly: memberExclusions,
+                isTrackIntentUser,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
@@ -285,6 +288,7 @@ function useAutocompleteSuggestions({
                 personalDetails,
                 sortedActions,
                 conciergeReportID,
+                isTrackIntentUser,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;
