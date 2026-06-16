@@ -515,6 +515,7 @@ function startSplitBill({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        iouReportID: splitChatReport.reportID,
         // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
         delegateAccountIDParam: undefined,
     });
@@ -1432,6 +1433,7 @@ function createSplitsAndOnyxData({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        iouReportID: splitChatReport.reportID,
         delegateAccountIDParam: delegateAccountID,
     });
 

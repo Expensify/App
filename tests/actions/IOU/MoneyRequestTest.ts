@@ -279,9 +279,9 @@ describe('MoneyRequest', () => {
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: '',
+                reportID: 'report456',
                 originalMessage: {
                     IOUTransactionID: draftTransaction.transactionID,
-                    IOUReportID: 'report456',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
             };

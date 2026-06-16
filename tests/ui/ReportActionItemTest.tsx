@@ -2544,7 +2544,7 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/marked as complete/i)).toBeOnTheScreen();
         });
 
-        it('isIOURequestReportAction renders TransactionPreview', async () => {
+        it('isIOURequestReportAction renders TransactionPreview in a SELF_DM chat', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}txn123`, {
                     transactionID: 'txn123',
@@ -2552,21 +2552,23 @@ describe('ReportActionItem', () => {
                     currency: 'USD',
                     merchant: 'TestMerchant',
                     created: '2025-07-12',
-                    reportID: 'iouReport1',
+                    reportID: 'chatReport1',
                 });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}iouReport1`, {
-                    reportID: 'iouReport1',
-                    type: CONST.REPORT.TYPE.IOU,
-                    chatReportID: 'chatReport1',
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}chatReport1`, {
+                    reportID: 'chatReport1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
                 });
             });
             await waitForBatchedUpdatesWithAct();
 
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                IOUTransactionID: 'txn123',
-                IOUReportID: 'iouReport1',
-            });
+            const action = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: 'txn123',
+                }),
+                reportID: 'chatReport1',
+            } as ReportAction;
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
@@ -2574,7 +2576,7 @@ describe('ReportActionItem', () => {
                             <PortalProvider>
                                 <ReportActionItem
                                     chatReport={undefined}
-                                    report={{reportID: 'testReport', chatReportID: 'chatReport1'}}
+                                    report={{reportID: 'chatReport1', chatReportID: 'chatReport1', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
@@ -2848,11 +2850,11 @@ describe('ReportActionItem', () => {
 
                 const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
                     type: subtype,
-                    IOUReportID: TEST_REPORT_ID,
                     IOUTransactionID: TEST_TRANSACTION_ID,
                     amount: 4200,
                     currency: 'USD',
                 });
+                action.reportID = TEST_REPORT_ID;
                 renderItemWithAction(action);
                 await waitForBatchedUpdatesWithAct();
 
@@ -2866,11 +2868,11 @@ describe('ReportActionItem', () => {
         it('renders flagged content text instead of IOU display when isHidden is true', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
                 type: CONST.IOU.REPORT_ACTION_TYPE.REJECT,
-                IOUReportID: TEST_REPORT_ID,
                 IOUTransactionID: TEST_TRANSACTION_ID,
                 amount: 4200,
                 currency: 'USD',
             });
+            action.reportID = TEST_REPORT_ID;
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
