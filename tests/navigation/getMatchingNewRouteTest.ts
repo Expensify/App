@@ -191,9 +191,27 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/home-page?backTo=r/123')).toBe('/home?backTo=r/123');
     });
 
-    it('redirects old enable-payments fees paths to the new fees-and-terms page', () => {
-        expect(getMatchingNewRoute('/settings/wallet/enable-payments/fees')).toBe('/settings/wallet/enable-payments/fees-and-terms/fees');
-        expect(getMatchingNewRoute('/settings/wallet/enable-payments/fees?backTo=/home')).toBe('/settings/wallet/enable-payments/fees-and-terms/fees?backTo=/home');
+    describe('redirects old enable-payments substeps to their new routes', () => {
+        const enablePaymentsCases = [
+            {oldRoute: '/settings/wallet/enable-payments/plaid', expectedRoute: '/settings/wallet/enable-payments/add-bank-account/plaid'},
+            {oldRoute: '/settings/wallet/enable-payments/bank-account-confirmation', expectedRoute: '/settings/wallet/enable-payments/add-bank-account/bank-account-confirmation'},
+            {oldRoute: '/settings/wallet/enable-payments/legal-name', expectedRoute: '/settings/wallet/enable-payments/personal-info/legal-name'},
+            {oldRoute: '/settings/wallet/enable-payments/date-of-birth', expectedRoute: '/settings/wallet/enable-payments/personal-info/date-of-birth'},
+            {oldRoute: '/settings/wallet/enable-payments/address', expectedRoute: '/settings/wallet/enable-payments/personal-info/address'},
+            {oldRoute: '/settings/wallet/enable-payments/phone-number', expectedRoute: '/settings/wallet/enable-payments/personal-info/phone-number'},
+            {oldRoute: '/settings/wallet/enable-payments/ssn', expectedRoute: '/settings/wallet/enable-payments/personal-info/ssn'},
+            {oldRoute: '/settings/wallet/enable-payments/personal-info-confirmation', expectedRoute: '/settings/wallet/enable-payments/personal-info/personal-info-confirmation'},
+            {oldRoute: '/settings/wallet/enable-payments/fees', expectedRoute: '/settings/wallet/enable-payments/fees-and-terms/fees'},
+            {oldRoute: '/settings/wallet/enable-payments/terms', expectedRoute: '/settings/wallet/enable-payments/fees-and-terms/terms'},
+        ];
+
+        it.each(enablePaymentsCases)('redirects $oldRoute to $expectedRoute', ({oldRoute, expectedRoute}) => {
+            expect(getMatchingNewRoute(oldRoute)).toBe(expectedRoute);
+        });
+
+        it.each(enablePaymentsCases)('preserves query params when redirecting $oldRoute', ({oldRoute, expectedRoute}) => {
+            expect(getMatchingNewRoute(`${oldRoute}?policyID=123`)).toBe(`${expectedRoute}?policyID=123`);
+        });
     });
 
     it('does not redirect the new enable-payments fees-and-terms page', () => {
