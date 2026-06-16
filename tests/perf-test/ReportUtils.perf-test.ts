@@ -145,7 +145,15 @@ describe('ReportUtils', () => {
         const isPreviewMessageForParentChatReport = true;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getReportPreviewMessage(report, undefined, reportAction, shouldConsiderReceiptBeingScanned, isPreviewMessageForParentChatReport, policy));
+        await measureFunction(() =>
+            getReportPreviewMessage({
+                reportOrID: report,
+                iouReportAction: reportAction,
+                shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
+                isPreviewMessageForParentChatReport,
+                policy,
+            }),
+        );
     });
 
     test('[ReportUtils] getReportName on 1k participants', async () => {
@@ -276,8 +284,8 @@ describe('ReportUtils', () => {
         const reportAction = {
             ...createRandomReportAction(1),
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportID: '1',
             originalMessage: {
-                IOUReportID: '1',
                 IOUTransactionID: '1',
                 amount: 100,
                 participantAccountID: 1,
