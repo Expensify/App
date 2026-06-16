@@ -9,13 +9,9 @@ import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericE
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchBar from '@components/SearchBar';
-import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import SelectionListWithModal from '@components/SelectionListWithModal';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import PersonalExpenseRulesTable, {PersonalExpenseRuleRowData} from '@components/Tables/PersonalExpenseRulesTable';
 import Text from '@components/Text';
-import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -72,40 +68,15 @@ function ExpenseRulesPage() {
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const isInSelectionMode = shouldUseNarrowLayout ? canSelectMultiple : selectedRules.length > 0;
 
-    const filterRules = (ruleOption: ListItem, searchInput: string) => {
-        const results = tokenizedSearch([ruleOption], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
-        return results.length > 0;
-    };
-    const sortRules = (data: ListItem[]) => {
-        return [...data].sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
-    };
-
-    const rulesList: ListItem[] = expenseRules.map((rule, index) => {
-        const changes = formatExpenseRuleChanges(rule, translate);
-        return {
-            text: rule.merchantToMatch,
-            alternateText: changes,
-            shouldHideAlternateText: !shouldUseNarrowLayout,
-            keyForList: getKeyForList(rule, index),
-            pendingAction: rule.pendingAction,
-            errors: rule.errors,
-            isDisabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            rightElement: !shouldUseNarrowLayout && (
-                <View style={[styles.flex1]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.alignSelfStart]}
-                    >
-                        {changes}
-                    </Text>
-                </View>
-            ),
-        };
-    });
-
-    useAutoTurnSelectionModeOffWhenHasNoActiveOption(rulesList);
-
-    const [inputValue, setInputValue, filteredRuleList] = useSearchResults(rulesList, filterRules, sortRules);
+    const personalExpenseRules: PersonalExpenseRuleRowData[] = expenseRules.map((rule) => ({
+        keyForList: getKeyForRule(rule),
+        merchant: rule.merchantToMatch,
+        changes: formatExpenseRuleChanges(rule, translate),
+        pendingAction: rule.pendingAction,
+        errors: rule.errors,
+        disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        action: () => navigateToEditRulePage(getKeyForRule(rule)),
+    }));
 
     const toggleRule = (rule: ListItem) => {
         setSelectedRules((prev) => {
@@ -114,12 +85,6 @@ function ExpenseRulesPage() {
             }
             return [...prev, rule.keyForList];
         });
-    };
-
-    const toggleAllRules = () => {
-        const selectableRules = filteredRuleList.filter((rule) => !rule.isDisabled);
-        const someSelected = selectableRules.some((rule) => selectedRules.includes(rule.keyForList));
-        setSelectedRules(someSelected ? [] : selectableRules.map(({keyForList}) => keyForList));
     };
 
     const navigateToNewRulePage = () => {
@@ -207,32 +172,10 @@ function ExpenseRulesPage() {
     );
 
     const headerContent = (
-        <>
-            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
-            </View>
-            {rulesList.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
-                <SearchBar
-                    label={translate('expenseRulesPage.findRule')}
-                    inputValue={inputValue}
-                    onChangeText={setInputValue}
-                    shouldShowEmptyState={hasRules && !isLoading && filteredRuleList.length === 0}
-                />
-            )}
-        </>
+        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
+        </View>
     );
-
-    const getCustomListHeader = () =>
-        !shouldUseNarrowLayout &&
-        filteredRuleList.length > 0 && (
-            <CustomListHeader
-                canSelectMultiple={canSelectMultiple}
-                leftHeaderText={translate('common.merchant')}
-                rightHeaderText={translate('common.change')}
-                shouldDivideEqualWidth
-                shouldShowRightCaret
-            />
-        );
 
     const loadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'ExpenseRulesPage.loading',
@@ -292,28 +235,7 @@ function ExpenseRulesPage() {
                     reasonAttributes={loadingReasonAttributes}
                 />
             )}
-            {hasRules && (
-                <SelectionListWithModal
-                    addBottomSafeAreaPadding
-                    canSelectMultiple={canSelectMultiple}
-                    selectAllAccessibilityLabel={translate('accessibilityHints.selectAllRules')}
-                    customListHeader={getCustomListHeader()}
-                    customListHeaderContent={headerContent}
-                    data={filteredRuleList}
-                    ListItem={TableListItem}
-                    onSelectionButtonPress={toggleRule}
-                    onSelectAll={filteredRuleList.length > 0 ? toggleAllRules : undefined}
-                    onSelectRow={onSelectRow}
-                    onTurnOnSelectionMode={(item) => item && toggleRule(item)}
-                    selectedItems={selectedRules}
-                    shouldHeaderBeInsideList
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    shouldShowRightCaret
-                    shouldShowListEmptyContent={false}
-                    showScrollIndicator={false}
-                    turnOnSelectionModeOnLongPress={shouldUseNarrowLayout}
-                />
-            )}
+            {hasRules && <PersonalExpenseRulesTable personalExpenseRules={personalExpenseRules} />}
             <ConfirmModal
                 isVisible={deleteConfirmModalVisible}
                 onConfirm={handleDeleteRules}

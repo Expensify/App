@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import PersonalExpenseRulesTableRow from './PersonalExpenseRulesTableRow';
 
@@ -13,8 +14,8 @@ export type PersonalExpenseRulesTableColumnKey = 'merchant' | 'changes' | 'actio
 export type PersonalExpenseRuleRowData = TableData & {
     merchant: string;
     changes: string;
-    pendingAction: PendingAction;
-    errors: Errors;
+    pendingAction?: PendingAction;
+    errors?: Errors;
     action: () => void;
 };
 
@@ -84,6 +85,7 @@ export default function PersonalExpenseRulesTable({personalExpenseRules}: Person
             renderItem={renderPersonalExpenseRuleItem}
             keyExtractor={(rule) => rule.keyForList}
         >
+            {personalExpenseRules.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('expenseRulesPage.findRule')} />}
             <Table.Header />
             <Table.Body />
         </Table>
