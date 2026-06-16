@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -79,12 +79,14 @@ import {
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
-import Navigation from '@navigation/Navigation';
+import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportAction, SaveSearch, Transaction} from '@src/types/onyx';
@@ -356,6 +358,7 @@ function Search({
         shouldDeferHeavySearchWork,
         setShouldDeferHeavySearchWork,
         searchDataWithOptimisticTransaction,
+        hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
         trackingState: optimisticTrackingState,
@@ -735,7 +738,27 @@ function Search({
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
 
     useEffect(() => {
-        if (offset === 0 || offset === searchResults?.search?.offset || !isFocused || isOffline || searchResults?.search?.isLoading) {
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+        const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
+
+        const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && isEmptyObject(searchResults?.data);
+        if (!comingBackOnlineWithNoResults && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
+            return;
+        }
+
+        // When mounting after the pre-insert fast path, the deferred write hasn't
+        // been flushed yet. Triggering a search now would race with the CREATE
+        // API call and return stale results that overwrite the optimistic row.
+        // Skip this call; the optimistic data from flushDeferredWrite will populate
+        // the list, and the next user-driven search will refresh from the server.
+        if (hasPendingWriteOnMountRef.current.hasPendingWriteOnMount && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+            return;
+        }
+
+        if (searchResults?.search?.isLoading) {
+            if (validGroupBy || (shouldCalculateTotals && searchResults?.search?.count === undefined)) {
+                shouldRetrySearchWithTotalsOrGroupedRef.current = true;
+            }
             return;
         }
 
@@ -743,21 +766,14 @@ function Search({
             queryJSON,
             searchKey: currentSearchKey,
             offset,
-            shouldCalculateTotals: false,
+            shouldCalculateTotals,
             prevReportsLength: filteredDataLength,
-            isLoading: false,
+            isLoading: !!searchResults?.search?.isLoading,
         });
-    }, [currentSearchKey, filteredDataLength, handleSearch, isFocused, isOffline, offset, queryJSON, searchResults?.search?.isLoading, searchResults?.search?.offset]);
 
-    useEffect(() => {
-        if (!searchResults?.search?.isLoading) {
-            return;
-        }
-
-        if (validGroupBy || (shouldCalculateTotals && searchResults?.search?.count === undefined)) {
-            shouldRetrySearchWithTotalsOrGroupedRef.current = true;
-        }
-    }, [searchResults?.search?.isLoading, searchResults?.search?.count, shouldCalculateTotals, validGroupBy]);
+        // We don't need to run the effect on change of isFocused.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [handleSearch, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
