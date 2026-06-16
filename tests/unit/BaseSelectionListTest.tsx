@@ -153,14 +153,14 @@ describe('BaseSelectionList', () => {
     }
 
     it('should not trigger item press if screen is not focused', () => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(false);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(false);
         render(<SelectionListRenderer data={mockItems} />);
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
         expect(onSelectRowMock).toHaveBeenCalledTimes(0);
     });
 
     it('should handle item press correctly', () => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
         render(<SelectionListRenderer data={mockItems} />);
 
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
@@ -172,7 +172,7 @@ describe('BaseSelectionList', () => {
     });
 
     it('should update selected item on rerender', () => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
         const updatedMockItems = mockItems.map((item) => ({
             ...item,
             isSelected: item.keyForList === '2',
@@ -325,7 +325,7 @@ describe('BaseSelectionList', () => {
     });
 
     it('suppresses the scroll on a focus-return restore', () => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
         mockIsFocusRestoreInProgress.mockReturnValue(true);
         render(<SelectionListRenderer data={mockItems} />);
         mockScrollToIndex.mockClear();
@@ -337,7 +337,7 @@ describe('BaseSelectionList', () => {
     });
 
     it('does not auto-scroll on genuine keyboard Tab focus (programmatic focus is non-scrolling)', () => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
         mockIsFocusRestoreInProgress.mockReturnValue(false);
         render(<SelectionListRenderer data={mockItems} />);
         mockScrollToIndex.mockClear();
@@ -349,7 +349,7 @@ describe('BaseSelectionList', () => {
     });
 
     it('does not auto-scroll on genuine pointer focus (jump-on-click prevented)', () => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
         mockIsFocusRestoreInProgress.mockReturnValue(false);
         render(<SelectionListRenderer data={mockItems} />);
         mockScrollToIndex.mockClear();
@@ -361,7 +361,7 @@ describe('BaseSelectionList', () => {
     });
 
     it('restore-mode suppression does not leak into the next focus event', () => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
         mockIsFocusRestoreInProgress.mockReturnValue(true);
         render(<SelectionListRenderer data={mockItems} />);
 
