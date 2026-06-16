@@ -17,7 +17,10 @@ type MultifactorAuthenticationModalNavigatorInternalParamList = MultifactorAuthe
 const mfaNavigationRef = createNavigationContainerRef<MultifactorAuthenticationModalNavigatorInternalParamList>();
 
 // Outcome screens are terminal states the flow ends on.
-const OUTCOME_SCREENS = new Set<string>([SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS, SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE]);
+const OUTCOME_SCREENS = new Set<keyof MultifactorAuthenticationModalNavigatorParamList>([
+    SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE,
+]);
 
 // Screens that live inside this independent overlay navigator. REVOKE and AUTHORIZE_TRANSACTION are intentionally excluded: they
 // render in the main RHP modal stack, not this tree.
