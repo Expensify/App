@@ -5,7 +5,6 @@ import CreatedReportForUnapprovedTransactionsAction from '@components/ReportActi
 import CreateHarvestReportAction from '@components/ReportActionItem/CreateHarvestReportAction';
 import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
-import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import MovedTransactionAction from '@components/ReportActionItem/MovedTransactionAction';
 import TaskAction from '@components/ReportActionItem/TaskAction';
@@ -154,39 +153,23 @@ function ActionContentRouter({
     const reportOwnerAccountID = report?.ownerAccountID;
 
     if (isIOURequestReportAction(action)) {
-        const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
-        // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
-        const chatReportID = moneyRequestOriginalMessage?.IOUReportID ? report?.chatReportID : reportID;
-
-        if (report?.type === CONST.REPORT.TYPE.CHAT) {
-            const isSplitBill = moneyRequestOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
-            const isSplitScanWithNoAmount = isSplitBill && moneyRequestOriginalMessage?.amount === 0;
-            const shouldShowSplitPreview = isSplitBill || isSplitScanWithNoAmount;
-            if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || shouldShowSplitPreview) {
-                return (
-                    <ChatTransactionPreview
-                        action={action}
-                        reportID={reportID}
-                        iouReport={iouReport}
-                        shouldShowSplitPreview={shouldShowSplitPreview}
-                        transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
-                    />
-                );
-            }
-            // No per-action preview in non-self-DM chats — the preview lives in the linked expense report.
+        if (report?.type !== CONST.REPORT.TYPE.CHAT) {
             return null;
         }
-
+        const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
+        const isSplitBill = moneyRequestOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+        const isSplitScanWithNoAmount = isSplitBill && moneyRequestOriginalMessage?.amount === 0;
+        const shouldShowSplitPreview = isSplitBill || isSplitScanWithNoAmount;
+        if (report.chatType !== CONST.REPORT.CHAT_TYPE.SELF_DM && !shouldShowSplitPreview) {
+            return null;
+        }
         return (
-            <MoneyRequestAction
-                chatReportID={chatReportID}
-                // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-                requestReportID={moneyRequestOriginalMessage?.IOUReportID?.toString()}
-                reportID={reportID}
+            <ChatTransactionPreview
                 action={action}
-                isHovered={hovered}
-                style={displayAsGroup ? [] : [styles.mt2]}
-                isWhisper={isWhisper}
+                reportID={reportID}
+                iouReport={iouReport}
+                shouldShowSplitPreview={shouldShowSplitPreview}
+                transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
             />
         );
     }
