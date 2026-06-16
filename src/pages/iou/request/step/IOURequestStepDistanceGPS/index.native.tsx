@@ -178,8 +178,6 @@ function IOURequestStepDistanceGPS({
         return stopMapboxToken;
     }, []);
 
-    const [hasEverTrackedGPS, setHasEverTrackedGPS] = useState(false);
-
     const waypointMarkers = useGPSWaypointMarkers();
 
     const directionCoordinates: Coordinate[][] = getGpsPoints(gpsDraftDetails).map((points): Coordinate[] => points.map(({lat, long}) => [long, lat]));
@@ -203,7 +201,6 @@ function IOURequestStepDistanceGPS({
                         waypoints={waypointMarkers}
                         directionCoordinates={directionCoordinates}
                         isTrackingGPS={!!gpsDraftDetails?.isTracking}
-                        hasEverTrackedGPS={hasEverTrackedGPS}
                     />
                 </View>
 
@@ -225,7 +222,6 @@ function IOURequestStepDistanceGPS({
                             reportID={reportID}
                             unit={unit}
                             gpsPoints={getGpsPoints(gpsDraftDetails)}
-                            setHasEverTrackedGPS={setHasEverTrackedGPS}
                         />
                     </View>
                 </View>

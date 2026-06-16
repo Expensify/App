@@ -27,7 +27,7 @@ const LOCATION_PUCK_PULSING = {
 
 const CURRENT_LOCATION_PUCK_IMAGE = 'current-location-puck-image';
 
-function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, waypoints, directionCoordinates: directionCoordinatesProp, isTrackingGPS, hasEverTrackedGPS}: GPSMapViewProps) {
+function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, waypoints, directionCoordinates: directionCoordinatesProp, isTrackingGPS}: GPSMapViewProps) {
     const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
     const noWaypoints = !waypoints || waypoints.length === 0;
 
@@ -43,6 +43,14 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
     const [shouldUseImmediateFollowTransition, setShouldUseImmediateFollowTransition] = useState(noWaypoints);
     const [lastLocation, setLastLocation] = useState<{longitude: number; latitude: number} | undefined>();
+
+    const [hasEverTrackedGPS, setHasEverTrackedGPS] = useState(!!isTrackingGPS);
+    useEffect(() => {
+        if (!isTrackingGPS) {
+            return;
+        }
+        setHasEverTrackedGPS(true);
+    }, [isTrackingGPS]);
 
     // Determines if map can be panned to user's detected location without bothering the user. It will return
     // false if user has already started dragging the map or if there are one or more waypoints present and the GPS trip is not active.
@@ -162,17 +170,19 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
                         // To ensure that waypoints are shown below the location puck we need to pass its belowLayerID
                         // which on iOS is not ready on the first render, so we pass it only after user has started a GPS trip
                         // Android does not support dynamic belowLayerID prop change, so we pass key to remount this component instead
-                        key={hasEverTrackedGPS ? 'below-location-puck' : 'default'}
+                        key={hasEverTrackedGPS || isTrackingGPS ? 'below-location-puck' : 'default'}
                         // The native Mapbox SDK renders the user-location puck on its own dedicated layer. We render waypoints below
                         // that layer so the puck always stays on top of the line. The layer id differs per platform.
-                        belowLayerID={hasEverTrackedGPS ? LOCATION_PUCK_LAYER_ID : undefined}
+                        belowLayerID={hasEverTrackedGPS || isTrackingGPS ? LOCATION_PUCK_LAYER_ID : undefined}
                     />
 
-                    <GPSDirection
-                        directionCoordinates={directionCoordinatesProp}
-                        isTrackingGPS={isTrackingGPS}
-                        lastLocation={lastLocation}
-                    />
+                    {!noWaypoints && (
+                        <GPSDirection
+                            directionCoordinates={directionCoordinatesProp}
+                            isTrackingGPS={isTrackingGPS}
+                            lastLocation={lastLocation}
+                        />
+                    )}
                 </Mapbox.MapView>
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
                     <Button

@@ -44,9 +44,6 @@ type GPSMapViewProps = Omit<MapViewProps, 'directionCoordinates' | 'initialState
     // Whether the GPS trip is active
     isTrackingGPS: boolean;
 
-    // Whether the GPS trip has ever been tracked or is active at the moment
-    hasEverTrackedGPS: boolean;
-
     // List of coordinates which together forms a direction.
     directionCoordinates: Coordinate[][];
 };

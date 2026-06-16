@@ -10,5 +10,5 @@
   - Android — `android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt` and `RNMBXCameraManager.kt`
 
 - Upstream PR/issue: 🛑
-- E/App issue: TBD
-- PR introducing patch: TBD
+- E/App issue: https://github.com/Expensify/App/pull/90169#issuecomment-4476930634
+- PR introducing patch: https://github.com/Expensify/App/pull/91418
