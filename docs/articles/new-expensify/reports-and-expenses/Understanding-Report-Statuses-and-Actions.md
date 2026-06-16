@@ -66,6 +66,8 @@ Depending on the report status and your role, the primary action button may say:
 ## Held Expenses  
 If you're an Approver who placed a hold, you'll see a green **Remove hold** button. Other users will see a grey **Review** button.
 
+When every expense on a report is on hold, the report's primary action button shows **Remove hold** instead of **Submit**, **Approve**, or **Pay**. These reports are also excluded from your Submit, Approve, and Pay to-dos on Home until the hold is removed.
+
 ## Reject Expenses  
 If you're an Approver reviewing an expense that shouldn't have been submitted, you can **Reject** it back to the submitter with a reason. The rejection reason will be added to the report. The expense can later be marked as resolved and resubmitted for approval.
 

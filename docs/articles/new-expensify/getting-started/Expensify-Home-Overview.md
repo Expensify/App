@@ -67,6 +67,8 @@ The **For you** section highlights items that may need your attention like:
 
 Each item links you to where you can complete the action, such as a specific report or workspace.
 
+Reports where every expense is on hold are not included in the Submit, Approve, or Pay counts, since you can’t act on them until the hold is removed. Once the hold is removed, the report appears in the relevant count again.
+
 If there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
 
 ![]({{site.url}}/assets/images/home2.png){:width="100%"}
@@ -141,6 +143,10 @@ Not directly. Home links you to other parts of Expensify where actions are compl
 ## Why does the For you section sometimes appear empty?
 
 If there are no current financial to-dos, the **For you** section may appear empty. This means there’s nothing that requires action at that time.
+
+## Why isn’t a report showing in the For you section?
+
+If every expense on a report is on hold, the report is excluded from the Submit, Approve, and Pay counts until the hold is removed. On the report, you’ll see **Remove hold** instead of **Submit**, **Approve**, or **Pay**.
 
 ## Why don’t I see the Time-sensitive section?
 
