@@ -17,13 +17,22 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // protected routes are available) — not just the final args.
 const mockWaitForProtectedRoutes = {resolve: () => {}};
 
+// Controllable deferred for isNavigationReady() so tests can resolve it on demand — and, for the
+// stale-callback guard, resolve it *after* the page unmounts to prove the reset is skipped.
+const mockIsNavigationReady = {resolve: () => {}};
+
 // Standalone fn so assertions don't access `navigationRef.reset` unbound (unbound-method lint rule).
 const mockNavigationReset = jest.fn();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
-    isNavigationReady: jest.fn(() => Promise.resolve()),
+    isNavigationReady: jest.fn(
+        () =>
+            new Promise<void>((resolve) => {
+                mockIsNavigationReady.resolve = resolve;
+            }),
+    ),
     waitForProtectedRoutes: jest.fn(
         () =>
             new Promise<void>((resolve) => {
@@ -77,6 +86,7 @@ describe('ValidateLoginPage', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockWaitForProtectedRoutes.resolve = () => {};
+        mockIsNavigationReady.resolve = () => {};
         await act(async () => {
             await Onyx.clear();
         });
@@ -220,7 +230,12 @@ describe('ValidateLoginPage', () => {
 
         renderPage({accountID: '1', validateCode: '123456'});
         await waitForBatchedUpdatesWithAct();
-        // isNavigationReady() resolves on a microtask, then we reset the public stack to the SignInPage.
+
+        // Resolve the navigation-ready gate, then the effect resets the public stack to the SignInPage.
+        await act(async () => {
+            mockIsNavigationReady.resolve();
+            await Promise.resolve();
+        });
         await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: SCREENS.HOME}]});
@@ -244,9 +259,46 @@ describe('ValidateLoginPage', () => {
 
         renderPage({accountID: '1', validateCode: '123456', exitTo: 'concierge'});
         await waitForBatchedUpdatesWithAct();
+
+        await act(async () => {
+            mockIsNavigationReady.resolve();
+            await Promise.resolve();
+        });
         await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: SCREENS.HOME}]});
         expect(handleExitToNavigation).toHaveBeenCalledWith('concierge');
+    });
+
+    it('Should not reset to the sign-in page when the page unmounts before navigation is ready (stale-callback guard)', async () => {
+        // PERF-15 cleanup: if the effect tears down (deps change / unmount) before isNavigationReady()
+        // resolves, the pending callback must bail instead of resetting the stack out from under the
+        // screen that replaced it.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN,
+            });
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                accountID: 1,
+                validateCode: '123456',
+            });
+        });
+
+        const {unmount} = renderPage({accountID: '1', validateCode: '123456'});
+        await waitForBatchedUpdatesWithAct();
+
+        // isNavigationReady() is still pending. Unmounting runs the effect cleanup (sets `ignore = true`).
+        await act(async () => {
+            unmount();
+        });
+
+        // Resolving now fires the stale callback, which must skip the reset.
+        await act(async () => {
+            mockIsNavigationReady.resolve();
+            await Promise.resolve();
+        });
+
+        expect(mockNavigationReset).not.toHaveBeenCalled();
     });
 });
