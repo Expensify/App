@@ -16,8 +16,8 @@ import useNetwork from '@hooks/useNetwork';
 import getPlatform from '@libs/getPlatform';
 import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 import type {DeviceBiometrics} from '@src/types/onyx';
-import MultifactorAuthenticationExternalApiContext from './MultifactorAuthenticationExternalApiContext';
-import type {MultifactorAuthenticationExecuteScenarioArgs, MultifactorAuthenticationExternalApi} from './MultifactorAuthenticationExternalApiContext';
+import MultifactorAuthenticationExternalAPIContext from './MultifactorAuthenticationExternalApiContext';
+import type {MultifactorAuthenticationExecuteScenarioArgs, MultifactorAuthenticationExternalAPI} from './MultifactorAuthenticationExternalApiContext';
 import MultifactorAuthenticationInternalApiContext from './MultifactorAuthenticationInternalApiContext';
 import type {MultifactorAuthenticationInternalApi} from './MultifactorAuthenticationInternalApiContext';
 
@@ -97,7 +97,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     useSyncMfaModalNavigatorWithHistory(state.modalState, requestCancel);
 
-    const externalApi: MultifactorAuthenticationExternalApi = {executeScenario};
+    const externalApi: MultifactorAuthenticationExternalAPI = {executeScenario};
 
     const internalApi: MultifactorAuthenticationInternalApi = {
         state,
@@ -109,9 +109,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     };
 
     return (
-        <MultifactorAuthenticationExternalApiContext.Provider value={externalApi}>
+        <MultifactorAuthenticationExternalAPIContext.Provider value={externalApi}>
             <MultifactorAuthenticationInternalApiContext.Provider value={internalApi}>{children}</MultifactorAuthenticationInternalApiContext.Provider>
-        </MultifactorAuthenticationExternalApiContext.Provider>
+        </MultifactorAuthenticationExternalAPIContext.Provider>
     );
 }
 
