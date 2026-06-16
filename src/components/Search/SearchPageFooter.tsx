@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import Button from '@components/Button';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -16,6 +16,7 @@ import type {SingleSelectItem} from './FilterComponents/SingleSelect';
 import CurrencyPopup from './FilterDropdowns/CurrencyPopup';
 import FilterPopupButton from './FilterDropdowns/FilterPopupButton';
 import type {ButtonComponentProps, FilterPopupButtonProps} from './FilterDropdowns/FilterPopupButton';
+import SearchPageFooterSkeleton from './SearchPageFooterSkeleton';
 
 type SearchPageFooterProps = {
     count: number | undefined;
@@ -84,7 +85,6 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
             text={convertToDisplayString(total, currency)}
             textStyles={valueTextStyle}
             textHoverStyles={StyleUtils.getColorStyle(theme.linkHover)}
-            isLoading={isTotalLoading}
             isDisabled={isOffline}
             small
             shouldShowRightIcon
@@ -98,33 +98,39 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
     );
 
     return (
-        <View
-            style={[
-                shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
-                styles.borderTop,
-                styles.ph5,
-                styles.pv3,
-                styles.flexRow,
-                styles.alignItemsCenter,
-                styles.gap3,
-                StyleUtils.getBackgroundColorStyle(theme.appBG),
-            ]}
-        >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                <Text style={styles.textLabelSupporting}>{`${translate('common.expenses')}:`}</Text>
-                <Text style={valueTextStyle}>{count}</Text>
+        <View style={[styles.borderTop, styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
+            {/* The real content stays mounted (hidden) while loading so the footer keeps the same height and nothing shifts when the skeleton is shown. */}
+            <View
+                style={[
+                    shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.gap3,
+                    isTotalLoading && styles.opacity0,
+                ]}
+                pointerEvents={isTotalLoading ? 'none' : undefined}
+            >
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                    <Text style={styles.textLabelSupporting}>{`${translate('common.expenses')}:`}</Text>
+                    <Text style={valueTextStyle}>{count}</Text>
+                </View>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                    <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
+                    <FilterPopupButton
+                        PopoverComponent={renderCurrencyPopup}
+                        renderButton={totalButton}
+                        popoverAnchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                        }}
+                    />
+                </View>
             </View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
-                <FilterPopupButton
-                    PopoverComponent={renderCurrencyPopup}
-                    renderButton={totalButton}
-                    popoverAnchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                    }}
-                />
-            </View>
+            {isTotalLoading && (
+                <View style={[StyleSheet.absoluteFill, styles.flexRow, styles.alignItemsCenter, styles.ph5, shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd]}>
+                    <SearchPageFooterSkeleton reasonAttributes={{context: 'SearchPageFooter'}} />
+                </View>
+            )}
         </View>
     );
 }
