@@ -1,7 +1,7 @@
 ---
 title: Login Troubleshooting
 description: Troubleshoot common login issues — like missing Magic Codes, 2FA lockouts, SSO problems, or blocked emails — and find out who to contact to get back in fast.
-keywords: [New Expensify, Expensify login, can't log in, login help, Magic Code missing, Two-Factor Authentication, SSO login, email domain blocked, login error, Concierge login support, account access issue, locked out]
+keywords: [New Expensify, Expensify login, can't log in, login help, Magic Code missing, Two-Factor Authentication, SSO login, email domain blocked, login error, Concierge login support, account access issue, locked out, change password, update password, reset password, forgot password, password reset, new password, password change]
 ---
 
 # Login troubleshooting
