@@ -1107,11 +1107,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_REPORT_EXPORT_STATUS]: Parameters.UpdateFinancialForceGenericTypeParams<'exportStatus', FinancialForceReportExportStatus>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_AUTO_SYNC]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_PARENT_TAG_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'parentTagMapping', ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_MILESTONES]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_TAX_NON_BILLABLE]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_FOREIGN_CURRENCY]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_COMPANY]: Parameters.UpdateFinancialForceGenericTypeParams<'companyID', string>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_TAX_NON_BILLABLE]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_FOREIGN_CURRENCY]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
 

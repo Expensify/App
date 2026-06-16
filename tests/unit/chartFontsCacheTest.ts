@@ -3,7 +3,7 @@ import type {ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypef
 import {getChartFontsSnapshot, loadChartFontsOnce, resetChartFontsCacheForTests} from '@components/Charts/utils/chartFontsCache';
 
 const mockFromURI = jest.fn<Promise<{uri: string}>, [string]>();
-const mockMakeFreeTypeFaceFromData = jest.fn<SkTypeface, [{uri: string}]>();
+const mockMakeFreeTypeFaceFromData = jest.fn<SkTypeface | null, [{uri: string}]>();
 const mockRegisterFont = jest.fn();
 const mockFontProviderMake = jest.fn(() => ({
     registerFont: mockRegisterFont,
