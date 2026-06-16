@@ -104,14 +104,12 @@ export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTi
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';
 export type {default as DuplicateWorkspaceParams} from './DuplicateWorkspaceParams';
 export type {default as CopyPolicySettingsParams} from './CopyPolicySettingsParams';
-export type {default as UpdateDateOfBirthParams} from './UpdateDateOfBirthParams';
 export type {default as UpdateDisplayNameParams} from './UpdateDisplayNameParams';
 export type {default as UpdateChatNameParams} from './UpdateChatNameParams';
 export type {default as UpdateGroupChatMemberRolesParams} from './UpdateGroupChatMemberRolesParams';
 export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams';
 export type {default as UpdatePolicyAddressParams} from './UpdatePolicyAddressParams';
 export type {default as UpdateLegalNameParams} from './UpdateLegalNameParams';
-export type {default as UpdatePhoneNumberParams} from './UpdatePhoneNumberParams';
 export type {default as UpdatePrivatePersonalDetailsParams} from './UpdatePrivatePersonalDetailsParams';
 export type {default as UpdateNewsletterSubscriptionParams} from './UpdateNewsletterSubscriptionParams';
 export type {default as UpdatePersonalInformationForBankAccountParams} from './UpdatePersonalInformationForBankAccountParams';
@@ -375,9 +373,9 @@ export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExp
 export type {default as SetPolicyExpenseMaxAmountNoItemizedReceipt} from './SetPolicyExpenseMaxAmountNoItemizedReceipt';
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
-export type {default as AddPolicyAIRuleParams} from './AddPolicyAIRuleParams';
-export type {default as UpdatePolicyAIRuleParams} from './UpdatePolicyAIRuleParams';
-export type {default as DeletePolicyAIRuleParams} from './DeletePolicyAIRuleParams';
+export type {default as AddPolicyAgentRuleParams} from './AddPolicyAgentRuleParams';
+export type {default as UpdatePolicyAgentRuleParams} from './UpdatePolicyAgentRuleParams';
+export type {default as DeletePolicyAgentRuleParams} from './DeletePolicyAgentRuleParams';
 export type {default as UpdateCustomRules} from './UpdateCustomRules';
 export type {default as SetPolicyBillableModeParams} from './SetPolicyBillableModeParams';
 export type {default as SetPolicyCashExpenseModeParams} from './SetPolicyCashExpenseModeParams';
@@ -404,6 +402,7 @@ export type {default as SetCardReconciliationBankAccountParams} from './SetCardR
 export type {default as CardDeactivateParams} from './CardDeactivateParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
 export type {default as RemoveDelegateParams} from './RemoveDelegateParams';
+export type {default as RemoveDelegatorParams} from './RemoveDelegatorParams';
 export type {default as SetPolicyTagApproverParams} from './SetPolicyTagApproverParams';
 export type {default as SaveSearchParams} from './SaveSearch';
 export type {default as DeleteSavedSearchParams} from './DeleteSavedSearch';
