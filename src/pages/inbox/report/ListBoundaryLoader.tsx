@@ -73,7 +73,7 @@ function ListBoundaryLoader({
                     <Button
                         small
                         onPress={retry}
-                        text={translate('listBoundary.tryAgain')}
+                        text={translate('common.tryAgain')}
                         isLoading={isRetrying}
                         sentryLabel={CONST.SENTRY_LABEL.REPORT.LIST_BOUNDARY_LOADER_RETRY}
                     />

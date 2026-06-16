@@ -44,7 +44,7 @@ function useCopyPolicySettingsProgressModal() {
             isVisible,
             title: translate('workspace.copyPolicySettings.progress.copyFailedTitle'),
             prompt: errorMessage,
-            confirmText: translate('workspace.copyPolicySettings.progress.tryAgain'),
+            confirmText: translate('common.tryAgain'),
             cancelText: translate('common.dismiss'),
             shouldShowCancelButton: true,
             danger: true,

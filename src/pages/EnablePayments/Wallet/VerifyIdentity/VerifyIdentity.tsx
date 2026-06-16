@@ -91,7 +91,7 @@ function VerifyIdentity() {
                                     onSubmit={openOnfidoFlow}
                                     message={onfidoError}
                                     isLoading={walletOnfidoData?.isLoading}
-                                    buttonText={onfidoError ? translate('onfidoStep.tryAgain') : translate('common.continue')}
+                                    buttonText={translate(onfidoError ? 'common.tryAgain' : 'common.continue')}
                                     containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
                                 />
                             </FixedFooter>
