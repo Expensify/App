@@ -16,10 +16,12 @@ index fa786bf..586014c 100644
      /**
       * Used to extract a unique key for a given item at the specified index.
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
-index 3b69234..eb6a14e 100644
+index 3b69234..41bfb84 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
-@@ -296,9 +296,24 @@ export class RecyclerViewManager {
+@@ -294,11 +294,26 @@ export class RecyclerViewManager {
+             // re-estimate unmeasured items with an updated average height, changing
+             // the target item's position. Reading before recompute would capture a
              // stale offset, causing the wrong items to be rendered.
 -            this.layoutManager.recomputeLayouts(0, initialScrollIndex);
 +            this.layoutManager.recomputeLayouts(0, this.getDataLength() - 1);
@@ -47,10 +49,10 @@ index 3b69234..eb6a14e 100644
          }
          else {
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-index 18e59ce..a972c93 100644
+index 18e59ce..b812482 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-@@ -566,10 +566,22 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -566,10 +566,44 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
              }, 500);
              pauseOffsetCorrection.current = true;
              const additionalOffset = (_c = initialScrollIndexParams === null || initialScrollIndexParams === void 0 ? void 0 : initialScrollIndexParams.viewOffset) !== null && _c !== void 0 ? _c : 0;
@@ -72,6 +74,28 @@ index 18e59ce..a972c93 100644
 +                    : initialItemLayout.height;
 +                if (containerSize > 0) {
 +                    offset = Math.max(0, offset - (containerSize - itemSize) * viewPosition);
++                }
++            }
++            // Ensure a sliver of the next item peeks at the bottom edge so it is clear there are more items
++            // underneath.If bottom item is (essentially) fully visible
++            // against the bottom edge AND there is an item underneath it, nudge the bottom edge
++            // down so PEEK_OFFSET px of the next item shows.
++            if (viewPosition !== undefined && !horizontal && recyclerViewManager.props.inverted && offset > 0) {
++                const PEEK_OFFSET = 20;
++                let bottomIndex = -1;
++                for (let i = initialScrollIndex; i >= 0; i--) {
++                    if (recyclerViewManager.getLayout(i).y <= offset) {
++                        bottomIndex = i;
++                        break;
++                    }
++                }
++                if (bottomIndex > 0) {
++                    const bottomItemLayout = recyclerViewManager.getLayout(bottomIndex);
++                    const hiddenPortion = offset - bottomItemLayout.y;
++                    // 8px is bottom padding of every item
++                    if (hiddenPortion <= 8) {
++                        offset = Math.max(0, bottomItemLayout.y - PEEK_OFFSET);
++                    }
 +                }
 +            }
              handlerMethods.scrollToOffset({
