@@ -1,5 +1,5 @@
 import type {Dispatch, SetStateAction} from 'react';
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import type {TableData, TableRow} from '@components/Table/types';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePrevious from '@hooks/usePrevious';
@@ -65,9 +65,9 @@ export default function useSelection<DataType extends TableData>({
     const selectableKeys = data.filter((item) => !item.disabled && !item.isSelectionDisabled).map((item) => item.keyForList);
     const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
 
-    const clearSelection = () => {
+    const clearSelection = useCallback(() => {
         onRowSelectionChange?.([]);
-    };
+    }, []);
 
     // Sync the selection mode with the screen size & selection state
     useEffect(() => {
