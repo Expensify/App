@@ -230,7 +230,9 @@ function SearchPage({route}: SearchPageProps) {
                 return getNumberMember(convertedTransaction, 'groupAmount') !== undefined;
             });
         const shouldUseConvertedSelectedTotal = canConvertSelectedTotal && areAllSelectedRowsConverted;
-        const isFooterGrandTotalLoading = !shouldUseClientTotal && hasCustomFooterCurrency && !!footerTotalMetadata?.isLoading;
+        // Custom-currency totals (grand and partial selections) need a backend conversion round-trip, so show loading
+        // whenever that conversion snapshot is in flight.
+        const isFooterTotalConverting = hasCustomFooterCurrency && !!footerTotalMetadata?.isLoading;
         let currency;
         if (shouldUseConvertedSelectedTotal) {
             currency = selectedCurrency;
@@ -256,7 +258,7 @@ function SearchPage({route}: SearchPageProps) {
             total = metadataTotal;
         }
 
-        return {count: numberOfExpense, total, currency, isLoading: isFooterGrandTotalLoading};
+        return {count: numberOfExpense, total, currency, isLoading: isFooterTotalConverting};
     }, [
         areAllMatchingItemsSelected,
         defaultFooterCurrency,
