@@ -113,8 +113,8 @@ describe('ExportDownloadStatusModal', () => {
         renderModal();
         await waitForBatchedUpdatesWithAct();
 
-        const expectedURLPart = `secure?secureType=pdfreport&filename=${encodeURIComponent(FILE_NAME)}&downloadName=${encodeURIComponent(`${FILE_NAME}.pdf`)}`;
-        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining(expectedURLPart), `${FILE_NAME}.pdf`, expect.anything(), expect.anything());
+        const expectedURLPart = `secure?secureType=pdfreport&filename=${encodeURIComponent(FILE_NAME)}&downloadName=${encodeURIComponent(FILE_NAME)}`;
+        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining(expectedURLPart), FILE_NAME, expect.anything(), expect.anything());
     });
 
     it('shows ready state with Download and Close buttons', async () => {
