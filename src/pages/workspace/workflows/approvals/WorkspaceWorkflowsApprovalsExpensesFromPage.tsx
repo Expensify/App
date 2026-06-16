@@ -283,7 +283,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     // never confirmed, so leaving them in approvalWorkflow.members would carry an un-invited user into
     // the form and fail backend validation with "Approvals can only be set for members of the policy".
     // This must run on every back path, including when an explicit backTo is honored below.
-    const dropUnconfirmedStagedMembers = () => {
+    const dropUnconfirmedStagedMembers = useCallback(() => {
         // Going back means we're done with this expenses-from session, so any
         // hand-off to the invite-message page is no longer in flight.
         isHandingOffToInviteRef.current = false;
@@ -293,7 +293,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         if (confirmedMembers.length !== stagedMembers.length) {
             setApprovalWorkflowMembers(confirmedMembers);
         }
-    };
+    }, [approvalWorkflow?.members, policy?.employeeList]);
 
     const goBack = useCallback(() => {
         dropUnconfirmedStagedMembers();

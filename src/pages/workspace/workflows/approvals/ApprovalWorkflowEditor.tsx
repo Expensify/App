@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -92,7 +93,9 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const memberPills = useMemo(
         () =>
             sortedMembers.map((m) => ({
-                avatar: m.avatar,
+                // A just-invited member is stored without an avatar, so fall back to the email-based default
+                // avatar instead of the generic fallback icon.
+                avatar: m.avatar ?? getDefaultAvatarURL({accountEmail: m.email}),
                 displayName: m.displayName,
                 email: m.email,
             })),
