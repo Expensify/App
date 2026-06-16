@@ -7275,8 +7275,8 @@ const translations = {
             generalTab: {
                 title: 'Basic rules',
                 subtitle: 'Common rules to control spend',
-                expensesOlderThan: 'Expenses older than',
-                expensesAboveAmount: 'Expenses above amount',
+                expensesOlderThan: 'Flag expenses older than',
+                expensesAboveAmount: 'Flag expenses above amount',
                 flagReceiptLineItems: 'Flag receipt line items',
                 receiptRequirements: 'Require receipts',
                 receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
