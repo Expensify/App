@@ -128,8 +128,6 @@ function openPersonalBankAccountSetupView({
     isUserValidated = true,
     onSuccessFallbackRoute,
 }: OpenPersonalBankAccountSetupViewProps) {
-    clearPersonalBankAccount();
-
     clearInternationalBankAccount().then(() => {
         const personalBankAccountState: Partial<PersonalBankAccount> = {};
 
@@ -146,9 +144,10 @@ function openPersonalBankAccountSetupView({
             personalBankAccountState.onSuccessFallbackRoute = onSuccessFallbackRoute;
         }
 
-        if (Object.keys(personalBankAccountState).length > 0) {
-            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccountState);
-        }
+        // Seed state via Onyx.set to avoid set/merge races (see resetPersonalBankAccountForUpdate).
+        Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, Object.keys(personalBankAccountState).length > 0 ? personalBankAccountState : null);
+        Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
+
         if (!isUserValidated) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
             return;
@@ -306,6 +305,13 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
     };
 
     API.write(WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO, parameters, onyxData);
+}
+
+/**
+ * Whether after adding a bank account we should continue with the KYC flow. If so, we must specify the fallback route.
+ */
+function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Route) {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute});
 }
 
 function clearPersonalBankAccount() {
@@ -1851,6 +1857,7 @@ export {
     addPersonalBankAccount,
     clearOnfidoToken,
     clearPersonalBankAccount,
+    setPersonalBankAccountContinueKYCOnSuccess,
     resetPersonalBankAccountForUpdate,
     setPlaidEvent,
     openPlaidView,
