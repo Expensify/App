@@ -7207,6 +7207,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 saveAnyway: 'Salvar mesmo assim',
                 applyToExistingUnsubmittedExpenses: 'Aplicar às despesas existentes não enviadas',
                 findRule: 'Encontrar regra de comerciante',
+                expenseDefaultsTitle: 'Padrões de despesa',
+                expenseDefaultsSubtitle: 'Atualizar campos sem que quem envia precise fazer nada',
+                ifAnyExpenseMatches: 'Se alguma despesa corresponder:',
+                thenApplyFollowingDefaults: 'Em seguida, aplica os seguintes padrões:',
             },
             categoryRules: {
                 title: 'Regras de categoria',
@@ -7357,6 +7361,29 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueado' : 'Permitido'} ${shownCount > 1 ? 'categorias' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
+                defaultRuleSummary: 'Categorias incluindo serviços adultos, caixas eletrônicos, jogos de azar e...',
+                findRule: 'Encontrar regra',
+                defaultSection: 'Padrão',
+                customRulesSection: 'Regras personalizadas',
+                tableColumnType: 'Tipo',
+                tableColumnCard: 'Cartão',
+                tableColumnRule: 'Regra',
+                cardRulesUpsell: {
+                    title: 'Obtenha o Cartão Expensify e controle seus gastos',
+                    subtitle:
+                        'Com o Cartão Expensify, você pode definir regras de gasto máximo, bloquear ou permitir determinados estabelecimentos ou tipos de compras. Você também recebe 2% de cashback.',
+                    cta: 'Pedir o cartão',
+                },
+                restrictCardSpendTitle: 'Restringir gastos do cartão',
+                restrictCardSpendSubtitle: 'Bloqueie ou limite gastos no ponto de venda.',
+                ifAnyCardMatches: 'Se qualquer cartão corresponder:',
+                thenDoThisAtPointOfSale: 'Então faça isto no ponto de venda:',
+                permittedCurrencies: 'Moedas permitidas',
+                setRestrictions: 'Definir restrições',
+                merchantRestrictions: 'Restrições de estabelecimento',
+                blockedMerchant: 'Comerciante bloqueado',
+                blockedMerchantTypes: 'Tipos de estabelecimentos bloqueados',
+                maxAmountAbove: ({amount}: {amount: string}) => `acima de ${amount}`,
             },
             agentRules: {
                 title: 'Regras de Agente',
@@ -7372,6 +7399,66 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 agentCreatedTitle: 'O RuleBot foi adicionado ao seu espaço de trabalho!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar suas regras de agente, criamos um agente para você e o adicionamos como administrador do seu espaço de trabalho.<br><br>Edite os detalhes do seu agente em <a href="${agentsRoute}">Conta &gt; Agentes</a>.</muted-text>`,
+            },
+            tabs: {general: 'Geral', cardRestrictions: 'Restrições do cartão', expenseDefaults: 'Padrões de despesa'},
+            bulkActions: {
+                deleteMultiple: {one: 'Excluir regra', other: 'Excluir regras'},
+                deleteMultipleConfirmation: {one: 'Tem certeza de que deseja excluir esta regra?', other: 'Tem certeza de que quer excluir essas regras?'},
+            },
+            generalTab: {
+                title: 'Regras básicas',
+                subtitle: 'Regras comuns para controlar gastos',
+                expensesOlderThan: 'Despesas anteriores a',
+                expensesAboveAmount: 'Despesas acima do valor',
+                flagReceiptLineItems: 'Marcar itens da linha do recibo',
+                receiptRequirements: 'Exigir recibos',
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `Regular acima de ${regularAmount}, detalhado acima de ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `Regular acima de ${regularAmount}, não exigir itemização`;
+                    }
+                    if (itemizedAmount) {
+                        return `Não exigir lançamento regular, detalhado acima de ${itemizedAmount}`;
+                    }
+                    return 'Não exigir recibos';
+                },
+                requireFieldsForAllExpenses: 'Exigir campos para todas as despesas',
+                cashExpenses: 'Despesas em dinheiro',
+                cashExpensesReimbursableByDefault: 'Reembolsável por padrão',
+                cashExpensesNonReimbursableByDefault: 'Não reembolsável por padrão',
+                cashExpensesAlwaysReimbursable: 'Sempre reembolsável',
+                cashExpensesAlwaysNonReimbursable: 'Sempre não reembolsável',
+                billableExpenses: 'Despesas faturáveis',
+                billableExpensesBillable: 'Reembolsável em dinheiro e cartão de crédito',
+                billableExpensesNonBillable: 'Dinheiro e cartão de crédito não faturáveis',
+            },
+            requireReceipts: {
+                title: 'Exigir recibos',
+                description: 'Exigir recibos quando o gasto exceder este valor, a menos que uma regra de categoria substitua.',
+                requireReceipt: 'Exigir recibo',
+                requireItemizedReceipt: 'Exigir comprovante detalhado',
+                requireAboveAmount: 'Exigir valor acima',
+                saveRule: 'Salvar regra',
+            },
+            requireFields: {title: 'Exigir campos para todas as despesas', category: 'Categoria', tag: 'Etiqueta', save: 'Salvar regra'},
+            newRule: {
+                title: 'Nova regra',
+                subtitle: 'O que você quer fazer?',
+                restrictCardSpend: 'Restringir gastos do cartão',
+                restrictCardSpendDescription: 'Bloqueie ou limite gastos no ponto de venda',
+                applyExpenseDefaults: 'Aplicar padrões de despesa',
+                applyExpenseDefaultsDescription: 'Atualizar campos sem que quem envia precise fazer nada',
+            },
+            expenseDefaultsTable: {
+                tableColumnType: 'Tipo',
+                tableColumnCondition: 'Condição',
+                tableColumnRule: 'Regra',
+                findRule: 'Encontrar regra',
+                rename: 'Renomear',
+                update: 'Atualizar',
+                merchantIs: (merchant: string) => `Estabelecimento é "${merchant}"`,
             },
         },
         planTypePage: {

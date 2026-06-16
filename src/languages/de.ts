@@ -7249,6 +7249,10 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 saveAnyway: 'Trotzdem speichern',
                 applyToExistingUnsubmittedExpenses: 'Auf bestehende nicht eingereichte Ausgaben anwenden',
                 findRule: 'Händlerregel finden',
+                expenseDefaultsTitle: 'Standardvorgaben für Ausgaben',
+                expenseDefaultsSubtitle: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
+                ifAnyExpenseMatches: 'Wenn eine Ausgabe übereinstimmt:',
+                thenApplyFollowingDefaults: 'Wenden Sie dann die folgenden Standardwerte an:',
             },
             categoryRules: {
                 title: 'Kategorienregeln',
@@ -7399,6 +7403,29 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blockiert' : 'Erlaubt'} ${shownCount > 1 ? 'Kategorien' : 'Kategorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
+                defaultRuleSummary: 'Kategorien einschließlich Dienstleistungen für Erwachsene, Geldautomaten, Glücksspiel und ...',
+                findRule: 'Regel finden',
+                defaultSection: 'Standard',
+                customRulesSection: 'Benutzerdefinierte Regeln',
+                tableColumnType: 'Typ',
+                tableColumnCard: 'Karte',
+                tableColumnRule: 'Regel',
+                cardRulesUpsell: {
+                    title: 'Holen Sie sich die Expensify Karte und behalten Sie die Ausgaben im Griff',
+                    subtitle:
+                        'Mit der Expensify Karte können Sie Regeln für den maximalen Betrag festlegen und bestimmte Händler oder Arten von Käufen blockieren oder erlauben. Außerdem erhalten Sie 2 % Cashback.',
+                    cta: 'Karte erhalten',
+                },
+                restrictCardSpendTitle: 'Kartenausgaben beschränken',
+                restrictCardSpendSubtitle: 'Ausgaben direkt am Point of Sale blockieren oder begrenzen.',
+                ifAnyCardMatches: 'Wenn eine Karte übereinstimmt:',
+                thenDoThisAtPointOfSale: 'Machen Sie dann Folgendes am Verkaufsort:',
+                permittedCurrencies: 'Zulässige Währungen',
+                setRestrictions: 'Beschränkungen festlegen',
+                merchantRestrictions: 'Händlerbeschränkungen',
+                blockedMerchant: 'Gesperrter Händler',
+                blockedMerchantTypes: 'Blockierte Händlerkategorien',
+                maxAmountAbove: ({amount}: {amount: string}) => `über ${amount}`,
             },
             agentRules: {
                 title: 'Agent-Regeln',
@@ -7414,6 +7441,66 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 agentCreatedTitle: 'RuleBot wurde zu Ihrem Arbeitsbereich hinzugefügt!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Um Ihre Agent-Regeln durchzusetzen, haben wir einen Agenten für Sie erstellt und ihn als Administrator zu Ihrem Arbeitsbereich hinzugefügt.<br><br>Bearbeiten Sie die Details Ihres Agenten unter <a href="${agentsRoute}">Konto &gt; Agenten</a>.</muted-text>`,
+            },
+            tabs: {general: 'Allgemein', cardRestrictions: 'Kartenbeschränkungen', expenseDefaults: 'Standardvorgaben für Ausgaben'},
+            bulkActions: {
+                deleteMultiple: {one: 'Regel löschen', other: 'Regeln löschen'},
+                deleteMultipleConfirmation: {one: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?', other: 'Sind Sie sicher, dass Sie diese Regeln löschen möchten?'},
+            },
+            generalTab: {
+                title: 'Grundregeln',
+                subtitle: 'Allgemeine Regeln zur Ausgabenkontrolle',
+                expensesOlderThan: 'Ausgaben älter als',
+                expensesAboveAmount: 'Ausgaben über Betrag',
+                flagReceiptLineItems: 'Belegpositionen markieren',
+                receiptRequirements: 'Belege erforderlich',
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `Normal über ${regularAmount}, aufgeschlüsselt über ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `Regulär über ${regularAmount}, keine Einzelauflistung erforderlich`;
+                    }
+                    if (itemizedAmount) {
+                        return `Reguläre, aufgeschlüsselte Ausgaben über ${itemizedAmount} nicht verlangen`;
+                    }
+                    return 'Quittungen nicht verlangen';
+                },
+                requireFieldsForAllExpenses: 'Felder für alle Ausgaben erforderlich machen',
+                cashExpenses: 'Barzahlungsbelege',
+                cashExpensesReimbursableByDefault: 'Standardmäßig erstattungsfähig',
+                cashExpensesNonReimbursableByDefault: 'Standardmäßig nicht erstattungsfähig',
+                cashExpensesAlwaysReimbursable: 'Immer erstattungsfähig',
+                cashExpensesAlwaysNonReimbursable: 'Immer nicht erstattungsfähig',
+                billableExpenses: 'Abrechenbare Ausgaben',
+                billableExpensesBillable: 'Barzahlungs- und Kreditkartenausgaben verrechenbar',
+                billableExpensesNonBillable: 'Nicht verrechenbar (Bar- und Kreditkarte)',
+            },
+            requireReceipts: {
+                title: 'Belege erforderlich',
+                description: 'Belege verlangen, wenn die Ausgaben diesen Betrag überschreiten, sofern dies nicht durch eine Kategorienregel außer Kraft gesetzt wird.',
+                requireReceipt: 'Beleg erforderlich',
+                requireItemizedReceipt: 'Ausgeschlüsselte Quittung erforderlich',
+                requireAboveAmount: 'Betrag oben erforderlich',
+                saveRule: 'Regel speichern',
+            },
+            requireFields: {title: 'Felder für alle Ausgaben erforderlich machen', category: 'Kategorie', tag: 'Tag', save: 'Regel speichern'},
+            newRule: {
+                title: 'Neue Regel',
+                subtitle: 'Was möchten Sie tun?',
+                restrictCardSpend: 'Kartenausgaben beschränken',
+                restrictCardSpendDescription: 'Ausgaben am Verkaufsort blockieren oder begrenzen',
+                applyExpenseDefaults: 'Spesenvoreinstellungen anwenden',
+                applyExpenseDefaultsDescription: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
+            },
+            expenseDefaultsTable: {
+                tableColumnType: 'Typ',
+                tableColumnCondition: 'Bedingung',
+                tableColumnRule: 'Regel',
+                findRule: 'Regel finden',
+                rename: 'Umbenennen',
+                update: 'Aktualisieren',
+                merchantIs: (merchant: string) => `Händler ist „${merchant}“`,
             },
         },
         planTypePage: {

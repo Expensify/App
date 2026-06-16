@@ -7021,6 +7021,10 @@ ${reportName}
                 saveAnyway: '仍然保存',
                 applyToExistingUnsubmittedExpenses: '应用到现有未提交的报销费用',
                 findRule: '查找商户规则',
+                expenseDefaultsTitle: '报销默认设置',
+                expenseDefaultsSubtitle: '在提交人无须执行任何操作的情况下更新字段',
+                ifAnyExpenseMatches: '如果任何报销符合：',
+                thenApplyFollowingDefaults: '然后应用以下默认设置：',
             },
             categoryRules: {
                 title: '类别规则',
@@ -7169,6 +7173,28 @@ ${reportName}
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? '已屏蔽' : '已允许'} ${shownCount > 1 ? '类别' : '类别'}: ${categories}${hiddenCount > 0 ? `，还有 +${hiddenCount} 个` : ''}`,
+                defaultRuleSummary: '包括成人服务、自动取款机、赌博等在内的类别',
+                findRule: '查找规则',
+                defaultSection: '默认',
+                customRulesSection: '自定义规则',
+                tableColumnType: '类型',
+                tableColumnCard: '卡',
+                tableColumnRule: '规则',
+                cardRulesUpsell: {
+                    title: '申领 Expensify 卡，轻松掌控支出',
+                    subtitle: '使用 Expensify 卡，您可以设置最高消费限额，屏蔽或允许特定商户或类型的消费。您还可获得 2% 现金返现。',
+                    cta: '获取此卡',
+                },
+                restrictCardSpendTitle: '限制卡片消费',
+                restrictCardSpendSubtitle: '在销售点阻止或限制支出。',
+                ifAnyCardMatches: '如果任意卡片符合条件：',
+                thenDoThisAtPointOfSale: '然后在销售点执行以下操作：',
+                permittedCurrencies: '允许的货币',
+                setRestrictions: '设置限制',
+                merchantRestrictions: '商户限制',
+                blockedMerchant: '已屏蔽的商户',
+                blockedMerchantTypes: '已屏蔽商户类型',
+                maxAmountAbove: ({amount}: {amount: string}) => `高于 ${amount}`,
             },
             agentRules: {
                 title: '代理规则',
@@ -7184,6 +7210,63 @@ ${reportName}
                 agentCreatedTitle: 'RuleBot 已添加到你的工作区!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>为了执行你的代理规则，我们为你创建了一个代理，并将其添加为你工作区的管理员。<br><br>你可以在 <a href="${agentsRoute}">“账户”&gt;“代理”</a> 中编辑代理的详细信息。</muted-text>`,
+            },
+            tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置'},
+            bulkActions: {deleteMultiple: {one: '删除规则', other: '删除规则'}, deleteMultipleConfirmation: {one: '确定要删除此规则吗？', other: '确定要删除这些规则吗？'}},
+            generalTab: {
+                title: '基本规则',
+                subtitle: '控制支出的通用规则',
+                expensesOlderThan: '早于以下时间的报销费用',
+                expensesAboveAmount: '高于金额的报销费用',
+                flagReceiptLineItems: '标记报销单明细行',
+                receiptRequirements: '要求提供收据',
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `常规超过 ${regularAmount}，分项超过 ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `常规金额高于 ${regularAmount}，不需要逐项明细`;
+                    }
+                    if (itemizedAmount) {
+                        return `不要求常规报销，${itemizedAmount} 以上需逐项列出`;
+                    }
+                    return '不要求收据';
+                },
+                requireFieldsForAllExpenses: '对所有报销启用必填字段',
+                cashExpenses: '现金报销',
+                cashExpensesReimbursableByDefault: '默认可报销',
+                cashExpensesNonReimbursableByDefault: '默认不予报销',
+                cashExpensesAlwaysReimbursable: '始终可报销',
+                cashExpensesAlwaysNonReimbursable: '始终不可报销',
+                billableExpenses: '可计费报销费用',
+                billableExpensesBillable: '可计费的现金和信用卡',
+                billableExpensesNonBillable: '现金和信用卡（不计费）',
+            },
+            requireReceipts: {
+                title: '要求提供收据',
+                description: '当支出超过此金额时要求提供收据，除非被类别规则覆盖。',
+                requireReceipt: '要求收据',
+                requireItemizedReceipt: '要求明细收据',
+                requireAboveAmount: '要求高于此金额',
+                saveRule: '保存规则',
+            },
+            requireFields: {title: '对所有报销启用必填字段', category: '类别', tag: '标签', save: '保存规则'},
+            newRule: {
+                title: '新规则',
+                subtitle: '你想做什么？',
+                restrictCardSpend: '限制卡片消费',
+                restrictCardSpendDescription: '在销售点阻止或限制消费',
+                applyExpenseDefaults: '应用报销默认值',
+                applyExpenseDefaultsDescription: '在提交人无须执行任何操作的情况下更新字段',
+            },
+            expenseDefaultsTable: {
+                tableColumnType: '类型',
+                tableColumnCondition: '条件',
+                tableColumnRule: '规则',
+                findRule: '查找规则',
+                rename: '重命名',
+                update: '更新',
+                merchantIs: (merchant: string) => `商户为“${merchant}”`,
             },
         },
         planTypePage: {

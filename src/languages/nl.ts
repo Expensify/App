@@ -7209,6 +7209,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 saveAnyway: 'Toch opslaan',
                 applyToExistingUnsubmittedExpenses: 'Toepassen op bestaande niet-ingediende uitgaven',
                 findRule: 'Zoek handelsregel',
+                expenseDefaultsTitle: 'Standaardinstellingen voor uitgaven',
+                expenseDefaultsSubtitle: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
+                ifAnyExpenseMatches: 'Als een uitgave voldoet aan:',
+                thenApplyFollowingDefaults: 'Pas vervolgens de volgende standaardinstellingen toe:',
             },
             categoryRules: {
                 title: 'Categorisatieregels',
@@ -7358,6 +7362,29 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'categorieën' : 'categorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
+                defaultRuleSummary: 'Categorieën zoals diensten voor volwassenen, geldautomaten, gokken en...',
+                findRule: 'Regel zoeken',
+                defaultSection: 'Standaard',
+                customRulesSection: 'Aangepaste regels',
+                tableColumnType: 'Type',
+                tableColumnCard: 'Kaart',
+                tableColumnRule: 'Regel',
+                cardRulesUpsell: {
+                    title: 'Neem de Expensify Kaart en beheer uitgaven',
+                    subtitle:
+                        'Met de Expensify Kaart kun je regels instellen voor maximale uitgaven, bepaalde verkopers of soorten aankopen blokkeren of toestaan. Je krijgt ook 2% cashback.',
+                    cta: 'Vraag de kaart aan',
+                },
+                restrictCardSpendTitle: 'Kaartuitgaven beperken',
+                restrictCardSpendSubtitle: 'Blokkeer of beperk uitgaven bij het verkooppunt.',
+                ifAnyCardMatches: 'Als een van de kaarten overeenkomt:',
+                thenDoThisAtPointOfSale: 'Doe dan dit bij het verkooppunt:',
+                permittedCurrencies: 'Toegestane valuta’s',
+                setRestrictions: 'Beperkingen instellen',
+                merchantRestrictions: 'Beperkingen voor handelaren',
+                blockedMerchant: 'Geblokkeerde handelaar',
+                blockedMerchantTypes: 'Geblokkeerde handelaarstypen',
+                maxAmountAbove: ({amount}: {amount: string}) => `boven ${amount}`,
             },
             agentRules: {
                 title: 'Agentregels',
@@ -7373,6 +7400,66 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 agentCreatedTitle: 'RuleBot is toegevoegd aan je werkruimte!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Om je agentregels af te dwingen, hebben we een agent voor je gemaakt en deze als beheerder aan je werkruimte toegevoegd.<br><br>Bewerk de gegevens van je agent in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
+            },
+            tabs: {general: 'Algemeen', cardRestrictions: 'Kaartbeperkingen', expenseDefaults: 'Standaardinstellingen voor uitgaven'},
+            bulkActions: {
+                deleteMultiple: {one: 'Regel verwijderen', other: 'Regels verwijderen'},
+                deleteMultipleConfirmation: {one: 'Weet je zeker dat je deze regel wilt verwijderen?', other: 'Weet je zeker dat je deze regels wilt verwijderen?'},
+            },
+            generalTab: {
+                title: 'Basisregels',
+                subtitle: 'Algemene regels om uitgaven te beheren',
+                expensesOlderThan: 'Onkosten ouder dan',
+                expensesAboveAmount: 'Uitgaven boven bedrag',
+                flagReceiptLineItems: 'Regelitems van bon markeren',
+                receiptRequirements: 'Bonnen vereisen',
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `Normaal boven ${regularAmount}, gespecificeerd boven ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `Normaal boven ${regularAmount}, itemisatie niet vereist`;
+                    }
+                    if (itemizedAmount) {
+                        return `Regelmatig, gespecificeerd overzicht niet vereist boven ${itemizedAmount}`;
+                    }
+                    return 'Geen bonnetjes vereist';
+                },
+                requireFieldsForAllExpenses: 'Velden vereisen voor alle uitgaven',
+                cashExpenses: 'Contante uitgaven',
+                cashExpensesReimbursableByDefault: 'Standaard declarabel',
+                cashExpensesNonReimbursableByDefault: 'Standaard niet-declarabel',
+                cashExpensesAlwaysReimbursable: 'Altijd te vergoeden',
+                cashExpensesAlwaysNonReimbursable: 'Altijd niet-vergoedbaar',
+                billableExpenses: 'Declareerbare uitgaven',
+                billableExpensesBillable: 'Declarabel in contanten en met creditcard',
+                billableExpensesNonBillable: 'Contant en creditcard niet-declarabel',
+            },
+            requireReceipts: {
+                title: 'Bonnen vereisen',
+                description: 'Vereis bonnen wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriebepaling.',
+                requireReceipt: 'Bon vereist',
+                requireItemizedReceipt: 'Gespecificeerde bon verplicht',
+                requireAboveAmount: 'Vereist bovenstaand bedrag',
+                saveRule: 'Regel opslaan',
+            },
+            requireFields: {title: 'Velden vereisen voor alle uitgaven', category: 'Categorie', tag: 'Label', save: 'Regel opslaan'},
+            newRule: {
+                title: 'Nieuwe regel',
+                subtitle: 'Wat wil je doen?',
+                restrictCardSpend: 'Kaartuitgaven beperken',
+                restrictCardSpendDescription: 'Blokkeer of beperk uitgaven bij het verkooppunt',
+                applyExpenseDefaults: 'Standaardinstellingen voor uitgaven toepassen',
+                applyExpenseDefaultsDescription: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
+            },
+            expenseDefaultsTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Voorwaarde',
+                tableColumnRule: 'Regel',
+                findRule: 'Regel zoeken',
+                rename: 'Naam wijzigen',
+                update: 'Bijwerken',
+                merchantIs: (merchant: string) => `Verkoper is "${merchant}"`,
             },
         },
         planTypePage: {
