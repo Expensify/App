@@ -41,8 +41,8 @@ type WorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenL
 
 // A user invited by phone is stored in the workflow with the raw login the admin typed, but the workspace
 // keys its members by the canonical SMS login (e164@expensify.sms). Normalize before any membership or
-// dedup comparison so a freshly invited phone number isn't treated as both a pending invite and a separate
-// member (which made it show twice and lose its selection on back). This is a no-op for email logins.
+// duplicate comparison so a freshly invited phone number isn't treated as both a pending invite and a
+// separate member (which made it show twice and lose its selection on back). This is a no-op for email logins.
 function normalizeLogin(login: string | null | undefined): string {
     return addSMSDomainIfPhoneNumber(login ?? '');
 }
