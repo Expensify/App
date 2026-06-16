@@ -26,7 +26,7 @@ describe('useArrowKeyFocusManager', () => {
         }
     });
 
-    it('defaults shouldScroll to false when the setter is called without the optional flag', () => {
+    it('defaults shouldScrollHint to false when the setter is called without the optional flag', () => {
         const onFocusedIndexChange = jest.fn();
         const {result} = renderHook(() =>
             useArrowKeyFocusManager({
@@ -44,7 +44,7 @@ describe('useArrowKeyFocusManager', () => {
         expect(onFocusedIndexChange).toHaveBeenCalledWith(2, false);
     });
 
-    it('forwards shouldScroll: true through to onFocusedIndexChange', () => {
+    it('forwards shouldScrollHint: true through to onFocusedIndexChange', () => {
         const onFocusedIndexChange = jest.fn();
         const {result} = renderHook(() =>
             useArrowKeyFocusManager({
@@ -62,7 +62,7 @@ describe('useArrowKeyFocusManager', () => {
         expect(onFocusedIndexChange).toHaveBeenCalledWith(2, true);
     });
 
-    it('forwards shouldScroll: false through to onFocusedIndexChange', () => {
+    it('forwards shouldScrollHint: false through to onFocusedIndexChange', () => {
         const onFocusedIndexChange = jest.fn();
         const {result} = renderHook(() =>
             useArrowKeyFocusManager({
@@ -80,7 +80,7 @@ describe('useArrowKeyFocusManager', () => {
         expect(onFocusedIndexChange).toHaveBeenCalledWith(2, false);
     });
 
-    it('arrow key navigation forwards shouldScroll: true', () => {
+    it('arrow key navigation forwards shouldScrollHint: true', () => {
         const onFocusedIndexChange = jest.fn();
         renderHook(() =>
             useArrowKeyFocusManager({
@@ -97,7 +97,7 @@ describe('useArrowKeyFocusManager', () => {
         expect(onFocusedIndexChange).toHaveBeenCalledWith(1, true);
     });
 
-    it('arrow keys override a previous shouldScroll: false from setFocusedIndex', () => {
+    it('arrow keys override a previous shouldScrollHint: false from setFocusedIndex', () => {
         const onFocusedIndexChange = jest.fn();
         const {result} = renderHook(() =>
             useArrowKeyFocusManager({
@@ -108,19 +108,19 @@ describe('useArrowKeyFocusManager', () => {
             }),
         );
 
-        // Public setter parks the ref at false (e.g., focus-driven update).
+        // Public setter parks the hint at false (e.g., focus-driven update).
         act(() => {
             result.current[1](2, false);
         });
         expect(onFocusedIndexChange).toHaveBeenLastCalledWith(2, false);
 
-        // Arrow key must reassert shouldScroll: true; otherwise a focus event
+        // Arrow key must reassert shouldScrollHint: true; otherwise a focus event
         // before an arrow press would silently suppress the next scroll.
         pressArrowDown();
         expect(onFocusedIndexChange).toHaveBeenLastCalledWith(3, true);
     });
 
-    it('forwards independent shouldScroll values on successive calls', () => {
+    it('forwards independent shouldScrollHint values on successive calls', () => {
         const onFocusedIndexChange = jest.fn();
         const {result} = renderHook(() =>
             useArrowKeyFocusManager({
@@ -146,5 +146,31 @@ describe('useArrowKeyFocusManager', () => {
         expect(onFocusedIndexChange).toHaveBeenLastCalledWith(4, false);
 
         expect(onFocusedIndexChange).toHaveBeenCalledTimes(3);
+    });
+
+    it('bails out on same-index external writes and preserves the previously-set hint', () => {
+        // Arrow key sets index=1 with shouldScrollHint=true. Then a focus-event-style
+        // external write hits with the same index and no hint. The bail-out must prevent
+        // a second onFocusedIndexChange invocation, so the consumer's scroll for the
+        // arrow-key transition is not clobbered.
+        const onFocusedIndexChange = jest.fn();
+        const {result} = renderHook(() =>
+            useArrowKeyFocusManager({
+                maxIndex: 5,
+                initialFocusedIndex: 0,
+                onFocusedIndexChange,
+                isActive: true,
+            }),
+        );
+
+        pressArrowDown();
+        expect(onFocusedIndexChange).toHaveBeenCalledTimes(1);
+        expect(onFocusedIndexChange).toHaveBeenLastCalledWith(1, true);
+
+        act(() => {
+            result.current[1](1, false);
+        });
+
+        expect(onFocusedIndexChange).toHaveBeenCalledTimes(1);
     });
 });

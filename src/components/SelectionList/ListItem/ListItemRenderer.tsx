@@ -97,12 +97,6 @@ function ListItemRenderer<TItem extends ListItem>({
                     if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
                         return;
                     }
-                    // The row is already tracked as focused by useArrowKeyFocusManager. This focus event is the synchronous
-                    // result of useSyncFocus's layout effect calling el.focus(); calling setFocusedIndex again here would
-                    // clobber shouldScrollNextChangeRef and suppress the arrow-key-driven scroll. See useArrowKeyFocusManager.
-                    if (isFocused) {
-                        return;
-                    }
                     setFocusedIndex(normalizedIndex ?? index);
                 }}
                 shouldSyncFocus={shouldSyncFocus}

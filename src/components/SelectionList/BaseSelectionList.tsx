@@ -217,8 +217,8 @@ function BaseSelectionList<TItem extends ListItem>({
         maxIndex: data.length - 1,
         disabledIndexes: dataDetails.disabledArrowKeyIndexes,
         isActive: isFocused,
-        onFocusedIndexChange: (index, shouldScroll) => {
-            if (!shouldScroll || !shouldScrollToFocusedIndex) {
+        onFocusedIndexChange: (index, shouldScrollHint) => {
+            if (!shouldScrollHint || !shouldScrollToFocusedIndex) {
                 return;
             }
 

@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useState} from 'react';
 import CONST from '@src/CONST';
 import useKeyboardShortcut from './useKeyboardShortcut';
 import usePrevious from './usePrevious';
@@ -6,19 +6,14 @@ import usePrevious from './usePrevious';
 type Config = {
     maxIndex: number;
     /**
-     * Optional callback fired whenever `focusedIndex` changes (from arrow keys or the
-     * setter returned by this hook). The hook itself never scrolls — this callback is
-     * where any scroll reaction must live.
-     *
-     * `shouldScroll` is a forwarded hint, NOT something the hook acts on:
-     * - Internal arrow-key navigation always passes `true`.
-     * - The setter returned by this hook forwards its optional
-     *   `shouldScrollOnFocusedIndexChange` arg (default `false`) here.
-     *
-     * If you don't wire this callback, the second arg on the setter has no observable
-     * effect — consumers can simply call `setFocusedIndex(index)`.
+     * Optional callback fired whenever `focusedIndex` changes. The hook itself never
+     * scrolls — any scroll reaction must live in this callback. `shouldScrollHint` is a
+     * hint forwarded from whoever wrote the new index; it is only ever set in the same
+     * commit that writes a new `index`, and is never updated on its own. If you need to
+     * scroll without changing the focused index, call the underlying list's
+     * `scrollToIndex` directly rather than going through this hook.
      */
-    onFocusedIndexChange?: (index: number, shouldScroll: boolean) => void;
+    onFocusedIndexChange?: (index: number, shouldScrollHint: boolean) => void;
     initialFocusedIndex?: number;
     disabledIndexes?: readonly number[];
     captureOnInputs?: boolean;
@@ -34,19 +29,14 @@ type Config = {
 };
 
 /**
- * Tuple of [focusedIndex, setFocusedIndex].
- *
- * The setter's optional `shouldScrollOnFocusedIndexChange` flag (default `false`) is NOT
- * a direct scroll control — it is forwarded as the `shouldScroll` argument to
- * `onFocusedIndexChange`. Consumers without `onFocusedIndexChange` can ignore it and
- * just call `setFocusedIndex(index)`.
+ * The setter's optional `shouldScrollHint` flag (default `false`) is forwarded as the
+ * second argument to `onFocusedIndexChange`; it is not a direct scroll control.
+ * Same-index writes are dropped — see the comment on `setFocusedIndexExternal` for why.
  */
-type UseArrowKeyFocusManager = [number, (index: number, shouldScrollOnFocusedIndexChange?: boolean) => void];
+type UseArrowKeyFocusManager = [number, (index: number, shouldScrollHint?: boolean) => void];
 
 /**
- * A hook that makes it easy to use the arrow keys to manage focus of items in a list
- *
- * Recommendation: To ensure stability, wrap the `onFocusedIndexChange` function with the useCallback hook before using it with this hook.
+ * A hook that makes it easy to use the arrow keys to manage focus of items in a list.
  *
  * @param config.maxIndex – typically the number of items in your list
  * @param [config.onFocusedIndexChange] – optional callback to execute when focusedIndex changes
@@ -78,19 +68,23 @@ export default function useArrowKeyFocusManager({
     setHasKeyBeenPressed,
     onArrowUpDownCallback = () => {},
 }: Config): UseArrowKeyFocusManager {
-    const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
+    const [focusState, setFocusState] = useState({index: initialFocusedIndex, shouldScrollHint: false});
+    const {index: focusedIndex, shouldScrollHint} = focusState;
     const prevIsFocusedIndex = usePrevious(focusedIndex);
 
-    const shouldScrollNextChangeRef = useRef(false);
-
-    const setFocusedIndexExternal = (index: number, shouldScrollOnFocusedIndexChange = false) => {
-        shouldScrollNextChangeRef.current = shouldScrollOnFocusedIndexChange;
-        setFocusedIndex(index);
+    /*
+     * Same-index bail-out example path: after an arrow-key commit, `useSyncFocus`'s
+     * layout effect (`src/hooks/useSyncFocus/useSyncFocusImplementation.ts`) calls
+     * `el.focus()`, the browser fires a synchronous `focus` event, and the `onFocus`
+     * handler in `src/components/SelectionList/ListItem/ListItemRenderer.tsx` re-enters
+     * this setter with the same index and no hint.
+     */
+    const setFocusedIndexExternal = (index: number, shouldScrollHintArg = false) => {
+        setFocusState((prev) => (prev.index === index ? prev : {index, shouldScrollHint: shouldScrollHintArg}));
     };
 
     const setFocusedIndexInternal = (updater: (prev: number) => number) => {
-        shouldScrollNextChangeRef.current = true;
-        setFocusedIndex(updater);
+        setFocusState((prev) => ({index: updater(prev.index), shouldScrollHint: true}));
     };
 
     const arrowConfig = {
@@ -105,13 +99,14 @@ export default function useArrowKeyFocusManager({
         captureOnInputs,
     };
 
+    const onFocusedIndexChangeEvent = useEffectEvent(onFocusedIndexChange);
+
     useEffect(() => {
         if (prevIsFocusedIndex === focusedIndex) {
             return;
         }
-        onFocusedIndexChange(focusedIndex, shouldScrollNextChangeRef.current);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [focusedIndex, prevIsFocusedIndex]);
+        onFocusedIndexChangeEvent(focusedIndex, shouldScrollHint);
+    }, [focusedIndex, prevIsFocusedIndex, shouldScrollHint]);
 
     const arrowUpCallback = () => {
         if (maxIndex < 0 || !isFocused) {
