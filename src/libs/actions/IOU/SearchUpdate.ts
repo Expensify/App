@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchMemberGroup, SearchResultDataType} from '@src/types/onyx/SearchResults';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import {getAllSnapshots, getCurrentUserPersonalDetails, getSearchQueryByHash} from './index';
 
 type ExpenseReportStatusPredicate = (expenseReport: OnyxEntry<OnyxTypes.Report>, transactionReportID?: string) => boolean;
@@ -178,7 +178,7 @@ function getSearchOnyxUpdate({
 
         if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM) {
             const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${fromAccountID}` as const;
-            const existingGroup = existingSnapshot?.data?.[groupKey] as SearchMemberGroup | undefined;
+            const existingGroup = existingSnapshot?.data?.[groupKey];
             snapshotData[groupKey] = {
                 accountID: fromAccountID,
                 count: (existingGroup?.count ?? 0) + 1,
