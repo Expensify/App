@@ -55,11 +55,11 @@ const FAKE_SELF_DM_REPORT_ID = '4';
 function generateIOUAction(transaction: Transaction, reportID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return {
         reportActionID: rand64(),
+        reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: CURRENT_USER_ID,
         created: DateUtils.getDBTime(),
         originalMessage: {
-            IOUReportID: reportID,
             IOUTransactionID: transaction.transactionID,
             amount: transaction.amount,
             currency: transaction.currency,
@@ -116,11 +116,11 @@ describe('Transaction', () => {
         function createIOUAction(transaction: Transaction, reportID = transaction.reportID, type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE> = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
             return {
                 reportActionID: rand64(),
+                reportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -1265,6 +1265,7 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList: undefined,
+                allTransactionViolation: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [receiptNoticeViolation]},
             });
             await waitForBatchedUpdates();
 
@@ -1699,11 +1700,11 @@ describe('Transaction', () => {
             });
             const IOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
                 reportActionID: rand64(),
+                reportID: FAKE_OLD_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
                     IOUTransactionID: transaction.transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -2082,12 +2083,12 @@ describe('Transaction', () => {
             const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
             const iouAction = {
                 reportActionID: rand64(),
+                reportID: FAKE_OLD_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: threadReportID,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
                     IOUTransactionID: transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -2109,6 +2110,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
             });
             await waitForBatchedUpdates();
 
@@ -2147,12 +2149,12 @@ describe('Transaction', () => {
             const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
             const iouAction = {
                 reportActionID: rand64(),
+                reportID: FAKE_OLD_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: threadReportID,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
                     IOUTransactionID: transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -2173,6 +2175,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
             });
             await waitForBatchedUpdates();
 
@@ -2226,12 +2229,12 @@ describe('Transaction', () => {
 
             const iouAction = {
                 reportActionID: rand64(),
+                reportID: FAKE_OLD_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: threadReportID,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
                     IOUTransactionID: transactionID,
                     amount: transactionInOnyx.amount,
                     currency: transactionInOnyx.currency,
@@ -2250,6 +2253,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions: {[transactionKey]: staleTransaction},
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
             });
             await waitForBatchedUpdates();
 
@@ -2313,12 +2317,12 @@ describe('Transaction', () => {
                 const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
                 const iouAction = {
                     reportActionID: rand64(),
+                    reportID: FAKE_OLD_REPORT_ID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     childReportID: threadReportID,
                     actorAccountID: CURRENT_USER_ID,
                     created: DateUtils.getDBTime(),
                     originalMessage: {
-                        IOUReportID: FAKE_OLD_REPORT_ID,
                         IOUTransactionID: transactionID,
                         amount: transaction.amount,
                         currency: transaction.currency,
@@ -2342,6 +2346,7 @@ describe('Transaction', () => {
                         policy: undefined,
                         isASAPSubmitBetaEnabled: false,
                         allTransactions,
+                        currentTransactionViolations: [{transactionID, violations: mockViolations}],
                     });
                     await waitForBatchedUpdates();
                 });

@@ -1,11 +1,16 @@
 import {Skia, Text as SkText} from '@shopify/react-native-skia';
 import type {Color, SkFont} from '@shopify/react-native-skia';
 import React from 'react';
-import {useChartDefaultTypeface} from '@components/Charts/hooks';
+import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
+import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';
+import {getLocalizedVictoryChartLabelText} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/localizeVictoryChartLabelText';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
-type VictoryChartLabelsProps = LabelItem;
+type VictoryChartLabelsProps = LabelItem & {
+    timezone?: SelectedTimezone;
+};
 
 type ProcessedLine = {
     lineX: number;
@@ -20,15 +25,22 @@ type ProcessedLine = {
  * Renders floating Skia text labels (from `<victorylabel>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
-function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, lineHeight, textAnchor = 'start', verticalAnchor = 'start'}: VictoryChartLabelsProps) {
-    const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
-    const processedLines = text.split('\n').reduce(
+function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle', timezone}: VictoryChartLabelsProps) {
+    const typefaces = useChartTypefaces();
+    const displayText = getLocalizedVictoryChartLabelText(text, timezone);
+    const processedLines = displayText.split('\n').reduce(
         (acc, line, index) => {
             const lineColor = color?.[index];
             const lineFontSize = fontSize?.[index];
             const lineFontWeight = fontWeight?.[index];
+            const lineFontFamily = fontFamily?.[index];
+            const lineFontStyle = fontStyle?.[index];
             const lineLineHeight = lineHeight?.[index];
-            const typeface = lineFontWeight === 'bold' ? boldTypeface : regularTypeface;
+            const typeface = getChartSkiaTypeface(typefaces, {
+                fontFamily: lineFontFamily,
+                fontStyle: lineFontStyle,
+                fontWeight: lineFontWeight,
+            });
             const lineFont = typeface && lineFontSize ? Skia.Font(typeface, lineFontSize) : null;
             const fontMetrics = lineFont?.getMetrics();
             const lineWidth = lineFont?.getGlyphWidths(lineFont.getGlyphIDs(line)).reduce((totalWidth, width) => totalWidth + width, 0) ?? 0;
@@ -63,7 +75,5 @@ function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, lineHeight,
         );
     });
 }
-
-VictoryChartLabel.displayName = 'VictoryChartLabel';
 
 export default VictoryChartLabel;
