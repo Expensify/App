@@ -35,7 +35,10 @@ type BankAccountFilterItem = {
 };
 
 type BankAccountPickerProps = {
+    /** Full bank account list keyed by bankAccountID. */
     bankAccountList: BankAccountList | undefined;
+
+    /** IDs already selected in the saved filter form. */
     initialSelectedIDs: string[];
 };
 
