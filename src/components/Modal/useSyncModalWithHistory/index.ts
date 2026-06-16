@@ -14,6 +14,9 @@ type UseSyncModalWithHistoryParams = {
 
     /** Called when a browser Back press removes this modal's history entry */
     onClose?: () => void;
+
+    /** Called when browser Forward navigation restores this modal's history entry while the modal is closed */
+    onOpen?: () => void;
 };
 
 /**
@@ -26,7 +29,7 @@ type UseSyncModalWithHistoryParams = {
  *
  * The per-instance tag lets nested modals add/remove their own guard independently (LIFO).
  */
-export default function useSyncModalWithHistory({isVisible, shouldHandleNavigationBack, onClose}: UseSyncModalWithHistoryParams) {
+export default function useSyncModalWithHistory({isVisible, shouldHandleNavigationBack, onClose, onOpen}: UseSyncModalWithHistoryParams) {
     const modalId = useId();
     const sentinel = `${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:${modalId}`;
 
@@ -40,6 +43,11 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
     useEffect(() => {
         onCloseRef.current = onClose;
     }, [onClose]);
+
+    const onOpenRef = useRef(onOpen);
+    useEffect(() => {
+        onOpenRef.current = onOpen;
+    }, [onOpen]);
 
     const isGuardInHistory = useRootNavigationState((state) => !!state?.history?.includes(sentinel));
     const wasGuardInHistory = usePrevious(isGuardInHistory);
@@ -108,4 +116,18 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
 
         onCloseRef.current?.();
     }, [isVisible, shouldHandleNavigationBack, isGuardInHistory, wasGuardInHistory, rootRoutesLength, previousRootRoutesLength]);
+
+    // Our guard entry re-appeared while the modal is closed (browser Forward navigation restored
+    // the saved nav state). Re-open the modal if a callback is provided.
+    useEffect(() => {
+        if (!shouldHandleNavigationBack || isVisible) {
+            return;
+        }
+        // Use strict equality so we don't fire on the initial render when wasGuardInHistory is undefined.
+        const guardAppeared = wasGuardInHistory === false && isGuardInHistory;
+        if (!guardAppeared) {
+            return;
+        }
+        onOpenRef.current?.();
+    }, [isVisible, shouldHandleNavigationBack, isGuardInHistory, wasGuardInHistory]);
 }

@@ -621,7 +621,11 @@ function handleToggleModalWithHistoryAction(state: StackNavigationState<ParamLis
 
     // On open, append this modal's back-guard sentinel. useLinking sees history grow by one and
     // pushes a browser history entry, so browser Back closes the modal.
+    // Skip if already present (e.g. browser Forward restored the saved nav state before our dispatch ran).
     if (action.payload.isVisible) {
+        if (state.history.includes(entry)) {
+            return state;
+        }
         return {...state, history: [...state.history, entry]};
     }
 
