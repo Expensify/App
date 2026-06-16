@@ -562,7 +562,7 @@ function SearchList({
                         canSelectMultiple={canSelectMultiple}
                         isExpanded={expandedGroups.has(originalKey)}
                         onToggle={() => onToggleGroup(originalKey)}
-                        onSelectRow={onSelectRow}
+                        onSelectRow={handleSelectRow}
                         onCheckboxPress={toggle}
                         onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
                         onFocus={onFocus}
@@ -592,7 +592,7 @@ function SearchList({
                         searchType={type}
                         columns={columns}
                         canSelectMultiple={canSelectMultiple}
-                        onSelectRow={onSelectRow}
+                        onSelectRow={handleSelectRow}
                         onCheckboxPress={toggle}
                         onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
@@ -657,7 +657,6 @@ function SearchList({
             hasItemsBeingRemoved,
             ListItem,
             handleSelectRow,
-            onSelectRow,
             handleLongPressRow,
             handleLongPressRowInMobileSelectionMode,
             isMobileSelectionModeEnabled,
