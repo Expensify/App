@@ -22,7 +22,7 @@ export default function SpendRuleCurrenciesPage({route}: SpendRuleCurrenciesPage
     const currencies = spendRuleForm?.currencies ?? [];
     const selectedCurrency = getSelectedCardsSharedCurrency(cardIDs, cardsList) ?? '';
 
-    const onCurrenciesChange = (updatedCurrencies: string[]) => {
+    const setCurrencies = (updatedCurrencies: string[]) => {
         updateDraftSpendRule({currencies: updatedCurrencies});
     };
 
@@ -30,7 +30,7 @@ export default function SpendRuleCurrenciesPage({route}: SpendRuleCurrenciesPage
         <SpendRulesCurrencyBase
             currencies={currencies}
             settlementCurrency={selectedCurrency}
-            onCurrenciesChange={onCurrenciesChange}
+            onCurrenciesChange={setCurrencies}
         />
     );
 }

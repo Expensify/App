@@ -176,7 +176,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount || hasAnyCurrency;
     const errorMessage = getErrorMessage(hasSelectedCards, hasAnyRuleApplied, translate);
 
-    const handleSaveRule = () => {
+    const saveRule = () => {
         if (!canWriteSpendRules) {
             return;
         }
@@ -205,7 +205,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         Navigation.goBack();
     };
 
-    const handleDeleteRule = () => {
+    const deleteRule = () => {
         if (!canWriteSpendRules) {
             return;
         }
@@ -231,7 +231,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         });
     };
 
-    const handleSpendRuleRestrictionTypeChange = (action: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null) => {
+    const setSpendRuleRestrictionType = (action: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null) => {
         if (!canWriteSpendRules) {
             showReadOnlyModal();
             return;
@@ -248,7 +248,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         updateDraftSpendRule({restrictionAction: action});
     };
 
-    const handleChooseCards = () => {
+    const chooseCards = () => {
         if (!canWriteSpendRules) {
             return;
         }
@@ -257,7 +257,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID, currentRuleID));
     };
 
-    const handleChooseCurrencies = () => {
+    const chooseCurrencies = () => {
         if (!canWriteSpendRules) {
             return;
         }
@@ -272,7 +272,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         Navigation.navigate(ROUTES.RULES_SPEND_CURRENCIES.getRoute(policyID, currentRuleID));
     };
 
-    const handleChooseMaxAmount = () => {
+    const chooseMaxAmount = () => {
         if (!canWriteSpendRules) {
             return;
         }
@@ -287,7 +287,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         Navigation.navigate(ROUTES.RULES_SPEND_MAX_AMOUNT.getRoute(policyID, currentRuleID));
     };
 
-    const handleChooseMerchants = () => {
+    const chooseMerchants = () => {
         if (!canWriteSpendRules) {
             return;
         }
@@ -296,7 +296,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         Navigation.navigate(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID, currentRuleID));
     };
 
-    const handleChooseCategories = () => {
+    const chooseCategories = () => {
         if (!canWriteSpendRules) {
             return;
         }
@@ -341,7 +341,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         shouldShowRightIcon={canWriteSpendRules}
                         description={translate('workspace.rules.spendRules.chooseCards')}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                        onPress={handleChooseCards}
+                        onPress={chooseCards}
                     />
                     <Text style={[styles.textStrong, styles.ph5, styles.mt5, styles.pv2]}>{translate('workspace.rules.spendRules.spendRuleSectionTitle')}</Text>
                     <MenuItemWithTopDescription
@@ -351,7 +351,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         interactive={canWriteSpendRules}
                         shouldShowRightIcon={canWriteSpendRules}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR}
-                        onPress={handleChooseCurrencies}
+                        onPress={chooseCurrencies}
                     />
                     <MenuItemWithTopDescription
                         titleStyle={styles.flex1}
@@ -360,13 +360,13 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         interactive={canWriteSpendRules}
                         shouldShowRightIcon={canWriteSpendRules}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                        onPress={handleChooseMaxAmount}
+                        onPress={chooseMaxAmount}
                     />
 
                     <View style={[styles.ph5, styles.pv3]}>
                         <SpendRuleRestrictionTypeToggle
                             restrictionAction={!isRestrictMerchantsOff ? restrictionAction : null}
-                            onSelect={handleSpendRuleRestrictionTypeChange}
+                            onSelect={setSpendRuleRestrictionType}
                         />
                     </View>
                     {!isRestrictMerchantsOff && (
@@ -379,7 +379,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 interactive={canWriteSpendRules}
                                 shouldShowRightIcon={canWriteSpendRules}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                                onPress={handleChooseMerchants}
+                                onPress={chooseMerchants}
                             />
                             <MenuItemWithTopDescription
                                 numberOfLinesTitle={2}
@@ -389,7 +389,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 interactive={canWriteSpendRules}
                                 shouldShowRightIcon={canWriteSpendRules}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                                onPress={handleChooseCategories}
+                                onPress={chooseCategories}
                             />
                         </>
                     )}
@@ -400,7 +400,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         containerStyles={[styles.m4, styles.mb5]}
                         message={errorMessage}
                         isAlertVisible={isErrorVisible}
-                        onSubmit={handleSaveRule}
+                        onSubmit={saveRule}
                         enabledWhenOffline
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
                         shouldRenderFooterAboveSubmit
@@ -408,7 +408,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                             isEditingRule ? (
                                 <Button
                                     text={translate('workspace.rules.spendRules.deleteRule')}
-                                    onPress={handleDeleteRule}
+                                    onPress={deleteRule}
                                     style={[styles.mb4]}
                                     large
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}

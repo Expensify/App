@@ -7487,6 +7487,9 @@ const translations = {
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blocked' : 'Allowed'} ${shownCount > 1 ? 'categories' : 'category'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} more` : ''}`,
+
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `Allowed ${shownCount > 1 ? 'currencies' : 'currency'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} more` : ''}`,
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Apply at least one spend rule to one card',
                 confirmErrorCardRequired: 'Card is a required field',
                 confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',

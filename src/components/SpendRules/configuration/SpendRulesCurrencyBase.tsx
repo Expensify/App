@@ -19,8 +19,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
 
 type SpendRulesCurrencyBaseProps = {
+    /** The currently selected currencies */
     currencies: string[];
+
+    /** The settlement currency of the currently selected cards */
     settlementCurrency: string;
+
+    /** Handle the currencies changing */
     onCurrenciesChange: (currencies: string[]) => void;
 };
 
@@ -112,7 +117,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
         Navigation.goBack();
     };
 
-    const handleSave = () => {
+    const saveChanges = () => {
         if (selectedCurrencies.length === currencyOptions.length - 1) {
             onCurrenciesChange([]);
         } else {
@@ -193,7 +198,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.save')}
                         isAlertVisible={false}
-                        onSubmit={handleSave}
+                        onSubmit={saveChanges}
                         enabledWhenOffline
                         containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                     />

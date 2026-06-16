@@ -323,7 +323,11 @@ function getSpendRuleSummaryText(
             ? `${translate('workspace.rules.spendRules.maxAmount')}: ${convertToDisplayString(convertToBackendAmount(Number.parseFloat(formValues.maxAmount)), cardCurrency ?? CONST.CURRENCY.USD)}`
             : undefined;
 
-    const currencySummary = formValues.currencies.length ? `${translate('workspace.rules.spendRules.currencies')}: ${formValues.currencies.join(', ')}` : undefined;
+    const currencySummary = formValues.currencies.length
+        ? getTruncatedSpendRuleSummary(formValues.currencies, (currencies, hiddenCount, shownCount) =>
+              translate('workspace.rules.spendRules.summaryCurrencies', {currencies, hiddenCount, shownCount}),
+          )
+        : undefined;
 
     const summaryArray = [];
     if (merchantSummary) {
