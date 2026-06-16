@@ -66,6 +66,11 @@ jest.mock('@hooks/usePaymentContext', () => {
     return mockUsePaymentContext;
 });
 
+jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
+    __esModule: true,
+    default: () => ({policyForMovingExpensesID: 'policy1'}),
+}));
+
 // ---- helpers ----
 
 const expenseReportQueryJSON: SearchQueryJSON = {

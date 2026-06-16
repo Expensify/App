@@ -4840,6 +4840,7 @@ ${amount} für ${merchant} – ${date}`,
             bankTransactions: 'Banktransaktionen',
             travelInvoicingDescription: 'Reisekosten werden als Banktransaktionen auf das unten angegebene Xero-Konto exportiert.',
             xeroBankAccount: 'Xero-Bankkonto',
+            bankAccount: 'Bankkonto',
             xeroBankAccountDescription: 'Wählen Sie, wo Spesen als Banktransaktionen verbucht werden.',
             exportExpensesDescription: 'Berichte werden als Einkaufsrechnung mit dem unten ausgewählten Datum und Status exportiert.',
             purchaseBillDate: 'Rechnungsdatum des Einkaufs',
@@ -6651,6 +6652,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             exportCompanyCard: 'Firmenkartenausgaben exportieren als',
             exportDate: 'Exportdatum',
             defaultVendor: 'Standardanbieter',
+            defaultAccount: 'Standardkonto',
             autoSync: 'Automatische Synchronisierung',
             autoSyncDescription: 'NetSuite und Expensify automatisch jeden Tag synchronisieren. Finalisierte Berichte in Echtzeit exportieren',
             reimbursedReports: 'Erstattete Berichte synchronisieren',
@@ -6997,6 +6999,12 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             },
             commonFeatures: {
                 title: 'Upgrade auf den Control-Tarif',
+                collect: {
+                    title: 'Upgrade auf den Collect-Tarif',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Der Collect-Tarif beginnt bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}. <a href="${learnMoreMethodsRoute}">Erfahre mehr</a> über unsere Tarife und Preise.</muted-text>`,
+                    note: 'Schalte wichtige Funktionen für dein Unternehmen frei, darunter:',
+                },
                 note: 'Schalte unsere leistungsstärksten Funktionen frei, darunter:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -7394,16 +7402,18 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
             agentRules: {
                 title: 'Agent-Regeln',
-                subtitle: 'Beschreiben Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen',
+                subtitle: 'Beschreiben Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen.',
                 addRule: 'Agent-Regel hinzufügen',
                 findRule: 'Agent-Regel finden',
                 addRuleTitle: 'Regel hinzufügen',
                 editRuleTitle: 'Regel bearbeiten',
                 deleteRule: 'Regel löschen',
                 deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
-                describeRuleTitle: 'Beschreiben Sie Ihre Regel',
-                describeRuleSubtitle: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
+                describeRuleTitle: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
                 disclaimer: 'KI-Agenten können Fehler machen.',
+                agentCreatedTitle: 'RuleBot wurde zu Ihrem Arbeitsbereich hinzugefügt!',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `<muted-text>Um Ihre Agent-Regeln durchzusetzen, haben wir einen Agenten für Sie erstellt und ihn als Administrator zu Ihrem Arbeitsbereich hinzugefügt.<br><br>Bearbeiten Sie die Details Ihres Agenten unter <a href="${agentsRoute}">Konto &gt; Agenten</a>.</muted-text>`,
             },
         },
         planTypePage: {
@@ -8362,10 +8372,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahre',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartale',
         },
-        moneyRequestReport: {
-            emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
-            accessPlaceHolder: 'Für Details öffnen',
-        },
+        moneyRequestReport: {emptyStateTitle: 'Noch keine Ausgaben', accessPlaceHolder: 'Für Details öffnen'},
         noCategory: 'Keine Kategorie',
         noMerchant: 'Kein Händler',
         noTag: 'Kein Tag',
@@ -9615,6 +9622,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         expenseLevelExport: 'Alle Daten – Ausgabenebene',
         exportInProgress: 'Export wird ausgeführt',
         conciergeWillSend: 'Concierge wird dir die Datei in Kürze senden.',
+        currentView: 'Aktuelle Ansicht exportieren',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
