@@ -1893,6 +1893,18 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         params?.searchContext?.clearSelectedTransactions?.(true);
     }
 
+    const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+
+    if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport) {
+        const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
+        for (const splitExpense of splitExpenses) {
+            if (!splitExpense.transactionID || existingChildTransactionIDs.has(splitExpense.transactionID)) {
+                continue;
+            }
+            addPendingNewTransactionIDs(targetReportID, splitExpense.transactionID);
+        }
+    }
+
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
@@ -1927,18 +1939,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         });
 
         return;
-    }
-
-    const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-
-    if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport && !isSearchPageTopmostFullScreenRoute) {
-        const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
-        for (const splitExpense of splitExpenses) {
-            if (!splitExpense.transactionID || existingChildTransactionIDs.has(splitExpense.transactionID)) {
-                continue;
-            }
-            addPendingNewTransactionIDs(targetReportID, splitExpense.transactionID);
-        }
     }
 
     if (isTracking()) {
