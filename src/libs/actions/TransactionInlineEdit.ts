@@ -10,7 +10,6 @@ import type {ValueOf} from 'type-fest';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
-import {getIsOffline} from '@libs/NetworkState';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
@@ -27,7 +26,16 @@ import {
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {calculateTaxAmount, getCurrency, getOriginalTransactionWithSplitInfo, getTaxValue, isDistanceRequest, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
+import {
+    calculateTaxAmount,
+    getCurrency,
+    getOriginalTransactionWithSplitInfo,
+    getTaxValue,
+    isDistanceRequest,
+    isExpenseUnreported,
+    isPerDiemRequest,
+    isScanning,
+} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -175,10 +183,13 @@ type GetIouParamsInput = {
     policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     parentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
     hash: number | undefined;
+    isOffline: boolean;
 };
 
 /**
@@ -199,6 +210,8 @@ function getIouParamsForTransaction({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     parentReportNextStep,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
 }: GetIouParamsInput) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -244,6 +257,8 @@ function getIouParamsForTransaction({
             iouReportAction: resolvedParentReportAction,
             transaction,
             transactionViolations: transactionViolations ?? undefined,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
         });
     }
 
@@ -277,7 +292,7 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
         value: newDate,
         transactions: allTransactions,
         transactionViolations: allTransactionViolations,
-        isOffline: getIsOffline(),
+        isOffline: params.isOffline,
         hash: params.hash,
     });
 }
@@ -295,6 +310,7 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
         ...iouParams,
         value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         hash: params.hash,
+        isOffline: params.isOffline,
     });
 }
 
@@ -359,6 +375,7 @@ function editTransactionTagInline(params: TransactionInlineEditParams, newTag: s
         tag: newTag,
         policyRecentlyUsedTags: iouParams.policyRecentlyUsedTags,
         hash: params.hash,
+        isOffline: params.isOffline,
     });
 }
 
@@ -422,6 +439,11 @@ function getTransactionEditPermissions({
                 return false;
             }
 
+            // Per diem amount is derived from the rate and cannot be edited
+            if (isPerDiemRequest(transaction)) {
+                return false;
+            }
+
             // Amount field shows "Scanning..." during SmartScan
             if (isTransactionScanning) {
                 return false;
@@ -429,8 +451,8 @@ function getTransactionEditPermissions({
         }
 
         if (field === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
-            // Distance expenses cannot have their merchant edited
-            if (isDistanceRequest(transaction)) {
+            // Distance and per diem expenses cannot have their merchant edited
+            if (isDistanceRequest(transaction) || isPerDiemRequest(transaction)) {
                 return false;
             }
 

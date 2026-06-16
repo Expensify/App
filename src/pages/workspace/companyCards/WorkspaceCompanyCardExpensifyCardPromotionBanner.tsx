@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -11,20 +12,25 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {enableExpensifyCard} from '@libs/actions/Policy/Policy';
 import {navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
+import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 
 type WorkspaceCompanyCardExpensifyCardPromotionBannerProps = {
     policy: OnyxEntry<Policy>;
+    canWriteCompanyCards: boolean;
+    onReadOnlyAction: () => void;
 };
 
-function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCompanyCardExpensifyCardPromotionBannerProps) {
+function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompanyCards, onReadOnlyAction}: WorkspaceCompanyCardExpensifyCardPromotionBannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const {canWrite: canWriteMoreFeatures} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const policyID = policy?.id;
     const areExpensifyCardsEnabled = policy?.areExpensifyCardsEnabled;
+    const canUseLearnMore = areExpensifyCardsEnabled ? canWriteCompanyCards : canWriteMoreFeatures;
 
     const illustrations = useMemoizedLazyIllustrations(['CreditCardsNewGreen']);
 
@@ -47,14 +53,16 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCom
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
                 <Button
                     success
-                    onPress={handleLearnMore}
+                    onPress={canUseLearnMore ? handleLearnMore : onReadOnlyAction}
                     style={shouldUseNarrowLayout && !isInLandscapeMode && styles.flex1}
+                    innerStyles={!canUseLearnMore ? styles.buttonOpacityDisabled : undefined}
+                    hoverStyles={!canUseLearnMore ? styles.buttonOpacityDisabled : undefined}
                     text={translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}
                     accessibilityLabel={`${translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}, ${translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}`}
                 />
             </View>
         );
-    }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, handleLearnMore]);
+    }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, canUseLearnMore, handleLearnMore, onReadOnlyAction]);
 
     return (
         <View style={[styles.ph4, styles.mb4]}>

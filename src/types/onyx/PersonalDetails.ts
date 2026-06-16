@@ -74,6 +74,15 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Flag for checking if data is from optimistic data */
     isOptimisticPersonalDetail?: boolean;
 
+    /**
+     * True when this account is a registered custom agent (server-side `private_agentOwnerID`
+     * NVP set). Stamped by Auth in `Account::formatNewDotPersonalDetails`, so it travels with
+     * every personalDetails payload returned to the client (OpenReport, OpenApp, ReconnectApp,
+     * GetPersonalDetailsForEmails, etc.). Lets chat surfaces detect custom-agent participants
+     * without subscribing to the wider `SHARED_NVP_AGENT_PROMPT` collection.
+     */
+    isCustomAgent?: boolean;
+
     /** Field-specific server side errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields<'avatar'>;
 

@@ -16,7 +16,6 @@ type InfoBadgeProps = {
 
     /** Action badge key used to derive the badge label. */
     actionBadge: OptionData['actionBadge'];
-
     /** Whether to show the "Mark as Done" state for this row. */
     isMarkAsDone?: boolean;
 };

@@ -41,7 +41,6 @@ const defaultSearchSelectionContext: SearchSelectionContextValue = {
     selectedReports: [],
     shouldTurnOffSelectionMode: false,
     hasSelectedTransactions: false,
-    shouldShowSelectAllMatchingItems: false,
     areAllMatchingItemsSelected: false,
 };
 
@@ -51,7 +50,6 @@ const defaultSearchSelectionActions: SearchSelectionActionsValue = {
     setCurrentSelectedTransactionReportID: () => {},
     clearSelectedTransactions: () => {},
     removeTransaction: () => {},
-    setShouldShowSelectAllMatchingItems: () => {},
     selectAllMatchingItems: () => {},
 };
 
