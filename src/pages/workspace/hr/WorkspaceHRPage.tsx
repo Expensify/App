@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConnectToHRFlow from '@components/ConnectToHRFlow';
