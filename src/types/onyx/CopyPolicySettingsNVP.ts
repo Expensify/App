@@ -11,6 +11,9 @@ type CopyPolicySettingsNVP = {
 
     /** Whether the user requested a Concierge notification. */
     shouldSendToConcierge?: boolean;
+
+    /** Error message from the backend when state is 'failed'. */
+    error?: string;
 };
 
 export default CopyPolicySettingsNVP;
