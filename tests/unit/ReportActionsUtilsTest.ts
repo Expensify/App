@@ -1,6 +1,6 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getLatestUserChronosTimerCommand, isChronosStartOrStopMessage, isChronosTimerRunningFromVisibleActions, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
+import {getTimeOfChronosTimerRunningFromVisibleActions, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
@@ -18,6 +18,7 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
+    getCategoryTaxRateMessage,
     getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
@@ -29,6 +30,7 @@ import {
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
+    getMccGroupCategoryMessage,
     getModerationFlagState,
     getOneTransactionThreadReportID,
     getOriginalMessage,
@@ -54,7 +56,7 @@ import {
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import shouldDisplayNewMarkerOnReportAction from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import shouldDisplayNewMarkerOnReportAction, {getUnreadMarkerReportAction} from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import type {Card, DecisionName, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
@@ -1223,6 +1225,56 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getExportIntegrationActionFragments', () => {
+        function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[]): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
+            return {
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: '1',
+                reportID: '123',
+                created: '2026-05-15 10:00:00.000',
+                message: [],
+                originalMessage: {
+                    label,
+                    lastModified: '2026-05-15 10:00:00.000',
+                    nonReimbursableUrls,
+                },
+            } as unknown as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>;
+        }
+
+        it.each([CONST.EXPORT_LABELS.INTACCT, CONST.EXPORT_LABELS.SAGE_INTACCT, CONST.EXPORT_LABELS.QBD])('does not link ID-based %s company card export records', (label) => {
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, buildExportedToIntegrationAction(label, ['SI-123', 'SI-456']));
+
+            expect(fragments).toEqual([
+                {text: `exported to ${label}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: ''},
+            ]);
+        });
+
+        it('keeps URL-based company card export records linked', () => {
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(
+                translateLocal,
+                buildExportedToIntegrationAction(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero, ['1', '2']),
+            );
+
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: 'https://go.xero.com/Bank/BankAccounts.aspx'},
+            ]);
+        });
+
+        it('keeps QuickBooks Online company card export records linked', () => {
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, buildExportedToIntegrationAction(CONST.EXPORT_LABELS.QBO, ['1', '2']));
+
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.EXPORT_LABELS.QBO}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: 'https://qbo.intuit.com/app/expenses'},
+            ]);
+        });
+    });
+
     describe('getReportActionMessageFragments', () => {
         it('should return the correct fragment for the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
             // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
@@ -1701,6 +1753,21 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
 
+        it('should return false for CARD_ISSUED_VIRTUAL action with empty message array', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+                reportActionID: 'card-issued-virtual-123',
+                actorAccountID: 21052128,
+                created: '2026-05-19 01:00:00.000',
+                message: [],
+                originalMessage: {
+                    assigneeAccountID: 21052128,
+                    cardID: 12345,
+                },
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
         it('should return false for CARDFROZEN action with a backend-provided message fragment', () => {
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
@@ -1951,18 +2018,23 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
-        it('should return true for moved transaction if the report destination is available', async () => {
-            // Given a moved transaction action but the report destination is available
-            const report: Report = createRandomReport(2, undefined);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+        it('should return true for moved transaction if the report destination is available', () => {
+            // Given a moved transaction action with a valid message
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 reportActionID: '1',
                 created: '2025-09-29',
                 originalMessage: {
-                    toReportID: report.reportID,
+                    toReportID: '2',
                     fromReportID: '1',
                 },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'moved',
+                        text: 'moved',
+                    },
+                ],
             };
 
             // Then the action should be visible
@@ -2236,6 +2308,17 @@ describe('ReportActionsUtils', () => {
             const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, reportName);
 
             const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
+
+            expect(result).toBe(expectedMessage);
+        });
+
+        // Guards regression #90422: when the harvest report is absent from Onyx, getReportName returns ''
+        // and the message previously rendered an empty hyperlink on screen and an empty span when copied.
+        it('should fall back to "#<reportID>" when the report name is empty', () => {
+            const reportID = '12345';
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, `#${reportID}`);
+
+            const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, '', translateLocal);
 
             expect(result).toBe(expectedMessage);
         });
@@ -3275,6 +3358,43 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getForwardedReportActionMessage', () => {
+        const buildForwardedAction = (
+            originalMessage: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>['originalMessage']> = {},
+        ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                created: '2026-06-05 10:00:00',
+                reportActionID: '1',
+                originalMessage: {
+                    amount: 10000,
+                    currency: CONST.CURRENCY.USD,
+                    expenseReportID: '1',
+                    ...originalMessage,
+                },
+            };
+
+            return action;
+        };
+
+        it('should include the memo for a non-DEW forwarded action', () => {
+            const memo = 'Testing approval memo';
+            const action = buildForwardedAction({message: memo});
+
+            expect(ReportActionsUtils.getForwardedReportActionMessage(action, translateLocal)).toBe(translateLocal('iou.forwarded', memo));
+        });
+
+        it('should suppress the memo for a DEW forwarded action with a routed action', () => {
+            const action = buildForwardedAction({
+                message: 'Testing approval memo',
+                to: 'approver@example.com',
+                workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            });
+
+            expect(ReportActionsUtils.getForwardedReportActionMessage(action, translateLocal)).toBe(translateLocal('iou.forwarded'));
+        });
+    });
+
     describe('getPolicyChangeLogMaxExpenseAmountMessage', () => {
         it('should return set message when setting from disabled to a value', () => {
             const action = {
@@ -3895,6 +4015,92 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
             expect(actual).toBe('disabled the Distance rate "Default Rate"');
         });
+
+        it('should return the correct message when a rate is renamed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'name',
+                    oldValue: 'Default Rate',
+                    newValue: 'Custom Rate',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('renamed the Distance rate "Default Rate" to "Custom Rate"');
+        });
+
+        it('should return the correct message when a start date is set on a rate without dates', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'dateRange',
+                    newStartDate: '2026-04-01',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('updated the distance rate "Default Rate" to apply from April 1, 2026 (previously for all dates)');
+        });
+
+        it('should return the correct message when both start and end dates are changed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'dateRange',
+                    newStartDate: '2026-04-01',
+                    newEndDate: '2026-05-31',
+                    oldStartDate: '2026-03-01',
+                    oldEndDate: '2026-04-30',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('updated the distance rate "Default Rate" to apply from April 1, 2026 - May 31, 2026 (previously March 1, 2026 - April 30, 2026)');
+        });
+
+        it('should return the correct message when an end date is changed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'dateRange',
+                    newEndDate: '2026-05-31',
+                    oldEndDate: '2026-04-30',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('updated the distance rate "Default Rate" to apply until May 31, 2026 (previously until April 30, 2026)');
+        });
+
+        it('should return the correct message when all dates are cleared', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'dateRange',
+                    oldStartDate: '2026-03-01',
+                    oldEndDate: '2026-04-30',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('updated the distance rate "Default Rate" to apply for all dates (previously March 1, 2026 - April 30, 2026)');
+        });
     });
 
     describe('didMessageMentionCurrentUser', () => {
@@ -4404,6 +4610,82 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getCategoryTaxRateMessage', () => {
+        it('should render the changed-tax-rate message with both name and percentage on each side', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Office Supplies',
+                    oldTaxName: 'Tax Exempt',
+                    oldTaxPercentage: '0%',
+                    newTaxName: 'Tax Rate 1',
+                    newTaxPercentage: '5%',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+            expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
+        });
+
+        it('should drop the parens on the side with an empty percentage (e.g. previous tax was deleted)', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Office Supplies',
+                    oldTaxName: 'Deleted Tax Rate',
+                    oldTaxPercentage: '',
+                    newTaxName: 'Tax Rate 1',
+                    newTaxPercentage: '5%',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+            expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Deleted Tax Rate")');
+        });
+    });
+
+    describe('getMccGroupCategoryMessage', () => {
+        it('should render the friendly MCC group label that the emitter already resolved', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    mccGroupName: 'Airlines',
+                    oldCategory: 'Insurance',
+                    newCategory: 'Travel',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getMccGroupCategoryMessage(translateLocal, action);
+            expect(result).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
+        });
+
+        it('should pass through a fallback raw groupID when the emitter could not resolve it', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    mccGroupName: 'spaceflight',
+                    oldCategory: 'Travel',
+                    newCategory: 'Equipment',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getMccGroupCategoryMessage(translateLocal, action);
+            expect(result).toBe('changed the default spend category for "spaceflight" to "Equipment" (previously "Travel")');
+        });
+    });
+
     describe('isNewerReportAction', () => {
         const makeAction = (overrides: Partial<ReportAction>): ReportAction =>
             ({
@@ -4779,10 +5061,10 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getLatestUserChronosTimerCommand', () => {
+    describe('getTimeOfChronosTimerRunningFromVisibleActions', () => {
         const currentUserAccountID = 100;
 
-        function makeUserTimerComment(text: string, actorAccountID: number, overrides: Partial<ReportAction> = {}): ReportAction {
+        function makeUserTimerComment(text: string, actorAccountID: number = currentUserAccountID, overrides: Partial<ReportAction> = {}): ReportAction {
             return getFakeReportAction(actorAccountID, {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 actorAccountID,
@@ -4792,30 +5074,31 @@ describe('ReportActionsUtils', () => {
         }
 
         it('returns null when there are no matching comments', () => {
-            expect(getLatestUserChronosTimerCommand([], currentUserAccountID)).toBe(null);
-            expect(getLatestUserChronosTimerCommand([makeUserTimerComment('hello', currentUserAccountID)], currentUserAccountID)).toBe(null);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions([], currentUserAccountID)).toBeNull();
+            expect(getTimeOfChronosTimerRunningFromVisibleActions([makeUserTimerComment('hello')], currentUserAccountID)).toBeNull();
         });
 
-        it('returns the newest matching command when sorted newest-first', () => {
+        it('returns the created timestamp of the newest start command when sorted newest-first', () => {
+            const startCreated = '2024-01-03 10:00:00.000';
             const sortedNewestFirst = [
-                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: '2024-01-03 10:00:00.000'}),
+                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: startCreated}),
                 makeUserTimerComment('stop', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
                 makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(startCreated);
         });
 
-        it('returns stop when the newest timer command is stop', () => {
+        it('returns null when the newest timer command is stop', () => {
             const sortedNewestFirst = [
                 makeUserTimerComment('stopped', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
                 makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
 
         it('ignores comments from other users', () => {
             const sortedNewestFirst = [makeUserTimerComment('start', 999, {reportActionID: '2'}), makeUserTimerComment('hello', currentUserAccountID, {reportActionID: '1'})];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
 
         it('ignores non-ADD_COMMENT actions', () => {
@@ -4826,34 +5109,7 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'start', isDeletedParentAction: false, isEdited: false, text: 'start', type: 'TEXT', whisperedTo: []}],
                 }),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
-        });
-    });
-
-    describe('isChronosTimerRunningFromVisibleActions', () => {
-        const currentUserAccountID = 200;
-
-        function makeUserTimerComment(text: string, overrides: Partial<ReportAction> = {}): ReportAction {
-            return getFakeReportAction(currentUserAccountID, {
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                actorAccountID: currentUserAccountID,
-                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
-                ...overrides,
-            });
-        }
-
-        it('returns true when the latest user timer command is start', () => {
-            const sortedNewestFirst = [makeUserTimerComment('start', {reportActionID: '2'}), makeUserTimerComment('stop', {reportActionID: '1'})];
-            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(true);
-        });
-
-        it('returns false when the latest user timer command is stop', () => {
-            const sortedNewestFirst = [makeUserTimerComment('stop', {reportActionID: '2'}), makeUserTimerComment('start', {reportActionID: '1'})];
-            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(false);
-        });
-
-        it('returns false when there is no timer command', () => {
-            expect(isChronosTimerRunningFromVisibleActions([makeUserTimerComment('stats')], currentUserAccountID)).toBe(false);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
     });
 
@@ -4901,8 +5157,7 @@ describe('ReportActionsUtils', () => {
             unreadMarkerTime,
             currentUserAccountID,
             prevSortedVisibleReportActionsObjects: {},
-            scrollingVerticalOffset: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 1,
-            prevUnreadMarkerReportActionID: 'some-id',
+            isScrolledOverThreshold: true,
         };
 
         it('returns true when isEarliestReceivedOfflineMessage is true and next message is not unread', () => {
@@ -4963,17 +5218,178 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('returns false when message is from current user, is new, and no prevUnreadMarkerReportActionID', () => {
+        it('returns false when message is from current user and is new', () => {
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'new-action-id'});
             expect(
                 shouldDisplayNewMarkerOnReportAction({
                     ...baseParams,
                     message,
-                    prevUnreadMarkerReportActionID: null,
                     prevSortedVisibleReportActionsObjects: {},
                     isOffline: false,
                 }),
             ).toBe(false);
+        });
+
+        it('returns false when message is from current user and was previously optimistic (now confirmed)', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'confirmed-action-id', pendingAction: null});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({
+                    actorAccountID: currentUserAccountID,
+                    reportActionID: 'confirmed-action-id',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                }),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns true when message is from current user but is already present (not new, not optimistic)', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns true when an unread message from another user is new and the list is scrolled over the threshold', () => {
+            const message = makeAction({reportActionID: 'other-new-id'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects: {},
+                    isScrolledOverThreshold: true,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false when an unread message from another user is new and the list is within the threshold', () => {
+            const message = makeAction({reportActionID: 'other-new-id'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects: {},
+                    isScrolledOverThreshold: false,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns true for an already-present unread message from another user regardless of scroll threshold', () => {
+            const message = makeAction({reportActionID: 'other-existing-id'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({reportActionID: 'other-existing-id'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    isScrolledOverThreshold: false,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+    });
+
+    describe('getUnreadMarkerReportAction', () => {
+        const unreadMarkerTime = '2023-01-01 10:00:00.000';
+        const currentUserAccountID = 1;
+
+        function makeAction(overrides: Partial<ReportAction> = {}): ReportAction {
+            return getFakeReportAction(2, {
+                actorAccountID: 99,
+                created: '2023-01-01 11:00:00.000',
+                ...overrides,
+            });
+        }
+
+        const baseScanParams = {
+            earliestReceivedOfflineMessageIndex: undefined,
+            currentUserAccountID,
+            prevSortedVisibleReportActionsObjects: {},
+            unreadMarkerTime,
+            isScrolledOverThreshold: true,
+            isOffline: false,
+            isReversed: false,
+        };
+
+        it('short-circuits to [null, -1] for an anonymous user', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'a'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    isAnonymousUser: true,
+                }),
+            ).toEqual([null, -1]);
+        });
+
+        it('returns [null, -1] when no action qualifies (all read)', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'a', created: '2023-01-01 09:00:00.000'}), makeAction({reportActionID: 'b', created: '2023-01-01 08:00:00.000'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                }),
+            ).toEqual([null, -1]);
+        });
+
+        it('returns the [reportActionID, index] of the first qualifying unread action in a forward scan', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'newest'}), makeAction({reportActionID: 'older', created: '2023-01-01 09:00:00.000'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                }),
+            ).toEqual(['newest', 0]);
+        });
+
+        it('skips the concierge greeting action during a forward scan', () => {
+            const visibleReportActions = [makeAction({reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID}), makeAction({reportActionID: 'real-unread'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                }),
+            ).toEqual(['real-unread', 1]);
+        });
+
+        it('starts the forward scan at earliestReceivedOfflineMessageIndex', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'before-offline'}), makeAction({reportActionID: 'offline-anchor'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    earliestReceivedOfflineMessageIndex: 1,
+                }),
+            ).toEqual(['offline-anchor', 1]);
+        });
+
+        it('scans from high index to low when isReversed is true', () => {
+            const visibleReportActions = [makeAction({reportActionID: 'read-older', created: '2023-01-01 09:00:00.000'}), makeAction({reportActionID: 'unread-newer'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    isReversed: true,
+                }),
+            ).toEqual(['unread-newer', 1]);
         });
     });
 

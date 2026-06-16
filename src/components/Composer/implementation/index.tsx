@@ -4,7 +4,7 @@ import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 import {DeviceEventEmitter, StyleSheet} from 'react-native';
-import type {ComposerProps} from '@components/Composer/types';
+import type {ComposerProps, ComposerRef} from '@components/Composer/types';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
@@ -64,7 +64,7 @@ function Composer({
     const addAuthTokenToImageURL = useCallback((url: string) => addEncryptedAuthTokenToURL(url, encryptedAuthToken), [encryptedAuthToken]);
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const StyleUtils = useStyleUtils();
-    const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
+    const textInputRef = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const [selection, setSelection] = useState<
         | {
               start: number;
@@ -79,7 +79,7 @@ function Composer({
     });
     const [isRendered, setIsRendered] = useState(false);
 
-    const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
+    const isScrollBarVisible = useIsScrollBarVisible(textInputRef, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
     const [prevHeight, setPrevHeight] = useState<number | undefined>();
     const isReportFlatListScrolling = useRef(false);
@@ -95,19 +95,26 @@ function Composer({
     /**
      *  Adds the cursor position to the selection change event.
      */
-    const addCursorPositionToSelectionChange = (event: TextInputSelectionChangeEvent) => {
-        const sel = window.getSelection();
-        if (shouldCalculateCaretPosition && isRendered && sel) {
+    const addCursorPositionToSelectionChange = useCallback(
+        (event: TextInputSelectionChangeEvent) => {
+            const sel = window.getSelection();
+            const canCalculateCaretPosition = shouldCalculateCaretPosition && isRendered && sel;
+            if (!canCalculateCaretPosition) {
+                onSelectionChange(event);
+                setSelection(event.nativeEvent.selection);
+                return;
+            }
+
             const range = sel.getRangeAt(0).cloneRange();
             range.collapse(true);
             const rect = range.getClientRects()[0] || range.startContainer.parentElement?.getClientRects()[0];
-            const containerRect = textInput.current?.getBoundingClientRect();
+            const containerRect = textInputRef.current?.getBoundingClientRect();
 
             let x = 0;
             let y = 0;
             if (rect && containerRect) {
                 x = rect.left - containerRect.left;
-                y = rect.top - containerRect.top + (textInput?.current?.scrollTop ?? 0) - rect.height / 2;
+                y = rect.top - containerRect.top + (textInputRef?.current?.scrollTop ?? 0) - rect.height / 2;
             }
 
             const selectionValue = {
@@ -125,11 +132,9 @@ function Composer({
                 },
             });
             setSelection(selectionValue);
-        } else {
-            onSelectionChange(event);
-            setSelection(event.nativeEvent.selection);
-        }
-    };
+        },
+        [isRendered, onSelectionChange, shouldCalculateCaretPosition],
+    );
 
     /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
@@ -138,14 +143,14 @@ function Composer({
     const handlePaste = useCallback(
         (event: ClipboardEvent) => {
             const isVisible = checkComposerVisibility();
-            const isFocused = textInput.current?.isFocused();
+            const isFocused = textInputRef.current?.isFocused();
             const isContenteditableDivFocused = document.activeElement?.nodeName === 'DIV' && document.activeElement?.hasAttribute('contenteditable');
 
             if (!(isVisible || isFocused)) {
                 return true;
             }
 
-            if (textInput.current !== event.target && !(isContenteditableDivFocused && !event.clipboardData?.files.length)) {
+            if (textInputRef.current !== event.target && !(isContenteditableDivFocused && !event.clipboardData?.files.length)) {
                 const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
@@ -154,7 +159,7 @@ function Composer({
                     return true;
                 }
 
-                textInput.current?.focus();
+                textInputRef.current?.focus();
             }
 
             event.preventDefault();
@@ -209,19 +214,23 @@ function Composer({
     );
 
     useEffect(() => {
-        if (!textInput.current) {
+        if (!textInputRef.current) {
             return;
         }
+
+        const inputRef = textInputRef.current;
+
         const debouncedSetPrevScroll = lodashDebounce(() => {
-            if (!textInput.current) {
+            if (!inputRef) {
                 return;
             }
-            setPrevScroll(textInput.current.scrollTop);
+            setPrevScroll(inputRef.scrollTop);
         }, 100);
 
-        textInput.current.addEventListener('scroll', debouncedSetPrevScroll);
+        inputRef.addEventListener('scroll', debouncedSetPrevScroll);
+
         return () => {
-            textInput.current?.removeEventListener('scroll', debouncedSetPrevScroll);
+            inputRef?.removeEventListener('scroll', debouncedSetPrevScroll);
         };
     }, []);
 
@@ -234,6 +243,8 @@ function Composer({
     }, []);
 
     useEffect(() => {
+        const inputRef = textInputRef.current;
+
         const handleWheel = (e: MouseEvent) => {
             if (isReportFlatListScrolling.current) {
                 e.preventDefault();
@@ -242,40 +253,40 @@ function Composer({
 
             // When the composer has no scrollable content, the stopPropagation will prevent the inverted wheel event handler on the Chat body
             // which defaults to the browser wheel behavior. This causes the chat body to scroll in the opposite direction creating jerky behavior.
-            if (textInput.current && textInput.current.scrollHeight <= textInput.current.clientHeight) {
+            if (inputRef && inputRef.scrollHeight <= inputRef.clientHeight) {
                 return;
             }
             e.stopPropagation();
         };
-        textInput.current?.addEventListener('wheel', handleWheel, {passive: false});
+        inputRef?.addEventListener('wheel', handleWheel, {passive: false});
 
         return () => {
-            textInput.current?.removeEventListener('wheel', handleWheel);
+            inputRef?.removeEventListener('wheel', handleWheel);
         };
     }, []);
 
     useEffect(() => {
-        if (!textInput.current || prevScroll === undefined || prevHeight === undefined) {
+        if (!textInputRef.current || prevScroll === undefined || prevHeight === undefined) {
             return;
         }
-        textInput.current.scrollTop = prevScroll + prevHeight - textInput.current.clientHeight;
+        textInputRef.current.scrollTop = prevScroll + prevHeight - textInputRef.current.clientHeight;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
     const isActive = useIsFocused();
-    useHtmlPaste(textInput, handlePaste, isActive);
+    useHtmlPaste(textInputRef, handlePaste, isActive);
 
     useEffect(() => {
         setIsRendered(true);
     }, []);
 
     const clear = useCallback(() => {
-        if (!textInput.current) {
+        if (!textInputRef.current) {
             return;
         }
 
-        const currentText = textInput.current.value;
-        textInput.current.clear();
+        const currentText = textInputRef.current.value;
+        textInputRef.current.clear();
 
         // We need to reset the selection to 0,0 manually after clearing the text input on web
         const selectionEvent = {
@@ -293,22 +304,22 @@ function Composer({
     }, [onClear, onSelectionChange]);
 
     useImperativeHandle(ref, () => {
-        const textInputRef = textInput.current;
-        if (!textInputRef) {
-            throw new Error('textInputRef is not available. This should never happen and indicates a developer error.');
+        const textInput = textInputRef.current;
+        if (!textInput) {
+            throw new Error('textInput is not available. This should never happen and indicates a developer error.');
         }
 
         return {
-            ...textInputRef,
+            ...textInput,
             // Overwrite clear with our custom implementation, which mimics how the native TextInput's clear method works
             clear,
             // We have to redefine these methods as they are inherited by prototype chain and are not accessible directly
-            blur: () => textInputRef.blur(),
-            focus: () => textInputRef.focus(),
+            blur: () => textInput.blur(),
+            focus: () => textInput.focus(),
             get scrollTop() {
-                return textInputRef.scrollTop;
+                return textInput.scrollTop;
             },
-        };
+        } as ComposerRef;
     }, [clear]);
 
     const handleKeyPress = useCallback(
@@ -350,16 +361,13 @@ function Composer({
             autoComplete="off"
             autoCorrect={!isMobileSafari()}
             placeholderTextColor={theme.placeholderText}
-            ref={(el) => {
-                textInput.current = el;
-            }}
+            ref={textInputRef}
             selection={selection}
             style={[inputStyleMemo]}
             markdownStyle={markdownStyle}
             value={value}
             defaultValue={defaultValue}
             autoFocus={autoFocus}
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             onSelectionChange={addCursorPositionToSelectionChange}
             onContentSizeChange={(e) => {

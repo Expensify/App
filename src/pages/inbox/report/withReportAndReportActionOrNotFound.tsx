@@ -21,7 +21,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList,
-    typeof SCREENS.DYNAMIC_FLAG_COMMENT | typeof SCREENS.SPLIT_DETAILS.ROOT
+    typeof SCREENS.DYNAMIC_FLAG_COMMENT | typeof SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT
 > & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
@@ -95,7 +95,6 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 report={report}
                 parentReport={parentReport}

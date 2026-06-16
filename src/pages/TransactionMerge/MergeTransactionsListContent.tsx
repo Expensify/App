@@ -17,7 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
-import {getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {getAmount, getCreated, getCurrency, getDescription, getMerchant, isExpenseUnreported} from '@libs/TransactionUtils';
@@ -131,7 +131,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
               translate,
               reportAction: undefined,
               transactions: [targetTransaction],
-              reports: targetTransactionReport ? [targetTransactionReport] : [],
+              report: getReportOrDraftReport(targetTransaction?.reportID, targetTransactionReport ? [targetTransactionReport] : [], undefined, undefined, targetTransactionReport),
           })
         : '';
 
@@ -213,8 +213,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             textInputOptions={textInputOptions}
             shouldShowTextInput={shouldShowTextInput}
             style={{
-                listStyle: [styles.mh5, styles.searchTableTopRadius, styles.searchTableBottomRadius, styles.mb4, styles.overflowHidden],
-                contentContainerStyle: [styles.pb0, styles.searchTableBottomRadius, styles.overflowHidden],
+                listStyle: [styles.mh5, styles.tableTopRadius, styles.tableBottomRadius, styles.mb4, styles.overflowHidden],
+                contentContainerStyle: [styles.pb0, styles.tableBottomRadius, styles.overflowHidden],
             }}
         />
     );

@@ -1,9 +1,9 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
@@ -12,17 +12,10 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActio
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnboardingPurpose, OnboardingRHPVariant, Policy} from '@src/types/onyx';
-import useActivePolicy from './useActivePolicy';
-import useArchivedReportsIdSet from './useArchivedReportsIdSet';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
-import useLastWorkspaceNumber from './useLastWorkspaceNumber';
-import useLocalize from './useLocalize';
-import useOnboardingMessages from './useOnboardingMessages';
+import useArchivedReportsIDSet from './useArchivedReportsIDSet';
+import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
-import usePreferredPolicy from './usePreferredPolicy';
-import useResponsiveLayout from './useResponsiveLayout';
 
 /**
  * Hook that provides a function to auto-create a workspace for Track (PERSONAL_SPEND)
@@ -31,42 +24,45 @@ import useResponsiveLayout from './useResponsiveLayout';
  * Shared by BaseOnboardingPersonalDetails and BaseOnboardingPurpose.
  */
 function useAutoCreateTrackWorkspace() {
-    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
-    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const {
+        onboardingPolicyID,
+        onboardingAdminsChatReportID,
+        introSelected,
+        isSelfTourViewed,
+        betas,
+        currentUserEmail,
+        currentUserAccountID,
+        localCurrencyCode,
+        activePolicy,
+        translate,
+        formatPhoneNumber,
+        isRestrictedPolicyCreation,
+        hasActiveAdminPolicies,
+        onboardingMessages,
+        lastWorkspaceNumber,
+        shouldUseNarrowLayout,
+    } = useOnboardingWorkspaceCreationState();
+    const [onboardingPersonalTrackGoal] = useOnyx(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL);
+
     const paidGroupPolicySelector = useMemo(
-        () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email)),
-        [session?.email],
+        () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserEmail)),
+        [currentUserEmail],
     );
     const [hasPaidGroupAdminPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: paidGroupPolicySelector});
+
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const {isBetaEnabled} = usePermissions();
-    const {translate, formatPhoneNumber} = useLocalize();
-    const activePolicy = useActivePolicy();
-    const {isRestrictedPolicyCreation} = usePreferredPolicy();
-    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
-    const lastWorkspaceNumber = useLastWorkspaceNumber();
-    const {onboardingMessages} = useOnboardingMessages();
-
-    // We use isSmallScreenWidth instead of shouldUseNarrowLayout because navigateAfterOnboarding
-    // relies on actual device screen width to handle navigation stack differences: on small screens,
-    // removing OnboardingModalNavigator redirects to HOME, requiring explicit navigation to the last
-    // accessed report. This behavior is tied to screen size, not responsive layout mode.
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
 
     const autoCreateTrackWorkspace = useCallback(
-        async (firstName: string, lastName: string, onboardingPurposeSelected: OnboardingPurpose) => {
+        async (firstName: string, lastName: string, onboardingPurposeSelected: OnboardingPurpose, personalTrackGoalOverride?: string) => {
             const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasPaidGroupAdminPolicy;
-            const displayName = createDisplayName(session?.email ?? '', {firstName, lastName}, formatPhoneNumber);
+            const displayName = createDisplayName(currentUserEmail, {firstName, lastName}, formatPhoneNumber);
+            // Callers that set the goal in the same tick must pass it explicitly, because the Onyx value read above is still stale here.
+            const personalTrackGoal = personalTrackGoalOverride ?? onboardingPersonalTrackGoal;
 
             const engagementChoice =
                 onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL ? CONST.ONBOARDING_CHOICES.TRACK_PERSONAL : CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
@@ -75,21 +71,22 @@ function useAutoCreateTrackWorkspace() {
                 ? createWorkspace({
                       policyOwnerEmail: undefined,
                       makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(session?.email ?? '', lastWorkspaceNumber, translate, displayName),
+                      policyName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate, displayName),
                       policyID: generatePolicyID(),
                       engagementChoice,
-                      currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                      currency: localCurrencyCode,
                       file: undefined,
                       shouldAddOnboardingTasks: false,
                       introSelected,
                       activePolicy,
-                      currentUserAccountIDParam: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                      currentUserEmailParam: session?.email ?? '',
+                      currentUserAccountIDParam: currentUserAccountID,
+                      currentUserEmailParam: currentUserEmail,
                       shouldAddGuideWelcomeMessage: false,
                       onboardingPurposeSelected,
                       betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -105,17 +102,17 @@ function useAutoCreateTrackWorkspace() {
                     adminsChatReportID: newAdminsChatReportID,
                     onboardingPolicyID: newPolicyID,
                     shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
+                    personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
                     introSelected,
                     isSelfTourViewed,
-                    betas,
                 });
 
                 if (isSidePanelReportSupported) {
                     rhpVariant = extractRHPVariantFromResponse(response);
-                    // TRACK_PERSONAL should also navigate to concierge in RHP, same as TRACK_BUSINESS.
-                    // The backend only returns trackExpensesWithConcierge for TRACK_WORKSPACE (TRACK_BUSINESS),
-                    // so we fall back to it for TRACK_PERSONAL when the backend doesn't set it.
-                    if (!rhpVariant && onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+                    // Every Track onboarding choice should land in the Concierge RHP, but the backend
+                    // doesn't reliably return trackExpensesWithConcierge for all of them, so fall back to it
+                    // whenever the response omits a variant.
+                    if (!rhpVariant && isTrackOnboardingChoice(onboardingPurposeSelected)) {
                         rhpVariant = CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE;
                     }
                 }
@@ -126,10 +123,10 @@ function useAutoCreateTrackWorkspace() {
                 setOnboardingPolicyID();
 
                 navigateAfterOnboardingWithMicrotaskQueue(
-                    isSmallScreenWidth,
+                    shouldUseNarrowLayout,
                     isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     conciergeChatReportID,
-                    archivedReportsIdSet,
+                    archivedReportsIDSet,
                     newPolicyID,
                     mergedAccountConciergeReportID,
                     false,
@@ -138,8 +135,8 @@ function useAutoCreateTrackWorkspace() {
             }
         },
         [
-            session?.email,
-            session?.accountID,
+            currentUserEmail,
+            currentUserAccountID,
             lastWorkspaceNumber,
             translate,
             formatPhoneNumber,
@@ -147,17 +144,18 @@ function useAutoCreateTrackWorkspace() {
             onboardingPolicyID,
             hasPaidGroupAdminPolicy,
             onboardingAdminsChatReportID,
-            currentUserPersonalDetails.localCurrencyCode,
+            onboardingPersonalTrackGoal,
+            localCurrencyCode,
             introSelected,
             activePolicy,
             isSelfTourViewed,
             onboardingMessages,
             betas,
             hasActiveAdminPolicies,
-            isSmallScreenWidth,
+            shouldUseNarrowLayout,
             isBetaEnabled,
             conciergeChatReportID,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
             mergedAccountConciergeReportID,
         ],
     );

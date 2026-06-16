@@ -1,16 +1,62 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import StatusBar from '@libs/StatusBar';
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
+import {withInternalPopstate} from './internalPopstateGuard';
 import type BaseModalProps from './types';
 import type {WindowState} from './types';
+
+type WebModalAnimation = Pick<BaseModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'>;
+
+const CENTERED_MODAL_TYPES = new Set<BaseModalProps['type']>([
+    CONST.MODAL.MODAL_TYPE.CONFIRM,
+    CONST.MODAL.MODAL_TYPE.CENTERED,
+    CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
+    CONST.MODAL.MODAL_TYPE.CENTERED_SMALL,
+    CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT,
+]);
+
+// Faster timing and slide-and-fade are desktop-only; narrow web keeps the full-slide baseline at the original 300/200 timing.
+function getWebModalAnimation(type: BaseModalProps['type'], isSmallScreenWidth: boolean): WebModalAnimation {
+    const isRightDocked = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
+    const isCentered = CENTERED_MODAL_TYPES.has(type);
+    if (!isRightDocked && !isCentered) {
+        return {};
+    }
+    const isFadeOnlyCentered = type === CONST.MODAL.MODAL_TYPE.CONFIRM || type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL;
+    if (isSmallScreenWidth && !isFadeOnlyCentered) {
+        return {
+            animationInTiming: CONST.MODAL.ANIMATION_TIMING.NARROW_SLIDE_DURATION_IN_WEB,
+            animationOutTiming: CONST.MODAL.ANIMATION_TIMING.NARROW_SLIDE_DURATION_OUT_WEB,
+        };
+    }
+    if (isRightDocked) {
+        return {
+            animationIn: 'slideAndFadeInRight',
+            animationOut: 'slideAndFadeOutRight',
+            animationInTiming: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_IN_WEB,
+            animationOutTiming: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_OUT_WEB,
+        };
+    }
+    return {
+        animationInTiming: CONST.MODAL.ANIMATION_TIMING.CENTERED_DURATION_IN_WEB,
+        animationOutTiming: CONST.MODAL.ANIMATION_TIMING.CENTERED_DURATION_OUT_WEB,
+    };
+}
 
 function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = () => {}, children, shouldHandleNavigationBack, ...rest}: BaseModalProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    // We gate the web animation on raw screen width (desktop vs mobile web) rather than shouldUseNarrowLayout,
+    // because a modal opened on top of an RHP on desktop must keep its desktop animation, not the narrow one.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
+
+    const webAnimation = getWebModalAnimation(type, isSmallScreenWidth);
 
     const setStatusBarColor = (color = theme.appBG) => {
         if (!fullscreen) {
@@ -55,7 +101,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
                 if (!(window.history.state as WindowState)?.shouldGoBack) {
                     return;
                 }
-                window.history.back();
+                withInternalPopstate(() => window.history.back());
             }, 0);
         } else {
             onModalHide();
@@ -105,8 +151,11 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
 
     return (
         <BaseModal
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
+            animationIn={rest.animationIn ?? webAnimation.animationIn}
+            animationOut={rest.animationOut ?? webAnimation.animationOut}
+            animationInTiming={rest.animationInTiming ?? webAnimation.animationInTiming}
+            animationOutTiming={rest.animationOutTiming ?? webAnimation.animationOutTiming}
             onModalHide={hideModal}
             onModalShow={showModal}
             onModalWillShow={onModalWillShow}

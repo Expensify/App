@@ -9,7 +9,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
+import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
@@ -24,7 +25,7 @@ import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnbo
 import Navigation from '@libs/Navigation/Navigation';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {hasURL} from '@libs/Url';
-import {isCurrentUserValidated} from '@libs/UserUtils';
+import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
 import {clearPersonalDetailsDraft, setPersonalDetails} from '@userActions/Onboarding';
 import {setDisplayName, updateDisplayName} from '@userActions/PersonalDetails';
@@ -45,9 +46,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {onboardingMessages} = useOnboardingMessages();
@@ -55,6 +55,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
+    const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
@@ -65,6 +66,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PERSONAL_DETAILS);
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
@@ -91,7 +93,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 onboardingPolicyID,
                 introSelected,
                 isSelfTourViewed,
-                betas,
             });
 
             setOnboardingAdminsChatReportID();
@@ -101,7 +102,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 conciergeChatReportID,
-                archivedReportsIdSet,
+                archivedReportsIDSet,
                 onboardingPolicyID,
                 mergedAccountConciergeReportID,
                 false,
@@ -113,13 +114,12 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             onboardingMessages,
             onboardingPolicyID,
             isBetaEnabled,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
             isSmallScreenWidth,
             mergedAccountConciergeReportID,
             conciergeChatReportID,
             introSelected,
             isSelfTourViewed,
-            betas,
         ],
     );
 
@@ -131,6 +131,16 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             setDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
             clearPersonalDetailsDraft();
             setPersonalDetails(firstName, lastName);
+
+            if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026) {
+                if (isPrivateDomainAndHasAccessiblePolicies && isValidated) {
+                    Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
+                    return;
+                }
+                updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+                autoCreateSubmitWorkspace(firstName, lastName);
+                return;
+            }
 
             if (isPrivateDomainAndHasAccessiblePolicies && (!onboardingPurposeSelected || isVsb || isSmb)) {
                 const nextRoute = isValidated ? ROUTES.ONBOARDING_WORKSPACES : ROUTES.ONBOARDING_PRIVATE_DOMAIN;
@@ -152,12 +162,14 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             session?.email,
             isPrivateDomainAndHasAccessiblePolicies,
             onboardingPurposeSelected,
+            canUseSubmit2026,
             isVsb,
             isSmb,
             completeOnboarding,
             isValidated,
             route.params?.backTo,
             autoCreateTrackWorkspace,
+            autoCreateSubmitWorkspace,
         ],
     );
 
@@ -216,6 +228,11 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         return;
                     }
 
+                    if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+                        Navigation.goBack(ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.getRoute(route.params?.backTo));
+                        return;
+                    }
+
                     Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
                 }}
                 shouldDisplayHelpButton={false}
@@ -250,7 +267,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         aria-label={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={onboardingPersonalDetailsForm?.firstName ?? currentUserPersonalDetails?.firstName ?? ''}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.firstName && {defaultValue: currentUserPersonalDetails.firstName})}
                         shouldSaveDraft
                         spellCheck={false}
@@ -266,7 +282,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         aria-label={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={onboardingPersonalDetailsForm?.lastName ?? currentUserPersonalDetails?.lastName ?? ''}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.lastName && {defaultValue: currentUserPersonalDetails.lastName})}
                         shouldSaveDraft
                         spellCheck={false}

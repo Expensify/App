@@ -153,4 +153,4 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
 }
 
 export default useGettingStartedItems;
-export type {GettingStartedItem, UseGettingStartedItemsResult};
+export type {GettingStartedItem};

@@ -31,6 +31,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getTopmostReportId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
@@ -68,7 +69,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 function TestComponent() {
-    const {currentType, typeFiltersKeys: filters} = useAdvancedSearchFilters();
+    const currentType = 'expense';
+    const filters = useAdvancedSearchFilters(currentType, undefined);
     return <View testID={`${currentType}-${filters.length}`} />;
 }
 

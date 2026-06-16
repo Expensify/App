@@ -25,12 +25,11 @@ const LABEL = 'test-button';
  * assertions can verify exactly what Button propagates to its children.
  */
 function ContextReadout() {
-    const {variant, size, isLoading, isHovered} = useButtonContext();
+    const {variant, size, isHovered} = useButtonContext();
     return (
         <View>
             <Text testID="ctx-variant">{variant ?? 'none'}</Text>
             <Text testID="ctx-size">{size}</Text>
-            <Text testID="ctx-isLoading">{String(isLoading)}</Text>
             <Text testID="ctx-isHovered">{String(isHovered)}</Text>
         </View>
     );
@@ -45,7 +44,6 @@ describe('ButtonComposed — Button', () => {
         render(
             <Button
                 accessibilityLabel={LABEL}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {children}
@@ -114,25 +112,19 @@ describe('ButtonComposed — Button', () => {
             renderButton();
 
             // Then context reflects the expected initial state
-            expect(screen.getByTestId('ctx-size')).toHaveTextContent(CONST.DROPDOWN_BUTTON_SIZE.MEDIUM);
+            expect(screen.getByTestId('ctx-size')).toHaveTextContent(CONST.BUTTON_SIZE.MEDIUM);
             expect(screen.getByTestId('ctx-variant')).toHaveTextContent('none');
-            expect(screen.getByTestId('ctx-isLoading')).toHaveTextContent('false');
             expect(screen.getByTestId('ctx-isHovered')).toHaveTextContent('false');
         });
 
-        it.each(['success', 'danger', 'link'] as const)('propagates variant="%s" to children via context', (variant) => {
+        it.each(['success', 'danger'] as const)('propagates variant="%s" to children via context', (variant) => {
             renderButton({variant});
             expect(screen.getByTestId('ctx-variant')).toHaveTextContent(variant);
         });
 
-        it.each([CONST.DROPDOWN_BUTTON_SIZE.SMALL, CONST.DROPDOWN_BUTTON_SIZE.LARGE] as const)('propagates size="%s" to children via context', (size) => {
+        it.each([CONST.BUTTON_SIZE.SMALL, CONST.BUTTON_SIZE.LARGE] as const)('propagates size="%s" to children via context', (size) => {
             renderButton({size});
             expect(screen.getByTestId('ctx-size')).toHaveTextContent(size);
-        });
-
-        it('propagates isLoading=true to children via context', () => {
-            renderButton({isLoading: true});
-            expect(screen.getByTestId('ctx-isLoading')).toHaveTextContent('true');
         });
 
         it('toggles isHovered on hoverIn / hoverOut', () => {
@@ -288,11 +280,9 @@ describe('ButtonComposed — Button', () => {
             expect(screen.getByLabelText(LABEL)).toHaveStyle({backgroundColor: expectedBg});
         });
 
-        it('variant="link" sets a transparent background', () => {
-            // Link buttons must not obscure underlying content.
-            renderButton({variant: 'link'});
-            expect(screen.getByLabelText(LABEL)).toHaveStyle({backgroundColor: 'transparent'});
-        });
+        // The transparent-background invariant for link-style buttons now lives in the
+        // Link component (see tests/ui/components/Link.tsx) — Button itself no longer
+        // exposes a 'link' variant.
 
         it('no variant uses the default button background', () => {
             // Implicit check that nothing accidentally overrides the base background.
@@ -307,11 +297,11 @@ describe('ButtonComposed — Button', () => {
     // Wrong values here would break the visual rhythm of forms and toolbars.
 
     describe('size styles', () => {
+        // getButtonSizeStyle returns the base buttonSmall/Medium/Large styles with paddingHorizontal lower by 4px
         it.each([
-            {size: CONST.DROPDOWN_BUTTON_SIZE.SMALL, minHeight: variables.componentSizeSmall, paddingHorizontal: 12},
-            {size: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM, minHeight: variables.componentSizeNormal, paddingHorizontal: 16},
-            {size: CONST.DROPDOWN_BUTTON_SIZE.LARGE, minHeight: variables.componentSizeLarge, paddingHorizontal: 20},
-            {size: CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL, minHeight: variables.componentSizeXSmall, paddingHorizontal: 8},
+            {size: CONST.BUTTON_SIZE.SMALL, minHeight: variables.componentSizeSmall, paddingHorizontal: 8},
+            {size: CONST.BUTTON_SIZE.MEDIUM, minHeight: variables.componentSizeNormal, paddingHorizontal: 12},
+            {size: CONST.BUTTON_SIZE.LARGE, minHeight: variables.componentSizeLarge, paddingHorizontal: 16},
         ])('size="$size" applies minHeight=$minHeight and paddingHorizontal=$paddingHorizontal', ({size, minHeight, paddingHorizontal}) => {
             renderButton({size});
             expect(screen.getByLabelText(LABEL)).toHaveStyle({minHeight, paddingHorizontal});

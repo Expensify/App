@@ -51,7 +51,6 @@ function BaseFlatListWithScrollKey<T>({ref, ...props}: BaseFlatListWithScrollKey
     return (
         <FlatList
             ref={listRef}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             data={displayedData}
             maintainVisibleContentPosition={maintainVisibleContentPosition}

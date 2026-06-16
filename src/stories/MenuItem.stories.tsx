@@ -21,7 +21,6 @@ const story: Meta<typeof MenuItem> = {
 };
 
 function Template(props: MenuItemProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <MenuItem {...props} />;
 }
 

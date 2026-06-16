@@ -1,15 +1,14 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {cancelAnimation, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -22,11 +21,13 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
+import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
@@ -56,7 +57,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportActionIDRef = useRef<string | undefined>(undefined);
     const originalReportIDRef = useRef<string | undefined>(undefined);
     const selectionRef = useRef('');
-    const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`);
     const reportActionsRef = useRef(reportActions);
@@ -84,10 +84,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
     const [shouldSetModalVisibilityForDeleteConfirmation, setShouldSetModalVisibilityForDeleteConfirmation] = useState(true);
 
-    const [isRoomArchived, setIsRoomArchived] = useState(false);
-    const [isChronosReportEnabled, setIsChronosReportEnabled] = useState(false);
-    const [isChatPinned, setIsChatPinned] = useState(false);
-    const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
     const [isThreadReportParentAction, setIsThreadReportParentAction] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
@@ -178,13 +174,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      * @param reportID - Active Report Id
      * @param reportActionID - ReportAction for ContextMenu
      * @param originalReportID - The current Report Id of the reportAction
-     * @param draftMessage - ReportAction draft message
      * @param [onShow] - Run a callback when Menu is shown
      * @param [onHide] - Run a callback when Menu is hidden
-     * @param isArchivedRoom - Whether the provided report is an archived room
-     * @param isChronosReport - Flag to check if the chat participant is Chronos
-     * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
-     * @param isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
      */
     const showContextMenu: ReportActionContextMenu['showContextMenu'] = (showContextMenuParams) => {
         cancelAnimation(hideDelayProgress);
@@ -207,8 +198,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             setComposerToRefocusOnClose('edit');
         }
 
-        const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = currentReport;
-        const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
+        const {reportID, originalReportID} = currentReport;
+        const {reportActionID, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
         setIsWithoutOverlay(withoutOverlay);
@@ -254,11 +245,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             originalReportIDRef.current = originalReportID || undefined;
             selectionRef.current = selection;
             setIsPopoverVisible(true);
-            reportActionDraftMessageRef.current = draftMessage;
-            setIsRoomArchived(isArchivedRoom);
-            setIsChronosReportEnabled(isChronos);
-            setIsChatPinned(isPinnedChat);
-            setHasUnreadMessages(isUnreadChat);
             setIsThreadReportParentAction(isThreadReportParentActionParam);
             setShouldSwitchPositionIfOverflow(isOverflowMenu);
         });
@@ -302,7 +288,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      */
     const performHide = () => {
         selectionRef.current = '';
-        reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
 
         transitionActionSheetState({
@@ -350,13 +335,15 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     }
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
+    const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0) ?? ''}`);
+    const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDRef.current}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionRef.current?.childReportID}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const {currentSearchHash} = useSearchStateContext();
+    const {currentSearchHash} = useSearchQueryContext();
     const {deleteTransactions} = useDeleteTransactions({
         report,
         reportActions: reportActionRef.current ? [reportActionRef.current] : [],
@@ -378,7 +365,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         const reportAction = reportActionRef.current;
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
-            if (isTrackExpenseAction(reportAction)) {
+            const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(iouTransaction, iouOriginalTransaction);
+            if (isTrackExpenseAction(reportAction) && !isSelfDMExpenseSplit) {
                 deleteTrackExpense({
                     chatReportID: reportIDRef.current,
                     chatReport: report,
@@ -396,7 +384,12 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     currentUserEmail: email ?? '',
                 });
             } else if (originalMessage?.IOUTransactionID) {
-                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
+                const deleteResult = deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
+
+                if (deleteResult.action === 'redirected') {
+                    setIsDeleteCommentConfirmModalVisible(false);
+                    return;
+                }
             }
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport({
@@ -410,7 +403,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 hash: currentSearchHash,
             });
         } else if (reportAction) {
-            InteractionManager.runAfterInteractions(() => {
+            callbackWhenDeleteModalHide.current = () => {
                 deleteReportComment(
                     report,
                     reportAction,
@@ -421,7 +414,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     visibleReportActionsData ?? undefined,
                     reportActionsRef.current ?? undefined,
                 );
-            });
+            };
         }
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
@@ -445,16 +438,14 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         bankAccountList,
         isOriginalReportArchived,
         visibleReportActionsData,
+        iouTransaction,
+        iouOriginalTransaction,
     ]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
         setIsDeleteCommentConfirmModalVisible(false);
         setShouldSetModalVisibilityForDeleteConfirmation(true);
-        setIsRoomArchived(false);
-        setIsChronosReportEnabled(false);
-        setIsChatPinned(false);
-        setHasUnreadMessages(false);
     };
 
     /** Opens the Confirm delete action modal */
@@ -507,12 +498,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     type={typeRef.current}
                     reportID={reportIDRef.current}
                     reportActionID={reportActionIDRef.current}
-                    draftMessage={reportActionDraftMessageRef.current}
                     selection={selectionRef.current}
-                    isArchivedRoom={isRoomArchived}
-                    isChronosReport={isChronosReportEnabled}
-                    isPinnedChat={isChatPinned}
-                    isUnreadChat={hasUnreadMessages}
                     isThreadReportParentAction={isThreadReportParentAction}
                     anchor={contextMenuTargetNode}
                     contentRef={contentRef}

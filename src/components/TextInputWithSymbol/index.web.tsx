@@ -8,7 +8,6 @@ function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: Text
 
     return (
         <BaseTextInputWithSymbol
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={(element) => {
                 textInputRef.current = element as HTMLFormElement;

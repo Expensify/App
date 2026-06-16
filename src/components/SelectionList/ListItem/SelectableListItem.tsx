@@ -28,7 +28,6 @@ function SelectableListItem<TItem extends ListItem>({
 
     return (
         <BaseListItem
-            // eslint-disable-next-line react/jsx-props-no-spreading -- props are forwarded from SelectableListItem to BaseListItem as a pass-through layer
             {...baseProps}
             item={item}
             isFocused={isFocused}

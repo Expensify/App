@@ -44,7 +44,6 @@ const reportActionBaseMock: ReportAction = {
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: '555',
-        IOUReportID: reportBaseMock.reportID,
     },
     reportID: reportBaseMock.reportID,
 };
@@ -52,6 +51,10 @@ const reportActionBaseMock: ReportAction = {
 const transactionItemBaseMock: TransactionListItemType = {
     action: 'submit',
     allActions: ['submit'],
+    canPay: false,
+    canApprove: false,
+    canSubmit: true,
+    canChangeApprover: false,
     amount: -5000,
     report: reportBaseMock,
     policy: policyBaseMock,

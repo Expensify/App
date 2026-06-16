@@ -1,7 +1,6 @@
 import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
@@ -46,19 +45,6 @@ type SubscriptionPlanInfo = {
     src: IconAsset;
     description: string;
 };
-
-type SubscriptionPlanIllustrations = {
-    Mailbox: IconAsset;
-    ShieldYellow: IconAsset;
-};
-
-let deprecatedCurrentUserAccountID = -1;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        deprecatedCurrentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
 
 /**
  * @returns Whether the workspace owner's grace period is overdue.
@@ -486,7 +472,7 @@ function shouldRestrictUserBillableActions(
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number>,
-    currentUserAccountID: number = deprecatedCurrentUserAccountID,
+    currentUserAccountID: number,
 ): boolean {
     const currentDate = new Date();
 
@@ -531,7 +517,8 @@ function getSubscriptionPrice(
     privateSubscriptionType: SubscriptionType | undefined,
     hasTeam2025Pricing: boolean,
 ): number {
-    if (!privateSubscriptionType || !plan) {
+    // Submit is a free plan — no subscription price to look up.
+    if (!privateSubscriptionType || !plan || plan === CONST.POLICY.TYPE.SUBMIT) {
         return 0;
     }
 
@@ -666,4 +653,4 @@ export {
     hasInsufficientFundsError,
 };
 
-export type {DiscountInfo, SubscriptionPlanIllustrations};
+export type {DiscountInfo};

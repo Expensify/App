@@ -83,4 +83,4 @@ type SectionListItem<TItem extends ListItem> = TItem & {
 
 type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
 
-export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, SectionHeader, FlattenedItem};
+export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, FlattenedItem};

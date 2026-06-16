@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
+import {createWorkspace} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -24,6 +25,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockCompleteOnboarding = jest.mocked(completeOnboarding);
+const mockCreateWorkspace = jest.mocked(createWorkspace);
 
 jest.mock('@userActions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -32,6 +34,19 @@ jest.mock('@userActions/Report', () => {
     return {
         ...actual,
         completeOnboarding: jest.fn(),
+    };
+});
+
+jest.mock('@userActions/Policy/Policy', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@userActions/Policy/Policy');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        createWorkspace: jest.fn().mockReturnValue({
+            policyID: 'test-policy-id',
+            adminsChatReportID: 'test-admins-report-id',
+        }),
     };
 });
 
@@ -138,6 +153,140 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should navigate to personal details page when user selects EMPLOYER with Submit2026 beta and is from public domain', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+                hasAccessibleDomainPolicies: false,
+            });
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
+        });
+
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        const user = userEvent.setup();
+        const employerLabel = translatePurpose(CONST.ONBOARDING_CHOICES.EMPLOYER);
+        const employerOption = screen.getByLabelText(employerLabel);
+        await user.press(employerOption);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(''));
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should create a Submit workspace when user selects EMPLOYER with Submit2026 beta and is from private domain with name set', async () => {
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
+
+        const testEmail = 'test@user.com';
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: false,
+                hasAccessibleDomainPolicies: true,
+            });
+            await Onyx.merge(ONYXKEYS.LOGINS, {
+                [`1_${testEmail}`]: {
+                    partnerID: 1,
+                    partnerUserID: testEmail,
+                    validatedDate: 'fake-validatedDate',
+                },
+            });
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
+                firstName: 'Test',
+                lastName: 'User',
+            });
+        });
+
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        const user = userEvent.setup();
+        const employerLabel = translatePurpose(CONST.ONBOARDING_CHOICES.EMPLOYER);
+        const employerOption = screen.getByLabelText(employerLabel);
+        await user.press(employerOption);
+
+        await waitFor(() => {
+            expect(mockCreateWorkspace).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: CONST.POLICY.TYPE.SUBMIT,
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                }),
+            );
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should create a Submit workspace from Purpose when EMPLOYER is selected and personal details already exist', async () => {
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
+
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+                hasAccessibleDomainPolicies: false,
+            });
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
+                firstName: 'Test',
+                lastName: 'User',
+            });
+        });
+
+        const onyxSetSpy = jest.spyOn(Onyx, 'set');
+        onyxSetSpy.mockClear();
+
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        const user = userEvent.setup();
+        const employerLabel = translatePurpose(CONST.ONBOARDING_CHOICES.EMPLOYER);
+        const employerOption = screen.getByLabelText(employerLabel);
+        await user.press(employerOption);
+
+        await waitFor(() => {
+            expect(mockCreateWorkspace).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: CONST.POLICY.TYPE.SUBMIT,
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                }),
+            );
+        });
+
+        await waitFor(() => {
+            expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                    onboardingPolicyID: 'test-policy-id',
+                }),
+            );
+        });
+
+        await waitFor(() => {
+            expect(onyxSetSpy).toHaveBeenCalledWith(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
+            expect(navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
+        });
+
+        onyxSetSpy.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should navigate to personal details page when user selects TRACK_BUSINESS and is from public domain', async () => {
         await TestHelper.signInWithTestUser();
 
@@ -165,7 +314,7 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to personal details page when user selects TRACK_PERSONAL and is from public domain', async () => {
+    it('should navigate to personal track goal page when user selects TRACK_PERSONAL and is from public domain', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -185,7 +334,7 @@ describe('OnboardingPurpose Page', () => {
         await user.press(trackPersonalOption);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(''));
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.getRoute(''));
         });
 
         unmount();

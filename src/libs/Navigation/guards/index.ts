@@ -105,4 +105,3 @@ registerGuard(OnboardingGuard);
 registerGuard(MigratedUserWelcomeModalGuard);
 
 export {registerGuard, createGuardContext, evaluateGuards, getRegisteredGuards, clearGuards};
-export type {NavigationGuard, GuardResult, GuardContext};

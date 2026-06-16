@@ -9,12 +9,14 @@ import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -74,7 +76,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
@@ -103,6 +107,21 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     return;
                 }
 
+                if (choice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+                    Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.getRoute(route.params?.backTo));
+                    return;
+                }
+
+                if (choice === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026) {
+                    if (personalDetailsForm?.firstName) {
+                        autoCreateSubmitWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '');
+                        return;
+                    }
+
+                    Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+                    return;
+                }
+
                 if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName) {
                     if (isTrackOnboardingChoice(choice)) {
                         autoCreateTrackWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '', choice);
@@ -118,7 +137,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         companySize: onboardingCompanySize,
                         introSelected,
                         isSelfTourViewed,
-                        betas,
                     });
 
                     return;

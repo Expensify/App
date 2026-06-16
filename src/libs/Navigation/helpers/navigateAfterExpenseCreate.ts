@@ -1,3 +1,4 @@
+import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -17,6 +18,8 @@ type NavigateAfterExpenseCreateParams = {
     isFromGlobalCreate?: boolean;
     isInvoice?: boolean;
     hasMultipleTransactions: boolean;
+    shouldAddPendingNewTransactionIDs?: boolean;
+    shouldNavigate?: boolean;
 };
 
 /**
@@ -26,14 +29,31 @@ type NavigateAfterExpenseCreateParams = {
  * - If it is created on the inbox tab, it will open the chat report containing that expense.
  * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
  */
-function navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobalCreate, isInvoice, hasMultipleTransactions}: NavigateAfterExpenseCreateParams) {
+function navigateAfterExpenseCreate({
+    activeReportID,
+    transactionID,
+    isFromGlobalCreate,
+    isInvoice,
+    hasMultipleTransactions,
+    shouldAddPendingNewTransactionIDs = false,
+    shouldNavigate = true,
+}: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
 
     // If the expense is not created from global create or is currently on the inbox tab,
     // we just need to dismiss the money request flow screens
     // and open the report chat containing the IOU report
     if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
-        dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        if (shouldNavigate) {
+            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        }
+        if (shouldAddPendingNewTransactionIDs) {
+            addPendingNewTransactionIDs(activeReportID, transactionID);
+        }
+        return;
+    }
+
+    if (!shouldNavigate) {
         return;
     }
 

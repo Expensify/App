@@ -46,6 +46,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
     getValidConnectedIntegration: jest.fn(),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
+    isGroupPolicy: jest.fn().mockReturnValue(true),
 }));
 
 describe('getPrimaryAction', () => {
@@ -253,7 +254,7 @@ describe('getPrimaryAction', () => {
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
-    it('should not return SUBMIT option for admin with only pending transactions', async () => {
+    it('should return SUBMIT option for admin with only pending transactions', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -286,7 +287,7 @@ describe('getPrimaryAction', () => {
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
-        ).toBe('');
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
 
     it('should return Approve for report being processed', async () => {

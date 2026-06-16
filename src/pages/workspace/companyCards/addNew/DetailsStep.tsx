@@ -190,7 +190,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
-                submitButtonText={translate('common.next')}
+                submitButtonText={translate('common.submit')}
                 onSubmit={submit}
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}

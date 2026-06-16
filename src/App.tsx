@@ -34,6 +34,7 @@ import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesContextProvider';
+import {EditingCellProvider} from './components/TransactionItemRow/EditableCell';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
@@ -43,6 +44,7 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
+import {ConciergeSessionProvider} from './pages/inbox/ConciergeSessionContext';
 import './setup/backgroundLocationTrackingTask';
 import './setup/backgroundTask';
 import './setup/fraudProtection';
@@ -102,6 +104,7 @@ function App() {
                                         SafeArea,
                                         PopoverContextProvider,
                                         CurrentReportIDContextProvider,
+                                        ConciergeSessionProvider,
                                         ScrollOffsetContextProvider,
                                         PickerStateProvider,
                                         EnvironmentProvider,
@@ -115,6 +118,7 @@ function App() {
                                         FullScreenLoaderContextProvider,
                                         ModalProvider,
                                         SidePanelContextProvider,
+                                        EditingCellProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />

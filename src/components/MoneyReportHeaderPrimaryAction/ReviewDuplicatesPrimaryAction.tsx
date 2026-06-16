@@ -52,7 +52,14 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
                         } else {
                             const transactionID = duplicateTransaction.transactionID;
                             const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                            const createdTransactionThreadReport = createTransactionThreadReport(introSelected, email ?? '', accountID, betas, moneyRequestReport, iouAction);
+                            const createdTransactionThreadReport = createTransactionThreadReport({
+                                introSelected,
+                                currentUserLogin: email ?? '',
+                                currentUserAccountID: accountID,
+                                betas,
+                                iouReport: moneyRequestReport,
+                                iouReportAction: iouAction,
+                            });
                             threadID = createdTransactionThreadReport?.reportID;
                         }
                     }

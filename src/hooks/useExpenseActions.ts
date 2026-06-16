@@ -8,7 +8,8 @@ import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
+import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import {duplicateReport as duplicateReportAction, duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport} from '@libs/actions/Report';
@@ -19,7 +20,7 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAccessible} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
@@ -54,6 +55,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
+import useEnvironment from './useEnvironment';
 import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -63,7 +65,6 @@ import useReportIsArchived from './useReportIsArchived';
 import useTheme from './useTheme';
 import useThrottledButtonState from './useThrottledButtonState';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
-import useTransactionThreadReport from './useTransactionThreadReport';
 import useTransactionViolations from './useTransactionViolations';
 
 type UseExpenseActionsParams = {
@@ -84,20 +85,21 @@ type UseExpenseActionsReturn = {
 function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplicateReset}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
+    const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
-    const {currentSearchHash} = useSearchStateContext();
-    const {removeTransaction} = useSearchActionsContext();
+    const {currentSearchHash} = useSearchQueryContext();
+    const {removeTransaction} = useSearchSelectionActions();
 
     // Report data
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
 
-    const {transactionThreadReportID, transactionThreadReport, reportActions} = useTransactionThreadReport(reportID);
+    const {iouTransactionID, requestParentReportAction, transactionThreadReportID, transactionThreadReport, reportActions} = useMoneyReportTransactionThread();
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
@@ -111,11 +113,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     }
 
     const currentTransaction = transactions.at(0);
-    const requestParentReportAction =
-        reportActions?.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport?.parentReportActionID) ??
-        null;
-
-    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
@@ -123,7 +120,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     // Global collections
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
@@ -139,7 +135,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     // Billing keys
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -159,7 +154,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
 
     // Delete hook — pass chatReport (as in MoneyReportHeader) not moneyRequestReport
-    const {deleteTransactions} = useDeleteTransactions({
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: chatReport,
         reportActions,
         policy,
@@ -170,9 +165,10 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     // Split indicator
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-    const hasMultipleSplits = !!transaction?.comment?.originalTransactionID && getChildTransactions(allTransactions, allReports, transaction.comment.originalTransactionID).length > 1;
+    const hasMultipleSplits = !!transaction?.comment?.originalTransactionID && getChildTransactions(allTransactions, transaction.comment.originalTransactionID, false).length > 1;
     const isReportOpen = isOpenReport(moneyRequestReport);
-    const hasSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
+    const hasSplitIndicator = isExpenseSplit && (hasMultipleSplits || (isProduction && isReportOpen));
+    const shouldShowEditSplitOnDeleteAction = !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
 
     // Duplicate report throttle
     const [isDuplicateReportActive, temporarilyDisableDuplicateReportAction] = useThrottledButtonState();
@@ -249,14 +245,12 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 targetPolicyCategories: activePolicyCategories,
                 targetReport: activePolicyExpenseChat,
                 existingTransactionDraft,
-                draftTransactionIDs,
                 betas,
                 personalDetails,
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID,
-                currentUserAccountID: currentUserPersonalDetails?.accountID,
-                currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
+                currentUserLocalCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
             });
         }
     };
@@ -271,6 +265,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         amountOwed,
         ownerBillingGracePeriodEnd,
         lastDistanceExpenseType,
+        currentUserAccountID: accountID,
     });
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -300,7 +295,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (transactions.length !== 1) {
                     return;
                 }
-                initSplitExpense(currentTransaction, policy);
+                initSplitExpense(currentTransaction, policy, moneyRequestReport, accountID, {isProduction});
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
@@ -321,6 +316,12 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
             onSelected: () => {
+                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                    onDuplicateReset?.();
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
+                    return;
+                }
+
                 if (hasCustomUnitOutOfPolicyViolation) {
                     showConfirmModal({
                         title: translate('common.duplicateExpense'),
@@ -373,11 +374,18 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     return;
                 }
 
+                const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
+                const targetPolicyForDuplicate = isSourcePolicyValid ? policy : defaultExpensePolicy;
+
+                if (targetPolicyForDuplicate && shouldRestrictUserBillableActions(targetPolicyForDuplicate, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                    onDuplicateReset?.();
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(targetPolicyForDuplicate.id));
+                    return;
+                }
+
                 temporarilyDisableDuplicateReportAction();
                 wasDuplicateReportTriggeredRef.current = true;
 
-                const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
-                const targetPolicyForDuplicate = isSourcePolicyValid ? policy : defaultExpensePolicy;
                 const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
 
@@ -396,12 +404,10 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         personalDetails,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                        draftTransactionIDs,
                         isSelfTourViewed,
                         transactionViolations: allTransactionViolations,
                         translate,
                         recentWaypoints: recentWaypoints ?? [],
-                        conciergeReportID,
                         currentUserAccountID: currentUserPersonalDetails?.accountID,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
                     });
@@ -418,7 +424,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (!moneyRequestReport) {
                     return;
                 }
-                Navigation.navigate(ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_CHANGE_WORKSPACE.path));
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE]: {
@@ -461,14 +467,19 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
-            text: translate('common.delete'),
-            icon: expensifyIcons.Trashcan,
+            text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('common.delete'),
+            icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
-            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DELETE,
+            sentryLabel: shouldShowEditSplitOnDeleteAction ? CONST.SENTRY_LABEL.MORE_MENU.SPLIT : CONST.SENTRY_LABEL.MORE_MENU.DELETE,
             onSelected: async () => {
                 const transactionCount = Object.keys(transactions).length;
 
                 if (transactionCount === 1) {
+                    if (shouldShowEditSplitOnDeleteAction && transaction?.transactionID) {
+                        deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
+                        return;
+                    }
+
                     const result = await showConfirmModal({
                         title: translate('iou.deleteExpense', {count: 1}),
                         prompt: translate('iou.deleteConfirmation', {count: 1}),
@@ -484,9 +495,14 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         if (!requestParentReportAction || !transaction?.transactionID) {
                             throw new Error('Missing data!');
                         }
+                        if (shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID])) {
+                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
+                            return;
+                        }
                         const goBackRoute = getNavigationUrlOnMoneyRequestDelete(
                             transaction.transactionID,
                             requestParentReportAction,
+                            transactionThreadReport,
                             iouReport,
                             chatIOUReport,
                             isChatIOUReportArchived,
@@ -494,13 +510,33 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         );
                         const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();
                         setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
+                        // The wide RHP close animation was changed, and because of that the expense was deleted right after
+                        // the animation finished, which caused flickering in the expenses list. We want the user to see
+                        // the expense in the list for a little bit longer, so we wait for the animation to finish and then
+                        // add an additional delay before removing it.
+                        // See https://github.com/Expensify/App/issues/92036
+                        const afterTransition = () => {
+                            setTimeout(() => {
+                                const deleteResult = deleteTransactions(
+                                    [transaction.transactionID],
+                                    duplicateTransactions,
+                                    duplicateTransactionViolations,
+                                    isReportInSearch ? currentSearchHash : undefined,
+                                    false,
+                                );
+
+                                if (deleteResult.action === 'redirected') {
+                                    return;
+                                }
+
+                                removeTransaction(transaction.transactionID);
+                            }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
+                        };
                         if (goBackRoute) {
-                            navigateOnDeleteExpense(goBackRoute);
+                            navigateOnDeleteExpense(goBackRoute, afterTransition);
+                        } else {
+                            afterTransition();
                         }
-                        InteractionManager.runAfterInteractions(() => {
-                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, isReportInSearch ? currentSearchHash : undefined, false);
-                            removeTransaction(transaction.transactionID);
-                        });
                     }
                     return;
                 }
@@ -519,19 +555,27 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const deleteNavigateBackUrl = backToRoute ?? Navigation.getActiveRoute();
                 setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
 
+                // The wide RHP close animation was changed, and because of that the report was deleted right after
+                // the animation finished, which caused flickering in the reports list. We want the user to see
+                // the report in the list for a little bit longer, so we wait for the animation to finish and then
+                // add an additional delay before removing it.
+                // See https://github.com/Expensify/App/issues/92036
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.goBack(backToRoute);
-                    InteractionManager.runAfterInteractions(() => {
-                        deleteAppReport({
-                            report: moneyRequestReport,
-                            selfDMReport,
-                            currentUserEmailParam: email ?? '',
-                            currentUserAccountIDParam: accountID,
-                            reportTransactions,
-                            allTransactionViolations,
-                            bankAccountList,
-                            hash: currentSearchHash,
-                        });
+                    Navigation.goBack(backToRoute, {
+                        afterTransition: () => {
+                            setTimeout(() => {
+                                deleteAppReport({
+                                    report: moneyRequestReport,
+                                    selfDMReport,
+                                    currentUserEmailParam: email ?? '',
+                                    currentUserAccountIDParam: accountID,
+                                    reportTransactions,
+                                    allTransactionViolations,
+                                    bankAccountList,
+                                    hash: currentSearchHash,
+                                });
+                            }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
+                        },
                     });
                 });
             },
@@ -548,7 +592,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -567,4 +611,3 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 }
 
 export default useExpenseActions;
-export type {UseExpenseActionsParams, UseExpenseActionsReturn};

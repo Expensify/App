@@ -56,6 +56,18 @@ jest.mock('@components/MenuItem', () => {
 
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
+// The real `convertToDisplayString` needs a seeded currency list/locale and otherwise returns '',
+// which would hide the "Converted" suffix. Return a deterministic non-empty string instead.
+jest.mock('@hooks/useCurrencyList', () => ({
+    useCurrencyListActions: jest.fn(() => ({
+        convertToDisplayString: jest.fn((amountInCents = 0, currency = '') => `${currency}${amountInCents}`),
+        getCurrencySymbol: jest.fn((currency = '') => `${currency}`),
+        getCurrencyDecimals: jest.fn(() => 2),
+        convertToDisplayStringWithoutCurrency: jest.fn((amountInCents = 0) => `${amountInCents}`),
+    })),
+    useCurrencyListState: jest.fn(() => ({})),
+}));
+
 TestHelper.setupGlobalFetchMock();
 
 const currentUserAccountID = 10;
@@ -106,10 +118,10 @@ describe('MoneyRequestView edit fields', () => {
         const iouReportAction = {
             ...LHNTestUtils.getFakeReportAction(),
             reportActionID: parentReportActionID,
+            reportID: expenseReportID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
             originalMessage: {
-                IOUReportID: expenseReportID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 IOUTransactionID: transactionID,
                 amount: 5000,
@@ -244,7 +256,7 @@ describe('MoneyRequestView edit fields', () => {
                 taxCode: 'TAX_10',
                 taxAmount: 500,
                 taxValue: '10%',
-                comment: {type: CONST.TRANSACTION.TYPE.TIME},
+                iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -279,6 +291,211 @@ describe('MoneyRequestView edit fields', () => {
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
             expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('readonly');
+        });
+    });
+
+    it('should append "Non-reimbursable" to the Amount description when the transaction is non-reimbursable in a single-expense report', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
+        });
+    });
+
+    it('should NOT append "Non-reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}_sibling`, {
+                transactionID: `${transactionID}_sibling`,
+                reportID: expenseReportID,
+                amount: 2500,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-06-02',
+                merchant: 'Sibling',
+                comment: {},
+                reimbursable: true,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
+            expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
+        });
+    });
+
+    it('should append "Non-reimbursable" immediately when the only other expense is pending deletion', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}_sibling`, {
+                transactionID: `${transactionID}_sibling`,
+                reportID: expenseReportID,
+                amount: 2500,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-06-02',
+                merchant: 'Sibling',
+                comment: {},
+                reimbursable: false,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
+        });
+    });
+
+    it('should NOT append "Non-reimbursable" while offline because the pending-deleted expense is still rendered', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}_sibling`, {
+                transactionID: `${transactionID}_sibling`,
+                reportID: expenseReportID,
+                amount: 2500,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-06-02',
+                merchant: 'Sibling',
+                comment: {},
+                reimbursable: false,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            });
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
+            expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
+        });
+    });
+
+    it('appends "Converted" to the Tax amount description for a foreign-currency taxed expense', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {currency: CONST.CURRENCY.USD});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                currency: 'UZS',
+                convertedAmount: 27410265,
+                taxCode: 'TAX_10',
+                taxAmount: 1110,
+                convertedTaxAmount: 1332281,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).toBeOnTheScreen();
+        });
+    });
+
+    it('does NOT append "Converted" to the Tax amount description when the converted tax is zero (tax exempt)', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {currency: CONST.CURRENCY.USD});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                currency: 'UZS',
+                convertedAmount: 27410265,
+                taxCode: 'TAX_EXEMPT',
+                taxAmount: 0,
+                convertedTaxAmount: 0,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
+            expect(screen.queryByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
+        });
+    });
+
+    it('does NOT append "Converted" to the Tax amount description when the expense currency matches the report currency', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {currency: CONST.CURRENCY.USD});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                currency: CONST.CURRENCY.USD,
+                convertedAmount: 27410265,
+                taxCode: 'TAX_10',
+                taxAmount: 1110,
+                convertedTaxAmount: 1332281,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
+            expect(screen.queryByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
         });
     });
 });

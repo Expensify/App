@@ -1,7 +1,7 @@
 import {useCallback, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import PaginationUtils from '@libs/PaginationUtils';
+import {getContinuousChain} from '@libs/PaginationUtils';
 import {getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,7 +79,7 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
             return {data: [], hasNextPage: false, hasPreviousPage: false};
         }
 
-        return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, id);
+        return getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, id);
     }, [id, reportActionPages, sortedAllReportActions]);
 
     // When `treatAsNoPaginationAnchor` is set, we intentionally ignore `reportActionID` for pagination

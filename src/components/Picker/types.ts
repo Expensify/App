@@ -106,4 +106,4 @@ type BasePickerProps<TPickerValue> = {
     ref?: ForwardedRef<BasePickerHandle>;
 };
 
-export type {BasePickerHandle, BasePickerProps, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};
+export type {BasePickerProps, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};

@@ -123,7 +123,6 @@ function AnimatedSettlementButton({
             )}
             {!isAnimationRunning && (
                 <SettlementButton
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...settlementButtonProps}
                     wrapperStyle={wrapperStyle}
                     isDisabled={isAnimationRunning || isDisabled}

@@ -1,5 +1,4 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import {
     getActionableCard3DSTransactionApprovalMessage,
@@ -9,12 +8,10 @@ import {
     getMessageOfOldDotReportAction,
     getOriginalMessage,
     getRemovedFromApprovalChainMessage,
-    getReportAction,
     getReportActionText,
     isActionOfType,
     isRejectedAction,
     isUnapprovedAction,
-    wasActionTakenByCurrentUser,
 } from '@libs/ReportActionsUtils';
 import {getDeletedTransactionMessage, getPolicyChangeMessage} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
@@ -23,7 +20,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type SimpleMessageContentProps = {
     action: OnyxTypes.ReportAction;
-    report: OnyxEntry<OnyxTypes.Report>;
 };
 
 const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
@@ -40,7 +36,6 @@ const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
     CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION,
     CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
     CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES,
-    CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED,
     CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE,
     CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL,
     CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN,
@@ -51,7 +46,7 @@ function isSimpleMessageAction(action: OnyxTypes.ReportAction): boolean {
     return SIMPLE_MESSAGE_ACTION_TYPES.has(action.actionName) || isUnapprovedAction(action) || isRejectedAction(action);
 }
 
-function SimpleMessageContent({action, report}: SimpleMessageContentProps) {
+function SimpleMessageContent({action}: SimpleMessageContentProps) {
     const {translate} = useLocalize();
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
@@ -93,11 +88,6 @@ function SimpleMessageContent({action, report}: SimpleMessageContentProps) {
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES)) {
         return <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
     }
-    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
-        // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
-        const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-        return <ReportActionItemBasicMessage message={translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)})} />;
-    }
     if (isUnapprovedAction(action)) {
         return <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
     }
@@ -119,8 +109,6 @@ function SimpleMessageContent({action, report}: SimpleMessageContentProps) {
 
     return null;
 }
-
-SimpleMessageContent.displayName = 'SimpleMessageContent';
 
 export default SimpleMessageContent;
 export {isSimpleMessageAction};

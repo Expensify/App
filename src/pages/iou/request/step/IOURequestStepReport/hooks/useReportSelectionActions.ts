@@ -1,10 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
-import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU';
+import usePermissions from '@hooks/usePermissions';
+import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,6 +15,7 @@ import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
 
 type TransactionGroupListItem = ListItem & {
@@ -62,7 +64,7 @@ type UseReportSelectionActionsParams = {
     personalPolicyID: string | undefined;
 
     /** Optional route to return to instead of the default back navigation. */
-    backTo: string | undefined;
+    backTo: Route | undefined;
 
     /** Caller-provided back-navigation handler — `handleRegularReportSelection` calls this before scheduling the change. */
     handleGoBack: () => void;
@@ -100,7 +102,10 @@ function useReportSelectionActions({
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const {removeTransaction} = useSearchActionsContext();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const {removeTransaction} = useSearchSelectionActions();
+    const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     const buildParticipants = (report: OnyxEntry<Report>) => [
         {
@@ -150,6 +155,11 @@ function useReportSelectionActions({
             return;
         }
 
+        if (isNewManualExpenseFlowEnabled) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportOrDraftReportFromValue?.chatReportID);
         // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
         if (backTo) {
@@ -191,6 +201,7 @@ function useReportSelectionActions({
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                         allTransactions,
                         policyTagList,
+                        allTransactionViolation: transactionViolations,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -213,6 +224,7 @@ function useReportSelectionActions({
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
                 allTransactions,
                 policyTagList,
+                allTransactionViolation: transactionViolations,
             });
             removeTransaction(transaction.transactionID);
         });

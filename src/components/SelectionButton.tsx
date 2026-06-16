@@ -204,4 +204,4 @@ function SelectionButton({
 
 export default SelectionButton;
 
-export type {BaseSelectionButtonProps, CheckboxProps, RadioButtonProps, SelectionButtonProps};
+export type {CheckboxProps, RadioButtonProps};

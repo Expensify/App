@@ -4,7 +4,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import {setCustomUnitRateID, setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestPendingFields} from '@libs/actions/IOU';
+import {setCustomUnitRateID, setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestPendingFields} from '@libs/actions/IOU/MoneyRequest';
 import {setSplitShares} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
@@ -33,6 +33,7 @@ type DistanceRequestControllerProps = {
     distance: number;
     distanceRequestAmount: number;
     shouldCalculateDistanceAmount: boolean;
+    currentUserAccountID: number;
     isDistanceRequestWithPendingRoute: boolean;
     hasRoute: boolean;
     defaultMileageRateCustomUnitRateID: string | undefined;
@@ -65,6 +66,7 @@ function DistanceRequestController({
     distance,
     distanceRequestAmount,
     shouldCalculateDistanceAmount,
+    currentUserAccountID,
     isDistanceRequestWithPendingRoute,
     hasRoute,
     defaultMileageRateCustomUnitRateID,
@@ -147,9 +149,20 @@ function DistanceRequestController({
         // If it's a split request among individuals, set the split shares
         const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? CONST.DEFAULT_NUMBER_ID);
         if (isTypeSplit && !isPolicyExpenseChat && amount && transaction?.currency) {
-            setSplitShares(transaction, amount, currency, participantAccountIDs);
+            setSplitShares(transaction, amount, currency, participantAccountIDs, currentUserAccountID);
         }
-    }, [shouldCalculateDistanceAmount, isReadOnly, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
+    }, [
+        shouldCalculateDistanceAmount,
+        isReadOnly,
+        distanceRequestAmount,
+        transactionID,
+        currency,
+        isTypeSplit,
+        isPolicyExpenseChat,
+        selectedParticipantsProp,
+        transaction,
+        currentUserAccountID,
+    ]);
 
     useEffect(() => {
         if (
@@ -164,8 +177,29 @@ function DistanceRequestController({
             return;
         }
 
-        setCustomUnitRateID(transactionID, lastSelectedRate, transaction, policy);
-    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, transaction, policy, selectedParticipants]);
+        let rateToUse = lastSelectedRate;
+        const expenseDate = transaction?.created;
+        if (expenseDate) {
+            const mileageRates = DistanceRequestUtils.getMileageRates(policy);
+            const lastRate = lastSelectedRate ? mileageRates[lastSelectedRate] : undefined;
+            if (!lastRate || !DistanceRequestUtils.isRateEligibleForDate(lastRate, expenseDate)) {
+                const bestRate = DistanceRequestUtils.getBestEligibleRate(mileageRates, expenseDate);
+                rateToUse = bestRate?.customUnitRateID ?? defaultMileageRateCustomUnitRateID ?? lastSelectedRate;
+            }
+        }
+        setCustomUnitRateID(transactionID, rateToUse, transaction, policy);
+    }, [
+        customUnitRateID,
+        transactionID,
+        lastSelectedRate,
+        isDistanceRequest,
+        isPolicyExpenseChat,
+        isMovingTransactionFromTrackExpense,
+        transaction,
+        policy,
+        selectedParticipants,
+        defaultMileageRateCustomUnitRateID,
+    ]);
 
     useEffect(() => {
         if (!isDistanceRequest || !transactionID || isReadOnly) {

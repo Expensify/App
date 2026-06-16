@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Card, ReportAction} from '.';
 import type {CardList} from './Card';
-import type {CardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
+import type {CardFeedWithDomainID} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
 import type Transaction from './Transaction';
@@ -174,16 +174,6 @@ type FeedErrors = CardFeedErrorState & {
 };
 
 /**
- * The ID of a card feed in the errors map/object.
- */
-type CardFeedId = CompanyCardFeedWithNumber;
-
-/**
- * The errors of all card feeds by workspace account ID and feed name with domain ID.
- */
-type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
-
-/**
  * The errors of all card feeds.
  */
 type CardFeedErrorsObject = Record<CardFeedWithDomainID, FeedErrors>;
@@ -277,6 +267,23 @@ type TodosDerivedValue = {
 };
 
 /**
+ * The derived value for flagged expenses.
+ *
+ * Aggregates transactions on the current user's `OPEN`/`OPEN` expense reports that have
+ * at least one transaction-level violation (excluding `showInReview === false` entries and
+ * `REPORT_VIOLATIONS.FIELD_REQUIRED` entries that may slip into the collection).
+ */
+type FlaggedExpensesDerivedValue = {
+    /** Ordered list of flagged transactions with their parent report IDs */
+    flaggedExpenses: Array<{
+        /** ID of the flagged transaction */
+        transactionID: string;
+        /** ID of the parent expense report */
+        reportID: string;
+    }>;
+};
+
+/**
  * The derived value for sorted report actions, last report actions, and cached transaction thread report IDs.
  */
 type SortedReportActionsDerivedValue = {
@@ -307,9 +314,8 @@ export type {
     CardFeedErrorsDerivedValue,
     TodosDerivedValue,
     TodoMetadata,
-    AllCardFeedErrorsMap,
+    FlaggedExpensesDerivedValue,
     CardFeedErrorsObject,
-    FeedErrors,
     CardFeedErrorState,
     CardFeedErrors,
     CardErrors,

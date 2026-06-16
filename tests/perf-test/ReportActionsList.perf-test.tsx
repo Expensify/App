@@ -41,7 +41,6 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
 
             return (
                 <Component
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(props as TProps)}
                     currentUserPersonalDetails={LHNTestUtils.fakePersonalDetails[currentUserAccountID]}
                 />
@@ -123,7 +122,6 @@ function ReportActionsListWrapper() {
                             loadNewerChats={mockLoadChats}
                             hasNewerActions={false}
                             sortedAllReportActionsForPagination={reportActions}
-                            reportActionPages={undefined}
                             treatAsNoPaginationAnchor={false}
                             setTreatAsNoPaginationAnchor={() => {}}
                             transactionThreadReport={report}

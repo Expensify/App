@@ -17,6 +17,7 @@ import type {
     RemoveFullscreenUnderRHPActionType,
     ReplaceActionType,
     ReplaceFullscreenUnderRHPActionType,
+    ToggleMfaModalNavigatorWithHistoryActionType,
     ToggleSidePanelWithHistoryActionType,
 } from './types';
 
@@ -41,7 +42,7 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     SCREENS.TRANSACTION_RECEIPT,
     SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW,
     SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW,
-    SCREENS.PROFILE_AVATAR,
+    SCREENS.DYNAMIC_PROFILE_AVATAR,
     SCREENS.WORKSPACE_AVATAR,
     SCREENS.WORKSPACE_DOCUMENT,
     SCREENS.REPORT_AVATAR,
@@ -50,6 +51,39 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
 ]);
 
 const screensWithEnteringAnimation = new Set<string>();
+
+// RN's deep-link initial-state hint keys, per `getStateFromParams` in
+// @react-navigation/core/src/useNavigationBuilder.tsx. Stripped only when `params.screen` is
+// set so legitimate user keys (e.g. `path`, `initial`) on non-hydrated routes survive.
+const STALE_DEEP_LINK_PARAM_KEYS = new Set(['state', 'screen', 'params', 'path', 'initial']);
+
+/** Removes the RN deep-link hint chain from `route.params` when triggered by `params.screen`. */
+function withSanitizedDeepLinkParams<R extends {params?: unknown}>(route: R, focusParams: Record<string, unknown> | undefined): R {
+    const rParamsRecord = route.params as Record<string, unknown> | undefined;
+
+    // RN stores nested deep-link instructions under params.screen/params.params.
+    const looksLikeDeepLinkInitialState = !!rParamsRecord && typeof rParamsRecord.screen === 'string';
+    const shouldSanitizeExistingParams = looksLikeDeepLinkInitialState && !!rParamsRecord;
+
+    // Remove only RN's hint keys; keep any real params that were stored next to them.
+    const sanitizedExistingParams = shouldSanitizeExistingParams ? Object.fromEntries(Object.entries(rParamsRecord).filter(([key]) => !STALE_DEEP_LINK_PARAM_KEYS.has(key))) : rParamsRecord;
+    const hasSanitizedExistingParams = !!sanitizedExistingParams && Object.keys(sanitizedExistingParams).length > 0;
+    const fallbackParams = hasSanitizedExistingParams ? sanitizedExistingParams : undefined;
+
+    // The new focused tab params win; otherwise keep the cleaned existing params.
+    const nextParams = focusParams ?? fallbackParams;
+
+    if (nextParams !== undefined) {
+        return {...route, params: nextParams};
+    }
+    if (looksLikeDeepLinkInitialState) {
+        // If params only contained stale RN hints, remove params entirely.
+        const routeWithoutParams = {...route};
+        delete (routeWithoutParams as {params?: unknown}).params;
+        return routeWithoutParams;
+    }
+    return {...route};
+}
 
 /**
  * Stores the original TAB_NAVIGATOR route before a tab-switch pre-insertion
@@ -380,9 +414,11 @@ function handleReplaceFullscreenUnderRHP(
                 const prependedRoutes = [sidebarRoute, ...(newNestedRoutes ?? [])];
                 mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
             }
+            // Strip any RN deep-link hint chain from `r.params`; otherwise RN would run a
+            // follow-up NAVIGATE from it and override the `state` we splice below.
+            const sanitizedRoute = withSanitizedDeepLinkParams(r, focusedTargetTab.params as Record<string, unknown> | undefined);
             return {
-                ...r,
-                ...(focusedTargetTab.params !== undefined ? {params: focusedTargetTab.params} : {}),
+                ...sanitizedRoute,
                 ...(mergedNestedState !== undefined ? {state: mergedNestedState as typeof r.state} : {}),
             };
         });
@@ -529,6 +565,30 @@ function handleToggleSidePanelWithHistoryAction(state: StackNavigationState<Para
     return state;
 }
 
+/**
+ * Push or pop the MFA modal navigator marker on the root history.
+ *
+ * Idempotent: appends only if the marker is not already on top; removes by filter so
+ * multiple removals are safe. useLinking mirrors these history changes to synthetic
+ * browser entries that share the underlying screen's URL, giving the overlay a
+ * back-button target without exposing it through routing.
+ */
+function handleToggleMfaModalNavigatorWithHistoryAction(state: StackNavigationState<ParamListBase>, action: ToggleMfaModalNavigatorWithHistoryActionType) {
+    if (!state?.history) {
+        return state;
+    }
+
+    if (action.payload.isVisible && state.history.at(-1) !== CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR) {
+        return {...state, history: [...state.history, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR]};
+    }
+
+    if (!action.payload.isVisible) {
+        return {...state, history: state.history.filter((entry) => entry !== CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR)};
+    }
+
+    return state;
+}
+
 export {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
@@ -540,6 +600,9 @@ export {
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,
+    handleToggleMfaModalNavigatorWithHistoryAction,
     getPreInsertedOriginalTabRoute,
     clearPreInsertedOriginalTabRoute,
+    // Exported for unit-test access; not used outside of testing.
+    withSanitizedDeepLinkParams,
 };

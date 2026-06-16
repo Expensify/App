@@ -1,11 +1,11 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useContext, useLayoutEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,10 +40,10 @@ type SectionParams = {
     reportCounts: NonNullable<ReturnType<typeof todosReportCountsSelector>>;
     areAllSectionsExpanded: boolean;
     onItemPress: (query: string) => void;
-    onExpanded: (isExpanded: boolean) => void;
+    onCollapsed: (isCollapsed: boolean) => void;
 };
 
-function Section({section, hash, activeItemIndex, sectionStartIndex, reportCounts, areAllSectionsExpanded, onItemPress, onExpanded}: SectionParams) {
+function Section({section, hash, activeItemIndex, sectionStartIndex, reportCounts, areAllSectionsExpanded, onItemPress, onCollapsed}: SectionParams) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
@@ -64,25 +64,40 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
 
     const [isExpanded, setIsExpanded] = useState(true);
 
+    const onUnmount = useEffectEvent(() => {
+        if (isExpanded) {
+            return;
+        }
+        // When the section is removed/unmounted while collapsed,
+        // notify the parent that the section is no longer collapsed.
+        onCollapsed(false);
+    });
+
+    useEffect(() => {
+        return () => onUnmount();
+    }, []);
+
+    const isSavedSearchesSection = section.translationPath === 'search.savedSearchesMenuItemTitle';
+
     return (
         <SearchTypeMenuAccordion
             isExpanded={isExpanded}
             onSectionHeaderPress={() => {
                 setIsExpanded((prevIsExpanded) => {
-                    const newValue = !prevIsExpanded;
-                    onExpanded(newValue);
-                    return newValue;
+                    onCollapsed(prevIsExpanded);
+                    return !prevIsExpanded;
                 });
             }}
             title={translate(section.translationPath)}
             badgeText={getSectionBadgeText(section.translationPath, reportCounts)}
         >
-            {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
+            {isSavedSearchesSection && (
                 <SavedSearchList
                     hash={hash}
                     areAllSectionsExpanded={areAllSectionsExpanded}
                 />
-            ) : (
+            )}
+            {!isSavedSearchesSection &&
                 section.menuItems.map((item, itemIndex) => {
                     const flattenedIndex = sectionStartIndex + itemIndex;
                     const focused = activeItemIndex === flattenedIndex;
@@ -98,8 +113,7 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
                             onPress={() => onItemPress(item.searchQuery)}
                         />
                     );
-                })
-            )}
+                })}
         </SearchTypeMenuAccordion>
     );
 }
@@ -110,7 +124,7 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {singleExecution} = useSingleExecution();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash, sortBy, sortOrder, type});
     const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
@@ -150,12 +164,11 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
 
     const areSuggestedSearchesLoading = !isOffline && !isSearchDataLoaded && !isLoadingOnyxValue(isSearchDataLoadedResult);
 
-    const numberOfSections = nonExpenseReportsSections.length + 1;
-    const [expandedSectionCount, setExpandedSectionCount] = useState(numberOfSections);
-    const areAllSectionsExpanded = expandedSectionCount === numberOfSections;
+    const [collapsedSectionCount, setCollapsedSectionCount] = useState(0);
+    const areAllSectionsExpanded = collapsedSectionCount === 0;
 
-    const updateExpandedCount = (isExpanded: boolean) => {
-        setExpandedSectionCount((prevExpandedCount) => prevExpandedCount + (isExpanded ? 1 : -1));
+    const updateCollapsedCount = (isCollapsed: boolean) => {
+        setCollapsedSectionCount((prevCollapsedCount) => prevCollapsedCount + (isCollapsed ? 1 : -1));
     };
 
     return (
@@ -169,7 +182,7 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                     <Section
                         section={expenseReportsSection}
                         onItemPress={handleTypeMenuItemPress}
-                        onExpanded={updateExpandedCount}
+                        onCollapsed={updateCollapsedCount}
                         hash={hash}
                         sectionStartIndex={0}
                         activeItemIndex={activeItemIndex}
@@ -186,7 +199,7 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                             key={section.translationPath}
                             section={section}
                             onItemPress={handleTypeMenuItemPress}
-                            onExpanded={updateExpandedCount}
+                            onCollapsed={updateCollapsedCount}
                             hash={hash}
                             sectionStartIndex={sectionStartIndices.at(index + (expenseReportsSection ? 1 : 0)) ?? 0}
                             activeItemIndex={activeItemIndex}

@@ -477,7 +477,7 @@ function getCardFeedBankDisplayName(bank: string, feedCountry: string | undefine
         return companyCardBankName;
     }
     if (feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
-        return translate('search.filters.card.centralInvoicing');
+        return translate('search.filters.card.travelInvoicing');
     }
     return translate('search.filters.card.expensify');
 }
@@ -500,7 +500,7 @@ function getExpensifyCardFeedsForDisplay(allCards: CardList | undefined, transla
         // Travel Invoicing lives on its own feed but shares the `Expensify Card` bank. Use the
         // translated label so the Feed dropdown shows "Travel Invoicing" for travel cards and
         // "Expensify Card" for everything else.
-        const name = translate && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US ? translate('search.filters.card.centralInvoicing') : CONST.EXPENSIFY_CARD.BANK;
+        const name = translate && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US ? translate('search.filters.card.travelInvoicing') : CONST.EXPENSIFY_CARD.BANK;
 
         result[id] = {
             id,
@@ -559,12 +559,20 @@ function getCardFeedsForDisplay(
 /**
  * Given a collection of card feeds, return formatted card feeds grouped per policy.
  *
+ * Each feed is assigned to one or more policies using a three-tier fallback:
+ *  1. **linkedPolicyIDs** – if the feed has explicit linked policies, it is indexed under each of them.
+ *  2. **preferredPolicy** – if there are no linked policies but a preferred policy exists, use that.
+ *  3. **policyAccountID match** – if neither is set (orphan feed), fall back to any policy whose
+ *     policyAccountID matches the feed's fundID so the feed still surfaces under the correct workspace.
+ *     If no policy matches, the feed is stored under an empty-string key to avoid being silently lost.
+ *
  * Note: "Expensify Card" feeds are not included.
  */
 function getCardFeedsForDisplayPerPolicy(
     allCardFeeds: OnyxCollection<CardFeeds>,
     translate: LocalizedTranslate,
-    feedKeysWithCards?: FeedKeysWithAssignedCards,
+    feedKeysWithCards: FeedKeysWithAssignedCards | undefined,
+    policies: OnyxCollection<Policy>,
 ): Record<string, CardFeedForDisplay[]> {
     const cardFeedsForDisplayPerPolicy = {} as Record<string, CardFeedForDisplay[]>;
 
@@ -581,15 +589,40 @@ function getCardFeedsForDisplayPerPolicy(
             const linkedPolicyIDs = feedData && 'linkedPolicyIDs' in feedData ? feedData.linkedPolicyIDs : undefined;
             const feed = key as CardFeedWithNumber;
             const id = `${fundID}_${feed}`;
-
-            (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push({
+            const feedEntry: CardFeedForDisplay = {
                 id,
                 feed,
                 country,
                 fundID,
                 linkedPolicyIDs,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
-            });
+            };
+
+            const validLinkedPolicyIDs = linkedPolicyIDs?.filter(Boolean);
+            if (validLinkedPolicyIDs?.length) {
+                // Index the feed under each linked policy so it appears for all of them
+                for (const linkedPolicyID of validLinkedPolicyIDs) {
+                    (cardFeedsForDisplayPerPolicy[linkedPolicyID] ||= []).push(feedEntry);
+                }
+            } else if (preferredPolicy) {
+                (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push(feedEntry);
+            } else {
+                // Orphan feed: no linkedPolicyIDs and no preferredPolicy.
+                // Find policies whose policyAccountID matches the fundID so the feed
+                // still appears under the correct workspace.
+                const numericFundID = Number(fundID);
+                const matchingPolicies = Object.values(policies ?? {}).filter((policy) => policy?.policyAccountID === numericFundID);
+                if (matchingPolicies.length) {
+                    for (const policy of matchingPolicies) {
+                        if (policy?.id) {
+                            (cardFeedsForDisplayPerPolicy[policy.id] ||= []).push(feedEntry);
+                        }
+                    }
+                } else {
+                    // Still store under empty key so the feed is not silently lost
+                    (cardFeedsForDisplayPerPolicy[''] ||= []).push(feedEntry);
+                }
+            }
         }
     }
 
@@ -692,7 +725,7 @@ function getCombinedCardFeedsFromAllFeeds(
     }, {});
 }
 
-export type {CardFilterItem, CardFeedNamesWithType, CardFeedForDisplay};
+export type {CardFilterItem, CardFeedForDisplay};
 export type {DomainFeedData};
 export {
     buildCardsData,
@@ -700,9 +733,6 @@ export {
     buildCardFeedsData,
     generateSelectedCards,
     getSelectedCardsFromFeeds,
-    createCardFeedKey,
-    getCardFeedKey,
-    getWorkspaceCardFeedKey,
     getFeedInfo,
     getLinkedPolicyName,
     getDomainFeedData,
@@ -711,5 +741,4 @@ export {
     getCardFeedsForDisplayPerPolicy,
     getCombinedCardFeedsFromAllFeeds,
     getWorkspaceCardFeedsStatus,
-    getFeedCountryForDisplay,
 };

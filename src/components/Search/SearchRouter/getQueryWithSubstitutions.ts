@@ -1,10 +1,20 @@
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import CONST from '@src/CONST';
 
 type SubstitutionMap = Record<string, string>;
 
 const getSubstitutionMapKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
+
+const USER_FILTER_KEYS = new Set<string>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
+]);
 
 /**
  * Key for the Nth occurrence of the same filter+value (e.g. multiple workspaces with the same name).
@@ -27,7 +37,7 @@ const getSubstitutionMapKeyWithIndex = (filterKey: SearchFilterKey, value: strin
  * }
  * return: `A from:9876 A`
  */
-function getQueryWithSubstitutions(changedQuery: string, substitutions: SubstitutionMap) {
+function getQueryWithSubstitutions(changedQuery: string, substitutions: SubstitutionMap, currentUserAccountID?: number) {
     const parsed = parse(changedQuery) as {ranges: SearchAutocompleteQueryRange[]};
 
     const searchAutocompleteQueryRanges = parsed.ranges;
@@ -56,6 +66,11 @@ function getQueryWithSubstitutions(changedQuery: string, substitutions: Substitu
         }
         const itemKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
         let substitutionEntry = substitutions[itemKey] ?? (index === 0 ? substitutions[getSubstitutionMapKey(range.key, range.value)] : undefined);
+
+        // Resolve the 'me' keyword to the current user's account ID when not in the substitution map
+        if (!substitutionEntry && range.value === CONST.SEARCH.ME && USER_FILTER_KEYS.has(range.key) && currentUserAccountID && currentUserAccountID > 0) {
+            substitutionEntry = currentUserAccountID.toString();
+        }
 
         if (substitutionEntry) {
             const substitutionStart = range.start + lengthDiff;

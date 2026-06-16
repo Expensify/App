@@ -7,12 +7,14 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
@@ -37,8 +39,8 @@ import {
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
 import type DisplayNamesProps from './DisplayNames/types';
@@ -88,9 +90,6 @@ type AvatarWithDisplayNameProps = {
 
     /** The style of the parent navigation status container */
     parentNavigationStatusContainerStyles?: StyleProp<ViewStyle>;
-
-    /** The policy associated with the report */
-    policy?: OnyxEntry<Policy>;
 };
 
 function getCustomDisplayName(
@@ -171,7 +170,6 @@ function getCustomDisplayName(
 
 function AvatarWithDisplayName({
     report,
-    policy,
     isAnonymous = false,
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldEnableDetailPageNavigation = false,
@@ -190,6 +188,7 @@ function AvatarWithDisplayName({
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST) ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const policy = usePolicy(report?.policyID);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -202,7 +201,7 @@ function AvatarWithDisplayName({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const title = getReportName(report, reportAttributes);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
-    const subtitle = getChatRoomSubtitle(report, true, isReportArchived);
+    const subtitle = getChatRoomSubtitle(report, policy, true, isReportArchived);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, isParentReportArchived, reportAttributes);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
@@ -227,12 +226,16 @@ function AvatarWithDisplayName({
     }, [parentReportActionActorAccountID, report?.parentReportActionID]);
 
     const goToDetailsPage = () => {
-        navigateToDetailsPage(report, Navigation.getActiveRoute());
+        navigateToDetailsPage(report);
     };
 
     const navigateToEditReportTitle = (event?: GestureResponderEvent | KeyboardEvent) => {
         event?.stopPropagation?.();
-        Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID, Navigation.getReportRHPActiveRoute()));
+        if (!report?.policyID) {
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID)));
     };
 
     const showActorDetails = () => {
@@ -243,26 +246,26 @@ function AvatarWithDisplayName({
         }
 
         if (isExpenseReport(report) && report?.ownerAccountID) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(report.ownerAccountID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(report.ownerAccountID)));
             return;
         }
 
         if (isIOUReport(report) && report?.reportID) {
-            Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
             return;
         }
 
         if (isChatThread(report)) {
             // In an ideal situation account ID won't be 0
             if (actorAccountID.current && actorAccountID.current > 0) {
-                Navigation.navigate(ROUTES.PROFILE.getRoute(actorAccountID.current));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(actorAccountID.current)));
                 return;
             }
         }
 
         if (report?.reportID) {
             // Report detail route is added as fallback but based on the current implementation this route won't be executed
-            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
         }
     };
 

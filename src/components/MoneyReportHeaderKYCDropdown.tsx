@@ -64,7 +64,6 @@ function MoneyReportHeaderKYCDropdown({
 
     return (
         <KYCWall
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onSuccessfulKYC={onSuccessfulKYC}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
