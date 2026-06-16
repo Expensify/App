@@ -4834,8 +4834,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             exportStatus: {
                 label: '应付发票状态',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '完成',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: '完成',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: '进行中',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '已批准',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '已提交',
                 },
             },

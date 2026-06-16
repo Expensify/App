@@ -4921,8 +4921,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             exportStatus: {
                 label: '買掛請求書のステータス',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '完了',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: '完了',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: '進行中',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '承認済み',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '送信済み',
                 },
             },
