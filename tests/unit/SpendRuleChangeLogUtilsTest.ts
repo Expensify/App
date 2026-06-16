@@ -266,6 +266,58 @@ describe('SpendRuleChangeLogUtils', () => {
             } as ReportAction;
             expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("removed max amount from 'My Visa'");
         });
+
+        it('does not repeat spend category noun when multiple categories are added', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    action: CONST.SPEND_RULES.ACTION.ALLOW,
+                    oldCategories: [CONST.SPEND_RULES.CATEGORIES.DINING],
+                    categories: [CONST.SPEND_RULES.CATEGORIES.DINING, CONST.SPEND_RULES.CATEGORIES.GROCERIES, CONST.SPEND_RULES.CATEGORIES.HOTELS],
+                    oldCards: [{cardID: 1, displayName: 'My Visa'}],
+                    cards: [{cardID: 1, displayName: 'My Visa'}],
+                },
+            } as ReportAction;
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("added allowed spend category 'Groceries' and 'Hotels' on 'My Visa'");
+        });
+
+        it('does not repeat merchant noun when multiple merchants are added', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    action: CONST.SPEND_RULES.ACTION.ALLOW,
+                    oldMerchants: ['Starbucks'],
+                    merchants: ['Starbucks', 'Amazon', 'Walmart'],
+                    oldCards: [{cardID: 1, displayName: 'My Visa'}],
+                    cards: [{cardID: 1, displayName: 'My Visa'}],
+                },
+            } as ReportAction;
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe("added allowed merchant 'Amazon' and 'Walmart' on 'My Visa'");
+        });
+
+        it('does not repeat nouns when adding multiple merchants and removing multiple categories', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    action: CONST.SPEND_RULES.ACTION.ALLOW,
+                    oldMerchants: [],
+                    merchants: ['Amazon', 'Walmart'],
+                    oldCategories: [CONST.SPEND_RULES.CATEGORIES.DINING, CONST.SPEND_RULES.CATEGORIES.GROCERIES, CONST.SPEND_RULES.CATEGORIES.HOTELS],
+                    categories: [CONST.SPEND_RULES.CATEGORIES.DINING],
+                    oldCards: [{cardID: 1, displayName: 'My Visa'}],
+                    cards: [{cardID: 1, displayName: 'My Visa'}],
+                },
+            } as ReportAction;
+            expect(getUpdateExpensifyCardRuleMessage(translateLocal, action)).toBe(
+                "added allowed merchant 'Amazon', 'Walmart', removed allowed spend category 'Groceries', and 'Hotels' on 'My Visa'",
+            );
+        });
     });
 
     describe('getRemoveExpensifyCardRuleMessage', () => {

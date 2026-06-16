@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
-import type {LineLayer} from 'react-map-gl';
+import type {LineLayerSpecification} from 'react-map-gl/mapbox';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
@@ -104,7 +104,7 @@ type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' |
 
 type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth' | 'lineCap'>;
 
-type MapDirectionLayerStyle = Pick<LineLayer, 'layout' | 'paint'>;
+type MapDirectionLayerStyle = Pick<LineLayerSpecification, 'layout' | 'paint'>;
 
 type StyleObject = ViewStyle | TextStyle | ImageStyle | WebViewStyle | OfflineFeedbackStyle | MapDirectionStyle | MapDirectionLayerStyle | AnchorPosition | CustomPickerStyle;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -3611,6 +3611,15 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 8,
         },
 
+        searchListHeaderTableStickyOverlap: {
+            position: 'relative',
+            zIndex: 10,
+        },
+
+        groupSubHeaderBorderOverlap: {
+            marginTop: -1,
+        },
+
         groupSearchListTableContainerStyle: {
             minHeight: variables.h28,
             paddingBottom: 0,
@@ -4227,6 +4236,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        eReceiptHoverFill: {
+            backgroundColor: colors.green800,
+        },
+
         eReceiptBackgroundThumbnail: {
             ...sizing.w100,
             position: 'absolute',
@@ -4468,6 +4481,13 @@ const staticStyles = (theme: ThemeColors) =>
             flexGrow: 1,
             paddingBottom: 12,
             paddingHorizontal: 20,
+        },
+
+        inboxTabBadge: {
+            minWidth: 18,
+            height: 16,
+            marginLeft: 8,
+            justifyContent: 'center',
         },
 
         scrollableTabSelector: {
@@ -5576,8 +5596,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         agentsPageEmptyStateSubtitle: {
-            maxWidth: 335,
             alignSelf: 'center',
+            maxWidth: 335,
         },
 
         emptyStateFolderWithPaperIconSize: {
@@ -6441,14 +6461,13 @@ const dynamicStyles = (theme: ThemeColors) =>
                 top: fileTopPosition,
             }) satisfies ViewStyle,
 
-        tabText: (isSelected: boolean, hasIcon = false) =>
-            ({
-                marginLeft: hasIcon ? 8 : 0,
-                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-                color: isSelected ? theme.text : theme.textSupporting,
-                lineHeight: variables.lineHeightLarge,
-                fontSize: variables.fontSizeLabel,
-            }) satisfies TextStyle,
+        tabText: (isSelected: boolean, hasIcon = false): TextStyle => ({
+            marginLeft: hasIcon ? 8 : 0,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            color: isSelected ? theme.text : theme.textSupporting,
+            lineHeight: variables.lineHeightLarge,
+            fontSize: variables.fontSizeLabel,
+        }),
 
         tabBackground: (hovered: boolean, isFocused: boolean, isDisabled: boolean, background: string | Animated.AnimatedInterpolation<string>) => {
             if (isDisabled) {

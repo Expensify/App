@@ -6,6 +6,7 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -18,7 +19,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail, getUserNameByEmail} from '@libs/PersonalDetailsUtils';
-import {filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import {clearIssueNewCardFlow, getCardDefaultName, setDraftInviteAccountID, setIssueNewCardStepAndData} from '@userActions/Card';
@@ -47,12 +48,14 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {isOffline} = useNetwork();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const policyID = route.params.policyID;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const canInviteMembers = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
 
     const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
     const excludedUsers: Record<string, boolean> = {};
@@ -68,14 +71,15 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
 
     const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
-        includeUserToInvite: true,
+        includeUserToInvite: canInviteMembers,
         excludeLogins: excludedUsers,
         excludeFromSuggestionsOnly: softExclusions,
-        includeRecentReports: true,
+        includeRecentReports: canInviteMembers,
         shouldInitialize: didScreenTransitionEnd,
     });
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const currency = useCurrencyForExpensifyCard({policyID});
+    const defaultFundID = useDefaultFundID(policyID);
+    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
     const isEditing = issueNewCard?.isEditing;
 
     const submit = (assignee: ListItem) => {
@@ -90,6 +94,9 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         }
 
         if (!policy?.employeeList?.[assignee?.login ?? '']) {
+            if (!canInviteMembers) {
+                return;
+            }
             setIssueNewCardStepAndData({
                 step: CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER,
                 data: {
@@ -155,13 +162,15 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         const filteredMembersBeforeSearch = filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin);
         const filteredMembers = tokenizedSearch(filteredMembersBeforeSearch, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-        const options = [
-            ...filteredMembers,
-            ...availableOptions.selectedOptions,
-            ...availableOptions.recentOptions,
-            ...availableOptions.personalDetails,
-            ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
-        ];
+        const options = canInviteMembers
+            ? [
+                  ...filteredMembers,
+                  ...availableOptions.selectedOptions,
+                  ...availableOptions.recentOptions,
+                  ...availableOptions.personalDetails,
+                  ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
+              ]
+            : filteredMembers;
 
         assignees = options.map((option) => ({
             ...option,
@@ -172,8 +181,12 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     }
 
     useEffect(() => {
+        if (!canInviteMembers) {
+            return;
+        }
+
         searchUserInServer(debouncedSearchTerm);
-    }, [debouncedSearchTerm]);
+    }, [canInviteMembers, debouncedSearchTerm]);
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
     const headerMessage = (() => {
@@ -211,7 +224,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
                 onSelectRow={submit}
                 ListItem={UserListItem}
                 textInputOptions={textInputOptions}
-                isLoadingNewOptions={!!isSearchingForReports}
+                isLoadingNewOptions={canInviteMembers && !!isSearchingForReports}
                 initiallyFocusedItemKey={issueNewCard?.data?.assigneeEmail}
                 disableMaintainingScrollPosition
                 shouldUpdateFocusedIndex
