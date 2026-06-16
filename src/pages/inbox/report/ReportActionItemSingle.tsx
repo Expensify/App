@@ -167,6 +167,7 @@ function ReportActionItemSingle({
                         reportID={iouReportID}
                         chatReportID={source.iouReport?.chatReportID ?? reportID}
                         action={action}
+                        shouldUseRealActor={isOnSearch}
                     />
                 </OfflineWithFeedback>
             </PressableWithoutFeedback>
