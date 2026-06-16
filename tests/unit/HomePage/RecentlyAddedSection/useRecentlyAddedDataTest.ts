@@ -35,6 +35,7 @@ jest.mock('@hooks/useNetwork', () => ({
 
 jest.mock('@react-navigation/native', () => ({
     useIsFocused: () => true,
+    createNavigationContainerRef: () => ({}),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
