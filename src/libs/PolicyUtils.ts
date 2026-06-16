@@ -1421,6 +1421,14 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.PO
         return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     }
 
+    // Submit workspaces (submit2026) intentionally show approvals as disabled in the UI, but they always
+    // run an advanced approval workflow internally (the submitter submits to a specific approver). The
+    // approvalMode synced to the client can therefore be missing or optional, so we resolve it to ADVANCED
+    // here to make sure approval-aware logic (e.g. the "waiting to approve" next step) behaves correctly.
+    if (isSubmitPolicy(policy)) {
+        return CONST.POLICY.APPROVAL_MODE.ADVANCED;
+    }
+
     return policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
 

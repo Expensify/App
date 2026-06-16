@@ -15,6 +15,7 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
+    getApprovalWorkflow,
     getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
@@ -686,6 +687,52 @@ describe('PolicyUtils', () => {
                 const rate = getUnitRateValue(toLocaleDigitMock, {rate: 11.11}, true);
                 expect(rate).toEqual('0.1111');
             });
+        });
+    });
+
+    describe('getApprovalWorkflow', () => {
+        it('should return OPTIONAL for personal policies', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.PERSONAL,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            expect(getApprovalWorkflow(policy)).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+        });
+
+        it('should return ADVANCED for submit2026 policies regardless of the synced approvalMode', () => {
+            // Submit workspaces hide approvals in the UI, so their approvalMode can be missing/optional on the
+            // client, but they always run an advanced approval workflow internally.
+            const policyWithoutApprovalMode: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.SUBMIT,
+                approvalMode: undefined,
+            };
+            const policyWithOptionalApprovalMode: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.SUBMIT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            expect(getApprovalWorkflow(policyWithoutApprovalMode)).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+            expect(getApprovalWorkflow(policyWithOptionalApprovalMode)).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+        });
+
+        it('should return the configured approvalMode for paid group policies', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            expect(getApprovalWorkflow(policy)).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+        });
+
+        it('should fall back to ADVANCED for paid group policies without an approvalMode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: undefined,
+            };
+            expect(getApprovalWorkflow(policy)).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
         });
     });
 
