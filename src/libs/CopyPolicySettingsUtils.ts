@@ -46,7 +46,6 @@ type CopyPolicySettingsSourceFeatureContext = {
     codingRulesCount: number;
     hasInvoiceConfiguration: boolean;
     isCollectPolicy: boolean;
-    currentUserHasLegalName: boolean;
 };
 
 /**
@@ -229,12 +228,6 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
         case 'invoices':
             return !!policy?.areInvoicesEnabled && context.hasInvoiceConfiguration;
         case 'travel':
-            // Copying travel from a provisioned source re-provisions each target, which requires the
-            // current user to accept Expensify Travel terms - and that flow needs their legal name.
-            // Hide travel when the user has no legal name to set, mirroring the BookTravelButton gate.
-            if (isSourceProvisionedForTravel(policy) && !context.currentUserHasLegalName) {
-                return false;
-            }
             return !!policy?.isTravelEnabled;
         case 'timeTracking':
             return isTimeTrackingEnabled(policy);
