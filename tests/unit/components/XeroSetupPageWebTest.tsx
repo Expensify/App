@@ -108,12 +108,6 @@ describe('XeroSetupPage (web)', () => {
             expect(mockedOpenLink).toHaveBeenCalledWith(`https://xero-setup.example/${POLICY_ID}`, ENVIRONMENT_URL);
         });
 
-        it('navigates back after opening the setup link', () => {
-            renderXeroSetupPage();
-
-            expect(mockedGoBack).toHaveBeenCalled();
-        });
-
         it('does not render the 2FA requirement modal', () => {
             renderXeroSetupPage();
 

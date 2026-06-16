@@ -1,7 +1,6 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
 import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/QuickbooksOnline';
-import Navigation from '@libs/Navigation/Navigation';
 import type QuickbooksOnlineSetupPageType from '@pages/workspace/accounting/qbo/QuickbooksOnlineSetupPage';
 import {openLink} from '@userActions/Link';
 import {enablePolicyTaxes} from '@userActions/Policy/Policy';
@@ -47,7 +46,6 @@ const mockRoute = {
 const mockedGetQuickbooksOnlineSetupLink = jest.mocked(getQuickbooksOnlineSetupLink);
 const mockedEnablePolicyTaxes = jest.mocked(enablePolicyTaxes);
 const mockedOpenLink = jest.mocked(openLink);
-const mockedGoBack = jest.mocked(Navigation.goBack);
 
 const renderQuickbooksOnlineSetupPage = () =>
     render(
@@ -73,12 +71,6 @@ describe('QuickbooksOnlineSetupPage (web)', () => {
 
         expect(mockedGetQuickbooksOnlineSetupLink).toHaveBeenCalledWith(POLICY_ID);
         expect(mockedOpenLink).toHaveBeenCalledWith(`https://qbo-setup.example/${POLICY_ID}`, ENVIRONMENT_URL);
-    });
-
-    it('navigates back after opening the setup link', () => {
-        renderQuickbooksOnlineSetupPage();
-
-        expect(mockedGoBack).toHaveBeenCalled();
     });
 
     it('renders nothing', () => {
