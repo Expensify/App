@@ -42,10 +42,9 @@ function RulesNewPage({route}: RulesNewPageProps) {
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
                         displayInDefaultIconColor
-                        iconStyles={[styles.ml3, styles.mr2]}
                         iconWidth={variables.iconSizeExtraLarge}
                         iconHeight={variables.iconSizeExtraLarge}
-                        wrapperStyle={styles.purposeMenuItem}
+                        wrapperStyle={styles.rulesNewMenuItem}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
                     />
                     <MenuItem
@@ -55,10 +54,9 @@ function RulesNewPage({route}: RulesNewPageProps) {
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
                         displayInDefaultIconColor
-                        iconStyles={[styles.ml3, styles.mr2]}
                         iconWidth={variables.iconSizeExtraLarge}
                         iconHeight={variables.iconSizeExtraLarge}
-                        wrapperStyle={styles.purposeMenuItem}
+                        wrapperStyle={styles.rulesNewMenuItem}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
                     />
                 </View>
