@@ -23,7 +23,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const {translate} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
-    const {filteredReports, currentReportID} = useSidebarOrderedReportsState('SidebarLinksData');
+    const {filteredReports, orderedReportIDs, currentReportID} = useSidebarOrderedReportsState('SidebarLinksData');
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
@@ -46,6 +46,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
                 // Data props:
                 isActiveReport={isActiveReport}
                 optionListItems={filteredReports}
+                hasReportData={orderedReportIDs.length > 0}
             />
         </View>
     );

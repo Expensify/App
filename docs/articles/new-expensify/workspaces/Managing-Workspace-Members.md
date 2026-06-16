@@ -11,7 +11,7 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 
 - **Member** – Can submit and/or approve expenses.
 - **Admin** – Can manage members, roles, workflows, and settings.
-- **Auditor** – Can view and comment on reports but cannot make changes.
+- **Auditor** – Can view and comment on reports and has read-only access to all workspace editor pages (such as Categories, Tags, Rules, Workflows, and Accounting). Auditors cannot change any workspace settings or take workflow actions such as approving, paying, or taking control.
 - **Card Admin** – Can manage the Expensify Card and Company cards, including issuing cards, setting limits, and assigning company cards. Has read-only access to Overview and Members, and all other workspace settings pages are hidden.
 
 ---

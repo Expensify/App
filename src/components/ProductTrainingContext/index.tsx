@@ -138,6 +138,12 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
+            // Mileage rate tooltip is exempt from the general "hide when modal visible" rule so it can show on the confirmation surface.
+            // Hide it when a popover or bottom sheet opens (e.g. inline date picker) since those set modal.isPopover.
+            if (tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED && isModalVisible && modal?.isPopover) {
+                return false;
+            }
+
             // We need to make an exception for these tooltips because it is shown in a modal, otherwise it would be hidden if a modal is visible
             if (
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION &&
@@ -164,6 +170,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             hasBeenAddedToNudgeMigration,
             isOnboardingCompleted,
             isModalVisible,
+            modal?.isPopover,
             shouldUseNarrowLayout,
             isUserPolicyEmployee,
             isUserPolicyAdmin,
