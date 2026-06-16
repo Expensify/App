@@ -38,7 +38,9 @@ describe('getChartSkiaTypeface', () => {
     });
 
     it('should resolve Expensify New Kansas by font family', () => {
-        const typeface = getChartSkiaTypeface(typefaces, {fontFamily: 'Expensify New Kansas'});
+        const typeface = getChartSkiaTypeface(typefaces, {
+            fontFamily: 'Expensify New Kansas',
+        });
         expect(typeface).toBe(typefaces.EXP_NEW_KANSAS_MEDIUM);
     });
 
@@ -49,5 +51,37 @@ describe('getChartSkiaTypeface', () => {
             fontWeight: 'bold',
         });
         expect(typeface).toBe(typefaces.EXP_NEUE_BOLD_ITALIC);
+    });
+
+    it('should fall back to EXP_NEUE when the bold variant failed to load', () => {
+        const partialTypefaces = {
+            ...typefaces,
+            EXP_NEUE_BOLD: null,
+        };
+
+        const typeface = getChartSkiaTypeface(partialTypefaces, {
+            fontWeight: 700,
+        });
+        expect(typeface).toBe(partialTypefaces.EXP_NEUE);
+    });
+
+    it('should fall back to EXP_NEUE when Expensify New Kansas failed to load', () => {
+        const partialTypefaces = {
+            ...typefaces,
+            EXP_NEW_KANSAS_MEDIUM: null,
+            EXP_NEW_KANSAS_MEDIUM_ITALIC: null,
+        };
+
+        const typeface = getChartSkiaTypeface(partialTypefaces, {
+            fontFamily: 'Expensify New Kansas',
+        });
+        expect(typeface).toBe(partialTypefaces.EXP_NEUE);
+    });
+
+    it('should return null when every typeface failed to load', () => {
+        const emptyTypefaces = Object.fromEntries(CHART_SKIA_TYPEFACE_KEYS.map((key) => [key, null])) as ChartDefaultTypeface;
+
+        const typeface = getChartSkiaTypeface(emptyTypefaces, {fontWeight: 700});
+        expect(typeface).toBeNull();
     });
 });
