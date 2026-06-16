@@ -75,6 +75,8 @@ const createQBOConfig = (autoSyncEnabled: boolean, exporter = EMPLOYEE_EMAIL): Q
 });
 
 const createQBOConnections = (autoSyncEnabled: boolean, exporter = EMPLOYEE_EMAIL) =>
+    // The test only needs the QBO connection branch, while Policy['connections'] is typed as the full integration map.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     ({
         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
             config: createQBOConfig(autoSyncEnabled, exporter),
