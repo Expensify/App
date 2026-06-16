@@ -118,10 +118,10 @@ describe('MoneyRequestView edit fields', () => {
         const iouReportAction = {
             ...LHNTestUtils.getFakeReportAction(),
             reportActionID: parentReportActionID,
+            reportID: expenseReportID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
             originalMessage: {
-                IOUReportID: expenseReportID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 IOUTransactionID: transactionID,
                 amount: 5000,
