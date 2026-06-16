@@ -1029,6 +1029,12 @@ const translations: TranslationDeepObject<typeof en> = {
             today: 'Hoy',
         },
         seeMore: ({count}: {count: number}) => `Ver ${count} más`,
+        recentlyAddedSection: {
+            title: 'Añadido recientemente',
+            viewAll: 'Ver todos los gastos',
+            emptyStateTitle: 'No hay gastos recientes',
+            emptyStateMessage: 'Crea uno o arrastra un recibo aquí',
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',

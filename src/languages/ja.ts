@@ -1050,6 +1050,12 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `さらに${count}件表示`,
+        recentlyAddedSection: {
+            title: '最近追加されたもの',
+            viewAll: 'すべての経費を表示',
+            emptyStateTitle: '最近の経費はありません',
+            emptyStateMessage: '新規作成するか、レシートをここにドラッグしてください',
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',

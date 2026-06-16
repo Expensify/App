@@ -1064,6 +1064,12 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Ostatnie transakcje • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Zobacz jeszcze ${count}`,
+        recentlyAddedSection: {
+            title: 'Ostatnio dodane',
+            viewAll: 'Wyświetl wszystkie wydatki',
+            emptyStateTitle: 'Brak ostatnich wydatków',
+            emptyStateMessage: 'Utwórz jeden lub przeciągnij tu paragon',
+        },
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',

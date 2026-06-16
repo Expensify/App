@@ -1028,6 +1028,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
+        recentlyAddedSection: {title: '最近添加', viewAll: '查看所有报销费用', emptyStateTitle: '最近没有报销记录', emptyStateMessage: '创建一个或将收据拖到这里'},
     },
     allSettingsScreen: {
         subscription: '订阅',
