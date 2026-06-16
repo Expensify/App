@@ -7393,11 +7393,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 settlementCurrencyPermittedSubtitle: 'La valuta di regolamento della carta è sempre consentita',
                 currenciesCurrencyMismatchTitle: 'Valuta non corrispondente',
                 currenciesCurrencyMismatchPrompt: 'Per impostare le valute preferite, seleziona le carte che vengono regolate nella stessa valuta.',
-                restrictMerchantsOffSubtitle: 'Gli addebiti vengono approvati per le valute consentite che non superano un importo massimo',
+                restrictMerchantsOffSubtitle: 'Gli addebiti sono approvati per le valute consentite che non superano un importo massimo',
                 restrictMerchantsAllowSubtitle:
-                    'Le spese sono approvate per le valute consentite che non superano un importo massimo e quando l’esercente o il tipo di esercente corrisponde.',
+                    'Gli addebiti sono approvati per le valute consentite che non superano un importo massimo e quando l’esercente o il tipo di esercente corrisponde.',
                 restrictMerchantsBlockSubtitle:
-                    'Gli addebiti vengono approvati per le valute consentite che non superano un importo massimo oppure se il commerciante o il tipo di commerciante corrispondono.',
+                    'Gli addebiti vengono approvati per le valute consentite che non superano un importo massimo oppure quando l’esercente o il tipo di esercente corrispondono.',
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `Consentito ${shownCount > 1 ? 'valute' : 'valuta'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} altri` : ''}`,
             },
             agentRules: {
                 title: 'Regole Agente',
