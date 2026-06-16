@@ -2486,11 +2486,11 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: String(REPORT_ID),
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
@@ -2534,11 +2534,11 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: REPORT_ID,
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
@@ -2588,20 +2588,20 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: REPORT_ID,
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: REPORT_ID,
                 },
             },
             {
                 reportActionID: '2',
+                reportID: REPORT_ID,
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID_2,
-                    IOUReportID: REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
@@ -2831,11 +2831,11 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: String(REPORT_ID),
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
@@ -2993,11 +2993,11 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: REPORT_ID,
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
@@ -3079,20 +3079,20 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: REPORT_ID,
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: REPORT_ID,
                 },
             },
             {
                 reportActionID: '2',
+                reportID: REPORT_ID,
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID_2,
-                    IOUReportID: REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
@@ -3178,11 +3178,11 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: REPORT_ID,
                 actorAccountID: APPROVER_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
