@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -30,6 +31,7 @@ let onboarding: OnyxEntry<Onboarding>;
 let isOnboardingLoaded = false;
 
 let hasRedirectedToAIFeaturesPromoModal = false;
+let isWaitingForProtectedRoutes = false;
 
 /**
  * This modal must not appear in the same session as the migration welcome modal, the onboarding flow,
@@ -78,9 +80,23 @@ function attachNavigationStateListener() {
     navigationRef.addListener('state', snapshotActiveModalsFromNavigationState);
 }
 
+function isEligibleToShowAIFeaturesPromoModal(): boolean {
+    return (
+        !!session?.authToken &&
+        !isLoadingApp &&
+        !hasRedirectedToAIFeaturesPromoModal &&
+        isDismissedProductTrainingLoaded &&
+        isTryNewDotLoaded &&
+        isOnboardingLoaded &&
+        // !isProductTrainingElementDismissed(CONST.AI_FEATURES_PROMO_MODAL, dismissedProductTraining) &&
+        !observedActiveMigrationModalThisSession &&
+        !observedActiveOnboardingThisSession &&
+        !observedActiveExplanationModalThisSession
+    );
+}
+
 /**
  * Proactively navigate to the AI features promo modal when all conditions are met.
- * Waits for the gating NVPs to load to avoid racing with the migration / onboarding guards.
  */
 function navigateToAIFeaturesPromoModalIfReady() {
     // Sync the modal-active flags from the current navigation state (and attach a listener
@@ -89,24 +105,28 @@ function navigateToAIFeaturesPromoModalIfReady() {
     attachNavigationStateListener();
     snapshotActiveModalsFromNavigationState();
 
-    if (
-        !session?.authToken ||
-        isLoadingApp ||
-        hasRedirectedToAIFeaturesPromoModal ||
-        !isDismissedProductTrainingLoaded ||
-        !isTryNewDotLoaded ||
-        !isOnboardingLoaded ||
-        isProductTrainingElementDismissed(CONST.AI_FEATURES_PROMO_MODAL, dismissedProductTraining) ||
-        observedActiveMigrationModalThisSession ||
-        observedActiveOnboardingThisSession ||
-        observedActiveExplanationModalThisSession
-    ) {
+    if (isWaitingForProtectedRoutes || !isEligibleToShowAIFeaturesPromoModal()) {
         return;
     }
 
-    Log.info('[AIFeaturesPromoGuard] Proactively navigating to AI features promo modal');
-    hasRedirectedToAIFeaturesPromoModal = true;
-    Navigation.navigate(ROUTES.AI_FEATURES_PROMO_MODAL);
+    isWaitingForProtectedRoutes = true;
+    // Defer until any in-flight navigation transition (splash → home, etc.)
+    // has fully settled, then wait for the protected stack to be in the nav tree.
+    TransitionTracker.runAfterTransitions({
+        callback: () => {
+            Navigation.waitForProtectedRoutes().then(() => {
+                isWaitingForProtectedRoutes = false;
+                snapshotActiveModalsFromNavigationState();
+                if (!isEligibleToShowAIFeaturesPromoModal()) {
+                    return;
+                }
+                Log.info('[AIFeaturesPromoGuard] Proactively navigating to AI features promo modal');
+                hasRedirectedToAIFeaturesPromoModal = true;
+                Navigation.navigate(ROUTES.AI_FEATURES_PROMO_MODAL);
+            });
+        },
+        waitForUpcomingTransition: true,
+    });
 }
 
 /**
