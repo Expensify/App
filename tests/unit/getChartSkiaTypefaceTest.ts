@@ -79,7 +79,10 @@ describe('getChartSkiaTypeface', () => {
     });
 
     it('should return null when every typeface failed to load', () => {
-        const emptyTypefaces = Object.fromEntries(CHART_SKIA_TYPEFACE_KEYS.map((key) => [key, null])) as ChartDefaultTypeface;
+        const emptyTypefaces = makeTypefaces();
+        for (const key of CHART_SKIA_TYPEFACE_KEYS) {
+            emptyTypefaces[key] = null;
+        }
 
         const typeface = getChartSkiaTypeface(emptyTypefaces, {fontWeight: 700});
         expect(typeface).toBeNull();
