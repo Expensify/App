@@ -45,7 +45,7 @@ function getNumberMember(value: unknown, memberName: string): number | undefined
         return undefined;
     }
 
-    const memberValue: unknown = Reflect.get(value, memberName);
+    const memberValue = (value as Record<string, unknown>)[memberName];
     return typeof memberValue === 'number' ? memberValue : undefined;
 }
 
@@ -210,7 +210,7 @@ function SearchPage({route}: SearchPageProps) {
         const selectedTransactionItems = Object.values(selectedTransactions);
         const selectedExpenseCount = selectedTransactionsKeys.reduce((count, key) => {
             if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-                const group: unknown = searchData ? Reflect.get(searchData, key) : undefined;
+                const group: unknown = searchData ? (searchData as Record<string, unknown>)[key] : undefined;
                 return count + (getNumberMember(group, 'count') ?? 0);
             }
             const item = selectedTransactions[key];
@@ -242,7 +242,7 @@ function SearchPage({route}: SearchPageProps) {
             total = selectedTransactionsKeys.reduce((acc, key) => {
                 const transaction = selectedTransactions[key];
                 const convertedTransactionKey = transaction.transaction?.transactionID ? `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transaction.transactionID}` : key;
-                const convertedTransaction: unknown = shouldUseConvertedSelectedTotal && footerTotalData ? Reflect.get(footerTotalData, convertedTransactionKey) : undefined;
+                const convertedTransaction: unknown = shouldUseConvertedSelectedTotal && footerTotalData ? (footerTotalData as Record<string, unknown>)[convertedTransactionKey] : undefined;
                 return acc - (getNumberMember(convertedTransaction, 'groupAmount') ?? transaction.groupAmount ?? -Math.abs(transaction.amount));
             }, 0);
         } else if (hasCustomFooterCurrency && validGroupBy) {
