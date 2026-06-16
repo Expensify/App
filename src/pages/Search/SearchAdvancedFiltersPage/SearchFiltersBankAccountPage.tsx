@@ -98,7 +98,7 @@ function BankAccountPicker({bankAccountList, initialSelectedIDs}: BankAccountPic
     const totalItemCount = openItems.length + closedItems.length;
     const shouldShowSearchInput = totalItemCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
-    const searchFilter = useCallback((item: BankAccountFilterItem) => item.text.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()), [debouncedSearchTerm]);
+    const searchFilter = (item: BankAccountFilterItem) => item.text.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase());
 
     const sections = useMemo(() => {
         const result: Array<{title: string; data: BankAccountFilterItem[]; sectionIndex: number}> = [];
