@@ -133,7 +133,13 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     const handleExpensesFromPress = useCallback(() => {
         const firstApproverEmail = approvalWorkflow.approvers?.at(0)?.email ?? '';
-        const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail) : undefined;
+        // Always pass a backTo so that after editing expenses-from (including the invite-a-member detour),
+        // we return to the page we came from. For EDIT that's the edit page; for CREATE we're on the
+        // confirm (new) page, so return there instead of falling through to the Approver step.
+        const backTo =
+            approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
+                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail)
+                : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
     }, [approvalWorkflow.action, approvalWorkflow.approvers, policyID]);
 
