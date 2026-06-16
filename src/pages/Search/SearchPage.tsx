@@ -292,10 +292,9 @@ function SearchPage({route}: SearchPageProps) {
         onDestinationVisible: overlayEndSubmitSpans,
     });
 
-    // metadata.isLoading is true for every ungrouped request including load-more (offset > 0), which does not
-    // recalculate totals. Only treat the initial/totals request (offset 0) as footer loading so paginating does
-    // not blank the already-valid footer.
-    const isFooterTotalLoading = !!footerData.isLoading || (!validGroupBy && !!metadata?.isLoading && metadata?.offset === 0);
+    // Load-more requests also set metadata.isLoading, but they do not recalculate totals.
+    // Only offset-0 refreshes should put the footer total into loading state.
+    const isFooterTotalLoading = !!footerData.isLoading || (!!metadata?.isLoading && metadata?.offset === 0);
 
     return (
         <PaymentContextProvider>
