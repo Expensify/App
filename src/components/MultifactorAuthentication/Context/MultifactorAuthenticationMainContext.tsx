@@ -67,7 +67,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const executeScenario = async <T extends MultifactorAuthenticationScenario>(scenarioName: T, ...args: MultifactorAuthenticationExecuteScenarioArgs<T>): Promise<void> => {
         const [params] = args;
 
-            // Perf short-circuit: while the modal is open or closing the machine drops INIT, so skip the
+        // Perf short-circuit: while the modal is open or closing the machine drops INIT, so skip the
         // redundant captureCredentialsState() native call + breadcrumb on the happy path.
         if (state.modalState !== MFA_STATE.CLOSED) {
             return;
