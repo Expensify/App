@@ -39,6 +39,8 @@ describe('queueExportSearchItemsToCSV', () => {
             jsonQuery: '{}',
             reportIDList: [],
             transactionIDList: [],
+            isBasicExport: true,
+            exportColumnLabels: '{}',
         });
 
         expect(typeof exportID).toBe('string');
