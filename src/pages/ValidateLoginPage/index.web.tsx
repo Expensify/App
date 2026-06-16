@@ -44,10 +44,10 @@ function ValidateLoginPage({
     // A magic-link sign-in that needs 2FA completes on the sign-in page: it reuses the stored
     // `credentials.validateCode`, and SignInPage renders the authenticator-code stage once
     // `requiresTwoFactorAuth` + that code are present. Send the user there to enter their code instead
-    // of the informational "2FA required" modal, which is a dead end. Gated on a post-attempt state so
-    // a stale cached code can't redirect prematurely; excludes `exitTo` (its own navigation handles it).
+    // of the informational "2FA required" modal, which is a dead end. Gated on a post-attempt state so a
+    // stale cached code can't redirect prematurely. `exitTo` deep links route here too; the effect keeps
+    // the deferred `exitTo` navigation pending so the user reaches their destination after 2FA completes.
     const canCompleteTwoFactorOnSignIn =
-        !exitTo &&
         is2FARequired &&
         !isSignedIn &&
         !!credentials?.validateCode &&
@@ -105,6 +105,7 @@ function ValidateLoginPage({
     );
 
     useEffect(() => {
+        let ignore = false;
         if (canCompleteTwoFactorOnSignIn) {
             // Show the sign-in page so its ValidateCodeForm renders the authenticator-code stage.
             // ROUTES.HOME ('home') is nested under the authenticated TAB_NAVIGATOR, so navigate/goBack
@@ -112,14 +113,26 @@ function ValidateLoginPage({
             // mechanism logout uses to surface the public SignInPage. The "2FA required" modal stays
             // rendered as the fallback so a failed hand-off shows it, not a blank or an endless loader.
             Navigation.isNavigationReady().then(() => {
+                // Bail if the effect re-ran (e.g. `isSignedIn` flipped true) before this resolved, so a
+                // stale callback can't reset the stack out from under the new state.
+                if (ignore) {
+                    return;
+                }
                 navigationRef.reset({index: 0, routes: [{name: SCREENS.HOME}]});
             });
-            return;
         }
 
+        // Register the deferred `exitTo` destination navigation. `handleExitToNavigation` waits for the
+        // authToken, so for a 2FA account it fires only after the user enters their code on the sign-in
+        // page above (the token lands and resolves the shared sign-in promise) — landing them on their
+        // destination instead of Home. For a non-2FA account it's the normal post-sign-in handoff.
         if (exitTo) {
             handleExitToNavigation(exitTo);
         }
+
+        return () => {
+            ignore = true;
+        };
     }, [canCompleteTwoFactorOnSignIn, exitTo]);
 
     // waitForProtectedRoutes()/authToken can hang (lazy AuthScreens chunk fails, token

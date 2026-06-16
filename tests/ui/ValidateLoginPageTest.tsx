@@ -6,6 +6,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import ValidateLoginPage from '@pages/ValidateLoginPage/index.web';
+import {handleExitToNavigation} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,6 +41,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         },
         isReady: () => true,
     },
+}));
+
+// Mock the session actions the page calls so `signInWithValidateCode` doesn't hit the API and the
+// deferred `handleExitToNavigation` handoff is assertable.
+jest.mock('@userActions/Session', () => ({
+    initAutoAuthState: jest.fn(),
+    signInWithValidateCode: jest.fn(),
+    handleExitToNavigation: jest.fn(),
 }));
 
 const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
@@ -215,5 +224,29 @@ describe('ValidateLoginPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: SCREENS.HOME}]});
+    });
+
+    it('Should route an exitTo 2FA magic link to the sign-in page AND keep the deferred exitTo navigation', async () => {
+        // exitTo deep link on a 2FA account: the user must still reach the authenticator form (not the
+        // dead-end "2FA required" modal), so we reset to the sign-in page. We also register
+        // handleExitToNavigation so that once 2FA completes and the authToken lands, the user is taken
+        // to their deep-link destination instead of being dropped on Home.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN,
+            });
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                accountID: 1,
+                validateCode: '123456',
+            });
+        });
+
+        renderPage({accountID: '1', validateCode: '123456', exitTo: 'concierge'});
+        await waitForBatchedUpdatesWithAct();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: SCREENS.HOME}]});
+        expect(handleExitToNavigation).toHaveBeenCalledWith('concierge');
     });
 });
