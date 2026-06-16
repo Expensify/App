@@ -1,7 +1,6 @@
 import {setYear} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
-import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -63,10 +62,6 @@ function DatePickerModal({
         }
 
         const listener = () => {
-            if (isInternalPopstateInProgress()) {
-                return;
-            }
-
             onClose?.();
         };
 

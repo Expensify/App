@@ -12,8 +12,6 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {
-    OpenDomainSplitActionType,
-    OpenWorkspaceSplitActionType,
     PushActionType,
     RemoveFullscreenUnderRHPActionType,
     ReplaceActionType,
@@ -290,100 +288,6 @@ function getTabStateWithFocusedTarget(existingTabState: NavigationState | undefi
         routeNames: [...TAB_SCREENS],
         routes: updatedTabRoutes,
         index: completeTargetTabIndex,
-    });
-}
-
-/**
- * Util function with common logic for handling OPEN_WORKSPACE_SPLIT and OPEN_DOMAIN_SPLIT actions.
- *
- * Pushes WorkspaceNavigator onto the root stack and explicitly sets its nested state to
- * [WorkspacesList, SplitNavigator]. This mirrors the structure built by getAdaptedStateFromPath
- * and guarantees WorkspacesList is in the back stack so the user can swipe back to it on iOS.
- *
- * Note: passing {screen, params} as route params is not sufficient because React Navigation only
- * processes the screen param after mounting (via useEffect), so the nested state would not be
- * set up at state-computation time.
- */
-function prepareStateUnderWorkspaceOrDomainNavigator(
-    state: StackNavigationState<ParamListBase>,
-    configOptions: RouterConfigOptions,
-    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-    splitNavigatorName: typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
-    splitNavigatorParams: Record<string, unknown>,
-) {
-    const actionToPushRootTab = StackActions.push(NAVIGATORS.TAB_NAVIGATOR, {screen: NAVIGATORS.WORKSPACE_NAVIGATOR});
-    const stateWithRootTab = stackRouter.getStateForAction(state, actionToPushRootTab, configOptions);
-
-    if (!stateWithRootTab) {
-        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] TabNavigator has not been found in the navigation state.');
-        return null;
-    }
-
-    const rehydratedState = stackRouter.getRehydratedState(stateWithRootTab, configOptions);
-    const rootTabRoute = rehydratedState.routes.at(-1);
-
-    if (!rootTabRoute || rootTabRoute.name !== NAVIGATORS.TAB_NAVIGATOR) {
-        Log.hmmm(`[handleOpenWorkspaceOrDomainSplitAction] ${splitNavigatorName} has not been found in the navigation state.`);
-        return null;
-    }
-
-    // Find the WORKSPACE_NAVIGATOR within the tab state and set its nested state
-    // so WorkspacesList is always present underneath the split navigator.
-    const tabState = rootTabRoute.state;
-    const workspaceNavIndex = tabState?.routes?.findIndex((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR) ?? -1;
-
-    if (workspaceNavIndex < 0 || !tabState) {
-        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] WorkspaceNavigator not found in tab state.');
-        return null;
-    }
-
-    const workspaceNavRoute = tabState.routes[workspaceNavIndex];
-    const nestedWorkspacesState = {
-        routes: [{name: SCREENS.WORKSPACES_LIST}, {name: splitNavigatorName, params: splitNavigatorParams}],
-        index: 1,
-    };
-
-    const updatedTabRoutes = [...tabState.routes];
-    updatedTabRoutes[workspaceNavIndex] = {...workspaceNavRoute, state: nestedWorkspacesState};
-
-    const updatedTabState = {...tabState, routes: updatedTabRoutes, index: workspaceNavIndex};
-    const updatedRootTabRoute = {...rootTabRoute, state: updatedTabState};
-
-    return {
-        ...rehydratedState,
-        routes: [...rehydratedState.routes.slice(0, -1), updatedRootTabRoute],
-    };
-}
-
-/**
- * Handles the OPEN_WORKSPACE_SPLIT action.
- * If the user is on other tab than workspaces and the workspace split is "remembered", this action will be called after pressing the settings tab.
- */
-function handleOpenWorkspaceSplitAction(
-    state: StackNavigationState<ParamListBase>,
-    action: OpenWorkspaceSplitActionType,
-    configOptions: RouterConfigOptions,
-    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-) {
-    return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
-        screen: action.payload.screenName,
-        params: {policyID: action.payload.policyID},
-    });
-}
-
-/**
- * Handles the OPEN_DOMAIN_SPLIT action.
- * If the user is on other tab than workspaces and the domain split is "remembered", this action will be called after pressing the settings tab.
- */
-function handleOpenDomainSplitAction(
-    state: StackNavigationState<ParamListBase>,
-    action: OpenDomainSplitActionType,
-    configOptions: RouterConfigOptions,
-    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-) {
-    return prepareStateUnderWorkspaceOrDomainNavigator(state, configOptions, stackRouter, NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR, {
-        screen: action.payload.screenName,
-        params: {domainAccountID: action.payload.domainAccountID},
     });
 }
 
@@ -733,8 +637,6 @@ function handleToggleModalWithHistoryAction(state: StackNavigationState<ParamLis
 export {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
-    handleOpenWorkspaceSplitAction,
-    handleOpenDomainSplitAction,
     handlePushFullscreenAction,
     handleReplaceFullscreenUnderRHP,
     handleRemoveFullscreenUnderRHP,

@@ -12,8 +12,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
-    handleOpenDomainSplitAction,
-    handleOpenWorkspaceSplitAction,
     handlePushFullscreenAction,
     handleRemoveFullscreenUnderRHP,
     handleReplaceFullscreenUnderRHP,
@@ -25,8 +23,6 @@ import {
 import syncBrowserHistory from './syncBrowserHistory';
 import type {
     DismissModalActionType,
-    OpenDomainSplitActionType,
-    OpenWorkspaceSplitActionType,
     PreloadActionType,
     PushActionType,
     RemoveFullscreenUnderRHPActionType,
@@ -38,14 +34,6 @@ import type {
     ToggleModalWithHistoryActionType,
     ToggleSidePanelWithHistoryActionType,
 } from './types';
-
-function isOpenWorkspaceSplitAction(action: RootStackNavigatorAction): action is OpenWorkspaceSplitActionType {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
-}
-
-function isOpenDomainSplitAction(action: RootStackNavigatorAction): action is OpenDomainSplitActionType {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_DOMAIN_SPLIT;
-}
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH;
@@ -164,14 +152,6 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
             if (isToggleModalWithHistoryAction(action)) {
                 return handleToggleModalWithHistoryAction(state, action);
-            }
-
-            if (isOpenWorkspaceSplitAction(action)) {
-                return handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
-            }
-
-            if (isOpenDomainSplitAction(action)) {
-                return handleOpenDomainSplitAction(state, action, configOptions, stackRouter);
             }
 
             if (isDismissModalAction(action)) {
