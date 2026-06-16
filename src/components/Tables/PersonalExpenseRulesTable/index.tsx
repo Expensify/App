@@ -14,6 +14,7 @@ export type PersonalExpenseRuleRowData = TableData & {
     changes: string;
     pendingAction: PendingAction;
     errors: Errors;
+    action: () => void;
 };
 
 type PersonalExpenseRulesTableProps = {
