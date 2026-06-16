@@ -397,7 +397,11 @@ function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolat
         return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
     }
 
-    const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: customUnitRateID!, policy});
+    if (!customUnitRateID) {
+        return violations;
+    }
+
+    const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy});
     const violationData = {
         startDate: mileageRate?.startDate ?? undefined,
         endDate: mileageRate?.endDate ?? undefined,
