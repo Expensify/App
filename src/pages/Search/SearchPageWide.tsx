@@ -8,7 +8,7 @@ import {useSearchSidebarContentOffsetStyle} from '@components/Navigation/SearchS
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import {useSearchResultsContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
 import SearchPageHeaderWide from '@components/Search/SearchPageHeader/SearchPageHeaderWide';
@@ -18,6 +18,7 @@ import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useNetwork from '@hooks/useNetwork';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -57,10 +58,13 @@ function SearchPageWide({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {shouldUseLiveData} = useSearchResultsContext();
-    // Reserve the offline-indicator offset whenever there are results, because the footer can appear from a
-    // selection alone (not only from totals). Kept selection-independent on purpose: reading selectedTransactions
-    // here would re-render the whole wide layout (and the <Search> list) on every checkbox press.
-    const shouldReserveFooterSpace = !!searchResults?.search?.count;
+    const {currentSearchKey} = useSearchQueryContext();
+
+    // Selection-independent footer reservation for the offline-indicator offset. The footer itself
+    // (SearchSelectionFooter) decides its own visibility from the live selection; reading selection here too
+    // would re-render the whole wide layout (and the <Search> list) on every checkbox press.
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
+    const shouldReserveFooterSpace = shouldAllowFooterTotals && !!searchResults?.search?.count;
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);
 
