@@ -44,7 +44,7 @@ type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.
 
 function IOURequestStepTime({
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo, backToReport},
         name,
     },
     transaction,
@@ -88,7 +88,7 @@ function IOURequestStepTime({
             // We want to navigate to destination step only when the first step was the workspace selector.
             // If there is only one policy with per diem enabled, we want to navigate back to the start step because there is no separate destination step in that flow.
             if (hasMoreThanOnePolicyWithPerDiemEnabled) {
-                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID));
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID, backToReport));
                 return;
             }
 
@@ -122,7 +122,7 @@ function IOURequestStepTime({
         if (isEditPage) {
             navigateBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID, backToReport));
         }
     };
 
