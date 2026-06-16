@@ -128,7 +128,7 @@ describe('useRecentlyAddedData — ordering', () => {
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['t3', 't2', 't1']);
     });
 
-    it('falls back to the created (expense) date when inserted is missing', () => {
+    it('orders expenses missing an inserted timestamp last, regardless of their created date', () => {
         setupSnapshot(
             [
                 makeTransaction({transactionID: 'withCreatedOnly', created: '2026-06-05', inserted: undefined}),
@@ -139,8 +139,8 @@ describe('useRecentlyAddedData — ordering', () => {
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
-        // withCreatedOnly's created (Jun 5) outranks withInserted's inserted (Jun 4).
-        expect(resultTransactionIDs(result.current.transactions)).toEqual(['withCreatedOnly', 'withInserted']);
+        // Ordering is driven solely by inserted; withCreatedOnly has none so it sorts last.
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['withInserted', 'withCreatedOnly']);
     });
 
     it('ranks an old-dated expense first when it was inserted most recently', () => {

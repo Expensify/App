@@ -42,9 +42,9 @@ type RecentlyAddedExpense = {
     transaction?: Transaction;
 };
 
-/** The insertion timestamp drives ordering; fall back to the expense date when it is missing. */
+/** The insertion timestamp drives ordering. */
 function getInsertionSortKey(transaction: Transaction): string {
-    return transaction.inserted ?? transaction.created ?? '';
+    return transaction.inserted ?? '';
 }
 
 /**
