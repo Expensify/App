@@ -7,9 +7,9 @@ internalScope: Applies to Workspace Admins and Card Admins. Covers how to manage
 
 # Configure Company Card Settings
 
-Workspace Admins and Card Admins can manage company card settings, export logic, and eReceipt functionality at the workspace level. This guide outlines how to configure your company card connection, route expenses to accounting systems, and automate receipt handling.
+Workspace Admins can manage company card settings, export logic, and eReceipt functionality at the workspace level. Card Admins can manage company card feed settings and assign export accounts to individual cards. This guide outlines how to configure your company card connection, route expenses to accounting systems, and automate receipt handling.
 
-To set up a direct company credit card feed on a Workspace, see [Direct Feeds](/articles/new-expensify/connect-credit-cards/Direct-feeds)). 
+To set up a direct company credit card feed on a Workspace, see [Direct Feeds](/articles/new-expensify/connect-credit-cards/Direct-feeds). 
 
 To set up a commercial card file feed on a Workspace, see [Commercial Feeds](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds). 
 
