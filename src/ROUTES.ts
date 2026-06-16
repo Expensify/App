@@ -809,6 +809,10 @@ const DYNAMIC_ROUTES = {
         path: 'travel-upgrade',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
     },
+    TRAVEL_WORKSPACE_CONFIRMATION: {
+        path: 'workspace-confirmation',
+        entryScreens: [SCREENS.TRAVEL.DYNAMIC_UPGRADE],
+    },
     REPORT_CHANGE_APPROVER: {
         path: 'change-approver',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
@@ -3272,11 +3276,6 @@ const ROUTES = {
 
             return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${sequenceIndex}`, backTo);
         },
-    },
-    TRAVEL_WORKSPACE_CONFIRMATION: {
-        route: 'travel/upgrade/workspace/confirmation',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/upgrade/workspace/confirmation`, backTo),
     },
     TRAVEL_WORKSPACE_ADDRESS: {
         route: 'travel/:domain/workspace-address',
