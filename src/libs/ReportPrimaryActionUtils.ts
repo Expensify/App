@@ -14,6 +14,7 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
     isPreferredExporter,
+    isSubmitPolicy,
 } from './PolicyUtils';
 import {
     getAllReportActions,
@@ -171,7 +172,9 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    // Submit workspaces (submit2026) hide approvals in the UI but always submit to an approver internally,
+    // so the manager must still be able to approve (which triggers the upgrade flow).
+    const isApprovalEnabled = isSubmitPolicy(policy) || (!!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL);
 
     if (!isExpenseReport || !isApprovalEnabled || reportTransactions.length === 0) {
         return false;

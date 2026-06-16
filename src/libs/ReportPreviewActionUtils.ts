@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {BankAccountList, Policy, Report, ReportMetadata, Transaction, TransactionViolation} from '@src/types/onyx';
-import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
+import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow, hasIntegrationAutoSync, isPreferredExporter, isSubmitPolicy} from './PolicyUtils';
 import {hasPendingDEWApprove} from './ReportActionsUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
@@ -63,7 +63,9 @@ function canSubmit(
 function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
     const isExpense = isExpenseReport(report);
     const isProcessing = isProcessingReport(report);
-    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    // Submit workspaces (submit2026) hide approvals in the UI but always submit to an approver internally,
+    // so the manager must still be able to approve (which triggers the upgrade flow).
+    const isApprovalEnabled = isSubmitPolicy(policy) || (!!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL);
     const managerID = report.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
     const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
