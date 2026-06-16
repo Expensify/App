@@ -319,6 +319,60 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the amount is set for the first time (oldAmount absent, e.g. receipt still scanning)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 1800,
+                    currency: CONST.CURRENCY.USD,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('returns "set the amount" instead of "changed the amount"', () => {
+                const expectedResult = 'set the amount to $18.00';
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the amount is set for the first time and the merchant is also set', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 1800,
+                    currency: CONST.CURRENCY.USD,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    oldMerchant: '',
+                    merchant: 'Taco Bell',
+                },
+            };
+
+            it('returns "set" for both amount and merchant', () => {
+                const expectedResult = 'set the amount to $18.00 and the merchant to "Taco Bell"';
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the amount is changed and the description is removed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -1410,6 +1464,79 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the amount is set for the first time (oldAmount absent, e.g. receipt still scanning)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 1800,
+                    currency: CONST.CURRENCY.USD,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('returns "set the amount" instead of "changed the amount"', () => {
+                const expectedResult = 'set the amount to $18.00';
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: 'test@example.com',
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the amount is set for the first time and then changed', () => {
+            it('returns "set" for the first edit (oldAmount absent)', () => {
+                const firstEditAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        amount: 1800,
+                        currency: CONST.CURRENCY.USD,
+                        oldCurrency: CONST.CURRENCY.USD,
+                    },
+                };
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction: firstEditAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: 'test@example.com',
+                });
+
+                expect(result).toEqual('set the amount to $18.00');
+            });
+
+            it('returns "changed" for the second edit (oldAmount present)', () => {
+                const secondEditAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        amount: 2500,
+                        currency: CONST.CURRENCY.USD,
+                        oldAmount: 1800,
+                        oldCurrency: CONST.CURRENCY.USD,
+                    },
+                };
+
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction: secondEditAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: 'test@example.com',
+                });
+
+                expect(result).toEqual('changed the amount to $25.00 (previously $18.00)');
+            });
+        });
+
         describe('when the amount is changed and the description is removed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -2027,6 +2154,119 @@ describe('ModifiedExpenseMessage', () => {
                 });
 
                 expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('vendor changes', () => {
+            // QBO policy with two named vendors used by the resolver. The third case below
+            // omits a vendor from the list to exercise the externalID fallback path.
+            const policyWithVendors: Policy = {
+                id: 'p-1',
+                name: 'My Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'test@example.com',
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                connections: {
+                    quickbooksOnline: {
+                        data: {
+                            vendors: [
+                                {id: 'v-acme', name: 'Acme', currency: 'USD', email: ''},
+                                {id: 'v-office', name: 'Office Supplies', currency: 'USD', email: ''},
+                            ],
+                        },
+                    },
+                },
+            } as Policy;
+
+            describe('when the vendor is set for the first time (oldVendor key stripped by Onyx null-merge)', () => {
+                // Onyx merges with `shouldRemoveNestedNulls: true`, so the optimistic
+                // `oldVendor: null` we write is stripped from storage. The rendered action
+                // must still treat the missing key as a "set" rather than falling back to
+                // the generic "changed the expense" message.
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        vendor: {externalID: 'v-acme', isManuallySet: true},
+                    },
+                };
+
+                it('renders "set the vendor to X"', () => {
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the vendor to "Acme"');
+                });
+            });
+
+            describe('when the vendor is changed from one to another', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        oldVendor: {externalID: 'v-acme', isManuallySet: false},
+                        vendor: {externalID: 'v-office', isManuallySet: true},
+                    },
+                };
+
+                it('renders "changed the vendor to Y (previously X)"', () => {
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('changed the vendor to "Office Supplies" (previously "Acme")');
+                });
+            });
+
+            describe('when the vendor is removed (vendor key stripped by Onyx null-merge)', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        oldVendor: {externalID: 'v-acme', isManuallySet: true},
+                    },
+                };
+
+                it('renders "removed the vendor X"', () => {
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('removed the vendor (previously "Acme")');
+                });
+            });
+
+            describe('when the vendor is set to an ID no longer in the QBO vendor list (e.g. deleted from QBO)', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        vendor: {externalID: 'v-deleted', isManuallySet: false},
+                    },
+                };
+
+                it('falls back to rendering the externalID so the fragment still identifies which vendor was set', () => {
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the vendor to "v-deleted"');
+                });
             });
         });
     });

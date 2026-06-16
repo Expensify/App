@@ -33,6 +33,4 @@ function FormValueWatcher<TFormID extends OnyxFormKey>({values, onValuesChange}:
     return null;
 }
 
-FormValueWatcher.displayName = 'FormValueWatcher';
-
 export default FormValueWatcher;

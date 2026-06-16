@@ -1,41 +1,42 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import computeChartScale from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeChartScale';
+import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-const NATIVE_HORIZONTAL_INSET = 92;
+// Horizontal space consumed by chat message padding, avatar, and margins (excluding safe area insets).
+// Used instead of onLayout because Yoga inflates the container width to match the fixed-width chart child.
+const CHAT_MESSAGE_HORIZONTAL_PADDING = 92;
 
 function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
     const {windowWidth} = useWindowDimensions();
+    const {left: safeAreaLeft, right: safeAreaRight} = useSafeAreaInsets();
 
     const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
     const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
     const hasExplicitDimensions = designWidth !== undefined && designHeight !== undefined;
 
-    const availableWidth = windowWidth - NATIVE_HORIZONTAL_INSET;
-    const scale = hasExplicitDimensions && designWidth && availableWidth > 0 ? Math.min(availableWidth / designWidth, 1) : 1;
+    const availableWidth = windowWidth - safeAreaLeft - safeAreaRight - CHAT_MESSAGE_HORIZONTAL_PADDING;
+    const scale = hasExplicitDimensions ? computeChartScale(designWidth, availableWidth) : 1;
 
-    const {backgroundColor, borderRadius, width: containerWidth, maxWidth: containerMaxWidth, ...cleanContainerStyles} = chartContainerStyles;
+    const {backgroundColor: rawBgColor, borderRadius, ...layoutContainerStyles} = chartContainerStyles;
+    const backgroundColor = resolveChartContainerBgColor(rawBgColor, theme);
 
-    const contentStyle = useMemo(() => {
-        if (hasExplicitDimensions) {
-            return [chartContentStyles, {overflow: 'hidden' as const, transform: [{scale}], transformOrigin: 'top left' as const}];
-        }
-        return [styles.chartContent, chartContentStyles, {overflow: 'hidden' as const}];
-    }, [hasExplicitDimensions, chartContentStyles, scale, styles]);
+    const contentStyle = hasExplicitDimensions
+        ? [chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden' as const, transform: [{scale}], transformOrigin: 'top left' as const}]
+        : [styles.chartContent, chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden' as const}];
 
-    const containerStyle = useMemo(() => {
-        if (hasExplicitDimensions && designHeight && designWidth) {
-            return [
-                cleanContainerStyles,
-                {backgroundColor, borderRadius, width: designWidth * scale, height: designHeight * scale, alignSelf: 'flex-start' as const, overflow: 'hidden' as const},
-            ];
-        }
-        return [styles.chartContainer, styles.mw100, chartContainerStyles];
-    }, [hasExplicitDimensions, designHeight, designWidth, scale, styles, cleanContainerStyles, chartContainerStyles, backgroundColor, borderRadius]);
+    const containerStyle =
+        hasExplicitDimensions && designHeight && designWidth
+            ? [{width: designWidth * scale, height: designHeight * scale, alignSelf: 'flex-start' as const, overflow: 'hidden' as const}]
+            : [styles.chartContainer, styles.mw100, layoutContainerStyles];
 
     return (
         <View style={containerStyle}>
