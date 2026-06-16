@@ -26,6 +26,7 @@ import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {BankAccountList, Policy} from '@src/types/onyx';
@@ -51,6 +52,7 @@ function KYCWall({
     enablePaymentsRoute,
     iouReport,
     onSelectPaymentMethod = () => {},
+    getPersonalBankAccountOnSuccessFallbackRoute,
     onSuccessfulKYC,
     shouldIncludeDebitCard = true,
     shouldListenForResize = false,
@@ -81,6 +83,7 @@ function KYCWall({
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
+    const [pendingPersonalBankAccountOnSuccessFallbackRoute, setPendingPersonalBankAccountOnSuccessFallbackRoute] = useState<Route | undefined>();
 
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionVertical: 0,
@@ -127,7 +130,7 @@ function KYCWall({
     }, [getAnchorPosition]);
 
     const selectPaymentMethod = useCallback(
-        (paymentMethod?: PaymentMethod, policy?: Policy) => {
+        (paymentMethod?: PaymentMethod, policy?: Policy, personalBankAccountOnSuccessFallbackRoute?: Route) => {
             const canLinkExistingBusinessBankAccount = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
             if (paymentMethod) {
@@ -135,7 +138,12 @@ function KYCWall({
             }
 
             if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-                openPersonalBankAccountSetupView({shouldSetUpUSBankAccount: isIOUReport(iouReport)});
+                const onSuccessFallbackRoute = getPersonalBankAccountOnSuccessFallbackRoute?.(paymentMethod) ?? personalBankAccountOnSuccessFallbackRoute;
+
+                openPersonalBankAccountSetupView({
+                    shouldSetUpUSBankAccount: isIOUReport(iouReport),
+                    onSuccessFallbackRoute,
+                });
             } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 Navigation.navigate(addDebitCardRoute ?? ROUTES.INBOX);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT || policy) {
@@ -225,6 +233,7 @@ function KYCWall({
         },
         [
             bankAccountList,
+            getPersonalBankAccountOnSuccessFallbackRoute,
             onSelectPaymentMethod,
             iouReport,
             addDebitCardRoute,
@@ -255,7 +264,7 @@ function KYCWall({
      */
     const continueAction = useCallback(
         (params?: ContinueActionParams) => {
-            const {event, iouPaymentType, paymentMethod, policy, goBackRoute} = params ?? {};
+            const {event, iouPaymentType, paymentMethod, policy, goBackRoute, personalBankAccountOnSuccessFallbackRoute} = params ?? {};
             const currentSource = walletTerms?.source ?? source;
 
             /**
@@ -266,6 +275,7 @@ function KYCWall({
 
             if (shouldShowAddPaymentMenu) {
                 setShouldShowAddPaymentMenu(false);
+                setPendingPersonalBankAccountOnSuccessFallbackRoute(undefined);
                 return;
             }
 
@@ -287,13 +297,13 @@ function KYCWall({
                 Log.info('[KYC Wallet] User does not have valid payment method');
 
                 if (!shouldIncludeDebitCard || (isFromWalletPage && !hasValidPaymentMethod)) {
-                    selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+                    selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, undefined, personalBankAccountOnSuccessFallbackRoute);
                     return;
                 }
 
                 if (paymentMethod || policy) {
                     setShouldShowAddPaymentMenu(false);
-                    selectPaymentMethod(paymentMethod, policy);
+                    selectPaymentMethod(paymentMethod, policy, personalBankAccountOnSuccessFallbackRoute);
                     return;
                 }
 
@@ -307,6 +317,7 @@ function KYCWall({
                 const position = getAnchorPosition(clickedElementLocation);
 
                 setPositionAddPaymentMenu(position);
+                setPendingPersonalBankAccountOnSuccessFallbackRoute(personalBankAccountOnSuccessFallbackRoute);
                 setShouldShowAddPaymentMenu(true);
 
                 return;
@@ -328,7 +339,7 @@ function KYCWall({
 
                 if (policy || (paymentMethod && (!hasActivatedWallet || paymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT))) {
                     setShouldShowAddPaymentMenu(false);
-                    selectPaymentMethod(paymentMethod, policy);
+                    selectPaymentMethod(paymentMethod, policy, personalBankAccountOnSuccessFallbackRoute);
                     return;
                 }
             }
@@ -382,7 +393,10 @@ function KYCWall({
             <AddPaymentMethodMenu
                 isVisible={shouldShowAddPaymentMenu}
                 iouReport={iouReport}
-                onClose={() => setShouldShowAddPaymentMenu(false)}
+                onClose={() => {
+                    setShouldShowAddPaymentMenu(false);
+                    setPendingPersonalBankAccountOnSuccessFallbackRoute(undefined);
+                }}
                 anchorRef={anchorRef}
                 anchorPosition={{
                     vertical: anchorPosition.anchorPositionVertical,
@@ -391,7 +405,8 @@ function KYCWall({
                 anchorAlignment={anchorAlignment}
                 onItemSelected={(item: PaymentMethod) => {
                     setShouldShowAddPaymentMenu(false);
-                    selectPaymentMethod(item);
+                    selectPaymentMethod(item, undefined, pendingPersonalBankAccountOnSuccessFallbackRoute);
+                    setPendingPersonalBankAccountOnSuccessFallbackRoute(undefined);
                 }}
                 shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
             />

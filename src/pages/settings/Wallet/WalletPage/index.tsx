@@ -47,13 +47,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
-import {
-    deletePaymentBankAccount,
-    openPersonalBankAccountSetupView,
-    pressLockedBankAccount,
-    resetPersonalBankAccountForUpdate,
-    setPersonalBankAccountContinueKYCOnSuccess,
-} from '@userActions/BankAccounts';
+import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, resetPersonalBankAccountForUpdate} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
@@ -806,13 +800,9 @@ function WalletPage() {
                                     <KYCWall
                                         ref={kycWallRef}
                                         onSuccessfulKYC={(_iouPaymentType?: PaymentMethodType, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
-                                        onSelectPaymentMethod={(selectedPaymentMethod: string) => {
-                                            if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-                                                return;
-                                            }
-                                            // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
-                                            setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
-                                        }}
+                                        getPersonalBankAccountOnSuccessFallbackRoute={(selectedPaymentMethod) =>
+                                            !hasActivatedWallet && selectedPaymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? ROUTES.SETTINGS_WALLET : undefined
+                                        }
                                         enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
                                         addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                         source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}

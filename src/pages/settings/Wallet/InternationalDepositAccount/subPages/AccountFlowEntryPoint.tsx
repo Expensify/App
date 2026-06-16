@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -17,7 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import {clearPersonalBankAccount, updateAddPersonalBankAccountDraft} from '@userActions/BankAccounts';
+import {updateAddPersonalBankAccountDraft} from '@userActions/BankAccounts';
 import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,9 +39,6 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock']);
 
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
-
-    // Clear on unmount so fallback route remains available during the next flow and is clear when the flow ends.
-    useEffect(() => clearPersonalBankAccount, []);
 
     const handleConnectManually = () => {
         updateAddPersonalBankAccountDraft({

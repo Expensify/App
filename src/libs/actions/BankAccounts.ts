@@ -85,6 +85,9 @@ type OpenPersonalBankAccountSetupViewProps = {
 
     /** Whether the user is validated */
     isUserValidated?: boolean;
+
+    /** Route to navigate to after adding a bank account when the KYC flow should continue */
+    onSuccessFallbackRoute?: Route;
 };
 
 type VBBAOnyxKey =
@@ -117,16 +120,34 @@ function setPlaidEvent(eventName: string | null) {
 /**
  * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
  */
-function openPersonalBankAccountSetupView({exitReportID, policyID, source, shouldSetUpUSBankAccount = false, isUserValidated = true}: OpenPersonalBankAccountSetupViewProps) {
+function openPersonalBankAccountSetupView({
+    exitReportID,
+    policyID,
+    source,
+    shouldSetUpUSBankAccount = false,
+    isUserValidated = true,
+    onSuccessFallbackRoute,
+}: OpenPersonalBankAccountSetupViewProps) {
+    clearPersonalBankAccount();
+
     clearInternationalBankAccount().then(() => {
+        const personalBankAccountState: Partial<PersonalBankAccount> = {};
+
         if (exitReportID) {
-            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
+            personalBankAccountState.exitReportID = exitReportID;
         }
         if (policyID) {
-            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {policyID});
+            personalBankAccountState.policyID = policyID;
         }
         if (source) {
-            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {source});
+            personalBankAccountState.source = source;
+        }
+        if (onSuccessFallbackRoute) {
+            personalBankAccountState.onSuccessFallbackRoute = onSuccessFallbackRoute;
+        }
+
+        if (Object.keys(personalBankAccountState).length > 0) {
+            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccountState);
         }
         if (!isUserValidated) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
@@ -285,13 +306,6 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
     };
 
     API.write(WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO, parameters, onyxData);
-}
-
-/**
- * Whether after adding a bank account we should continue with the KYC flow. If so, we must specify the fallback route.
- */
-function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Route) {
-    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute});
 }
 
 function clearPersonalBankAccount() {
@@ -1845,7 +1859,6 @@ export {
     createCorpayBankAccount,
     deletePaymentBankAccount,
     handlePlaidError,
-    setPersonalBankAccountContinueKYCOnSuccess,
     openPersonalBankAccountSetupView,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
