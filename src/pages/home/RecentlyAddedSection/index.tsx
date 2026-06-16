@@ -182,7 +182,7 @@ function RecentlyAddedSection() {
                             <Text style={[styles.textMicroSupporting, styles.textStrong]}>{translate('common.date')}</Text>
                         </View>
                         <Text style={[styles.flex1, styles.textMicroSupporting]}>{translate('common.merchant')}</Text>
-                        <Text style={[styles.textMicroSupporting]}>{translate('iou.amount')}</Text>
+                        <Text style={styles.textMicroSupporting}>{translate('iou.amount')}</Text>
                         <View style={StyleUtils.getWidthStyle(variables.iconSizeNormal)} />
                     </View>
                     {transactions.map((expense, index) => (
