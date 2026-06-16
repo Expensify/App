@@ -388,9 +388,9 @@ function handleReplaceFullscreenUnderRHP(
         }
         // The parent route only carries a nested state hint when the navigator was rehydrated from
         // a path (e.g. page reload). A TAB_NAVIGATOR mounted without one (e.g. right after sign-in)
-        // initializes itself, leaving route.state undefined here — fall back to the full strip.
+        // initializes itself, leaving route.state undefined or without routes here — fall back to the full strip.
         let existingTabState = existingTabRoute.state as PartialState<NavigationState> | undefined;
-        if (!existingTabState) {
+        if (!existingTabState?.routes?.length) {
             existingTabState = buildTabNavigatorNestedState({name: focusedTargetTab.name});
         }
         const targetTabIndex = existingTabState.routes.findIndex((r) => r.name === focusedTargetTab.name);
