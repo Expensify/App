@@ -1309,6 +1309,7 @@ const CONST = {
     EXPENSIFY_MOBILE_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
+    GOOGLE_SEARCH_URL: 'https://www.google.com/search?q=',
     IMAGE_BASE64_MATCH: 'base64',
     DEEPLINK_BASE_URL: 'new-expensify://',
     SAML_REDIRECT_URL: 'expensify://open',
