@@ -149,7 +149,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     }, [reportID]);
 
     // Special case handling a report that is a transaction thread
-    // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
+    // If true we will use the standard `ReportActionsList` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
     const isTransactionThreadView = isReportTransactionThread(report);
 
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
