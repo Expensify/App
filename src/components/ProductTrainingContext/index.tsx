@@ -265,7 +265,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
                 onLayout={config.onShown}
             >
-                <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.textAlignCenter, styles.gap3, styles.pv2, styles.ph2]}>
+                <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.gap3, styles.pv2, styles.ph2]}>
                     <Icon
                         src={expensifyIcons.Lightbulb}
                         fill={theme.tooltipHighlightText}
@@ -296,7 +296,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.alignItemsCenter,
         styles.flexRow,
         styles.justifyContentCenter,
-        styles.textAlignCenter,
         styles.gap3,
         styles.pv2,
         styles.ph2,
