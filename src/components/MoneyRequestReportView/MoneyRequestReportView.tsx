@@ -31,8 +31,9 @@ import {cancelSpan} from '@libs/telemetry/activeSpans';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
-import ReportActionsView from '@pages/inbox/report/ReportActionsView';
+import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
+import UserTypingEventListener from '@pages/inbox/report/UserTypingEventListener';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -274,10 +275,13 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                         {shouldDisplayMoneyRequestActionsList ? (
                             <MoneyRequestReportActionsList onLayout={onLayout} />
                         ) : (
-                            <ReportActionsView
-                                reportID={reportID}
-                                onLayout={onLayout}
-                            />
+                            <>
+                                <ReportActionsList
+                                    reportID={report.reportID}
+                                    onLayout={onLayout}
+                                />
+                                <UserTypingEventListener report={report} />
+                            </>
                         )}
                         {shouldDisplayReportFooter ? (
                             <>

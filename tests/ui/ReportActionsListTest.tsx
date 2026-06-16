@@ -16,7 +16,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
-import ReportActionsView from '@pages/inbox/report/ReportActionsView';
+import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -176,12 +176,12 @@ const mockReportActions: OnyxTypes.ReportAction[] = [
     },
 ];
 
-const renderReportActionsView = (props: {reportID?: string} = {}) => {
+const renderReportActionsList = (props: {reportID?: string} = {}) => {
     const reportID = props.reportID ?? mockReport.reportID;
-    return render(<ReportActionsView reportID={reportID} />);
+    return render(<ReportActionsList reportID={reportID} />);
 };
 
-describe('ReportActionsView', () => {
+describe('ReportActionsList (body)', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -290,7 +290,7 @@ describe('ReportActionsView', () => {
                 ...defaultPaginatedReportActionsResult,
             });
 
-            renderReportActionsView();
+            renderReportActionsList();
 
             expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
         });
@@ -322,7 +322,7 @@ describe('ReportActionsView', () => {
                 return [undefined, {status: 'loaded'}];
             });
 
-            renderReportActionsView();
+            renderReportActionsList();
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
         });
@@ -354,7 +354,7 @@ describe('ReportActionsView', () => {
                 return [undefined, {status: 'loaded'}];
             });
 
-            renderReportActionsView();
+            renderReportActionsList();
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
         });
@@ -386,7 +386,7 @@ describe('ReportActionsView', () => {
                 return [undefined, {status: 'loaded'}];
             });
 
-            renderReportActionsView();
+            renderReportActionsList();
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
         });
@@ -463,7 +463,7 @@ describe('ReportActionsView', () => {
             mockUseIsInSidePanel.mockReturnValue(true);
             mockUseSidePanelState.mockReturnValue({...defaultSidePanelState, sessionStartTime: DateUtils.getDBTime()});
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(mockInvertedFlashList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
@@ -480,7 +480,7 @@ describe('ReportActionsView', () => {
             });
             mockUseIsInSidePanel.mockReturnValue(false);
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
         });
@@ -494,7 +494,7 @@ describe('ReportActionsView', () => {
             });
             mockUseIsInSidePanel.mockReturnValue(false);
 
-            renderReportActionsView({reportID: 'non-concierge-999'});
+            renderReportActionsList({reportID: 'non-concierge-999'});
 
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
         });
@@ -527,7 +527,7 @@ describe('ReportActionsView', () => {
             mockUseIsInSidePanel.mockReturnValue(true);
             mockUseSidePanelState.mockReturnValue({...defaultSidePanelState, sessionStartTime: sessionStart});
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             // Welcome should not be shown since user has sent a message
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
@@ -623,7 +623,7 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(mockInvertedFlashList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
@@ -641,7 +641,7 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(mockInvertedFlashList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
@@ -674,7 +674,7 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(mockInvertedFlashList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
@@ -692,7 +692,7 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(mockInvertedFlashList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
@@ -738,7 +738,7 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(mockInvertedFlashList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
@@ -758,7 +758,7 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(mockStartSession).toHaveBeenCalled();
         });
@@ -774,7 +774,7 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
             expect(mockInvertedFlashList).toHaveBeenCalled();
@@ -789,7 +789,7 @@ describe('ReportActionsView', () => {
                 hasOlderActions: false,
             });
 
-            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
         });
