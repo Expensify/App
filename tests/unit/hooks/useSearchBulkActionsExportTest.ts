@@ -1,5 +1,6 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
@@ -171,6 +172,8 @@ jest.mock('@libs/SearchUIUtils', () => ({
     shouldShowDeleteOption: () => false,
     getSelectedGroupFilterEntry: jest.fn(),
     navigateToSearchRHP: jest.fn(),
+    // The export queries under test are not grouped, so this resolves to undefined.
+    getValidGroupBy: jest.fn((groupBy?: string) => groupBy),
 }));
 
 jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
@@ -385,7 +388,7 @@ describe('useSearchBulkActions - report export options resolve from the search s
         mockSelectedReports = [makeSelectedReport()];
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             const subMenuItems = getExportSubMenuItems(result.current.headerButtonsOptions);
@@ -420,7 +423,7 @@ describe('useSearchBulkActions - report export options resolve from the search s
         mockSelectedReports = [makeSelectedReport()];
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBeDefined();
