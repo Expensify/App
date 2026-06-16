@@ -34,7 +34,6 @@ function CurrencyPopup({label, onBackButtonPress, onChange, closeOverlay, value,
             searchPlaceholder={searchPlaceholder}
             defaultValue={defaultValue}
             shouldShowList={shouldShowList}
-            shouldUseFixedPopoverHeight
         />
     );
 }

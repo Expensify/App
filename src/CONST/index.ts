@@ -8028,7 +8028,6 @@ const CONST = {
             FILTER_GROUP_BY: 'Search-FilterGroupBy',
             FILTER_SORT_BY: 'Search-FilterSortBy',
             FILTER_GROUP_CURRENCY: 'Search-FilterGroupCurrency',
-            FOOTER_TOTAL_CURRENCY: 'Search-FooterTotalCurrency',
             FILTER_VIEW: 'Search-FilterView',
             FILTER_LIMIT: 'Search-FilterLimit',
             ADVANCED_FILTERS_BUTTON: 'Search-AdvancedFiltersButton',

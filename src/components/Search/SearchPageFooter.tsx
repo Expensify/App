@@ -83,7 +83,6 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
             iconRight={icons.DownArrow}
             iconRightFill={theme.icon}
             iconRightHoverFill={theme.iconHovered}
-            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL_CURRENCY}
             onPress={props.onPress}
         />
     );

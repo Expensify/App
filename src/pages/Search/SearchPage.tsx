@@ -197,13 +197,11 @@ function SearchPage({route}: SearchPageProps) {
         const selectedTransactionItems = Object.values(selectedTransactions);
         const defaultCurrency = defaultFooterCurrency ?? metadata?.currency;
         const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== defaultCurrency;
-        const isSelectedSubtotalConfirmed =
-            hasCustomFooterCurrency && selectedTransactionItems.length > 0 && selectedTransactionItems.every((transaction) => transaction.groupCurrency === selectedCurrency);
         const isServerTotalConfirmed = !hasCustomFooterCurrency || (validGroupBy ? footerTotalMetadata?.currency === selectedCurrency : metadata?.currency === selectedCurrency);
         const isFooterGrandTotalLoading = !shouldUseClientTotal && hasCustomFooterCurrency && !!validGroupBy && !!footerTotalMetadata?.isLoading;
         let currency;
         if (shouldUseClientTotal) {
-            currency = isSelectedSubtotalConfirmed ? selectedCurrency : (defaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency);
+            currency = defaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
         } else if (isServerTotalConfirmed) {
             currency = selectedCurrency ?? footerTotalMetadata?.currency ?? defaultCurrency ?? metadata?.currency;
         } else {
