@@ -1,9 +1,11 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isAuthenticationError} from './actions/connections';
 import type {Part} from './actions/Policy/CopyPolicySettings';
+import {isTimeTrackingEnabled} from './PolicyUtils';
 
 type FeatureRow = {
     part: Part;
@@ -25,6 +27,8 @@ const FEATURE_ROWS = [
     {part: 'perDiem', labelKey: 'workspace.common.perDiem'},
     {part: 'invoices', labelKey: 'workspace.common.invoices'},
     {part: 'travel', labelKey: 'workspace.common.travel'},
+    {part: 'timeTracking', labelKey: 'workspace.moreFeatures.timeTracking.title'},
+    {part: 'receiptPartners', labelKey: 'workspace.moreFeatures.receiptPartners.title'},
 ] as const satisfies readonly FeatureRow[];
 
 type CopyPolicySettingsSourceFeatureContext = {
@@ -225,9 +229,31 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
             return !!policy?.areInvoicesEnabled && context.hasInvoiceConfiguration;
         case 'travel':
             return !!policy?.isTravelEnabled;
+        case 'timeTracking':
+            return isTimeTrackingEnabled(policy);
+        case 'receiptPartners':
+            return !!policy?.receiptPartners?.enabled || !!policy?.receiptPartners?.uber?.organizationID;
         default:
             return false;
     }
+}
+
+/** Subtitle for the receipt partners row when Uber is connected on the source. */
+function getReceiptPartnersCopySettingsDescription(policy: Policy | undefined, translate: LocalizedTranslate): string {
+    const organizationName = policy?.receiptPartners?.uber?.organizationName;
+    if (organizationName) {
+        return organizationName;
+    }
+    return translate('common.enabled');
+}
+
+/** Subtitle for the time tracking row; rate is shown without currency because targets may use a different output currency. */
+function getTimeTrackingCopySettingsDescription(policy: Policy | undefined, translate: LocalizedTranslate): string {
+    const hourlyRate = policy?.units?.time?.rate;
+    if (hourlyRate !== undefined) {
+        return `${translate('common.enabled')}, ${translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}: ${hourlyRate}`;
+    }
+    return translate('common.enabled');
 }
 
 export {
@@ -238,6 +264,8 @@ export {
     isTargetCompatibleForAccountingPart,
     areAllTargetsCompatibleForAccountingPart,
     isCopyPolicySettingsPartEnabledOnSource,
+    getTimeTrackingCopySettingsDescription,
+    getReceiptPartnersCopySettingsDescription,
     FEATURE_ROWS,
 };
 export type {CopyPolicySettingsSourceFeatureContext};

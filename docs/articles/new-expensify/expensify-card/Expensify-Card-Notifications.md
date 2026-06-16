@@ -10,6 +10,7 @@ Get real-time updates about your Expensify Visa® Commercial Card spending by en
 - Purchases and declined transactions
 - Fraudulent activity
 - Receipt requests for SmartScanned transactions
+- Spend Rule declines explaining why a transaction was blocked
 
 **Note:** To turn on Expensify Card notifications, you must first enable alerts from your workspace and then ensure they’re also allowed on your mobile device.
 
@@ -43,4 +44,12 @@ Get real-time updates about your Expensify Visa® Commercial Card spending by en
 5. Customize your alert style based on your preferences.
 
 Once both settings are enabled, you'll start receiving instant updates for your Expensify Card activity.
+
+---
+
+# Understand Spend Rule Decline Notifications
+
+If your Workspace Admin has set a Spend Rule on your card, a transaction may be declined when it doesn't meet the rule. When this happens, you'll receive a notification from Concierge in your workspace chat explaining why the transaction was declined — for example, a blocked merchant, a restricted spend category, or an amount over the limit.
+
+To learn how these rules work and what an admin can configure, [learn about Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 

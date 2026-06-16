@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -23,6 +23,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import {setDraftValues} from '@userActions/FormActions';
 import {createReportField, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,13 +47,10 @@ function WorkspaceCreateReportFieldsPage({
     const formRef = useRef<FormRef>(null);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
-    const policyExpenseReportIDsSelector = useCallback(
-        (reports: OnyxCollection<Report>) =>
-            Object.values(reports ?? {})
-                .filter((report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE)
-                .map((report) => report?.reportID),
-        [policyID],
-    );
+    const policyExpenseReportIDsSelector = (reports: OnyxCollection<Report>) =>
+        Object.values(reports ?? {})
+            .filter((report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE)
+            .map((report) => report?.reportID);
 
     const [policyExpenseReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: policyExpenseReportIDsSelector,
@@ -60,102 +58,88 @@ function WorkspaceCreateReportFieldsPage({
 
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
 
-    const submitForm = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            createReportField({
-                policy,
-                name: values[INPUT_IDS.NAME],
-                type: values[INPUT_IDS.TYPE],
-                initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
-                listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
-                disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
-                policyExpenseReportIDs,
+    const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
+        createReportField({
+            policy,
+            name: values[INPUT_IDS.NAME],
+            type: values[INPUT_IDS.TYPE],
+            initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
+            listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
+            disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
+            policyExpenseReportIDs,
+        });
+        setInitialCreateReportFieldsForm();
+        Navigation.goBack();
+    };
+
+    const validateForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
+        const {name, type, initialValue: formInitialValue} = values;
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
+
+        if (!isRequiredFulfilled(name)) {
+            errors[INPUT_IDS.NAME] = translate('workspace.reportFields.reportFieldNameRequiredError');
+        } else if (isReportFieldNameExisting(policy?.fieldList, name)) {
+            errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
+        } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
+            addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', [...name].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
+        }
+
+        if (!isRequiredFulfilled(type)) {
+            errors[INPUT_IDS.TYPE] = translate('workspace.reportFields.reportFieldTypeRequiredError');
+        }
+
+        // formInitialValue can be undefined because the InitialValue component is rendered conditionally.
+        // If it's not been rendered when the validation is executed, formInitialValue will be undefined.
+        if (type === CONST.REPORT_FIELD_TYPES.TEXT && !!formInitialValue && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+            errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', formInitialValue.length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH);
+        }
+
+        if ((type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) && hasCircularReferences(formInitialValue, name, policy?.fieldList)) {
+            errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
+        }
+
+        if ((type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) && !!formInitialValue && !errors[INPUT_IDS.INITIAL_VALUE]) {
+            const unsupportedFormulaParts = getUnsupportedReportFieldFormulaParts(formInitialValue);
+            if (unsupportedFormulaParts.length > 0) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.unsupportedFormulaValueError', {
+                    value: unsupportedFormulaParts.join(', '),
+                });
+            }
+        }
+
+        if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
+            errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
+        }
+
+        return errors;
+    };
+
+    const validateName = (values: Record<string, string>) => {
+        const errors: Record<string, string> = {};
+        const name = values[INPUT_IDS.NAME];
+        if (isReportFieldNameExisting(policy?.fieldList, name)) {
+            errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
+        }
+        return errors;
+    };
+
+    const handleOnValueCommitted = (initialValue: string) => {
+        // Mirror optimisticType logic from createReportField: if user enters a formula
+        // while type is Text, automatically switch the type to Formula in the form, otherwise back to Text.
+        const isFormula = hasFormulaPartsInInitialValue(initialValue);
+        if (isFormula) {
+            setDraftValues(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM, {
+                [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.FORMULA,
+                [INPUT_IDS.INITIAL_VALUE]: initialValue,
             });
-            setInitialCreateReportFieldsForm();
-            Navigation.goBack();
-        },
-        [availableListValuesLength, formDraft, policy, policyExpenseReportIDs],
-    );
-
-    const validateForm = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
-            const {name, type, initialValue: formInitialValue} = values;
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
-
-            if (!isRequiredFulfilled(name)) {
-                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.reportFieldNameRequiredError');
-            } else if (isReportFieldNameExisting(policy?.fieldList, name)) {
-                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
-            } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', [...name].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
-            }
-
-            if (!isRequiredFulfilled(type)) {
-                errors[INPUT_IDS.TYPE] = translate('workspace.reportFields.reportFieldTypeRequiredError');
-            }
-
-            // formInitialValue can be undefined because the InitialValue component is rendered conditionally.
-            // If it's not been rendered when the validation is executed, formInitialValue will be undefined.
-            if (type === CONST.REPORT_FIELD_TYPES.TEXT && !!formInitialValue && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', formInitialValue.length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH);
-            }
-
-            if ((type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) && hasCircularReferences(formInitialValue, name, policy?.fieldList)) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
-            }
-
-            if ((type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) && !!formInitialValue && !errors[INPUT_IDS.INITIAL_VALUE]) {
-                const unsupportedFormulaParts = getUnsupportedReportFieldFormulaParts(formInitialValue);
-                if (unsupportedFormulaParts.length > 0) {
-                    errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.unsupportedFormulaValueError', {
-                        value: unsupportedFormulaParts.join(', '),
-                    });
-                }
-            }
-
-            if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
-            }
-
-            return errors;
-        },
-        [availableListValuesLength, policy?.fieldList, translate],
-    );
-
-    const validateName = useCallback(
-        (values: Record<string, string>) => {
-            const errors: Record<string, string> = {};
-            const name = values[INPUT_IDS.NAME];
-            if (isReportFieldNameExisting(policy?.fieldList, name)) {
-                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
-            }
-            return errors;
-        },
-        [policy?.fieldList, translate],
-    );
-
-    const handleOnValueCommitted = useCallback(
-        (inputValues: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => (initialValue: string) => {
-            // Mirror optimisticType logic from createReportField: if user enters a formula
-            // while type is Text, automatically switch the type to Formula in the form, otherwise back to Text.
-            const isFormula = hasFormulaPartsInInitialValue(initialValue);
-            if (isFormula) {
-                formRef.current?.resetForm({
-                    ...inputValues,
-                    [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.FORMULA,
-                    [INPUT_IDS.INITIAL_VALUE]: initialValue,
-                });
-            } else {
-                formRef.current?.resetForm({
-                    ...inputValues,
-                    [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.TEXT,
-                    [INPUT_IDS.INITIAL_VALUE]: initialValue,
-                });
-            }
-        },
-        [],
-    );
+        } else {
+            setDraftValues(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM, {
+                [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.TEXT,
+                [INPUT_IDS.INITIAL_VALUE]: initialValue,
+            });
+        }
+    };
 
     const listValues = [...(formDraft?.[INPUT_IDS.LIST_VALUES] ?? [])].sort(localeCompare).join(', ');
 
@@ -244,7 +228,7 @@ function WorkspaceCreateReportFieldsPage({
                                     maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
-                                    onValueCommitted={handleOnValueCommitted(inputValues)}
+                                    onValueCommitted={handleOnValueCommitted}
                                     shouldSaveDraft
                                 />
                             )}

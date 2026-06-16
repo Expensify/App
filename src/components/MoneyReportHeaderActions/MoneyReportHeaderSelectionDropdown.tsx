@@ -1,4 +1,5 @@
 import {useRoute} from '@react-navigation/native';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -30,7 +31,7 @@ import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
-import {hasUpdatedTotal} from '@libs/ReportUtils';
+import {hasUpdatedTotal, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
@@ -76,6 +77,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {accountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -224,11 +226,19 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         });
     };
 
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report: moneyRequestReport,
+        isTrackIntentUser,
+    });
+    const submitButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit');
+    const approveButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve');
+
     const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [
         ...(hasSubmitAction && !shouldBlockSubmit
             ? [
                   {
-                      text: translate('common.submit'),
+                      text: submitButtonText,
                       icon: expensifyIcons.Send,
                       value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                       onSelected: () => handleSubmitReport(true),
@@ -238,7 +248,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         ...(hasApproveAction && !isBlockSubmitDueToPreventSelfApproval
             ? [
                   {
-                      text: translate('iou.approve'),
+                      text: approveButtonText,
                       icon: expensifyIcons.ThumbsUp,
                       value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
                       onSelected: () => confirmApproval(true),
