@@ -272,7 +272,8 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                       onEntryTransitionEnd: () => roomPageInputRef.current?.focus(),
                       shouldEnableMaxHeight: true,
                       shouldEnableKeyboardAvoidingView: true,
-                      includeSafeAreaPaddingBottom: true,
+                      enableEdgeToEdgeBottomSafeAreaPadding: true,
+                      shouldShowOfflineIndicator: true,
                   }
                 : {
                       enableEdgeToEdgeBottomSafeAreaPadding: true,
@@ -298,7 +299,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                     submitButtonText={translate('newRoomPage.createRoom')}
-                    style={[styles.h100, styles.mh5, styles.flexGrow1]}
+                    style={[!isLocked && styles.h100, styles.mh5, styles.flexGrow1]}
                     validate={validate}
                     onSubmit={submit}
                     enabledWhenOffline

@@ -96,6 +96,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     useRestartOnOdometerImagesFailure(isDraftTransaction && isOdometerDistanceRequest(transaction) ? transaction : undefined, reportID, iouTypeParam ?? CONST.IOU.TYPE.SUBMIT, backToReport);
 
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
@@ -257,9 +258,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction?.transactionID, policy, policyTagList, policyCategories);
+        detachReceipt(transaction?.transactionID, policy, policyTagList, transactionViolations, policyCategories);
         navigation.goBack();
-    }, [navigation, transaction?.transactionID, policy, policyCategories, policyTagList]);
+    }, [navigation, transaction?.transactionID, policy, policyCategories, policyTagList, transactionViolations]);
 
     /**
      * Remove odometer image and close the modal.
@@ -303,12 +304,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         transactionPolicyCategories: policyCategories,
                         transactionPolicy: policy,
                         transactionPolicyTagList: policyTagList,
+                        transactionViolations,
                         ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
                     });
                 }
             });
         },
-        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList],
+        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations],
     );
 
     const rotateReceipt = useCallback(() => {
