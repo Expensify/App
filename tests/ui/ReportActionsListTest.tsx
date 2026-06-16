@@ -97,10 +97,9 @@ jest.mock('@hooks/usePrevious', () => jest.fn());
 
 const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.MockedFunction<typeof useCurrentUserPersonalDetails>;
 
-// PR 6 makes the ReportActionsList body hook-driven, so we mount the REAL body (no longer a prop-fed
-// child) and observe what it feeds the list via InvertedFlashList's `data`. The heavy scroll/marker
-// hooks have their own unit tests, so they are stubbed here to isolate the body's visibility/skeleton
-// logic — the actual subject of these tests.
+// We mount the real hook-driven body and observe what it feeds the list via InvertedFlashList's `data`.
+// The heavy scroll/marker hooks have their own unit tests, so they are stubbed here to isolate the
+// body's visibility/skeleton logic — the actual subject of these tests.
 jest.mock('@components/FlashList/InvertedFlashList', () => jest.fn(() => null));
 jest.mock('@hooks/useUnreadMarker', () => jest.fn(() => ({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1})));
 jest.mock('@hooks/useMarkAsRead', () => jest.fn(() => ({markNewestActionAsRead: jest.fn(), completeSkippedMarkAsRead: jest.fn()})));
@@ -139,7 +138,6 @@ jest.mock('@libs/actions/Report', () => ({
     updateLoadingInitialReportAction: jest.fn(),
 }));
 
-// Mock report data
 const mockReport: OnyxTypes.Report = {
     reportID: '123',
     reportName: 'Test Report',

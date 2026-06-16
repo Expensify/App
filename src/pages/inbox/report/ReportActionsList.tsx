@@ -561,10 +561,8 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         }
     };
 
-    // Show skeleton while loading initial report actions when data is incomplete/missing and online
     const shouldShowSkeletonForInitialLoad = !!isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
 
-    // Show skeleton while the app is loading and we're online
     const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
 
     // Show skeleton for the Concierge chat (side panel or main DM) until report
