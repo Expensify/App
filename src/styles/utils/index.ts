@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
-import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/PresetAvatarCatalog';
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/UserAvatarCatalog';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
@@ -627,12 +627,10 @@ function getButtonVariantStyles(styles: ThemeStyles): ButtonVariantStyles {
         normal: {
             success: styles.buttonSuccess,
             danger: styles.buttonDanger,
-            link: {},
         },
         disabled: {
             success: [styles.buttonOpacityDisabled],
             danger: [styles.buttonOpacityDisabled],
-            link: [styles.buttonOpacityDisabled, styles.buttonDisabled],
         },
     };
 }
@@ -1843,8 +1841,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getSearchTableGroupRowBorderStyle: (isFirstItem?: boolean, isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
         borderRadius: 0,
-        borderTopWidth: isFirstItem ? 0 : 1,
-        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        borderWidth: isFirstItem ? 0 : 1,
+        borderColor: theme.transparent,
+        borderTopColor: isSelected ? theme.buttonHoveredBG : theme.border,
+
         ...(isLastItem ? styles.tableBottomRadius : {}),
     }),
 
@@ -1949,7 +1949,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+            case CONST.SEARCH.TABLE_COLUMNS.MCC:
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
                 columnWidth = {...getWidthStyle(variables.w92)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
+                columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
                 columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};

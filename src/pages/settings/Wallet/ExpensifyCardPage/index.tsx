@@ -22,7 +22,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -34,8 +33,8 @@ import {resetValidateActionCodeSent} from '@libs/actions/User';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
     formatCardExpiration,
-    getCardCurrency,
     getCardHintText,
+    getCardOrFeedCurrency,
     getDomainCards,
     getTranslationKeyForLimitType,
     isCardFrozen,
@@ -90,7 +89,6 @@ function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_C
 }
 
 function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
-    const {isProduction} = useEnvironment();
     const {cardID} = route.params;
     const {convertToDisplayString} = useCurrencyListActions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -150,7 +148,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     // Cards that are already activated and working (OPEN) and cards shipped but not activated yet can be reported as missing or damaged
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
-    const currency = getCardCurrency(currentCard, cardSettings);
+    const currency = getCardOrFeedCurrency(currentCard, cardSettings);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
     const shouldShowChangePINRow = isUkEuExpensifyCard(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const canRevealPIN = shouldShowChangePINRow && revealedPIN === undefined;
@@ -175,7 +173,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 return undefined;
             }
 
-            return Object.values(allPolicies ?? {}).find((policy) => policy?.workspaceAccountID === workspaceAccountID);
+            return Object.values(allPolicies ?? {}).find((policy) => policy?.policyAccountID === workspaceAccountID);
         },
         [currentCard?.fundID],
     );
@@ -211,8 +209,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     );
     const shouldShowReportVirtualCardFraudRows = !isSignedInAsDelegate && virtualCards.length > 0;
     const shouldShowReportTravelCardFraudRows = !isSignedInAsDelegate && isTravelCard(cardList?.[cardID]) && travelCards.length > 0;
-    const shouldShowSpendRulesSummary = !isProduction && isWorkspaceAdmin && spendRulesSummary.length > 0;
-    const shouldShowEditSpendRules = !isProduction && isWorkspaceAdmin;
+    const shouldShowEditSpendRules = isWorkspaceAdmin;
+    const shouldShowSpendRulesSummary = isWorkspaceAdmin && spendRulesSummary.length > 0;
     const shouldShowActionRows =
         shouldShowReportVirtualCardFraudRows || shouldShowReportTravelCardFraudRows || shouldShowReportLostCardButton || shouldShowSpendRulesSummary || shouldShowEditSpendRules;
     const shouldShowPhysicalCardFooterButton =
@@ -331,7 +329,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             title={translate('cardPage.suspiciousBannerTitle')}
                             description={translate('cardPage.suspiciousBannerDescription')}
                         />
-
                         <Button
                             style={[styles.mh5, styles.mb5]}
                             text={translate('cardPage.reviewTransaction')}
@@ -344,7 +341,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     <>
                         {(!isCardFrozen(currentCard) || !canManageCardFreeze) && (
                             <CardDetailsActionButtons style={styles.mb0}>
-                                {canManageCardFreeze && !isCardFrozen(currentCard) && (
+                                {canManageCardFreeze && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && !isCardFrozen(currentCard) && (
                                     <CardDetailsActionButton
                                         text={translate('cardPage.freezeCard')}
                                         icon={expensifyIcons.FreezeCard}
@@ -377,6 +374,15 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     small
                                 />
                             </View>
+                        )}
+                        {shouldShowSpendRulesSummary && (
+                            <MenuItemWithTopDescription
+                                interactive={false}
+                                description={translate('cardPage.spendRules')}
+                                descriptionTextStyle={[styles.fontSizeLabel]}
+                                titleComponent={spendRulesTitleComponent}
+                                accessibilityLabel={spendRulesSummary.join('. ')}
+                            />
                         )}
                         <MenuItemWithTopDescription
                             description={translate('cardPage.availableSpend')}
@@ -602,16 +608,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                     }
                                                     Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
                                                 }}
-                                            />
-                                        )}
-
-                                        {shouldShowSpendRulesSummary && (
-                                            <MenuItemWithTopDescription
-                                                description={translate('cardPage.spendRules')}
-                                                descriptionTextStyle={[styles.fontSizeLabel]}
-                                                titleComponent={spendRulesTitleComponent}
-                                                onPress={navigateToSpendRulesPage}
-                                                accessibilityLabel={spendRulesSummary.join('. ')}
                                             />
                                         )}
 

@@ -46,7 +46,7 @@ const mockPlaidFeedData = {
 
 const mockPolicy = {
     id: mockPolicyID,
-    workspaceAccountID,
+    policyAccountID: workspaceAccountID,
     employeeList: {
         'user1@example.com': {email: 'user1@example.com'},
         'user2@example.com': {email: 'user2@example.com'},
