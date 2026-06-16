@@ -6859,11 +6859,9 @@ Wenn du die Abrechnung für das gesamte Abonnement übernehmen willst, bitte sie
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `Die folgenden Reports wurden bereits nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} exportiert:
+            }: ExportAgainModalDescriptionParams) => `Die folgenden Berichte wurden bereits nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} exportiert. Möchten Sie sie wirklich erneut exportieren?
 
-${reportName}
-
-Möchten Sie sie wirklich noch einmal exportieren?`,
+${reportName}`,
             confirmText: 'Ja, erneut exportieren',
             cancelText: 'Abbrechen',
         },

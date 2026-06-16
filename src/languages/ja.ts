@@ -6770,11 +6770,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `次のレポートはすでに ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポートされています。
+            }: ExportAgainModalDescriptionParams) => `次のレポートはすでに ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポートされています。もう一度エクスポートしてもよろしいですか？
 
-${reportName}
-
-もう一度エクスポートしてもよろしいですか？`,
+${reportName}`,
             confirmText: 'はい、再度エクスポートします',
             cancelText: 'キャンセル',
         },
