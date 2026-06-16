@@ -7,9 +7,9 @@ import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/Vi
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+import useCurrentTimezone from '@hooks/useCurrentTimezone';
 import useTheme from '@hooks/useTheme';
 import ThemeContext from '@styles/theme/context/ThemeContext';
-import useCurrentTimezone from '@hooks/useCurrentTimezone';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';

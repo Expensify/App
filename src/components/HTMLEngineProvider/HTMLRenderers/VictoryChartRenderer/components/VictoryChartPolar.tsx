@@ -6,9 +6,9 @@ import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRendere
 import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
+import useCurrentTimezone from '@hooks/useCurrentTimezone';
 import useTheme from '@hooks/useTheme';
 import ThemeContext from '@styles/theme/context/ThemeContext';
-import useCurrentTimezone from '@hooks/useCurrentTimezone';
 import VictoryChartCategories from './VictoryChartCategories';
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';

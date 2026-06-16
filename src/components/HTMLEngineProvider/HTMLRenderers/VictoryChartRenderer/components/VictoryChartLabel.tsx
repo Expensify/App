@@ -5,9 +5,9 @@ import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';
+import {getLocalizedVictoryChartLabelText} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/localizeVictoryChartLabelText';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 import useTheme from '@hooks/useTheme';
-import {getLocalizedVictoryChartLabelText} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/localizeVictoryChartLabelText';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 type VictoryChartLabelsProps = LabelItem & {
