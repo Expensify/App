@@ -283,7 +283,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     // never confirmed, so leaving them in approvalWorkflow.members would carry an un-invited user into
     // the form and fail backend validation with "Approvals can only be set for members of the policy".
     // This must run on every back path, including when an explicit backTo is honored below.
-    const dropUnconfirmedStagedMembers = useCallback(() => {
+    const dropUnconfirmedStagedMembers = () => {
         // Going back means we're done with this expenses-from session, so any
         // hand-off to the invite-message page is no longer in flight.
         isHandingOffToInviteRef.current = false;
@@ -293,7 +293,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         if (confirmedMembers.length !== stagedMembers.length) {
             setApprovalWorkflowMembers(confirmedMembers);
         }
-    }, [approvalWorkflow?.members, policy?.employeeList]);
+    };
 
     const goBack = useCallback(() => {
         dropUnconfirmedStagedMembers();
@@ -328,22 +328,27 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             if (!member.login) {
                 continue;
             }
-            const isPolicyMember = policy?.employeeList?.[normalizeLogin(member.login)];
+            // Store the canonical SMS login (e164@expensify.sms) for phone members so it matches the key the
+            // invite writes into employeeList. If we kept the raw number, convertApprovalWorkflowToPolicyEmployees
+            // would index a separate, non-matching employee, so the member and submitsTo fall out of sync once
+            // online and the workflow gets dropped. No-op for email logins.
+            const memberLogin = normalizeLogin(member.login);
+            const isPolicyMember = policy?.employeeList?.[memberLogin];
             if (isPolicyMember) {
                 existingMembers.push({
                     displayName: member.text ?? '',
                     avatar: member.icons?.at(0)?.source,
-                    email: member.login,
+                    email: memberLogin,
                 });
             } else {
-                // This is a non-workspace member that needs to be invited
+                // This is a non-workspace member that needs to be invited.
+                // Carry the picker's display name and avatar so they survive the round-trip through
+                // approvalWorkflow.members, otherwise the invited user reverts to their email and a
+                // fallback avatar after returning from the invite step or on the confirm page.
                 const iconId = member.icons?.at(0)?.id;
                 const accountID = typeof iconId === 'number' ? iconId : undefined;
-                // Carry the picker's display name and avatar so they survive the round-trip through
-                // approvalWorkflow.members. Without this the invited user reverts to showing their email
-                // and a fallback avatar after returning from the invite step or on the confirm page.
                 usersToInvite.push({
-                    email: member.login,
+                    email: memberLogin,
                     accountID,
                     displayName: member.text,
                     avatar: member.icons?.at(0)?.source,
