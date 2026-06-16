@@ -302,7 +302,6 @@ describe('split expense', () => {
             actorAccountID: RORY_ACCOUNT_ID,
             created: DateUtils.getDBTime(),
             originalMessage: {
-                IOUReportID: julesIOUReportID,
                 IOUTransactionID: julesExistingTransaction?.transactionID,
                 amount: julesExistingTransaction?.amount ?? 0,
                 currency: CONST.CURRENCY.USD,
@@ -511,8 +510,7 @@ describe('split expense', () => {
                                 const carlosOriginalMessage = carlosIOUAction ? getOriginalMessage(carlosIOUAction) : undefined;
 
                                 expect(carlosIOUAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                                expect(carlosOriginalMessage?.IOUReportID).toBe(carlosIOUReport?.reportID);
-                                expect(carlosOriginalMessage?.amount).toBe(amount / 4);
+                                expect(carlosIOUAction?.reportID).toBe(carlosIOUReport?.reportID);
                                 expect(carlosOriginalMessage?.comment).toBe(comment);
                                 expect(carlosOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
                                 expect(Date.parse(carlosIOUCreatedAction?.created ?? '')).toBeLessThan(Date.parse(carlosIOUAction?.created ?? ''));
@@ -530,8 +528,7 @@ describe('split expense', () => {
                                 const julesOriginalMessage = julesIOUAction ? getOriginalMessage(julesIOUAction) : undefined;
 
                                 expect(julesIOUAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                                expect(julesOriginalMessage?.IOUReportID).toBe(julesIOUReport?.reportID);
-                                expect(julesOriginalMessage?.amount).toBe(amount / 4);
+                                expect(julesIOUAction?.reportID).toBe(julesIOUReport?.reportID);
                                 expect(julesOriginalMessage?.comment).toBe(comment);
                                 expect(julesOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
                                 expect(Date.parse(julesIOUCreatedAction?.created ?? '')).toBeLessThan(Date.parse(julesIOUAction?.created ?? ''));
@@ -548,8 +545,7 @@ describe('split expense', () => {
 
                                 expect(vitCreatedAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                 expect(vitIOUAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                                expect(vitOriginalMessage?.IOUReportID).toBe(vitIOUReport?.reportID);
-                                expect(vitOriginalMessage?.amount).toBe(amount / 4);
+                                expect(vitIOUAction?.reportID).toBe(vitIOUReport?.reportID);
                                 expect(vitOriginalMessage?.comment).toBe(comment);
                                 expect(vitOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
                                 expect(Date.parse(vitCreatedAction?.created ?? '')).toBeLessThan(Date.parse(vitIOUAction?.created ?? ''));
@@ -907,7 +903,12 @@ describe('split expense', () => {
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 callback: (reportActions) => {
                     Onyx.disconnect(connection);
-                    resolve(Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.amount === 200));
+                    resolve(
+                        Object.values(reportActions ?? {})
+                            .filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU))
+                            .sort((a, b) => (a.created ?? '').localeCompare(b.created ?? ''))
+                            .at(-1),
+                    );
                 },
             });
         });
@@ -2575,8 +2576,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         expect(newIOUAction?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.IOU);
         const newIOUOriginalMessage = getOriginalMessage(newIOUAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>);
         expect(newIOUOriginalMessage?.IOUTransactionID).toBe(originalTransactionID);
-        expect(newIOUOriginalMessage?.amount).toBe(amount);
-        expect(newIOUOriginalMessage?.currency).toBe(CONST.CURRENCY.USD);
         expect(newIOUOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
 
         // Verify the IOU action child counts

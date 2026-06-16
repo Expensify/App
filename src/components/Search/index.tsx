@@ -12,7 +12,7 @@ import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -23,6 +23,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -66,6 +67,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {
     cancelNavigateToReportsSpans,
@@ -125,18 +127,33 @@ type HoldMenuCallback = (item: TransactionReportGroupListItemType, requestType: 
 
 const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
 
-function mapTransactionItemToSelectedEntry(
-    item: TransactionListItemType,
-    itemTransaction: OnyxEntry<Transaction>,
-    originalItemTransaction: OnyxEntry<Transaction>,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
-    allowNegativeAmount: boolean,
-    parentReport: OnyxEntry<Report> | undefined,
-    selfDMReport: OnyxEntry<Report> | undefined,
-    isProduction: boolean,
-): [string, SelectedTransactionInfo] {
+type MapTransactionItemToSelectedEntryParams = {
+    item: TransactionListItemType;
+    itemTransaction: OnyxEntry<Transaction>;
+    originalItemTransaction: OnyxEntry<Transaction>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    archivedReportsIDSet: ArchivedReportsIDSet;
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
+    selfDMReport: OnyxEntry<Report>;
+    isProduction: boolean;
+    allowNegativeAmount: boolean;
+    parentReport: OnyxEntry<Report> | undefined;
+};
+
+function mapTransactionItemToSelectedEntry({
+    item,
+    itemTransaction,
+    originalItemTransaction,
+    currentUserLogin,
+    currentUserAccountID,
+    archivedReportsIDSet,
+    outstandingReportsByPolicyID,
+    selfDMReport,
+    isProduction,
+    allowNegativeAmount,
+    parentReport,
+}: MapTransactionItemToSelectedEntryParams): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
@@ -161,6 +178,7 @@ function mapTransactionItemToSelectedEntry(
                 transaction: item,
                 report: item.report,
                 policy: item.policy,
+                archivedReportsIDSet,
             }),
             action: item.action,
             groupCurrency: item.groupCurrency,
@@ -228,36 +246,52 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
     ];
 }
 
-function prepareTransactionsList(
-    item: TransactionListItemType,
-    itemTransaction: OnyxEntry<Transaction>,
-    originalItemTransaction: OnyxEntry<Transaction>,
-    selectedTransactions: SelectedTransactions,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
-    parentReport: OnyxEntry<Report> | undefined,
-    selfDMReport: OnyxEntry<Report> | undefined,
-    isProduction: boolean,
-) {
+type PrepareTransactionsListParams = {
+    item: TransactionListItemType;
+    itemTransaction: OnyxEntry<Transaction>;
+    originalItemTransaction: OnyxEntry<Transaction>;
+    selectedTransactions: SelectedTransactions;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    archivedReportsIDSet: ArchivedReportsIDSet;
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
+    selfDMReport: OnyxEntry<Report>;
+    isProduction: boolean;
+    parentReport: OnyxEntry<Report> | undefined;
+};
+
+function prepareTransactionsList({
+    item,
+    itemTransaction,
+    originalItemTransaction,
+    selectedTransactions,
+    currentUserLogin,
+    currentUserAccountID,
+    archivedReportsIDSet,
+    outstandingReportsByPolicyID,
+    selfDMReport,
+    isProduction,
+    parentReport,
+}: PrepareTransactionsListParams) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
         return transactions;
     }
 
-    const [key, selectedInfo] = mapTransactionItemToSelectedEntry(
+    const [key, selectedInfo] = mapTransactionItemToSelectedEntry({
         item,
         itemTransaction,
         originalItemTransaction,
         currentUserLogin,
         currentUserAccountID,
+        archivedReportsIDSet,
         outstandingReportsByPolicyID,
-        false,
-        parentReport,
         selfDMReport,
         isProduction,
-    );
+        allowNegativeAmount: false,
+        parentReport,
+    });
 
     return {
         ...selectedTransactions,
@@ -307,8 +341,6 @@ function Search({
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
@@ -316,7 +348,9 @@ function Search({
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributesDerivedValue = useReportAttributes();
 
     const {
         showPendingExpensePlaceholder,
@@ -331,15 +365,17 @@ function Search({
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     const [exportReportActions] = useOnyx<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction[]> | undefined>(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: selectFilteredReportActions,
     });
 
     const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
-    // Only the boolean derived from policyForMovingExpenses is consumed by row components downstream.
-    // Drilling the policy object causes ref churn on every unrelated policy update (Pusher pushes).
+    // getSections only needs the boolean (it gates attendees on unreported transactions for the
+    // attendees sort columns), not the policy object. Passing the object would churn the screen-level
+    // getSections memo on every unrelated policy update (Pusher pushes); the boolean only flips when
+    // attendee tracking on the moving policy toggles. Rows derive their own display gate independently.
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
     const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
@@ -555,7 +591,6 @@ function Search({
         const [filteredData1, allLength, hasDeletedTransactionFromSections] = getSections({
             type,
             data: searchDataWithOptimisticTransaction,
-            policies,
             currentAccountID: accountID,
             currentUserEmail: email ?? '',
             translate,
@@ -564,18 +599,19 @@ function Search({
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: currentSearchKey,
-            archivedReportsIDList: archivedReportsIdSet,
+            archivedReportsIDList: archivedReportsIDSet,
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
-            cardList: nonPersonalAndWorkspaceCards,
+            cardList: personalAndWorkspaceCards,
+            nonPersonalAndWorkspaceCardList: nonPersonalAndWorkspaceCards,
             isOffline,
-            allTransactionViolations: violations,
             customCardNames,
             conciergeReportID,
             onyxPersonalDetailsList,
-            policyForMovingExpenses,
+            isAttendeesEnabledForMovingPolicy,
             convertToDisplayString,
+            reportAttributesDerivedValue,
             optimisticTransactionID: optimisticTrackingState.optimisticWatchKey?.toString().replace(ONYXKEYS.COLLECTION.TRANSACTION, ''),
         });
         return {
@@ -594,7 +630,7 @@ function Search({
         searchDataWithOptimisticTransaction,
         searchResults,
         type,
-        archivedReportsIdSet,
+        archivedReportsIDSet,
         translate,
         formatPhoneNumber,
         accountID,
@@ -602,15 +638,15 @@ function Search({
         email,
         isActionLoadingSet,
         cardFeeds,
+        personalAndWorkspaceCards,
         nonPersonalAndWorkspaceCards,
-        policies,
         bankAccountList,
-        violations,
         customCardNames,
         conciergeReportID,
         onyxPersonalDetailsList,
-        policyForMovingExpenses,
+        isAttendeesEnabledForMovingPolicy,
         convertToDisplayString,
+        reportAttributesDerivedValue,
         optimisticTrackingState.optimisticWatchKey,
     ]);
 
@@ -1058,18 +1094,19 @@ function Search({
                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                 const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`] as OnyxEntry<Report>;
-                const updatedTransactions = prepareTransactionsList(
+                const updatedTransactions = prepareTransactionsList({
                     item,
                     itemTransaction,
                     originalItemTransaction,
                     selectedTransactions,
-                    email ?? '',
-                    accountID,
+                    currentUserLogin: email ?? '',
+                    currentUserAccountID: accountID,
+                    archivedReportsIDSet,
                     outstandingReportsByPolicyID,
-                    itemParentReport,
                     selfDMReport,
                     isProduction,
-                );
+                    parentReport: itemParentReport,
+                });
 
                 // Tag individual transactions with their parent group key so export filtering can derive the group when needed.
                 if (areItemsGrouped) {
@@ -1141,18 +1178,19 @@ function Search({
                                 searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
                                 transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                             const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                            const [key, entry] = mapTransactionItemToSelectedEntry(
-                                transactionItem,
+                            const [key, entry] = mapTransactionItemToSelectedEntry({
+                                item: transactionItem,
                                 itemTransaction,
                                 originalItemTransaction,
-                                email ?? '',
-                                accountID,
+                                currentUserLogin: email ?? '',
+                                currentUserAccountID: accountID,
+                                archivedReportsIDSet,
                                 outstandingReportsByPolicyID,
-                                true,
-                                itemParentReport,
                                 selfDMReport,
                                 isProduction,
-                            );
+                                allowNegativeAmount: true,
+                                parentReport: itemParentReport,
+                            });
                             return [key, {...entry, groupKey: item.keyForList}];
                         }),
                 ),
@@ -1168,6 +1206,7 @@ function Search({
             searchResults?.data,
             email,
             accountID,
+            archivedReportsIDSet,
             outstandingReportsByPolicyID,
             selfDMReport,
             isProduction,
@@ -1488,18 +1527,19 @@ function Search({
                         const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                         const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                        const [key, entry] = mapTransactionItemToSelectedEntry(
-                            transactionItem,
+                        const [key, entry] = mapTransactionItemToSelectedEntry({
+                            item: transactionItem,
                             itemTransaction,
                             originalItemTransaction,
-                            email ?? '',
-                            accountID,
+                            currentUserLogin: email ?? '',
+                            currentUserAccountID: accountID,
+                            archivedReportsIDSet,
                             outstandingReportsByPolicyID,
-                            true,
-                            itemParentReport,
                             selfDMReport,
                             isProduction,
-                        );
+                            allowNegativeAmount: true,
+                            parentReport: itemParentReport,
+                        });
                         return [key, {...entry, groupKey: item.keyForList}] as [string, SelectedTransactionInfo];
                     });
             });
@@ -1513,18 +1553,19 @@ function Search({
                         const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                         const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                        return mapTransactionItemToSelectedEntry(
-                            transactionItem,
+                        return mapTransactionItemToSelectedEntry({
+                            item: transactionItem,
                             itemTransaction,
                             originalItemTransaction,
-                            email ?? '',
-                            accountID,
+                            currentUserLogin: email ?? '',
+                            currentUserAccountID: accountID,
+                            archivedReportsIDSet,
                             outstandingReportsByPolicyID,
-                            true,
-                            itemParentReport,
                             selfDMReport,
                             isProduction,
-                        );
+                            allowNegativeAmount: true,
+                            parentReport: itemParentReport,
+                        });
                     }),
             );
         }
@@ -1538,10 +1579,11 @@ function Search({
         updateSelectAllMatchingItemsState,
         clearSelectedTransactions,
         transactions,
+        searchResults?.data,
         email,
         accountID,
+        archivedReportsIDSet,
         outstandingReportsByPolicyID,
-        searchResults?.data,
         selfDMReport,
         isProduction,
     ]);
@@ -1892,7 +1934,6 @@ function Search({
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     isActionColumnWide={isTask || hasDeletedTransaction}
                 />
