@@ -3,7 +3,6 @@ import {findFocusedRoute, StackActions, TabActions} from '@react-navigation/nati
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-// eslint-disable-next-line no-restricted-imports -- TransitionTracker is needed here to sequence the tab jump after the popToTop transition completes, so WorkspaceInitialPage appears before the tab becomes visible.
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
