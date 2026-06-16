@@ -156,6 +156,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 onConfirm: () => startAnimation(),
             };
             if (getPlatform() === CONST.PLATFORM.IOS) {
+                // TransitionTracker.runAfterTransitions delays modal until current interaction completes, preventing visual glitches on iOS
                 TransitionTracker.runAfterTransitions({
                     callback: () => {
                         openHoldMenu(holdMenuParams);
