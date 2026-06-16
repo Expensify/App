@@ -13,6 +13,7 @@ import getDiscardChangesModalConfig from '@hooks/useDiscardChangesConfirmation/g
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Growl from '@libs/Growl';
 import Log from '@libs/Log';
 import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
@@ -189,6 +190,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                     .then(() => guard.onDiscard())
                     .catch((error: unknown) => {
                         Log.warn('[OnyxTabNavigator] Failed to run tab-switch onDiscard callback', {error});
+                        Growl.error(translate('common.genericErrorMessage'));
                     })
                     .then(() => {
                         navigation.dispatch(TabActions.jumpTo(targetRoute.name));

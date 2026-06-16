@@ -9,8 +9,10 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import * as TransactionEdit from '@libs/actions/TransactionEdit';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TabSwitchGuardContext from '@libs/Navigation/TabSwitchGuardContext';
 import type {RegisterTabSwitchGuard, TabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import IOURequestStepDistanceOdometer from '@pages/iou/request/step/IOURequestStepDistanceOdometer';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -126,6 +128,20 @@ const TRANSACTION_ID = 'txn-odometer-backup-1';
 const ODOMETER_START = 100;
 const ODOMETER_END = 300;
 
+// Typed route for the odometer step, built against the single screen so `action`/`backToReport` need no casts.
+function createOdometerRoute(): PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER>['route'] {
+    return {
+        key: 'Money_Request_Step_Distance_Odometer-test',
+        name: SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER,
+        params: {
+            action: CONST.IOU.ACTION.CREATE,
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            reportID: REPORT_ID,
+            transactionID: TRANSACTION_ID,
+        },
+    };
+}
+
 function createTestReport(): Report {
     return {
         reportID: REPORT_ID,
@@ -170,17 +186,7 @@ function renderEditFromConfirmationOdometer() {
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
                 <IOURequestStepDistanceOdometer
-                    route={{
-                        key: 'Money_Request_Step_Distance_Odometer-test',
-                        name: SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER,
-                        params: {
-                            action: CONST.IOU.ACTION.CREATE as never,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            reportID: REPORT_ID,
-                            transactionID: TRANSACTION_ID,
-                            backToReport: undefined as never,
-                        },
-                    }}
+                    route={createOdometerRoute()}
                     // @ts-expect-error minimal navigation for test
                     navigation={undefined}
                 />
@@ -266,17 +272,7 @@ describe('IOURequestStepDistanceOdometer - discard guard detects user image chan
                 <CurrentUserPersonalDetailsProvider>
                     <TabSwitchGuardContext.Provider value={register}>
                         <IOURequestStepDistanceOdometer
-                            route={{
-                                key: 'Money_Request_Step_Distance_Odometer-test',
-                                name: SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER,
-                                params: {
-                                    action: CONST.IOU.ACTION.CREATE as never,
-                                    iouType: CONST.IOU.TYPE.SUBMIT,
-                                    reportID: REPORT_ID,
-                                    transactionID: TRANSACTION_ID,
-                                    backToReport: undefined as never,
-                                },
-                            }}
+                            route={createOdometerRoute()}
                             // @ts-expect-error minimal navigation for test
                             navigation={undefined}
                         />

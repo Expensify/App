@@ -9,6 +9,8 @@ import Onyx from 'react-native-onyx';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {isOdometerDraftPendingHydration} from '@libs/actions/OdometerTransactionUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import IOURequestStepDistanceOdometer from '@pages/iou/request/step/IOURequestStepDistanceOdometer';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -155,22 +157,27 @@ function createOdometerDraftTransaction(): Transaction {
     };
 }
 
+// The DISTANCE_CREATE route types `action`/`backTo` as `never` (unused for navigation but read at runtime here),
+// so the params object can't be built without one assertion.
+function createDistanceCreateRoute(): PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>['route'] {
+    return {
+        key: 'Money_Request_Distance_Create-test',
+        name: SCREENS.MONEY_REQUEST.DISTANCE_CREATE,
+        params: {
+            action: CONST.IOU.ACTION.CREATE,
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            reportID: REPORT_ID,
+            transactionID: TRANSACTION_ID,
+        } as unknown as MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE],
+    };
+}
+
 function renderCreateOdometer() {
     return render(
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
                 <IOURequestStepDistanceOdometer
-                    route={{
-                        key: 'Money_Request_Distance_Create-test',
-                        name: SCREENS.MONEY_REQUEST.DISTANCE_CREATE,
-                        params: {
-                            action: CONST.IOU.ACTION.CREATE as never,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            reportID: REPORT_ID,
-                            transactionID: TRANSACTION_ID,
-                            backToReport: undefined as never,
-                        },
-                    }}
+                    route={createDistanceCreateRoute()}
                     // @ts-expect-error minimal navigation for test
                     navigation={undefined}
                 />

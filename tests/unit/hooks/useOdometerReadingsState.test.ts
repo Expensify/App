@@ -2,25 +2,33 @@ import {act, renderHook} from '@testing-library/react-native';
 import useOdometerReadingsState from '@pages/iou/request/step/IOURequestStepDistance/hooks/useOdometerReadingsState';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+import createRandomTransaction from '../../utils/collections/transaction';
 
 const mockIsOdometerDraftPendingHydration = jest.fn(() => false);
 
 jest.mock('@libs/actions/OdometerTransactionUtils', () => ({
-    isOdometerDraftPendingHydration: (...args: unknown[]) => mockIsOdometerDraftPendingHydration(...(args as Parameters<typeof mockIsOdometerDraftPendingHydration>)),
+    isOdometerDraftPendingHydration: () => mockIsOdometerDraftPendingHydration(),
 }));
 
 type Params = Parameters<typeof useOdometerReadingsState>[0];
 
-const buildOdometerTransaction = (overrides: Partial<OnyxTypes.Transaction['comment']> = {}): OnyxTypes.Transaction =>
-    ({
+const buildOdometerTransaction = (
+    commentOverrides: Partial<OnyxTypes.Transaction['comment']> = {},
+    iouRequestType: OnyxTypes.Transaction['iouRequestType'] = CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+): OnyxTypes.Transaction => {
+    const transaction = createRandomTransaction(1);
+    return {
+        ...transaction,
         transactionID: 't1',
-        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+        iouRequestType,
         comment: {
+            ...transaction.comment,
             odometerStart: 100,
             odometerEnd: 250,
-            ...overrides,
+            ...commentOverrides,
         },
-    }) as unknown as OnyxTypes.Transaction;
+    };
+};
 
 const baseParams: Params = {
     currentTransaction: buildOdometerTransaction(),
@@ -67,7 +75,7 @@ describe('useOdometerReadingsState', () => {
         const {result} = renderHook(() =>
             useOdometerReadingsState({
                 ...baseParams,
-                odometerDraft: {odometerStartReading: 999} as unknown as OnyxTypes.OdometerDraft,
+                odometerDraft: {odometerStartReading: 999},
             }),
         );
 
@@ -82,7 +90,7 @@ describe('useOdometerReadingsState', () => {
             useOdometerReadingsState({
                 ...baseParams,
                 currentTransaction: buildOdometerTransaction({odometerStart: 120, odometerEnd: 300}),
-                odometerDraft: {odometerStartReading: 100, odometerEndReading: 250} as unknown as OnyxTypes.OdometerDraft,
+                odometerDraft: {odometerStartReading: 100, odometerEndReading: 250},
             }),
         );
 
@@ -99,7 +107,7 @@ describe('useOdometerReadingsState', () => {
             useOdometerReadingsState({
                 ...baseParams,
                 currentTransaction: buildOdometerTransaction(),
-                odometerDraft: {odometerStartReading: 100, odometerEndReading: 250, odometerStartImage: 'data:image/png;base64,xxx'} as unknown as OnyxTypes.OdometerDraft,
+                odometerDraft: {odometerStartReading: 100, odometerEndReading: 250, odometerStartImage: 'data:image/png;base64,xxx'},
             }),
         );
 
@@ -116,7 +124,7 @@ describe('useOdometerReadingsState', () => {
             useOdometerReadingsState({
                 ...baseParams,
                 currentTransaction: buildOdometerTransaction(),
-                odometerDraft: {odometerStartReading: 100, odometerEndReading: 250} as unknown as OnyxTypes.OdometerDraft,
+                odometerDraft: {odometerStartReading: 100, odometerEndReading: 250},
             }),
         );
 
@@ -135,7 +143,7 @@ describe('useOdometerReadingsState', () => {
             useOdometerReadingsState({
                 ...baseParams,
                 currentTransaction: buildOdometerTransaction({odometerStartImage: startImage, odometerEndImage: endImage}),
-                odometerDraft: {odometerStartReading: 100, odometerEndReading: 250} as unknown as OnyxTypes.OdometerDraft,
+                odometerDraft: {odometerStartReading: 100, odometerEndReading: 250},
             }),
         );
 
@@ -145,11 +153,7 @@ describe('useOdometerReadingsState', () => {
     });
 
     it('skips initialization on a non-odometer transaction unless we are editing', () => {
-        const transaction = {
-            transactionID: 't1',
-            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-            comment: {odometerStart: 100, odometerEnd: 250},
-        } as unknown as OnyxTypes.Transaction;
+        const transaction = buildOdometerTransaction({}, CONST.IOU.REQUEST_TYPE.DISTANCE);
 
         const {result} = renderHook(() => useOdometerReadingsState({...baseParams, currentTransaction: transaction, isEditing: false}));
 
@@ -201,11 +205,7 @@ describe('useOdometerReadingsState', () => {
     // Create flow at the unit level: a fresh mount snapshots an EMPTY baseline, so readings typed + committed
     // via Next later differ from it and leaving prompts. The screen stays mounted across Next -> back, so it survives
     it('captures an empty baseline on a fresh create mount with no readings yet', () => {
-        const emptyTransaction = {
-            transactionID: 't1',
-            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
-            comment: {},
-        } as unknown as OnyxTypes.Transaction;
+        const emptyTransaction = buildOdometerTransaction({odometerStart: undefined, odometerEnd: undefined});
         const {result} = renderHook(() => useOdometerReadingsState({...baseParams, currentTransaction: emptyTransaction}));
 
         expect(result.current.hasInitializedRefs.current).toBe(true);

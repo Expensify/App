@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OdometerDraft, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import currencyList from '../unit/currencyList.json';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -176,12 +176,14 @@ describe('actions/OdometerTransactionUtils', () => {
         });
 
         it('should remove odometer start image from a draft transaction', () => {
-            const transaction = {
-                ...createRandomTransaction(1),
+            const base = createRandomTransaction(1);
+            const transaction: Transaction = {
+                ...base,
                 comment: {
+                    ...base.comment,
                     odometerStartImage: {uri: 'image.uri'},
                 },
-            } as Transaction;
+            };
             const transactionID = transaction.transactionID;
             const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.START;
 
@@ -197,12 +199,14 @@ describe('actions/OdometerTransactionUtils', () => {
         });
 
         it('should remove odometer end image from a non-draft transaction', () => {
-            const transaction = {
-                ...createRandomTransaction(1),
+            const base = createRandomTransaction(1);
+            const transaction: Transaction = {
+                ...base,
                 comment: {
+                    ...base.comment,
                     odometerEndImage: {uri: 'image.uri'},
                 },
-            } as Transaction;
+            };
             const transactionID = transaction.transactionID;
             const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.END;
 
@@ -279,7 +283,7 @@ describe('actions/OdometerTransactionUtils', () => {
         const STEADY: OdometerUnsavedChangesState = {
             isGuardActive: true,
             isUserTyping: false,
-            odometerDraft: {odometerStartReading: 100, odometerEndReading: 250} as unknown as OdometerDraft,
+            odometerDraft: {odometerStartReading: 100, odometerEndReading: 250},
             currentComment: {odometerStart: 100, odometerEnd: 250},
             transactionStartImageUri: '',
             transactionEndImageUri: '',
@@ -320,7 +324,7 @@ describe('actions/OdometerTransactionUtils', () => {
             expect(
                 getOdometerHasUnsavedChanges(
                     buildState({
-                        odometerDraft: {odometerStartReading: 100, odometerEndReading: 250, odometerStartImage: 'data:image/png;base64,xxx'} as unknown as OdometerDraft,
+                        odometerDraft: {odometerStartReading: 100, odometerEndReading: 250, odometerStartImage: 'data:image/png;base64,xxx'},
                         transactionStartImageUri: '',
                         baselineStartImageUri: '',
                     }),
@@ -348,7 +352,7 @@ describe('actions/OdometerTransactionUtils', () => {
             expect(
                 getOdometerHasUnsavedChanges(
                     buildState({
-                        odometerDraft: {odometerStartReading: 100, odometerEndReading: 300} as unknown as OdometerDraft,
+                        odometerDraft: {odometerStartReading: 100, odometerEndReading: 300},
                         currentComment: {odometerStart: 100, odometerEnd: 400},
                         hasReadingChanges: true,
                     }),

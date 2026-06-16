@@ -4,23 +4,28 @@ import useOdometerTransactionBackup from '@pages/iou/request/step/IOURequestStep
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const TRANSACTION_ID = 'odometer-backup-test';
 
-const buildOdometerTransaction = (overrides: Partial<OnyxTypes.Transaction['comment']> = {}): OnyxTypes.Transaction =>
-    ({
+const buildOdometerTransaction = (commentOverrides: Partial<OnyxTypes.Transaction['comment']> = {}): OnyxTypes.Transaction => {
+    const transaction = createRandomTransaction(1);
+    return {
+        ...transaction,
         transactionID: TRANSACTION_ID,
         iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
         amount: 1234,
         merchant: '5 mi',
         comment: {
+            ...transaction.comment,
             odometerStart: 100,
             odometerEnd: 250,
-            ...overrides,
+            ...commentOverrides,
         },
-    }) as unknown as OnyxTypes.Transaction;
+    };
+};
 
 type Params = Parameters<typeof useOdometerTransactionBackup>[0];
 
