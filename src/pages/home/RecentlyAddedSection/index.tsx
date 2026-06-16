@@ -4,6 +4,7 @@ import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import WidgetContainer from '@components/WidgetContainer';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -45,6 +46,7 @@ function RecentlyAddedSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots', 'Receipt']);
     const {calculatePopoverPosition} = usePopoverPosition();
+    const {markReportIDAsExpense} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -104,6 +106,9 @@ function RecentlyAddedSection() {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME));
             return;
         }
+        // Each row opens a single-expense view that always lands in Wide RHP. Marking the report as an expense
+        // lets the RHP open wide immediately, before its data loads, instead of flickering from narrow to wide.
+        markReportIDAsExpense(reportID);
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME}));
     };
 
