@@ -250,10 +250,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_BANK_CONNECTION]: {
-                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_BANK_CONNECTION.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION]: {
                             path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.route,
                             exact: true,
@@ -464,18 +460,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: {
                             path: ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.route,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: {
-                            path: ROUTES.SETTINGS_LEGAL_NAME,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.PHONE_NUMBER]: {
-                            path: ROUTES.SETTINGS_PHONE_NUMBER,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: {
-                            path: ROUTES.SETTINGS_DATE_OF_BIRTH,
-                            exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
                             path: ROUTES.SETTINGS_ADDRESS,
@@ -839,9 +823,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
                         },
-                        [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.route,
-                        },
                         [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.route,
                         },
@@ -1195,6 +1176,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
                             path: ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.route,
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_TYPE_SELECTOR]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELDS_TYPE_SELECTOR.route,
                         },
                         [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {
                             path: ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.route,
@@ -1676,7 +1660,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     screens: {
                         [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: ROUTES.SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD,
                         [SCREENS.I_KNOW_A_TEACHER]: ROUTES.I_KNOW_A_TEACHER,
-                        [SCREENS.INTRO_SCHOOL_PRINCIPAL]: ROUTES.INTRO_SCHOOL_PRINCIPAL,
                         [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,
                     },
                 },
@@ -1795,7 +1778,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_HOURS]: ROUTES.MONEY_REQUEST_STEP_HOURS.route,
                         [SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT]: ROUTES.MONEY_REQUEST_STEP_HOURS_EDIT.route,
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
-                        [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
                             path: ROUTES.SPLIT_EXPENSE.route,

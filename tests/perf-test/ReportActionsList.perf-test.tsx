@@ -122,7 +122,6 @@ function ReportActionsListWrapper() {
                             loadNewerChats={mockLoadChats}
                             hasNewerActions={false}
                             sortedAllReportActionsForPagination={reportActions}
-                            reportActionPages={undefined}
                             treatAsNoPaginationAnchor={false}
                             setTreatAsNoPaginationAnchor={() => {}}
                             transactionThreadReport={report}
