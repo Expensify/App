@@ -46,9 +46,17 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
     const [foregroundLocationPermissionsGranted, setForegroundLocationPermissionsGranted] = useState<boolean | null>(null);
     // Request foreground location permissions if not granted yet to determine if we can use followUserLocation prop on the map camera
     useFocusEffect(() => {
+        let ignore = false;
         requestForegroundPermissionsAsync().then(({granted}) => {
+            if (ignore) {
+                return;
+            }
             setForegroundLocationPermissionsGranted(granted);
         });
+
+        return () => {
+            ignore = true;
+        };
     });
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
@@ -90,7 +98,7 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
             }
         }
         prevWaypointsLength.current = currentLength;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps - only run when waypoints length changes
     }, [waypoints?.length]);
 
     useFocusEffect(() => {
