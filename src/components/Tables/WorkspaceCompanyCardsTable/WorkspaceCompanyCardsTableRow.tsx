@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatMaskedCardName, getCardFeedWithDomainID} from '@libs/CardUtils';
+import {formatMaskedCardName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
@@ -46,6 +46,9 @@ type WorkspaceCompanyCardTableRowProps = {
     /** Policy ID */
     policyID: string;
 
+    /** Selected card feed */
+    feedName?: CompanyCardFeedWithDomainID;
+
     /** Card feed icon element */
     CardFeedIcon?: React.ReactNode;
 
@@ -72,6 +75,7 @@ type WorkspaceCompanyCardTableRowProps = {
 function WorkspaceCompanyCardTableRow({
     item,
     policyID,
+    feedName,
     CardFeedIcon,
     shouldUseNarrowTableLayout,
     rowIndex,
@@ -110,7 +114,7 @@ function WorkspaceCompanyCardTableRow({
         ? {width: variables.cardAvatarWidth, height: variables.cardAvatarHeight}
         : {width: variables.cardAvatarWidthSmall, height: variables.cardAvatarHeightSmall};
 
-    const canOpenCardDetails = !!assignedCard?.accountID && !!assignedCard?.fundID && assignedCard?.cardID !== undefined;
+    const canOpenCardDetails = !!assignedCard?.accountID && assignedCard?.cardID !== undefined && !!feedName;
     const canAssignCard = !isAssigned && canWriteCompanyCards && !isAssigningCardDisabled;
     const canPressRow = canOpenCardDetails || canAssignCard;
 
@@ -124,14 +128,12 @@ function WorkspaceCompanyCardTableRow({
             return;
         }
 
-        const {cardID, fundID} = assignedCard;
-        if (!canOpenCardDetails || cardID === undefined || !fundID) {
+        const {cardID} = assignedCard;
+        if (!canOpenCardDetails || cardID === undefined || !feedName) {
             return;
         }
 
-        const feedName = getCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, fundID);
-
-        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName as CompanyCardFeedWithDomainID, cardID.toString()));
+        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID.toString()));
     };
 
     return (

@@ -1,5 +1,6 @@
 import {getCompanyFeeds, getSelectedFeed} from '@libs/CardUtils';
-import {isPolicyAdmin as isPolicyAdminPolicyUtils} from '@libs/PolicyUtils';
+import {canMemberWrite} from '@libs/PolicyUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isAdminSelector} from '@src/selectors/Domain';
 import useCardFeeds from './useCardFeeds';
@@ -8,10 +9,10 @@ import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 
 function useIsAllowedToIssueCompanyCard({policyID}: {policyID?: string}) {
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const policy = usePolicy(policyID);
-    const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
+    const canWriteCompanyCards = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyCards = getCompanyFeeds(cardFeeds);
@@ -21,7 +22,7 @@ function useIsAllowedToIssueCompanyCard({policyID}: {policyID?: string}) {
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${selectedFeedData?.domainID}`);
 
     if (selectedFeedData?.domainID === policy?.policyAccountID || (policyID && selectedFeedData?.linkedPolicyIDs?.some((id) => id.toUpperCase() === policyID.toUpperCase()))) {
-        return isPolicyAdmin;
+        return canWriteCompanyCards;
     }
 
     return isAdminSelector(currentUserAccountID)(domain);

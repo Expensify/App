@@ -63,7 +63,9 @@ const translations: TranslationDeepObject<typeof en> = {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
+        markAsDone: 'Marcar como listo',
         submitted: 'Enviado',
+        markedAsDoneStatus: 'Marcado como listo',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
@@ -312,6 +314,10 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Encuentra un chat usando el botón',
             subtitleText2: 'o crea algo usando el botón',
             subtitleText3: '.',
+            noUnreadChats: 'No hay chats sin leer',
+            noTodos: 'No hay tareas pendientes',
+            caughtUp: 'Te has puesto al día. ¡Bien hecho!',
+            seeAllChats: 'Ver todos los chats',
         },
         businessName: 'Nombre de la empresa',
         clear: 'Borrar',
@@ -801,6 +807,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users) => `Este chat es con ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName, submitterDisplayName) =>
             `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Aquí es donde harás seguimiento de los gastos',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
@@ -996,6 +1003,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Todo al día',
                 f1FlagsDescription: 'Has completado todas las tareas pendientes.',
             },
+            reviewExpenses: ({count}: {count: number}) => `Revisa ${count} ${count === 1 ? 'gasto' : 'gastos'}`,
         },
         gettingStartedSection: {
             title: 'Primeros pasos',
@@ -1312,6 +1320,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount) => `Enviar factura de ${amount}`,
         expenseAmount: (formattedAmount, comment) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: (memo) => `enviado${memo ? `, dijo ${memo}` : ''}`,
+        markedAsDone: (memo) => `marcado como listo${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
         failedToAutoSubmitViaDEW: (reason: string) => `no ha podido enviar este informe mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>. ${reason}`,
@@ -1743,6 +1752,17 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador envíe los gastos.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (actor, actorType, _eta, _etaType) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> lo marques como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> lo marque como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador lo marque como listo.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_actor, _actorType, _eta, _etaType) => `¡No se requiere ninguna acción adicional!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (actor, actorType, _eta, _etaType) => {
                 switch (actorType) {
@@ -2120,12 +2140,16 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: 'Informar de actividad sospechosa',
         lockAccount: 'Bloquear cuenta',
+        lockMyAccount: 'Bloquear mi cuenta',
         unlockAccount: 'Desbloquear cuenta',
         unlockTitle: 'Hemos recibido tu solicitud',
         unlockDescription: 'Revisaremos la cuenta para verificar que sea seguro desbloquearla y nos comunicaremos a través de Concierge si tenemos alguna pregunta.',
-        compromisedDescription:
-            '¿Notas algo extraño en tu cuenta? Informarlo bloqueará tu cuenta de inmediato, detendrá nuevas transacciones con la Tarjeta Expensify y evitará cualquier cambio en la cuenta.',
-        domainAdminsDescription: 'Para administradores de dominio: Esto también detiene toda la actividad de la Tarjeta Expensify y las acciones administrativas en tus dominios.',
+        findYourSituation: '¡La mayoría de los problemas no requieren bloquear tu cuenta! Busca tu situación a continuación:',
+        lostCardOrCharges:
+            '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Tarjeta perdida o cargos desconocidos</a>: Cancela tu tarjeta y contacta con Concierge para disputar transacciones desconocidas.',
+        unauthorizedAccess:
+            '<a href="https://help.expensify.com/articles/expensify-classic/settings/Report-Suspicious-Activity">Acceso no autorizado a la cuenta</a>: Bloquea tu cuenta abajo. Esto bloquea nuevas transacciones con la Tarjeta Expensify, pedidos de tarjetas y cambios en la cuenta. Si eres administrador de dominio, esto también pausa toda la actividad de tarjetas y las acciones de administrador en todo el dominio.',
+        securityTeamFollowUp: 'Nuestro equipo de seguridad hará un seguimiento desde <a href="mailto:risk@expensify.com">risk@expensify.com</a> después del bloqueo.',
         areYouSure: '¿Estás seguro de que deseas bloquear tu cuenta de Expensify?',
         onceLocked: 'Una vez bloqueada, tu cuenta estará restringida hasta que se solicite el desbloqueo y se realice una revisión de seguridad.',
     },
@@ -2478,13 +2502,10 @@ ${amount} para ${merchant} - ${date}`,
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `gastos de ${members}, y el aprobador es ${approvers}`,
         addApprovalButton: 'Añadir flujo de aprobación',
         editWorkflowAction: 'Editar',
-        addAgentAction: 'Añadir agente',
         findWorkflow: 'Buscar flujo de trabajo',
         addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
-        automateApprovalsWithAgentsTitle: 'Automatiza las aprobaciones con agentes',
-        automateApprovalsWithAgentsSubtitle: 'Añade el agente de abajo al flujo de trabajo para automatizar las aprobaciones.',
         configureViaHR: ({provider}: {provider: string}) => `Configurar mediante ${provider}.`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Las aprobaciones se gestionan mediante tu integración de ${provider}. Para actualizar tu flujo de aprobación, ve a la configuración de conexión de ${provider}.`,
@@ -2674,11 +2695,11 @@ ${amount} para ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agentes',
-        subtitle: 'Automatiza tareas con agentes personalizados.',
+        subtitle: `<muted-text>Crea agentes para gestionar tu flujo de trabajo. Omite el trabajo manual y recupera horas de tu día. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Más información</a>.</muted-text>`,
         newAgent: 'Nuevo agente',
         emptyAgents: {
             title: 'No se han creado agentes.',
-            subtitle: 'Deja de hacer las cosas manualmente. En su lugar, instruye a un agente y ahorra mucho tiempo.',
+            subtitle: `<muted-text><centered-text>Deja de hacerlo todo manualmente. Da instrucciones a un agente y ahórrate mucho tiempo. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Más información</a>.</centered-text></muted-text>`,
         },
         error: {
             genericAdd: 'Hubo un problema al agregar este agente',
@@ -2783,6 +2804,12 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
     },
+    focusModeUpdateModal: {
+        title: '¡Bienvenido al modo #focus!',
+        prompt: (priorityModePageUrl: string) =>
+            `Mantente al tanto de todo viendo solo los chats no leídos o los chats que necesitan tu atención. No te preocupes, puedes cambiarlo en cualquier momento en los <a href="${priorityModePageUrl}">ajustes</a>.`,
+    },
+    inboxTabs: {all: 'Todo', todo: 'Tareas pendientes', unread: 'No leído'},
     reportDetailsPage: {
         goToRoom: 'Ir a la sala',
         inWorkspace: (policyName) => `en ${policyName}`,
@@ -3347,11 +3374,6 @@ ${amount} para ${merchant} - ${date}`,
     monthPickerPage: {
         month: 'Mes',
         selectMonth: 'Por favor, selecciona un mes',
-    },
-    focusModeUpdateModal: {
-        title: '¡Bienvenido al modo #concentración!',
-        prompt: (priorityModePageUrl) =>
-            `Mantente al tanto de todo viendo sólo los chats no leídos o los que necesitan tu atención. No te preocupes, puedes cambiar el ajuste en cualquier momento desde la <a href="${priorityModePageUrl}">configuración</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',
@@ -4023,27 +4045,30 @@ ${amount} para ${merchant} - ${date}`,
         verificationFailed: 'La verificación falló, por lo que necesitaremos documentos adicionales para verificarte a ti y a tu empresa',
         taxIDVerification: 'Verificación del ID fiscal',
         taxIDVerificationDescription: dedent(`
-        Por favor, sube uno de los siguientes archivos:
-        • Carta de asignación de TIN/EIN del IRS
-        • Confirmación de solicitud de TIN/EIN del IRS (normalmente indica "Congratulations! The EIN has been successfully assigned")
-        • Carta de exención fiscal del IRS que incluya el nombre de la empresa y el EIN`),
+            Por favor, sube uno de los siguientes archivos:
+            • Carta de asignación de TIN/EIN del IRS
+            • Confirmación de solicitud de TIN/EIN del IRS (normalmente indica "Congratulations! The EIN has been successfully assigned")
+            • Carta de exención fiscal del IRS que incluya el nombre de la empresa y el EIN
+        `),
         nameChangeDocument: 'Documento de cambio de nombre',
         nameChangeDocumentDescription: 'Si el nombre de tu empresa cambió desde que solicitaste el TIN/EIN, necesitamos este documento para verificar el número de ID fiscal proporcionado',
         companyAddressVerification: 'Verificación de la dirección de la empresa',
         companyAddressVerificationDescription: dedent(`
-        Por favor, sube uno de los siguientes archivos:
-        • Factura reciente de servicios públicos con nombre y dirección de la empresa
-        • Estado de cuenta bancario con nombre y dirección de la empresa
-        • Contrato de arrendamiento vigente con página de firmas que muestre el nombre y la dirección actual de la empresa
-        • Estado de seguro con nombre y dirección de la empresa
-        • Documento de asignación de TIN con nombre y dirección de la empresa`),
+            Por favor, sube uno de los siguientes archivos:
+            • Factura reciente de servicios públicos con nombre y dirección de la empresa
+            • Estado de cuenta bancario con nombre y dirección de la empresa
+            • Contrato de arrendamiento vigente con página de firmas que muestre el nombre y la dirección actual de la empresa
+            • Estado de seguro con nombre y dirección de la empresa
+            • Documento de asignación de TIN con nombre y dirección de la empresa
+        `),
         userAddressVerification: 'Verificación de dirección',
         userAddressVerificationDescription: dedent(`
-        Por favor, sube uno de los siguientes archivos:
-        • Tarjeta de registro de votante
-        • Licencia de conducir
-        • Estado de cuenta bancario
-        • Factura de servicios públicos`),
+            Por favor, sube uno de los siguientes archivos:
+            • Tarjeta de registro de votante
+            • Licencia de conducir
+            • Estado de cuenta bancario
+            • Factura de servicios públicos
+        `),
         userDOBVerification: 'Verificación de fecha de nacimiento',
         userDOBVerificationDescription: 'Por favor, sube una identificación emitida en EE. UU.',
         finishViaChat: 'Finalizar por chat',
@@ -4318,13 +4343,13 @@ ${amount} para ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrador';
+                        return 'Administrador del espacio de trabajo';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Administrador de tarjeta';
+                        return 'Administrador de tarjetas';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
                         return 'Administrador de personas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
@@ -4695,6 +4720,7 @@ ${amount} para ${merchant} - ${date}`,
             bankTransactions: 'Transacciones bancarias',
             travelInvoicingDescription: 'Los gastos de viaje se exportarán como transacciones bancarias a la cuenta de Xero especificada a continuación.',
             xeroBankAccount: 'Cuenta bancaria de Xero',
+            bankAccount: 'Cuenta bancaria',
             xeroBankAccountDescription: 'Elige dónde se contabilizarán los gastos como transacciones bancarias.',
             exportExpensesDescription: 'Los informes se exportarán como una factura de compra utilizando la fecha y el estado que seleccione a continuación',
             purchaseBillDate: 'Fecha de la factura de compra',
@@ -6090,8 +6116,8 @@ ${amount} para ${merchant} - ${date}`,
                 other: 'Convertir en miembros',
             }),
             makeAdmin: () => ({
-                one: 'Hacer administrador',
-                other: 'Convertir en administradores',
+                one: 'Hacer administrador del espacio de trabajo',
+                other: 'Convertir en administradores del espacio de trabajo',
             }),
             makeAuditor: () => ({
                 one: 'Convertir en auditor',
@@ -6107,7 +6133,7 @@ ${amount} para ${merchant} - ${date}`,
             invitedBySecondaryLogin: (secondaryLogin) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             workspaceMembersCount: (count) => `Total de miembros del espacio de trabajo: ${count}`,
             allMembers: 'Todos los miembros',
-            admins: 'Administradores',
+            admins: 'Administradores del espacio de trabajo',
             approvers: 'Aprobadores',
             auditors: 'Auditores',
             emptyRoleFilter: {
@@ -6129,6 +6155,8 @@ ${amount} para ${merchant} - ${date}`,
                 `${memberName} tiene un informe en proceso pendiente de acción. Pídele que complete la acción requerida antes de eliminarlo del espacio de trabajo.`,
             configureHRSync: (providerName: string) => `Configura la sincronización de ${providerName}.`,
             syncWithHR: (providerName: string) => `Sincronizar con ${providerName}`,
+            makeCardAdmin: () => ({one: 'Hacer administrador de tarjetas', other: 'Hacer administradores de tarjetas'}),
+            cardAdmins: 'Administradores de tarjetas',
         },
         accounting: {
             settings: 'configuración',
@@ -6397,6 +6425,7 @@ ${amount} para ${merchant} - ${date}`,
             exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
             exportDate: 'Fecha de exportación',
             defaultVendor: 'Proveedor predeterminado',
+            defaultAccount: 'Cuenta predeterminada',
             autoSync: 'Autosincronización',
             autoSyncDescription: 'Sincroniza NetSuite y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
             reimbursedReports: 'Sincronizar informes reembolsados',
@@ -6892,12 +6921,6 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Las tasas de distancia están disponibles en el plan Recopilar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
-            auditor: {
-                title: 'Auditor',
-                description: 'Los auditores tienen acceso de lectura a todos los informes para una visibilidad completa y la supervisión del cumplimiento.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Los auditores solo están disponibles con el plan Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
-            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Múltiples niveles de aprobación',
                 description:
@@ -6956,6 +6979,12 @@ ${amount} para ${merchant} - ${date}`,
             },
             commonFeatures: {
                 title: 'Mejorar al plan Controlar',
+                collect: {
+                    title: 'Mejorar al plan Recopilar',
+                    startsAtFull: (learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing) =>
+                        `<muted-text>El plan Recopilar comienza desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`} <a href="${learnMoreMethodsRoute}">Más información</a> sobre nuestros planes y precios.</muted-text>`,
+                    note: 'Desbloquea las funciones esenciales para tu negocio, incluyendo:',
+                },
                 note: 'Desbloquea nuestras funciones más potentes, incluyendo:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing) =>
@@ -6970,6 +6999,12 @@ ${amount} para ${merchant} - ${date}`,
                 upgradeWorkspaceWarning: 'No se puede actualizar el espacio de trabajo',
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Su empresa ha restringido la creación de espacios de trabajo. Por favor, contacte a un administrador para obtener ayuda.',
+            },
+            controlPolicyRoles: {
+                title: 'Controlar roles de la política',
+                description: 'Usa roles especializados como Auditor y Administrador de tarjetas para dar a los miembros acceso solo a lo que necesitan.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Los roles especializados del espacio de trabajo solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
         },
         downgrade: {
@@ -7258,18 +7293,20 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Agencias de viajes',
                 },
             },
-            aiRules: {
-                title: 'Reglas de IA',
-                subtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas',
-                addRule: 'Añadir regla de IA',
-                findRule: 'Buscar regla de IA',
+            agentRules: {
+                title: 'Reglas de Agente',
+                subtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas.',
+                addRule: 'Añadir regla de Agente',
+                findRule: 'Buscar regla de Agente',
                 addRuleTitle: 'Añadir regla',
-                describeRuleTitle: 'Describe tu regla',
-                describeRuleSubtitle: 'Describe tu regla y Concierge la creará',
+                describeRuleTitle: 'Describe tu regla y Concierge la creará',
                 editRuleTitle: 'Editar regla',
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',
                 disclaimer: 'Los agentes de IA pueden cometer errores.',
+                agentCreatedTitle: '¡RuleBot se ha añadido a tu espacio de trabajo!',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `<muted-text>Para aplicar tus reglas de agente, hemos creado un agente para ti y lo hemos añadido como administrador de tu espacio de trabajo.<br><br>Edita los datos de tu agente en <a href="${agentsRoute}">Cuenta &gt; Agentes</a>.</muted-text>`,
             },
         },
         emptyDomain: {
@@ -7526,10 +7563,12 @@ ${amount} para ${merchant} - ${date}`,
                 }),
                 phraseVerb: {added: 'añadido', removed: 'eliminado', changed: 'cambió', set: 'establecer', applied: 'aplicado'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} comercio «${value}»` : `comercio «${value}»`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `«${value}»`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} del comerciante de '${oldValue}' a '${newValue}'` : `comercio de '${oldValue}' a '${newValue}'`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `Categoría de gasto ${adjective} «${value}»` : `categoría de gasto «${value}»`,
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `«${value}»`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `Categoría de gasto ${adjective} de '${oldValue}' a '${newValue}'` : `categoría de gasto de '${oldValue}' a '${newValue}'`,
                 bodyMaxAmount: 'importe máximo',
@@ -8134,10 +8173,7 @@ ${amount} para ${merchant} - ${date}`,
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Años',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
         },
-        moneyRequestReport: {
-            emptyStateTitle: 'Este informe no tiene gastos.',
-            accessPlaceHolder: 'Abrir para ver detalles',
-        },
+        moneyRequestReport: {emptyStateTitle: 'Aún no hay gastos', accessPlaceHolder: 'Abrir para ver detalles'},
         noCategory: 'Sin categoría',
         noMerchant: 'Sin comerciante',
         noTag: 'Sin etiqueta',
@@ -8297,8 +8333,11 @@ ${amount} para ${merchant} - ${date}`,
                     `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${workspaceCompanyCardRoute}'>inicia sesión en tu banco</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
-                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} se unió mediante el enlace de invitación del espacio de trabajo` : `se añadió ${email} como ${role === 'member' ? 'a' : 'a un'} ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
+                    const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'un' : 'a';
+                    return didJoinPolicy ? `${email} se unió mediante el enlace de invitación del espacio de trabajo` : `añadió ${email} como ${article} ${translatedRole}`;
+                },
                 updateRole: ({email, currentRole, newRole}) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
                 updatedCustomField1: (email, newValue, previousValue) => {
                     if (!newValue) {
@@ -9675,6 +9714,7 @@ ${amount} para ${merchant} - ${date}`,
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
         gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',
         hasFilterNegation: '<tooltip>Busca gastos sin recibos usando <strong>-has:receipt</strong>.</tooltip>',
+        mileageRateAutoUpdated: '<tooltip>Hemos actualizado la tasa según tu fecha de viaje.</tooltip>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
@@ -9735,6 +9775,7 @@ ${amount} para ${merchant} - ${date}`,
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
         exportInProgress: 'Exportación en curso',
         conciergeWillSend: 'Concierge te enviará el archivo en breve.',
+        currentView: 'Exportar vista actual',
     },
     exportDownload: {
         preparingTitle: 'Preparando descarga...',

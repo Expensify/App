@@ -1,3 +1,5 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 // We need direct access to useOnyx to fetch live policy data at render time
@@ -29,7 +31,8 @@ import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
+import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {hasVisibleViolations} from '@libs/SearchUIUtils';
 import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -84,11 +87,18 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Fetch live policy categories from Onyx to sync violations at render time
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
+
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy: parentPolicy,
+        report: parentReport,
+        isTrackIntentUser,
+    });
 
     const searchData = currentSearchResults?.data;
 
@@ -171,8 +181,27 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {showConfirmModal} = useConfirmModal();
     const {showHoldMenu} = useHoldMenuModal();
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportItem.reportID);
+    const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
+
+    // Recompute the violations badge from live data at the row, replacing the screen-level
+    // violations merge that getSections previously did. Policy comes from the live `policyForViolations`
+    // (parentPolicy ?? snapshot); violations + transactions come from the report's live Onyx data.
+    const liveHasVisibleViolations = hasVisibleViolations(
+        reportForViolations,
+        reportViolations,
+        currentUserDetails.email ?? '',
+        currentUserDetails.accountID,
+        liveReportTransactions,
+        policyForViolations,
+    );
+
+    // Scoped live violations for the report's snapshot transactions: before the report's transactions
+    // hydrate into the live collection, rule/category changes still push violation updates that must
+    // reflect on the badge (per-row selector, not the screen-level collection merge this slice removed).
+    const snapshotTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
+    const liveViolationsSelector = transactionViolationsByIDsSelector(snapshotTransactionIDs);
+    const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: liveViolationsSelector}, [liveViolationsSelector]);
     const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext({
         reportID: reportItem.reportID,
         chatReportPolicyID: chatReport?.policyID,
@@ -300,11 +329,25 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const shouldShowViolationDescription = isOpenExpenseReport(reportItem) || isProcessingReport(reportItem);
 
     // Show violation description if either:
-    // 1. Pre-computed hasVisibleViolations from search data, OR
+    // 1. Visible violations recomputed from the report's live transactions, or, before those hydrate,
+    //    from the snapshot transactions joined with the scoped live violations (so a rule change updates
+    //    the badge even for reports never opened this session); the snapshot's pre-computed value only
+    //    covers the window before the violations subscription loads, OR
     // 2. Synced missingAttendees violation computed at render time (for stale data)
     // We're using || instead of ?? because the variables are boolean
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const hasAnyVisibleViolations = reportItem?.hasVisibleViolations || hasSyncedMissingAttendeesViolation;
+    const hasLiveTransactions = liveReportTransactions.length > 0;
+    const fallbackHasVisibleViolations = liveViolationsForSnapshotTransactions
+        ? hasVisibleViolations(
+              reportForViolations,
+              liveViolationsForSnapshotTransactions,
+              currentUserDetails.email ?? '',
+              currentUserDetails.accountID,
+              reportItem.transactions ?? [],
+              policyForViolations,
+          )
+        : !!reportItem.hasVisibleViolations;
+    const hasVisibleReportViolations = hasLiveTransactions ? liveHasVisibleViolations : fallbackHasVisibleViolations;
+    const hasAnyVisibleViolations = hasVisibleReportViolations || hasSyncedMissingAttendeesViolation;
 
     const getDescription = useMemo(() => {
         if (reportItem?.isRejectedReport) {
@@ -411,6 +454,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         isHovered={hovered}
                         isFocused={isFocused}
                         isPendingDelete={isPendingDelete}
+                        isMarkAsDone={shouldUseMarkAsDoneCopy}
                     />
                     {getDescription}
                 </View>
