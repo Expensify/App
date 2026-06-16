@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -100,18 +100,15 @@ function BankAccountPicker({bankAccountList, initialSelectedIDs}: BankAccountPic
 
     const searchFilter = (item: BankAccountFilterItem) => item.text.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase());
 
-    const sections = useMemo(() => {
-        const result: Array<{title: string; data: BankAccountFilterItem[]; sectionIndex: number}> = [];
-        const filteredOpen = openItems.filter(searchFilter);
-        if (filteredOpen.length > 0) {
-            result.push({title: translate('search.filters.bankAccount.banks'), data: filteredOpen, sectionIndex: 0});
-        }
-        const filteredClosed = closedItems.filter(searchFilter);
-        if (filteredClosed.length > 0) {
-            result.push({title: translate('search.filters.bankAccount.closedBankAccounts'), data: filteredClosed, sectionIndex: 1});
-        }
-        return result;
-    }, [openItems, closedItems, searchFilter, translate]);
+    const sections: Array<{title: string; data: BankAccountFilterItem[]; sectionIndex: number}> = [];
+    const filteredOpen = openItems.filter(searchFilter);
+    if (filteredOpen.length > 0) {
+        sections.push({title: translate('search.filters.bankAccount.banks'), data: filteredOpen, sectionIndex: 0});
+    }
+    const filteredClosed = closedItems.filter(searchFilter);
+    if (filteredClosed.length > 0) {
+        sections.push({title: translate('search.filters.bankAccount.closedBankAccounts'), data: filteredClosed, sectionIndex: 1});
+    }
 
     const initiallyFocusedKey = useInitiallyFocusedKey(() => [...openItems, ...closedItems].find((item) => item.isSelected)?.keyForList);
 
