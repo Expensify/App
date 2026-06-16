@@ -5,7 +5,6 @@ import CreatedReportForUnapprovedTransactionsAction from '@components/ReportActi
 import CreateHarvestReportAction from '@components/ReportActionItem/CreateHarvestReportAction';
 import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
-import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import MovedTransactionAction from '@components/ReportActionItem/MovedTransactionAction';
 import TaskAction from '@components/ReportActionItem/TaskAction';
@@ -13,6 +12,7 @@ import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import UnreportedTransactionAction from '@components/ReportActionItem/UnreportedTransactionAction';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getChangedApproverActionMessage,
@@ -45,6 +45,8 @@ import {
 import {getMovedActionMessage, isExpenseReport} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
@@ -72,9 +74,6 @@ type ActionContentRouterProps = {
 
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
-
-    /** Original report from which the given reportAction is first created */
-    originalReport: OnyxEntry<OnyxTypes.Report>;
 
     /** ID of the original report from which the given reportAction is first created */
     originalReportID?: string;
@@ -117,12 +116,14 @@ type ActionContentRouterProps = {
 
     /** Toggle whether the payment method popover is active */
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
+
+    /** Whether the user is a track intent user */
+    isTrackIntentUser?: boolean;
 };
 
 function ActionContentRouter({
     action,
     report,
-    originalReport,
     originalReportID,
     iouReport,
     reportID,
@@ -137,9 +138,12 @@ function ActionContentRouter({
     shouldShowBorder,
     isOnSearch,
     setIsPaymentMethodPopoverActive,
+    isTrackIntentUser,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
+
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
 
     // Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped).
     const actionOwnerReportStable = originalReport ?? report;
@@ -149,39 +153,23 @@ function ActionContentRouter({
     const reportOwnerAccountID = report?.ownerAccountID;
 
     if (isIOURequestReportAction(action)) {
-        const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
-        // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
-        const chatReportID = moneyRequestOriginalMessage?.IOUReportID ? report?.chatReportID : reportID;
-
-        if (report?.type === CONST.REPORT.TYPE.CHAT) {
-            const isSplitBill = moneyRequestOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
-            const isSplitScanWithNoAmount = isSplitBill && moneyRequestOriginalMessage?.amount === 0;
-            const shouldShowSplitPreview = isSplitBill || isSplitScanWithNoAmount;
-            if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || shouldShowSplitPreview) {
-                return (
-                    <ChatTransactionPreview
-                        action={action}
-                        reportID={reportID}
-                        iouReport={iouReport}
-                        shouldShowSplitPreview={shouldShowSplitPreview}
-                        transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
-                    />
-                );
-            }
-            // No per-action preview in non-self-DM chats — the preview lives in the linked expense report.
+        if (report?.type !== CONST.REPORT.TYPE.CHAT) {
             return null;
         }
-
+        const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
+        const isSplitBill = moneyRequestOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+        const isSplitScanWithNoAmount = isSplitBill && moneyRequestOriginalMessage?.amount === 0;
+        const shouldShowSplitPreview = isSplitBill || isSplitScanWithNoAmount;
+        if (report.chatType !== CONST.REPORT.CHAT_TYPE.SELF_DM && !shouldShowSplitPreview) {
+            return null;
+        }
         return (
-            <MoneyRequestAction
-                chatReportID={chatReportID}
-                // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-                requestReportID={moneyRequestOriginalMessage?.IOUReportID?.toString()}
-                reportID={reportID}
+            <ChatTransactionPreview
                 action={action}
-                isHovered={hovered}
-                style={displayAsGroup ? [] : [styles.mt2]}
-                isWhisper={isWhisper}
+                reportID={reportID}
+                iouReport={iouReport}
+                shouldShowSplitPreview={shouldShowSplitPreview}
+                transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
             />
         );
     }
@@ -267,6 +255,7 @@ function ActionContentRouter({
                 policyID={policyID}
                 reportID={reportID}
                 originalReport={originalReport}
+                isTrackIntentUser={isTrackIntentUser ?? false}
             />
         );
     }
