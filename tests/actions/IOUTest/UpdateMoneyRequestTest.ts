@@ -685,7 +685,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then the recent attendees should be updated with a maximum of 5 attendees
+            // Then all 6 recent attendees should be stored (below the max of 40)
             const recentAttendees = await new Promise<OnyxEntry<Attendee[]>>((resolve) => {
                 const connection = Onyx.connectWithoutView({
                     key: ONYXKEYS.NVP_RECENT_ATTENDEES,
@@ -695,7 +695,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     },
                 });
             });
-            expect(recentAttendees?.length).toBe(CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
+            expect(recentAttendees?.length).toBe(6);
         });
 
         it('should keep displayName-only attendees in recent attendees', async () => {
@@ -1698,6 +1698,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                         reportActionID: normalActionID,
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                         created: '2025-02-01 00:00:00.000',
+                        reportID: parentReportID,
                         childReportID: transactionThreadReportID,
                         actorAccountID: RORY_ACCOUNT_ID,
                         message: [{type: 'TEXT', text: 'iou action', html: 'iou action'}],
@@ -1706,13 +1707,13 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                             IOUTransactionID: transactionID,
                             amount: 100,
                             currency: CONST.CURRENCY.USD,
-                            IOUReportID: parentReportID,
                         },
                     },
                     [deletedActionID]: {
                         reportActionID: deletedActionID,
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                         created: '2025-02-02 00:00:00.000',
+                        reportID: parentReportID,
                         actorAccountID: RORY_ACCOUNT_ID,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         message: [{type: 'TEXT', text: '', html: '', deleted: '2025-02-02 00:00:00.000'}],
@@ -1721,7 +1722,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                             IOUTransactionID: `${transactionID}_extra`,
                             amount: 200,
                             currency: CONST.CURRENCY.USD,
-                            IOUReportID: parentReportID,
                         },
                     },
                 });
