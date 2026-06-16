@@ -1,10 +1,11 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
-import Button from '@components/Button';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -19,7 +20,10 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {clearPolicyErrorField, setPolicyMaxExpenseAmountNoItemizedReceipt, setPolicyMaxExpenseAmountNoReceipt} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/RulesRequireReceiptsForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type RulesRequireReceiptsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_RECEIPTS>;
 
@@ -40,86 +44,93 @@ function RulesRequireReceiptsPage({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const decimals = getCurrencyDecimals(policyCurrency);
+    const formRef = useRef<FormRef>(null);
 
     const initialReceiptEnabled = isAmountEnabled(policy?.maxExpenseAmountNoReceipt);
     const initialItemizedEnabled = isAmountEnabled(policy?.maxExpenseAmountNoItemizedReceipt);
 
+    const initialReceiptAmount = useMemo(
+        () => (initialReceiptEnabled ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt ?? 0, decimals) : ''),
+        [initialReceiptEnabled, policy?.maxExpenseAmountNoReceipt, decimals],
+    );
+    const initialItemizedAmount = useMemo(
+        () => (initialItemizedEnabled ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoItemizedReceipt ?? 0, decimals) : ''),
+        [initialItemizedEnabled, policy?.maxExpenseAmountNoItemizedReceipt, decimals],
+    );
+
     const [receiptEnabled, setReceiptEnabled] = useState(initialReceiptEnabled);
     const [itemizedEnabled, setItemizedEnabled] = useState(initialItemizedEnabled);
 
-    const [receiptAmount, setReceiptAmount] = useState(() => (initialReceiptEnabled ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt ?? 0, decimals) : ''));
-    const [itemizedAmount, setItemizedAmount] = useState(() => (initialItemizedEnabled ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoItemizedReceipt ?? 0, decimals) : ''));
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM> => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM> = {};
 
-    const [receiptError, setReceiptError] = useState('');
-    const [itemizedError, setItemizedError] = useState('');
-
-    const validate = useCallback(() => {
-        setReceiptError('');
-        setItemizedError('');
-
-        if (!receiptEnabled && !itemizedEnabled) {
-            return true;
-        }
-
-        if (receiptEnabled && itemizedEnabled && receiptAmount && itemizedAmount) {
-            const receiptCents = convertToBackendAmount(Number(receiptAmount) || 0);
-            const itemizedCents = convertToBackendAmount(Number(itemizedAmount) || 0);
-
-            if (receiptCents > itemizedCents) {
-                setReceiptError(
-                    translate('workspace.rules.individualExpenseRules.receiptRequiredAmountError', {
-                        amount: convertToFrontendAmountAsString(itemizedCents, decimals),
-                    }),
-                );
-                setItemizedError(
-                    translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {
-                        amount: convertToFrontendAmountAsString(receiptCents, decimals),
-                    }),
-                );
-                return false;
+            if (!receiptEnabled && !itemizedEnabled) {
+                return errors;
             }
-        }
 
-        return true;
-    }, [receiptEnabled, itemizedEnabled, receiptAmount, itemizedAmount, decimals, translate]);
+            const emptyAmountError = translate('workspace.rules.requireReceipts.emptyAmountError');
 
-    const hasChanges = useMemo(() => {
-        const receiptChanged =
-            receiptEnabled !== initialReceiptEnabled ||
-            (receiptEnabled && receiptAmount !== (initialReceiptEnabled ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt ?? 0, decimals) : ''));
-        const itemizedChanged =
-            itemizedEnabled !== initialItemizedEnabled ||
-            (itemizedEnabled && itemizedAmount !== (initialItemizedEnabled ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoItemizedReceipt ?? 0, decimals) : ''));
-        return receiptChanged || itemizedChanged;
-    }, [
-        receiptEnabled,
-        initialReceiptEnabled,
-        receiptAmount,
-        itemizedEnabled,
-        initialItemizedEnabled,
-        itemizedAmount,
-        policy?.maxExpenseAmountNoReceipt,
-        policy?.maxExpenseAmountNoItemizedReceipt,
-        decimals,
-    ]);
+            if (receiptEnabled && !values.maxExpenseAmountNoReceipt?.trim()) {
+                errors.maxExpenseAmountNoReceipt = emptyAmountError;
+            }
 
-    const handleSave = useCallback(() => {
-        if (!hasChanges) {
-            Navigation.goBack();
-            return;
-        }
+            if (itemizedEnabled && !values.maxExpenseAmountNoItemizedReceipt?.trim()) {
+                errors.maxExpenseAmountNoItemizedReceipt = emptyAmountError;
+            }
 
-        if (!validate()) {
-            return;
-        }
+            if (!isEmptyObject(errors)) {
+                return errors;
+            }
 
-        const receiptValue = receiptEnabled ? receiptAmount : '';
-        const itemizedValue = itemizedEnabled ? itemizedAmount : '';
+            if (receiptEnabled && itemizedEnabled && values.maxExpenseAmountNoReceipt && values.maxExpenseAmountNoItemizedReceipt) {
+                const receiptCents = convertToBackendAmount(Number(values.maxExpenseAmountNoReceipt) || 0);
+                const itemizedCents = convertToBackendAmount(Number(values.maxExpenseAmountNoItemizedReceipt) || 0);
 
-        setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt);
-        setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt);
-        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-    }, [hasChanges, validate, receiptEnabled, receiptAmount, itemizedEnabled, itemizedAmount, policyID, policy?.maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoItemizedReceipt]);
+                if (receiptCents > itemizedCents) {
+                    errors.maxExpenseAmountNoReceipt = translate('workspace.rules.individualExpenseRules.receiptRequiredAmountError', {
+                        amount: convertToFrontendAmountAsString(itemizedCents, decimals),
+                    });
+                    errors.maxExpenseAmountNoItemizedReceipt = translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {
+                        amount: convertToFrontendAmountAsString(receiptCents, decimals),
+                    });
+                }
+            }
+
+            return errors;
+        },
+        [receiptEnabled, itemizedEnabled, decimals, translate],
+    );
+
+    const handleSubmit = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM>) => {
+            const receiptChanged = receiptEnabled !== initialReceiptEnabled || (receiptEnabled && values.maxExpenseAmountNoReceipt !== initialReceiptAmount);
+            const itemizedChanged = itemizedEnabled !== initialItemizedEnabled || (itemizedEnabled && values.maxExpenseAmountNoItemizedReceipt !== initialItemizedAmount);
+
+            if (!receiptChanged && !itemizedChanged) {
+                Navigation.goBack();
+                return;
+            }
+
+            const receiptValue = receiptEnabled ? values.maxExpenseAmountNoReceipt : '';
+            const itemizedValue = itemizedEnabled ? values.maxExpenseAmountNoItemizedReceipt : '';
+
+            setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt);
+            setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt);
+            Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+        },
+        [
+            receiptEnabled,
+            initialReceiptEnabled,
+            initialReceiptAmount,
+            itemizedEnabled,
+            initialItemizedEnabled,
+            initialItemizedAmount,
+            policyID,
+            policy?.maxExpenseAmountNoReceipt,
+            policy?.maxExpenseAmountNoItemizedReceipt,
+        ],
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -138,10 +149,16 @@ function RulesRequireReceiptsPage({
                     title={translate('workspace.rules.requireReceipts.title')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <ScrollView
-                    style={[styles.flexGrow1]}
-                    contentContainerStyle={[styles.ph5, styles.pb5]}
+                <FormProvider
+                    ref={formRef}
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM}
+                    onSubmit={handleSubmit}
+                    validate={validate}
+                    submitButtonText={translate('workspace.rules.requireReceipts.saveRule')}
+                    enabledWhenOffline
                     addBottomSafeAreaPadding
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_RECEIPTS_SAVE}
                 >
                     <Text style={[styles.textNormal, styles.textSupporting, styles.lh20, styles.pv2]}>{translate('workspace.rules.requireReceipts.description')}</Text>
 
@@ -157,24 +174,20 @@ function RulesRequireReceiptsPage({
                         onToggle={(newValue) => {
                             setReceiptEnabled(newValue);
                             if (!newValue) {
-                                setReceiptAmount('');
-                                setReceiptError('');
+                                formRef.current?.resetFormFieldError(INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT);
                             }
                         }}
                     />
                     {receiptEnabled && (
                         <View style={styles.pv2}>
-                            <AmountForm
-                                value={receiptAmount}
+                            <InputWrapper
+                                InputComponent={AmountForm}
+                                inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT}
                                 currency={policyCurrency}
-                                onInputChange={(value) => {
-                                    setReceiptAmount(value);
-                                    setReceiptError('');
-                                }}
+                                defaultValue={initialReceiptAmount}
                                 isCurrencyPressable={false}
                                 displayAsTextInput
                                 label={translate('workspace.rules.requireReceipts.requireAboveAmount')}
-                                errorText={receiptError}
                             />
                         </View>
                     )}
@@ -193,37 +206,24 @@ function RulesRequireReceiptsPage({
                         onToggle={(newValue) => {
                             setItemizedEnabled(newValue);
                             if (!newValue) {
-                                setItemizedAmount('');
-                                setItemizedError('');
+                                formRef.current?.resetFormFieldError(INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT);
                             }
                         }}
                     />
                     {itemizedEnabled && (
                         <View style={styles.pv2}>
-                            <AmountForm
-                                value={itemizedAmount}
+                            <InputWrapper
+                                InputComponent={AmountForm}
+                                inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT}
                                 currency={policyCurrency}
-                                onInputChange={(value) => {
-                                    setItemizedAmount(value);
-                                    setItemizedError('');
-                                }}
+                                defaultValue={initialItemizedAmount}
                                 isCurrencyPressable={false}
                                 displayAsTextInput
                                 label={translate('workspace.rules.requireReceipts.requireAboveAmount')}
-                                errorText={itemizedError}
                             />
                         </View>
                     )}
-                </ScrollView>
-                <View style={[styles.ph5, styles.pb5]}>
-                    <Button
-                        success
-                        large
-                        text={translate('workspace.rules.requireReceipts.saveRule')}
-                        onPress={handleSave}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_RECEIPTS_SAVE}
-                    />
-                </View>
+                </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
