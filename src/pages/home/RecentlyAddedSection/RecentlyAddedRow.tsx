@@ -100,6 +100,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator}: RecentlyAdded
                 fill={theme.icon}
                 width={variables.iconSizeNormal}
                 height={variables.iconSizeNormal}
+                additionalStyles={styles.opacitySemiTransparent}
             />
         </PressableWithFeedback>
     );
