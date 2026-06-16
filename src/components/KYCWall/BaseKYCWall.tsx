@@ -2,6 +2,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, View} from 'react-native';
+import Onyx from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -328,6 +329,11 @@ function KYCWall({
 
                 if (!hasActivatedWallet && !policy) {
                     Log.info('[KYC Wallet] User does not have active wallet');
+
+                    // Save the fallback route so we can continue into KYC after the user adds a bank account on the enable payments screen
+                    if (personalBankAccountOnSuccessFallbackRoute) {
+                        Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute: personalBankAccountOnSuccessFallbackRoute});
+                    }
 
                     // If the goBackRoute is the enablePaymentsRoute there's no need to directly navigate to it here
                     if (goBackRoute !== enablePaymentsRoute) {
