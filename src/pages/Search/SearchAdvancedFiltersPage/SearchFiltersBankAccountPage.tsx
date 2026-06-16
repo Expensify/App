@@ -77,26 +77,23 @@ function BankAccountPicker({bankAccountList, initialSelectedIDs}: BankAccountPic
         };
     };
 
-    const {openItems, closedItems} = useMemo(() => {
-        const open: BankAccountFilterItem[] = [];
-        const closed: BankAccountFilterItem[] = [];
-        for (const bankAccount of Object.values(bankAccountList ?? {})) {
-            // Personal accounts are never accepted by the backend search filter, so they are excluded from both sections.
-            if (bankAccount?.accountData?.type !== CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
-                continue;
-            }
-            const item = buildItem(bankAccount);
-            if (!item) {
-                continue;
-            }
-            if (isSearchEligibleBankAccount(bankAccount)) {
-                open.push(item);
-            } else {
-                closed.push(item);
-            }
+    const openItems: BankAccountFilterItem[] = [];
+    const closedItems: BankAccountFilterItem[] = [];
+    for (const bankAccount of Object.values(bankAccountList ?? {})) {
+        // Personal accounts are never accepted by the backend search filter, so they are excluded from both sections.
+        if (bankAccount?.accountData?.type !== CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
+            continue;
         }
-        return {openItems: open, closedItems: closed};
-    }, [bankAccountList, buildItem]);
+        const item = buildItem(bankAccount);
+        if (!item) {
+            continue;
+        }
+        if (isSearchEligibleBankAccount(bankAccount)) {
+            openItems.push(item);
+        } else {
+            closedItems.push(item);
+        }
+    }
 
     const totalItemCount = openItems.length + closedItems.length;
     const shouldShowSearchInput = totalItemCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
