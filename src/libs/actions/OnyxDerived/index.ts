@@ -61,13 +61,6 @@ function init() {
                 sourceValues: undefined,
             };
 
-            Onyx.connectWithoutView({
-                key,
-                callback: (value) => {
-                    derivedValue = value;
-                },
-            });
-
             const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
                 // If this recompute was triggered by a connection callback, check if it initializes the connection
                 if (!areAllConnectionsSet && triggeredByIndex !== undefined) {
@@ -85,6 +78,7 @@ function init() {
 
                 context.currentValue = derivedValue;
                 context.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
+                context.shouldSkipUpdate = false;
 
                 const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
                 startSpan(spanId, {
@@ -97,6 +91,10 @@ function init() {
                 try {
                     // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
                     const newDerivedValue = compute(dependencyValues, context);
+                    if (context.shouldSkipUpdate) {
+                        Log.info(`[OnyxDerived] skipping update for ${key}`);
+                        return;
+                    }
                     Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
                     derivedValue = newDerivedValue;
                     setDerivedValue(key, derivedValue);

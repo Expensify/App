@@ -8,10 +8,13 @@ const transactionReportIDMapping: Record<string, string> = {};
 
 const transactionToReportIDMap: Record<string, string> = {};
 
+const getTransactionKeyFromViolationKey = (violationKey: string) => violationKey.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION);
+
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
     dependencies: [ONYXKEYS.COLLECTION.TRANSACTION, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS],
-    compute: ([transactions, violations], {sourceValues, currentValue}) => {
+    compute: ([transactions, violations], context) => {
+        const {sourceValues, currentValue} = context;
         const reportTransactionsAndViolations = currentValue ? {...currentValue} : {};
 
         // If there is a source value for transactions or transaction violations, we need to process only the transactions that have been updated or added
@@ -20,16 +23,18 @@ export default createOnyxDerivedValueConfig({
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
 
         if (!transactions) {
-            return transactionViolationsUpdates ? reportTransactionsAndViolations : {};
+            if (transactionViolationsUpdates) {
+                context.shouldSkipUpdate = true;
+                return reportTransactionsAndViolations;
+            }
+            return {};
         }
 
         let transactionsToProcess = Object.keys(transactions);
         if (transactionsUpdates) {
             transactionsToProcess = Object.keys(transactionsUpdates);
         } else if (transactionViolationsUpdates) {
-            transactionsToProcess = Object.keys(transactionViolationsUpdates).map((transactionViolation) =>
-                transactionViolation.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION),
-            );
+            transactionsToProcess = Object.keys(transactionViolationsUpdates).map(getTransactionKeyFromViolationKey);
         }
 
         // Track which reportID entries have been cloned so we only clone once per reportID.
@@ -47,11 +52,25 @@ export default createOnyxDerivedValueConfig({
             clonedReportIDs.add(id);
         };
 
+        const getPreviousReportID = (transactionKey: string) =>
+            transactionReportIDMapping[transactionKey] ??
+            Object.keys(reportTransactionsAndViolations).find((reportID) => !!reportTransactionsAndViolations[reportID].transactions[transactionKey]);
+
+        if (!transactionsUpdates && transactionViolationsUpdates) {
+            const hasUnresolvedTransaction = transactionsToProcess.some((transactionKey) => {
+                const previousReportID = getPreviousReportID(transactionKey);
+                return !transactions[transactionKey] && !previousReportID;
+            });
+
+            if (hasUnresolvedTransaction) {
+                context.shouldSkipUpdate = true;
+                return reportTransactionsAndViolations;
+            }
+        }
+
         for (const transactionKey of transactionsToProcess) {
             // If the reportID of the transaction has changed (e.g. the transaction was split into multiple reports), we need to delete the transaction from the previous reportID and the violations from the previous reportID
-            const previousReportID =
-                transactionReportIDMapping[transactionKey] ??
-                Object.keys(reportTransactionsAndViolations).find((reportID) => !!reportTransactionsAndViolations[reportID].transactions[transactionKey]);
+            const previousReportID = getPreviousReportID(transactionKey);
             const transactionWasUpdated = !!transactionsUpdates;
             // A violation-only update must not remove report membership when this tab has an incomplete transaction collection.
             const previousTransaction = !transactionWasUpdated && previousReportID ? reportTransactionsAndViolations[previousReportID]?.transactions[transactionKey] : undefined;

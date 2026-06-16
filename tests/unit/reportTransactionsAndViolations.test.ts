@@ -58,4 +58,26 @@ describe('reportTransactionsAndViolations derived value', () => {
 
         expect(result[reportID]?.transactions[transactionKey]).toBeUndefined();
     });
+
+    it('skips violation-only updates when the affected transaction is unavailable', () => {
+        const transactionID = '91016-missing-transaction';
+        const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
+        const violation = {
+            name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+        } as TransactionViolation;
+        const context = {
+            currentValue: {},
+            sourceValues: {
+                [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {[violationKey]: [violation]},
+            },
+            shouldSkipUpdate: false,
+        };
+
+        const result = reportTransactionsAndViolationsConfig.compute([{}, {[violationKey]: [violation]}], context);
+
+        expect(result).toEqual({});
+        expect(context.shouldSkipUpdate).toBe(true);
+    });
 });
