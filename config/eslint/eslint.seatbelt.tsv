@@ -1707,7 +1707,7 @@
 "../../tests/ui/MultifactorAuthenticationRevokePageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/ui/NetSuiteCustomListPickerTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/NetSuiteCustomListSelectorPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	12
-"../../tests/ui/NewChatPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../tests/ui/NewChatPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/NewReportWorkspaceSelectionPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/OnboardingEmployees.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/OnboardingPurpose.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
