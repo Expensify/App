@@ -82,6 +82,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const canAccessSubmitWorkspaceFeatures = canAccessSubmitWorkspaceFeaturesUtils(policy, isSubmit2026BetaEnabled);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
     const upgradingFromSubmitLatchPolicyIDRef = useRef<string | undefined>(undefined);
+    // upgradePlanType comes from the URL, so only honor the plans we explicitly support upgrading to.
+    const rawUpgradePlanType = route.params?.upgradePlanType;
+    const upgradePlanType = rawUpgradePlanType === CONST.POLICY.TYPE.TEAM || rawUpgradePlanType === CONST.POLICY.TYPE.CORPORATE ? rawUpgradePlanType : undefined;
     const [upgradingFromSubmit, setUpgradingFromSubmit] = useState<boolean | undefined>(undefined);
 
     useEffect(() => {
@@ -176,7 +179,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
 
         if (canAccessSubmitWorkspaceFeatures) {
-            const targetType = (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
+            const targetType = upgradePlanType ?? (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
             upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, reportID);
             return;
         }
@@ -357,6 +360,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         buttonDisabled={isOffline || !canPerformUpgrade}
                         loading={policy?.isPendingUpgrade}
                         backTo={route.params.backTo}
+                        upgradePlanType={upgradePlanType}
                     />
                 )}
             </ScrollView>

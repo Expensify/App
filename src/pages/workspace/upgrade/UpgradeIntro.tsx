@@ -38,9 +38,11 @@ type Props = {
     isDistanceRateUpgrade?: boolean;
     policyID?: string;
     backTo?: Route;
+    /** Target plan the user chose to upgrade to (drives Collect vs Control copy/pricing in the generic view) */
+    upgradePlanType?: ValueOf<typeof CONST.POLICY.TYPE>;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo, upgradePlanType}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -58,12 +60,14 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const formattedPrice = useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const shouldUseTeamPricing = isCategorizing || isDistanceRateUpgrade || isReporting || isSubmitFeature;
+        const matchesTeamPricingHeuristics = isCategorizing || isDistanceRateUpgrade || isReporting || isSubmitFeature || upgradePlanType === CONST.POLICY.TYPE.TEAM;
+        // An explicit upgradePlanType (chosen in the Plan RHP) is authoritative over the feature-based heuristics, so pricing matches the plan title shown in GenericFeaturesView.
+        const shouldUseTeamPricing = upgradePlanType === CONST.POLICY.TYPE.CORPORATE ? false : matchesTeamPricingHeuristics;
         return `${convertToShortDisplayString(
             CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
             upgradeCurrency,
         )} `;
-    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade, isReporting, isSubmitFeature]);
+    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade, isReporting, isSubmitFeature, upgradePlanType]);
 
     const allIconNames = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .map((feat) => feat?.icon)
@@ -118,6 +122,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 loading={loading}
                 policyID={policyID}
                 backTo={backTo}
+                upgradePlanType={upgradePlanType}
             />
         );
     }

@@ -3492,7 +3492,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     statusPage: {
         status: 'ステータス',
-        statusExplanation: '同僚や友人が状況をひと目で分かるように、絵文字を追加しましょう。必要であればメッセージも追加できます。',
+        statusExplanation: '絵文字と任意のメッセージでステータスを設定します。',
         today: '今日',
         clearStatus: 'ステータスをクリア',
         save: '保存',
@@ -4785,6 +4785,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             bankTransactions: '銀行取引',
             travelInvoicingDescription: '旅費は、以下で指定したXeroアカウントに銀行取引としてエクスポートされます。',
             xeroBankAccount: 'Xero 銀行口座',
+            bankAccount: '銀行口座',
             xeroBankAccountDescription: '経費を銀行取引として計上する先を選択してください。',
             exportExpensesDescription: 'レポートは、以下で選択された日付とステータスで仕入請求書としてエクスポートされます。',
             purchaseBillDate: '仕入請求書の日付',
@@ -6568,6 +6569,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             exportCompanyCard: '法人カード経費のエクスポート形式',
             exportDate: 'エクスポート日',
             defaultVendor: 'デフォルトのベンダー',
+            defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',
             autoSyncDescription: 'NetSuite と Expensify を毎日自動で同期。確定したレポートをリアルタイムでエクスポート',
             reimbursedReports: '精算済みレポートを同期',
@@ -6906,6 +6908,12 @@ ${reportName}
             },
             commonFeatures: {
                 title: 'Controlプランにアップグレード',
+                collect: {
+                    title: 'Collectプランにアップグレード',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Collect プランは <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。プランと料金の詳細は <a href="${learnMoreMethodsRoute}">こちら</a> をご覧ください。</muted-text>`,
+                    note: '以下を含む、ビジネスに欠かせない機能をアンロックしましょう：',
+                },
                 note: '以下を含む、最も強力な機能をアンロックしましょう：',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -7303,16 +7311,18 @@ ${reportName}
             },
             agentRules: {
                 title: 'エージェント ルール',
-                subtitle: '必要なときに実行される柔軟なルールを記述します',
+                subtitle: '必要なときに実行される柔軟なルールを記述します。',
                 addRule: 'エージェント ルールを追加',
                 findRule: 'エージェント ルールを検索',
                 addRuleTitle: 'ルールを追加',
                 editRuleTitle: 'ルールを編集',
                 deleteRule: 'ルールを削除',
                 deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
-                describeRuleTitle: 'ルールの内容を記入してください',
-                describeRuleSubtitle: 'ルールの内容を入力すると、Concierge が自動作成します',
+                describeRuleTitle: 'ルールの内容を入力すると、Concierge が自動作成します',
                 disclaimer: 'AI エージェントは間違える場合があります。',
+                agentCreatedTitle: 'RuleBot がワークスペースに追加されました!',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `<muted-text>エージェント ルールを適用するために、エージェントを作成し、ワークスペースの管理者として追加しました。<br><br>エージェントの詳細は <a href="${agentsRoute}">「アカウント」&gt;「エージェント」</a> で編集できます。</muted-text>`,
             },
         },
         planTypePage: {
@@ -8255,10 +8265,7 @@ ${reportName}
             [CONST.SEARCH.GROUP_BY.YEAR]: '年数',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
         },
-        moneyRequestReport: {
-            emptyStateTitle: 'このレポートには経費がありません。',
-            accessPlaceHolder: '詳細を開く',
-        },
+        moneyRequestReport: {emptyStateTitle: 'まだ経費がありません', accessPlaceHolder: '詳細を開く'},
         noCategory: 'カテゴリなし',
         noMerchant: '店舗なし',
         noTag: 'タグなし',
@@ -9489,6 +9496,7 @@ ${reportName}
         expenseLevelExport: 'すべてのデータ - 経費レベル',
         exportInProgress: 'エクスポート処理中',
         conciergeWillSend: 'Conciergeがまもなくファイルを送信します。',
+        currentView: '現在のビューをエクスポート',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
