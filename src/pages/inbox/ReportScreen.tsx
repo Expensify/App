@@ -32,7 +32,7 @@ import ReportActionCompose from './report/ReportActionCompose/ReportActionCompos
 import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
 import ReportFooter from './report/ReportFooter';
 import useClearReportActionDraftsOnReportChange from './report/useClearReportActionDraftsOnReportChange';
-import ReportActionsList from './ReportActionsList';
+import ReportActions from './ReportActions';
 import ReportDragAndDropProvider from './ReportDragAndDropProvider';
 import ReportFetchHandler from './ReportFetchHandler';
 import ReportHeader from './ReportHeader';
@@ -147,7 +147,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                             style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                                             testID="report-actions-view-wrapper"
                                                         >
-                                                            <ReportActionsList />
+                                                            <ReportActions />
                                                             {shouldDeferNonEssentials ? <ReportActionCompose.Placeholder /> : <ReportFooter />}
                                                         </View>
                                                     </ConciergeDraftProvider>
