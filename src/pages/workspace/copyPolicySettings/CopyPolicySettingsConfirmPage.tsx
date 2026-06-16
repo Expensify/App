@@ -13,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
-import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
 import {FEATURE_ROWS} from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -38,7 +37,7 @@ function CopyPolicySettingsConfirmPage() {
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettingsState?.targetPolicyIDs ?? [];
-    const parts = (copyPolicySettingsState?.parts ?? []) as Part[];
+    const parts = copyPolicySettingsState?.parts ?? [];
     const hasLoadedCopyPolicySettings = copyPolicySettingsState !== undefined;
     const hasLoadedPolicies = policies !== undefined;
 
