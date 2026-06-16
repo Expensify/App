@@ -3,7 +3,8 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import type Navigation from '@libs/Navigation/Navigation';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import DynamicReportDetailsPage from '@pages/DynamicReportDetailsPage';
@@ -28,6 +29,12 @@ jest.mock('@react-navigation/native', () => {
         usePreventRemove: jest.fn(),
     };
 });
+
+jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator');
+const mockIsReportTopmostSplitNavigator = jest.mocked(isReportTopmostSplitNavigator);
+
+const navigationMock = {} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation'];
+const getRouteMock = (reportID: string) => ({params: {reportID}}) as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route'];
 
 describe('DynamicReportDetailsPage', () => {
     beforeAll(() => {
@@ -77,12 +84,12 @@ describe('DynamicReportDetailsPage', () => {
                     <DynamicReportDetailsPage
                         betas={[]}
                         isLoadingReportData={false}
-                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation']}
+                        navigation={navigationMock}
                         policy={undefined}
                         report={trackExpenseReport}
                         reportMetadata={undefined}
                         reportLoadingState={undefined}
-                        route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route']}
+                        route={getRouteMock(trackExpenseReportID)}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
@@ -112,12 +119,12 @@ describe('DynamicReportDetailsPage', () => {
                     <DynamicReportDetailsPage
                         betas={[]}
                         isLoadingReportData={false}
-                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation']}
+                        navigation={navigationMock}
                         policy={undefined}
                         report={movedTrackExpenseReport}
                         reportMetadata={undefined}
                         reportLoadingState={undefined}
-                        route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route']}
+                        route={getRouteMock(trackExpenseReportID)}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
@@ -128,5 +135,71 @@ describe('DynamicReportDetailsPage', () => {
         // Categorize and share are temporarily disabled
         // expect(screen.queryByText(categorizeText)).not.toBeVisible();
         // expect(screen.queryByText(shareText)).not.toBeVisible();
+    });
+
+    describe('"Go to room" option visibility', () => {
+        const roomReportID = '10';
+        const policyRoom: Report = createRandomReport(Number(roomReportID), CONST.REPORT.CHAT_TYPE.POLICY_ROOM);
+        const detailsPage = (
+            <OnyxListItemProvider>
+                <LocaleContextProvider>
+                    <DynamicReportDetailsPage
+                        betas={[]}
+                        isLoadingReportData={false}
+                        navigation={navigationMock}
+                        policy={undefined}
+                        report={policyRoom}
+                        reportMetadata={undefined}
+                        reportLoadingState={undefined}
+                        route={getRouteMock(roomReportID)}
+                    />
+                </LocaleContextProvider>
+            </OnyxListItemProvider>
+        );
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('keeps showing "Go to room" while the RHP closes after the room becomes the topmost report', async () => {
+            // The Details page is opened from a screen other than the room itself (e.g. the Workspace rooms list),
+            // so the room is not the topmost report when the page mounts.
+            mockIsReportTopmostSplitNavigator.mockReturnValue(false);
+            jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(roomReportID);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${roomReportID}`, policyRoom);
+            });
+
+            render(detailsPage);
+            await waitForBatchedUpdatesWithAct();
+
+            const goToRoomText = translateLocal('reportDetailsPage.goToRoom');
+            expect(await screen.findByText(goToRoomText)).toBeVisible();
+
+            // Tapping "Go to room" makes the room the topmost report, and the page re-renders while the RHP is still
+            // animating closed (here driven by an Onyx update to the report, as navigation state changes would in-app).
+            mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${roomReportID}`, {lastReadTime: '2024-01-01 00:00:00.000'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // The check is frozen at its mount-time value, so the option must not flip to "Go to workspace".
+            expect(screen.queryByText(goToRoomText)).toBeVisible();
+        });
+
+        it('does not show "Go to room" when the Details page is opened from the room itself', async () => {
+            // The room is already the topmost report when the page mounts (Details opened from the room conversation).
+            mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+            jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(roomReportID);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${roomReportID}`, policyRoom);
+            });
+
+            render(detailsPage);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('reportDetailsPage.goToRoom'))).toBeNull();
+        });
     });
 });
