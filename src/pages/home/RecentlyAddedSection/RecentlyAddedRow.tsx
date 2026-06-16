@@ -20,14 +20,6 @@ const FALLBACK_ICON_SIZE = 20;
 /** Width of the date column, shared with the section's column header so labels line up with the values. */
 const DATE_COLUMN_WIDTH = 72;
 
-function getThumbnailColumnWidth(shouldUseNarrowLayout: boolean): number {
-    return shouldUseNarrowLayout ? variables.h36 : variables.w28;
-}
-
-function getThumbnailColumnHeight(shouldUseNarrowLayout: boolean): number {
-    return shouldUseNarrowLayout ? variables.w40 : variables.h32;
-}
-
 type RecentlyAddedRowProps = {
     /** The expense to render */
     expense: RecentlyAddedExpense;
@@ -58,7 +50,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator}: RecentlyAdded
     ) : (
         <View
             style={[
-                StyleUtils.getWidthAndHeightStyle(getThumbnailColumnWidth(shouldUseNarrowLayout), getThumbnailColumnHeight(shouldUseNarrowLayout)),
+                StyleUtils.getWidthAndHeightStyle(shouldUseNarrowLayout ? variables.h36 : variables.w28, shouldUseNarrowLayout ? variables.w40 : variables.h32),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
                 styles.alignItemsCenter,
                 styles.justifyContentCenter,
@@ -107,4 +99,4 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator}: RecentlyAdded
 }
 
 export default RecentlyAddedRow;
-export {DATE_COLUMN_WIDTH, getThumbnailColumnWidth};
+export {DATE_COLUMN_WIDTH};

@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import EmptyState from './EmptyState';
-import RecentlyAddedRow, {DATE_COLUMN_WIDTH, getThumbnailColumnWidth} from './RecentlyAddedRow';
+import RecentlyAddedRow, {DATE_COLUMN_WIDTH} from './RecentlyAddedRow';
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 import {useRecentlyAddedData} from './useRecentlyAddedData';
 
@@ -170,7 +170,7 @@ function RecentlyAddedSection() {
                 // clipped to the table's radius, while the hover background still spans the full row width.
                 <View style={[shouldUseNarrowLayout ? styles.mh5 : styles.mh8, shouldUseNarrowLayout ? styles.mb2 : styles.mb5, styles.br2, styles.overflowHidden]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv2, styles.ph3, styles.borderBottom]}>
-                        <View style={[StyleUtils.getWidthStyle(getThumbnailColumnWidth(shouldUseNarrowLayout)), styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <View style={[StyleUtils.getWidthStyle(shouldUseNarrowLayout ? variables.h36 : variables.w28), styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
                                 src={icons.Receipt}
                                 fill={theme.icon}
