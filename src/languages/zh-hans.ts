@@ -3430,7 +3430,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     statusPage: {
         status: '状态',
-        statusExplanation: '添加一个表情符号，让同事和朋友更容易了解你的状态。你也可以选择添加一条消息！',
+        statusExplanation: '使用表情符号和可选消息设置你的状态。',
         today: '今天',
         clearStatus: '清除状态',
         save: '保存',
@@ -6785,6 +6785,12 @@ ${reportName}
             },
             commonFeatures: {
                 title: '升级到 Control 方案',
+                collect: {
+                    title: '升级到 Collect 方案',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Collect 方案起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}，<a href="${learnMoreMethodsRoute}">了解更多</a>我们的方案和定价。</muted-text>`,
+                    note: '解锁助力您业务发展的核心功能，包括：',
+                },
                 note: '解锁我们最强大的功能，包括：',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -9310,6 +9316,7 @@ ${reportName}
         expenseLevelExport: '所有数据 - 报销级别',
         exportInProgress: '导出进行中',
         conciergeWillSend: 'Concierge 将很快把文件发送给你。',
+        currentView: '导出当前视图',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

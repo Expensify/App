@@ -3505,7 +3505,7 @@ ${amount} dla ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Status',
-        statusExplanation: 'Dodaj emotikon, aby ułatwić współpracownikom i znajomym zorientowanie się, co się dzieje. Opcjonalnie możesz dodać też wiadomość!',
+        statusExplanation: 'Ustaw swój status za pomocą emotikony i opcjonalnej wiadomości.',
         today: 'Dzisiaj',
         clearStatus: 'Wyczyść status',
         save: 'Zapisz',
@@ -6955,6 +6955,12 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             },
             commonFeatures: {
                 title: 'Ulepsz do planu Control',
+                collect: {
+                    title: 'Ulepsz do planu Collect',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Plan Collect zaczyna się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`} <a href="${learnMoreMethodsRoute}">Dowiedz się więcej</a> o naszych planach i cenach.</muted-text>`,
+                    note: 'Odblokuj kluczowe funkcje dla swojej firmy, w tym:',
+                },
                 note: 'Odblokuj nasze najpotężniejsze funkcje, w tym:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -9555,6 +9561,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce wyśle Ci plik.',
+        currentView: 'Eksportuj bieżący widok',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

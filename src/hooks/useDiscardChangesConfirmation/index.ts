@@ -7,7 +7,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
@@ -113,7 +112,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
 
         e.preventDefault();
         blockedNavigationAction.current = e.data.action;
-        navigateAfterInteraction(showDiscardModal);
+        showDiscardModal();
     });
 
     /**
@@ -132,7 +131,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
                 return;
             }
             window.history.go(1);
-            navigateAfterInteraction(showDiscardModal);
+            showDiscardModal();
         });
 
         return unsubscribe;

@@ -3618,7 +3618,7 @@ const translations = {
     },
     statusPage: {
         status: 'Status',
-        statusExplanation: "Add an emoji to give your colleagues and friends an easy way to know what's going on. You can optionally add a message too!",
+        statusExplanation: 'Set your status with an emoji and optional message.',
         today: 'Today',
         clearStatus: 'Clear status',
         save: 'Save',
@@ -7185,6 +7185,12 @@ const translations = {
             },
             commonFeatures: {
                 title: 'Upgrade to the Control plan',
+                collect: {
+                    title: 'Upgrade to the Collect plan',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>The Collect plan starts at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`} <a href="${learnMoreMethodsRoute}">Learn more</a> about our plans and pricing.</muted-text>`,
+                    note: 'Unlock essential features to run your business, including:',
+                },
                 note: 'Unlock our most powerful features, including:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -9666,6 +9672,7 @@ const translations = {
     },
     export: {
         basicExport: 'Basic export',
+        currentView: 'Export current view',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',

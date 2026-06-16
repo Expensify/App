@@ -3514,7 +3514,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Status',
-        statusExplanation: 'Voeg een emoji toe zodat je collega’s en vrienden eenvoudig kunnen zien wat er aan de hand is. Je kunt er ook nog een bericht bij zetten.',
+        statusExplanation: 'Stel je status in met een emoji en een optioneel bericht.',
         today: 'Vandaag',
         clearStatus: 'Status wissen',
         save: 'Opslaan',
@@ -6961,6 +6961,12 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             },
             commonFeatures: {
                 title: 'Upgrade naar het Control-abonnement',
+                collect: {
+                    title: 'Upgrade naar het Collect-abonnement',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Het Collect-abonnement begint bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`} <a href="${learnMoreMethodsRoute}">Meer informatie</a> over onze abonnementen en prijzen.</muted-text>`,
+                    note: 'Ontgrendel essentiële functies voor je bedrijf, waaronder:',
+                },
                 note: 'Ontgrendel onze krachtigste functies, waaronder:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -9570,6 +9576,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
+        currentView: 'Huidige weergave exporteren',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

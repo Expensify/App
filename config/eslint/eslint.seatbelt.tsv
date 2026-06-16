@@ -68,7 +68,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	133
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	128
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -1709,7 +1709,7 @@
 "../../tests/ui/MultifactorAuthenticationRevokePageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/ui/NetSuiteCustomListPickerTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/NetSuiteCustomListSelectorPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	12
-"../../tests/ui/NewChatPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../tests/ui/NewChatPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/NewReportWorkspaceSelectionPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/OnboardingEmployees.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/OnboardingPurpose.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1848,7 +1848,7 @@
 "../../tests/unit/NextStepUtilsTest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	23
 "../../tests/unit/NextStepUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/OnboardingSelectorsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
-"../../tests/unit/OnyxDerivedTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
+"../../tests/unit/OnyxDerivedTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/unit/OnyxUpdateManagerTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/OptionListContextProviderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/unit/OptionsListUtilsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	50
@@ -1872,7 +1872,7 @@
 "../../tests/unit/ReportActionsUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	35
 "../../tests/unit/ReportLayoutUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ReportNameUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	23
-"../../tests/unit/ReportPrimaryActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	168
+"../../tests/unit/ReportPrimaryActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	175
 "../../tests/unit/ReportPrimaryActionUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/ReportSecondaryActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	466
 "../../tests/unit/ReportSecondaryActionUtilsTest.ts"	"no-restricted-imports"	2

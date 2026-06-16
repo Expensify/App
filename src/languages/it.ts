@@ -3517,7 +3517,7 @@ ${amount} per ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Stato',
-        statusExplanation: "Aggiungi un'emoji per dare a colleghi e amici un modo semplice per capire cosa sta succedendo. Puoi anche aggiungere un messaggio, se vuoi!",
+        statusExplanation: "Imposta il tuo stato con un'emoji e un messaggio facoltativo.",
         today: 'Oggi',
         clearStatus: 'Cancella stato',
         save: 'Salva',
@@ -6982,6 +6982,12 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             },
             commonFeatures: {
                 title: 'Passa al piano Control',
+                collect: {
+                    title: 'Passa al piano Collect',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Il piano Collect parte da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`} <a href="${learnMoreMethodsRoute}">Scopri di più</a> sui nostri piani e prezzi.</muted-text>`,
+                    note: 'Sblocca le funzioni essenziali per la tua attività, tra cui:',
+                },
                 note: 'Sblocca le nostre funzioni più potenti, tra cui:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -9603,6 +9609,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         expenseLevelExport: 'Tutti i dati - livello spesa',
         exportInProgress: 'Esportazione in corso',
         conciergeWillSend: 'Concierge ti invierà il file a breve.',
+        currentView: 'Esporta vista corrente',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
