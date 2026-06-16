@@ -136,7 +136,11 @@ The persisted queue exists so an interrupted WRITE survives an app kill. The pie
 **What does _not_ recover:**
 
 - A **File/Blob ongoing request** — `PERSISTED_ONGOING_REQUESTS` holds `null` on disk (the live object was memory-only), so there is nothing to re-drive; the upload is lost.
-- A request lost in one of the remaining **fire-and-forget persist windows** — the promotion (`processNextRequest`), removal (`endRequestAndRemoveFromQueue`), and rollback writes are not awaited, so a crash between an in-flight request acting on the server and its `multiSet` committing can leave the disk record momentarily stale. The *enqueue* window is no longer one of these: `push` now awaits the `save()` disk commit before flushing, so a freshly-pushed request cannot reach the server while still absent from disk. See [Where the request actually hits disk](#where-the-request-actually-hits-disk-and-where-it-doesnt).
+- A request caught in a **fire-and-forget persist window** — a write that touches the server but whose `multiSet` to disk is not awaited, so the disk record is momentarily stale and a crash inside the window loses the request. Three such windows remain; the enqueue window does not. See [Where the request actually hits disk](#where-the-request-actually-hits-disk-and-where-it-doesnt).
+    - **Promotion** (`processNextRequest`) — not awaited.
+    - **Removal** (`endRequestAndRemoveFromQueue`) — not awaited.
+    - **Rollback** writes — not awaited.
+    - **Enqueue** (`push`) — _closed_: `push` awaits the `save()` disk commit before flushing, so a freshly-pushed request cannot reach the server while still absent from disk.
 
 **On sign-out (a different reset):** `Session.cleanupSession()` aborts the in-flight cancellable XHR via `HttpUtils.cancelPendingRequests()` — surfacing as `REQUEST_CANCELLED` to `process()`'s catch (dropped, no data applied) — and clears the persisted queue via `PersistedRequests.clear()`. This is the only inbound path that _aborts_ an in-flight request rather than letting it complete. A bare `Onyx.clear()` (without the abort) resets the mirror to `[]`/`null` through the carve-out path, but because `isInitialized` is already true the init callback does **not** re-fire, so clearing on its own schedules no flush; an in-flight `process()` chain holds local references and is unaffected by the memory wipe.
 
