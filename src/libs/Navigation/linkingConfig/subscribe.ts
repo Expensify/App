@@ -7,26 +7,33 @@ import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+/**
+ * Rules for dropping a deep link that would re-navigate to a screen the user is already on.
+ */
+const skipRules: ReadonlyArray<{urlMatcher: RegExp; focusedScreens: readonly string[]}> = [
+    {urlMatcher: /\/distance-gps(\?|$)/, focusedScreens: [ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route]},
+    {urlMatcher: /\/scan(\?|$)/, focusedScreens: [ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route]},
+    {urlMatcher: /\/manual(\?|$)/, focusedScreens: [ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route]},
+    {
+        urlMatcher: /\/distance-new(\/|\?|$)/,
+        focusedScreens: [
+            ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.route,
+            ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route,
+            ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route,
+            ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.route,
+        ],
+    },
+];
+
 const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
     const subscription = Linking.addEventListener('url', ({url}: {url: string}) => {
         // Skip deep links to screens where the user is already focused.
-        const routesToSkipIfAlreadyFocused = [
-            ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route,
-            ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
-            ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route,
-            CONST.DISTANCE_REQUEST_CREATE_ROUTE,
-        ];
-        const matchedRoute = routesToSkipIfAlreadyFocused.find((route) => url.includes(route));
-        if (matchedRoute) {
+        const skipRule = skipRules.find(({urlMatcher}) => urlMatcher.test(url));
+        if (skipRule) {
             const state = navigationRef.current?.getRootState();
-            if (state) {
-                const currentRoute = findFocusedRoute(state);
-                if (
-                    currentRoute?.name === matchedRoute ||
-                    (currentRoute?.name && matchedRoute === CONST.DISTANCE_REQUEST_CREATE_ROUTE && CONST.REGEX.ROUTES.DISTANCE_REQUEST.test(currentRoute.name))
-                ) {
-                    return;
-                }
+            const focusedName = state ? findFocusedRoute(state)?.name : undefined;
+            if (focusedName && skipRule.focusedScreens.includes(focusedName)) {
+                return;
             }
         }
 

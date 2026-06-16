@@ -4984,7 +4984,6 @@ const CONST = {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
             UNLINK_LOGIN: /\/u($|(\/\/*))/,
             REDUNDANT_SLASHES: /(\/{2,})|(\/$)/g,
-            DISTANCE_REQUEST: /^distance-/,
         },
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
@@ -7870,8 +7869,6 @@ const CONST = {
     },
 
     SIGNIN_ROUTE: '/signin',
-
-    DISTANCE_REQUEST_CREATE_ROUTE: 'distance-new',
 
     ONBOARDING_TASK_TYPE: {
         CREATE_REPORT: 'createReport',
