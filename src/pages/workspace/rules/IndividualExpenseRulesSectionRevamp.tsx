@@ -16,6 +16,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type IndividualExpenseRulesSectionRevampProps = {
@@ -100,6 +101,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.flagReceiptLineItems'),
             icon: icons.Receipt,
             action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
+            pendingAction: !isEmptyObject(policy?.prohibitedExpenses?.pendingFields) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined,
         },
         {
             key: 'receiptRequirements',
@@ -107,7 +109,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             description: receiptRequirementText,
             icon: icons.ReceiptCheck,
             action: () => Navigation.navigate(ROUTES.RULES_REQUIRE_RECEIPTS.getRoute(policyID)),
-            pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt,
+            pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt ?? policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt,
         },
         {
             key: 'requireFields',
@@ -115,6 +117,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             description: requiredFieldsList,
             icon: icons.Task,
             action: () => Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.requiresCategory ?? policy?.pendingFields?.requiresTag,
         },
     ];
 

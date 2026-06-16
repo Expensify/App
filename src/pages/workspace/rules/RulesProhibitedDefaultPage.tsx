@@ -134,14 +134,10 @@ function RulesProhibitedDefaultPage({
                             </View>
                         );
 
-                        if (isRevamp) {
-                            return <View key={prohibitedExpense}>{switchComponent}</View>;
-                        }
-
                         return (
                             <OfflineWithFeedback
                                 pendingAction={policy?.prohibitedExpenses?.pendingFields?.[prohibitedExpense]}
-                                key={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
+                                key={prohibitedExpense}
                             >
                                 {switchComponent}
                             </OfflineWithFeedback>
