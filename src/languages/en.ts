@@ -7262,6 +7262,16 @@ const translations = {
                 cardRestrictions: 'Card restrictions',
                 expenseDefaults: 'Expense defaults',
             },
+            bulkActions: {
+                deleteMultiple: () => ({
+                    one: 'Delete rule',
+                    other: 'Delete rules',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Are you sure you want to delete this rule?',
+                    other: 'Are you sure you want to delete these rules?',
+                }),
+            },
             generalTab: {
                 title: 'Basic rules',
                 subtitle: 'Common rules to control spend',

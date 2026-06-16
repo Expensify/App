@@ -8528,6 +8528,7 @@ const CONST = {
                 NEW_RULE_MENU_ITEM: 'WorkspaceRules-NewRuleMenuItem',
                 REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
                 REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceRules-BulkActionsDropdown',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',

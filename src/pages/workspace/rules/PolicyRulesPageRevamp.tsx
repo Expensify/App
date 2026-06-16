@@ -3,7 +3,10 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ImageSVG from '@components/ImageSVG';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseDefaultsTable';
 import WorkspaceExpenseDefaultsTable from '@components/Tables/WorkspaceExpenseDefaultsTable';
 import type {SpendRuleTableItem} from '@components/Tables/WorkspaceSpendRulesTable';
@@ -16,16 +19,20 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+import {deleteExpensifyCardRule} from '@libs/actions/Card';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
-import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
+import {deletePolicyCodingRule, openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import Tab from '@libs/actions/Tab';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -44,6 +51,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
 import type {CodingRule} from '@src/types/onyx/Policy';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AgentRulesSection from './AgentRulesSection';
 import IndividualExpenseRulesSectionRevamp from './IndividualExpenseRulesSectionRevamp';
@@ -71,11 +79,13 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Flash', 'ExpensifyCardCoins', 'ExpensifyCardProtectionIllustration']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Trashcan']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
 
     const [lastSelectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RULES_TAB_TYPE}`);
@@ -233,6 +243,90 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         fetchRules();
     }, [fetchRules]);
 
+    const selectedRuleKeys = useMemo(() => {
+        if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
+            return selectedSpendRuleKeys;
+        }
+        if (activeTab === RULES_TAB.EXPENSE_DEFAULTS) {
+            return selectedExpenseDefaultKeys;
+        }
+        return [];
+    }, [activeTab, selectedExpenseDefaultKeys, selectedSpendRuleKeys]);
+    const hasSelectedRules = selectedRuleKeys.length > 0;
+    const isTableTab = activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS;
+    const shouldShowBulkActions = canWriteRules && isTableTab && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : hasSelectedRules);
+    const shouldShowAddRuleButton = activeTab === RULES_TAB.GENERAL || !shouldShowBulkActions;
+
+    const clearTableSelection = useCallback(() => {
+        if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
+            setSelectedSpendRuleKeys([]);
+        } else if (activeTab === RULES_TAB.EXPENSE_DEFAULTS) {
+            setSelectedExpenseDefaultKeys([]);
+        }
+        turnOffMobileSelectionMode();
+    }, [activeTab]);
+
+    const deleteSelectedSpendRules = useCallback(() => {
+        if (!defaultFundID || defaultFundID === CONST.DEFAULT_NUMBER_ID) {
+            return;
+        }
+
+        for (const ruleID of selectedSpendRuleKeys) {
+            if (ruleID === 'default-rule') {
+                continue;
+            }
+
+            const existingRule = expensifyCardSettings?.cardRules?.[ruleID];
+            if (!existingRule) {
+                continue;
+            }
+
+            deleteExpensifyCardRule(defaultFundID, ruleID, existingRule);
+        }
+        clearTableSelection();
+    }, [clearTableSelection, defaultFundID, expensifyCardSettings?.cardRules, selectedSpendRuleKeys]);
+
+    const deleteSelectedExpenseDefaults = useCallback(() => {
+        if (!policy) {
+            return;
+        }
+
+        for (const ruleID of selectedExpenseDefaultKeys) {
+            deletePolicyCodingRule(policy, ruleID);
+        }
+        clearTableSelection();
+    }, [clearTableSelection, policy, selectedExpenseDefaultKeys]);
+
+    const getBulkActionsButtonOptions = useCallback((): Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> => {
+        return [
+            {
+                icon: icons.Trashcan,
+                text: translate('workspace.rules.bulkActions.deleteMultiple', {count: selectedRuleKeys.length}),
+                value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                onSelected: async () => {
+                    const {action} = await showConfirmModal({
+                        title: translate('workspace.rules.merchantRules.deleteRule'),
+                        prompt: translate('workspace.rules.bulkActions.deleteMultipleConfirmation', {count: selectedRuleKeys.length}),
+                        confirmText: translate('common.delete'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    });
+
+                    if (action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+
+                    if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
+                        deleteSelectedSpendRules();
+                        return;
+                    }
+
+                    deleteSelectedExpenseDefaults();
+                },
+            },
+        ];
+    }, [activeTab, deleteSelectedExpenseDefaults, deleteSelectedSpendRules, icons.Trashcan, selectedRuleKeys.length, showConfirmModal, translate]);
+
     const tabs: TabSelectorBaseItem[] = [
         {
             key: RULES_TAB.GENERAL,
@@ -259,15 +353,37 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         Navigation.navigate(ROUTES.RULES_NEW.getRoute(policyID));
     };
 
-    const getHeaderContent = () => (
-        <Button
-            success
-            onPress={handleNewRule}
-            text={translate('workspace.rules.merchantRules.addRuleTitle')}
-            icon={icons.Plus}
-            style={shouldUseNarrowLayout && styles.flex1}
-        />
-    );
+    const getHeaderContent = () => {
+        if (shouldShowBulkActions) {
+            return (
+                <ButtonWithDropdownMenu
+                    onPress={() => null}
+                    shouldAlwaysShowDropdownMenu
+                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    customText={translate('workspace.common.selected', {count: selectedRuleKeys.length})}
+                    options={getBulkActionsButtonOptions()}
+                    isSplitButton={false}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    isDisabled={!selectedRuleKeys.length}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.BULK_ACTIONS_DROPDOWN}
+                />
+            );
+        }
+
+        if (!shouldShowAddRuleButton) {
+            return null;
+        }
+
+        return (
+            <Button
+                success
+                onPress={handleNewRule}
+                text={translate('workspace.rules.merchantRules.addRuleTitle')}
+                icon={icons.Plus}
+                style={shouldUseNarrowLayout && styles.flex1}
+            />
+        );
+    };
 
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled;
 
@@ -372,6 +488,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                 if (!isRulesTab(key)) {
                                     return;
                                 }
+                                setSelectedSpendRuleKeys([]);
+                                setSelectedExpenseDefaultKeys([]);
+                                turnOffMobileSelectionMode();
                                 Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
                             }}
                         />
