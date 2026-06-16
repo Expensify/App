@@ -40,7 +40,7 @@ function AddBankAccount() {
     const styles = useThemeStyles();
     const kycWallRef = useContext(KYCWallContext);
 
-    const isBankAccountAlreadyAdded = useIsBankAccountAdded();
+    const {isBankAccountAdded: isBankAccountAlreadyAdded} = useIsBankAccountAdded();
 
     const submit = useCallback(() => {
         // Re-submitting an already added bank account fails with a "bank account already exists" error, so skip the

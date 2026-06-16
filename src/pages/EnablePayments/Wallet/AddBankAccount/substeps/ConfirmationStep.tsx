@@ -27,19 +27,11 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
     const {isOffline} = useNetwork();
     const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const isBankAccountAdded = useIsBankAccountAdded();
+    const {isBankAccountAdded, addedBankAccount} = useIsBankAccountAdded();
 
     const isLoading = personalBankAccount?.isLoading ?? false;
     const error = getLatestErrorMessage(personalBankAccount ?? {});
 
-    // When the user navigates back to this step after the bank account was added (possibly in a previous session),
-    // the Plaid draft may be gone — fall back to the stored bank account for display.
-    const addedBankAccount = isBankAccountAdded
-        ? Object.values(bankAccountList ?? {}).find(
-              (account) => account?.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && account?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-          )
-        : undefined;
     const bankName = personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.BANK_NAME] ?? addedBankAccount?.title;
     const accountNumber = personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? addedBankAccount?.accountData?.accountNumber ?? '';
 
