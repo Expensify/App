@@ -135,7 +135,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     );
 
     const handleExpensesFromPress = useCallback(() => {
-        const firstApproverEmail = approvalWorkflow.approvers?.at(0)?.email ?? '';
+        // Key the EDIT backTo off the persisted first approver, not the mutated draft. The edit page
+        // resolves its workflow from policy.employeeList by first-approver email, so an unsaved approver
+        // change would point backTo at a non-existent workflow and render the not-found ("Not here") view.
+        const firstApproverEmail = approvalWorkflow.originalApprovers?.at(0)?.email ?? '';
         // Always pass a backTo so that after editing expenses-from (including the invite-a-member detour),
         // we return to the page we came from. For EDIT that's the edit page; for CREATE we're on the
         // confirm (new) page, so return there instead of falling through to the Approver step.
@@ -144,7 +147,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail)
                 : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
-    }, [approvalWorkflow.action, approvalWorkflow.approvers, policyID]);
+    }, [approvalWorkflow.action, approvalWorkflow.originalApprovers, policyID]);
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
