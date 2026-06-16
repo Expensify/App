@@ -1,4 +1,4 @@
-import type {MultifactorAuthenticationResolvedScenarioConfig} from '@components/MultifactorAuthentication/config';
+import type {MultifactorAuthenticationScenarioConfigFor} from '@components/MultifactorAuthentication/config';
 import type {
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioAdditionalParams,
@@ -36,7 +36,7 @@ type MultifactorAuthenticationState = {
     scenarioName: MultifactorAuthenticationScenario | undefined;
 
     /** Current scenario configuration being executed */
-    scenario: MultifactorAuthenticationResolvedScenarioConfig | undefined;
+    scenario: MultifactorAuthenticationScenarioConfigFor<MultifactorAuthenticationScenario> | undefined;
 
     /** Additional parameters for the current scenario */
     payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;

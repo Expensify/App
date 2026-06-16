@@ -1,4 +1,3 @@
-import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfigRecord} from '@components/MultifactorAuthentication/config/types';
 import CONST from '@src/CONST';
 import AuthorizeTransaction from './AuthorizeTransaction';
@@ -22,21 +21,12 @@ const MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG = {
 } as const satisfies MultifactorAuthenticationScenarioConfigRecord;
 
 /**
- * Resolved config for a single scenario key, preserving that scenario's specific action signature.
- * This is the precise type behind {@link getScenarioConfig}'s return.
+ * Represents the configuration for a single multifactor authentication scenario.
  */
 type MultifactorAuthenticationScenarioConfigFor<T extends MultifactorAuthenticationScenario> = (typeof MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG)[T];
 
 /**
- * Union of every resolved scenario config - the value type to store when the scenario is dynamic (not
- * known at the type level), e.g. the `scenario` field on the runtime MFA state.
- */
-type MultifactorAuthenticationResolvedScenarioConfig = ValueOf<typeof MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG>;
-
-/**
- * Returns the config for a scenario key, narrowed through the generic so each scenario's action
- * signature survives without a type assertion. Call sites that store the result next to a dynamic
- * scenario name should widen the field to {@link MultifactorAuthenticationResolvedScenarioConfig}.
+ * Returns the configuration for the given multifactor authentication scenario.
  */
 function getScenarioConfig<T extends MultifactorAuthenticationScenario>(scenarioName: T): MultifactorAuthenticationScenarioConfigFor<T> {
     return MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenarioName];
@@ -44,4 +34,4 @@ function getScenarioConfig<T extends MultifactorAuthenticationScenario>(scenario
 
 export default MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG;
 export {getScenarioConfig};
-export type {MultifactorAuthenticationScenarioConfigFor, MultifactorAuthenticationResolvedScenarioConfig};
+export type {MultifactorAuthenticationScenarioConfigFor};
