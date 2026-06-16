@@ -391,13 +391,13 @@ describe('usePolicyIndicatorChecks', () => {
         });
     });
 
-    describe('error priority over info', () => {
+    describe('concurrent error and info statuses', () => {
         beforeEach(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('returns policy error status when both sync error and merge HR setup are needed', async () => {
+        it('returns both sync error and merge HR setup statuses when policy has both conditions', async () => {
             await act(async () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: {email: userID},
