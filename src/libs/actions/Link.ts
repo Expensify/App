@@ -343,11 +343,8 @@ function openReportFromDeepLink(
                             return;
                         }
 
-                        // Drop a non-report deep link captured before the user finished onboarding (#91437).
-                        // Only routes without a reportID can reach the "Not here" page. A report URL falls through
-                        // to navigateHandler below, which opens the report when it's accessible and otherwise
-                        // Concierge, never AccessOrNotFoundWrapper, so blanket-dropping report URLs would lose a
-                        // legitimate first-time sign-up link (e.g. an invite to a report).
+                        // Pre-onboarding deep links to non-report routes flash the "Not here" page (#91437); drop them.
+                        // Report URLs fall through to navigateHandler below, so legit first-time sign-up links survive.
                         if (initialHasCompletedGuidedSetupFlow === false && !reportID) {
                             return;
                         }
