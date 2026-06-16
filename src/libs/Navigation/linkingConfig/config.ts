@@ -536,9 +536,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.CANCEL_SUBSCRIPTION]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.SUBSCRIPTION_DOWNGRADE_BLOCKED]: {
-                            path: ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.route,
-                        },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_SUBSCRIPTION_DOWNGRADE_BLOCKED]: DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path,
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
                         },

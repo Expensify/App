@@ -92,6 +92,10 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/abc/overview/address')).toBe('/workspaces/abc/overview/workspace-address');
     });
 
+    it('redirects old subscription downgrade blocked path', () => {
+        expect(getMatchingNewRoute('/settings/subscription/downgrade-blocked')).toBe('/settings/subscription/subscription-downgrade-blocked');
+    });
+
     it('redirects old card reconciliation account path with two wildcards', () => {
         expect(getMatchingNewRoute('/workspaces/abc/accounting/xero/card-reconciliation/account')).toBe(
             '/workspaces/abc/accounting/xero/card-reconciliation/account-reconciliation-settings',

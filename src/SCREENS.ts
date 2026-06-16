@@ -276,7 +276,7 @@ const SCREENS = {
             CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
             DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR: 'Dynamic_Settings_Subscription_Payment_Card_Currency_Selector',
             CANCEL_SUBSCRIPTION: 'Settings_Subscription_CancelSubscription',
-            SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Settings_Subscription_DowngradeBlocked',
+            DYNAMIC_SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Dynamic_Settings_Subscription_DowngradeBlocked',
         },
     },
     TWO_FACTOR_AUTH: {
