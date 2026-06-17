@@ -78,7 +78,7 @@ function getAccountIDHashBucket({accountID = CONST.DEFAULT_NUMBER_ID, accountEma
 }
 
 /**
- * Returns the colours for a letter-avatar scheme key, falling back to the default scheme when the key is missing or unknown.
+ * Returns the colors for a letter-avatar scheme key, falling back to the default scheme when the key is missing or unknown.
  *
  * @param avatarSchemeKey - A scheme key, e.g. "blue100"
  */

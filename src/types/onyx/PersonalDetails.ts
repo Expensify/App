@@ -57,9 +57,9 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Avatar original file name with extension */
     originalFileName?: string;
 
-    /** Letter-avatar colour scheme, only set when the user picks a colour */
+    /** Letter-avatar color scheme, only set when the user picks a color */
     avatarStyle?: {
-        /** Colour-scheme key, e.g. "blue100" */
+        /** Color-scheme key, e.g. "blue100" */
         color: LetterAvatarSchemeKey;
     };
 

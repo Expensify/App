@@ -1,9 +1,9 @@
 import colors from '@styles/theme/colors';
 
-/** Background and fill colours for a letter avatar. */
+/** Background and fill colors for a letter avatar. */
 type LetterAvatarColorStyle = {backgroundColor: string; fillColor: string};
 
-/** Colour-scheme key for a letter avatar. Matches the colour token names in the design system. */
+/** Color-scheme key for a letter avatar. Matches the color token names in the design system. */
 type LetterAvatarSchemeKey =
     | 'blue100'
     | 'blue400'
@@ -25,8 +25,8 @@ type LetterAvatarSchemeKey =
     | 'ice700';
 
 /**
- * Letter-avatar colour palette mapping each scheme key to its colours. A restyle edits this table.
- * Keys are persisted when a user picks a colour, so they can be added or retired but not repurposed.
+ * Letter-avatar color palette mapping each scheme key to its colors. A restyle edits this table.
+ * Keys are persisted when a user picks a color, so they can be added or retired but not repurposed.
  * Order is significant: LETTER_AVATAR_COLOR_OPTIONS reads it by index.
  */
 const LETTER_AVATAR_SCHEMES: Record<LetterAvatarSchemeKey, LetterAvatarColorStyle> = {
@@ -53,7 +53,7 @@ const LETTER_AVATAR_SCHEMES: Record<LetterAvatarSchemeKey, LetterAvatarColorStyl
 /** The schemes as an ordered array. */
 const LETTER_AVATAR_COLOR_OPTIONS: LetterAvatarColorStyle[] = Object.values(LETTER_AVATAR_SCHEMES);
 
-/** Used when no colour has been picked. */
+/** Used when no color has been picked. */
 const DEFAULT_LETTER_AVATAR_SCHEME: LetterAvatarColorStyle = LETTER_AVATAR_SCHEMES.blue100;
 
 function isLetterAvatarSchemeKey(value: string): value is LetterAvatarSchemeKey {
