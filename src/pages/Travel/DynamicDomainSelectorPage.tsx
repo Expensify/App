@@ -22,7 +22,7 @@ import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/Po
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -68,7 +68,7 @@ function DynamicDomainSelectorPage({route}: DomainSelectorPageProps) {
                 ? createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID))
                 : createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID));
             setTravelProvisioningNextStep(nextStep);
-            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID)));
             return;
         }
         if (isEmptyObject(policy?.address)) {

@@ -791,7 +791,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.SEARCH.ROOT,
             SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR,
             SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS,
-            SCREENS.TRAVEL.VERIFY_ACCOUNT,
+            SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT,
         ],
         getRoute: (domain: string, policyID?: string) => `terms/${domain}/accept${policyID ? `/${policyID}` : ''}`,
     },
@@ -803,6 +803,11 @@ const DYNAMIC_ROUTES = {
         path: 'workspace-address/:domain/:policyID?',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT, SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR],
         getRoute: (domain: string, policyID?: string) => `workspace-address/${domain}${policyID ? `/${policyID}` : ''}`,
+    },
+    TRAVEL_VERIFY_ACCOUNT: {
+        path: 'verify-account/:domain/:policyID?',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT, SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR, SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS],
+        getRoute: (domain: string, policyID?: string) => `verify-account/${domain}${policyID ? `/${policyID}` : ''}`,
     },
     TRAVEL_DOMAIN_SELECTOR: {
         path: 'domain-selector',
@@ -3281,11 +3286,6 @@ const ROUTES = {
 
             return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${sequenceIndex}`, backTo);
         },
-    },
-    TRAVEL_VERIFY_ACCOUNT: {
-        route: `travel/${VERIFY_ACCOUNT}`,
-
-        getRoute: (domain?: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(getUrlWithParams(`travel/${VERIFY_ACCOUNT}`, {domain, policyID}), backTo),
     },
     ONBOARDING_ROOT: {
         route: 'onboarding',

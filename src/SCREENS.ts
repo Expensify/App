@@ -40,7 +40,7 @@ const SCREENS = {
         DYNAMIC_WORKSPACE_CONFIRMATION: 'Dynamic_Travel_WorkspaceConfirmation',
         DYNAMIC_WORKSPACE_ADDRESS: 'Dynamic_Travel_WorkspaceAddress',
         TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
-        VERIFY_ACCOUNT: 'Travel_VerifyAccount',
+        DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Travel_VerifyAccount',
         MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'Travel_MissingPersonalDetails_ConfirmMagicCode',
     },
     SEARCH: {
