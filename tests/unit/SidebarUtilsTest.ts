@@ -2824,12 +2824,12 @@ describe('SidebarUtils', () => {
                 } as Report;
                 const iouAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportID: '5186125925096828',
                     originalMessage: {
                         amount: -200,
                         currency: 'ETB',
                         type: 'track',
                         participantAccountIDs: [20232605],
-                        IOUReportID: '5186125925096828',
                     },
                     reportActionID: '8964283462949622660',
                     shouldShow: true,
@@ -3282,7 +3282,6 @@ describe('SidebarUtils', () => {
                         comment: '',
                         currency: 'VND',
                         IOUTransactionID: '7823889167761419930',
-                        IOUReportID: '0',
                         type: 'track',
                         participantAccountIDs: [20337430, 0],
                         lastModified: '2025-07-25 07:39:02.550',
@@ -3487,11 +3486,11 @@ describe('SidebarUtils', () => {
                 } as Report;
                 const iouAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportID: iouReport.reportID,
                     originalMessage: {
                         amount: -200,
                         currency: iouReport.currency,
                         type: CONST.IOU.TYPE.CREATE,
-                        IOUReportID: iouReport.reportID,
                     },
                     reportActionID: '8964283462949622660',
                     shouldShow: true,
@@ -3597,11 +3596,11 @@ describe('SidebarUtils', () => {
                 } as Report;
                 const iouAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportID: iouReport.reportID,
                     originalMessage: {
                         amount: -200,
                         currency: iouReport.currency,
                         type: CONST.IOU.TYPE.CREATE,
-                        IOUReportID: iouReport.reportID,
                     },
                     reportActionID: '8964283462949622660',
                     shouldShow: true,
