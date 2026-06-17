@@ -1,0 +1,49 @@
+name: Victory Chart Renderer Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+
+concurrency:
+  group: ${{ github.ref }}-vcr-test
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test victory-chart-renderer
+    if: ${{ github.actor != 'OSBotify' }}
+    runs-on: blacksmith-8vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Filter paths
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        id: filter
+        with:
+          filters: |
+            vcr:
+              - 'server/**'
+              - 'src/components/Charts/**'
+              - 'src/components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/**'
+              - 'src/languages/**'
+              - 'src/libs/telemetry/**'
+              - '.bun-version'
+              - 'package.json'
+              - 'package-lock.json'
+
+      - name: Setup Node
+        if: steps.filter.outputs.vcr == 'true'
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Setup Bun
+        if: steps.filter.outputs.vcr == 'true'
+        # v2.2.0
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version-file: .bun-version
+
+      - name: Run victory-chart-renderer tests
+        if: steps.filter.outputs.vcr == 'true'
+        run: npm run server:vcr:test
