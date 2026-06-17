@@ -5,15 +5,15 @@ const noopSpan = {
     end: () => {},
 };
 
-export function startInactiveSpan() {
+function startInactiveSpan() {
     return noopSpan;
 }
 
-export function spanToJSON() {
+function spanToJSON() {
     return {data: {}};
 }
 
-export const logger = {
+const logger = {
     warn: () => {},
 };
 
@@ -23,4 +23,5 @@ const Sentry = {
     logger,
 };
 
+export {startInactiveSpan, spanToJSON, logger};
 export default Sentry;

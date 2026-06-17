@@ -1,4 +1,4 @@
-export function findBestLanguageTag() {
+function findBestLanguageTag() {
     return {languageTag: 'en-US', isRTL: false};
 }
 
@@ -18,4 +18,5 @@ const RNLocalize = {
     findBestLanguageTag,
 };
 
+export {findBestLanguageTag};
 export default RNLocalize;
