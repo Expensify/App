@@ -5,35 +5,12 @@ import TextInput from '@components/TextInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {useTableContext} from './TableContext';
 
 /**
  * Renders a search input that filters table data.
- *
- * This component displays a text input that updates the table's search string.
- * The filtering logic is defined by the `isItemInSearch` callback passed to the
- * parent `<Table>` component.
- *
- * Features:
- * - Magnifying glass icon when empty
- * - Clear button when text is present
- * - Auto-updates table data as user types
- *
- * @example
- * ```tsx
- * <Table
- *   data={items}
- *   columns={columns}
- *   renderItem={renderItem}
- *   isItemInSearch={(item, searchString) =>
- *     item.name.toLowerCase().includes(searchString.toLowerCase())
- *   }
- * >
- *   <Table.SearchBar label="Find item" />
- *   <Table.Body />
- * </Table>
- * ```
  */
 type TableSearchBarProps = {
     /** Label and accessibility label for the search input. */
@@ -60,12 +37,32 @@ function TableSearchBar({label, style}: TableSearchBarProps) {
 
     return (
         <TextInput
-            role={CONST.ROLE.SEARCHBOX}
+            hideFocusedState
             multiline={false}
+            spellCheck={false}
+            autoCorrect={false}
             placeholder={label}
-            inputStyle={[styles.textLabel, styles.h7]}
+            role={CONST.ROLE.SEARCHBOX}
+            inputMode={CONST.INPUT_MODE.TEXT}
+            placeholderTextColor={theme.textSupporting}
+            // inputStyle={[styles.textLabel, styles.h7]}
             shouldShowClearButton={activeSearchString.length > 0}
             onChangeText={(text) => updateSearchString(text)}
+            textInputContainerStyles={{
+                height: 61,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderColor: theme.border,
+                backgroundColor: theme.appBG,
+                paddingHorizontal: 15,
+                paddingVertical: 0,
+            }}
+            inputStyle={{
+                fontSize: 24,
+                lineHeight: 30,
+                paddingTop: 0,
+                paddingBottom: 0,
+                color: theme.text,
+            }}
         />
     );
 
