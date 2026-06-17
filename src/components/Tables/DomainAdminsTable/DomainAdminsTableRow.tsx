@@ -4,7 +4,7 @@ import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
-import Text from '@components/Text';
+import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -63,21 +63,20 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
                             size={avatarSize}
                             accountIDs={[item.accountID]}
                             fallbackDisplayName={item.name ?? item.email}
+                            shouldShowTooltip
                             secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
                         />
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
-                            <Text
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                text={item.name}
                                 style={[styles.optionDisplayName, styles.pre]}
-                                numberOfLines={1}
-                            >
-                                {item.name}
-                            </Text>
-                            <Text
+                            />
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                text={item.email}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                numberOfLines={1}
-                            >
-                                {item.email}
-                            </Text>
+                            />
                         </View>
                     </View>
 
