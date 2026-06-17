@@ -194,7 +194,6 @@ function HeaderFirstRow<TItem extends ListItem>({
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}
                         amount={reportItem.total}
-                        extraSmall={!isLargeScreenWidth}
                         chatReport={chatReport}
                     />
                 </View>

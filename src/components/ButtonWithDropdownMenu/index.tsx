@@ -37,7 +37,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         customText,
         style,
         disabledStyle,
-        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
+        buttonSize = CONST.BUTTON_SIZE.MEDIUM,
         anchorAlignment = defaultAnchorAlignment,
         buttonRef,
         onPress,
@@ -82,9 +82,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
     const areAllOptionsDisabled = options.every((option) => option.disabled);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
-    const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
-    const isButtonSizeSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL;
-    const isButtonSizeExtraSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL;
+    const isButtonSizeLarge = buttonSize === CONST.BUTTON_SIZE.LARGE;
+    const isButtonSizeSmall = buttonSize === CONST.BUTTON_SIZE.SMALL;
     const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
     const splitButtonIcon = hasError ? icons.DotIndicator : icon;
@@ -180,7 +179,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={isSplitButton ? [styles.pr0, styles.flexGrow1, styles.flexShrink1] : {}}
-                        extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
                         large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                         medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
@@ -213,10 +211,9 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             style={[styles.pl0]}
                             onPress={() => setIsMenuVisible(!isMenuVisible)}
                             shouldRemoveLeftBorderRadius
-                            extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
-                            large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                            medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                            small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                            large={buttonSize === CONST.BUTTON_SIZE.LARGE}
+                            medium={buttonSize === CONST.BUTTON_SIZE.MEDIUM}
+                            small={buttonSize === CONST.BUTTON_SIZE.SMALL}
                             innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton, isButtonSizeSmall && styles.dropDownButtonCartIcon]}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             sentryLabel={sentryLabel}
@@ -227,7 +224,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                     style={[
                                         isButtonSizeLarge && styles.dropDownLargeButtonArrowContain,
                                         isButtonSizeSmall && shouldUseShortForm ? styles.dropDownSmallButtonArrowContain : styles.dropDownMediumButtonArrowContain,
-                                        isButtonSizeExtraSmall && styles.dropDownSmallButtonArrowContain,
                                     ]}
                                 >
                                     <Icon
@@ -258,10 +254,9 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     isLoading={isLoading}
                     text={selectedItem?.text}
                     onPress={handleSingleOptionPress}
-                    extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
-                    large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                    medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                    large={buttonSize === CONST.BUTTON_SIZE.LARGE}
+                    medium={buttonSize === CONST.BUTTON_SIZE.MEDIUM}
+                    small={buttonSize === CONST.BUTTON_SIZE.SMALL}
                     innerStyles={[innerStyleDropButton, shouldShowButtonRightIcon && styles.dropDownButtonCartIconView]}
                     iconRightStyles={shouldShowButtonRightIcon && styles.ml2}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}

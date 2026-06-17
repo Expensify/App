@@ -395,7 +395,7 @@ function WorkspaceTaxesPage({
             <ButtonWithDropdownMenu<WorkspaceTaxRatesBulkActionType>
                 onPress={() => {}}
                 options={dropdownMenuOptions}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                buttonSize={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
