@@ -1,4 +1,5 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {PropsWithChildren} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -40,7 +41,7 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     onClose: () => void;
 };
 
-type WorkspaceExpensifyCardsTableProps = {
+type WorkspaceExpensifyCardsTableProps = PropsWithChildren<{
     /** Policy ID */
     policyID: string;
 
@@ -64,10 +65,7 @@ type WorkspaceExpensifyCardsTableProps = {
 
     /** Personal details used for search filtering */
     personalDetails?: PersonalDetailsList;
-
-    /** Optional footer component rendered below the table body */
-    ListFooterComponent?: React.ReactElement;
-};
+}>;
 
 export default function WorkspaceExpensifyCardsTable({
     policyID,
@@ -78,7 +76,7 @@ export default function WorkspaceExpensifyCardsTable({
     cardSettings,
     cardSettingsBase,
     personalDetails,
-    ListFooterComponent,
+    children,
 }: WorkspaceExpensifyCardsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -176,7 +174,6 @@ export default function WorkspaceExpensifyCardsTable({
             selectionEnabled={selectionEnabled}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
-            ListFooterComponent={ListFooterComponent}
         >
             <View style={[styles.appBG, styles.flexShrink0]}>
                 <WorkspaceCardListLabels
@@ -192,9 +189,15 @@ export default function WorkspaceExpensifyCardsTable({
                     </View>
                 )}
             </View>
-            {cards.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.expensifyCard.findCard')} />}
-            <Table.Header />
+            {cards.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
+                <Table.SearchBar
+                    label={translate('workspace.expensifyCard.findCard')}
+                    style={[styles.mb0, styles.mt5]}
+                />
+            )}
+            <Table.Header style={shouldUseNarrowTableLayout ? styles.mt3 : styles.mt5} />
             <Table.Body />
+            {children}
         </Table>
     );
 }

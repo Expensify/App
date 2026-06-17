@@ -314,8 +314,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         cardSettings={cardSettings}
                         cardSettingsBase={settings}
                         personalDetails={personalDetails}
-                        ListFooterComponent={disclaimerFooter}
-                    />
+                    >
+                        {disclaimerFooter}
+                    </WorkspaceExpensifyCardsTable>
                 </View>
             )}
         </ScreenWrapper>
