@@ -2,6 +2,7 @@ import type {ParamListBase, PartialState, Router, RouterConfigOptions} from '@re
 import Log from '@libs/Log';
 import type {RootStackNavigatorAction} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import CONST from '@src/CONST';
 import {
     applyRevealPaddingOffset,
     asCustomHistory,
@@ -10,7 +11,6 @@ import {
     getRevealDismissState,
     getTrailingStringSentinels,
     isDismissModalAction,
-    isForwardNavigationAction,
     isModalHistorySentinel,
     isRemoveFullscreenUnderRHPAction,
     isReplaceFullscreenUnderRHPAction,
@@ -107,7 +107,8 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             // The RN routes array still records a real push (done by the inner router), so in-app back is
             // unaffected. Either ordering works: if the Modal's own toggle(false) ran first, the trailing
             // entry is already a route and this is a no-op.
-            if (isForwardNavigationAction(action) && isModalHistorySentinel(asCustomHistory(state.history)?.at(-1))) {
+            const isForwardNavigation = action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH || action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE;
+            if (isForwardNavigation && isModalHistorySentinel(asCustomHistory(state.history)?.at(-1))) {
                 const consumedHistory = stripTrailingModalSentinels(asCustomHistory(rehydrated.history) ?? []);
                 return applyRevealPaddingOffset(state, {...rehydrated, history: consumedHistory});
             }

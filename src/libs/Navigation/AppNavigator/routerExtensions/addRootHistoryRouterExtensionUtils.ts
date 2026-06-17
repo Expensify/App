@@ -27,11 +27,6 @@ function isDismissModalAction(action: RootStackNavigatorAction): action is Dismi
     return action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
 }
 
-/** A forward navigation that lands on a new screen (vs. a back/replace), used to consume a modal back-guard. */
-function isForwardNavigationAction(action: RootStackNavigatorAction): boolean {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH || action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE;
-}
-
 /** A per-instance Modal back-guard sentinel (`CUSTOM_HISTORY_ENTRY_MODAL:<modalId>`). */
 function isModalHistorySentinel(entry: CustomHistoryEntry | undefined): boolean {
     return typeof entry === 'string' && entry.startsWith(`${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:`);
@@ -201,7 +196,6 @@ export {
     getRevealDismissState,
     getTrailingStringSentinels,
     isDismissModalAction,
-    isForwardNavigationAction,
     isModalHistorySentinel,
     isRemoveFullscreenUnderRHPAction,
     isReplaceFullscreenUnderRHPAction,
