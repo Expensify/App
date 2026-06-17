@@ -251,6 +251,7 @@ function IOURequestStepUpgrade({
         allPolicyTags,
         createReportForCurrentUser,
         transactionViolations,
+        allReports,
     ]);
 
     const participant = transaction?.participants?.[0];
