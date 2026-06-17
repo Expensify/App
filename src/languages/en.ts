@@ -3618,7 +3618,7 @@ const translations = {
     },
     statusPage: {
         status: 'Status',
-        statusExplanation: "Add an emoji to give your colleagues and friends an easy way to know what's going on. You can optionally add a message too!",
+        statusExplanation: 'Set your status with an emoji and optional message.',
         today: 'Today',
         clearStatus: 'Clear status',
         save: 'Save',
@@ -5068,8 +5068,9 @@ const translations = {
             exportStatus: {
                 label: 'Payable invoice status',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Complete',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Complete',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In Progress',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Approved',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Submitted',
                 },
             },
@@ -6988,7 +6989,7 @@ const translations = {
         exportAgainModal: {
             title: 'Careful!',
             description: ({reportName, connectionName}: ExportAgainModalDescriptionParams) =>
-                `The following reports have already been exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\nAre you sure you want to export them again?`,
+                `The following reports have already been exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Are you sure you want to export them again?\n\n${reportName}`,
             confirmText: 'Yes, export again',
             cancelText: 'Cancel',
         },
@@ -9690,6 +9691,7 @@ const translations = {
         readyBody: "If it didn't automatically download, use the button below.",
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
+        csvFailedBody: 'Your export could not be completed. Please try again later.',
         close: 'Close',
     },
     domain: {

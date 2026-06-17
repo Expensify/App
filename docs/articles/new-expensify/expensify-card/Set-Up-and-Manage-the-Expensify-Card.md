@@ -1,11 +1,13 @@
 ---
 title: Set Up and Manage Expensify Cards
 description: Learn how Workspace Admins can enable, issue, and manage Expensify Cards for employees, including spending limits, bank connections, and virtual card setup.
-keywords: [New Expensify, Expensify Card setup, manage virtual card, card limits, Expensify Visa, card settings, Workspace Admin]
-internalScope: Applies to Workspace Admins. Covers Expensify Card setup and management. Does not cover troubleshooting or third-party feeds.
+keywords: [New Expensify, Expensify Card setup, manage virtual card, card limits, Expensify Visa, card settings, Workspace Admin, Card Admin]
+internalScope: Applies to Workspace Admins and Card Admins. Covers Expensify Card setup and management. Does not cover troubleshooting or third-party feeds.
 ---
 
 Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manage company spending with real-time controls and flexibility across employees and subscriptions.
+
+**Card Admins** can also issue and manage Expensify Cards — including setting limits, freezing or unfreezing cards, and adjusting card settings — once the Expensify Card is enabled on the workspace.
 
 **The Expensify Card offers powerful spend control tools, including:**
 
@@ -134,7 +136,7 @@ The downloaded CSV file includes the following columns for each selected card: e
 
 # How to freeze or unfreeze an Expensify Card
 
-As a Workspace Admin, you can freeze or unfreeze any card in your workspace without needing to cancel or reissue it.
+As a Workspace Admin or Card Admin, you can freeze or unfreeze any card in your workspace without needing to cancel or reissue it.
 
 Freezing a card is helpful if:
 - You suspect misuse or a policy violation
