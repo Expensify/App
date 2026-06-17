@@ -8533,6 +8533,7 @@ const CONST = {
                 AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
             },
             EXPENSIFY_CARD: {
+                ROW: 'WorkspaceExpensifyCard-Row',
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
                 MORE_DROPDOWN: 'WorkspaceExpensifyCard-MoreDropdown',
                 CHOOSE_SPEND_RULE: 'WorkspaceExpensifyCard-ChooseSpendRule',
