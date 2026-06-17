@@ -7,11 +7,12 @@ import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestP
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getAllReportActions, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getElsewherePaymentReportActionMessage, getOriginalMessage, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
@@ -873,6 +874,12 @@ function markReportPaymentReceived(
         isSettlingUp: true,
         isSubmitterMarkedPaymentReceived: true,
     });
+
+    // buildOptimisticIOUReportAction formats the action's `message` as "paid ... elsewhere", so override it with
+    // the "received payment" copy here. Keeping the action's message in sync fixes the optimistic chat/report
+    // preview, which derives lastMessageText/lastMessageHtml from this action.
+    const receivedPaymentMessage = getElsewherePaymentReportActionMessage(translateLocal, getOriginalMessage(optimisticIOUReportAction));
+    optimisticIOUReportAction.message = [{html: receivedPaymentMessage, text: receivedPaymentMessage, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}];
 
     const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     const optimisticReportPreviewAction = reportPreviewAction ? updateReportPreview(iouReport, reportPreviewAction, true) : null;
