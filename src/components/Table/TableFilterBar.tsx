@@ -25,38 +25,41 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
     const {filterConfig, shouldUseNarrowTableLayout} = useTableContext();
 
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
+    const actionColumnVisible = hasFiltersAvailable || !!children;
 
     return (
         <View style={[styles.w100, styles.flexRow, styles.gap3, styles.justifyContentBetween, styles.pb3, styles.ph5]}>
             <TableSearchBar label={label} />
 
-            <View style={[styles.flexRow, styles.gap1, styles.flexShrink0]}>
-                {!shouldUseNarrowTableLayout && (
-                    <Button
-                        small
-                        text="Filters"
-                        icon={icons.Filter}
-                    />
-                )}
-
-                {shouldUseNarrowTableLayout && (
-                    <PressableWithFeedback
-                        accessibilityLabel={translate('search.filtersHeader')}
-                        role={CONST.ROLE.BUTTON}
-                        style={[styles.searchActionsBar(true)]}
-                        hoverStyle={styles.buttonHoveredBG}
-                        sentryLabel={''}
-                    >
-                        <Icon
+            {actionColumnVisible && (
+                <View style={[styles.flexRow, styles.gap1]}>
+                    {!shouldUseNarrowTableLayout && hasFiltersAvailable && (
+                        <Button
                             small
-                            src={icons.Filter}
-                            fill={theme.icon}
+                            text="Filters"
+                            icon={icons.Filter}
                         />
-                    </PressableWithFeedback>
-                )}
+                    )}
 
-                {children}
-            </View>
+                    {shouldUseNarrowTableLayout && hasFiltersAvailable && (
+                        <PressableWithFeedback
+                            accessibilityLabel={translate('search.filtersHeader')}
+                            role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.TABLE.FILTERS}
+                            hoverStyle={styles.buttonHoveredBG}
+                            style={[styles.justifyContentCenter, styles.componentSizeNormal, styles.borderRadiusCircle]}
+                        >
+                            <Icon
+                                small
+                                src={icons.Filter}
+                                fill={theme.icon}
+                            />
+                        </PressableWithFeedback>
+                    )}
+
+                    {children}
+                </View>
+            )}
         </View>
     );
 }

@@ -8079,6 +8079,7 @@ const CONST = {
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
         },
         TABLE: {
+            FILTERS: 'Table-Filters',
             EDITABLE_CELL: 'Table-EditableCell',
         },
         REPORT: {
