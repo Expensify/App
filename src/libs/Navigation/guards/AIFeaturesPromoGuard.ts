@@ -88,7 +88,7 @@ function isEligibleToShowAIFeaturesPromoModal(): boolean {
         isDismissedProductTrainingLoaded &&
         isTryNewDotLoaded &&
         isOnboardingLoaded &&
-        // !isProductTrainingElementDismissed(CONST.AI_FEATURES_PROMO_MODAL, dismissedProductTraining) &&
+        !isProductTrainingElementDismissed(CONST.AI_FEATURES_PROMO_MODAL, dismissedProductTraining) &&
         !observedActiveMigrationModalThisSession &&
         !observedActiveOnboardingThisSession &&
         !observedActiveExplanationModalThisSession
