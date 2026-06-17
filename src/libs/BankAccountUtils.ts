@@ -49,28 +49,6 @@ function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankA
     return Object.values(bankAccountList ?? {}).some((bankAccount) => isBankAccountPartiallySetup(bankAccount?.accountData?.state));
 }
 
-/**
- * A search-eligible bank account is one that could plausibly appear as the debit
- * account on a withdrawal that paid an expense: a fully open BUSINESS account.
- * Personal deposit accounts and partially set-up accounts are excluded so the
- * Search picker, autocomplete, chip and rehydration paths only surface accounts
- * the backend can actually match against.
- */
-function isSearchEligibleBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
-    return bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
-}
-
-/** Returns the subset of bankAccountList that passes isSearchEligibleBankAccount, preserving keys. */
-function getSearchEligibleBankAccounts(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): OnyxTypes.BankAccountList {
-    const eligible: OnyxTypes.BankAccountList = {};
-    for (const [key, bankAccount] of Object.entries(bankAccountList ?? {})) {
-        if (isSearchEligibleBankAccount(bankAccount)) {
-            eligible[key] = bankAccount;
-        }
-    }
-    return eligible;
-}
-
 const PERSONAL_INFO_STEP = {
     NAME: 1,
     ADDRESS: 2,
@@ -210,8 +188,6 @@ function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses)
 
 export {
     getBankAccountSearchLabel,
-    getSearchEligibleBankAccounts,
-    isSearchEligibleBankAccount,
     getDefaultCompanyWebsite,
     getRequiredKYBDocuments,
     getLastFourDigits,
