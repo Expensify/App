@@ -10,6 +10,9 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 const mockLeaveWorkspace = jest.fn();
 const mockShowConfirmModal = jest.fn();
+const mockUseCurrentUserPersonalDetails = jest.fn();
+
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => mockUseCurrentUserPersonalDetails());
 
 jest.mock('@libs/actions/Policy/Policy', () => ({
     leaveWorkspace: (...args: unknown[]) => mockLeaveWorkspace(...args),
@@ -49,6 +52,7 @@ describe('LeaveWorkspaceAction', () => {
         mockLeaveWorkspace.mockReset();
         mockShowConfirmModal.mockReset();
         mockShowConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
+        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: USER_ACCOUNT_ID, login: USER_EMAIL});
         await act(async () => {
             await Onyx.clear();
         });

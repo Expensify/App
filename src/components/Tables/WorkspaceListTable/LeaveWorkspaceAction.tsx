@@ -2,12 +2,12 @@ import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {close} from '@libs/actions/Modal';
 import {leaveWorkspace} from '@libs/actions/Policy/Policy';
 import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -30,12 +30,12 @@ const ownerDisplayNameSelector = (ownerAccountID: number) => (personalDetailsLis
 function LeaveWorkspaceAction({policyID, onDismiss}: LeaveWorkspaceActionProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const ownerAccountID = policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const ownerAccountID = policy?.ownerAccountID ?? currentUserPersonalDetails.accountID;
     const [policyOwnerDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerDisplayNameSelector(ownerAccountID)}, [ownerAccountID]);
 
-    const isLoadingData = isLoadingOnyxValue(sessionResult, policyResult);
+    const isLoadingData = isLoadingOnyxValue(policyResult);
 
     // Closes the row popover (if still open) and shows the confirmation modal once the policy entry has loaded.
     const hasStartedRef = useRef(false);
@@ -46,9 +46,9 @@ function LeaveWorkspaceAction({policyID, onDismiss}: LeaveWorkspaceActionProps) 
         hasStartedRef.current = true;
 
         close(() => {
-            const userEmail = session?.email ?? '';
-            const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, policyOwnerDisplayName ?? '', translate);
-            if (policy?.achAccount?.reimburser === userEmail) {
+            const userLogin = currentUserPersonalDetails.login ?? '';
+            const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userLogin, policyOwnerDisplayName ?? '', translate);
+            if (policy?.achAccount?.reimburser === userLogin) {
                 showConfirmModal({
                     title: translate('common.leaveWorkspace'),
                     prompt,
@@ -67,7 +67,7 @@ function LeaveWorkspaceAction({policyID, onDismiss}: LeaveWorkspaceActionProps) 
                 danger: true,
             }).then((result) => {
                 if (result.action === ModalActions.CONFIRM && policy) {
-                    leaveWorkspace(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '', policy);
+                    leaveWorkspace(currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '', policy);
                 }
                 onDismiss();
             });

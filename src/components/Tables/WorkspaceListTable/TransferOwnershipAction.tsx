@@ -1,5 +1,6 @@
 import {useEffect, useRef} from 'react';
 import type {ValueOf} from 'type-fest';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,10 +23,10 @@ type TransferOwnershipActionProps = {
  * the flow starts, so the workspaces list rows don't re-render on every policy change.
  */
 function TransferOwnershipAction({policyID, onDismiss}: TransferOwnershipActionProps) {
-    const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const isLoadingData = isLoadingOnyxValue(sessionResult, policyResult);
+    const isLoadingData = isLoadingOnyxValue(policyResult);
 
     const hasStartedRef = useRef(false);
     useEffect(() => {
@@ -35,11 +36,11 @@ function TransferOwnershipAction({policyID, onDismiss}: TransferOwnershipActionP
         hasStartedRef.current = true;
 
         clearWorkspaceOwnerChangeFlow(policyID);
-        requestWorkspaceOwnerChange(policy, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+        requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
         Navigation.navigate(
             ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(
                 policyID,
-                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                currentUserPersonalDetails.accountID,
                 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
                 Navigation.getActiveRoute(),
             ),

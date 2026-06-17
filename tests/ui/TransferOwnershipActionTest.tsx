@@ -11,6 +11,9 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const mockClearWorkspaceOwnerChangeFlow = jest.fn();
 const mockRequestWorkspaceOwnerChange = jest.fn();
 const mockNavigate = jest.fn();
+const mockUseCurrentUserPersonalDetails = jest.fn();
+
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => mockUseCurrentUserPersonalDetails());
 
 jest.mock('@libs/actions/Policy/Member', () => ({
     clearWorkspaceOwnerChangeFlow: (...args: unknown[]) => mockClearWorkspaceOwnerChangeFlow(...args),
@@ -45,6 +48,7 @@ describe('TransferOwnershipAction', () => {
         mockClearWorkspaceOwnerChangeFlow.mockReset();
         mockRequestWorkspaceOwnerChange.mockReset();
         mockNavigate.mockReset();
+        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: USER_ACCOUNT_ID, login: USER_EMAIL});
         await act(async () => {
             await Onyx.clear();
         });
@@ -66,7 +70,7 @@ describe('TransferOwnershipAction', () => {
         expect(mockClearWorkspaceOwnerChangeFlow).toHaveBeenCalledWith(POLICY_ID);
     });
 
-    it('calls requestWorkspaceOwnerChange with the session account ID and email', async () => {
+    it('calls requestWorkspaceOwnerChange with the personal details account ID and login', async () => {
         await Onyx.set(ONYXKEYS.SESSION, {email: USER_EMAIL, accountID: USER_ACCOUNT_ID});
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, name: 'Test', role: CONST.POLICY.ROLE.ADMIN});
         renderAction();
