@@ -1,7 +1,7 @@
 ---
 title: Account Settings
 description: Learn how to update your profile settings, preferences, and notifications in Expensify.
-keywords: [New Expensify, profile, account preferences, notifications, language, theme, high contrast mode, timezone, personal information]
+keywords: [New Expensify, profile, account preferences, notifications, language, theme, high contrast mode, timezone, personal information, phone number, magic code]
 ---
 
 Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from the left-hand navigation menu.
@@ -20,7 +20,7 @@ You can update the following profile settings:
 - **Timezone** – Set the correct timezone for expense and report timestamps.
 - **Theme** – Toggle between light mode, dark mode, or follow device settings, and enable high contrast mode.
 - **Notifications** – Customize how and when you receive email and app notifications.
-- **Personal Information** – Add or update your legal name, birth date, and address.
+- **Personal Information** – Add or update your legal name, date of birth, phone number, and address.
 
 ---
 # Supported Languages
@@ -114,19 +114,31 @@ High contrast mode increases the visual contrast of UI elements, making text and
 
 You can also enable high contrast mode from from the [login page](https://new.expensify.com/Home) by selecting **Enable high contrast**.
 
-## Personal Information
+## How to update personal information
 
-To update legal details like name, date of birth, and address:
+To update your legal name, date of birth, phone number, or address:
 1. Go to **Account > Profile**.
-2. Scroll to the **Private Details** section.
-3. Update the **Legal Name**, **Date of Birth**, or **Address** fields.
+2. Scroll to the **Private** section.
+3. Click **Legal Name**, **Date of Birth**, **Phone Number**, or **Address**.
+4. Enter the updated information.
+5. Click **Save**.
+6. Enter the magic code sent to your email or phone to verify the changes.
 
-## Display or Legal Name
+When typing in the **Address line 1** field, a list of address suggestions appears. Select a suggestion to auto-populate the address fields including city, state, ZIP code, and country.
 
-To edit your display or legal name:
+If no address is saved, the **Country** field is pre-filled based on your current location.
+
+## How to update your display name or legal name
+
+To edit your display name:
 1. Go to **Account > Profile**.
-2. For display name: Click **Display Name**, enter your preferred name, and click **Save**.
-3. For legal name: Scroll to **Private Details**, click **Legal Name**, update it, and click **Save**.
+2. Click **Display Name**, enter your preferred name, and click **Save**.
+
+To edit your legal name:
+1. Go to **Account > Profile**.
+2. Scroll to **Private** and click **Legal Name**.
+3. Enter the updated information and click **Save**.
+4. Enter the magic code sent to you to verify the change.
 
 ---
 
