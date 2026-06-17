@@ -7184,7 +7184,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 cta: 'Probeer het uit',
             },
             merchantRules: {
-                title: 'Handelaar',
+                title: 'Regel voor handelaren',
                 subtitle: 'Stel de leveranciersregels in zodat onkosten correct gecodeerd binnenkomen en er minder nabewerking nodig is.',
                 addRule: 'Merchantregel toevoegen',
                 addRuleTitle: 'Regel toevoegen',

@@ -7128,7 +7128,7 @@ ${reportName}`,
                 cta: 'お試しください',
             },
             merchantRules: {
-                title: '加盟店',
+                title: 'マーチャントルール',
                 subtitle: '経費が正しくコード化され、後処理が最小限で済むように、取引先ルールを設定しましょう。',
                 addRule: '支払先ルールを追加',
                 addRuleTitle: 'ルールを追加',

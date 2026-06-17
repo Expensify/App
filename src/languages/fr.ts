@@ -7250,7 +7250,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 cta: 'Essayer',
             },
             merchantRules: {
-                title: 'Commerçant',
+                title: 'Règles de marchand',
                 subtitle: 'Définissez les règles de commerçant pour que les dépenses arrivent correctement codées et nécessitent moins de nettoyage.',
                 addRule: 'Ajouter une règle de marchand',
                 addRuleTitle: 'Ajouter une règle',

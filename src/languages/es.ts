@@ -7146,7 +7146,7 @@ ${amount} para ${merchant} - ${date}`,
                 cta: 'Pruébalo',
             },
             merchantRules: {
-                title: 'Comerciante',
+                title: 'Reglas de comercio',
                 subtitle: 'Configura las reglas de comerciante para que los gastos lleguen correctamente codificados y requieran menos limpieza.',
                 addRule: 'Añadir regla de comerciante',
                 findRule: 'Buscar regla de comerciante',

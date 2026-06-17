@@ -6992,7 +6992,7 @@ ${reportName}`,
             },
             agentsPromoBanner: {title: '找不到需要的规则？添加代理人', subtitle: '添加复杂规则，并通过自定义代理减少人工审批。', cta: '试用一下'},
             merchantRules: {
-                title: '商户',
+                title: '商家规则',
                 subtitle: '设置商户规则，使报销费用自动使用正确的编码，并减少后期清理工作。',
                 addRule: '添加商家规则',
                 addRuleTitle: '添加规则',

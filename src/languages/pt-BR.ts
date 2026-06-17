@@ -7179,7 +7179,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 cta: 'Experimente',
             },
             merchantRules: {
-                title: 'Estabelecimento',
+                title: 'Regras de comerciante',
                 subtitle: 'Defina as regras de estabelecimento para que as despesas cheguem corretamente classificadas e exijam menos retrabalho.',
                 addRule: 'Adicionar regra de comerciante',
                 addRuleTitle: 'Adicionar regra',

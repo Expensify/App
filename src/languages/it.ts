@@ -7208,7 +7208,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 cta: 'Prova ora',
             },
             merchantRules: {
-                title: 'Esercente',
+                title: 'Regole esercente',
                 subtitle: 'Imposta le regole per l’esercente in modo che le spese arrivino già codificate correttamente e richiedano meno correzioni.',
                 addRule: 'Aggiungi regola esercente',
                 addRuleTitle: 'Aggiungi regola',

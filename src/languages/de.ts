@@ -7224,7 +7224,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 cta: 'Ausprobieren',
             },
             merchantRules: {
-                title: 'Händler',
+                title: 'Händlerregeln',
                 subtitle: 'Legen Sie Händlerregeln fest, damit Spesen korrekt codiert ankommen und weniger Nachbearbeitung erfordern.',
                 addRule: 'Händlerregel hinzufügen',
                 addRuleTitle: 'Regel hinzufügen',
