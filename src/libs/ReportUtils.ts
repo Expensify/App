@@ -4870,8 +4870,10 @@ function canEditMoneyRequest(
         return true;
     }
 
-    // Temporary fallback to originalMessage.IOUReportID while the backend is updated to reliably send reportID on IOU actions.
-    const moneyRequestReportID = originalMessage?.IOUReportID ?? reportAction?.reportID;
+    // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
+    // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
+    // Temporary until the backend reliably sends reportID on IOU actions.
+    const moneyRequestReportID = reportAction?.reportID || originalMessage?.IOUReportID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
 
     if (!moneyRequestReportID) {
@@ -5088,8 +5090,10 @@ function canEditFieldOfMoneyRequest({
         return true;
     }
 
-    // Temporary fallback to originalMessage.IOUReportID while the backend is updated to reliably send reportID on IOU actions.
-    const iouReportID = getOriginalMessage(reportAction)?.IOUReportID ?? reportAction?.reportID;
+    // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
+    // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
+    // Temporary until the backend reliably sends reportID on IOU actions.
+    const iouReportID = reportAction?.reportID || getOriginalMessage(reportAction)?.IOUReportID;
     const moneyRequestReport = report ?? (iouReportID ? (getReport(iouReportID, deprecatedAllReports) ?? ({} as Report)) : ({} as Report));
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
@@ -5238,8 +5242,10 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
     // canEditMoneyRequest has an admin/manager bypass for field-level edits (via canEditFieldOfMoneyRequest),
     // but that bypass should not allow the "Edit expense" action on finalized reports.
     if (isMoneyRequestAction(reportAction)) {
-        // Temporary fallback to originalMessage.IOUReportID while the backend is updated to reliably send reportID on IOU actions.
-        const moneyRequestReportID = getOriginalMessage(reportAction)?.IOUReportID ?? reportAction?.reportID;
+        // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
+        // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
+        // Temporary until the backend reliably sends reportID on IOU actions.
+        const moneyRequestReportID = reportAction?.reportID || getOriginalMessage(reportAction)?.IOUReportID;
         if (moneyRequestReportID) {
             const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
             if (isSettled(moneyRequestReport?.reportID) || isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport)) {

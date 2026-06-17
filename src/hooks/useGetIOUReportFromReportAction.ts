@@ -10,8 +10,10 @@ function useGetIOUReportFromReportAction(reportAction: OnyxTypes.ReportAction | 
     chatReport: OnyxTypes.Report | undefined;
     isChatIOUReportArchived: boolean;
 } {
-    // Temporary fallback to originalMessage.IOUReportID while the backend is updated to reliably send reportID on IOU actions.
-    const iouReportID = isMoneyRequestAction(reportAction) ? (getOriginalMessage(reportAction)?.IOUReportID ?? reportAction?.reportID) : undefined;
+    // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
+    // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
+    // Temporary until the backend reliably sends reportID on IOU actions.
+    const iouReportID = isMoneyRequestAction(reportAction) ? reportAction?.reportID || getOriginalMessage(reportAction)?.IOUReportID : undefined;
     const [candidateIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`) ?? null;
     // For self-DM tracks and split bills, action.reportID resolves to a chat report, not an IOU/expense report.
     const iouReport = isIOUReport(candidateIOUReport) || isExpenseReport(candidateIOUReport) ? candidateIOUReport : undefined;
