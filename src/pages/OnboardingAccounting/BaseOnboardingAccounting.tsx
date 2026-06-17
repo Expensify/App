@@ -25,7 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setOnboardingAccountingEnabled, setOnboardingAdminsChatReportID, setOnboardingPolicyID, setOnboardingUserReportedIntegration} from '@libs/actions/Welcome';
 import {getDefaultOnboardingFeaturesMap} from '@libs/actions/Welcome/OnboardingFeatures';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -132,18 +132,18 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [otherIntegrationText, setOtherIntegrationText] = useState(isKnownIntegration || !onboardingUserReportedIntegration ? '' : onboardingUserReportedIntegration);
     const [error, setError] = useState('');
 
-    const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
+    const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();
     const {completeOnboardingFlow, isLoading: isCompletingOnboarding} = useCompleteOnboarding();
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
-        if (!paidGroupPolicy || onboardingPolicyID) {
+        if (!groupPolicy || onboardingPolicyID) {
             return;
         }
-        setOnboardingAdminsChatReportID(paidGroupPolicy.chatReportIDAdmins?.toString());
-        setOnboardingPolicyID(paidGroupPolicy.id);
-    }, [paidGroupPolicy, onboardingPolicyID]);
+        setOnboardingAdminsChatReportID(groupPolicy.chatReportIDAdmins?.toString());
+        setOnboardingPolicyID(groupPolicy.id);
+    }, [groupPolicy, onboardingPolicyID]);
 
     const createAccountingOption = (integration: Integration): OnboardingListItem => {
         const icon = expensifyIcons[integration.iconName] as IconAsset | undefined;

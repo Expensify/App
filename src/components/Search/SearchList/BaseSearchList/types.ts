@@ -18,6 +18,8 @@ type BaseSearchListProps = Pick<
     | 'showsVerticalScrollIndicator'
     | 'onLayout'
     | 'stickyHeaderIndices'
+    | 'stickyHeaderConfig'
+    | 'overrideItemLayout'
 > & {
     /** The data to display in the list */
     data: SearchListItem[];
@@ -46,14 +48,14 @@ type BaseSearchListProps = Pick<
     /** Selected transactions for triggering re-render via extraData */
     selectedTransactions?: SelectedTransactions;
 
-    /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses) */
-    isAttendeesEnabledForMovingPolicy?: boolean;
-
     /** Non-personal and workspace cards for triggering re-render via extraData */
     nonPersonalAndWorkspaceCards?: CardList;
 
     /** Function to determine item type for FlashList recycling */
     getItemType?: (item: SearchListItem, index: number) => string | number | undefined;
+
+    /** Indexes to skip during keyboard arrow navigation */
+    disabledIndexes?: readonly number[];
 };
 
 export default BaseSearchListProps;
