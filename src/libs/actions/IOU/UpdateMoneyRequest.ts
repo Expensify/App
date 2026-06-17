@@ -77,6 +77,7 @@ type UpdateMoneyRequestDateParams = {
     isOffline: boolean;
     hash?: number;
     delegateAccountID: number | undefined;
+    policyForTrackExpense?: OnyxEntry<OnyxTypes.Policy>;
 };
 
 type SearchSnapshotOnyxData = {
@@ -144,24 +145,35 @@ function getSearchSnapshotUpdates({
     };
 }
 
-function getRecalculatedWorkspaceDistanceRateIDForExpenseDate({
+function getRecalculatedDistanceRateIDForExpenseDate({
     transaction,
     transactionThreadReport,
     parentReport,
     policy,
+    policyForTrackExpense,
     expenseDate,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
+    policyForTrackExpense?: OnyxEntry<OnyxTypes.Policy>;
     expenseDate: string;
 }): string | undefined {
-    if (!transaction || !policy || !isGroupPolicy(policy) || !isDistanceRequestTransactionUtils(transaction)) {
+    if (!transaction || !isDistanceRequestTransactionUtils(transaction)) {
         return undefined;
     }
 
-    if (isSelfDM(parentReport) || isTrackExpenseReport(transactionThreadReport) || !isExpenseReport(parentReport)) {
+    const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
+    const isWorkspaceDistanceExpense = isExpenseReport(parentReport);
+
+    if (!isTrackExpense && !isWorkspaceDistanceExpense) {
+        return undefined;
+    }
+
+    const effectivePolicy = isTrackExpense ? (policyForTrackExpense ?? policy) : policy;
+
+    if (!effectivePolicy || (!isTrackExpense && !isGroupPolicy(effectivePolicy))) {
         return undefined;
     }
 
@@ -170,7 +182,7 @@ function getRecalculatedWorkspaceDistanceRateIDForExpenseDate({
         return undefined;
     }
 
-    const currentMileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: currentRateID, policy});
+    const currentMileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: currentRateID, policy: effectivePolicy});
     if (!currentMileageRate) {
         return undefined;
     }
@@ -182,8 +194,9 @@ function getRecalculatedWorkspaceDistanceRateIDForExpenseDate({
     const reportID = parentReport?.reportID ?? transactionThreadReport?.reportID ?? transaction.reportID;
     const newRateID = DistanceRequestUtils.getCustomUnitRateID({
         reportID,
-        isPolicyExpenseChat: true,
-        policy,
+        isPolicyExpenseChat: !isTrackExpense,
+        isTrackDistanceExpense: isTrackExpense,
+        policy: effectivePolicy,
         expenseDate,
     });
 
@@ -212,27 +225,32 @@ function updateMoneyRequestDate({
     isOffline,
     hash,
     delegateAccountID,
+    policyForTrackExpense,
 }: UpdateMoneyRequestDateParams) {
     const transaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const newRateID = getRecalculatedWorkspaceDistanceRateIDForExpenseDate({
+    const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
+    const effectivePolicy = isTrackExpense ? (policyForTrackExpense ?? policy) : policy;
+    const newRateID = getRecalculatedDistanceRateIDForExpenseDate({
         transaction,
         transactionThreadReport,
         parentReport,
         policy,
+        policyForTrackExpense,
         expenseDate: value,
     });
     const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
 
-    if (newRateID && newRateID !== currentRateID && transaction && policy) {
-        setLastSelectedDistanceRate(policy, newRateID);
-        const distanceRateTaxUpdates = isTaxTrackingEnabled(true, policy, true) && transaction ? getDistanceRateTaxUpdates(policy, transaction, newRateID) : undefined;
+    if (newRateID && newRateID !== currentRateID && transaction && effectivePolicy) {
+        setLastSelectedDistanceRate(effectivePolicy, newRateID);
+        const distanceRateTaxUpdates =
+            !isTrackExpense && isTaxTrackingEnabled(true, effectivePolicy, true) && transaction ? getDistanceRateTaxUpdates(effectivePolicy, transaction, newRateID) : undefined;
         updateMoneyRequestDistanceRate({
             transaction,
             transactionThreadReport,
             parentReport,
             rateID: newRateID,
             created: value,
-            policy,
+            policy: effectivePolicy,
             policyTagList: policyTags,
             policyCategories,
             currentUserAccountIDParam,

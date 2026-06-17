@@ -19,6 +19,7 @@ import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
+import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -2046,8 +2047,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             writeSpy.mockRestore();
         });
 
-        it('does not recalculate mileage rate for Self DM distance expenses', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify date-only update path.
+        it('calls UpdateMoneyRequestDistanceRate with created when a Self DM track distance expense date change selects a different rate', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify track distance rate update path.
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             const transactionID = 'distance_date_self_dm';
             const transactionThreadReportID = 'thread_date_self_dm';
@@ -2061,10 +2062,20 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 reportID: selfDMReportID,
                 type: CONST.REPORT.TYPE.CHAT,
             };
+            const trackIouAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                comment: '',
+                participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
+                transactionID,
+                isPersonalTrackingExpense: true,
+            });
             const transactionThread: Report = {
                 ...createRandomReport(2, undefined),
                 reportID: transactionThreadReportID,
                 parentReportID: selfDMReportID,
+                parentReportActionID: trackIouAction.reportActionID,
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const transaction: Transaction = {
@@ -2124,6 +2135,9 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThread);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {
+                [trackIouAction.reportActionID]: trackIouAction,
+            });
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
@@ -2134,18 +2148,27 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 transactionViolations: {},
                 value: '2026-06-15',
                 policy,
+                policyForTrackExpense: policy,
                 policyTags: {},
                 policyCategories: {},
-                currentUserAccountIDParam: 1,
-                currentUserEmailParam: 'test@test.com',
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
             });
 
-            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2026-06-15'}), expect.anything());
-            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, expect.anything(), expect.anything());
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
+                expect.objectContaining({
+                    transactionID,
+                    customUnitRateID: rate2026,
+                    created: '2026-06-15',
+                }),
+                expect.anything(),
+            );
+            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
 
             writeSpy.mockRestore();
         });

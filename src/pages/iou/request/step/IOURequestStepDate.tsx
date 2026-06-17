@@ -102,6 +102,7 @@ function IOURequestStepDate({
         const isTransactionDraft = shouldUseTransactionDraft(action);
 
         if (isEditing) {
+            const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
             updateMoneyRequestDate({
                 transactionID,
                 transactionThreadReport: report,
@@ -109,7 +110,8 @@ function IOURequestStepDate({
                 transactions: duplicateTransactions,
                 transactionViolations: duplicateTransactionViolations,
                 value: newCreated,
-                policy,
+                policy: effectivePolicy,
+                policyForTrackExpense,
                 policyTags,
                 policyCategories,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
