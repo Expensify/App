@@ -9,7 +9,6 @@ import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -411,9 +410,7 @@ function SubmitExpenseOrchestrator({
                         startSubmitSpans();
                         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
                         reserveSearchChannelIfGlobalCreate();
-                        navigateAfterInteraction(() => {
-                            createTransaction(true);
-                        });
+                        createTransaction(true);
                     }}
                     onDeny={(wasUserInitiated) => {
                         startSubmitSpans();
@@ -422,9 +419,7 @@ function SubmitExpenseOrchestrator({
                             updateLastLocationPermissionPrompt();
                         }
                         reserveSearchChannelIfGlobalCreate();
-                        navigateAfterInteraction(() => {
-                            createTransaction(false);
-                        });
+                        createTransaction(false);
                     }}
                     onInitialGetLocationCompleted={() => {
                         setIsConfirming(false);

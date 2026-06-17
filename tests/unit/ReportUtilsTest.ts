@@ -151,6 +151,7 @@ import {
     parseReportActionHtmlToText,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
+    pushTransactionAutoSelectionsOnyxData,
     pushTransactionViolationsOnyxData,
     reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
@@ -183,6 +184,7 @@ import type {
     OnyxInputOrEntry,
     PersonalDetailsList,
     Policy,
+    PolicyCategories,
     PolicyEmployeeList,
     PolicyTag,
     Report,
@@ -499,7 +501,8 @@ describe('ReportUtils', () => {
         const reportAction = {
             ...createRandomReportAction(44),
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            originalMessage: {IOUReportID: iouReportID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+            reportID: iouReportID,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
         };
 
         const iouReport = {...createExpenseReport(Number(iouReportID)), policyID: policyID.toString()};
@@ -5283,10 +5286,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(22);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '22',
+                reportID: invoiceReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: invoiceReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 530,
                     currency: CONST.CURRENCY.USD,
@@ -5320,10 +5323,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(22);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '3',
+                reportID: expenseReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                     IOUDetails: {
@@ -5355,10 +5358,10 @@ describe('ReportUtils', () => {
         it('it should return false when linkedTransaction is undefined', () => {
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '44',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: '44',
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -5387,10 +5390,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(56);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '56',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: transaction.transactionID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -5417,10 +5420,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(57);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '57',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: transaction.transactionID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -5453,10 +5456,10 @@ describe('ReportUtils', () => {
             };
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '55',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: transaction.transactionID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -5520,12 +5523,12 @@ describe('ReportUtils', () => {
             };
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 ...createRandomReportAction(89012),
+                reportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 message: [{type: CONST.REPORT.MESSAGE.TYPE.TEXT, text: ''}],
                 previousMessage: undefined,
                 originalMessage: {
-                    IOUReportID: reportID,
                     IOUTransactionID: transactionID,
                     amount: 5000,
                     currency: CONST.CURRENCY.USD,
@@ -5600,10 +5603,10 @@ describe('ReportUtils', () => {
             };
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '101',
+                reportID: '1',
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -5634,10 +5637,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(103);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '103',
+                reportID: expenseReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: expenseReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -5749,10 +5752,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(200);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '200',
+                reportID: settledReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: settledReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -5786,10 +5789,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(201);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '201',
+                reportID: approvedReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: approvedReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -5822,10 +5825,10 @@ describe('ReportUtils', () => {
             const transaction = createRandomTransaction(202);
             const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: '202',
+                reportID: closedReport.reportID,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
-                    IOUReportID: closedReport.reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: 500,
                     currency: CONST.CURRENCY.USD,
@@ -7319,7 +7322,7 @@ describe('ReportUtils', () => {
     });
 
     describe('buildOptimisticIOUReportAction', () => {
-        it('should not include IOUReportID in the originalMessage when tracking a personal expense', () => {
+        it('should set the action reportID to the provided iouReportID when tracking a personal expense', () => {
             const iouAction = buildOptimisticIOUReportAction({
                 type: 'track',
                 amount: 1200,
@@ -7330,7 +7333,7 @@ describe('ReportUtils', () => {
                 iouReportID: '8698041594589716',
                 isPersonalTrackingExpense: true,
             });
-            expect(getOriginalMessage(iouAction as ReportAction<'IOU'>)?.IOUReportID).toBe(undefined);
+            expect((iouAction as ReportAction<'IOU'>)?.reportID).toBe('8698041594589716');
         });
     });
 
@@ -7550,8 +7553,8 @@ describe('ReportUtils', () => {
                 ...parentReportAction,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: '1',
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: '1',
                     amount: 100,
                     participantAccountID: 1,
@@ -7606,8 +7609,8 @@ describe('ReportUtils', () => {
                 ...parentReportAction,
                 actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: '1',
                 originalMessage: {
-                    IOUReportID: '1',
                     IOUTransactionID: '1',
                     amount: 100,
                     participantAccountID: 1,
@@ -7641,9 +7644,9 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
+                reportID: selfDMReport.reportID,
                 originalMessage: {
                     IOUTransactionID: transaction.transactionID,
-                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
                     type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
@@ -10212,6 +10215,265 @@ describe('ReportUtils', () => {
             };
 
             expect(onyxData).toMatchObject(expectedOnyxData);
+        });
+    });
+
+    describe('pushTransactionAutoSelectionsOnyxData', () => {
+        const fakePolicyID = '0';
+
+        beforeAll(() => {
+            initOnyxDerivedValues();
+        });
+
+        /**
+         * Builds a policy with N categories that are all enabled (the factory disables them by default).
+         */
+        function buildEnabledCategories(numberOfCategories: number): PolicyCategories {
+            return Object.fromEntries(Object.entries(createRandomPolicyCategories(numberOfCategories)).map(([name, category]) => [name, {...category, enabled: true}]));
+        }
+
+        /**
+         * Wraps a report in a keyed collection so it can be spread into Onyx.multiSet with a precise key type.
+         */
+        function buildReportCollection(report: Report): Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> {
+            return {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report};
+        }
+
+        it('auto-selects the sole remaining enabled category when the transaction category is disabled', async () => {
+            // Given a policy with two enabled categories, and an update that disables the first one
+            const fakePolicyCategories = buildEnabledCategories(2);
+            const categoryNames = Object.keys(fakePolicyCategories);
+            const categoryToDisable = categoryNames.at(0) ?? '';
+            const remainingCategory = categoryNames.at(1) ?? '';
+            const fakePolicyCategoriesUpdate = {
+                [categoryToDisable]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresCategory: true, areCategoriesEnabled: true};
+
+            // Given an open report whose transaction uses the category about to be disabled
+            const openIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+
+            await Onyx.multiSet({
+                ...buildReportCollection(openIOUReport),
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
+                    ...mockTransaction,
+                    reportID: openIOUReport.reportID,
+                    policyID: fakePolicyID,
+                    category: categoryToDisable,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after the category update
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
+
+            // Then the transaction is moved to the sole remaining enabled category, with a matching rollback
+            expect(autoSelections.get(mockTransaction.transactionID)).toEqual({category: remainingCategory});
+            expect(onyxData).toMatchObject({
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
+                        value: {category: remainingCategory},
+                    },
+                ],
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
+                        value: {category: categoryToDisable},
+                    },
+                ],
+            });
+        });
+
+        it('auto-selects the sole remaining enabled tag when the transaction tag is disabled', async () => {
+            // Given a single-level tag list with two enabled tags, and an update that disables the first one
+            const fakePolicyTagListName = 'Tag List';
+            const fakePolicyTagsLists = createRandomPolicyTags(fakePolicyTagListName, 2);
+            const tagNames = Object.keys(fakePolicyTagsLists[fakePolicyTagListName]?.tags ?? {});
+            const tagToDisable = tagNames.at(0) ?? '';
+            const remainingTag = tagNames.at(1) ?? '';
+            const fakePolicyTagListsUpdate: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
+                [fakePolicyTagListName]: {
+                    tags: {
+                        [tagToDisable]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
+                    },
+                },
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresTag: true, areTagsEnabled: true};
+
+            // Given an open report whose transaction uses the tag about to be disabled
+            const openIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+
+            await Onyx.multiSet({
+                ...buildReportCollection(openIOUReport),
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicyID}`]: fakePolicyTagsLists,
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
+                    ...mockTransaction,
+                    reportID: openIOUReport.reportID,
+                    policyID: fakePolicyID,
+                    tag: tagToDisable,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after the tag update
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate);
+
+            // Then the transaction is moved to the sole remaining enabled tag, with a matching rollback
+            expect(autoSelections.get(mockTransaction.transactionID)).toEqual({tag: remainingTag});
+            expect(onyxData).toMatchObject({
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
+                        value: {tag: remainingTag},
+                    },
+                ],
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
+                        value: {tag: tagToDisable},
+                    },
+                ],
+            });
+        });
+
+        it('does not auto-select when more than one enabled category remains', async () => {
+            // Given a policy with three enabled categories, and an update that disables only one (two remain)
+            const fakePolicyCategories = buildEnabledCategories(3);
+            const categoryToDisable = Object.keys(fakePolicyCategories).at(0) ?? '';
+            const fakePolicyCategoriesUpdate = {
+                [categoryToDisable]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresCategory: true, areCategoriesEnabled: true};
+            const openIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+
+            await Onyx.multiSet({
+                ...buildReportCollection(openIOUReport),
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
+                    ...mockTransaction,
+                    reportID: openIOUReport.reportID,
+                    policyID: fakePolicyID,
+                    category: categoryToDisable,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after the category update
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
+
+            // Then nothing is auto-selected because the remaining choice is ambiguous
+            expect(autoSelections.size).toBe(0);
+            expect(onyxData.optimisticData).toHaveLength(0);
+            expect(onyxData.failureData).toHaveLength(0);
+        });
+
+        it('does not auto-select on an enable-only update that removes nothing', async () => {
+            // Given a policy with two disabled categories (the factory disables them) and a transaction on the first
+            const fakePolicyCategories = createRandomPolicyCategories(2);
+            const categoryNames = Object.keys(fakePolicyCategories);
+            const transactionCategory = categoryNames.at(0) ?? '';
+            const categoryToEnable = categoryNames.at(1) ?? '';
+
+            // ... and an update that only ENABLES the second category (it deletes/disables nothing)
+            const fakePolicyCategoriesUpdate = {
+                [categoryToEnable]: {enabled: true},
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresCategory: true, areCategoriesEnabled: true};
+            const openIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+
+            await Onyx.multiSet({
+                ...buildReportCollection(openIOUReport),
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
+                    ...mockTransaction,
+                    reportID: openIOUReport.reportID,
+                    policyID: fakePolicyID,
+                    category: transactionCategory,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after an enable-only update that leaves exactly one enabled category
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
+
+            // Then nothing is auto-selected: the backend only auto-replaces on a delete/disable, never an enable
+            expect(autoSelections.size).toBe(0);
+            expect(onyxData.optimisticData).toHaveLength(0);
+            expect(onyxData.failureData).toHaveLength(0);
+        });
+
+        it('does not auto-select on a non-open report even when a single category remains', async () => {
+            // Given a policy with two enabled categories, and an update that disables the first one
+            const fakePolicyCategories = buildEnabledCategories(2);
+            const categoryToDisable = Object.keys(fakePolicyCategories).at(0) ?? '';
+            const fakePolicyCategoriesUpdate = {
+                [categoryToDisable]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresCategory: true, areCategoriesEnabled: true};
+
+            // Given an approved (non-open, non-processing) report
+            const approvedIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+
+            await Onyx.multiSet({
+                ...buildReportCollection(approvedIOUReport),
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
+                    ...mockTransaction,
+                    reportID: approvedIOUReport.reportID,
+                    policyID: fakePolicyID,
+                    category: categoryToDisable,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            // When auto-selecting after the category update
+            const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
+
+            // Then nothing is auto-selected because auto-selection is scoped to open/processing reports
+            expect(autoSelections.size).toBe(0);
+            expect(onyxData.optimisticData).toHaveLength(0);
+            expect(onyxData.failureData).toHaveLength(0);
         });
     });
 
@@ -17977,11 +18239,11 @@ describe('ReportUtils', () => {
         const iouAction = {
             ...createRandomReportAction(Number(iouReportActionID)),
             reportActionID: iouReportActionID,
+            reportID: expenseReportID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
             originalMessage: {
                 IOUTransactionID: transactionID,
-                IOUReportID: expenseReportID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 0,
                 currency: CONST.CURRENCY.USD,
@@ -18002,9 +18264,9 @@ describe('ReportUtils', () => {
 
         it('should NOT flag $0 manual expense as smartscan error when expense report is resolved via reports collection', () => {
             // With the reports collection the function can look up the actual
-            // expense report (type 'expense') via IOUReportID. For expense
-            // reports areRequiredFieldsEmpty checks isMerchantMissing (not
-            // amount), so a $0 expense with a valid merchant is fine.
+            // expense report (type 'expense') via the action's reportID. For
+            // expense reports areRequiredFieldsEmpty checks isMerchantMissing
+            // (not amount), so a $0 expense with a valid merchant is fine.
             const reportsCollection = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: expenseReport,
             };

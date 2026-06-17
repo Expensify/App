@@ -22,18 +22,6 @@ type ReceiptSectionProps = {
     /** Active policy (used to decide whether the receipt empty state should render) */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Whether the active transaction is a per-diem request */
-    isPerDiemRequest: boolean;
-
-    /** Whether the active transaction is a distance request (suppresses receipt area unless manual/odometer) */
-    isDistanceRequest: boolean;
-
-    /** Whether the active transaction is a manual distance request */
-    isManualDistanceRequest: boolean;
-
-    /** Whether the active transaction is an odometer-driven distance request */
-    isOdometerDistanceRequest: boolean;
-
     /** Whether the receipt can be replaced */
     isReceiptEditable: boolean;
 
@@ -61,10 +49,6 @@ type ReceiptSectionProps = {
 
 function ReceiptSection({
     policy,
-    isPerDiemRequest,
-    isDistanceRequest,
-    isManualDistanceRequest,
-    isOdometerDistanceRequest,
     isReceiptEditable,
     shouldDisplayReceipt,
     isLoadingReceipt,
@@ -77,7 +61,7 @@ function ReceiptSection({
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {action, iouType, transactionID, reportID, isReadOnly} = useConfirmationFields();
+    const {action, iouType, transactionID, reportID, isReadOnly, isPerDiemRequest, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} = useConfirmationFields();
     const transaction = useTransactionSelector(transactionID, receiptSliceSelector);
 
     const receiptSource = useReceiptThumbnailSource({transaction, receiptPath, receiptFilename});

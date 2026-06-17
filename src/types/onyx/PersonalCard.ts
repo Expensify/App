@@ -4,9 +4,6 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Card feed */
-type PersonalCardFeed = ValueOf<typeof CONST.PERSONAL_CARDS.BANK_NAME>;
-
 /** Card feed provider */
 type PersonalCardFeedProvider = typeof CONST.PERSONAL_CARDS.BANK_NAME.AMEX_DIRECT;
 
@@ -58,4 +55,4 @@ type AddNewPersonalCard = {
     errors?: OnyxCommon.Errors;
 };
 
-export type {AddNewPersonalCard, AddNewPersonalCardFeedData, AddNewPersonalCardFeedStep, PersonalCardFeed};
+export type {AddNewPersonalCard, AddNewPersonalCardFeedData, AddNewPersonalCardFeedStep};
