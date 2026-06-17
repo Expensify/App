@@ -158,9 +158,6 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
             shouldShowLoadingImmediatelyOnPress={false}
             isLoading={isPressed || isSubmitting}
             onSubmit={() => {
-                if (selectedOptions.length === 0) {
-                    return;
-                }
                 startPressLoading(() => {
                     setIsSubmitting(true);
                     clearUserSearchPhrase();

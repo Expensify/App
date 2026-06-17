@@ -1,5 +1,5 @@
 import type {Ref} from 'react';
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import usePressLoading from '@hooks/usePressLoading';
@@ -115,13 +115,13 @@ function FormAlertWithSubmitButton({
 
     const {isPressed, startPressLoading} = usePressLoading(isLoading);
 
-    const handlePress = useCallback(() => {
+    const handlePress = () => {
         if (!shouldShowLoadingImmediatelyOnPress) {
             onSubmit();
             return;
         }
         startPressLoading(onSubmit);
-    }, [onSubmit, shouldShowLoadingImmediatelyOnPress, startPressLoading]);
+    };
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
     // where pressing Enter saves the form instead of adding a new line in multiline input.
