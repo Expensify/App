@@ -8817,6 +8817,13 @@ const translations = {
         },
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
+            manualOdometerNotAllowedWithExclusion: 'This workspace excludes part of your distance from reimbursement, so manual and odometer entry are disabled. Use the map to enter your route.',
+        },
+        commuterExclusion: {
+            originalDistance: 'Original distance',
+            commutingDistance: 'Removed commute distance',
+            reimbursableDistance: 'Reimbursable distance',
+            systemMessage: ({distance, unit}: {distance: string; unit: string}) => `${distance} ${unit} was removed for the daily commute.`,
         },
         odometer: {
             startReading: 'Start reading',

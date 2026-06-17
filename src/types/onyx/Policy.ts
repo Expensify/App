@@ -2420,6 +2420,22 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
+
+        /**
+         * Workspace-level commuter exclusion config.
+         * When present and the method is supported, distance expenses on this policy
+         * deduct the configured exclusion from each expense's quantity.
+         */
+        commuterExclusions?: {
+            /** R1 supports "fixedDistance"; R2 will add "homeAndOffice" */
+            method: ValueOf<typeof CONST.COMMUTER_EXCLUSIONS.METHOD>;
+
+            /** Distance to deduct from each expense (only set when method === "fixedDistance") */
+            fixedDistance?: number;
+
+            /** Unit the fixedDistance is expressed in ("mi" | "km") */
+            fixedDistanceUnit?: Unit;
+        };
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
