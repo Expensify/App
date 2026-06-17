@@ -42,6 +42,8 @@ jest.mock('@libs/actions/Search', () => ({
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
     getPayOption: jest.fn(() => ({shouldEnableBulkPayOption: false, isFirstTimePayment: false})),
+    getReportFromSearchSnapshot: jest.fn((reportID, searchData, allReports) => searchData?.[`report_${reportID}`] ?? allReports?.[`report_${reportID}`]),
+    getPolicyFromSearchSnapshot: jest.fn((policyID, searchData, policies) => searchData?.[`policy_${policyID}`] ?? policies?.[`policy_${policyID}`]),
     getReportType: jest.fn(),
     getTotalFormattedAmount: jest.fn(() => ''),
     isCurrencySupportWalletBulkPay: jest.fn(() => false),
