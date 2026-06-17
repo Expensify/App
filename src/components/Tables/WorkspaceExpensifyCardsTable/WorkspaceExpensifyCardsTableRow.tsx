@@ -67,7 +67,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                 errors: item.errors,
                 pendingAction: item.pendingAction,
                 shouldHideOnDelete: false,
-                onClose: item.dismissError,
+                onClose: item.onClose,
             }}
             onPress={item.action}
         >

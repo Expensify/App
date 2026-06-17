@@ -37,7 +37,7 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     action: () => void;
-    dismissError: () => void;
+    onClose: () => void;
 };
 
 type WorkspaceExpensifyCardsTableProps = {

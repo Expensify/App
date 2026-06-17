@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -101,30 +101,15 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const isCardListEmpty = allCards.length === 0;
     const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);
-    const selectedCardIDs = useMemo(() => selectedCardKeys.map((key) => Number(key)), [selectedCardKeys]);
+    const selectableCardKeySet = useMemo(() => new Set(allCards.map((card) => String(card.cardID))), [allCards]);
+    const validatedSelectedCardKeys = useMemo(() => selectedCardKeys.filter((key) => selectableCardKeySet.has(key)), [selectedCardKeys, selectableCardKeySet]);
+    const selectedCardIDs = useMemo(() => validatedSelectedCardKeys.map((key) => Number(key)), [validatedSelectedCardKeys]);
 
     const clearTableSelection = useCallback(() => {
         setSelectedCardKeys((prevSelectedCardKeys) => (prevSelectedCardKeys.length > 0 ? [] : prevSelectedCardKeys));
     }, []);
 
     useCleanupSelectedOptions(clearTableSelection);
-
-    useEffect(() => {
-        if (selectedCardKeys.length === 0) {
-            return;
-        }
-
-        setSelectedCardKeys((prevSelectedCardKeys) => {
-            const selectableCardKeys = new Set(allCards.map((card) => String(card.cardID)));
-            const newSelectedCardKeys = prevSelectedCardKeys.filter((key) => selectableCardKeys.has(key));
-
-            if (newSelectedCardKeys.length === prevSelectedCardKeys.length) {
-                return prevSelectedCardKeys;
-            }
-
-            return newSelectedCardKeys;
-        });
-    }, [allCards, selectedCardKeys.length]);
 
     const cardRows = useMemo<WorkspaceExpensifyCardTableRowData[]>(
         () =>
@@ -150,7 +135,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     errors: card.errors,
                     pendingAction: card.pendingAction,
                     action: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, card.cardID.toString())),
-                    dismissError: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),
+                    onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),
                 };
             }),
         [allCards, defaultFundID, personalDetails, policyID, settlementCurrency],
@@ -162,7 +147,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             text: translate('workspace.expensifyCard.exportAsCSV'),
             value: CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV,
             onSelected: () => {
-                const selectedCards = cardRows.filter((row) => selectedCardKeys.includes(row.keyForList)).map((row) => row.card);
+                const selectedCards = cardRows.filter((row) => validatedSelectedCardKeys.includes(row.keyForList)).map((row) => row.card);
                 exportExpensifyCardListToCSV({
                     policyID,
                     cards: selectedCards,
@@ -324,7 +309,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         policyID={policyID}
                         cards={cardRows}
                         selectionEnabled={cardRows.length > 0}
-                        selectedKeys={selectedCardKeys}
+                        selectedKeys={validatedSelectedCardKeys}
                         onRowSelectionChange={setSelectedCardKeys}
                         cardSettings={cardSettings}
                         cardSettingsBase={settings}
