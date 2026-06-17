@@ -66,6 +66,7 @@ export default function DomainGroupsTableRow({item, rowIndex, shouldUseNarrowTab
                 pendingAction: item.pendingAction,
                 onClose: item.dismissError,
             }}
+            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.ROW}
             onPress={item.action}
         >
             {({hovered}) => (
