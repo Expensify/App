@@ -2,7 +2,7 @@ import {md5} from 'expensify-common';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
-import {isLetterAvatarSchemeKey, LETTER_AVATAR_COLOR_OPTIONS, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
+import {DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
 import type {LetterAvatarColorStyle} from './Avatars/letterAvatarPalette';
 import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
 import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
@@ -78,27 +78,18 @@ function getAccountIDHashBucket({accountID = CONST.DEFAULT_NUMBER_ID, accountEma
 }
 
 /**
- * Resolves the colour scheme for a generated letter avatar: the explicitly chosen scheme key when present and valid,
- * otherwise a stable default derived from the same hash used for the default avatar bucket.
+ * Resolves the colour scheme for a generated letter avatar from a scheme key — the one the user
+ * picked (`avatarStyle.color`) or the one parsed out of a backend recipe URL. Falls back to the
+ * default scheme when the key is absent or unknown.
  *
- * @param args.accountID - The user's account ID
- * @param args.accountEmail - The user's email address (takes precedence for the hash)
- * @param args.avatarSchemeKey - A scheme key the user picked (e.g. "blue100"); takes precedence over the hash
+ * @param avatarSchemeKey - A scheme key (e.g. "blue100"); maps into `LETTER_AVATAR_SCHEMES`
  * @returns The letter-avatar colour scheme (background and fill colours)
  */
-function getLetterAvatarScheme({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarSchemeKey}: CommonAvatarArgsType & {avatarSchemeKey?: string}): LetterAvatarColorStyle {
+function getLetterAvatarScheme(avatarSchemeKey?: string): LetterAvatarColorStyle {
     if (avatarSchemeKey && isLetterAvatarSchemeKey(avatarSchemeKey)) {
         return LETTER_AVATAR_SCHEMES[avatarSchemeKey];
     }
-
-    const [firstOption] = LETTER_AVATAR_COLOR_OPTIONS;
-    let index = 0;
-    if (accountEmail) {
-        index = Number.parseInt(md5(accountEmail).substring(0, 4), 16) % LETTER_AVATAR_COLOR_OPTIONS.length;
-    } else if (accountID > 0) {
-        index = accountID % LETTER_AVATAR_COLOR_OPTIONS.length;
-    }
-    return LETTER_AVATAR_COLOR_OPTIONS.at(index) ?? firstOption;
+    return DEFAULT_LETTER_AVATAR_SCHEME;
 }
 
 /**

@@ -1,4 +1,5 @@
 import type {TupleToUnion} from 'type-fest';
+import type {LetterAvatarSchemeKey} from '@libs/Avatars/letterAvatarPalette';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type TIMEZONES from '@src/TIMEZONES';
 import type * as OnyxCommon from './OnyxCommon';
@@ -56,8 +57,11 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Avatar original file name with extension */
     originalFileName?: string;
 
-    /** Colour-scheme key for a generated letter avatar (e.g. "blue100"). Set only when the user picks a colour; absent means it's derived from the login hash */
-    avatarSchemeKey?: string;
+    /** Picked colour scheme for a generated letter avatar (backend `avatarStyle` NVP). Set only when the user picks a colour; absent means the colour is derived (not stored) */
+    avatarStyle?: {
+        /** Colour-scheme key the user picked (e.g. "blue100"); maps into `LETTER_AVATAR_SCHEMES` */
+        color: LetterAvatarSchemeKey;
+    };
 
     /** Flag to set when Avatar uploading */
     avatarUploading?: boolean;

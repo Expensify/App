@@ -64,9 +64,12 @@ const LETTER_AVATAR_SCHEMES: Record<LetterAvatarSchemeKey, LetterAvatarColorStyl
 /** The schemes as an ordered array. Order mirrors `LETTER_AVATAR_SCHEMES` (significant — see above). */
 const LETTER_AVATAR_COLOR_OPTIONS: LetterAvatarColorStyle[] = Object.values(LETTER_AVATAR_SCHEMES);
 
+/** The first scheme in the table; used when no colour has been picked or resolved. */
+const DEFAULT_LETTER_AVATAR_SCHEME: LetterAvatarColorStyle = LETTER_AVATAR_SCHEMES.blue100;
+
 function isLetterAvatarSchemeKey(value: string): value is LetterAvatarSchemeKey {
     return value in LETTER_AVATAR_SCHEMES;
 }
 
-export {LETTER_AVATAR_SCHEMES, LETTER_AVATAR_COLOR_OPTIONS, isLetterAvatarSchemeKey};
+export {LETTER_AVATAR_SCHEMES, LETTER_AVATAR_COLOR_OPTIONS, DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey};
 export type {LetterAvatarColorStyle, LetterAvatarSchemeKey};
