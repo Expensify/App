@@ -98,7 +98,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID="PronounsPage"
         >
             {isLoadingApp && !currentUserPersonalDetails.pronouns ? (
@@ -120,7 +120,6 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
                         textInputOptions={textInputOptions}
                         initiallyFocusedItemKey={currentPronounsKey}
                         confirmButtonOptions={confirmButtonOptions}
-                        addBottomSafeAreaPadding
                         shouldSingleExecuteRowSelect
                     />
                 </>

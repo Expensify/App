@@ -655,7 +655,7 @@ function BaseSelectionList<TItem extends ListItem>({
             <Footer<TItem>
                 footerContent={footerContent}
                 confirmButtonOptions={confirmButtonOptions}
-                addBottomSafeAreaPadding={!isKeyboardShown && addBottomSafeAreaPadding}
+                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             />
         </View>
     );
