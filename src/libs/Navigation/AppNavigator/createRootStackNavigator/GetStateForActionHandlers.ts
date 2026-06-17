@@ -437,6 +437,8 @@ function handleReplaceReportsSplitNavigatorAction(
  * and remount the focused split navigator with the pre-inserted screen already in
  * its initial layout - avoiding the push-transition flash that react-native-screens
  * would otherwise play when a new screen is added to an existing ScreenStack.
+ * The original tab history is preserved so valid non-focused tab back entries survive
+ * rehydration; TabRouter filters out any entry whose route key no longer exists.
  */
 function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existingTabState: NavigationState): TabStateForReplacement {
     const focusedRoute = tabState.routes[tabState.index];
@@ -456,6 +458,7 @@ function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existin
         routeNames: existingTabState.routeNames,
         routes: patchedRoutes,
         index: tabState.index,
+        history: existingTabState.history,
     };
 }
 
@@ -701,4 +704,5 @@ export {
     // Exported for unit-test access; not used outside of testing.
     withSanitizedDeepLinkParams,
     getTabStateWithFocusedTarget,
+    markFocusedTabRouteForRemount,
 };

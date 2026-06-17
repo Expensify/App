@@ -1,5 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import {getTabStateWithFocusedTarget} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import {getTabStateWithFocusedTarget, markFocusedTabRouteForRemount} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -102,5 +102,43 @@ describe('getTabStateWithFocusedTarget', () => {
 
             expect(result).toBeUndefined();
         });
+    });
+});
+
+describe('markFocusedTabRouteForRemount', () => {
+    it('preserves existing tab history while forcing the focused route to remount', () => {
+        const existingState = {
+            ...makeTabState([{name: SCREENS.HOME}, {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}], 1),
+            history: [
+                {type: 'route' as const, key: `${SCREENS.HOME}-key-0`},
+                {type: 'route' as const, key: `${NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}-key-1`},
+            ],
+        };
+        const tabState = {
+            ...existingState,
+            index: 2,
+        };
+
+        const result = markFocusedTabRouteForRemount(tabState, existingState);
+
+        expect(result.history).toBe(existingState.history);
+        expect(result.routes.at(2)).not.toHaveProperty('key');
+        expect(result.stale).toBe(true);
+    });
+
+    it('keeps reconstructed sliced tab state history-free', () => {
+        const slicedState = {
+            ...makeTabState([{name: SCREENS.HOME}], 0),
+            history: [{type: 'route' as const, key: `${SCREENS.HOME}-key-0`}],
+        };
+        const reconstructedState = getTabStateWithFocusedTarget(slicedState, {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR});
+
+        expect(reconstructedState).not.toBeUndefined();
+        if (!reconstructedState) {
+            throw new Error('Expected reconstructed tab state');
+        }
+        const result = markFocusedTabRouteForRemount(reconstructedState, slicedState);
+
+        expect(result).not.toHaveProperty('history');
     });
 });
