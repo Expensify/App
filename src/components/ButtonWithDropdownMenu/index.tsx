@@ -2,7 +2,7 @@ import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -88,6 +88,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
     const splitButtonIcon = hasError ? icons.DotIndicator : icon;
     const singleOptionButtonIcon = shouldUseOptionIcon && !shouldShowButtonRightIcon ? options.at(0)?.icon : icon;
+    const rightOptionIcon = options.at(0)?.icon;
 
     useEffect(() => {
         setSelectedItemIndex(defaultSelectedIndex);
@@ -168,54 +169,69 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
                 <View style={[splitButtonWrapperStyle, style]}>
                     <Button
-                        success={success}
-                        pressOnEnter={pressOnEnter}
+                        variant={success ? 'success' : undefined}
                         ref={dropdownButtonRef}
                         onPress={handlePress}
-                        text={customText ?? selectedItem?.text ?? ''}
                         accessibilityState={!isSplitButton ? {expanded: isMenuVisible} : undefined}
                         isDisabled={isDisabled || areAllOptionsDisabled}
-                        shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+                        stayNormalOnDisable={shouldStayNormalOnDisable}
                         isLoading={isLoading}
-                        shouldRemoveRightBorderRadius
+                        removeBorderRadius="right"
                         style={isSplitButton ? [styles.pr0, styles.flexGrow1, styles.flexShrink1] : {}}
-                        large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                        medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                        small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                        size={buttonSize}
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView, isTextTooLong && shouldUseShortForm && {...styles.pl2, ...styles.pr1}]}
-                        enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                        iconRight={icons.DownArrow}
-                        iconRightStyles={isMenuVisible ? styles.flipUpsideDown : undefined}
-                        shouldShowRightIcon={!isSplitButton && !isLoading && options?.length > 0}
                         testID={testID}
-                        textStyles={[
-                            isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {},
-                            !!secondLineText && !!splitButtonIcon && styles.textAlignLeft,
-                        ]}
-                        secondLineText={secondLineText}
-                        icon={splitButtonIcon}
-                        iconFill={hasError ? theme.danger : undefined}
-                        iconHoverFill={hasError ? theme.danger : undefined}
-                        iconRightFill={hasError ? theme.buttonIcon : undefined}
-                        iconRightHoverFill={hasError ? theme.buttonIcon : undefined}
                         sentryLabel={sentryLabel}
-                    />
+                    >
+                        {pressOnEnter && (
+                            <Button.KeyboardShortcut
+                                isDisabled={isDisabled || areAllOptionsDisabled}
+                                isLoading={isLoading}
+                                onPress={handlePress}
+                                pressOnEnter={pressOnEnter}
+                                enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                            />
+                        )}
+                        {!!splitButtonIcon && (
+                            <Button.Icon
+                                src={splitButtonIcon}
+                                fill={hasError ? theme.danger : undefined}
+                                hoverFill={hasError ? theme.danger : undefined}
+                            />
+                        )}
+                        {secondLineText ? (
+                            <Button.DoubleLineText
+                                primaryText={customText ?? selectedItem?.text ?? ''}
+                                secondLineText={secondLineText}
+                                textStyle={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}, !!splitButtonIcon && styles.textAlignLeft]}
+                            />
+                        ) : (
+                            <Button.Text style={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}]}>
+                                {customText ?? selectedItem?.text ?? ''}
+                            </Button.Text>
+                        )}
+                        {!isSplitButton && !isLoading && options?.length > 0 && (
+                            <Button.Icon
+                                src={icons.DownArrow}
+                                style={isMenuVisible ? styles.flipUpsideDown : undefined}
+                                fill={hasError ? theme.buttonIcon : undefined}
+                                hoverFill={hasError ? theme.buttonIcon : undefined}
+                            />
+                        )}
+                    </Button>
 
                     {isSplitButton && (
                         <Button
                             ref={dropdownAnchor}
-                            success={success}
+                            variant={success ? 'success' : undefined}
                             isDisabled={isDisabled}
                             accessibilityState={{expanded: isMenuVisible}}
-                            shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+                            stayNormalOnDisable={shouldStayNormalOnDisable}
                             style={[styles.pl0]}
                             onPress={() => setIsMenuVisible(!isMenuVisible)}
-                            shouldRemoveLeftBorderRadius
-                            large={buttonSize === CONST.BUTTON_SIZE.LARGE}
-                            medium={buttonSize === CONST.BUTTON_SIZE.MEDIUM}
-                            small={buttonSize === CONST.BUTTON_SIZE.SMALL}
+                            removeBorderRadius="left"
+                            size={buttonSize}
                             innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton, isButtonSizeSmall && styles.dropDownButtonCartIcon]}
-                            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             sentryLabel={sentryLabel}
                         >
                             <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
@@ -244,30 +260,45 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                 </View>
             ) : (
                 <Button
-                    success={success}
+                    variant={success ? 'success' : undefined}
                     ref={buttonRef}
-                    pressOnEnter={pressOnEnter}
                     isDisabled={isDisabled || !!options.at(0)?.disabled}
-                    shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+                    stayNormalOnDisable={shouldStayNormalOnDisable}
                     style={[styles.w100, style]}
                     disabledStyle={disabledStyle}
                     isLoading={isLoading}
-                    text={selectedItem?.text}
                     onPress={handleSingleOptionPress}
-                    large={buttonSize === CONST.BUTTON_SIZE.LARGE}
-                    medium={buttonSize === CONST.BUTTON_SIZE.MEDIUM}
-                    small={buttonSize === CONST.BUTTON_SIZE.SMALL}
+                    size={buttonSize}
                     innerStyles={[innerStyleDropButton, shouldShowButtonRightIcon && styles.dropDownButtonCartIconView]}
-                    iconRightStyles={shouldShowButtonRightIcon && styles.ml2}
-                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                    secondLineText={secondLineText}
-                    icon={singleOptionButtonIcon}
-                    iconRight={shouldShowButtonRightIcon ? options.at(0)?.icon : undefined}
-                    shouldShowRightIcon={shouldShowButtonRightIcon}
-                    textStyles={!!secondLineText && !!singleOptionButtonIcon && styles.textAlignLeft}
                     testID={testID}
                     sentryLabel={sentryLabel}
-                />
+                >
+                    {pressOnEnter && (
+                        <Button.KeyboardShortcut
+                            isDisabled={isDisabled || !!options.at(0)?.disabled}
+                            isLoading={isLoading}
+                            onPress={handleSingleOptionPress}
+                            pressOnEnter={pressOnEnter}
+                            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                        />
+                    )}
+                    {!!singleOptionButtonIcon && <Button.Icon src={singleOptionButtonIcon} />}
+                    {secondLineText ? (
+                        <Button.DoubleLineText
+                            primaryText={selectedItem?.text ?? ''}
+                            secondLineText={secondLineText}
+                            textStyle={!!singleOptionButtonIcon && styles.textAlignLeft}
+                        />
+                    ) : (
+                        <Button.Text>{selectedItem?.text ?? ''}</Button.Text>
+                    )}
+                    {shouldShowButtonRightIcon && !!rightOptionIcon && (
+                        <Button.Icon
+                            src={rightOptionIcon}
+                            style={styles.ml2}
+                        />
+                    )}
+                </Button>
             )}
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
                 <PopoverMenu
