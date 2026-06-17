@@ -753,7 +753,6 @@
 "../../src/libs/Pusher/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Pusher/index.ts"	"no-restricted-imports"	1
 "../../src/libs/QuickActionUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Reauthentication.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/ReceiptUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReportActionFollowupUtils/tokenizeForReveal.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/ReportActionItemEventHandler/index.android.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
