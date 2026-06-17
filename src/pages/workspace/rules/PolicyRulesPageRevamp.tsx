@@ -12,6 +12,7 @@ import WorkspaceExpenseDefaultsTable from '@components/Tables/WorkspaceExpenseDe
 import type {SpendRuleTableItem} from '@components/Tables/WorkspaceSpendRulesTable';
 import WorkspaceSpendRulesTable from '@components/Tables/WorkspaceSpendRulesTable';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
+import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -486,19 +487,21 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 <View style={[styles.flex1, styles.w100, styles.mnh0]}>
                     <View style={[styles.flexShrink0, styles.w100]}>
                         <View style={[styles.flexRow, styles.mb1, styles.w100]}>
-                            <TabSelectorBase
-                                tabs={tabs}
-                                activeTabKey={activeTab}
-                                onTabPress={(key) => {
-                                    if (!isRulesTab(key)) {
-                                        return;
-                                    }
-                                    setSelectedSpendRuleKeys([]);
-                                    setSelectedExpenseDefaultKeys([]);
-                                    turnOffMobileSelectionMode();
-                                    Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
-                                }}
-                            />
+                            <TabSelectorContextProvider activeTabKey={activeTab}>
+                                <TabSelectorBase
+                                    tabs={tabs}
+                                    activeTabKey={activeTab}
+                                    onTabPress={(key) => {
+                                        if (!isRulesTab(key)) {
+                                            return;
+                                        }
+                                        setSelectedSpendRuleKeys([]);
+                                        setSelectedExpenseDefaultKeys([]);
+                                        turnOffMobileSelectionMode();
+                                        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
+                                    }}
+                                />
+                            </TabSelectorContextProvider>
                         </View>
                     </View>
                     {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View>}
