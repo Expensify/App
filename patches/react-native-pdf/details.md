@@ -44,3 +44,20 @@
 - Upstream PR/issue: https://github.com/wonday/react-native-pdf/issues/1009, https://github.com/wonday/react-native-pdf/pull/1011
 - E/App issue: https://github.com/Expensify/App/issues/81225
 - PR introducing patch: https://github.com/Expensify/App/pull/87416
+
+
+### [react-native-pdf+7.0.2+004+point-pdfiumandroid-to-already-closed-fix.patch](react-native-pdf+7.0.2+004+point-pdfiumandroid-to-already-closed-fix.patch)
+
+- Reason:
+
+    ```
+    This patch completes the "Already closed" crash fix that patch 002 started.
+
+    Patch 002 sets AlreadyClosedBehavior.IGNORE so a render that races with PDF view teardown is ignored instead of throwing. That config is only honored by pdfiumandroid methods that route their closed-state check through handleAlreadyClosed(). In io.legere:pdfiumandroid 1.0.35, PdfDocument.openPage()/openTextPage() are the only document methods that do NOT use that helper — they guard with an unconditional check(!isClosed) { "Already closed" } that always throws, regardless of the configured behavior. PdfiumCore.renderPageBitmap() calls openPage(), and the barteksc RenderingHandler only catches PageRenderingException, so the IllegalStateException is uncaught on the renderer thread and crashes the app.
+
+    Since io.legere:pdfiumandroid is a published artifact (not vendored into node_modules), it cannot be patched with patch-package directly. Instead this patch repoints react-native-pdf's Android build.gradle dependency to a JitPack fork that makes openPage()/openTextPage() honor handleAlreadyClosed() like every other PdfDocument method. When IGNORE is set they return a page bound to the closed document, whose operations all no-op via the existing doc.isClosed guards, so the closed-document render is silently dropped instead of crashing. The fork only changes Kotlin (the prebuilt native libs are unchanged) and should be raised upstream so the pin can eventually be dropped.
+    ```
+
+- Fork carrying the fix: https://github.com/wildan-m/PdfiumAndroidKt/commit/29195ff5eca4689457a44b3b69ef8f1e86c7a7e6 (tag `1.0.35-already-closed-fix.3`)
+- Upstream library: https://github.com/johngray1965/PdfiumAndroidKt
+- E/App issue: https://github.com/Expensify/App/issues/93839

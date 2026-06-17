@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native-pdf/android/build.gradle b/node_modules/react-native-pdf/android/build.gradle
+index 7a70e6e0bf6..bf045897522 100644
+--- a/node_modules/react-native-pdf/android/build.gradle
++++ b/node_modules/react-native-pdf/android/build.gradle
+@@ -143,6 +143,9 @@ dependencies {
+     // The repo from zacharee is based on PdfiumAndroidKt, a much newer fork of PdfiumAndroid, with better maintenance and updated native libraries.
+     implementation 'com.github.zacharee:AndroidPdfViewer:4.0.1'
+     // Depend on PdfiumAndroidKt directly so this can be updated independently of AndroidPdfViewer as updates are provided.
+-    implementation 'io.legere:pdfiumandroid:1.0.35'
++    // Pinned to a JitPack fork of io.legere:pdfiumandroid 1.0.35 that makes PdfDocument.openPage/openTextPage honor
++    // AlreadyClosedBehavior.IGNORE (the same config patch 002 already sets) instead of throwing IllegalStateException on
++    // the renderer thread when a render races with document teardown. See patch 004 / details.md (E/App #93839).
++    implementation 'com.github.wildan-m:PdfiumAndroidKt:1.0.35-already-closed-fix.3'
+     implementation 'com.google.code.gson:gson:2.13.2'
+ }
