@@ -72,6 +72,7 @@ import type {
 } from '@src/types/onyx';
 import type {Attendee, DistanceExpenseType, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {
     Comment,
@@ -2181,11 +2182,9 @@ function getDistanceRateTaxUpdates(
     policy: OnyxEntry<Policy>,
     transaction: OnyxEntry<Transaction>,
     customUnitRateID: string,
-    distanceUnit?: string,
+    distanceUnit?: Unit,
 ): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
-    const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
-    const taxCode = policyCustomUnitRate?.attributes?.taxRateExternalID ?? defaultTaxCode;
+    const taxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
     const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, distanceUnit ?? transaction?.comment?.customUnit?.distanceUnit));
     const taxValue = taxCode ? getTaxValue(policy, transaction, taxCode) : undefined;
     const mileageRates = DistanceRequestUtils.getMileageRates(policy);
