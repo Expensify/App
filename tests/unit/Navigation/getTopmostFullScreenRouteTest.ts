@@ -34,6 +34,18 @@ describe('getTopmostFullScreenRoute', () => {
         expect(getTopmostFullScreenRoute()).toBeUndefined();
     });
 
+    it('does not use tab screen params as focused state', () => {
+        mockGetRootState.mockReturnValue({
+            routes: [
+                {
+                    name: NAVIGATORS.TAB_NAVIGATOR,
+                    params: {screen: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                },
+            ],
+        });
+        expect(getTopmostFullScreenRoute()).toBeUndefined();
+    });
+
     it('returns the focused tab route based on state.index', () => {
         const reportsRoute = {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR};
         const searchRoute = {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR};

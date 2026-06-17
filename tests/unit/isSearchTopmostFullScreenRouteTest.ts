@@ -73,9 +73,9 @@ describe('isSearchTopmostFullScreenRoute', () => {
         expect(isSearchTopmostFullScreenRoute()).toBe(true);
     });
 
-    it('returns true from tab screen params when live and preserved tab state are missing', () => {
+    it('returns false from tab screen params when live and preserved tab state are missing', () => {
         mockNavigationRef.getRootState.mockReturnValue(rootStateWithTabScreenParam());
 
-        expect(isSearchTopmostFullScreenRoute()).toBe(true);
+        expect(isSearchTopmostFullScreenRoute()).toBe(false);
     });
 });

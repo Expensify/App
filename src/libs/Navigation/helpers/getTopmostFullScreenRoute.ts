@@ -2,15 +2,12 @@ import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSp
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationRoute, RootNavigatorParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
-import {getTabScreenParam} from './tabNavigatorUtils';
 
 /**
  * Returns the active tab route of the topmost TAB_NAVIGATOR in the root navigation state.
  * Use this to determine which full-screen tab (Search, Inbox, etc.) is currently focused.
  *
- * Fallback chain: live tab state → preserved state → params.screen hint.
- * The params.screen fallback returns a minimal stub `{name}` with no key/state/params.
- * Callers that need `.state` or `.key` should guard against undefined on those fields.
+ * Fallback chain: live tab state → preserved state.
  */
 function getTopmostFullScreenRoute(): NavigationRoute | undefined {
     const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
@@ -36,11 +33,6 @@ function getTopmostFullScreenRoute(): NavigationRoute | undefined {
         if (preservedRoute) {
             return preservedRoute;
         }
-    }
-
-    const tabScreenParam = getTabScreenParam(topmostTabNavigatorRoute);
-    if (tabScreenParam) {
-        return {name: tabScreenParam};
     }
 
     return undefined;
