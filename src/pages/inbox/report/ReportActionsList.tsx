@@ -478,6 +478,12 @@ function ReportActionsList({
         ...(shouldAutoscrollToBottom ? {autoscrollToBottomThreshold: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD, animateAutoScrollToBottom: false} : {}),
     };
 
+    // When opening a linked message, wait for the first load before rendering the list: the batch of actions that
+    // arrives right after the initial load shifts the list and breaks the anchor to the linked action.
+    if (initialScrollKey && !isOffline && !reportLoadingState?.hasOnceLoadedReportActions) {
+        return <ReportActionsSkeletonView />;
+    }
+
     return (
         <>
             <FloatingMessageCounter
