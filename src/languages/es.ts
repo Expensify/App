@@ -6142,6 +6142,7 @@ ${amount} para ${merchant} - ${date}`,
             admins: 'Administradores del espacio de trabajo',
             approvers: 'Aprobadores',
             auditors: 'Auditores',
+            editors: 'Editores',
             emptyRoleFilter: {
                 title: 'Ningún miembro coincide con este filtro',
                 subtitle: 'Invita a un miembro o cambia el filtro anterior.',
