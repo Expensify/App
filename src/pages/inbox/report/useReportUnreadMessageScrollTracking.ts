@@ -2,7 +2,6 @@ import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
-import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 
 type Args = {
@@ -15,8 +14,8 @@ type Args = {
     /** The current offset of scrolling from either top or bottom of chat list */
     currentVerticalScrollingOffsetRef: RefObject<number>;
 
-    /** Ref for whether read action was skipped */
-    readActionSkippedRef: RefObject<boolean>;
+    /** Called when the unread-marker action is within the viewport, on every viewability change */
+    onUnreadActionVisible: () => void;
 
     /** The index of the unread report action */
     unreadMarkerReportActionIndex: number;
@@ -27,9 +26,6 @@ type Args = {
     /** Callback to call on every scroll event */
     onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
-    /** Whether the report actions have been loaded at least once */
-    hasOnceLoadedReportActions: boolean;
-
     /** The index of the action badge target report action in the sorted visible actions list (-1 if none) */
     actionBadgeTargetIndex?: number;
 };
@@ -38,11 +34,10 @@ export default function useReportUnreadMessageScrollTracking({
     reportID,
     currentVerticalScrollingOffsetRef,
     hasNewerActions,
-    readActionSkippedRef,
+    onUnreadActionVisible,
     onTrackScrolling,
     unreadMarkerReportActionIndex,
     isInverted,
-    hasOnceLoadedReportActions,
     actionBadgeTargetIndex = -1,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
@@ -53,14 +48,14 @@ export default function useReportUnreadMessageScrollTracking({
         reportID: string;
         unreadMarkerReportActionIndex: number;
         isFocused: boolean;
-        hasOnceLoadedReportActions: boolean;
+        onUnreadActionVisible: () => void;
         actionBadgeTargetIndex: number;
     }>({
         reportID,
         unreadMarkerReportActionIndex,
         previousViewableItems: [],
         isFocused: true,
-        hasOnceLoadedReportActions,
+        onUnreadActionVisible,
         actionBadgeTargetIndex,
     });
     // We want to save the updated value on ref to use it in onViewableItemsChanged
@@ -75,8 +70,8 @@ export default function useReportUnreadMessageScrollTracking({
     }, [isFocused]);
 
     useEffect(() => {
-        ref.current.hasOnceLoadedReportActions = hasOnceLoadedReportActions;
-    }, [hasOnceLoadedReportActions]);
+        ref.current.onUnreadActionVisible = onUnreadActionVisible;
+    }, [onUnreadActionVisible]);
 
     /**
      * On every scroll event we want to:
@@ -136,11 +131,9 @@ export default function useReportUnreadMessageScrollTracking({
             setIsFloatingMessageCounterVisible(false);
         }
 
-        // if we're scrolled closer than the offset and read action has been skipped then mark message as read
-        if (unreadActionVisible && readActionSkippedRef.current) {
-            // eslint-disable-next-line no-param-reassign
-            readActionSkippedRef.current = false;
-            readNewestAction(ref.current.reportID, ref.current.hasOnceLoadedReportActions);
+        // when the unread action scrolls into view, the consumer decides whether a skipped mark-as-read needs completing
+        if (unreadActionVisible) {
+            ref.current.onUnreadActionVisible();
         }
 
         // Track whether the action badge target is above the viewport (i.e., not visible and at a higher index in the inverted list)
