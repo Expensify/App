@@ -28,8 +28,8 @@ jest.mock('@hooks/useCreateEmptyReportConfirmation', () =>
 );
 
 jest.mock('@libs/PolicyUtils', () => {
-    // `require` inside the factory because jest hoists `jest.mock` above the top-level `CONST` import.
-    const CONSTANTS = (require('@src/CONST') as {default: typeof CONST}).default;
+    // `requireActual` inside the factory because jest hoists `jest.mock` above the top-level `CONST` import.
+    const CONSTANTS = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
     return {
         getDefaultChatEnabledPolicy: jest.fn((policies: Array<OnyxEntry<Policy>>, activePolicy: OnyxEntry<Policy>) => {
             // Mirror the real helper: prefer activePolicy if it's a paid group with chat enabled, otherwise the single non-personal candidate.
@@ -88,10 +88,8 @@ function makePaidPolicy(id = POLICY_ID): OnyxEntry<Policy> {
 }
 
 function makeSubmitPolicy(id = POLICY_ID): OnyxEntry<Policy> {
-    return {
-        ...makePaidPolicy(id),
-        type: CONST.POLICY.TYPE.SUBMIT,
-    } as OnyxEntry<Policy>;
+    const policy = makePaidPolicy(id);
+    return policy ? {...policy, type: CONST.POLICY.TYPE.SUBMIT} : policy;
 }
 
 function setupUseOnyx(overrides: Record<string, unknown> = {}) {
