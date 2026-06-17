@@ -77,7 +77,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
             <Table.Row
                 interactive
                 rowIndex={rowIndex}
-                disabled={isDeleting}
+                disabled={item.disabled}
                 accessibilityLabel={accessibilityLabel}
                 skeletonReasonAttributes={reasonAttributes}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}

@@ -53,7 +53,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
         <Table.Row
             interactive
             rowIndex={rowIndex}
-            disabled={isDeleting}
+            disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={reasonAttributes}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
@@ -135,7 +135,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                     <Icon
                         src={Expensicons.ArrowRight}
                         fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, !hovered && styles.opacitySemiTransparent]}
+                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />
