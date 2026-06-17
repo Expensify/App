@@ -5,7 +5,6 @@ import DateUtils from '@libs/DateUtils';
 import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-import getTopmostReportParams from '@libs/Navigation/helpers/getTopmostReportParams';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
@@ -21,6 +20,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
@@ -86,6 +86,19 @@ type SubmitExpenseOrchestratorProps = {
     /** Render prop receiving onConfirm and isConfirming. */
     children: (props: SubmitExpenseOrchestratorRenderProps) => React.ReactNode;
 };
+
+function getFocusedReportsSplitReportID(rootState: ReturnType<typeof navigationRef.getRootState>): string | undefined {
+    const topmostTabNavigatorRoute = rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const tabState = topmostTabNavigatorRoute?.state;
+    const activeTabRoute = tabState?.routes.at(tabState.index ?? 0);
+    if (activeTabRoute?.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || !activeTabRoute.state) {
+        return undefined;
+    }
+
+    const focusedRoute = activeTabRoute.state.routes.at(activeTabRoute.state.index ?? 0);
+    const reportID = focusedRoute?.name === SCREENS.REPORT && focusedRoute.params && 'reportID' in focusedRoute.params ? focusedRoute.params.reportID : undefined;
+    return typeof reportID === 'string' ? reportID : undefined;
+}
 
 /**
  * Encapsulates the submit-expense navigation orchestration: telemetry lifecycle,
@@ -171,7 +184,7 @@ function SubmitExpenseOrchestrator({
     };
 
     // Captures navigation state at decision time for getSubmitHandler. Some handlers
-    // re-read live state (e.g. getIsNarrowLayout, getTopmostReportParams) for execution
+    // re-read live state (e.g. getIsNarrowLayout, focused Reports state) for execution
     // details - this is safe because snapshot + handler run in the same synchronous block.
     const buildNavigationSnapshot = (rootState: ReturnType<typeof navigationRef.getRootState>): SubmitNavigationSnapshot => {
         const isPreInserted = Navigation.getIsFullscreenPreInsertedUnderRHP();
@@ -214,16 +227,11 @@ function SubmitExpenseOrchestrator({
             return;
         }
 
-        // Only trust the pre-inserted report if the Reports tab is actually focused.
-        // getTopmostReportParams can find a matching report in an unfocused/stale
-        // Reports tab (e.g. user opened the report earlier, returned to Inbox, then
-        // submitted). Dismissing in that case would reveal Inbox, not the report.
-        if (isReportTopmostSplitNavigator()) {
-            const preInsertedReportID = getTopmostReportParams(navigationRef.getRootState())?.reportID;
-            if (preInsertedReportID === reportID) {
-                Navigation.dismissModal({afterTransition});
-                return;
-            }
+        // Only trust the pre-inserted report if it is the focused child of the Reports tab.
+        // A stale report route can still exist behind Inbox in the Reports stack.
+        if (getFocusedReportsSplitReportID(navigationRef.getRootState()) === reportID) {
+            Navigation.dismissModal({afterTransition});
+            return;
         }
 
         Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(reportID), {afterTransition});
