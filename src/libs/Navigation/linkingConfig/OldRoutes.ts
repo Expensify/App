@@ -51,7 +51,6 @@ const oldRoutes: Record<string, string> = {
     '/a/*/avatar': '/avatar/$1',
     '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
     '/home-page': '/home',
-    '/onboarding/migrated-user-welcome': '/home/migrated-user-welcome',
     '/workspace/confirmation/currency': '/workspaces/workspace/confirmation/currency',
     '/workspace/confirmation': '/workspaces/workspace/confirmation',
     /* eslint-enable @typescript-eslint/naming-convention */
