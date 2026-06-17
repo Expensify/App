@@ -6253,6 +6253,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description: 'Sélectionnez les paramètres à écraser sur vos espaces de travail existants.',
                 accountingMismatch: ({part}: {part: string}) =>
                     `Vous ne pouvez copier ${part} que si tous les espaces de travail utilisent le même système de comptabilité et la même connexion d’entreprise.`,
+                travelAddressMismatch: 'Vous ne pouvez copier les voyages que si chaque espace de travail sélectionné dispose d’une adresse d’entreprise.',
             },
             confirmSettings: {
                 title: 'Assurons-nous que tout est correct.',

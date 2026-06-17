@@ -6191,6 +6191,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Selecione os recursos para copiar',
                 description: 'Selecione as configurações que deseja sobrescrever nos seus espaços de trabalho existentes.',
                 accountingMismatch: ({part}: {part: string}) => `Você só pode copiar ${part} se todos os espaços de trabalho usarem o mesmo sistema contábil e a mesma conexão da empresa.`,
+                travelAddressMismatch: 'Você só pode copiar viagens se cada espaço de trabalho selecionado tiver um endereço da empresa.',
             },
             confirmSettings: {
                 title: 'Vamos garantir que está tudo certo.',

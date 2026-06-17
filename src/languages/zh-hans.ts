@@ -6033,6 +6033,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '选择要复制的功能',
                 description: '选择要在现有工作区中覆盖的设置。',
                 accountingMismatch: ({part}: {part: string}) => `仅当所有工作区使用相同的会计系统和公司连接时，您才能复制 ${part}。`,
+                travelAddressMismatch: '仅当每个所选工作区都有公司地址时，您才能复制差旅。',
             },
             confirmSettings: {
                 title: '让我们确认一切都正确无误。',

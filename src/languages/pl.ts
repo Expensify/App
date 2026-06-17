@@ -6191,6 +6191,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 description: 'Wybierz ustawienia, które chcesz nadpisać w swoich istniejących przestrzeniach roboczych.',
                 accountingMismatch: ({part}: {part: string}) =>
                     `Możesz skopiować ${part} tylko wtedy, gdy wszystkie przestrzenie robocze używają tego samego systemu księgowego i połączenia z firmą.`,
+                travelAddressMismatch: 'Podróże możesz skopiować tylko wtedy, gdy każda wybrana przestrzeń robocza ma adres firmy.',
             },
             confirmSettings: {
                 title: 'Upewnijmy się, że wszystko wygląda poprawnie.',

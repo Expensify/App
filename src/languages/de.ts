@@ -6228,6 +6228,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 description: 'Wählen Sie die Einstellungen aus, die in Ihren bestehenden Arbeitsbereichen überschrieben werden sollen.',
                 accountingMismatch: ({part}: {part: string}) =>
                     `Sie können ${part} nur kopieren, wenn alle Arbeitsbereiche dasselbe Buchhaltungssystem und dieselbe Unternehmensverbindung verwenden.`,
+                travelAddressMismatch: 'Sie können Reisen nur kopieren, wenn jeder ausgewählte Arbeitsbereich eine Unternehmensadresse hat.',
             },
             confirmSettings: {
                 title: 'Stellen wir sicher, dass alles richtig aussieht.',

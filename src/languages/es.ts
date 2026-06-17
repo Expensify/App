@@ -6060,6 +6060,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: 'Selecciona los ajustes que se sobrescribirán en tus espacios de trabajo existentes.',
                 accountingMismatch: ({part}: {part: string}) =>
                     `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
+                travelAddressMismatch: 'Solo puedes copiar los viajes si cada espacio de trabajo seleccionado tiene una dirección de empresa.',
             },
             confirmSettings: {
                 title: 'Vamos a asegurarnos de que todo se vea bien.',

@@ -6218,6 +6218,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 description: 'Seleziona le impostazioni da sovrascrivere nei tuoi workspace esistenti.',
                 accountingMismatch: ({part}: {part: string}) =>
                     `Puoi copiare ${part} solo se tutti gli spazi di lavoro usano lo stesso sistema di contabilità e la stessa connessione aziendale.`,
+                travelAddressMismatch: 'Puoi copiare i viaggi solo se ogni spazio di lavoro selezionato ha un indirizzo aziendale.',
             },
             confirmSettings: {
                 title: 'Assicuriamoci che sia tutto corretto.',
