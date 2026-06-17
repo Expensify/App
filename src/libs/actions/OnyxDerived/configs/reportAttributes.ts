@@ -1,5 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getIsOffline} from '@libs/NetworkState';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isPolicyAdmin, isPolicyExpenseChat, isValidReport} from '@libs/ReportUtils';
@@ -90,11 +91,25 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.POLICY_TAGS,
         ONYXKEYS.CONCIERGE_REPORT_ID,
+        ONYXKEYS.NVP_INTRO_SELECTED,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.NETWORK,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags, conciergeReportID],
+        [
+            reports,
+            preferredLocale,
+            transactionViolations,
+            reportActions,
+            reportNameValuePairs,
+            transactions,
+            personalDetails,
+            session,
+            policies,
+            policyTags,
+            conciergeReportID,
+            introSelected,
+        ],
         {currentValue, sourceValues},
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
@@ -356,6 +371,7 @@ export default createOnyxDerivedValueConfig({
                               allPolicyTags: policyTags,
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
+                              isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
                           })
                         : '',
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
