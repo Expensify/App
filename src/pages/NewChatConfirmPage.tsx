@@ -28,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function navigateBack() {
@@ -162,9 +163,23 @@ function NewChatConfirmPage() {
             return;
         }
 
-        const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login).filter((login): login is string => !!login);
+        // Build the participants' personal details so the action can derive logins/accountIDs and tell which participants are new
+        // (entries flagged with isOptimisticPersonalDetail) without reading the global personal details list.
+        const participantsPersonalDetails: PersonalDetailsList = {};
+        for (const participant of newGroupDraft.participants ?? []) {
+            const {accountID, login} = participant;
+            if (!accountID || !login) {
+                continue;
+            }
+            participantsPersonalDetails[accountID] = allPersonalDetails?.[accountID] ?? {
+                accountID,
+                login,
+                displayName: login,
+                isOptimisticPersonalDetail: true,
+            };
+        }
         navigateToAndCreateGroupChat(
-            logins,
+            participantsPersonalDetails,
             newGroupDraft.reportName ?? '',
             personalData.login ?? '',
             optimisticReportID.current,

@@ -28,6 +28,7 @@ const FEATURE_ROWS = [
     {part: 'invoices', labelKey: 'workspace.common.invoices'},
     {part: 'travel', labelKey: 'workspace.common.travel'},
     {part: 'timeTracking', labelKey: 'workspace.moreFeatures.timeTracking.title'},
+    {part: 'receiptPartners', labelKey: 'workspace.moreFeatures.receiptPartners.title'},
 ] as const satisfies readonly FeatureRow[];
 
 type CopyPolicySettingsSourceFeatureContext = {
@@ -230,9 +231,20 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
             return !!policy?.isTravelEnabled;
         case 'timeTracking':
             return isTimeTrackingEnabled(policy);
+        case 'receiptPartners':
+            return !!policy?.receiptPartners?.enabled || !!policy?.receiptPartners?.uber?.organizationID;
         default:
             return false;
     }
+}
+
+/** Subtitle for the receipt partners row when Uber is connected on the source. */
+function getReceiptPartnersCopySettingsDescription(policy: Policy | undefined, translate: LocalizedTranslate): string {
+    const organizationName = policy?.receiptPartners?.uber?.organizationName;
+    if (organizationName) {
+        return organizationName;
+    }
+    return translate('common.enabled');
 }
 
 /** Subtitle for the time tracking row; rate is shown without currency because targets may use a different output currency. */
@@ -253,6 +265,7 @@ export {
     areAllTargetsCompatibleForAccountingPart,
     isCopyPolicySettingsPartEnabledOnSource,
     getTimeTrackingCopySettingsDescription,
+    getReceiptPartnersCopySettingsDescription,
     FEATURE_ROWS,
 };
 export type {CopyPolicySettingsSourceFeatureContext};
