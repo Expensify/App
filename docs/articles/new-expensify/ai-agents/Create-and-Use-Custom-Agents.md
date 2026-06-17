@@ -130,6 +130,8 @@ The agent will receive each report submitted through the workflow and determine 
 
 For details on configuring approval workflows generally, see [Learn how to add approvals to a workspace](/articles/new-expensify/workspaces/Add-Approvals).
 
+![Add a Custom Agent as a workspace approver]({{site.url}}/assets/images/ExpensiHelp-CustomAgents-2.png){:width="100%"}
+
 ---
 
 # FAQ
