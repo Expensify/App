@@ -1,7 +1,7 @@
 import DateUtils from './DateUtils';
 
 /**
- * Full reconnect: the app refetches all of its data from the server.
+ * Full reconnect: the app fetches all of its data from the server again.
  *
  * The server can ask for one by setting a cutoff time in the Onyx value
  * NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE. If the app last reconnected before that cutoff, its

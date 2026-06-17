@@ -302,7 +302,7 @@ const ONYXKEYS = {
 
     /**
      * Server-set cutoff time for a full reconnect. If this client's last full reconnect
-     * (LAST_FULL_RECONNECT_TIME) is older than this value, the app refetches all of its data.
+     * (LAST_FULL_RECONNECT_TIME) is older than this value, the app fetches all of its data again.
      * The server sets this value; the client only reads it.
      */
     NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE: 'nvp_reconnectAppIfFullReconnectBefore',
