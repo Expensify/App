@@ -45,7 +45,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -626,17 +626,16 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string) 
         return;
     }
 
-    const saveSearchName = searchName;
     const jsonQuery = JSON.stringify(queryJSON);
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SAVED_SEARCHES,
             value: {
                 [queryJSON.hash]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    name: saveSearchName,
+                    name: searchName,
                     query: queryJSON.inputQuery,
                 },
             },
@@ -648,7 +647,7 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string) 
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SAVED_SEARCHES,
@@ -663,7 +662,7 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string) 
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SAVED_SEARCHES,
@@ -675,7 +674,7 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string) 
         },
     ];
 
-    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: searchName}, {optimisticData, failureData, successData});
 }
 
 function deleteSavedSearch(hash: number) {
