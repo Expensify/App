@@ -4615,6 +4615,14 @@ function getPlaidBalanceFailureMessage(translate: LocalizedTranslate, action: On
     });
 }
 
+function getCommuterExclusionMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
+    const original = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION>) ?? {distance: '0', unit: ''};
+    return translate('distance.commuterExclusion.systemMessage', {
+        distance: String(original.distance ?? '0'),
+        unit: String(original.unit ?? ''),
+    });
+}
+
 function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefined {
     if (!isApprovedAction(action)) {
         return;
@@ -4874,6 +4882,7 @@ export {
     isReopenedAction,
     isRetractedAction,
     getIntegrationSyncFailedMessage,
+    getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogDefaultReimbursableMessage,

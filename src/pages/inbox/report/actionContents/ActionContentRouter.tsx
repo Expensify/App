@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getChangedApproverActionMessage,
+    getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
@@ -459,6 +460,9 @@ function ActionContentRouter({
                 <RenderHTML html={`<comment><muted-text>${getPlaidBalanceFailureMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION)) {
+        return <ReportActionItemBasicMessage message={getCommuterExclusionMessage(translate, action)} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport) {
         return <CreateHarvestReportAction reportID={reportID} />;
