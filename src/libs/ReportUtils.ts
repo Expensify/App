@@ -4870,7 +4870,8 @@ function canEditMoneyRequest(
         return true;
     }
 
-    const moneyRequestReportID = reportAction?.reportID;
+    // Temporary fallback to originalMessage.IOUReportID while the backend is updated to reliably send reportID on IOU actions.
+    const moneyRequestReportID = originalMessage?.IOUReportID ?? reportAction?.reportID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
 
     if (!moneyRequestReportID) {
@@ -5087,7 +5088,8 @@ function canEditFieldOfMoneyRequest({
         return true;
     }
 
-    const iouReportID = reportAction?.reportID;
+    // Temporary fallback to originalMessage.IOUReportID while the backend is updated to reliably send reportID on IOU actions.
+    const iouReportID = getOriginalMessage(reportAction)?.IOUReportID ?? reportAction?.reportID;
     const moneyRequestReport = report ?? (iouReportID ? (getReport(iouReportID, deprecatedAllReports) ?? ({} as Report)) : ({} as Report));
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
@@ -5236,7 +5238,8 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
     // canEditMoneyRequest has an admin/manager bypass for field-level edits (via canEditFieldOfMoneyRequest),
     // but that bypass should not allow the "Edit expense" action on finalized reports.
     if (isMoneyRequestAction(reportAction)) {
-        const moneyRequestReportID = reportAction?.reportID;
+        // Temporary fallback to originalMessage.IOUReportID while the backend is updated to reliably send reportID on IOU actions.
+        const moneyRequestReportID = getOriginalMessage(reportAction)?.IOUReportID ?? reportAction?.reportID;
         if (moneyRequestReportID) {
             const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
             if (isSettled(moneyRequestReport?.reportID) || isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport)) {
