@@ -1648,7 +1648,7 @@
 "../../tests/ui/CountrySelectorModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/ui/DynamicCountrySelectionPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../tests/ui/DynamicPaymentCardCurrencySelectorPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/ui/DynamicReportDetailsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../tests/ui/DynamicReportDetailsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/FloatingActionButtonTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/ForYouSectionTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/ui/IOURequestStartPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
