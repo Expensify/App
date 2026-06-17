@@ -7350,8 +7350,14 @@ ${reportName}`,
             },
             tabs: {general: '一般', cardRestrictions: 'カードの制限', expenseDefaults: '経費のデフォルト設定'},
             bulkActions: {
-                deleteMultiple: {one: 'ルールを削除', other: 'ルールを削除'},
-                deleteMultipleConfirmation: {one: 'このルールを削除してもよろしいですか？', other: 'これらのルールを削除してもよろしいですか？'},
+                deleteMultiple: () => ({
+                    one: 'ルールを削除',
+                    other: 'ルールを削除',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'このルールを削除してもよろしいですか？',
+                    other: 'これらのルールを削除してもよろしいですか？',
+                }),
             },
             generalTab: {
                 title: '基本ルール',

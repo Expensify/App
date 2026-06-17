@@ -7401,8 +7401,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             },
             tabs: {general: 'Ogólne', cardRestrictions: 'Ograniczenia karty', expenseDefaults: 'Domyślne ustawienia wydatków'},
             bulkActions: {
-                deleteMultiple: {one: 'Usuń regułę', other: 'Usuń reguły'},
-                deleteMultipleConfirmation: {one: 'Na pewno chcesz usunąć tę regułę?', other: 'Na pewno chcesz usunąć te reguły?'},
+                deleteMultiple: () => ({
+                    one: 'Usuń regułę',
+                    other: 'Usuń reguły',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Na pewno chcesz usunąć tę regułę?',
+                    other: 'Na pewno chcesz usunąć te reguły?',
+                }),
             },
             generalTab: {
                 title: 'Podstawowe zasady',

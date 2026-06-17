@@ -7448,8 +7448,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
             tabs: {general: 'Allgemein', cardRestrictions: 'Karteneinschränkungen', expenseDefaults: 'Standardausgaben'},
             bulkActions: {
-                deleteMultiple: {one: 'Regel löschen', other: 'Regeln löschen'},
-                deleteMultipleConfirmation: {one: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?', other: 'Sind Sie sicher, dass Sie diese Regeln löschen möchten?'},
+                deleteMultiple: () => ({
+                    one: 'Regel löschen',
+                    other: 'Regeln löschen',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
+                    other: 'Sind Sie sicher, dass Sie diese Regeln löschen möchten?',
+                }),
             },
             generalTab: {
                 title: 'Grundregeln',

@@ -7212,7 +7212,16 @@ ${reportName}`,
                     `<muted-text>为了执行你的代理规则，我们为你创建了一个代理，并将其添加为你工作区的管理员。<br><br>你可以在 <a href="${agentsRoute}">“账户”&gt;“代理”</a> 中编辑代理的详细信息。</muted-text>`,
             },
             tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置'},
-            bulkActions: {deleteMultiple: {one: '删除规则', other: '删除规则'}, deleteMultipleConfirmation: {one: '确定要删除此规则吗？', other: '确定要删除这些规则吗？'}},
+            bulkActions: {
+                deleteMultiple: () => ({
+                    one: '删除规则',
+                    other: '删除规则',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: '确定要删除此规则吗？',
+                    other: '确定要删除这些规则吗？',
+                }),
+            },
             generalTab: {
                 title: '基本规则',
                 subtitle: '控制支出的通用规则',

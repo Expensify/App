@@ -7403,8 +7403,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             },
             tabs: {general: 'Geral', cardRestrictions: 'Restrições do cartão', expenseDefaults: 'Padrões de despesa'},
             bulkActions: {
-                deleteMultiple: {one: 'Excluir regra', other: 'Excluir regras'},
-                deleteMultipleConfirmation: {one: 'Tem certeza de que quer excluir esta regra?', other: 'Tem certeza de que quer excluir estas regras?'},
+                deleteMultiple: () => ({
+                    one: 'Excluir regra',
+                    other: 'Excluir regras',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Tem certeza de que quer excluir esta regra?',
+                    other: 'Tem certeza de que quer excluir estas regras?',
+                }),
             },
             generalTab: {
                 title: 'Regras básicas',

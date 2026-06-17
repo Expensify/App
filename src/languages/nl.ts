@@ -7407,8 +7407,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             tabs: {general: 'Algemeen', cardRestrictions: 'Kaartbeperkingen', expenseDefaults: 'Standaardinstellingen voor uitgaven'},
             bulkActions: {
-                deleteMultiple: {one: 'Regel verwijderen', other: 'Regels verwijderen'},
-                deleteMultipleConfirmation: {one: 'Weet je zeker dat je deze regel wilt verwijderen?', other: 'Weet je zeker dat je deze regels wilt verwijderen?'},
+                deleteMultiple: () => ({
+                    one: 'Regel verwijderen',
+                    other: 'Regels verwijderen',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Weet je zeker dat je deze regel wilt verwijderen?',
+                    other: 'Weet je zeker dat je deze regels wilt verwijderen?',
+                }),
             },
             generalTab: {
                 title: 'Basisregels',

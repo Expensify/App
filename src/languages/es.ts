@@ -7343,8 +7343,14 @@ ${amount} para ${merchant} - ${date}`,
             },
             tabs: {general: 'General', cardRestrictions: 'Restricciones de la tarjeta', expenseDefaults: 'Valores predeterminados de gastos'},
             bulkActions: {
-                deleteMultiple: {one: 'Eliminar regla', other: 'Eliminar reglas'},
-                deleteMultipleConfirmation: {one: '¿Seguro que quieres eliminar esta regla?', other: '¿Seguro que quieres eliminar estas reglas?'},
+                deleteMultiple: () => ({
+                    one: 'Eliminar regla',
+                    other: 'Eliminar reglas',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: '¿Seguro que quieres eliminar esta regla?',
+                    other: '¿Seguro que quieres eliminar estas reglas?',
+                }),
             },
             generalTab: {
                 title: 'Reglas básicas',

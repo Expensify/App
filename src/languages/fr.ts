@@ -7475,8 +7475,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             tabs: {general: 'Général', cardRestrictions: 'Restrictions de carte', expenseDefaults: 'Paramètres par défaut des dépenses'},
             bulkActions: {
-                deleteMultiple: {one: 'Supprimer la règle', other: 'Supprimer les règles'},
-                deleteMultipleConfirmation: {one: 'Voulez-vous vraiment supprimer cette règle ?', other: 'Voulez-vous vraiment supprimer ces règles ?'},
+                deleteMultiple: () => ({
+                    one: 'Supprimer la règle',
+                    other: 'Supprimer les règles',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Voulez-vous vraiment supprimer cette règle ?',
+                    other: 'Voulez-vous vraiment supprimer ces règles ?',
+                }),
             },
             generalTab: {
                 title: 'Règles de base',

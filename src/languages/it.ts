@@ -7433,8 +7433,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             },
             tabs: {general: 'Generale', cardRestrictions: 'Limitazioni carta', expenseDefaults: 'Impostazioni predefinite spese'},
             bulkActions: {
-                deleteMultiple: {one: 'Elimina regola', other: 'Elimina regole'},
-                deleteMultipleConfirmation: {one: 'Sei sicuro di voler eliminare questa regola?', other: 'Sei sicuro di voler eliminare queste regole?'},
+                deleteMultiple: () => ({
+                    one: 'Elimina regola',
+                    other: 'Elimina regole',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Sei sicuro di voler eliminare questa regola?',
+                    other: 'Sei sicuro di voler eliminare queste regole?',
+                }),
             },
             generalTab: {
                 title: 'Regole di base',
