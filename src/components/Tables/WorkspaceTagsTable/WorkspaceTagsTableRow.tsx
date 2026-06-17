@@ -37,7 +37,7 @@ type WorkspaceTagTableRowData = TableData & {
     action: () => void;
     onToggleEnabled?: (enabled: boolean) => void;
     onToggleRequired?: (required: boolean) => void;
-    dismissError: () => void;
+    onClose: () => void;
 };
 
 type WorkspaceTagsTableRowProps = {
@@ -109,7 +109,7 @@ export default function WorkspaceTagsTableRow({
                 errors: item.errors,
                 pendingAction: item.pendingAction,
                 shouldHideOnDelete: false,
-                dismissError: item.dismissError,
+                onClose: item.onClose,
             }}
         >
             {({hovered}) => (
@@ -145,18 +145,20 @@ export default function WorkspaceTagsTableRow({
 
                     {!shouldUseNarrowTableLayout && shouldShowApproverColumn && (
                         <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                            {!!item.approverDisplayName && !!item.approverAccountID && (
+                            {!!item.approverDisplayName && (
                                 <>
-                                    <Avatar
-                                        name={item.approverDisplayName}
-                                        source={item.approverAvatar}
-                                        type={CONST.ICON_TYPE_AVATAR}
-                                        size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                                    />
+                                    {!!item.approverAccountID && (
+                                        <Avatar
+                                            name={item.approverDisplayName}
+                                            source={item.approverAvatar}
+                                            type={CONST.ICON_TYPE_AVATAR}
+                                            size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                                        />
+                                    )}
                                     <TextWithTooltip
                                         shouldShowTooltip
                                         numberOfLines={1}
-                                        text={item.approverDisplayName ?? ''}
+                                        text={item.approverDisplayName}
                                     />
                                 </>
                             )}

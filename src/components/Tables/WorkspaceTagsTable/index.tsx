@@ -1,4 +1,5 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {PropsWithChildren} from 'react';
 import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table from '@components/Table';
@@ -13,7 +14,7 @@ import type {WorkspaceTagTableRowData} from './WorkspaceTagsTableRow';
 
 type WorkspaceTagTableColumnKey = 'name' | 'glCode' | 'approver' | 'tagCount' | 'enabled' | 'required' | 'actions';
 
-type WorkspaceTagsTableProps = {
+type WorkspaceTagsTableProps = PropsWithChildren<{
     tags: WorkspaceTagTableRowData[];
     selectionEnabled: boolean;
     selectedKeys: string[];
@@ -22,8 +23,7 @@ type WorkspaceTagsTableProps = {
     hasDependentTags: boolean;
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
-    EmptyStateComponent: React.ReactElement;
-};
+}>;
 
 export default function WorkspaceTagsTable({
     tags,
@@ -34,7 +34,7 @@ export default function WorkspaceTagsTable({
     hasDependentTags,
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
-    EmptyStateComponent,
+    children,
 }: WorkspaceTagsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -115,14 +115,8 @@ export default function WorkspaceTagsTable({
     const compareItems: CompareItemsCallback<WorkspaceTagTableRowData> = (item1, item2, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
 
-        if (hasDependentTags || isMultiLevelTags) {
-            if (activeSorting.columnKey === 'tagCount') {
-                return ((item1.tagCount ?? 0) - (item2.tagCount ?? 0)) * orderMultiplier;
-            }
-
-            if (activeSorting.columnKey !== 'name') {
-                return ((item1.orderWeight ?? 0) - (item2.orderWeight ?? 0)) * orderMultiplier;
-            }
+        if (activeSorting.columnKey === 'tagCount') {
+            return ((item1.tagCount ?? 0) - (item2.tagCount ?? 0)) * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'approver') {
@@ -147,10 +141,6 @@ export default function WorkspaceTagsTable({
             const glCode1 = item1.glCode ?? '';
             const glCode2 = item2.glCode ?? '';
             return localeCompare(glCode1, glCode2) * orderMultiplier;
-        }
-
-        if (activeSorting.columnKey === 'tagCount') {
-            return ((item1.tagCount ?? 0) - (item2.tagCount ?? 0)) * orderMultiplier;
         }
 
         if (hasDependentTags || isMultiLevelTags) {
@@ -192,7 +182,7 @@ export default function WorkspaceTagsTable({
             keyExtractor={(tag) => tag.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {isEmpty && EmptyStateComponent}
+            {isEmpty && children}
             {!isEmpty && (
                 <>
                     {tags.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.tags.findTag')} />}

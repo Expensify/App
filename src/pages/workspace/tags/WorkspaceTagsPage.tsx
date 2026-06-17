@@ -231,8 +231,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     );
     const shouldShowGLCodeColumn = isControlPolicyWithWideLayout && !isMultiLevelTags;
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const showCannotDeleteOrDisableLastTagModal = useCallback(() => {
+    const showAllTagsDisabledWarning = useCallback(() => {
         showConfirmModal({
             title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
             prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
@@ -241,8 +240,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         });
     }, [showConfirmModal, translate]);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const showCannotMakeAllTagsOptionalModal = useCallback(() => {
+    const showAllTagsOptionalWarning = useCallback(() => {
         showConfirmModal({
             title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
             prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
@@ -259,13 +257,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             }
 
             if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
-                showCannotDeleteOrDisableLastTagModal();
+                showAllTagsDisabledWarning();
                 return;
             }
 
             updateWorkspaceTagEnabled(enabled, tag.name);
         },
-        [canWriteTags, policyTagLists, showCannotDeleteOrDisableLastTagModal, showReadOnlyModal, updateWorkspaceTagEnabled],
+        [canWriteTags, policyTagLists, showAllTagsDisabledWarning, showReadOnlyModal, updateWorkspaceTagEnabled],
     );
 
     const handleTagListRequiredToggle = useCallback(
@@ -276,13 +274,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             }
 
             if (!required && isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])) {
-                showCannotMakeAllTagsOptionalModal();
+                showAllTagsOptionalWarning();
                 return;
             }
 
             updateWorkspaceRequiresTag(required, policyTagList.orderWeight);
         },
-        [canWriteTags, policy, policyTags, showCannotMakeAllTagsOptionalModal, showReadOnlyModal, updateWorkspaceRequiresTag],
+        [canWriteTags, policy, policyTags, showAllTagsOptionalWarning, showReadOnlyModal, updateWorkspaceRequiresTag],
     );
 
     const navigateToTagSettings = useCallback(
@@ -343,7 +341,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     showRequiredSwitch: !hasDependentTags,
                     action: () => navigateToTagSettings(policyTagList.name, policyTagList.orderWeight),
                     onToggleRequired: (required: boolean) => handleTagListRequiredToggle(required, policyTagList),
-                    dismissError: () => {},
+                    onClose: () => {},
                 });
 
                 return acc;
@@ -379,7 +377,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 showRequiredSwitch: false,
                 action: () => navigateToTagSettings(tag.name),
                 onToggleEnabled: (enabled: boolean) => handleTagEnabledToggle(enabled, tag),
-                dismissError: () => clearPolicyTagErrors({policyID, tagName: tag.name, tagListIndex: 0, policyTags}),
+                onClose: () => clearPolicyTagErrors({policyID, tagName: tag.name, tagListIndex: 0, policyTags}),
             });
 
             return acc;
@@ -857,8 +855,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                                 shouldShowApproverColumn={shouldShowApproverColumn}
                                 onRowSelectionChange={(selectedRowKeys) => setSelectedTagKeys(selectedRowKeys)}
-                                EmptyStateComponent={emptyStateContent}
-                            />
+                            >
+                                {emptyStateContent}
+                            </WorkspaceTagsTable>
                         </>
                     )}
                 </ScreenWrapper>
