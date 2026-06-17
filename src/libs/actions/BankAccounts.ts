@@ -144,7 +144,6 @@ function openPersonalBankAccountSetupView({
             personalBankAccountState.onSuccessFallbackRoute = onSuccessFallbackRoute;
         }
 
-        // Seed state via Onyx.set to avoid set/merge races (see resetPersonalBankAccountForUpdate).
         Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, Object.keys(personalBankAccountState).length > 0 ? personalBankAccountState : null);
         Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
 
