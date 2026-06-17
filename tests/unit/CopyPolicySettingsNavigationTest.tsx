@@ -208,6 +208,7 @@ describe('CopyPolicySettingsNavigation', () => {
 
             // Find and deselect workspace 2 (toggle it off)
             const workspace2Item = capturedProps?.data.find((item) => item.keyForList === TARGET_POLICY_2_ID);
+            expect(workspace2Item).toBeDefined();
             if (workspace2Item) {
                 act(() => {
                     capturedProps?.onSelectRow?.(workspace2Item);
@@ -247,6 +248,7 @@ describe('CopyPolicySettingsNavigation', () => {
 
             // First deselect workspace 2 then reselect it (net change: none)
             const workspace2Item = capturedProps?.data.find((item) => item.keyForList === TARGET_POLICY_2_ID);
+            expect(workspace2Item).toBeDefined();
             if (workspace2Item) {
                 act(() => {
                     capturedProps?.onSelectRow?.(workspace2Item);
