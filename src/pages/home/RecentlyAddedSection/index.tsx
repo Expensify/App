@@ -182,22 +182,28 @@ function RecentlyAddedSection() {
                 // The rounded, clipped table wraps the header + rows so a hovered first/last row gets its corners
                 // clipped to the table's radius, while the hover background still spans the full row width.
                 <View style={[shouldUseNarrowLayout ? [styles.mh5, styles.mb2] : [styles.mh8, styles.mb5], styles.br2, styles.overflowHidden]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv2, styles.ph3, styles.borderBottom]}>
-                        <View style={[StyleUtils.getWidthStyle(shouldUseNarrowLayout ? variables.h36 : variables.w28), styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <Icon
-                                src={icons.Receipt}
-                                fill={theme.icon}
-                                width={HEADER_RECEIPT_ICON_SIZE}
-                                height={HEADER_RECEIPT_ICON_SIZE}
-                            />
+                    {/* The column header only applies to the wide table layout; narrow rows use a stacked layout. */}
+                    {!shouldUseNarrowLayout && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv2, styles.ph3, styles.borderBottom]}>
+                            <View style={[StyleUtils.getWidthStyle(variables.w28), styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                <Icon
+                                    src={icons.Receipt}
+                                    fill={theme.icon}
+                                    width={HEADER_RECEIPT_ICON_SIZE}
+                                    height={HEADER_RECEIPT_ICON_SIZE}
+                                />
+                            </View>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)}>
+                                <Text style={styles.textMicroSupporting}>{translate('common.type')}</Text>
+                            </View>
+                            <View style={StyleUtils.getWidthStyle(DATE_COLUMN_WIDTH)}>
+                                <Text style={[styles.textMicroSupporting, styles.textStrong]}>{translate('common.date')}</Text>
+                            </View>
+                            <Text style={[styles.flex1, styles.textMicroSupporting]}>{translate('common.merchant')}</Text>
+                            <Text style={styles.textMicroSupporting}>{translate('iou.amount')}</Text>
+                            <View style={StyleUtils.getWidthStyle(variables.iconSizeNormal)} />
                         </View>
-                        <View style={StyleUtils.getWidthStyle(DATE_COLUMN_WIDTH)}>
-                            <Text style={[styles.textMicroSupporting, styles.textStrong]}>{translate('common.date')}</Text>
-                        </View>
-                        <Text style={[styles.flex1, styles.textMicroSupporting]}>{translate('common.merchant')}</Text>
-                        <Text style={styles.textMicroSupporting}>{translate('iou.amount')}</Text>
-                        <View style={StyleUtils.getWidthStyle(variables.iconSizeNormal)} />
-                    </View>
+                    )}
                     {transactions.map((expense, index) => (
                         <RecentlyAddedRow
                             key={expense.transactionID}

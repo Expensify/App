@@ -4,6 +4,7 @@ import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import ReceiptCell from '@components/TransactionItemRow/DataCells/ReceiptCell';
+import TypeCell from '@components/TransactionItemRow/DataCells/TypeCell';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -39,12 +40,79 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator}: RecentlyAdded
 
     const formattedDate = DateUtils.formatWithUTCTimeZone(expense.created, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
 
+    const formattedAmount = convertToDisplayString(expense.amount, expense.currency);
+
     const thumbnail = (
         <ReceiptCell
             transactionItem={expense.transaction}
             isSelected={false}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
         />
+    );
+
+    const arrow = (
+        <Icon
+            src={icons.ArrowRight}
+            fill={theme.icon}
+            width={variables.iconSizeNormal}
+            height={variables.iconSizeNormal}
+            additionalStyles={styles.opacitySemiTransparent}
+        />
+    );
+
+    // On narrow (mobile) layout the row mirrors the Spend transaction rows: a stacked layout with the
+    // merchant and amount on the first line and the date underneath, instead of the wide table columns.
+    const rowContent = shouldUseNarrowLayout ? (
+        <>
+            {thumbnail}
+            <View style={[styles.flex1, styles.flexColumn, styles.gap1]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                    <Text
+                        numberOfLines={1}
+                        style={styles.flexShrink1}
+                    >
+                        {expense.merchant}
+                    </Text>
+                    <Text>{formattedAmount}</Text>
+                </View>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                    <Text
+                        numberOfLines={1}
+                        style={styles.mutedNormalTextLabel}
+                    >
+                        {formattedDate}
+                    </Text>
+                    <TypeCell
+                        transactionItem={expense.transaction}
+                        shouldShowTooltip={false}
+                        shouldUseNarrowLayout
+                    />
+                </View>
+            </View>
+            {arrow}
+        </>
+    ) : (
+        <>
+            {thumbnail}
+            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)}>
+                <TypeCell
+                    transactionItem={expense.transaction}
+                    shouldShowTooltip={false}
+                    shouldUseNarrowLayout={false}
+                />
+            </View>
+            <View style={StyleUtils.getWidthStyle(DATE_COLUMN_WIDTH)}>
+                <Text numberOfLines={1}>{formattedDate}</Text>
+            </View>
+            <Text
+                numberOfLines={1}
+                style={styles.flex1}
+            >
+                {expense.merchant}
+            </Text>
+            <Text>{formattedAmount}</Text>
+            {arrow}
+        </>
     );
 
     return (
@@ -57,24 +125,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator}: RecentlyAdded
             hoverStyle={styles.hoveredComponentBG}
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, styles.ph3, styles.w100, shouldShowSeparator && styles.borderBottom]}
         >
-            {thumbnail}
-            <View style={StyleUtils.getWidthStyle(DATE_COLUMN_WIDTH)}>
-                <Text numberOfLines={1}>{formattedDate}</Text>
-            </View>
-            <Text
-                numberOfLines={1}
-                style={styles.flex1}
-            >
-                {expense.merchant}
-            </Text>
-            <Text>{convertToDisplayString(expense.amount, expense.currency)}</Text>
-            <Icon
-                src={icons.ArrowRight}
-                fill={theme.icon}
-                width={variables.iconSizeNormal}
-                height={variables.iconSizeNormal}
-                additionalStyles={styles.opacitySemiTransparent}
-            />
+            {rowContent}
         </PressableWithFeedback>
     );
 }
