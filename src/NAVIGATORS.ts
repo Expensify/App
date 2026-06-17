@@ -7,7 +7,6 @@ export default {
     RIGHT_MODAL_NAVIGATOR: 'RightModalNavigator',
     ONBOARDING_MODAL_NAVIGATOR: 'OnboardingModalNavigator',
     FEATURE_TRAINING_MODAL_NAVIGATOR: 'FeatureTrainingModalNavigator',
-    EXPLANATION_MODAL_NAVIGATOR: 'ExplanationModalNavigator',
     MIGRATED_USER_MODAL_NAVIGATOR: 'MigratedUserModalNavigator',
     AI_FEATURES_PROMO_MODAL_NAVIGATOR: 'AIFeaturesPromoModalNavigator',
     TEST_DRIVE_MODAL_NAVIGATOR: 'TestDriveModalNavigator',
