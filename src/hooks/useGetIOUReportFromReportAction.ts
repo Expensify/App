@@ -12,7 +12,7 @@ function useGetIOUReportFromReportAction(reportAction: OnyxTypes.ReportAction | 
 } {
     // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
     // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
-    // Temporary until the backend reliably sends reportID on IOU actions.
+    // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882.
     const iouReportID = isMoneyRequestAction(reportAction) ? reportAction?.reportID || getOriginalMessage(reportAction)?.IOUReportID : undefined;
     const [candidateIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`) ?? null;
     // For self-DM tracks and split bills, action.reportID resolves to a chat report, not an IOU/expense report.

@@ -39,6 +39,7 @@ type OriginalMessageIOU = {
     /**
      * ID of the IOU/expense report the action belongs to. Temporary fallback for resolving the report when the
      * backend omits `reportID` on hydrated IOU actions. Remove once the backend reliably sends `reportID`.
+     * See https://github.com/Expensify/App/issues/93882.
      */
     IOUReportID?: string;
 
