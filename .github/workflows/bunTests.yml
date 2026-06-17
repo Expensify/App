@@ -35,7 +35,7 @@ jobs:
           bun-version-file: .bun-version
 
       - name: Run Bun tests
-        run: bun test --concurrent --max-concurrency 7
+        run: npm run test:bun
 
       - name: Build victory-chart-renderer Linux x64 binary
         run: npm run server:vcr:build:linux
