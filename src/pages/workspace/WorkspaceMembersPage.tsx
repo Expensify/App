@@ -10,7 +10,7 @@ import DecisionModal from '@components/DecisionModal';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import {TableHandle} from '@components/Table';
+import type {TableHandle} from '@components/Table';
 import type {WorkspaceMemberRowData, WorkspaceMembersTableColumnKey} from '@components/Tables/WorkspaceMembersTable';
 import WorkspaceMembersTable from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
