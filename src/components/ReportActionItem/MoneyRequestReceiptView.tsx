@@ -269,7 +269,7 @@ function MoneyRequestReceiptView({
         receiptURIs = getThumbnailAndImageURIs(displayedTransaction);
     }
     const isEReceiptTransaction = !!displayedTransaction && !hasReceiptSource(displayedTransaction) && hasEReceipt(displayedTransaction);
-    const canZoomReceipt = hasReceipt && !isLoading && !isTransactionScanning && !isEReceiptTransaction && !!receiptURIs?.image;
+    const canZoomReceipt = hasReceipt && !isLoading && !isEReceiptTransaction && !!receiptURIs?.image;
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => {
@@ -645,6 +645,7 @@ function MoneyRequestReceiptView({
                                         <ReportActionItemImage
                                             shouldUseThumbnailImage={!fillSpace}
                                             shouldUseFullHeight={fillSpace}
+                                            canZoomReceipt={canZoomReceipt}
                                             thumbnail={receiptURIs?.thumbnail}
                                             fileExtension={receiptURIs?.fileExtension}
                                             isThumbnail={receiptURIs?.isThumbnail}
