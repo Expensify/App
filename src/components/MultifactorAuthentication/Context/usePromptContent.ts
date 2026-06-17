@@ -1,3 +1,4 @@
+import {hasAcceptedSoftPromptSelector} from '@selectors/DeviceBiometrics';
 import {useEffect, useRef, useState} from 'react';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
@@ -32,8 +33,7 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
     const {areLocalCredentialsKnownToServer} = useBiometrics();
     const {accountID} = useCurrentUserPersonalDetails();
     const [serverHasCredentials, setServerHasCredentials] = useState(false);
-    const [deviceBiometricsState] = useOnyx(getDeviceBiometricsOnyxKey(accountID));
-    const hasEverAcceptedSoftPrompt = deviceBiometricsState?.hasAcceptedSoftPrompt ?? false;
+    const [hasEverAcceptedSoftPrompt = false] = useOnyx(getDeviceBiometricsOnyxKey(accountID), {selector: hasAcceptedSoftPromptSelector});
 
     // We need to know if server has this device's credentials specifically
     useEffect(() => {

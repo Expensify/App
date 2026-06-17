@@ -1,14 +1,19 @@
 import {assign, setup} from 'xstate';
 import {DEFAULT_STATE} from '@components/MultifactorAuthentication/Context/state';
-import type {MultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/state';
 import {navigate as mfaNavigate, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
-import type {MfaEvent} from './types';
+import type {MfaContext, MfaEvent} from './types';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
-const DEFAULT_CONTEXT: MultifactorAuthenticationState = DEFAULT_STATE;
+const DEFAULT_CONTEXT: MfaContext = {
+    error: DEFAULT_STATE.error,
+    scenarioName: DEFAULT_STATE.scenarioName,
+    scenario: DEFAULT_STATE.scenario,
+    payload: DEFAULT_STATE.payload,
+    isCancelConfirmVisible: DEFAULT_STATE.isCancelConfirmVisible,
+};
 
 /**
  * MFA state machine. The top level models the modal lifecycle (`closed` -> `open` -> `closing`); the
@@ -19,12 +24,12 @@ const DEFAULT_CONTEXT: MultifactorAuthenticationState = DEFAULT_STATE;
  * No state is `final`: one long-lived actor serves every MFA flow (a top-level final state would
  * stop it).
  */
-const mfaMachine = setup({
+const MFAMachine = setup({
     // `{} as T` inside setup({types}) is XState v5's documented typing idiom (the values are erased
     // at runtime and only carry types); there is no assertion-free way to express it.
     /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
     types: {
-        context: {} as MultifactorAuthenticationState,
+        context: {} as MfaContext,
         events: {} as MfaEvent,
     },
     /* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
@@ -43,7 +48,6 @@ const mfaMachine = setup({
                 payload: event.payload,
             };
         }),
-        markFlowComplete: assign({isFlowComplete: true}),
         navigateToSuccessOutcome: () => {
             // runAfterTransition defers the push until the modal-open transition settles, so the
             // success screen slides in with a measured width (Android animation race).
@@ -93,7 +97,7 @@ const mfaMachine = setup({
                     initial: MFA_STATE.SUCCESS,
                     states: {
                         [MFA_STATE.SUCCESS]: {
-                            entry: ['markFlowComplete', 'navigateToSuccessOutcome'],
+                            entry: ['navigateToSuccessOutcome'],
                         },
                     },
                 },
@@ -114,4 +118,4 @@ const mfaMachine = setup({
     },
 });
 
-export default mfaMachine;
+export default MFAMachine;

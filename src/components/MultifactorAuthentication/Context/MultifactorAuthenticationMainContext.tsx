@@ -1,11 +1,10 @@
-import React, {useEffect} from 'react';
+import {hasAcceptedSoftPromptSelector} from '@selectors/DeviceBiometrics';
+import React from 'react';
 import type {ReactNode} from 'react';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
-import {mfaMachine, snapshotToState} from '@components/MultifactorAuthentication/machine';
+import {MFAMachine, snapshotToState} from '@components/MultifactorAuthentication/machine';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
@@ -13,15 +12,16 @@ import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthenti
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useInspectedMachine from '@hooks/useInspectedMachine';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import getPlatform from '@libs/getPlatform';
 import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
-import type {DeviceBiometrics} from '@src/types/onyx';
-import MultifactorAuthenticationExternalApiContext from './MultifactorAuthenticationExternalApiContext';
-import type {MultifactorAuthenticationExecuteScenarioArgs, MultifactorAuthenticationExternalApi} from './MultifactorAuthenticationExternalApiContext';
+import CONST from '@src/CONST';
+import MultifactorAuthenticationExternalAPIContext from './MultifactorAuthenticationExternalApiContext';
+import type {MultifactorAuthenticationExecuteScenarioArgs, MultifactorAuthenticationExternalAPI} from './MultifactorAuthenticationExternalApiContext';
 import MultifactorAuthenticationInternalApiContext from './MultifactorAuthenticationInternalApiContext';
 import type {MultifactorAuthenticationInternalApi} from './MultifactorAuthenticationInternalApiContext';
 
-let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
+const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 type MultifactorAuthenticationContextProviderProps = {
     children: ReactNode;
@@ -32,28 +32,17 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const {isOffline} = useNetwork();
     const platform = getPlatform();
     const biometrics = useBiometrics();
+    const [hasEverAcceptedSoftPrompt = false] = useOnyx(getDeviceBiometricsOnyxKey(accountID), {selector: hasAcceptedSoftPromptSelector});
 
-    const [snapshot, send] = useInspectedMachine(mfaMachine);
+    const [snapshot, send] = useInspectedMachine(MFAMachine);
     const state = snapshotToState(snapshot);
-
-    useEffect(() => {
-        // Non-reactive read of deviceBiometrics. Using Onyx.connectWithoutView instead of useOnyx
-        // to avoid excess re-renders during the fresh registration flow.
-        const connection = Onyx.connectWithoutView({
-            key: getDeviceBiometricsOnyxKey(accountID),
-            callback: (data) => {
-                deviceBiometricsState = data;
-            },
-        });
-        return () => Onyx.disconnect(connection);
-    }, [accountID]);
 
     const captureCredentialsState = async (): Promise<CredentialsState> => {
         const hasLocalCredentials = await biometrics.areLocalCredentialsKnownToServer();
         return {
             hasServerCredentials: biometrics.serverKnownCredentialIDs.length > 0,
             hasLocalCredentials,
-            hasEverAcceptedSoftPrompt: !!deviceBiometricsState?.hasAcceptedSoftPrompt,
+            hasEverAcceptedSoftPrompt,
         };
     };
 
@@ -64,9 +53,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const executeScenario = async <T extends MultifactorAuthenticationScenario>(scenarioName: T, ...args: MultifactorAuthenticationExecuteScenarioArgs<T>): Promise<void> => {
         const [params] = args;
 
-        // Perf short-circuit: once a scenario is active the machine ignores INIT, so skip the redundant
-        // captureCredentialsState() native call + breadcrumb on the happy path.
-        if (state.scenario) {
+        // Perf short-circuit: while the modal is open or closing the machine drops INIT, so skip the
+        // redundant captureCredentialsState() native call + breadcrumb on the happy path.
+        if (state.modalState !== MFA_STATE.CLOSED) {
             return;
         }
 
@@ -97,7 +86,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     useSyncMfaModalNavigatorWithHistory(state.modalState, requestCancel);
 
-    const externalApi: MultifactorAuthenticationExternalApi = {executeScenario};
+    const externalApi: MultifactorAuthenticationExternalAPI = {executeScenario};
 
     const internalApi: MultifactorAuthenticationInternalApi = {
         state,
@@ -109,9 +98,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     };
 
     return (
-        <MultifactorAuthenticationExternalApiContext.Provider value={externalApi}>
+        <MultifactorAuthenticationExternalAPIContext.Provider value={externalApi}>
             <MultifactorAuthenticationInternalApiContext.Provider value={internalApi}>{children}</MultifactorAuthenticationInternalApiContext.Provider>
-        </MultifactorAuthenticationExternalApiContext.Provider>
+        </MultifactorAuthenticationExternalAPIContext.Provider>
     );
 }
 

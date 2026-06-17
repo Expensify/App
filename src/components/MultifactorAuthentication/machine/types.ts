@@ -1,6 +1,15 @@
 import type {MultifactorAuthenticationScenarioConfigFor} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
+import type {MultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/state';
 import type CONST from '@src/CONST';
+
+/**
+ * The machine's context: the subset of {@link MultifactorAuthenticationState} actually wired into the
+ * chart today - either written by an action or read off the snapshot by a consumer. Later slices add
+ * fields back here as they wire them in; the full shape still lives in the Context/reducer layer for
+ * its own consumers.
+ */
+type MfaContext = Pick<MultifactorAuthenticationState, 'error' | 'scenarioName' | 'scenario' | 'payload' | 'isCancelConfirmVisible'>;
 
 /** Modal lifecycle state the view layer reads: the machine's three top-level states. */
 type MfaModalState =
@@ -33,4 +42,4 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
  */
 type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'};
 
-export type {MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent};
+export type {MfaContext, MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent};

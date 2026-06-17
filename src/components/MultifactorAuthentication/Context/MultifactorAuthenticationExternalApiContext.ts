@@ -2,7 +2,7 @@ import {createContext, useContext} from 'react';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 
 /**
- * Trailing args for {@link MultifactorAuthenticationExternalApi.executeScenario}: the params object is
+ * Trailing args for {@link MultifactorAuthenticationExternalAPI.executeScenario}: the params object is
  * required for scenarios whose params have at least one required field (e.g. AUTHORIZE-TRANSACTION needs
  * `transactionID`) and optional for scenarios whose params are fully optional (e.g. BIOMETRICS-TEST).
  *
@@ -19,15 +19,15 @@ type MultifactorAuthenticationExecuteScenarioArgs<T extends MultifactorAuthentic
  * points). Everything that happens after INIT is driven by the machine and exposed to flow-internal
  * screens through MultifactorAuthenticationInternalApiContext.
  */
-type MultifactorAuthenticationExternalApi = {
+type MultifactorAuthenticationExternalAPI = {
     /** Execute a multifactor authentication scenario. The params object is required for scenarios that need one. */
     executeScenario: <T extends MultifactorAuthenticationScenario>(scenario: T, ...args: MultifactorAuthenticationExecuteScenarioArgs<T>) => Promise<void>;
 };
 
-const MultifactorAuthenticationExternalApiContext = createContext<MultifactorAuthenticationExternalApi | undefined>(undefined);
+const MultifactorAuthenticationExternalAPIContext = createContext<MultifactorAuthenticationExternalAPI | undefined>(undefined);
 
-function useMultifactorAuthentication(): MultifactorAuthenticationExternalApi {
-    const context = useContext(MultifactorAuthenticationExternalApiContext);
+function useMultifactorAuthentication(): MultifactorAuthenticationExternalAPI {
+    const context = useContext(MultifactorAuthenticationExternalAPIContext);
 
     if (!context) {
         throw new Error('useMultifactorAuthentication must be used within a MultifactorAuthenticationContextProviders');
@@ -36,6 +36,6 @@ function useMultifactorAuthentication(): MultifactorAuthenticationExternalApi {
     return context;
 }
 
-export default MultifactorAuthenticationExternalApiContext;
+export default MultifactorAuthenticationExternalAPIContext;
 export {useMultifactorAuthentication};
-export type {MultifactorAuthenticationExternalApi, MultifactorAuthenticationExecuteScenarioArgs};
+export type {MultifactorAuthenticationExternalAPI, MultifactorAuthenticationExecuteScenarioArgs};
