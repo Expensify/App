@@ -1,6 +1,6 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import Animated from 'react-native-reanimated';
-import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
@@ -14,14 +14,12 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchOverlay from '@hooks/useSearchOverlay';
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
-import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {search, seedMyExpensesSearch} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isDualRoleUser} from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {hasFilterBarsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
@@ -37,7 +35,6 @@ function SearchPage({route}: SearchPageProps) {
     useDocumentTitle(translate('common.spend'));
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {lastSearchType, currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
@@ -82,8 +79,6 @@ function SearchPage({route}: SearchPageProps) {
         setLastSearchType(currentSearchResults.search.type);
     }, [lastSearchType, currentSearchQueryJSON, setLastSearchType, currentSearchResults?.search?.type]);
 
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-
     const {resetVideoPlayerData} = usePlaybackActionsContext();
 
     const [isSorting, setIsSorting] = useState(false);
@@ -96,8 +91,6 @@ function SearchPage({route}: SearchPageProps) {
     }
 
     const metadata = searchResults?.search;
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
-    const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
     useEffect(() => {
         if (shouldUseNarrowLayout) {
@@ -136,32 +129,6 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
-    const footerData = useMemo(() => {
-        if (!shouldAllowFooterTotals && selectedTransactionsKeys.length === 0) {
-            return {count: undefined, total: undefined, currency: undefined};
-        }
-
-        const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
-        const selectedTransactionItems = Object.values(selectedTransactions);
-        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
-        const numberOfExpense = shouldUseClientTotal
-            ? selectedTransactionsKeys.reduce((count, key) => {
-                  if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-                      const group = currentSearchResults?.data?.[key as keyof typeof currentSearchResults.data] as {count?: number} | undefined;
-                      return count + (group?.count ?? 0);
-                  }
-                  const item = selectedTransactions[key];
-                  if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
-                      return count;
-                  }
-                  return count + 1;
-              }, 0)
-            : metadata?.count;
-        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0) : metadata?.total;
-
-        return {count: numberOfExpense, total, currency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals, currentSearchResults]);
-
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
     }, []);
@@ -187,8 +154,6 @@ function SearchPage({route}: SearchPageProps) {
                         metadata={metadata}
                         searchResults={searchResults}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        footerData={footerData}
-                        shouldShowFooter={shouldShowFooter}
                         onSortPressedCallback={onSortPressedCallback}
                         searchOverlayContent={searchOverlayContent}
                         onSearchContentReady={onSearchContentReady}
@@ -201,11 +166,9 @@ function SearchPage({route}: SearchPageProps) {
                         searchResults={searchResults}
                         searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        footerData={footerData}
                         handleSearchAction={handleSearchAction}
                         onSortPressedCallback={onSortPressedCallback}
                         route={route}
-                        shouldShowFooter={shouldShowFooter}
                         searchOverlayContent={searchOverlayContent}
                         onSearchContentReady={onSearchContentReady}
                     />
