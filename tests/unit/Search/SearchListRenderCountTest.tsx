@@ -180,15 +180,12 @@ describe('SearchList render count', () => {
 
         function SearchListWrapper({onRenderCount}: {onRenderCount: () => void}) {
             const onSelectRow = useCallback(() => {}, []);
-            const onCheckboxPress = useCallback(() => {}, []);
-            const onAllCheckboxPress = useCallback(() => {}, []);
             const onEndReached = useCallback(() => {}, []);
             const onLayout = useCallback(() => {}, []);
 
             const queryJSON = useMemo(() => STABLE_QUERY_JSON, []);
             const columns = useMemo(() => STABLE_COLUMNS, []);
             const data = useMemo(() => MOCK_DATA, []);
-            const selectedTransactions = useMemo(() => ({}), []);
             const contentContainerStyle = useMemo(() => ({}), []);
             const containerStyle = useMemo(() => ({}), []);
 
@@ -201,10 +198,7 @@ describe('SearchList render count', () => {
                         data={data}
                         ListItem={MockListItem as never}
                         onSelectRow={onSelectRow}
-                        onCheckboxPress={onCheckboxPress}
-                        onAllCheckboxPress={onAllCheckboxPress}
                         canSelectMultiple={false}
-                        selectedTransactions={selectedTransactions}
                         queryJSON={queryJSON}
                         columns={columns}
                         isMobileSelectionModeEnabled={false}
