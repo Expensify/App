@@ -25,9 +25,10 @@ type SearchPageFooterProps = {
     defaultCurrency: string | undefined;
     isTotalLoading: boolean;
     onCurrencyChange: (currency: string | undefined) => void;
+    shouldAllowCurrencyChange: boolean;
 };
 
-function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange}: SearchPageFooterProps) {
+function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange, shouldAllowCurrencyChange}: SearchPageFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -109,14 +110,18 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
                 </View>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                     <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
-                    <FilterPopupButton
-                        PopoverComponent={renderCurrencyPopup}
-                        renderButton={totalButton}
-                        popoverAnchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                        }}
-                    />
+                    {shouldAllowCurrencyChange ? (
+                        <FilterPopupButton
+                            PopoverComponent={renderCurrencyPopup}
+                            renderButton={totalButton}
+                            popoverAnchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }}
+                        />
+                    ) : (
+                        <Text style={valueTextStyle}>{convertToDisplayString(total, currency)}</Text>
+                    )}
                 </View>
             </View>
             {isTotalLoading && (

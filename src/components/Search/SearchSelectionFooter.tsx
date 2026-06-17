@@ -63,6 +63,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const metadataTotal = metadata?.total;
     const isMetadataLoading = !!metadata?.isLoading;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    const hasSelectedGroup = selectedTransactionsKeys.some(isGroupEntry);
     const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
     const firstSelectedTransaction = firstSelectedTransactionKey ? selectedTransactions[firstSelectedTransactionKey] : undefined;
     const selectedTransactionDefaultCurrency = firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency;
@@ -72,7 +73,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     const shouldResetCustomCurrencyAfterLiveRefresh =
         !!selectedCurrency && selectedCurrency !== effectiveDefaultCurrency && !!wasMetadataLoading && !isMetadataLoading && metadata?.offset === 0;
-    if (shouldResetCustomCurrencyAfterLiveRefresh) {
+    const shouldResetCustomCurrencyForGroupSelection = hasSelectedGroup && !!selectedCurrency;
+    if (shouldResetCustomCurrencyAfterLiveRefresh || shouldResetCustomCurrencyForGroupSelection) {
         setFooterCurrencyState({
             searchHash: currentSearchHash,
             selectedCurrency: undefined,
@@ -215,6 +217,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             defaultCurrency={effectiveDefaultCurrency}
             isTotalLoading={isFooterTotalLoading}
             onCurrencyChange={handleFooterCurrencyChange}
+            shouldAllowCurrencyChange={!hasSelectedGroup}
         />
     );
 }
