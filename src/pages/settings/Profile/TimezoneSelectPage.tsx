@@ -9,6 +9,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import {updateSelectedTimezone} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -28,13 +29,16 @@ const getUserTimezone = (currentUserPersonalDetails: ValueOf<WithCurrentUserPers
 function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProps) {
     const {translate} = useLocalize();
     const timezone = getUserTimezone(currentUserPersonalDetails);
-    const allTimezones = useInitialValue(() =>
-        TIMEZONES.filter((tz: string) => !tz.startsWith('Etc/GMT')).map((text: string) => ({
+    const allTimezones = useInitialValue(() => {
+        const options = TIMEZONES.filter((tz: string) => !tz.startsWith('Etc/GMT')).map((text: string) => ({
             text,
+            value: text,
             keyForList: getKey(text),
             isSelected: text === timezone.selected,
-        })),
-    );
+        }));
+        // Move the currently-selected timezone to the top so it's visible without scrolling when the page opens.
+        return moveInitialSelectionToTop(options, timezone.selected ? [timezone.selected] : []);
+    });
     const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 

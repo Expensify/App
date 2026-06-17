@@ -966,6 +966,9 @@ function getReportActionActorAccountID(
     iouReport: OnyxEntry<Report>,
     report: OnyxEntry<Report>,
     delegatePersonalDetails?: PersonalDetails | undefined | null,
+    // When true (e.g. in search results) the actual author is returned instead of the Concierge
+    // display override used in inbox timelines for automated actions.
+    shouldUseRealActor = false,
 ): number | undefined {
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW: {
@@ -981,7 +984,7 @@ function getReportActionActorAccountID(
 
         case CONST.REPORT.ACTIONS.TYPE.CREATED: {
             const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
-            if (isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
+            if (!shouldUseRealActor && isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
                 return CONST.ACCOUNT_ID.CONCIERGE;
             }
             return reportAction?.actorAccountID;
@@ -1006,7 +1009,7 @@ function getReportActionActorAccountID(
             // - Harvesting (delayed submissions)
             // - Automatic approvals/forwards via workspace rules
             // - Automatic payments via workspace rules
-            if (wasSubmittedViaHarvesting || (wasAutomatic && actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) || (wasAutomatic && isPayment)) {
+            if (!shouldUseRealActor && (wasSubmittedViaHarvesting || (wasAutomatic && actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) || (wasAutomatic && isPayment))) {
                 return CONST.ACCOUNT_ID.CONCIERGE;
             }
 
@@ -2824,7 +2827,7 @@ function getPolicyChangeLogAddEmployeeMessage(translate: LocalizedTranslate, rep
 
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const role = translate('workspace.common.roleName', originalMessage?.role ?? '').toLowerCase();
+    const role = originalMessage?.role ?? '';
     const formattedEmail = formatPhoneNumber(email);
     return translate('report.actions.type.addEmployee', formattedEmail, role, originalMessage?.didJoinPolicy);
 }
@@ -3215,6 +3218,19 @@ function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, a
     return getReportActionText(action);
 }
 
+function getCustomUnitRateDateRangeForMessage(translate: LocalizedTranslate, startDate?: string, endDate?: string): string {
+    if (startDate && endDate) {
+        return translate('workspaceActions.customUnitRateDateRangeStartToEnd', DateUtils.formatToReadableString(startDate), DateUtils.formatToReadableString(endDate));
+    }
+    if (startDate) {
+        return translate('workspaceActions.customUnitRateDateRangeFrom', DateUtils.formatToReadableString(startDate));
+    }
+    if (endDate) {
+        return translate('workspaceActions.customUnitRateDateRangeUntilEnd', DateUtils.formatToReadableString(endDate));
+    }
+    return translate('workspaceActions.customUnitRateDateRangeAllDates');
+}
+
 function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage, oldTaxPercentage, newStartDate, newEndDate, oldStartDate, oldEndDate} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
@@ -3247,52 +3263,12 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.DATE_RANGE) {
-        const startDateChanged = newStartDate !== oldStartDate;
-        const endDateChanged = newEndDate !== oldEndDate;
-
-        if (startDateChanged && endDateChanged && newStartDate && newEndDate) {
-            const formattedOldStartDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
-            const formattedOldEndDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
-            return translate(
-                'workspaceActions.updatedCustomUnitRateStartAndEndDate',
-                customUnitRateName,
-                DateUtils.formatToReadableString(newStartDate),
-                DateUtils.formatToReadableString(newEndDate),
-                formattedOldStartDate,
-                formattedOldEndDate,
-            );
+        const oldDateRange = getCustomUnitRateDateRangeForMessage(translate, oldStartDate, oldEndDate);
+        let newDateRange = getCustomUnitRateDateRangeForMessage(translate, newStartDate, newEndDate);
+        if (newStartDate && newEndDate) {
+            newDateRange = translate('workspaceActions.customUnitRateDateRangeFrom', newDateRange);
         }
-
-        let startDateMessage = '';
-        let endDateMessage = '';
-
-        if (startDateChanged) {
-            if (!newStartDate && oldStartDate) {
-                startDateMessage = translate('workspaceActions.removedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(oldStartDate));
-            } else if (newStartDate) {
-                const formattedOldDate = oldStartDate ? DateUtils.formatToReadableString(oldStartDate) : undefined;
-                startDateMessage = translate('workspaceActions.updatedCustomUnitRateStartDate', customUnitRateName, DateUtils.formatToReadableString(newStartDate), formattedOldDate);
-            }
-        }
-
-        if (endDateChanged) {
-            if (!newEndDate && oldEndDate) {
-                endDateMessage = translate('workspaceActions.removedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(oldEndDate));
-            } else if (newEndDate) {
-                const formattedOldDate = oldEndDate ? DateUtils.formatToReadableString(oldEndDate) : undefined;
-                endDateMessage = translate('workspaceActions.updatedCustomUnitRateEndDate', customUnitRateName, DateUtils.formatToReadableString(newEndDate), formattedOldDate);
-            }
-        }
-
-        if (startDateMessage && endDateMessage) {
-            return `${startDateMessage}, ${endDateMessage}`;
-        }
-        if (startDateMessage) {
-            return startDateMessage;
-        }
-        if (endDateMessage) {
-            return endDateMessage;
-        }
+        return translate('workspaceActions.updatedCustomUnitRateDateRange', customUnitRateName, newDateRange, oldDateRange);
     }
 
     return getReportActionText(action);
@@ -3522,6 +3498,31 @@ function getAutoPayApprovedReportsEnabledMessage(translate: LocalizedTranslate, 
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED>) ?? {};
 
     return translate('workspaceActions.updatedAutoPayApprovedReports', {enabled: !!enabled});
+}
+
+function formatTax(taxName?: string, taxPercentage?: string): string {
+    if (!taxName) {
+        return '';
+    }
+    return taxPercentage ? `${taxName} (${taxPercentage})` : taxName;
+}
+
+function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {categoryName, oldTaxName, oldTaxPercentage, newTaxName, newTaxPercentage} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE>) ?? {};
+
+    if (!categoryName || !newTaxName || !oldTaxName) {
+        return getReportActionText(action);
+    }
+
+    const oldTax = formatTax(oldTaxName, oldTaxPercentage);
+    const newTax = formatTax(newTaxName, newTaxPercentage);
+
+    return translate('workspaceActions.updatedCategoryTaxRate', {
+        categoryName: getDecodedCategoryName(categoryName),
+        oldTax,
+        newTax,
+    });
 }
 
 function getAutoReimbursementMessage(translate: LocalizedTranslate, action: ReportAction): string {
@@ -4824,6 +4825,7 @@ export {
     getRequireCompanyCardsEnabledMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    getCategoryTaxRateMessage,
     getMccGroupCategoryMessage,
     formatAddressToString,
     getCompanyAddressUpdateMessage,

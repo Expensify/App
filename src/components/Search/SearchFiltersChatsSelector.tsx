@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import React, {useEffect, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -73,18 +74,32 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const sortedActions = useSortedActions();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const selectedOptions: OptionData[] = selectedReportIDs.map((id) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${id}`];
         const reportData = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
-        const report = getSelectedOptionData(createOptionFromReport({...reportData, reportID: id}, personalDetails, privateIsArchived, reportPolicy, sortedActions, reportAttributesDerived));
+        const report = getSelectedOptionData(
+            createOptionFromReport(
+                {...reportData, reportID: id},
+                personalDetails,
+                privateIsArchived,
+                reportPolicy,
+                sortedActions,
+                reportAttributesDerived,
+                undefined,
+                undefined,
+                undefined,
+                isTrackIntentUser,
+            ),
+        );
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
         const alternateText = getAlternateText(
             report,
             {},
-            {isReportArchived: privateIsArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID},
+            {isReportArchived: privateIsArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser},
         );
         return {...report, alternateText};
     });
@@ -105,6 +120,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
                   policyCollection: allPolicies,
                   sortedActions,
                   conciergeReportID,
+                  isTrackIntentUser,
               }).options;
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
