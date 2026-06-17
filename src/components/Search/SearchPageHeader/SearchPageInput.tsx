@@ -10,6 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildFilterValuesString, getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues} from '@libs/SearchQueryUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -71,6 +72,7 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
             inputStyle={[styles.w100, styles.lineHeightUndefined, shouldUseNarrowLayout ? undefined : styles.fontSizeLabel]}
             touchableInputWrapperStyle={shouldUseNarrowLayout ? styles.searchPageInputNarrowTouchableWrapper : styles.searchPageInputWideTouchableWrapper}
             clearButtonStyle={shouldUseNarrowLayout ? undefined : styles.mh0}
+            clearButtonIconSize={shouldUseNarrowLayout ? undefined : variables.iconSizeSmall}
             placeholderTextColor={theme.textSupporting}
             shouldShowClearButton={!!textInputValue}
             shouldHideClearButton={false}
