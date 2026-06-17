@@ -1,11 +1,11 @@
 import {setYear} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
-import {Platform} from 'react-native';
 import type {View} from 'react-native';
 import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
@@ -51,7 +51,7 @@ function DatePickerModal({
 
     useEffect(() => {
         if (
-            Platform.OS !== 'web' ||
+            getPlatform() !== CONST.PLATFORM.WEB ||
             !isSmallScreenWidth ||
             !isVisible ||
             !shouldCloseWhenBrowserNavigationChanged ||
