@@ -1,0 +1,30 @@
+import {expect, test} from 'bun:test';
+import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
+import * as telemetryActiveSpansStub from '../../stubs/telemetry-activeSpans';
+
+const appRoot = join(import.meta.dir, '../../..');
+const activeSpansSourcePath = join(appRoot, 'src/libs/telemetry/activeSpans.ts');
+
+function getNamedExportsFromSource(source: string): string[] {
+    const exportMatch = source.match(/export\s*\{([^}]+)\}/);
+
+    if (!exportMatch) {
+        throw new Error('Could not find named export block in activeSpans.ts');
+    }
+
+    return exportMatch[1]
+        .split(',')
+        .map((exportName) => exportName.trim())
+        .filter(Boolean);
+}
+
+test('telemetry-activeSpans stub exports match activeSpans public API', () => {
+    const activeSpansSource = readFileSync(activeSpansSourcePath, 'utf8');
+    const expectedExports = getNamedExportsFromSource(activeSpansSource);
+
+    for (const exportName of expectedExports) {
+        expect(telemetryActiveSpansStub).toHaveProperty(exportName);
+        expect(typeof telemetryActiveSpansStub[exportName as keyof typeof telemetryActiveSpansStub]).toBe('function');
+    }
+});
