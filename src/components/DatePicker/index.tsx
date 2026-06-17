@@ -51,6 +51,8 @@ function DatePicker({
     const textInputRef = useRef<BaseTextInputRef | null>(null);
     const anchorRef = useRef<View>(null);
     const prevWindowWidthRef = useRef(windowWidth);
+    const prevWindowHeightRef = useRef(windowHeight);
+    const anchorMeasureRef = useRef({y: 0, height: 0});
     const [isInverted, setIsInverted] = useState(false);
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.
@@ -77,6 +79,8 @@ function DatePicker({
     const calculatePopoverPosition = useCallback(
         (onMeasured?: () => void) => {
             anchorRef.current?.measureInWindow((x, y, width, height) => {
+                anchorMeasureRef.current = {y, height};
+
                 const wouldExceedBottom = y + CONST.POPOVER_DATE_MAX_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight;
                 setIsInverted(wouldExceedBottom);
 
@@ -157,6 +161,24 @@ function DatePicker({
             horizontal: prev.horizontal + delta,
         }));
     }, [windowWidth]);
+
+    useEffect(() => {
+        const delta = windowHeight - prevWindowHeightRef.current;
+        prevWindowHeightRef.current = windowHeight;
+
+        if (delta === 0) {
+            return;
+        }
+
+        const {y, height} = anchorMeasureRef.current;
+        const wouldExceedBottom = y + CONST.POPOVER_DATE_MAX_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight;
+        setIsInverted(wouldExceedBottom);
+
+        setPopoverPosition((prev) => ({
+            ...prev,
+            vertical: y + (wouldExceedBottom ? 0 : height + PADDING_MODAL_DATE_PICKER),
+        }));
+    }, [windowHeight]);
 
     // Combined ref: updates textInputRef (needed for blur() in showDatePickerModal) and connects
     // autoFocusCallbackRef only when autoFocus=true so useAutoFocusInput's useFocusEffect cleanup
