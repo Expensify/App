@@ -1288,6 +1288,29 @@ function hasApprovalFlow(policy: OnyxInputOrEntry<Policy>): boolean {
     return isPaidGroupPolicy(policy) && !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
+/** Returns true when the user is both a submitter (role "user") in at least one policy and an approver on at least one paid policy with a non-optional approval flow. */
+function isDualRoleUser(policies: OnyxCollection<Policy> | null | undefined, currentUserEmail: string | undefined): boolean {
+    if (!policies || !currentUserEmail) {
+        return false;
+    }
+    let isSubmitter = false;
+    let isApprover = false;
+    for (const policy of Object.values(policies)) {
+        if (!policy) {
+            continue;
+        }
+        isSubmitter = isSubmitter || isPolicyUser(policy, currentUserEmail);
+        if (!isApprover) {
+            const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => employee.submitsTo === currentUserEmail || employee.forwardsTo === currentUserEmail);
+            isApprover = hasApprovalFlow(policy) && (isPolicyApprover(policy, currentUserEmail) || isSubmittedTo);
+        }
+        if (isSubmitter && isApprover) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
@@ -2538,6 +2561,7 @@ export {
     isPolicyPayer,
     arePaymentsEnabled,
     hasApprovalFlow,
+    isDualRoleUser,
     isSubmitAndClose,
     isTaxTrackingEnabled,
     shouldShowPolicy,

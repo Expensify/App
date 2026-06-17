@@ -15,8 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {seedMyExpensesSearch, setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports -- "My expenses" seed is intentionally paid-policy-only: free Submit plans have no approval flow, so there is no dual-role use case to seed.
-import {getAllTaxRates, isPaidGroupPolicy, isPolicyApprover, isPolicyUser} from '@libs/PolicyUtils';
+// eslint-disable-next-line no-restricted-imports -- isDualRoleUser checks paid-policy approval flow; free Submit plans have no approval flow so there is no dual-role use case to seed.
+import {getAllTaxRates, isDualRoleUser} from '@libs/PolicyUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -97,31 +97,14 @@ function SavedSearchList({hash}: SavedSearchListProps) {
     const {showDeleteModal} = useDeleteSavedSearch();
 
     useEffect(() => {
-        if (hasSeededMyExpensesSearch || currentUserAccountID === -1 || !currentUserEmail || savedSearches === undefined) {
+        if (hasSeededMyExpensesSearch || currentUserAccountID === -1 || !currentUserEmail || allPolicies === undefined) {
             return;
         }
 
-        let shouldShowSubmitSuggestion = false;
-        let shouldShowApproveSuggestion = false;
-
-        for (const policy of Object.values(allPolicies ?? {})) {
-            if (!policy) {
-                continue;
-            }
-            shouldShowSubmitSuggestion = shouldShowSubmitSuggestion || isPolicyUser(policy, currentUserEmail);
-
-            const isPaidPolicy = isPaidGroupPolicy(policy);
-            const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => employee.submitsTo === currentUserEmail || employee.forwardsTo === currentUserEmail);
-            const isUserApprover = isPolicyApprover(policy, currentUserEmail);
-            const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-            const isPolicyEligibleForApprove = isPaidPolicy && isApprovalEnabled && (isUserApprover || isSubmittedTo);
-            shouldShowApproveSuggestion = shouldShowApproveSuggestion || isPolicyEligibleForApprove;
-        }
-
-        if (shouldShowSubmitSuggestion && shouldShowApproveSuggestion) {
+        if (isDualRoleUser(allPolicies, currentUserEmail)) {
             seedMyExpensesSearch(currentUserAccountID, translate('search.mySavedSearch'));
         }
-    }, [hasSeededMyExpensesSearch, currentUserAccountID, currentUserEmail, allPolicies, savedSearches, translate]);
+    }, [hasSeededMyExpensesSearch, currentUserAccountID, currentUserEmail, allPolicies, translate]);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
     const {copiedHash, handleShare} = useShareSavedSearch();
