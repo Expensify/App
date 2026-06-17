@@ -4,6 +4,7 @@ import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
@@ -100,6 +101,9 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 
     /** Whether the down arrow is expanded */
     isExpanded?: boolean;
+
+    /** Parent chat report resolved from live Onyx with search snapshot fallback */
+    chatReport?: OnyxEntry<Report>;
 };
 
 function HeaderFirstRow<TItem extends ListItem>({
@@ -113,6 +117,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     isIndeterminate,
     onDownArrowClick,
     isExpanded,
+    chatReport,
 }: FirstRowReportHeaderProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const styles = useThemeStyles();
@@ -194,6 +199,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         hash={reportItem.hash}
                         amount={reportItem.total}
                         extraSmall={!isLargeScreenWidth}
+                        chatReport={chatReport}
                     />
                 </View>
             )}
@@ -232,12 +238,17 @@ function ReportListItemHeader<TItem extends ListItem>({
     const snapshotPolicy = useMemo(() => {
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, reportItem.policyID]);
+    const snapshotChatReport = useMemo(() => {
+        const chatReportID = snapshotReport?.chatReportID ?? reportItem.parentReportID;
+        return chatReportID ? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+    }, [snapshot, snapshotReport?.chatReportID, reportItem.parentReportID]);
     const [parentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(snapshotReport?.policyID ?? reportItem.policyID)}`);
     const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)}, [reportItem.ownerAccountID]);
-    const [parentChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID)}`);
+    const [parentChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? reportItem.parentReportID)}`);
+    const chatReport = parentChatReport ?? snapshotChatReport;
     const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext({
         reportID: reportItem.reportID,
-        chatReportPolicyID: parentChatReport?.policyID,
+        chatReportPolicyID: chatReport?.policyID,
     });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -271,7 +282,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             betas,
             isSelfTourViewed,
             activePolicy,
-            chatReport: parentChatReport,
+            chatReport,
             chatReportPolicy,
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData: snapshot?.data,
@@ -312,6 +323,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 isIndeterminate={isIndeterminate}
                 onDownArrowClick={onDownArrowClick}
                 isExpanded={isExpanded}
+                chatReport={chatReport}
             />
         </View>
     );
