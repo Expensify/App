@@ -18,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
-import {getPolicyExpenseChat, getTransactionDetails, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from '@libs/TransactionUtils';
 import {
@@ -289,20 +289,14 @@ function submitAmount({
         if (report?.reportID && !isReportArchived && iouType !== CONST.IOU.TYPE.CREATE) {
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
             const reportAttributesReports = reportAttributesDerivedValue?.reports;
+            const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+            const reportDraft = allReportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`];
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
                 return participantAccountID
                     ? getParticipantsOption(participant, allPersonalDetails)
-                    : getReportOption(
-                          participant,
-                          privateIsArchived,
-                          policy,
-                          allPersonalDetails,
-                          conciergeReportID,
-                          reportAttributesReports,
-                          allReportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`],
-                      );
+                    : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
