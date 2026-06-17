@@ -292,34 +292,46 @@ function WorkspacesListPage() {
         const prevIsPendingDelete = prevIsPendingDeleteRef.current;
         prevIsPendingDeleteRef.current = isPendingDelete;
 
-        const policyToDeleteLatestErrorMessagePrompt = !!policyToDeleteLatestErrorMessage && (
-            <RenderHTML
-                html={policyToDeleteLatestErrorMessage}
-                onConciergeLinkPress={() => {
-                    closeModal();
-                    hideDeleteWorkspaceErrorModal();
-                }}
-            />
-        );
-
-        // Handle showing error modal when offline and error occurs
-        if (isOffline && policyToDeleteLatestErrorMessage) {
-            if (isErrorModalShowingRef.current) {
+        const showDeleteWorkspaceErrorModal = () => {
+            if (isErrorModalShowingRef.current || !policyToDeleteLatestErrorMessage) {
                 return;
             }
+
             isErrorModalShowingRef.current = true;
             showConfirmModal({
                 title: translate('workspace.common.delete'),
-                prompt: policyToDeleteLatestErrorMessagePrompt,
+                prompt: (
+                    <RenderHTML
+                        html={policyToDeleteLatestErrorMessage}
+                        onConciergeLinkPress={() => {
+                            closeModal();
+                            hideDeleteWorkspaceErrorModal();
+                        }}
+                    />
+                ),
                 confirmText: translate('common.buttonConfirm'),
                 cancelText: translate('common.cancel'),
                 success: false,
                 shouldShowCancelButton: false,
+                // Avoid stacking browser history entries when replacing the delete confirmation modal on narrow layouts.
+                shouldHandleNavigationBack: false,
             }).then(() => {
                 isErrorModalShowingRef.current = false;
                 hideDeleteWorkspaceErrorModal();
             });
-            return;
+        };
+
+        // Wait until the delete confirmation modal finishes its dismiss transition before showing the error
+        // modal. On narrow layouts it uses a bottom-docked modal with navigation-back handling, and opening
+        // the next modal too early can leave stale history state that prevents it from appearing.
+        const scheduleDeleteWorkspaceErrorModal = () => {
+            const handle = TransitionTracker.runAfterTransitions({callback: showDeleteWorkspaceErrorModal});
+            return () => handle.cancel();
+        };
+
+        // Handle showing error modal when offline and error occurs
+        if (isOffline && policyToDeleteLatestErrorMessage) {
+            return scheduleDeleteWorkspaceErrorModal();
         }
 
         if (!prevIsPendingDelete || isPendingDelete || !policyIDToDelete) {
@@ -330,22 +342,7 @@ function WorkspacesListPage() {
             return;
         }
 
-        if (isErrorModalShowingRef.current) {
-            return;
-        }
-        isErrorModalShowingRef.current = true;
-
-        showConfirmModal({
-            title: translate('workspace.common.delete'),
-            prompt: policyToDeleteLatestErrorMessagePrompt,
-            confirmText: translate('common.buttonConfirm'),
-            cancelText: translate('common.cancel'),
-            success: false,
-            shouldShowCancelButton: false,
-        }).then(() => {
-            isErrorModalShowingRef.current = false;
-            hideDeleteWorkspaceErrorModal();
-        });
+        return scheduleDeleteWorkspaceErrorModal();
     }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyToDeleteLatestErrorMessage, isPendingDelete, isFocused, policyIDToDelete, closeModal]);
 
     const startChangeOwnershipFlow = (policyID: string | undefined) => {

@@ -61,6 +61,7 @@ import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     canEditWorkspaceSettings,
@@ -398,32 +399,44 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         const prevIsPendingDeleteValue = prevIsPendingDeleteRef.current;
         prevIsPendingDeleteRef.current = isPendingDelete;
 
-        const policyLastErrorMessagePrompt = !!policyLastErrorMessage && (
-            <RenderHTML
-                html={policyLastErrorMessage}
-                onConciergeLinkPress={() => {
-                    closeModal();
-                    hideDeleteWorkspaceErrorModal();
-                }}
-            />
-        );
-
-        if (isOffline && policyLastErrorMessage && hasExpensifyCard) {
-            if (isErrorModalShowingRef.current) {
+        const showDeleteWorkspaceErrorModal = () => {
+            if (isErrorModalShowingRef.current || !policyLastErrorMessage) {
                 return;
             }
+
             isErrorModalShowingRef.current = true;
             showConfirmModal({
                 title: translate('workspace.common.delete'),
-                prompt: policyLastErrorMessagePrompt,
+                prompt: (
+                    <RenderHTML
+                        html={policyLastErrorMessage}
+                        onConciergeLinkPress={() => {
+                            closeModal();
+                            hideDeleteWorkspaceErrorModal();
+                        }}
+                    />
+                ),
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
                 success: false,
+                // Avoid stacking browser history entries when replacing the delete confirmation modal on narrow layouts.
+                shouldHandleNavigationBack: false,
             }).then(() => {
                 isErrorModalShowingRef.current = false;
                 hideDeleteWorkspaceErrorModal();
             });
-            return;
+        };
+
+        // Wait until the delete confirmation modal finishes its dismiss transition before showing the error
+        // modal. On narrow layouts it uses a bottom-docked modal with navigation-back handling, and opening
+        // the next modal too early can leave stale history state that prevents it from appearing.
+        const scheduleDeleteWorkspaceErrorModal = () => {
+            const handle = TransitionTracker.runAfterTransitions({callback: showDeleteWorkspaceErrorModal});
+            return () => handle.cancel();
+        };
+
+        if (isOffline && policyLastErrorMessage && hasExpensifyCard) {
+            return scheduleDeleteWorkspaceErrorModal();
         }
 
         if (!prevIsPendingDeleteValue || isPendingDelete || !policyID) {
@@ -442,18 +455,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (!isFocused || isErrorModalShowingRef.current) {
             return;
         }
-        isErrorModalShowingRef.current = true;
 
-        showConfirmModal({
-            title: translate('workspace.common.delete'),
-            prompt: policyLastErrorMessagePrompt,
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-            success: false,
-        }).then(() => {
-            isErrorModalShowingRef.current = false;
-            hideDeleteWorkspaceErrorModal();
-        });
+        return scheduleDeleteWorkspaceErrorModal();
     }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyLastErrorMessage, isPendingDelete, isFocused, policyID, closeModal, hasExpensifyCard]);
 
     const onDeleteWorkspace = () => {
