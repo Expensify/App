@@ -14,7 +14,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import useAppFocusEvent from './useAppFocusEvent';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnyx from './useOnyx';
@@ -163,9 +162,6 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         // This effect should only run when app visibility/focus changes; the helper reads the latest report/action values without making every action update mark the report as read.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, isFocused, reportLoadingState?.hasOnceLoadedReportActions]);
-
-    // A visible browser window can regain OS focus without a visibility change, so rerun the read catch-up on app focus too.
-    useAppFocusEvent(markAsReadWhenVisibleAndFocused);
 
     const markNewestActionAsRead = () => {
         readActionSkippedRef.current = false;

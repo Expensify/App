@@ -7,7 +7,6 @@ import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyn
 import {DeviceEventEmitter, View} from 'react-native';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import ScrollView from '@components/ScrollView';
-import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
@@ -407,9 +406,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         // This effect should only run when app visibility/focus changes; the helper reads the latest report/action values without making every action update mark the report as read.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
-
-    // A visible browser window can regain OS focus without a visibility change, so rerun the read catch-up on app focus too.
-    useAppFocusEvent(markAsReadWhenVisibleAndFocused);
 
     /**
      * The index of the earliest message that was received while offline
