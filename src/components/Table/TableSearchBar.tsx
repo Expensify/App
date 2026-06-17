@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {type StyleProp, View, type ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import SearchBar from '@components/SearchBar';
 import TextInput from '@components/TextInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -46,7 +46,6 @@ function TableSearchBar({label, style}: TableSearchBarProps) {
             inputMode={CONST.INPUT_MODE.TEXT}
             containerStyles={[styles.ph5, styles.pb5]}
             placeholderTextColor={theme.textSupporting}
-            // inputStyle={[styles.textLabel, styles.h7]}
             shouldShowClearButton={activeSearchString.length > 0}
             onChangeText={(text) => updateSearchString(text)}
             touchableInputWrapperStyle={[styles.h8, {width: 200}]}
