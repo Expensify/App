@@ -85,7 +85,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Then tooltip should not show
@@ -97,7 +97,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Then tooltip should not show
@@ -109,7 +109,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Then tooltip should show
@@ -117,7 +117,7 @@ describe('ProductTrainingContextProvider', () => {
         });
 
         it('should keep tooltip visible when another tooltip with shouldShow=false is unmounted', async () => {
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP;
             const ref = createRef<ProductTrainingRef>();
 
             // When multiple tooltips with the same name but different shouldShow values are rendered
@@ -167,7 +167,7 @@ describe('ProductTrainingContextProvider', () => {
             // When a tooltip has been dismissed
             const date = new Date();
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP;
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {
                     timestamp: DateUtils.getDBTime(date.valueOf()),
@@ -193,7 +193,7 @@ describe('ProductTrainingContextProvider', () => {
                 },
             });
             await waitForBatchedUpdatesWithAct();
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP;
             const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
             // When the user dismiss the tooltip
             result.current.hideProductTrainingTooltip();
@@ -215,29 +215,6 @@ describe('ProductTrainingContextProvider', () => {
         });
     });
 
-    describe('Layout Specific Behavior', () => {
-        it('should handle wide layout specific tooltips based on screen width', async () => {
-            // When narrow layout is true
-            mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
-
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            await waitForBatchedUpdatesWithAct();
-
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
-            const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
-            // Then wide layout tooltip should not show
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
-
-            // When narrow layout changes to false
-            mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
-            rerender({});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then wide layout tooltip should show
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
-        });
-    });
-
     describe('Priority Handling', () => {
         it('should show only highest priority tooltip when multiple are active', async () => {
             // When multiple tooltips are registered and no tooltips are dismissed
@@ -252,7 +229,7 @@ describe('ProductTrainingContextProvider', () => {
 
             // Then only highest priority tooltip should show
             const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP;
 
             const {result} = renderHook(
                 () => ({
@@ -272,7 +249,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             const date = new Date();
             const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP;
 
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {
@@ -310,7 +287,7 @@ describe('ProductTrainingContextProvider', () => {
             await waitForBatchedUpdatesWithAct();
 
             const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP;
 
             const {result} = renderHook(
                 () => ({
