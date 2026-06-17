@@ -513,8 +513,9 @@ function PolicyDistanceRatesPage({
                             selectionEnabled={canWriteDistanceRates}
                             selectedKeys={selectedDistanceRates}
                             onRowSelectionChange={setSelectedDistanceRates}
-                            EmptyStateComponent={emptyStateContent}
-                        />
+                        >
+                            {emptyStateContent}
+                        </WorkspaceDistanceRatesTable>
                     </>
                 )}
             </ScreenWrapper>
