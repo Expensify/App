@@ -1700,6 +1700,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Możesz jednocześnie zduplikować maksymalnie ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} wydatków. Wybierz mniej wydatków i spróbuj ponownie.`,
         deleted: 'Usunięto',
+        categoryDisabledAlert: {
+            title: 'Kategoria wyłączona',
+            prompt: 'Włącz kategorie w przestrzeni roboczej, żeby edytować szczegóły wydatku lub usunąć kategorię z tego wydatku.',
+            confirmText: 'Usuń kategorię',
+        },
+        tagDisabledAlert: {
+            title: 'Tag wyłączony',
+            prompt: 'Włącz tagi w przestrzeni roboczej, aby edytować szczegóły wydatku lub usunąć ten tag z tego wydatku.',
+            confirmText: 'Usuń znacznik',
+        },
     },
     transactionMerge: {
         listPage: {

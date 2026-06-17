@@ -1706,6 +1706,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Sie können bis zu ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} Ausgaben gleichzeitig duplizieren. Bitte wählen Sie weniger Ausgaben aus und versuchen Sie es erneut.`,
         deleted: 'Gelöscht',
+        categoryDisabledAlert: {
+            title: 'Kategorie deaktiviert',
+            prompt: 'Aktivieren Sie Kategorien im Arbeitsbereich, um die Ausgabendetails zu bearbeiten oder die Kategorie aus dieser Ausgabe zu löschen.',
+            confirmText: 'Kategorie löschen',
+        },
+        tagDisabledAlert: {
+            title: 'Tag deaktiviert',
+            prompt: 'Aktivieren Sie Tags im Workspace, um die Ausgabendetails zu bearbeiten oder den Tag aus dieser Ausgabe zu löschen.',
+            confirmText: 'Tag löschen',
+        },
     },
     transactionMerge: {
         listPage: {
