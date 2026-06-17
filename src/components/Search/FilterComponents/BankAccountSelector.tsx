@@ -12,10 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import MultiSelect from './MultiSelect';
 
-type BankAccountSelectorProps = SearchFilterCommonProps & {
-    value: string[] | undefined;
-    onChange: (bankAccounts: string[]) => void;
-};
+type BankAccountSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 type BankAccountItem = {
     /** Display label, e.g. `Chase xx1234`. */
