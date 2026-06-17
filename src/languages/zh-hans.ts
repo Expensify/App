@@ -1648,6 +1648,8 @@ const translations: TranslationDeepObject<typeof en> = {
         taxDisabledAlert: {title: '税费已禁用', prompt: '请在工作区中启用税费跟踪，以便编辑此报销的详细信息或从该报销中删除税费。', confirmText: '删除税费'},
         bulkDuplicateLimit: `您一次最多可以复制 ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 笔报销。请减少选择的报销数量后重试。`,
         deleted: '已删除',
+        categoryDisabledAlert: {title: '类别已禁用', prompt: '在工作区中启用类别，以编辑报销详情或从此报销中删除该类别。', confirmText: '删除类别'},
+        tagDisabledAlert: {title: '标签已停用', prompt: '请在工作区中启用标签，以便编辑该报销的详细信息或从此报销中删除该标签。', confirmText: '删除标签'},
     },
     transactionMerge: {
         listPage: {
@@ -2948,11 +2950,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         welcome: '欢迎！',
         welcomeSignOffTitleManageTeam: '完成以上任务后，我们就可以探索更多功能，比如审批流程和规则！',
         welcomeSignOffTitle: '很高兴见到你！',
-        explanationModal: {
-            title: '欢迎使用 Expensify',
-            description: '一款应用，以聊天的速度处理您的商务和个人支出。试试看，并告诉我们您的想法。更多精彩功能即将上线！',
-            secondaryDescription: '要切换回 Expensify Classic，只需点按您的头像 ＞ 前往 Expensify Classic。',
-        },
         getStarted: '开始使用',
         whatsYourName: '你叫什么名字？',
         peopleYouMayKnow: '查看你的团队是否已在 Expensify 中',
@@ -6125,6 +6122,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             admins: '工作区管理员',
             approvers: '审批人',
             auditors: '审计员',
+            editors: '编辑者',
             emptyRoleFilter: {title: '没有成员符合此筛选条件', subtitle: '邀请成员或更改上方的筛选条件。'},
             configureHRSync: (providerName: string) => `配置 ${providerName} 同步。`,
             syncWithHR: (providerName: string) => `与 ${providerName} 同步`,
@@ -6648,11 +6646,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         },
         exportAgainModal: {
             title: '小心！',
-            description: ({reportName, connectionName}: ExportAgainModalDescriptionParams) => `以下报表已导出至 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}：
+            description: ({
+                reportName,
+                connectionName,
+            }: ExportAgainModalDescriptionParams) => `以下报表已导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}。确定要再次导出吗？
 
-${reportName}
-
-确定要再次导出吗？`,
+${reportName}`,
             confirmText: '是，再次导出',
             cancelText: '取消',
         },
@@ -9331,6 +9330,7 @@ ${reportName}
         readyBody: "If it didn't automatically download, use the button below.",
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
+        csvFailedBody: 'Your export could not be completed. Please try again later.',
         close: 'Close',
     },
     domain: {
