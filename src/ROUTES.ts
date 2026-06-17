@@ -16,8 +16,8 @@ import StringUtils from './libs/StringUtils';
 import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
-import type {CompanyCardFeedWithDomainID, PersonalCardFeed} from './types/onyx';
-import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
+import type {CompanyCardFeedWithDomainID} from './types/onyx';
+import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 
 type WorkspaceCompanyCardsAssignCardParams = {
@@ -1281,10 +1281,6 @@ const ROUTES = {
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account` as const,
     },
     SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW: 'settings/wallet/add-personal-card',
-    SETTINGS_WALLET_PERSONAL_CARD_BANK_CONNECTION: {
-        route: 'settings/wallet/add-personal-card/:feed/bank-connection',
-        getRoute: (feed: PersonalCardFeed) => `settings/wallet/add-personal-card/${feed}/bank-connection` as const,
-    },
     SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION: {
         route: 'settings/wallet/personal-card/:cardID/fix-connection',
         getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}/fix-connection` as const,
@@ -1382,9 +1378,6 @@ const ROUTES = {
             return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
-    SETTINGS_LEGAL_NAME: 'settings/profile/legal-name',
-    SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',
-    SETTINGS_PHONE_NUMBER: 'settings/profile/phone',
     SETTINGS_ADDRESS: 'settings/profile/address',
     SETTINGS_PRIVATE_PERSONAL_DETAILS: {
         route: 'settings/profile/private-personal-details',
@@ -2042,7 +2035,6 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, imageType: OdometerImageType, isEditingConfirmation?: boolean, backToReport?: string) =>
             `${action as string}/${iouType as string}/odometer-image/${transactionID}/${reportID}/${imageType}${backToReport ? `/${backToReport}` : ''}${isEditingConfirmation ? '?isEditingConfirmation=true' : ''}` as const,
     },
-    IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
     IOU_SEND_ENABLE_PAYMENTS: 'pay/new/enable-payments',
 
@@ -2075,7 +2067,6 @@ const ROUTES = {
 
     I_KNOW_A_TEACHER: 'settings/teachersunite/i-know-a-teacher',
     I_AM_A_TEACHER: 'settings/teachersunite/i-am-a-teacher',
-    INTRO_SCHOOL_PRINCIPAL: 'settings/teachersunite/intro-school-principal',
 
     ERECEIPT: {
         route: 'eReceipt/:transactionID',
@@ -2473,8 +2464,10 @@ const ROUTES = {
     },
     WORKSPACE_UPGRADE: {
         route: 'workspaces/:policyID?/upgrade/:featureName?',
-        getRoute: (policyID?: string, featureName?: string, backTo?: string) =>
-            getUrlWithBackToParam(policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const), backTo),
+        getRoute: (policyID?: string, featureName?: string, backTo?: string, upgradePlanType?: string) => {
+            const baseRoute = policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const);
+            return getUrlWithBackToParam(upgradePlanType ? (`${baseRoute}?upgradePlanType=${upgradePlanType}` as const) : baseRoute, backTo);
+        },
     },
     WORKSPACE_DOWNGRADE: {
         route: 'workspaces/:policyID?/downgrade/',
@@ -2722,6 +2715,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/reports/listValues/:reportFieldID?',
         getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/reports/listValues/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
     },
+    WORKSPACE_REPORT_FIELDS_TYPE_SELECTOR: {
+        route: 'workspaces/:policyID/reports/typeSelector/:currentType?',
+        getRoute: (policyID: string, currentType?: PolicyReportFieldType) => `workspaces/${policyID}/reports/typeSelector/${currentType ? encodeURIComponent(currentType) : ''}` as const,
+    },
     WORKSPACE_REPORT_FIELDS_ADD_VALUE: {
         route: 'workspaces/:policyID/reports/addValue/:reportFieldID?',
         getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/reports/addValue/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
@@ -2746,16 +2743,6 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_COMPANY_CARDS route');
             }
             return `workspaces/${policyID}/company-cards` as const;
-        },
-    },
-    WORKSPACE_COMPANY_CARDS_BANK_CONNECTION: {
-        route: 'workspaces/:policyID/company-cards/:feed/bank-connection',
-        getRoute: (policyID: string | undefined, feed: CompanyCardFeedWithDomainID, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_COMPANY_CARDS_BANK_CONNECTION route');
-            }
-
-            return getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${feed}/bank-connection`, backTo);
         },
     },
     WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET: {
@@ -3304,7 +3291,7 @@ const ROUTES = {
     ONBOARDING_ROOT: {
         route: 'onboarding',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
+        getRoute: () => 'onboarding' as const,
     },
     ONBOARDING_PERSONAL_DETAILS: {
         route: 'onboarding/personal-details',
@@ -3324,12 +3311,12 @@ const ROUTES = {
     ONBOARDING_ACCOUNTING: {
         route: 'onboarding/accounting',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/accounting`, backTo),
+        getRoute: () => 'onboarding/accounting' as const,
     },
     ONBOARDING_INTERESTED_FEATURES: {
         route: 'onboarding/interested-features',
 
-        getRoute: (userReportedIntegration?: string, backTo?: string) => getUrlWithBackToParam(`onboarding/interested-features?userReportedIntegration=${userReportedIntegration}`, backTo),
+        getRoute: () => 'onboarding/interested-features' as const,
     },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',
@@ -3344,12 +3331,12 @@ const ROUTES = {
     ONBOARDING_WORK_EMAIL: {
         route: 'onboarding/work-email',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email`, backTo),
+        getRoute: () => 'onboarding/work-email' as const,
     },
     ONBOARDING_WORK_EMAIL_VALIDATION: {
         route: 'onboarding/work-email-validation',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email-validation`, backTo),
+        getRoute: () => 'onboarding/work-email-validation' as const,
     },
     WORKSPACE_CURRENCY_SELECTION: {
         route: 'workspace/confirmation/currency',
@@ -3362,7 +3349,6 @@ const ROUTES = {
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other onboarding routes
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personaltrackcase`, backTo),
     },
-    EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
     TEST_DRIVE_MODAL_ROOT: {
         route: 'onboarding/test-drive',
         getRoute: (bossEmail?: string) => `onboarding/test-drive${bossEmail ? `?bossEmail=${encodeURIComponent(bossEmail)}` : ''}` as const,

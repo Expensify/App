@@ -77,6 +77,7 @@ import {
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyApprover,
+    isSubmitPolicy,
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
@@ -120,6 +121,7 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     CARD_ADMINS: 'cardAdmins',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
+    EDITORS: 'editors',
 } as const;
 
 type WorkspaceMemberFilterValue = ValueOf<typeof WORKSPACE_MEMBER_FILTER_VALUES>;
@@ -564,9 +566,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text', localeCompare), [localeCompare]);
     const roleFilterOptions: WorkspaceMemberFilterOption[] = [
         {text: translate('workspace.people.members'), value: WORKSPACE_MEMBER_FILTER_VALUES.MEMBERS},
-        {text: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
         {text: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
     ];
+
+    if (!isSubmitPolicy(policy)) {
+        roleFilterOptions.push({
+            text: translate('workspace.people.admins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS,
+        });
+    }
 
     if (isControlPolicy(policy)) {
         roleFilterOptions.push({
@@ -577,6 +585,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         roleFilterOptions.push({
             text: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
+        });
+    }
+
+    if (isSubmitPolicy(policy)) {
+        roleFilterOptions.push({
+            text: translate('workspace.people.editors'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.EDITORS,
         });
     }
 
@@ -595,7 +610,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const isApprover = isPolicyApprover(policy, member.login);
         const isAuditor = employee?.role === CONST.POLICY.ROLE.AUDITOR;
         const isCardAdmin = employee?.role === CONST.POLICY.ROLE.CARD_ADMIN;
-        const isMember = !isAdmin && !isApprover && !isAuditor && !isCardAdmin;
+        const isEditor = employee?.role === CONST.POLICY.ROLE.EDITOR;
+        const isMember = !isAdmin && !isApprover && !isAuditor && !isCardAdmin && !isEditor;
 
         return selectedRoleFilters.some(({value}) => {
             switch (value) {
@@ -609,6 +625,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     return isCardAdmin;
                 case WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS:
                     return isAuditor;
+                case WORKSPACE_MEMBER_FILTER_VALUES.EDITORS:
+                    return isEditor;
                 default:
                     return false;
             }
