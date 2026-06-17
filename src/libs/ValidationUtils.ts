@@ -44,21 +44,6 @@ function validateCardNumber(value: string): boolean {
 }
 
 /**
- * Validating that this is a valid address (PO boxes and PMBs are not allowed)
- */
-function isValidAddress(value: FormValue): boolean {
-    if (typeof value !== 'string') {
-        return false;
-    }
-
-    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.ALL_EMOJIS)) {
-        return false;
-    }
-
-    return !CONST.REGEX.PO_BOX.test(value) && !CONST.REGEX.PMB.test(value);
-}
-
-/**
  * Returns whether the value is a PO box or a private mailbox (PMB / mail drop), which are not accepted as physical addresses.
  */
 function isPOBoxOrMailDrop(value: FormValue): boolean {
@@ -70,10 +55,29 @@ function isPOBoxOrMailDrop(value: FormValue): boolean {
 }
 
 /**
- * Returns the translation path for the error to display on an invalid address input.
+ * Returns the translation path for the error to display on an invalid address input, or undefined when the value is valid.
  */
-function getInvalidAddressErrorTranslationPath(value: FormValue): TranslationPaths {
-    return isPOBoxOrMailDrop(value) ? 'bankAccount.error.physicalAddressRequired' : 'bankAccount.error.addressStreet';
+function getInvalidAddressErrorTranslationPath(value: FormValue): TranslationPaths | undefined {
+    if (typeof value !== 'string') {
+        return 'bankAccount.error.addressStreet';
+    }
+
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.ALL_EMOJIS)) {
+        return 'bankAccount.error.addressStreet';
+    }
+
+    if (isPOBoxOrMailDrop(value)) {
+        return 'bankAccount.error.physicalAddressRequired';
+    }
+
+    return undefined;
+}
+
+/**
+ * Validating that this is a valid address (PO boxes and PMBs are not allowed)
+ */
+function isValidAddress(value: FormValue): boolean {
+    return getInvalidAddressErrorTranslationPath(value) === undefined;
 }
 
 /**

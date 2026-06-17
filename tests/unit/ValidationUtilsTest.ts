@@ -673,6 +673,10 @@ describe('ValidationUtils', () => {
         test.each([['😊'], ['742 Evergreen Terrace 🏠'], ['']])('Should return the generic street address copy for other invalid value not related to PO box/PMB: %s', (address) => {
             expect(getInvalidAddressErrorTranslationPath(address)).toBe('bankAccount.error.addressStreet');
         });
+
+        test.each([['742 Evergreen Terrace'], ['1600 Pennsylvania Ave NW'], ['123 Boxwood Lane']])('Should return undefined for valid physical address: %s', (address) => {
+            expect(getInvalidAddressErrorTranslationPath(address)).toBeUndefined();
+        });
     });
 
     describe('isValidPIN', () => {

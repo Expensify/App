@@ -20,7 +20,6 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     getFieldRequiredErrors,
     getInvalidAddressErrorTranslationPath,
-    isValidAddress,
     isValidPastDate,
     isValidSSNFullNine,
     isValidSSNLastFour,
@@ -87,8 +86,9 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
             }
         }
 
-        if (values.addressStreet && !isValidAddress(values.addressStreet)) {
-            errors.addressStreet = translate(getInvalidAddressErrorTranslationPath(values.addressStreet));
+        const addressStreetError = getInvalidAddressErrorTranslationPath(values.addressStreet);
+        if (values.addressStreet && addressStreetError) {
+            errors.addressStreet = translate(addressStreetError);
         }
 
         if (values.addressZipCode && !isValidZipCode(values.addressZipCode)) {
