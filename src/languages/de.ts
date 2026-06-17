@@ -1706,6 +1706,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Sie können bis zu ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} Ausgaben gleichzeitig duplizieren. Bitte wählen Sie weniger Ausgaben aus und versuchen Sie es erneut.`,
         deleted: 'Gelöscht',
+        categoryDisabledAlert: {
+            title: 'Kategorie deaktiviert',
+            prompt: 'Aktivieren Sie Kategorien im Arbeitsbereich, um die Ausgabendetails zu bearbeiten oder die Kategorie aus dieser Ausgabe zu löschen.',
+            confirmText: 'Kategorie löschen',
+        },
+        tagDisabledAlert: {
+            title: 'Tag deaktiviert',
+            prompt: 'Aktivieren Sie Tags im Workspace, um die Ausgabendetails zu bearbeiten oder den Tag aus dieser Ausgabe zu löschen.',
+            confirmText: 'Tag löschen',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3036,12 +3046,6 @@ ${amount} für ${merchant} – ${date}`,
         welcome: 'Willkommen!',
         welcomeSignOffTitleManageTeam: 'Sobald du die Aufgaben oben abgeschlossen hast, können wir weitere Funktionen wie Genehmigungs-Workflows und Regeln erkunden!',
         welcomeSignOffTitle: 'Schön, dich kennenzulernen!',
-        explanationModal: {
-            title: 'Willkommen bei Expensify',
-            description:
-                'Eine App, um Ihre geschäftlichen und privaten Ausgaben in Chat-Geschwindigkeit zu verwalten. Probieren Sie es aus und sagen Sie uns, was Sie denken. Da kommt noch viel mehr!',
-            secondaryDescription: 'Um zurück zu Expensify Classic zu wechseln, tippe einfach auf dein Profilbild > Gehe zu Expensify Classic.',
-        },
         getStarted: 'Loslegen',
         whatsYourName: 'Wie heißt du?',
         peopleYouMayKnow: 'Prüfen Sie, ob Ihr Team in Expensify ist',
@@ -6319,6 +6323,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             admins: 'Workspace-Administratoren',
             approvers: 'Genehmigende',
             auditors: 'Prüfer',
+            editors: 'Bearbeiter',
             emptyRoleFilter: {title: 'Keine Mitglieder entsprechen diesem Filter', subtitle: 'Laden Sie ein Mitglied ein oder ändern Sie den Filter oben.'},
             configureHRSync: (providerName: string) => `Synchronisierung mit ${providerName} einrichten.`,
             syncWithHR: (providerName: string) => `Mit ${providerName} synchronisieren`,
@@ -6859,11 +6864,9 @@ Wenn du die Abrechnung für das gesamte Abonnement übernehmen willst, bitte sie
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `Die folgenden Reports wurden bereits nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} exportiert:
+            }: ExportAgainModalDescriptionParams) => `Die folgenden Berichte wurden bereits nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} exportiert. Möchten Sie sie wirklich erneut exportieren?
 
-${reportName}
-
-Möchten Sie sie wirklich noch einmal exportieren?`,
+${reportName}`,
             confirmText: 'Ja, erneut exportieren',
             cancelText: 'Abbrechen',
         },
@@ -9637,6 +9640,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         readyBody: "If it didn't automatically download, use the button below.",
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
+        csvFailedBody: 'Your export could not be completed. Please try again later.',
         close: 'Close',
     },
     domain: {
