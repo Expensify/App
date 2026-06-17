@@ -3536,7 +3536,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Statut',
-        statusExplanation: 'Ajoutez un emoji pour permettre à vos collègues et amis de savoir facilement ce qui se passe. Vous pouvez aussi ajouter un message si vous le souhaitez !',
+        statusExplanation: 'Définissez votre statut avec un emoji et un message facultatif.',
         today: 'Aujourd’hui',
         clearStatus: 'Effacer le statut',
         save: 'Enregistrer',
@@ -4989,8 +4989,9 @@ ${amount} pour ${merchant} - ${date}`,
             exportStatus: {
                 label: 'Statut de facture à payer',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Terminé',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Terminé',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'En cours',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Approuvé',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Soumis',
                 },
             },
@@ -6883,11 +6884,9 @@ Si vous souhaitez prendre en charge la facturation de l’ensemble de son abonne
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `Les notes de frais suivantes ont déjà été exportées vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} :
+            }: ExportAgainModalDescriptionParams) => `Les notes de frais suivantes ont déjà été exportées vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Voulez-vous vraiment les exporter à nouveau ?
 
-${reportName}
-
-Voulez-vous vraiment les exporter à nouveau ?`,
+${reportName}`,
             confirmText: 'Oui, exporter à nouveau',
             cancelText: 'Annuler',
         },
@@ -9667,6 +9666,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         readyBody: "If it didn't automatically download, use the button below.",
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
+        csvFailedBody: 'Your export could not be completed. Please try again later.',
         close: 'Close',
     },
     domain: {
