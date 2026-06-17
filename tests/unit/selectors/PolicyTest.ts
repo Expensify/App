@@ -1,6 +1,7 @@
 import {
     activeAdminPoliciesSelector,
     adminPoliciesConnectedToQBDSelector,
+    createOwnedPaidPoliciesCountsSelector,
     hasMultipleOutputCurrenciesSelector,
     hasOnlyPersonalPoliciesSelector,
     hasPoliciesConnectedToQBDSelector,
@@ -11,6 +12,57 @@ import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import createRandomPolicy from '../../utils/collections/policies';
+
+const OWNER_ACCOUNT_ID = 1;
+
+describe('createOwnedPaidPoliciesCountsSelector', () => {
+    it('returns zero counts when there are no policies', () => {
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+        expect(selector({})).toEqual({total: 0, active: 0});
+    });
+
+    it('returns zero counts when policies are undefined', () => {
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+        expect(selector(undefined)).toEqual({total: 0, active: 0});
+    });
+
+    it('returns zero counts when currentUserAccountID is undefined', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM)},
+        };
+        const selector = createOwnedPaidPoliciesCountsSelector(undefined);
+        expect(selector(policies)).toEqual({total: 0, active: 0});
+    });
+
+    it('counts only paid policies owned by the user', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM)},
+            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE)},
+            policy3: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.PERSONAL)},
+            policy4: {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM)},
+        };
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+        expect(selector(policies)).toEqual({total: 2, active: 2});
+    });
+
+    it('excludes policies pending deletion from active count but includes them in total', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM)},
+            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+        };
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+        expect(selector(policies)).toEqual({total: 2, active: 1});
+    });
+
+    it('returns zero active when all owned paid policies are pending deletion', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+        };
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+        expect(selector(policies)).toEqual({total: 2, active: 0});
+    });
+});
 
 describe('hasMultipleOutputCurrenciesSelector', () => {
     it('returns false when paid group policies have the same output currency', () => {
