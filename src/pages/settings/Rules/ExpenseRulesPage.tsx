@@ -9,7 +9,8 @@ import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericE
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import PersonalExpenseRulesTable, {PersonalExpenseRuleRowData} from '@components/Tables/PersonalExpenseRulesTable';
+import type {PersonalExpenseRuleRowData} from '@components/Tables/PersonalExpenseRulesTable';
+import PersonalExpenseRulesTable from '@components/Tables/PersonalExpenseRulesTable';
 import Text from '@components/Text';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
@@ -66,16 +67,6 @@ function ExpenseRulesPage() {
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const isInSelectionMode = shouldUseNarrowLayout ? canSelectMultiple : selectedRules.length > 0;
 
-    const personalExpenseRules: PersonalExpenseRuleRowData[] = expenseRules.map((rule, index) => ({
-        keyForList: getKeyForList(rule, index),
-        merchant: rule.merchantToMatch,
-        changes: formatExpenseRuleChanges(rule, translate),
-        errors: rule.errors,
-        pendingAction: rule.pendingAction,
-        disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        action: () => navigateToEditRulePage(getKeyForList(rule, index)),
-    }));
-
     const navigateToNewRulePage = () => {
         clearDraftRule();
         Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute());
@@ -109,6 +100,16 @@ function ExpenseRulesPage() {
         setDeleteConfirmModalVisible(false);
         setSelectedRules([]);
     };
+
+    const personalExpenseRules: PersonalExpenseRuleRowData[] = expenseRules.map((rule, index) => ({
+        keyForList: getKeyForList(rule, index),
+        merchant: rule.merchantToMatch,
+        changes: formatExpenseRuleChanges(rule, translate),
+        errors: rule.errors,
+        pendingAction: rule.pendingAction,
+        disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        action: () => navigateToEditRulePage(getKeyForList(rule, index)),
+    }));
 
     const headerDropdownOptions: Array<DropdownOption<DeepValueOf<typeof CONST.EXPENSE_RULES.BULK_ACTION_TYPES>>> = [
         {

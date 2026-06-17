@@ -9,7 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {PersonalExpenseRuleRowData} from '.';
+import type {PersonalExpenseRuleRowData} from '.';
 
 type PersonalExpenseRulesTableRowProps = {
     item: PersonalExpenseRuleRowData;

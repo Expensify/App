@@ -1,4 +1,4 @@
-import {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
@@ -7,12 +7,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import PersonalExpenseRulesTableRow from './PersonalExpenseRulesTableRow';
 
-export type PersonalExpenseRulesTableColumnKey = 'merchant' | 'changes' | 'actions';
+type PersonalExpenseRulesTableColumnKey = 'merchant' | 'changes' | 'actions';
 
-export type PersonalExpenseRuleRowData = TableData & {
+type PersonalExpenseRuleRowData = TableData & {
     merchant: string;
     changes: string;
     pendingAction?: PendingAction;
@@ -106,3 +106,5 @@ export default function PersonalExpenseRulesTable({EmptyStateComponent, personal
         </Table>
     );
 }
+
+export type {PersonalExpenseRuleRowData, PersonalExpenseRulesTableColumnKey};
