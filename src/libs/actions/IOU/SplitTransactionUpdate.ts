@@ -1895,6 +1895,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
+    // Register newly created split transaction IDs so they briefly highlight in the expense list.
+    // We skip existing transactions (already in allChildTransactions), reverse splits (no new transactions are created),
+    // and the last-transaction case (the report navigates away before the highlight renders).
     if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport) {
         const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
         for (const splitExpense of splitExpenses) {
