@@ -143,7 +143,7 @@ describe('seedMyExpensesSearch', () => {
     });
 
     it('writes the seeded search and sets NVP to true optimistically', async () => {
-        seedMyExpensesSearch(ACCOUNT_ID, 'My expenses');
+        seedMyExpensesSearch(ACCOUNT_ID, 'My expenses', undefined);
         await waitForBatchedUpdates();
 
         const savedSearches = await getOnyxValue(ONYXKEYS.SAVED_SEARCHES);
@@ -161,7 +161,7 @@ describe('seedMyExpensesSearch', () => {
     });
 
     it('produces a query with type:expense and from:<accountID>', async () => {
-        seedMyExpensesSearch(ACCOUNT_ID, 'My expenses');
+        seedMyExpensesSearch(ACCOUNT_ID, 'My expenses', undefined);
         await waitForBatchedUpdates();
 
         const savedSearches = await getOnyxValue(ONYXKEYS.SAVED_SEARCHES);
@@ -184,11 +184,25 @@ describe('seedMyExpensesSearch', () => {
         // so a direct call here simulates what happens if the guard is bypassed — the action
         // itself does not duplicate the entry (the NVP gate is in the component, not the action).
         // Verify by checking the action still writes correctly on a fresh call without a guard.
-        seedMyExpensesSearch(ACCOUNT_ID, 'My expenses');
+        seedMyExpensesSearch(ACCOUNT_ID, 'My expenses', undefined);
         await waitForBatchedUpdates();
 
         const savedSearches = await getOnyxValue(ONYXKEYS.SAVED_SEARCHES);
         // Only one entry because the query hash is deterministic for the same accountID.
         expect(Object.keys(savedSearches ?? {})).toHaveLength(1);
+    });
+
+    it('does not overwrite an existing saved search with the same query hash', async () => {
+        const queryJSON = buildSearchQueryJSON(`type:expense from:${ACCOUNT_ID}`);
+        const existingSavedSearches = {
+            [String(queryJSON?.hash)]: {name: 'My custom name', query: `type:expense from:${ACCOUNT_ID}`},
+        };
+
+        seedMyExpensesSearch(ACCOUNT_ID, 'My expenses', existingSavedSearches);
+        await waitForBatchedUpdates();
+
+        const savedSearches = await getOnyxValue(ONYXKEYS.SAVED_SEARCHES);
+        // Should be null/undefined — no write was made since the hash already existed.
+        expect(savedSearches).toBeFalsy();
     });
 });

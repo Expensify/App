@@ -69,6 +69,7 @@ import type {
     Report,
     ReportAction,
     ReportNextStepDeprecated,
+    SaveSearch,
     Transaction,
 } from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
@@ -621,10 +622,14 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
     API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
 }
 
-function seedMyExpensesSearch(currentUserAccountID: number, searchName: string) {
+function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, savedSearches: OnyxEntry<SaveSearch>) {
     const queryString = `type:expense from:${currentUserAccountID}`;
     const queryJSON = buildSearchQueryJSON(queryString);
     if (!queryJSON) {
+        return;
+    }
+
+    if (savedSearches?.[queryJSON.hash]) {
         return;
     }
 

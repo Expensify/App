@@ -43,6 +43,7 @@ function SearchPage({route}: SearchPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const [hasFilterBars = false] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: hasFilterBarsSelector});
     const [hasSeededMyExpensesSearch] = useOnyx(ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH);
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -60,9 +61,9 @@ function SearchPage({route}: SearchPageProps) {
 
         if (isDualRoleUser(allPolicies, currentUserEmail)) {
             hasSeededRef.current = true;
-            seedMyExpensesSearch(currentUserAccountID, translate('search.mySavedSearch'));
+            seedMyExpensesSearch(currentUserAccountID, translate('search.mySavedSearch'), savedSearches);
         }
-    }, [hasSeededMyExpensesSearch, currentUserAccountID, currentUserEmail, allPolicies, translate]);
+    }, [hasSeededMyExpensesSearch, currentUserAccountID, currentUserEmail, allPolicies, translate, savedSearches]);
 
     // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
     // render below (`searchResults = lastNonEmptySearchResults` when sorting), so a useEffect would
