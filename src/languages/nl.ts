@@ -7215,7 +7215,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 findRule: 'Zoek handelsregel',
                 expenseDefaultsTitle: 'Standaardinstellingen voor uitgaven',
                 expenseDefaultsSubtitle: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
-                ifAnyExpenseMatches: 'Als een uitgave voldoet aan:',
+                ifAnyExpenseMatches: 'Als een uitgave overeenkomt:',
                 thenApplyFollowingDefaults: 'Pas vervolgens de volgende standaardinstellingen toe:',
             },
             categoryRules: {
@@ -7366,7 +7366,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'categorieën' : 'categorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
-                defaultRuleSummary: 'Categorieën zoals diensten voor volwassenen, geldautomaten, gokken en...',
+                defaultRuleSummary: 'Categorieën zoals erotische diensten, geldautomaten, gokken en...',
                 findRule: 'Regel zoeken',
                 defaultSection: 'Standaard',
                 customRulesSection: 'Aangepaste regels',
@@ -7374,18 +7374,18 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 tableColumnCard: 'Kaart',
                 tableColumnRule: 'Regel',
                 cardRulesUpsell: {
-                    title: 'Neem de Expensify Kaart en beheer uitgaven',
+                    title: 'Vraag de Expensify Kaart aan en beheer uitgaven',
                     subtitle:
-                        'Met de Expensify Kaart kun je regels instellen voor maximale uitgaven, bepaalde verkopers of soorten aankopen blokkeren of toestaan. Je krijgt ook 2% cashback.',
+                        'Met de Expensify Kaart kun je regels instellen voor maximale uitgaven, bepaalde verkopers of soorten aankopen blokkeren of toestaan. Je krijgt bovendien 2% cashback.',
                     cta: 'Vraag de kaart aan',
                 },
                 restrictCardSpendTitle: 'Kaartuitgaven beperken',
                 restrictCardSpendSubtitle: 'Blokkeer of beperk uitgaven bij het verkooppunt.',
-                ifAnyCardMatches: 'Als een van de kaarten overeenkomt:',
-                thenDoThisAtPointOfSale: 'Doe dan dit bij het verkooppunt:',
-                permittedCurrencies: 'Toegestane valuta’s',
+                ifAnyCardMatches: 'Als een kaart overeenkomt:',
+                thenDoThisAtPointOfSale: 'Doe dan het volgende bij het verkooppunt:',
+                permittedCurrencies: "Toegestane valuta's",
                 setRestrictions: 'Beperkingen instellen',
-                merchantRestrictions: 'Beperkingen voor handelaren',
+                merchantRestrictions: 'Handelaarsbeperkingen',
                 blockedMerchant: 'Geblokkeerde handelaar',
                 blockedMerchantTypes: 'Geblokkeerde handelaarstypen',
                 maxAmountAbove: ({amount}: {amount: string}) => `boven ${amount}`,
@@ -7412,22 +7412,22 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             generalTab: {
                 title: 'Basisregels',
-                subtitle: 'Algemene regels om uitgaven te beheren',
-                expensesOlderThan: 'Onkosten ouder dan',
-                expensesAboveAmount: 'Uitgaven boven bedrag',
+                subtitle: 'Algemene regels om uitgaven te beheersen',
+                expensesOlderThan: 'Markeer onkosten ouder dan',
+                expensesAboveAmount: 'Markeer uitgaven boven bedrag',
                 flagReceiptLineItems: 'Regelitems van bon markeren',
-                receiptRequirements: 'Bonnen vereisen',
+                receiptRequirements: 'Bonnen verplicht stellen',
                 receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
                     if (regularAmount && itemizedAmount) {
                         return `Normaal boven ${regularAmount}, gespecificeerd boven ${itemizedAmount}`;
                     }
                     if (regularAmount) {
-                        return `Normaal boven ${regularAmount}, itemisatie niet vereist`;
+                        return `Regulier boven ${regularAmount}, itemisatie niet vereist`;
                     }
                     if (itemizedAmount) {
-                        return `Regelmatig, gespecificeerd overzicht niet vereist boven ${itemizedAmount}`;
+                        return `Vereis geen gewone, gespecificeerde bonnetjes boven ${itemizedAmount}`;
                     }
-                    return 'Geen bonnetjes vereist';
+                    return 'Geen bonnen verplichten';
                 },
                 requireFieldsForAllExpenses: 'Velden vereisen voor alle uitgaven',
                 cashExpenses: 'Contante uitgaven',
@@ -7435,17 +7435,18 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 cashExpensesNonReimbursableByDefault: 'Standaard niet-declarabel',
                 cashExpensesAlwaysReimbursable: 'Altijd te vergoeden',
                 cashExpensesAlwaysNonReimbursable: 'Altijd niet-vergoedbaar',
-                billableExpenses: 'Declareerbare uitgaven',
-                billableExpensesBillable: 'Declarabel in contanten en met creditcard',
-                billableExpensesNonBillable: 'Contant en creditcard niet-declarabel',
+                billableExpenses: 'Factureerbare uitgaven',
+                billableExpensesBillable: 'Declarabel contant en creditcard',
+                billableExpensesNonBillable: 'Contant en creditcard niet-declareerbaar',
             },
             requireReceipts: {
-                title: 'Bonnen vereisen',
-                description: 'Vereis bonnen wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriebepaling.',
+                title: 'Bonnen verplicht stellen',
+                description: 'Bonnen verplichten wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categorietoevoeging.',
                 requireReceipt: 'Bon vereist',
-                requireItemizedReceipt: 'Gespecificeerde bon verplicht',
-                requireAboveAmount: 'Vereist bovenstaand bedrag',
+                requireItemizedReceipt: 'Gespecificeerde bon vereist',
+                requireAboveAmount: 'Bovenstaand bedrag verplicht stellen',
                 saveRule: 'Regel opslaan',
+                emptyAmountError: 'Voer een geldig bedrag in voordat je opslaat',
             },
             requireFields: {title: 'Velden vereisen voor alle uitgaven', category: 'Categorie', tag: 'Label', save: 'Regel opslaan'},
             newRule: {
@@ -7463,7 +7464,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 findRule: 'Regel zoeken',
                 rename: 'Naam wijzigen',
                 update: 'Bijwerken',
-                merchantIs: (merchant: string) => `Verkoper is "${merchant}"`,
+                merchantIs: (merchant: string) => `Handelaar is "${merchant}"`,
             },
         },
         planTypePage: {

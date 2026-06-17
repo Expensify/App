@@ -7176,9 +7176,9 @@ ${amount} para ${merchant} - ${date}`,
                 saveAnyway: 'Guardar de todos modos',
                 applyToExistingUnsubmittedExpenses: 'Aplicar a gastos existentes no enviados',
                 expenseDefaultsTitle: 'Valores predeterminados de gastos',
-                expenseDefaultsSubtitle: 'Actualizar campos sin que la persona que envía tenga que hacer nada',
-                ifAnyExpenseMatches: 'Si alguna gasto coincide:',
-                thenApplyFollowingDefaults: 'Luego aplica los siguientes valores predeterminados:',
+                expenseDefaultsSubtitle: 'Actualizar campos sin que quien los envía haga nada',
+                ifAnyExpenseMatches: 'Si algún gasto coincide con:',
+                thenApplyFollowingDefaults: 'Luego aplica las siguientes opciones predeterminadas:',
             },
             categoryRules: {
                 title: 'Reglas de categoría',
@@ -7303,7 +7303,7 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Agencias de viajes',
                 },
                 defaultRuleSummary: 'Categorías que incluyen servicios para adultos, cajeros automáticos, juegos de azar y...',
-                findRule: 'Encontrar regla',
+                findRule: 'Buscar regla',
                 defaultSection: 'Predeterminado',
                 customRulesSection: 'Reglas personalizadas',
                 tableColumnType: 'Tipo',
@@ -7312,8 +7312,8 @@ ${amount} para ${merchant} - ${date}`,
                 cardRulesUpsell: {
                     title: 'Consigue la Tarjeta Expensify y controla los gastos',
                     subtitle:
-                        'Con la Tarjeta Expensify puedes establecer reglas de gasto máximo, bloquear o permitir ciertos comercios o tipos de compras. También recibes un 2% de devolución de dinero.',
-                    cta: 'Consigue la tarjeta',
+                        'Con la Tarjeta Expensify puedes establecer reglas de gasto máximo, bloquear o permitir ciertos comercios o tipos de compras. Además, obtienes un 2% de devolución de dinero.',
+                    cta: 'Obtén la tarjeta',
                 },
                 restrictCardSpendTitle: 'Restringir gasto con la tarjeta',
                 restrictCardSpendSubtitle: 'Bloquea o limita el gasto en el punto de venta.',
@@ -7348,56 +7348,57 @@ ${amount} para ${merchant} - ${date}`,
             },
             generalTab: {
                 title: 'Reglas básicas',
-                subtitle: 'Reglas comunes para controlar el gasto',
-                expensesOlderThan: 'Gastos anteriores a',
-                expensesAboveAmount: 'Gastos por encima del importe',
-                flagReceiptLineItems: 'Marcar partidas del recibo',
+                subtitle: 'Reglas habituales para controlar el gasto',
+                expensesOlderThan: 'Marcar gastos anteriores a',
+                expensesAboveAmount: 'Marcar gastos por encima de un importe',
+                flagReceiptLineItems: 'Marcar partidas de línea del recibo',
                 receiptRequirements: 'Solicitar recibos',
                 receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
                     if (regularAmount && itemizedAmount) {
-                        return `Regular por encima de ${regularAmount}, desglosado por encima de ${itemizedAmount}`;
+                        return `Normal a partir de ${regularAmount}, desglosado a partir de ${itemizedAmount}`;
                     }
                     if (regularAmount) {
-                        return `Normal por encima de ${regularAmount}, no requiere desglosar por partidas`;
+                        return `Normal por encima de ${regularAmount}, no requiere desglose`;
                     }
                     if (itemizedAmount) {
-                        return `No solicitar recibos simples, solo desglosados por encima de ${itemizedAmount}`;
+                        return `No solicitar recibo regular ni desglosado por encima de ${itemizedAmount}`;
                     }
                     return 'No solicitar recibos';
                 },
-                requireFieldsForAllExpenses: 'Requerir campos para todos los gastos',
+                requireFieldsForAllExpenses: 'Exigir campos para todos los gastos',
                 cashExpenses: 'Gastos en efectivo',
-                cashExpensesReimbursableByDefault: 'Reembolsable por defecto',
+                cashExpensesReimbursableByDefault: 'Reembolsable de forma predeterminada',
                 cashExpensesNonReimbursableByDefault: 'No reembolsable de forma predeterminada',
                 cashExpensesAlwaysReimbursable: 'Siempre reembolsable',
                 cashExpensesAlwaysNonReimbursable: 'Siempre no reembolsable',
                 billableExpenses: 'Gastos facturables',
-                billableExpensesBillable: 'Efectivo y tarjeta de crédito facturable',
+                billableExpensesBillable: 'Efectivo y tarjeta de crédito facturables',
                 billableExpensesNonBillable: 'Efectivo y tarjeta de crédito no facturable',
             },
             requireReceipts: {
                 title: 'Solicitar recibos',
-                description: 'Solicita recibos cuando el gasto supere esta cantidad, a menos que una regla de categoría lo anule.',
+                description: 'Solicitar recibos cuando el gasto supere esta cantidad, a menos que una regla de categoría lo sustituya.',
                 requireReceipt: 'Solicitar recibo',
-                requireItemizedReceipt: 'Solicitar recibo desglosado',
+                requireItemizedReceipt: 'Requerir recibo desglosado',
                 requireAboveAmount: 'Requerir importe superior',
                 saveRule: 'Guardar regla',
+                emptyAmountError: 'Introduce una cantidad válida antes de guardar',
             },
-            requireFields: {title: 'Requerir campos para todos los gastos', category: 'Categoría', tag: 'Etiqueta', save: 'Guardar regla'},
+            requireFields: {title: 'Exigir campos para todos los gastos', category: 'Categoría', tag: 'Etiqueta', save: 'Guardar regla'},
             newRule: {
                 title: 'Nueva regla',
                 subtitle: '¿Qué quieres hacer?',
                 restrictCardSpend: 'Restringir gasto con la tarjeta',
                 restrictCardSpendDescription: 'Bloquea o limita el gasto en el punto de venta',
-                applyExpenseDefaults: 'Aplicar valores predeterminados de gasto',
-                applyExpenseDefaultsDescription: 'Actualizar campos sin que la persona que envía tenga que hacer nada',
+                applyExpenseDefaults: 'Aplicar valores predeterminados de gastos',
+                applyExpenseDefaultsDescription: 'Actualizar campos sin que quien los envía haga nada',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
                 tableColumnCondition: 'Condición',
                 tableColumnRule: 'Regla',
-                findRule: 'Encontrar regla',
-                rename: 'Renombrar',
+                findRule: 'Buscar regla',
+                rename: 'Cambiar nombre',
                 update: 'Actualizar',
                 merchantIs: (merchant: string) => `El comercio es «${merchant}»`,
             },

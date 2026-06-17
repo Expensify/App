@@ -7158,8 +7158,8 @@ ${reportName}`,
                 applyToExistingUnsubmittedExpenses: '既存の未提出経費に適用',
                 findRule: '加盟店ルールを検索',
                 expenseDefaultsTitle: '経費のデフォルト設定',
-                expenseDefaultsSubtitle: '申請者が何もしなくても項目を更新します',
-                ifAnyExpenseMatches: 'いずれかの経費が次の条件に一致する場合:',
+                expenseDefaultsSubtitle: '申請者が何も操作しなくてもフィールドを更新する',
+                ifAnyExpenseMatches: 'いずれかの経費が次の条件に一致する場合：',
                 thenApplyFollowingDefaults: '次に、以下のデフォルトを適用します。',
             },
             categoryRules: {
@@ -7319,19 +7319,19 @@ ${reportName}`,
                 cardRulesUpsell: {
                     title: 'Expensify カードを入手して支出を管理しましょう',
                     subtitle:
-                        'Expensify カードを使うと、最大利用額のルールを設定したり、特定の加盟店や購入タイプをブロック／許可したりできます。さらに、2％のキャッシュバックも受けられます。',
+                        'Expensify カードを使うと、利用限度額のルールを設定したり、特定の加盟店や購入タイプをブロックまたは許可したりできます。さらに、2％のキャッシュバックも受けられます。',
                     cta: 'カードを申し込む',
                 },
-                restrictCardSpendTitle: 'カードの利用制限',
-                restrictCardSpendSubtitle: '販売時点で支出をブロックまたは制限できます。',
+                restrictCardSpendTitle: 'カード利用を制限',
+                restrictCardSpendSubtitle: '販売時点で支出をブロックまたは制限します。',
                 ifAnyCardMatches: 'いずれかのカードが次と一致する場合:',
-                thenDoThisAtPointOfSale: '次に、販売時点で次の操作を行ってください。',
+                thenDoThisAtPointOfSale: 'あとは、販売時点で次のことを行ってください。',
                 permittedCurrencies: '許可された通貨',
                 setRestrictions: '制限を設定',
-                merchantRestrictions: '加盟店制限',
+                merchantRestrictions: '加盟店の制限',
                 blockedMerchant: 'ブロックされた加盟店',
                 blockedMerchantTypes: 'ブロックされた加盟店タイプ',
-                maxAmountAbove: ({amount}: {amount: string}) => `${amount} を超える`,
+                maxAmountAbove: ({amount}: {amount: string}) => `${amount}以上`,
             },
             agentRules: {
                 title: 'エージェントルール',
@@ -7348,7 +7348,7 @@ ${reportName}`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>エージェント ルールを適用するために、エージェントを作成し、ワークスペースの管理者として追加しました。<br><br>エージェントの詳細は <a href="${agentsRoute}">「アカウント」&gt;「エージェント」</a> で編集できます。</muted-text>`,
             },
-            tabs: {general: '一般', cardRestrictions: 'カード制限', expenseDefaults: '経費のデフォルト設定'},
+            tabs: {general: '一般', cardRestrictions: 'カードの制限', expenseDefaults: '経費のデフォルト設定'},
             bulkActions: {
                 deleteMultiple: {one: 'ルールを削除', other: 'ルールを削除'},
                 deleteMultipleConfirmation: {one: 'このルールを削除してもよろしいですか？', other: 'これらのルールを削除してもよろしいですか？'},
@@ -7356,48 +7356,49 @@ ${reportName}`,
             generalTab: {
                 title: '基本ルール',
                 subtitle: '支出を管理する共通ルール',
-                expensesOlderThan: '次より前の経費',
-                expensesAboveAmount: '金額が上回る経費',
+                expensesOlderThan: '次の日付より前の経費にフラグを付ける',
+                expensesAboveAmount: '指定金額を超える経費にフラグを付ける',
                 flagReceiptLineItems: 'レシートの明細行にフラグを付ける',
-                receiptRequirements: '領収書を必須にする',
+                receiptRequirements: 'レシートを必須にする',
                 receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
                     if (regularAmount && itemizedAmount) {
-                        return `通常経費は${regularAmount}以上、項目別経費は${itemizedAmount}以上`;
+                        return `通常経費は${regularAmount}以上、明細経費は${itemizedAmount}以上`;
                     }
                     if (regularAmount) {
-                        return `通常は ${regularAmount} を超える場合でも、明細化を必須にしない`;
+                        return `通常分は ${regularAmount} を超える場合、明細化は不要です`;
                     }
                     if (itemizedAmount) {
-                        return `通常の明細は、${itemizedAmount} を超える場合は不要`;
+                        return `明細の合計が ${itemizedAmount} を超える場合は、通常の明細入力を必須にしない`;
                     }
                     return '領収書を必須にしない';
                 },
-                requireFieldsForAllExpenses: 'すべての経費で項目の入力を必須にする',
+                requireFieldsForAllExpenses: 'すべての経費に必須項目を設定する',
                 cashExpenses: '現金経費',
                 cashExpensesReimbursableByDefault: 'デフォルトで精算対象',
                 cashExpensesNonReimbursableByDefault: 'デフォルトで非精算扱い',
                 cashExpensesAlwaysReimbursable: '常に精算対象',
                 cashExpensesAlwaysNonReimbursable: '常に精算対象外',
                 billableExpenses: '請求可能な経費',
-                billableExpensesBillable: '現金およびクレジットカード（請求可能）',
-                billableExpensesNonBillable: '現金およびクレジットカード（請求不可）',
+                billableExpensesBillable: '現金およびクレジットカードの請求対象',
+                billableExpensesNonBillable: '現金およびクレジットカード（請求対象外）',
             },
             requireReceipts: {
-                title: '領収書を必須にする',
-                description: '支出額がこの金額を超えた場合、カテゴリールールで上書きされていない限り、領収書を必須にします。',
+                title: 'レシートを必須にする',
+                description: 'カテゴリルールで上書きされない限り、この金額を超える支出にはレシートを必須にします。',
                 requireReceipt: '領収書を必須にする',
-                requireItemizedReceipt: '明細付きレシートを必須にする',
+                requireItemizedReceipt: '項目別のレシートを必須にする',
                 requireAboveAmount: '上記の金額を必須にする',
                 saveRule: 'ルールを保存',
+                emptyAmountError: '保存する前に有効な金額を入力してください',
             },
-            requireFields: {title: 'すべての経費で項目の入力を必須にする', category: 'カテゴリ', tag: 'タグ', save: 'ルールを保存'},
+            requireFields: {title: 'すべての経費に必須項目を設定する', category: 'カテゴリ', tag: 'タグ', save: 'ルールを保存'},
             newRule: {
                 title: '新しいルール',
                 subtitle: '何をしたいですか？',
-                restrictCardSpend: 'カードの利用制限',
+                restrictCardSpend: 'カード利用を制限',
                 restrictCardSpendDescription: '販売時点で支出をブロックまたは制限する',
                 applyExpenseDefaults: '経費のデフォルトを適用',
-                applyExpenseDefaultsDescription: '申請者が何もしなくても項目を更新します',
+                applyExpenseDefaultsDescription: '申請者が何も操作しなくてもフィールドを更新する',
             },
             expenseDefaultsTable: {
                 tableColumnType: '種類',
@@ -7406,7 +7407,7 @@ ${reportName}`,
                 findRule: 'ルールを検索',
                 rename: '名前を変更',
                 update: '更新',
-                merchantIs: (merchant: string) => `加盟店は「${merchant}」です`,
+                merchantIs: (merchant: string) => `加盟店名は「${merchant}」です`,
             },
         },
         planTypePage: {

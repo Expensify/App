@@ -7207,8 +7207,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 applyToExistingUnsubmittedExpenses: 'Zastosuj do istniejących niewysłanych wydatków',
                 findRule: 'Znajdź regułę sprzedawcy',
                 expenseDefaultsTitle: 'Domyślne ustawienia wydatków',
-                expenseDefaultsSubtitle: 'Aktualizuj pola bez konieczności wykonywania czegokolwiek przez zgłaszającego',
-                ifAnyExpenseMatches: 'Jeśli jakikolwiek wydatek pasuje:',
+                expenseDefaultsSubtitle: 'Aktualizuj pola bez wymagania działania od osoby zgłaszającej',
+                ifAnyExpenseMatches: 'Jeśli którykolwiek wydatek pasuje:',
                 thenApplyFollowingDefaults: 'Następnie zastosuj następujące domyślne ustawienia:',
             },
             categoryRules: {
@@ -7363,23 +7363,23 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 defaultRuleSummary: 'Kategorie obejmujące usługi dla dorosłych, bankomaty, hazard i...',
                 findRule: 'Znajdź regułę',
                 defaultSection: 'Domyślne',
-                customRulesSection: 'Niestandardowe zasady',
+                customRulesSection: 'Własne zasady',
                 tableColumnType: 'Typ',
                 tableColumnCard: 'Karta',
-                tableColumnRule: 'Reguła',
+                tableColumnRule: 'Zasada',
                 cardRulesUpsell: {
                     title: 'Zdobądź Kartę Expensify i kontroluj wydatki',
                     subtitle:
-                        'Dzięki Karcie Expensify możesz ustawiać limity wydatków, blokować lub zezwalać na transakcje u wybranych sprzedawców albo na określone typy zakupów. Dostajesz też 2% zwrotu w gotówce.',
+                        'Dzięki Karcie Expensify możesz ustawiać limity wydatków, blokować lub zezwalać na określonych sprzedawców lub typy zakupów. Dostajesz też 2% zwrotu w gotówce.',
                     cta: 'Zamów kartę',
                 },
                 restrictCardSpendTitle: 'Ogranicz wydatki kartą',
-                restrictCardSpendSubtitle: 'Blokuj lub ograniczaj wydatki przy płatności w punkcie sprzedaży.',
-                ifAnyCardMatches: 'Jeśli jakakolwiek karta pasuje:',
-                thenDoThisAtPointOfSale: 'Następnie zrób to w punkcie sprzedaży:',
+                restrictCardSpendSubtitle: 'Zablokuj lub ogranicz wydatki w punkcie sprzedaży.',
+                ifAnyCardMatches: 'Jeśli któraś karta pasuje:',
+                thenDoThisAtPointOfSale: 'Następnie zrób to przy kasie:',
                 permittedCurrencies: 'Dozwolone waluty',
                 setRestrictions: 'Ustaw ograniczenia',
-                merchantRestrictions: 'Ograniczenia u sprzedawcy',
+                merchantRestrictions: 'Ograniczenia u sprzedawców',
                 blockedMerchant: 'Zablokowany sprzedawca',
                 blockedMerchantTypes: 'Zablokowane typy sprzedawców',
                 maxAmountAbove: ({amount}: {amount: string}) => `powyżej ${amount}`,
@@ -7406,40 +7406,41 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             },
             generalTab: {
                 title: 'Podstawowe zasady',
-                subtitle: 'Wspólne reguły kontrolujące wydatki',
-                expensesOlderThan: 'Wydatki starsze niż',
-                expensesAboveAmount: 'Wydatki powyżej kwoty',
+                subtitle: 'Wspólne zasady kontroli wydatków',
+                expensesOlderThan: 'Oznacz wydatki starsze niż',
+                expensesAboveAmount: 'Oznaczaj wydatki powyżej kwoty',
                 flagReceiptLineItems: 'Oznacz pozycje na paragonie',
                 receiptRequirements: 'Wymagaj paragonów',
                 receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
                     if (regularAmount && itemizedAmount) {
-                        return `Zwykły powyżej ${regularAmount}, z rozbiciem powyżej ${itemizedAmount}`;
+                        return `Zwykłe powyżej ${regularAmount}, z wyszczególnieniem powyżej ${itemizedAmount}`;
                     }
                     if (regularAmount) {
-                        return `Zwykłe powyżej ${regularAmount}, nie wymagaj pozycji`;
+                        return `Zwykłe powyżej ${regularAmount}, nie wymagają wyszczególnienia`;
                     }
                     if (itemizedAmount) {
-                        return `Nie wymagaj zwykłych, wyszczególnionych powyżej ${itemizedAmount}`;
+                        return `Nie wymagaj zwykłego, wyszczególnionego powyżej ${itemizedAmount}`;
                     }
                     return 'Nie wymagaj paragonów';
                 },
                 requireFieldsForAllExpenses: 'Wymagaj pól dla wszystkich wydatków',
                 cashExpenses: 'Wydatki gotówkowe',
-                cashExpensesReimbursableByDefault: 'Domyślnie refundowane',
-                cashExpensesNonReimbursableByDefault: 'Domyślnie bez zwrotu kosztów',
-                cashExpensesAlwaysReimbursable: 'Zawsze podlega zwrotowi',
-                cashExpensesAlwaysNonReimbursable: 'Zawsze niepodlegające zwrotowi',
-                billableExpenses: 'Koszty refakturowane',
-                billableExpensesBillable: 'Płatne gotówką i kartą kredytową',
-                billableExpensesNonBillable: 'Gotówka i karta kredytowa – nieobciążalne',
+                cashExpensesReimbursableByDefault: 'Domyślnie podlega zwrotowi',
+                cashExpensesNonReimbursableByDefault: 'Domyślnie nierozliczany',
+                cashExpensesAlwaysReimbursable: 'Zawsze podlegające zwrotowi',
+                cashExpensesAlwaysNonReimbursable: 'Zawsze bez zwrotu kosztów',
+                billableExpenses: 'Fakturowalne wydatki',
+                billableExpensesBillable: 'Gotówkowe i kartowe, do refakturowania',
+                billableExpensesNonBillable: 'Gotówka i karta kredytowa niefakturowane',
             },
             requireReceipts: {
                 title: 'Wymagaj paragonów',
-                description: 'Wymagaj paragonów, gdy wydatek przekracza tę kwotę, chyba że nadpisuje to reguła kategorii.',
+                description: 'Wymagaj paragonów, gdy wydatek przekracza tę kwotę, chyba że zastąpi to reguła kategorii.',
                 requireReceipt: 'Wymagaj paragonu',
-                requireItemizedReceipt: 'Wymagaj pozycji na paragonie',
+                requireItemizedReceipt: 'Wymagaj wyszczególnionego paragonu',
                 requireAboveAmount: 'Wymagaj kwoty powyżej tej',
                 saveRule: 'Zapisz regułę',
+                emptyAmountError: 'Wpisz prawidłową kwotę przed zapisaniem',
             },
             requireFields: {title: 'Wymagaj pól dla wszystkich wydatków', category: 'Kategoria', tag: 'Tag', save: 'Zapisz regułę'},
             newRule: {
@@ -7448,12 +7449,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 restrictCardSpend: 'Ogranicz wydatki kartą',
                 restrictCardSpendDescription: 'Blokuj lub ograniczaj wydatki w punkcie sprzedaży',
                 applyExpenseDefaults: 'Zastosuj domyślne ustawienia wydatków',
-                applyExpenseDefaultsDescription: 'Aktualizuj pola bez konieczności wykonywania czegokolwiek przez zgłaszającego',
+                applyExpenseDefaultsDescription: 'Aktualizuj pola bez wymagania działania od osoby zgłaszającej',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
                 tableColumnCondition: 'Warunek',
-                tableColumnRule: 'Reguła',
+                tableColumnRule: 'Zasada',
                 findRule: 'Znajdź regułę',
                 rename: 'Zmień nazwę',
                 update: 'Zaktualizuj',

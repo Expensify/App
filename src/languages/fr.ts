@@ -7281,8 +7281,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 findRule: 'Règle de recherche de commerçant',
                 expenseDefaultsTitle: 'Paramètres par défaut des dépenses',
                 expenseDefaultsSubtitle: 'Mettre à jour les champs sans que le déclarant ne fasse quoi que ce soit',
-                ifAnyExpenseMatches: 'Si une dépense correspond :',
-                thenApplyFollowingDefaults: 'Appliquez ensuite les valeurs par défaut suivantes :',
+                ifAnyExpenseMatches: 'Si une dépense correspond :',
+                thenApplyFollowingDefaults: 'Appliquez ensuite les valeurs par défaut suivantes :',
             },
             categoryRules: {
                 title: 'Règles de catégorie',
@@ -7444,16 +7444,16 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cardRulesUpsell: {
                     title: 'Obtenez la Carte Expensify et contrôlez les dépenses',
                     subtitle:
-                        'Avec la Carte Expensify, vous pouvez définir des règles pour le montant maximal des dépenses, bloquer ou autoriser certains commerçants ou types d’achats. Vous bénéficiez également de 2 % de remise en argent.',
+                        'Avec la Carte Expensify, vous pouvez définir des règles de dépense maximale, bloquer ou autoriser certains commerçants ou types d’achats. Vous bénéficiez aussi de 2 % de remise en espèces.',
                     cta: 'Obtenir la carte',
                 },
-                restrictCardSpendTitle: 'Limiter les dépenses par carte',
+                restrictCardSpendTitle: 'Limiter les dépenses de la carte',
                 restrictCardSpendSubtitle: 'Bloquez ou limitez les dépenses au point de vente.',
-                ifAnyCardMatches: 'Si une carte correspond :',
-                thenDoThisAtPointOfSale: 'Ensuite, faites ceci au point de vente :',
+                ifAnyCardMatches: 'Si une carte correspond :',
+                thenDoThisAtPointOfSale: 'Ensuite, faites ceci au point de vente :',
                 permittedCurrencies: 'Devises autorisées',
                 setRestrictions: 'Définir des restrictions',
-                merchantRestrictions: 'Restrictions de commerçant',
+                merchantRestrictions: 'Restrictions du commerçant',
                 blockedMerchant: 'Commerçant bloqué',
                 blockedMerchantTypes: 'Types de marchands bloqués',
                 maxAmountAbove: ({amount}: {amount: string}) => `au-dessus de ${amount}`,
@@ -7476,24 +7476,24 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             tabs: {general: 'Général', cardRestrictions: 'Restrictions de carte', expenseDefaults: 'Paramètres par défaut des dépenses'},
             bulkActions: {
                 deleteMultiple: {one: 'Supprimer la règle', other: 'Supprimer les règles'},
-                deleteMultipleConfirmation: {one: 'Êtes-vous sûr de vouloir supprimer cette règle ?', other: 'Voulez-vous vraiment supprimer ces règles ?'},
+                deleteMultipleConfirmation: {one: 'Voulez-vous vraiment supprimer cette règle ?', other: 'Voulez-vous vraiment supprimer ces règles ?'},
             },
             generalTab: {
                 title: 'Règles de base',
-                subtitle: 'Règles communes pour contrôler les dépenses',
-                expensesOlderThan: 'Dépenses antérieures à',
-                expensesAboveAmount: 'Dépenses supérieures au montant',
-                flagReceiptLineItems: 'Signaler les lignes du reçu',
+                subtitle: 'Règles courantes pour contrôler les dépenses',
+                expensesOlderThan: 'Signaler les dépenses antérieures à',
+                expensesAboveAmount: 'Marquer les dépenses au-dessus d’un montant',
+                flagReceiptLineItems: 'Signaler les lignes de reçu',
                 receiptRequirements: 'Exiger des reçus',
                 receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
                     if (regularAmount && itemizedAmount) {
-                        return `Régulier au-dessus de ${regularAmount}, détaillé au-dessus de ${itemizedAmount}`;
+                        return `Dépense simple au-dessus de ${regularAmount}, détaillée au-dessus de ${itemizedAmount}`;
                     }
                     if (regularAmount) {
-                        return `Normal au-dessus de ${regularAmount}, ne pas exiger de ventilation`;
+                        return `Tarif normal au-dessus de ${regularAmount}, ne pas exiger de ventilation`;
                     }
                     if (itemizedAmount) {
-                        return `Ne pas exiger de dépense régulière, détaillée au‑delà de ${itemizedAmount}`;
+                        return `Ne pas exiger de dépense standard, détailler au-delà de ${itemizedAmount}`;
                     }
                     return 'Ne pas exiger de reçus';
                 },
@@ -7504,7 +7504,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cashExpensesAlwaysReimbursable: 'Toujours remboursable',
                 cashExpensesAlwaysNonReimbursable: 'Toujours non remboursable',
                 billableExpenses: 'Dépenses refacturables',
-                billableExpensesBillable: 'Dépenses en espèces et par carte de crédit refacturables',
+                billableExpensesBillable: 'Dépenses en espèces et par carte bancaire facturables',
                 billableExpensesNonBillable: 'Espèces et carte de crédit non facturables',
             },
             requireReceipts: {
@@ -7514,13 +7514,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 requireItemizedReceipt: 'Exiger un reçu détaillé',
                 requireAboveAmount: 'Exiger un montant supérieur',
                 saveRule: 'Enregistrer la règle',
+                emptyAmountError: 'Saisissez un montant valide avant d’enregistrer',
             },
             requireFields: {title: 'Rendre les champs obligatoires pour toutes les dépenses', category: 'Catégorie', tag: 'Tag', save: 'Enregistrer la règle'},
             newRule: {
                 title: 'Nouvelle règle',
-                subtitle: 'Que voulez-vous faire ?',
-                restrictCardSpend: 'Limiter les dépenses par carte',
-                restrictCardSpendDescription: 'Bloquez ou limitez les dépenses au point de vente',
+                subtitle: 'Que voulez-vous faire ?',
+                restrictCardSpend: 'Limiter les dépenses de la carte',
+                restrictCardSpendDescription: 'Bloquer ou limiter les dépenses au point de vente',
                 applyExpenseDefaults: 'Appliquer les valeurs de dépense par défaut',
                 applyExpenseDefaultsDescription: 'Mettre à jour les champs sans que le déclarant ne fasse quoi que ce soit',
             },
@@ -7531,7 +7532,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 findRule: 'Trouver une règle',
                 rename: 'Renommer',
                 update: 'Mettre à jour',
-                merchantIs: (merchant: string) => `Le commerçant est « ${merchant} »`,
+                merchantIs: (merchant: string) => `Le commerçant est « ${merchant} »`,
             },
         },
         planTypePage: {
