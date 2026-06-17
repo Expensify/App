@@ -367,7 +367,7 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
  */
 function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
-    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin);
     if (!activePolicies) {
         return false;
     }

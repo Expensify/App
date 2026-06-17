@@ -1,6 +1,6 @@
 // On native platforms, advanced filters is served from SearchAdvancedFiltersPage
-function AdvancedFiltersModal() {
+function SearchAdvancedFiltersPopup() {
     return null;
 }
 
-export default AdvancedFiltersModal;
+export default SearchAdvancedFiltersPopup;
