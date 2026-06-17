@@ -48,10 +48,11 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={{context: 'domainAdminsTableRow'}}
+            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.ROW}
             offlineWithFeedback={{
                 errors: item.errors,
                 pendingAction: item.pendingAction,
-                dismissError: item.dismissError,
+                onClose: item.dismissError,
             }}
             onPress={item.action}
         >
@@ -75,7 +76,7 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                                 numberOfLines={1}
                             >
-                                {item.login}
+                                {item.email}
                             </Text>
                         </View>
                     </View>
