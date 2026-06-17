@@ -10,7 +10,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import DeferredAutocompleteList from '@components/Search/DeferredSearchAutocompleteList';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
-import {useSearchQueryActions} from '@components/Search/SearchContext';
+import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
@@ -18,10 +18,12 @@ import type {SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
@@ -32,11 +34,12 @@ import backHistory from '@libs/Navigation/helpers/backHistory';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {isHiddenForCurrentUser} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
-import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -45,6 +48,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
+import {buildSubstitutionsMap} from './buildSubstitutionsMap';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
@@ -80,7 +84,54 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
     const {askConcierge, shouldShowAskConcierge} = useAskConcierge();
 
-    const initialQuery = peekPendingRouterQuery();
+    const {contextualReportID, isSearchRouterScreen, isOnSearchPage} = useRootNavigationState(getContextualReportData);
+    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
+    const reportAttributes = useReportAttributes();
+
+    // Seed the input on open. When the SearchRouter is opened while on the search page, we build a
+    // user-readable query string from the current search query (showing names instead of IDs) along
+    // with the substitutions map needed to map those names back to IDs when submitting.
+    // Otherwise we fall back to the explicit pending query (e.g. from ExpenseReportSearchHandler).
+    // Computed once via a lazy initializer so the query string and its substitutions stay consistent.
+    const [[initialQuery, initialSubstitutions]] = useState<[string, SubstitutionMap]>(() => {
+        if (!isOnSearchPage || !currentSearchQueryJSON) {
+            return [peekPendingRouterQuery(), {}];
+        }
+
+        const taxRates = getAllTaxRates(policies);
+        const query = buildUserReadableQueryString({
+            queryJSON: currentSearchQueryJSON,
+            PersonalDetails: personalDetails,
+            reports,
+            taxRates,
+            cardList: personalAndWorkspaceCards,
+            cardFeeds: allFeeds,
+            policies,
+            currentUserAccountID,
+            autoCompleteWithSpace: false,
+            translate,
+            feedKeysWithCards,
+            reportAttributes,
+        });
+        const substitutions = buildSubstitutionsMap(
+            currentSearchQueryJSON.inputQuery,
+            personalDetails,
+            reports,
+            taxRates,
+            personalAndWorkspaceCards,
+            allFeeds,
+            policies,
+            currentUserAccountID,
+            translate,
+            reportAttributes,
+        );
+        return [query, substitutions];
+    });
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState(initialQuery, 500);
@@ -91,10 +142,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     useEffect(() => {
         clearPendingRouterQuery();
     }, []);
-    const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
+    const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>(initialSubstitutions);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
-
-    const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
     const [contextualReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`, {
