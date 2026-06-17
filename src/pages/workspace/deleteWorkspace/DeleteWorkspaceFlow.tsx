@@ -70,10 +70,20 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
     const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
-    const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyID);
+    const {reportsToArchive, transactionViolations, reportsResult, transactionsResult, transactionViolationsResult} = useTransactionViolationOfWorkspace(policyID);
     const [accountIDToLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: accountIDToLoginSelector(reportsToArchive)});
 
-    const isLoadingData = isLoadingOnyxValue(policiesResult, accountResult, amountOwedResult, privateSubscriptionResult, cardFeedsResult, cardsListResult);
+    const isLoadingData = isLoadingOnyxValue(
+        policiesResult,
+        accountResult,
+        amountOwedResult,
+        privateSubscriptionResult,
+        cardFeedsResult,
+        cardsListResult,
+        reportsResult,
+        transactionsResult,
+        transactionViolationsResult,
+    );
 
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
@@ -174,42 +184,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
         onDismiss();
     };
 
-    useEffect(() => {
-        const prevIsPendingDelete = prevIsPendingDeleteRef.current;
-        prevIsPendingDeleteRef.current = isPendingDelete;
-
-        // Handle showing error modal when offline and error occurs
-        if (isOffline && policyLatestErrorMessage) {
-            if (isErrorModalShowingRef.current) {
-                return;
-            }
-            isErrorModalShowingRef.current = true;
-            showConfirmModal({
-                title: translate('workspace.common.delete'),
-                prompt: policyLatestErrorMessage,
-                confirmText: translate('common.buttonConfirm'),
-                cancelText: translate('common.cancel'),
-                success: false,
-                shouldShowCancelButton: false,
-            }).then(() => {
-                isErrorModalShowingRef.current = false;
-                hideDeleteWorkspaceErrorModal();
-            });
-            return;
-        }
-
-        if (!prevIsPendingDelete || isPendingDelete) {
-            return;
-        }
-        closeModal();
-        if (!isFocused || !policyLatestErrorMessage) {
-            // The deletion either succeeded or there is no error modal to show, so the flow is finished.
-            if (!isErrorModalShowingRef.current) {
-                onDismiss();
-            }
-            return;
-        }
-
+    const showErrorModal = () => {
         if (isErrorModalShowingRef.current) {
             return;
         }
@@ -225,6 +200,31 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
             isErrorModalShowingRef.current = false;
             hideDeleteWorkspaceErrorModal();
         });
+    };
+
+    useEffect(() => {
+        const prevIsPendingDelete = prevIsPendingDeleteRef.current;
+        prevIsPendingDeleteRef.current = isPendingDelete;
+
+        // Handle showing error modal when offline and error occurs
+        if (isOffline && policyLatestErrorMessage) {
+            showErrorModal();
+            return;
+        }
+
+        if (!prevIsPendingDelete || isPendingDelete) {
+            return;
+        }
+        closeModal();
+        if (!isFocused || !policyLatestErrorMessage) {
+            // The deletion either succeeded or there is no error modal to show, so the flow is finished.
+            if (!isErrorModalShowingRef.current) {
+                onDismiss();
+            }
+            return;
+        }
+
+        showErrorModal();
     }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyLatestErrorMessage, isPendingDelete, isFocused, closeModal, onDismiss]);
 
     return outstandingBalanceModal;
