@@ -6368,6 +6368,7 @@ const translations = {
             cardAdmins: 'Card Admins',
             approvers: 'Approvers',
             auditors: 'Auditors',
+            editors: 'Editors',
             emptyRoleFilter: {
                 title: 'No members match this filter',
                 subtitle: 'Invite a member or change the filter above.',

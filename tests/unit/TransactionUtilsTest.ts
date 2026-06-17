@@ -3584,4 +3584,46 @@ describe('TransactionUtils', () => {
             });
         });
     });
+
+    describe('isMapBasedDistanceRequest', () => {
+        it('returns false for undefined transaction', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(undefined)).toBe(false);
+        });
+
+        it('returns false for a non-distance (scan) request', () => {
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+            expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
+        });
+
+        it('returns false for an odometer distance request', () => {
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER});
+            expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
+        });
+
+        it('returns true for a map distance request', () => {
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP});
+            expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(true);
+        });
+
+        it('returns true for a GPS distance request', () => {
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS});
+            expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(true);
+        });
+
+        it('returns true for a manual distance request that carries waypoints', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                comment: {waypoints: {waypoint0: {lat: 0, lng: 0}, waypoint1: {lat: 1, lng: 1}}},
+            });
+            expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(true);
+        });
+
+        it('returns false for a manual distance request with no waypoints', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                comment: {waypoints: {}},
+            });
+            expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
+        });
+    });
 });

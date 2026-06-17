@@ -6240,6 +6240,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             admins: 'ワークスペース管理者',
             approvers: '承認者',
             auditors: '監査担当者',
+            editors: '編集者',
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
             configureHRSync: (providerName: string) => `${providerName} の同期を設定します。`,
             syncWithHR: (providerName: string) => `${providerName}と同期`,
