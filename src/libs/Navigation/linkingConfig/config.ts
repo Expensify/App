@@ -42,7 +42,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.AUTO_SUBMIT_ROOT]: ROUTES.AUTO_SUBMIT_MODAL_ROOT,
                 [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path,
-                [SCREENS.EXPLANATION_MODAL_ROOT]: {
+            },
+        },
+        [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.EXPLANATION_MODAL.ROOT]: {
                     path: ROUTES.EXPLANATION_MODAL_ROOT,
                     exact: true,
                 },

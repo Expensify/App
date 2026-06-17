@@ -67,6 +67,7 @@ import ThreeDSAuthHandler from './ThreeDSAuthHandler';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 import UserStatusHandler from './UserStatusHandler';
+import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 
 const loadTabNavigator = () => require<ReactComponentModule>('./Navigators/TabNavigator').default;
 
@@ -300,6 +301,11 @@ function AuthScreens() {
                             options={rootNavigatorScreenOptions.fullScreen}
                             component={ShareModalStackNavigator}
                             listeners={modalScreenListeners}
+                        />
+                        <RootStack.Screen
+                            name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
+                            options={rootNavigatorScreenOptions.basicModalNavigator}
+                            component={ExplanationModalNavigator}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
