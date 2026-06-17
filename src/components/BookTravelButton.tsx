@@ -161,14 +161,14 @@ function BookTravelButton({
         if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
             openTravelDotLink(policy?.id);
         } else if (isPolicyProvisioned) {
-            // The workspace already has a Spotnana entity/address, so go straight to terms acceptance; validate the account first if needed.
-            const domain = adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+            // The workspace already has a Spotnana entity, so terms acceptance keys off the stored provisioning IDs, not the domain.
+            // Send the default sentinel so the backend defaults the travel-block check to the workspace owner's domain rather than an arbitrary admin's.
             if (!isUserValidated) {
-                setTravelProvisioningNextStep(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, activePolicyID)));
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
+                setTravelProvisioningNextStep(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID)));
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID, Navigation.getActiveRoute()));
                 return;
             }
-            navigateToAcceptTerms(domain, true, activePolicyID ?? undefined);
+            navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN, true, activePolicyID ?? undefined);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             if (!isUserValidated) {
                 Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));

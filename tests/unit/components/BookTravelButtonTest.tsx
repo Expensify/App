@@ -16,7 +16,7 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 const POLICY_ID = 'testPolicy123';
 const ADMIN_EMAIL = 'admin@company.com';
 const USER_LOGIN = 'user@company.com';
-const ADMIN_DOMAIN = 'company.com';
+const TCS_ROUTE = `terms/${CONST.TRAVEL.DEFAULT_DOMAIN}/accept/${POLICY_ID}`;
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -100,7 +100,7 @@ describe('BookTravelButton', () => {
     });
 
     describe('when the workspace is provisioned but terms are not yet accepted', () => {
-        it('navigates a validated admin straight to the Travel terms screen using the real admin domain', async () => {
+        it('navigates a validated admin straight to the Travel terms screen using the default domain', async () => {
             // Given a provisioned, terms-not-accepted workspace and a validated admin
             await seedOnyx(true);
             renderBookTravelButton();
@@ -110,8 +110,8 @@ describe('BookTravelButton', () => {
             fireEvent.press(screen.getByText('Book a trip'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then it routes directly to the terms-and-conditions screen for the workspace's real domain
-            expect(Navigation.navigate).toHaveBeenCalledWith(`terms/${ADMIN_DOMAIN}/accept/${POLICY_ID}`);
+            // Then it routes directly to the terms-and-conditions screen with the default domain sentinel
+            expect(Navigation.navigate).toHaveBeenCalledWith(TCS_ROUTE);
             // And it does not dead-end through the verify-account hop that previously produced a not-found page
             expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('verify-account'));
             expect(setTravelProvisioningNextStep).not.toHaveBeenCalled();
@@ -128,7 +128,7 @@ describe('BookTravelButton', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the terms screen is stored as the post-validation destination
-            expect(setTravelProvisioningNextStep).toHaveBeenCalledWith(`terms/${ADMIN_DOMAIN}/accept/${POLICY_ID}`);
+            expect(setTravelProvisioningNextStep).toHaveBeenCalledWith(TCS_ROUTE);
             // And the admin is sent to verify their account first
             expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('travel/verify-account'));
         });
