@@ -1,11 +1,9 @@
-import React, {useState} from 'react';
+import type React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
-import {clearExportDownload} from '@libs/actions/Export';
 import {openOldDotLink} from '@libs/actions/Link';
 import {exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate} from '@libs/actions/Search';
@@ -20,6 +18,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDecisionModal from './useDecisionModal';
 import useExportAgainModal from './useExportAgainModal';
+import useExportDownloadStatusModal from './useExportDownloadStatusModal';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -71,9 +70,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
     const {showDecisionModal} = useDecisionModal();
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
     const {clearSelectedTransactions} = useSearchSelectionActions();
-
-    const [activeExportID, setActiveExportID] = useState<string | undefined>(undefined);
-    const [activeExportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${activeExportID}`);
+    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => clearSelectedTransactions(undefined, true));
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Table',
@@ -128,19 +125,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             },
             true,
         );
-        setActiveExportID(exportID);
-    };
-
-    const handleExportModalClose = () => {
-        // Keep the modal open while the export is still preparing (unless it was handed off to Concierge).
-        if (activeExportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !activeExportDownload?.shouldSendFromConcierge) {
-            return;
-        }
-        if (activeExportID) {
-            clearExportDownload(activeExportID, activeExportDownload);
-        }
-        setActiveExportID(undefined);
-        clearSelectedTransactions(undefined, true);
+        trackExport(exportID);
     };
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = {
@@ -266,15 +251,6 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             },
         },
     };
-
-    const exportDownloadStatusModal = activeExportID ? (
-        <ExportDownloadStatusModal
-            exportID={activeExportID}
-            isVisible
-            onClose={handleExportModalClose}
-            failedBody={translate('exportDownload.csvFailedBody')}
-        />
-    ) : null;
 
     return {
         exportActionEntries,
