@@ -9,7 +9,9 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -27,6 +29,18 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+type ConnectionStatusDetails = {
+    statusText: string;
+    statusTone?: 'default' | 'success' | 'danger';
+    tooltipText?: string;
+    message?: string;
+    actionText?: string;
+    onActionPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
+    isActionDisabled?: boolean;
+    linkText?: string;
+    onLinkPress?: (e: GestureResponderEvent | KeyboardEvent) => void;
+};
 
 type PaymentMethodItem = PaymentMethod & {
     key?: string;
@@ -50,6 +64,7 @@ type PaymentMethodItem = PaymentMethod & {
     isCardFrozen?: boolean;
     /** Whether the personal bank account is missing required personal info (name, address, phone) */
     isMissingPersonalInfo?: boolean;
+    connectionStatus?: ConnectionStatusDetails;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
@@ -146,7 +161,9 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     };
 
     let badgeText;
-    if (isInLockedState) {
+    if (item.connectionStatus) {
+        badgeText = undefined;
+    } else if (isInLockedState) {
         badgeText = translate('common.locked');
     } else if (isNeedingAction) {
         badgeText = translate('common.review');
@@ -155,12 +172,31 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     }
 
     let badgeIcon;
-    if (isInLockedState) {
+    if (!item.connectionStatus && isInLockedState) {
         badgeIcon = icons.DotIndicator;
     }
 
     // Card state pills (below title, next to description)
     const descriptionAddon = useMemo(() => {
+        if (item.connectionStatus) {
+            const badge = (
+                <Badge
+                    text={item.connectionStatus.statusText}
+                    success={item.connectionStatus.statusTone === 'success'}
+                    error={item.connectionStatus.statusTone === 'danger'}
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
+                />
+            );
+
+            return item.connectionStatus.tooltipText ? (
+                <Tooltip text={item.connectionStatus.tooltipText}>
+                    <View>{badge}</View>
+                </Tooltip>
+            ) : (
+                badge
+            );
+        }
         if (isNeedingAction && shouldShowDefaultBadge) {
             return (
                 <Badge
@@ -191,7 +227,37 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             );
         }
         return undefined;
-    }, [isNeedingAction, shouldShowDefaultBadge, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
+    }, [isNeedingAction, shouldShowDefaultBadge, item.connectionStatus, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
+
+    const renderStatusMessage = () => {
+        if (!item.connectionStatus?.message) {
+            return null;
+        }
+
+        return (
+            <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>
+                <Text style={[styles.textLabelSupporting, item.connectionStatus.statusTone === 'danger' ? styles.textDanger : undefined]}>
+                    {item.connectionStatus.message}
+                    {!!item.connectionStatus.actionText && !!item.connectionStatus.onActionPress && (
+                        <>
+                            {' '}
+                            <TextLink
+                                onPress={item.connectionStatus.isActionDisabled ? () => {} : item.connectionStatus.onActionPress}
+                            >
+                                {item.connectionStatus.actionText}
+                            </TextLink>
+                        </>
+                    )}
+                    {!!item.connectionStatus.linkText && !!item.connectionStatus.onLinkPress && (
+                        <>
+                            {' '}
+                            <TextLink onPress={item.connectionStatus.onLinkPress}>{item.connectionStatus.linkText}</TextLink>
+                        </>
+                    )}
+                </Text>
+            </View>
+        );
+    };
 
     return (
         <OfflineWithFeedback
@@ -217,8 +283,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 iconFill={item.iconFill}
                 badgeText={badgeText}
                 badgeIcon={badgeIcon}
-                isBadgeSuccess={isNeedingAction ? true : undefined}
-                isBadgeError={isInLockedState}
+                isBadgeSuccess={!item.connectionStatus && isNeedingAction ? true : undefined}
+                isBadgeError={!item.connectionStatus && isInLockedState}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={isNeedingAction ? undefined : item.iconRight}
                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
@@ -243,6 +309,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 brickRoadIndicator={item.brickRoadIndicator}
                 success={item.isMethodActive}
             />
+            {renderStatusMessage()}
             {isChaseAccountConnectedViaPlaid && (
                 <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>
                     <PressableWithFeedback

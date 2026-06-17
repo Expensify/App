@@ -20,7 +20,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {
     getAssignedCardSortKey,
     getCardFeedIcon,
@@ -40,7 +41,7 @@ import {
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
-import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
+import {getDescriptionForPolicyDomainCard, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getTravelInvoicingCard, isTravelCVVEligible} from '@libs/TravelInvoicingUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -147,6 +148,10 @@ function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMet
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 
+function getPolicyIDFromDomainName(domainName: string): string | undefined {
+    return domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
+}
+
 function keyExtractor(item: PaymentMethod | string) {
     if (typeof item === 'string') {
         return item;
@@ -180,7 +185,7 @@ function PaymentMethodList({
     onThreeDotsMenuPress,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, datetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines']);
     const illustrations = useThemeIllustrations();
@@ -210,6 +215,21 @@ function PaymentMethodList({
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
     const shouldShowListFooterComponent = shouldShowAddBankAccount;
 
+    const appendCardLastSync = (description: string | undefined, lastSyncText: string) => [description, lastSyncText].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
+
+    const mapBankStatusToRowStatus = (
+        status: BankAccountConnectionStatus,
+        onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
+        onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
+    ): PaymentMethodItem['connectionStatus'] => ({
+        statusText: translate(status.labelKey),
+        statusTone: status.tone,
+        tooltipText: status.tooltipKey ? translate(status.tooltipKey) : undefined,
+        message: status.messageKey ? translate(status.messageKey) : undefined,
+        actionText: status.actionKey ? translate(status.actionKey) : undefined,
+        onActionPress: status.actionKey === 'walletPage.bankAccountStatus.unlock' ? (onUnlockPress ?? onActionPress) : onActionPress,
+    });
+
     const computeFilteredPaymentMethods = (): Array<PaymentMethodItem | string> => {
         if (shouldShowAssignedCards) {
             const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
@@ -230,6 +250,9 @@ function PaymentMethodList({
                 const isUserPersonalCard = isPersonalCard(card);
                 const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
                 const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
+                const policyIDForCard = getPolicyIDFromDomainName(card.domainName);
+                const policyForCard = policyIDForCard ? policiesForAssignedCards?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForCard.toUpperCase()}`] : undefined;
+                const isAdminForCardPolicy = isPolicyAdmin(policyForCard);
 
                 let icon;
                 if (isUserPersonalCard && isCSVCard) {
@@ -261,6 +284,24 @@ function PaymentMethodList({
                 if (isUserPersonalCard && (!isEmptyObject(card.errors) || isCardConnectionBroken(card))) {
                     brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 }
+
+                const isCardBroken = isCardConnectionBroken(card);
+                const shouldShowCardConnectionMessage = isCardBroken || shouldShowRBR;
+                const cardLastSyncText = card.lastScrape ? translate('walletPage.cardLastSynced', datetimeToRelative(card.lastScrape)) : translate('walletPage.cardNeverSynced');
+                const cardConnectionStatus: PaymentMethodItem['connectionStatus'] = {
+                    statusText: translate(isCardInactive(card) ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active'),
+                    statusTone: shouldShowCardConnectionMessage ? 'danger' : isCardInactive(card) ? 'default' : 'success',
+                    message: shouldShowCardConnectionMessage
+                        ? translate(!isUserPersonalCard && isAdminForCardPolicy ? 'walletPage.cardStatus.fixConnectionIn' : isUserPersonalCard ? 'walletPage.cardStatus.fixConnection' : 'walletPage.cardStatus.askAdminToFixConnection')
+                        : undefined,
+                    actionText: isUserPersonalCard && shouldShowCardConnectionMessage ? translate('walletPage.cardStatus.fixConnection') : undefined,
+                    onActionPress: isUserPersonalCard && shouldShowCardConnectionMessage ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID))) : undefined,
+                    linkText: !isUserPersonalCard && isAdminForCardPolicy && shouldShowCardConnectionMessage ? translate('walletPage.cardStatus.companyCardsLink') : undefined,
+                    onLinkPress:
+                        !isUserPersonalCard && isAdminForCardPolicy && policyIDForCard && shouldShowCardConnectionMessage
+                            ? () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard))
+                            : undefined,
+                };
 
                 if (!isExpensifyCard(card)) {
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
@@ -298,7 +339,8 @@ function PaymentMethodList({
                         key: card.cardID.toString(),
                         plaidUrl,
                         title: cardTitle,
-                        description: isCSVImportCard ? translate('cardPage.csvCardDescription') : cardDescription,
+                        description: appendCardLastSync(isCSVImportCard ? translate('cardPage.csvCardDescription') : cardDescription, cardLastSyncText),
+                        connectionStatus: cardConnectionStatus,
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         shouldShowRightIcon,
@@ -318,33 +360,14 @@ function PaymentMethodList({
                     continue;
                 }
 
-                const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
-
                 // Travel cards are handled by the dedicated travelCardGrouped section below
                 if (isTravelCard(card)) {
                     continue;
                 }
 
-                // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
-                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
-                    const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
-                    const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
-                    if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
-                        assignedCardsGroupedItem.errors = {...assignedCardsGrouped.at(domainGroupIndex)?.errors, ...card.errors};
-                        if (
-                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN ||
-                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL ||
-                            Object.keys(assignedCardsGroupedItem.errors).length > 0
-                        ) {
-                            assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                        }
-                    }
-                    continue;
-                }
-
                 const pressHandler = onPress as CardPressHandler;
 
-                // The card shouldn't be grouped or it's domain group doesn't exist yet
+                // Do not group assigned cards by domain. Each card needs its own status, last sync, and RBR state.
                 const cardDescription =
                     card?.nameValuePairs?.issuedBy && card?.lastFourPAN
                         ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`
@@ -353,7 +376,8 @@ function PaymentMethodList({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     title: card?.nameValuePairs?.cardTitle || card.bank,
-                    description: cardDescription,
+                    description: appendCardLastSync(cardDescription, cardLastSyncText),
+                    connectionStatus: cardConnectionStatus,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
                     onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                         pressHandler({
@@ -368,7 +392,6 @@ function PaymentMethodList({
                             cardID: card.cardID,
                         }),
                     cardID: card.cardID,
-                    isGroupedCardDomain: !isAdminIssuedVirtualCard,
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
@@ -456,28 +479,33 @@ function PaymentMethodList({
                 description: paymentMethod.description,
             };
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
+            const bankConnectionStatus = isMissingPersonalInfo ? undefined : getBankAccountConnectionStatus(paymentMethod.accountData?.state);
+            const paymentMethodPress = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                pressHandler({
+                    event: e,
+                    ...paymentMethodData,
+                });
+            const paymentMethodThreeDotsPress =
+                onThreeDotsMenuPress &&
+                ((e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                    onThreeDotsMenuPress({
+                        event: e,
+                        ...paymentMethodData,
+                    }));
 
             return {
                 ...paymentMethod,
                 title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
-                onPress: (e: GestureResponderEvent) =>
-                    pressHandler({
-                        event: e,
-                        ...paymentMethodData,
-                    }),
-                onThreeDotsMenuPress: onThreeDotsMenuPress
-                    ? (e: GestureResponderEvent) =>
-                          onThreeDotsMenuPress({
-                              event: e,
-                              ...paymentMethodData,
-                          })
-                    : undefined,
+                onPress: paymentMethodPress,
+                onThreeDotsMenuPress: paymentMethodThreeDotsPress,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
                 iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                 shouldShowRightIcon,
                 canDismissError: true,
                 isMissingPersonalInfo,
+                brickRoadIndicator: bankConnectionStatus?.brickRoadIndicator,
+                connectionStatus: bankConnectionStatus ? mapBankStatusToRowStatus(bankConnectionStatus, paymentMethodPress, paymentMethodThreeDotsPress) : undefined,
             };
         });
         return combinedPaymentMethods;
