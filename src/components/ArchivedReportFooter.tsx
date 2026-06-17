@@ -5,7 +5,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {getPolicyName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -30,14 +30,14 @@ function ArchivedReportFooter({reportID}: ArchivedReportFooterProps) {
     const originalMessage = isClosedAction(reportClosedAction) ? getOriginalMessage(reportClosedAction) : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
     const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID];
-    let displayName = getDisplayNameOrDefault(actorPersonalDetails);
+    let displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: actorPersonalDetails, translate});
 
     let oldDisplayName: string | undefined;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
         const newAccountID = originalMessage?.newAccountID;
         const oldAccountID = originalMessage?.oldAccountID;
-        displayName = getDisplayNameOrDefault(personalDetails?.[newAccountID ?? CONST.DEFAULT_NUMBER_ID]);
-        oldDisplayName = getDisplayNameOrDefault(personalDetails?.[oldAccountID ?? CONST.DEFAULT_NUMBER_ID]);
+        displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[newAccountID ?? CONST.DEFAULT_NUMBER_ID], translate});
+        oldDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[oldAccountID ?? CONST.DEFAULT_NUMBER_ID], translate});
     }
 
     const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT && archiveReason !== CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED;

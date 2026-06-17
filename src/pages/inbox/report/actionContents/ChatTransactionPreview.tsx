@@ -23,6 +23,9 @@ type ChatTransactionPreviewProps = {
     /** The ID of the current report where the preview is rendered */
     reportID: string | undefined;
 
+    /** The ID of the chat report that owns the transaction. Defaults to reportID for chats; expense reports pass their parent chat. */
+    chatReportID?: string;
+
     /** The IOU report linked to this transaction, used when creating a transaction thread on demand */
     iouReport: OnyxEntry<OnyxTypes.Report>;
 
@@ -33,7 +36,7 @@ type ChatTransactionPreviewProps = {
     transactionID: string | undefined;
 };
 
-function ChatTransactionPreview({action, reportID, iouReport, shouldShowSplitPreview, transactionID}: ChatTransactionPreviewProps) {
+function ChatTransactionPreview({action, reportID, chatReportID = reportID, iouReport, shouldShowSplitPreview, transactionID}: ChatTransactionPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -47,7 +50,7 @@ function ChatTransactionPreview({action, reportID, iouReport, shouldShowSplitPre
         <View style={[styles.mt1, styles.w100]}>
             <TransactionPreview
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                chatReportID={reportID}
+                chatReportID={chatReportID}
                 reportID={reportID}
                 action={action}
                 isBillSplit={isSplitBillAction(action)}
