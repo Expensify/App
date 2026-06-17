@@ -6711,6 +6711,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             workspaceNeeds: 'Een workspace heeft minstens één ingeschakelde afstandstarief nodig.',
             distance: 'Afstand',
             centrallyManage: 'Beheer tarieven centraal, volg in mijlen of kilometers en stel een standaardcategorie in.',
+            emptyRates: {
+                title: 'Nog geen afstandstarieven',
+                subtitle: 'Voeg een tarief toe om kilometers te vergoeden tegen aangepaste tarieven.',
+            },
             rate: 'Beoordeling',
             addRate: 'Tarief toevoegen',
             findRate: 'Tarief zoeken',

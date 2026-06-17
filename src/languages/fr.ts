@@ -6772,6 +6772,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             workspaceNeeds: 'Un espace de travail doit avoir au moins un taux de distance activé.',
             distance: 'Distance',
             centrallyManage: 'Gérez les taux de manière centralisée, suivez en miles ou en kilomètres et définissez une catégorie par défaut.',
+            emptyRates: {
+                title: 'Aucun tarif de distance pour le moment',
+                subtitle: 'Ajoutez un tarif pour rembourser le kilométrage à des tarifs personnalisés.',
+            },
             rate: 'Taux',
             addRate: 'Ajouter un taux',
             findRate: 'Trouver le taux',

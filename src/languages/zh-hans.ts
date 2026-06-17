@@ -6538,6 +6538,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             workspaceNeeds: '一个工作区至少需要一个已启用的距离费率。',
             distance: '距离',
             centrallyManage: '集中管理费率，以英里或公里跟踪，并设置默认类别。',
+            emptyRates: {
+                title: '尚无距离费率',
+                subtitle: '添加费率以按自定义费率报销里程。',
+            },
             rate: '评分',
             addRate: '添加费率',
             findRate: '查找费率',

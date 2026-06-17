@@ -6893,6 +6893,10 @@ const translations = {
             workspaceNeeds: 'A workspace needs at least one enabled distance rate.',
             distance: 'Distance',
             centrallyManage: 'Centrally manage rates, track in miles or kilometers, and set a default category.',
+            emptyRates: {
+                title: 'No distance rates yet',
+                subtitle: 'Add a rate to reimburse mileage at custom rates.',
+            },
             rate: 'Rate',
             addRate: 'Add rate',
             findRate: 'Find rate',

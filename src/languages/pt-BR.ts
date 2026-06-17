@@ -6706,6 +6706,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             workspaceNeeds: 'Um workspace precisa de pelo menos uma taxa de distância ativada.',
             distance: 'Distância',
             centrallyManage: 'Gerencie tarifas centralmente, acompanhe em milhas ou quilômetros e defina uma categoria padrão.',
+            emptyRates: {
+                title: 'Ainda não há tarifas de distância',
+                subtitle: 'Adicione uma tarifa para reembolsar quilometragem com tarifas personalizadas.',
+            },
             rate: 'Avaliar',
             addRate: 'Adicionar tarifa',
             findRate: 'Encontrar tarifa',
