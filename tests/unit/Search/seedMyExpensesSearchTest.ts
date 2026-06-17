@@ -156,7 +156,7 @@ describe('seedMyExpensesSearch', () => {
         expect(entries).toHaveLength(1);
 
         const entry = entries.at(0);
-        expect(entry.name).toBe('My expenses');
+        expect(entry?.name).toBe('My expenses');
         // pendingAction is cleared by successData once the mock fetch resolves, so only name/query are stable
     });
 
