@@ -15,7 +15,7 @@ Expensify also supports Agent Rules, which are workspace-level AI automations en
 
 ---
 
-## Who can use Agents
+## Who can use Custom Agents
 
 Custom Agents are currently available through an open beta program. If you’d like to try Custom Agents and provide feedback, contact Concierge to request access.
 
