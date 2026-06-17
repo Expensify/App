@@ -10,7 +10,8 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
+import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -86,12 +87,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether this is a multi-select list */
     canSelectMultiple: boolean;
 
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
-
-    /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
-    onAllCheckboxPress: () => void;
-
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
 
@@ -121,9 +116,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     newTransactions?: Transaction[];
 
-    /** Selected transactions for determining isSelected state */
-    selectedTransactions: SelectedTransactions;
-
     /** Non-personal and workspace cards (same drill path as former custom card names for rows) */
     nonPersonalAndWorkspaceCards?: CardList;
 
@@ -132,6 +124,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Whether the action column should use its wider variant (e.g. when there is at least one deleted transaction) */
     isActionColumnWide?: boolean;
+
+    /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses) */
+    isAttendeesEnabledForMovingPolicy?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
@@ -195,10 +190,8 @@ function SearchList({
     ListItem,
     SearchTableHeader,
     onSelectRow,
-    onCheckboxPress,
     canSelectMultiple,
     onScroll = () => {},
-    onAllCheckboxPress,
     contentContainerStyle,
     onEndReachedThreshold,
     onEndReached,
@@ -213,13 +206,15 @@ function SearchList({
     isMobileSelectionModeEnabled,
     newTransactions = [],
     nonPersonalAndWorkspaceCards,
-    selectedTransactions,
     hasLoadedAllTransactions,
     isActionColumnWide,
+    isAttendeesEnabledForMovingPolicy,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
+    const {toggle, toggleAll} = useSearchRowSelectionActions();
+    const {selectedTransactions} = useSearchSelectionContext();
 
     const {groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
@@ -435,7 +430,7 @@ function SearchList({
             return;
         }
 
-        onCheckboxPress(item, itemTransactions);
+        toggle(item, itemTransactions);
     };
 
     const handleLongPressRow = useCallback(
@@ -460,10 +455,27 @@ function SearchList({
         turnOnMobileSelectionMode();
         setIsModalVisible(false);
 
-        if (onCheckboxPress && longPressedItem) {
-            onCheckboxPress?.(longPressedItem, longPressedItemTransactions);
+        if (longPressedItem) {
+            toggle(longPressedItem, longPressedItemTransactions);
         }
-    }, [longPressedItem, onCheckboxPress, longPressedItemTransactions]);
+    }, [longPressedItem, toggle, longPressedItemTransactions]);
+
+    // In mobile selection mode a row tap toggles selection. This must live here (not in <Search>) because
+    // <Search> renders SearchWriteActionsProvider as its child, so the `toggle` it reads is the default no-op;
+    // SearchList sits inside the provider and gets the real one.
+    const handleSelectRow = useCallback(
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+            if (isMobileSelectionModeEnabled) {
+                if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    return;
+                }
+                toggle(item);
+                return;
+            }
+            onSelectRow(item, transactionPreviewData, event);
+        },
+        [isMobileSelectionModeEnabled, toggle, onSelectRow],
+    );
 
     /**
      * Scrolls to the desired item index in the FlashList (listData coordinates).
@@ -549,8 +561,8 @@ function SearchList({
                         canSelectMultiple={canSelectMultiple}
                         isExpanded={expandedGroups.has(originalKey)}
                         onToggle={() => onToggleGroup(originalKey)}
-                        onSelectRow={onSelectRow}
-                        onCheckboxPress={onCheckboxPress}
+                        onSelectRow={handleSelectRow}
+                        onCheckboxPress={toggle}
                         onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
                         onFocus={onFocus}
                         isFocused={isItemFocused}
@@ -579,8 +591,8 @@ function SearchList({
                         searchType={type}
                         columns={columns}
                         canSelectMultiple={canSelectMultiple}
-                        onSelectRow={onSelectRow}
-                        onCheckboxPress={onCheckboxPress}
+                        onSelectRow={handleSelectRow}
+                        onCheckboxPress={toggle}
                         onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onUndelete={handleUndelete}
@@ -609,9 +621,9 @@ function SearchList({
                     <ListItem
                         showTooltip
                         isFocused={isItemFocused}
-                        onSelectRow={onSelectRow}
+                        onSelectRow={handleSelectRow}
                         onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
-                        onSelectionButtonPress={onCheckboxPress}
+                        onSelectionButtonPress={toggle}
                         canSelectMultiple={canSelectMultiple}
                         item={item}
                         columns={columns}
@@ -642,11 +654,11 @@ function SearchList({
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
-            onSelectRow,
+            handleSelectRow,
             handleLongPressRow,
             handleLongPressRowInMobileSelectionMode,
             isMobileSelectionModeEnabled,
-            onCheckboxPress,
+            toggle,
             canSelectMultiple,
             columns,
             lastPaymentMethod,
@@ -688,7 +700,7 @@ function SearchList({
                             selectedItemsLength={selectedItemsLength}
                             totalItems={totalItems}
                             shouldShowTextButton={selectAllButtonVisible}
-                            onAllCheckboxPress={onAllCheckboxPress}
+                            onAllCheckboxPress={toggleAll}
                         />
                     )}
 
@@ -698,7 +710,7 @@ function SearchList({
             <BaseSearchList
                 data={listData}
                 renderItem={renderItem}
-                onSelectRow={onSelectRow}
+                onSelectRow={handleSelectRow}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
@@ -713,7 +725,7 @@ function SearchList({
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
-                selectedTransactions={selectedTransactions}
+                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                 stickyHeaderIndices={stickyHeaderIndices}
                 getItemType={getItemType}
