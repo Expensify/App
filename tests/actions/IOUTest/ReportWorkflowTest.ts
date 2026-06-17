@@ -1370,7 +1370,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
-                submitterLogin: undefined,
+                submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
@@ -1547,7 +1547,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
-                submitterLogin: undefined,
+                submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
@@ -1616,7 +1616,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
-                submitterLogin: undefined,
+                submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
