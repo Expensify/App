@@ -66,15 +66,14 @@ describe('CopyPolicySettingsProgressModal', () => {
         Onyx.init({keys: ONYXKEYS});
     });
 
-    beforeEach(async () => {
+    beforeEach(() => {
         lastModalProps = undefined;
-        await Onyx.clear();
-        await waitForBatchedUpdates();
         jest.clearAllMocks();
+        return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    afterEach(async () => {
-        await Onyx.clear();
+    afterEach(() => {
+        return Onyx.clear();
     });
 
     describe('visibility', () => {
