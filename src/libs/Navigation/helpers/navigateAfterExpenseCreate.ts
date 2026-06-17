@@ -19,6 +19,7 @@ type NavigateAfterExpenseCreateParams = {
     isInvoice?: boolean;
     hasMultipleTransactions: boolean;
     shouldAddPendingNewTransactionIDs?: boolean;
+    shouldNavigate?: boolean;
 };
 
 /**
@@ -35,6 +36,7 @@ function navigateAfterExpenseCreate({
     isInvoice,
     hasMultipleTransactions,
     shouldAddPendingNewTransactionIDs = false,
+    shouldNavigate = true,
 }: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
 
@@ -42,10 +44,16 @@ function navigateAfterExpenseCreate({
     // we just need to dismiss the money request flow screens
     // and open the report chat containing the IOU report
     if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
-        dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        if (shouldNavigate) {
+            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        }
         if (shouldAddPendingNewTransactionIDs) {
             addPendingNewTransactionIDs(activeReportID, transactionID);
         }
+        return;
+    }
+
+    if (!shouldNavigate) {
         return;
     }
 
