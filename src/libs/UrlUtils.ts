@@ -1,4 +1,4 @@
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 
 /**
  * Add / to the end of any URL if not present

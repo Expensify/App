@@ -171,7 +171,7 @@ import {
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getAmount, getCurrency, getNegatedAmountTransaction, isOnHold, recalculateUnreportedTransactionDetails, shouldClearConvertedAmount} from '@libs/TransactionUtils';
-import addTrailingForwardSlash, {buildSecureDownloadURL} from '@libs/UrlUtils';
+import {buildSecureDownloadURL} from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import {cacheAttachment, removeCachedAttachment} from '@userActions/Attachment';
 import {clearByKey} from '@userActions/CachedPDFPaths';
