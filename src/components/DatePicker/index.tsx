@@ -1,6 +1,7 @@
 import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {InteractionManager, View} from 'react-native';
 import type {TextInputKeyPressEvent} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -50,9 +51,6 @@ function DatePicker({
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const textInputRef = useRef<BaseTextInputRef | null>(null);
     const anchorRef = useRef<View>(null);
-    const prevWindowWidthRef = useRef(windowWidth);
-    const prevWindowHeightRef = useRef(windowHeight);
-    const anchorMeasureRef = useRef({y: 0, height: 0});
     const [isInverted, setIsInverted] = useState(false);
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.
@@ -79,8 +77,6 @@ function DatePicker({
     const calculatePopoverPosition = useCallback(
         (onMeasured?: () => void) => {
             anchorRef.current?.measureInWindow((x, y, width, height) => {
-                anchorMeasureRef.current = {y, height};
-
                 const wouldExceedBottom = y + CONST.POPOVER_DATE_MAX_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight;
                 setIsInverted(wouldExceedBottom);
 
@@ -145,40 +141,10 @@ function DatePicker({
     };
 
     useEffect(() => {
-        calculatePopoverPosition();
-    }, []);
-
-    useEffect(() => {
-        const delta = windowWidth - prevWindowWidthRef.current;
-        prevWindowWidthRef.current = windowWidth;
-
-        if (delta === 0) {
-            return;
-        }
-
-        setPopoverPosition((prev) => ({
-            ...prev,
-            horizontal: prev.horizontal + delta,
-        }));
-    }, [windowWidth]);
-
-    useEffect(() => {
-        const delta = windowHeight - prevWindowHeightRef.current;
-        prevWindowHeightRef.current = windowHeight;
-
-        if (delta === 0) {
-            return;
-        }
-
-        const {y, height} = anchorMeasureRef.current;
-        const wouldExceedBottom = y + CONST.POPOVER_DATE_MAX_HEIGHT + PADDING_MODAL_DATE_PICKER > windowHeight;
-        setIsInverted(wouldExceedBottom);
-
-        setPopoverPosition((prev) => ({
-            ...prev,
-            vertical: y + (wouldExceedBottom ? 0 : height + PADDING_MODAL_DATE_PICKER),
-        }));
-    }, [windowHeight]);
+        InteractionManager.runAfterInteractions(() => {
+            calculatePopoverPosition();
+        });
+    }, [calculatePopoverPosition, windowWidth]);
 
     // Combined ref: updates textInputRef (needed for blur() in showDatePickerModal) and connects
     // autoFocusCallbackRef only when autoFocus=true so useAutoFocusInput's useFocusEffect cleanup
