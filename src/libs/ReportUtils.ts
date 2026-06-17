@@ -151,7 +151,6 @@ import {
     isExpensifyTeam,
     isGroupPolicy as isGroupPolicyPolicyUtils,
     isInstantSubmitEnabled,
-    isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
     isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
@@ -1699,7 +1698,9 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Whether the provided report belongs to a paid group or Submit policy
+ * Whether the report belongs to a group policy (Collect, Control, or Submit). Report-based counterpart
+ * of `PolicyUtils.isGroupPolicy`. Prefer this over `isPaidGroupPolicy(report)` for feature gating
+ * (violations, report fields, etc.) so free group plans like Submit are not excluded.
  */
 // TODO: Remove this function and use isGroupPolicy directly after https://github.com/Expensify/App/issues/66415 is done
 function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): boolean {
@@ -1707,7 +1708,9 @@ function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxIn
 }
 
 /**
- * Whether the provided report belongs to a Control or Collect policy
+ * Whether the report belongs to a paid policy (Collect/Control) only. Report-based counterpart of
+ * `PolicyUtils.isPaidGroupPolicy`. For group-feature gating use `isReportInGroupPolicy` instead,
+ * otherwise Submit workspaces are wrongly excluded.
  */
 function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
     const policyType = getPolicyType(report, allPolicies);
@@ -1715,10 +1718,12 @@ function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Whether the provided report belongs to a Control or Collect policy and is an expense report
+ * Whether the provided report belongs to a group policy (Collect, Control, or Submit) and is an expense report.
+ * Use for report-field-style features that Submit workspaces also support, so the free Submit plan isn't
+ * incorrectly excluded.
  */
-function isPaidGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && isPaidGroupPolicy(report);
+function isGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
+    return isExpenseReport(report) && isReportInGroupPolicy(report);
 }
 
 /**
@@ -2006,55 +2011,46 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     return isProcessingReport(report) && submitsToAccountID === report.managerID && !hasReportBeenForwardedSinceLastSubmit(report);
 }
 
+type PolicyOptimisticOnyxData = OnyxData<
+    | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+    | typeof ONYXKEYS.COLLECTION.POLICY
+    | typeof ONYXKEYS.COLLECTION.POLICY_TAGS
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION
+>;
+
 /**
- * Updates optimistic transaction violations to OnyxData for the given policy and categories onyx update.
- *
- * @param onyxData - The OnyxData object to push updates to
- * @param policyData - The current policy Data
- * @param policyUpdate - Changed policy properties, if none pass empty object
- * @param categoriesUpdate - Changed categories properties, if none pass empty object
- * @param tagListsUpdate - Changed tag properties, if none pass empty object
+ * Returns the list of policy reports (excluding invoice reports) that have transactions to evaluate.
  */
-function pushTransactionViolationsOnyxData(
-    onyxData: OnyxData<
-        typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_TAGS | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-    >,
-    policyData: PolicyData,
-    policyUpdate: Partial<Policy> = {},
-    categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
-    tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
-) {
-    const nonInvoiceReportTransactionsAndViolations = policyData.reports.reduce<ReportTransactionsAndViolations[]>((acc, report) => {
-        // Skipping invoice reports since they should not have any category or tag violations
+function getNonInvoiceReportItemsForPolicy(policyData: PolicyData): Array<{report: Report; transactionsAndViolations: ReportTransactionsAndViolations}> {
+    return policyData.reports.reduce<Array<{report: Report; transactionsAndViolations: ReportTransactionsAndViolations}>>((acc, report) => {
         if (isInvoiceReport(report)) {
             return acc;
         }
         const reportTransactionsAndViolations = policyData.transactionsAndViolations[report.reportID];
         if (!isEmptyObject(reportTransactionsAndViolations) && !isEmptyObject(reportTransactionsAndViolations.transactions)) {
-            acc.push(reportTransactionsAndViolations);
+            acc.push({report, transactionsAndViolations: reportTransactionsAndViolations});
         }
         return acc;
     }, []);
+}
 
-    if (nonInvoiceReportTransactionsAndViolations.length === 0) {
-        return;
-    }
-
-    const updatedTagListsNames = Object.keys(tagListsUpdate);
-    const updatedCategoriesNames = Object.keys(categoriesUpdate);
-
-    // If there are no updates to policy, categories or tags, return early
+/**
+ * Merges the existing policy data with the optimistic update payloads to produce the post-update view
+ * used by both auto-selection and violation calculation.
+ */
+function getOptimisticPolicyState(
+    policyData: PolicyData,
+    policyUpdate: Partial<Policy>,
+    categoriesUpdate: Record<string, Partial<PolicyCategory>>,
+    tagListsUpdate: Record<string, Partial<PolicyTagList>>,
+) {
     const isPolicyUpdateEmpty = isEmptyObject(policyUpdate);
-    const isTagListsUpdateEmpty = updatedTagListsNames.length === 0;
-    const isCategoriesUpdateEmpty = updatedCategoriesNames.length === 0;
-    if (isPolicyUpdateEmpty && isTagListsUpdateEmpty && isCategoriesUpdateEmpty) {
-        return;
-    }
+    const isCategoriesUpdateEmpty = isEmptyObject(categoriesUpdate);
+    const isTagListsUpdateEmpty = isEmptyObject(tagListsUpdate);
 
-    // Merge the existing policy with the optimistic updates
     const optimisticPolicy = isPolicyUpdateEmpty ? policyData.policy : {...policyData.policy, ...policyUpdate};
 
-    // Merge the existing categories with the optimistic updates
     const optimisticCategories = isCategoriesUpdateEmpty
         ? policyData.categories
         : {
@@ -2071,7 +2067,6 @@ function pushTransactionViolationsOnyxData(
               }, {}),
           };
 
-    // Merge the existing tag lists with the optimistic updates
     const optimisticTagLists = isTagListsUpdateEmpty
         ? policyData.tags
         : {
@@ -2108,21 +2103,200 @@ function pushTransactionViolationsOnyxData(
               }, {}),
           };
 
-    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticTagLists);
+    const hasDependentTagsValue = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticTagLists);
 
-    // Iterate through all policy reports to find transactions that need optimistic violations
-    for (const {transactions, violations} of nonInvoiceReportTransactionsAndViolations) {
+    return {
+        optimisticPolicy,
+        optimisticCategories,
+        optimisticTagLists,
+        hasDependentTagsValue,
+        isPolicyUpdateEmpty,
+        isCategoriesUpdateEmpty,
+        isTagListsUpdateEmpty,
+    };
+}
+
+/**
+ * Auto-selects the sole remaining enabled category/tag for transactions on open or processing reports
+ * when a category/tag is being deleted or disabled. Pushes optimistic transaction merges and matching
+ * failure rollbacks to the provided OnyxData object, and returns the per-transaction updates so callers
+ * can hand them to `pushTransactionViolationsOnyxData` for violation recomputation.
+ *
+ * Call this BEFORE `pushTransactionViolationsOnyxData` so that violations are recomputed against
+ * the auto-selected values (suppressing the violation that would otherwise be created).
+ */
+function pushTransactionAutoSelectionsOnyxData(
+    onyxData: PolicyOptimisticOnyxData,
+    policyData: PolicyData,
+    policyUpdate: Partial<Policy> = {},
+    categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
+    tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
+): Map<string, Partial<Transaction>> {
+    const autoSelections = new Map<string, Partial<Transaction>>();
+
+    // Auto-selection is only meaningful when categories or tag lists are being updated
+    if (isEmptyObject(categoriesUpdate) && isEmptyObject(tagListsUpdate)) {
+        return autoSelections;
+    }
+
+    const nonInvoiceReportItems = getNonInvoiceReportItemsForPolicy(policyData);
+    if (nonInvoiceReportItems.length === 0) {
+        return autoSelections;
+    }
+
+    const {optimisticCategories, optimisticTagLists} = getOptimisticPolicyState(policyData, policyUpdate, categoriesUpdate, tagListsUpdate);
+
+    const enabledCategoryKeys = Object.entries(optimisticCategories)
+        .filter(([, cat]) => cat.enabled && cat.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .map(([key]) => key);
+    const singleRemainingCategory = enabledCategoryKeys.length === 1 ? enabledCategoryKeys.at(0) : undefined;
+
+    // A category counts as "removed" by this update only when it's deleted or flipped disabled. The backend
+    // auto-replaces transactions solely on a delete/disable, so an enable-only update (or toggling an unrelated
+    // category) must not rewrite any transaction client-side.
+    const removedCategoryKeys = new Set(
+        Object.entries(categoriesUpdate)
+            .filter(([, categoryUpdate]) => !categoryUpdate || categoryUpdate.enabled === false || categoryUpdate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .map(([key]) => key),
+    );
+
+    const tagListKeys = Object.keys(optimisticTagLists);
+
+    // Auto-replace is scoped to single-level tags only. Web-E's removeTags() throws "NTagging not supported yet" for
+    // multi-level tag lists, and the auto-replace metadata we send to Auth doesn't carry tagListIndex/tagListName,
+    // so the backend can't know which level of the multi-level tag string should be replaced. Multi-level support
+    // is tracked as a separate NTag follow-up.
+    let singleRemainingTag: string | undefined;
+    let removedTagKeys = new Set<string>();
+    if (tagListKeys.length === 1) {
+        const tagListName = tagListKeys.at(0) ?? '';
+        const enabledTagKeys = Object.entries(optimisticTagLists[tagListName]?.tags ?? {})
+            .filter(([, tag]) => tag.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .map(([key]) => key);
+        singleRemainingTag = enabledTagKeys.length === 1 ? enabledTagKeys.at(0) : undefined;
+        removedTagKeys = new Set(
+            Object.entries(tagListsUpdate[tagListName]?.tags ?? {})
+                .filter(([, tagUpdate]) => !tagUpdate || tagUpdate.enabled === false || tagUpdate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .map(([key]) => key),
+        );
+    }
+
+    for (const {
+        report,
+        transactionsAndViolations: {transactions},
+    } of nonInvoiceReportItems) {
+        if (!isOpenOrProcessingReport(report)) {
+            continue;
+        }
+
         for (const transaction of Object.values(transactions)) {
+            const transactionUpdates: Partial<Transaction> = {};
+            const transactionRollback: Partial<Transaction> = {};
+
+            // Category auto-select: only when this update deletes/disables the transaction's own category and a
+            // single enabled category remains to move it to. Matches the backend, which auto-replaces on a
+            // delete/disable — never on an enable-only update.
+            if (singleRemainingCategory && transaction.category && removedCategoryKeys.has(transaction.category)) {
+                transactionUpdates.category = singleRemainingCategory;
+                transactionRollback.category = transaction.category;
+            }
+
+            // Single-level tag auto-select: same rule — only when this update deletes/disables the transaction's
+            // own tag and a single enabled tag remains.
+            if (singleRemainingTag && tagListKeys.length === 1 && transaction.tag && removedTagKeys.has(transaction.tag)) {
+                transactionUpdates.tag = singleRemainingTag;
+                transactionRollback.tag = transaction.tag;
+            }
+
+            if (Object.keys(transactionUpdates).length === 0) {
+                continue;
+            }
+
+            autoSelections.set(transaction.transactionID, transactionUpdates);
+
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: transactionUpdates,
+            });
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: transactionRollback,
+            });
+        }
+    }
+
+    return autoSelections;
+}
+
+/**
+ * Updates optimistic transaction violations to OnyxData for the given policy and categories onyx update.
+ *
+ * Pass the map returned by `pushTransactionAutoSelectionsOnyxData` as `transactionAutoSelections` so
+ * a transaction whose category/tag was just auto-replaced is evaluated against the new value (and does
+ * not get a stale `*OutOfPolicy` violation).
+ *
+ * @param onyxData - The OnyxData object to push updates to
+ * @param policyData - The current policy Data
+ * @param policyUpdate - Changed policy properties, if none pass empty object
+ * @param categoriesUpdate - Changed categories properties, if none pass empty object
+ * @param tagListsUpdate - Changed tag properties, if none pass empty object
+ * @param transactionAutoSelections - Auto-selected category/tag updates per transactionID (from `pushTransactionAutoSelectionsOnyxData`)
+ */
+function pushTransactionViolationsOnyxData(
+    onyxData: PolicyOptimisticOnyxData,
+    policyData: PolicyData,
+    policyUpdate: Partial<Policy> = {},
+    categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
+    tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
+    transactionAutoSelections: Map<string, Partial<Transaction>> = new Map<string, Partial<Transaction>>(),
+) {
+    const nonInvoiceReportItems = getNonInvoiceReportItemsForPolicy(policyData);
+    if (nonInvoiceReportItems.length === 0) {
+        return;
+    }
+
+    const {optimisticPolicy, optimisticCategories, optimisticTagLists, hasDependentTagsValue, isPolicyUpdateEmpty, isCategoriesUpdateEmpty, isTagListsUpdateEmpty} = getOptimisticPolicyState(
+        policyData,
+        policyUpdate,
+        categoriesUpdate,
+        tagListsUpdate,
+    );
+
+    if (isPolicyUpdateEmpty && isCategoriesUpdateEmpty && isTagListsUpdateEmpty) {
+        return;
+    }
+
+    // taxOutOfPolicy depends only on tax tracking, tax rates and the transaction's own tax data — none of
+    // which a category/tag/rules toggle changes. Only let the recompute touch it when the update concerns
+    // tax tracking, otherwise an unrelated toggle would flash a spurious "tax no longer valid" violation.
+    const isTaxTrackingUpdate = policyUpdate.tax !== undefined;
+
+    for (const {
+        transactionsAndViolations: {transactions, violations},
+    } of nonInvoiceReportItems) {
+        for (const transaction of Object.values(transactions)) {
+            const pendingUpdate = transactionAutoSelections.get(transaction.transactionID);
+            const modifiedTransaction = pendingUpdate ? {...transaction, ...pendingUpdate} : transaction;
+
             const existingViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             const optimisticViolations = ViolationsUtils.getViolationsOnyxData({
-                updatedTransaction: transaction,
+                updatedTransaction: modifiedTransaction,
                 transactionViolations: existingViolations ?? [],
                 policy: optimisticPolicy,
                 policyTagList: optimisticTagLists,
                 policyCategories: optimisticCategories,
-                hasDependentTags,
+                hasDependentTags: hasDependentTagsValue,
                 isInvoiceTransaction: false,
             });
+
+            // Keep the pre-toggle taxOutOfPolicy state when the update isn't about tax tracking.
+            const recomputedViolations = optimisticViolations.value;
+            if (!isTaxTrackingUpdate && Array.isArray(recomputedViolations)) {
+                const preservedTaxViolations = (existingViolations ?? []).filter((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
+                optimisticViolations.value = [...recomputedViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.TAX_OUT_OF_POLICY), ...preservedTaxViolations];
+            }
 
             if (!isEmptyObject(optimisticViolations)) {
                 onyxData.optimisticData?.push(optimisticViolations);
@@ -2922,7 +3096,7 @@ type GetAddExpenseDropdownOptionsParams = {
     iouRequestBackToReport?: string;
     unreportedExpenseBackToReport?: string;
     lastDistanceExpenseType?: IOURequestType;
-    currentUserAccountID?: number;
+    currentUserAccountID: number;
 };
 
 function getAddExpenseDropdownOptions({
@@ -4502,7 +4676,7 @@ function canEditReportTitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
         getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField)) ?? getTitleFieldWithFallback(policy);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
-    return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isPaidGroupPolicyPolicyUtils(policy);
+    return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isGroupPolicyPolicyUtils(policy);
 }
 
 /**
@@ -4622,7 +4796,7 @@ function getTransactionDetails(
     }
 
     const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
-    const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || isPaidGroupPolicyPolicyUtils(policy);
+    const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || isGroupPolicyPolicyUtils(policy);
 
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
@@ -4708,7 +4882,7 @@ function canEditMoneyRequest(
         return true;
     }
 
-    const moneyRequestReportID = originalMessage?.IOUReportID;
+    const moneyRequestReportID = reportAction?.reportID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
 
     if (!moneyRequestReportID) {
@@ -4925,8 +5099,8 @@ function canEditFieldOfMoneyRequest({
         return true;
     }
 
-    const iouMessage = getOriginalMessage(reportAction);
-    const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, deprecatedAllReports) ?? ({} as Report)) : ({} as Report));
+    const iouReportID = reportAction?.reportID;
+    const moneyRequestReport = report ?? (iouReportID ? (getReport(iouReportID, deprecatedAllReports) ?? ({} as Report)) : ({} as Report));
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
         return false;
@@ -5074,7 +5248,7 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
     // canEditMoneyRequest has an admin/manager bypass for field-level edits (via canEditFieldOfMoneyRequest),
     // but that bypass should not allow the "Edit expense" action on finalized reports.
     if (isMoneyRequestAction(reportAction)) {
-        const moneyRequestReportID = getOriginalMessage(reportAction)?.IOUReportID;
+        const moneyRequestReportID = reportAction?.reportID;
         if (moneyRequestReportID) {
             const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
             if (isSettled(moneyRequestReport?.reportID) || isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport)) {
@@ -5162,7 +5336,7 @@ const changeMoneyRequestHoldStatus = (
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
-    const moneyRequestReportID = getOriginalMessage(reportAction)?.IOUReportID;
+    const moneyRequestReportID = reportAction?.reportID;
 
     const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
     if (!moneyRequestReportID || !moneyRequestReport) {
@@ -5197,7 +5371,7 @@ const rejectMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void =
     }
 
     const originalMessage = getOriginalMessage(reportAction);
-    const moneyRequestReportID = originalMessage?.IOUReportID;
+    const moneyRequestReportID = reportAction?.reportID;
     const transactionID = originalMessage?.IOUTransactionID;
 
     if (!transactionID || !moneyRequestReportID) {
@@ -5293,12 +5467,12 @@ function getTransactionReportName({
     translate,
     reportAction,
     transactions,
-    reports,
+    report,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
     transactions?: Transaction[];
-    reports?: Report[];
+    report: OnyxEntry<Report>;
 }): string {
     if (reportAction && isReversedTransaction(reportAction)) {
         return translate('parentReportAction.reversedTransaction');
@@ -5319,7 +5493,6 @@ function getTransactionReportName({
         return translate('iou.receiptScanning', {count: 1});
     }
 
-    const report = getReportOrDraftReport(transaction?.reportID, reports);
     if (hasMissingSmartscanFieldsTransactionUtils(transaction, report)) {
         return translate('iou.receiptMissingDetails');
     }
@@ -5908,7 +6081,8 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: Route, shouldGo
         if (shouldGoBackToDetailsPage) {
             Navigation.goBack(backTo ?? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
         } else {
-            Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID, backTo));
+            const reportDetailsPath = createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS.path, reportDetailsPath));
         }
     } else {
         Log.warn('Missing reportID during navigation back to the details page');
@@ -5956,20 +6130,20 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number) {
     Navigation.goBack();
 }
 
-function navigateOnDeleteExpense(backToRoute: Route) {
+function navigateOnDeleteExpense(backToRoute: Route, afterTransition?: () => void) {
     if (isSearchTopmostFullScreenRoute()) {
-        Navigation.dismissModal();
+        Navigation.dismissModal({afterTransition});
         return;
     }
 
     const rootState = navigationRef.getRootState();
     const focusedRoute = findFocusedRoute(rootState);
     if (focusedRoute?.params && 'backTo' in focusedRoute.params) {
-        Navigation.goBack(focusedRoute.params.backTo as Route);
+        Navigation.goBack(focusedRoute.params.backTo as Route, {afterTransition});
         return;
     }
 
-    Navigation.goBack(backToRoute);
+    Navigation.goBack(backToRoute, {afterTransition});
 }
 
 /**
@@ -6828,14 +7002,13 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         delegateAccountIDParam,
     } = params;
 
-    const IOUReportID = isPersonalTrackingExpense ? undefined : iouReportID || generateReportID();
+    const actionReportID = iouReportID || generateReportID();
 
     const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>['originalMessage'] = {
         amount,
         comment,
         currency,
         IOUTransactionID: transactionID,
-        IOUReportID,
         type,
         payAsBusiness,
         bankAccountID,
@@ -6862,11 +7035,6 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         }
     }
 
-    // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
-    if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
-        delete originalMessage.IOUReportID;
-    }
-
     if (type !== CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         // Split expense made from a policy expense chat only have the payee's accountID as the participant because the payer could be any policy admin
         if ((isOwnPolicyExpenseChat && type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) || isPersonalTrackingExpense) {
@@ -6890,6 +7058,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         automatic: false,
         isAttachmentOnly: false,
         originalMessage,
+        reportID: actionReportID,
         reportActionID: reportActionID ?? rand64(),
         shouldShow: true,
         created,
@@ -10359,7 +10528,8 @@ function getIOUReportActionDisplayMessage(
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const {IOUReportID, automaticAction, payAsBusiness} = originalMessage ?? {};
+    const {automaticAction, payAsBusiness} = originalMessage ?? {};
+    const IOUReportID = reportAction?.reportID;
     const iouReport = getReportOrDraftReport(IOUReportID);
     const isInvoice = isInvoiceReport(iouReport);
 
@@ -11062,10 +11232,7 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     ]);
     setMoneyRequestReportID(transactionID, expenseChatReportID);
     if (isCategorizing) {
-        const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true);
-        Navigation.navigate(
-            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID), confirmationRoute),
-        );
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
     } else {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true));
     }
@@ -11190,10 +11357,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                 },
             ]);
             if (policyExpenseReportID) {
-                const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID, undefined, true);
-                Navigation.navigate(
-                    createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID), confirmationRoute),
-                );
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
             } else {
                 Log.warn('policyExpenseReportID is not valid during expense categorizing');
             }
@@ -11201,16 +11365,15 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
         if (filteredPoliciesCount === 0 || filteredPoliciesCount > 1) {
             Navigation.navigate(
-                createDynamicRoute(
-                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: actionName,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID,
-                        reportID,
-                        upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
-                        shouldSubmitExpense: true,
-                    }),
-                ),
+                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                    action: actionName,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    reportID,
+                    backTo: '',
+                    upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
+                    shouldSubmitExpense: true,
+                }),
             );
             return;
         }
@@ -11228,10 +11391,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             },
         ]);
         if (policyExpenseReportID) {
-            const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID, undefined, true);
-            Navigation.navigate(
-                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID), confirmationRoute),
-            );
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
         } else {
             Log.warn('policyExpenseReportID is not valid during expense categorizing');
         }
@@ -11239,7 +11399,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, Navigation.getActiveRoute()));
         return;
     }
 
@@ -12316,7 +12476,7 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
     if (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
         return false;
     }
-    return isPaidGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role && !isPendingDeletePolicy(newPolicy);
+    return isGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role && !isPendingDeletePolicy(newPolicy);
 }
 
 /**
@@ -12999,6 +13159,18 @@ function getLinkedIOUTransaction(reportAction: OnyxEntry<ReportAction | Optimist
     return transactionID ? transactions.find((item) => item.transactionID === transactionID) : undefined;
 }
 
+/**
+ * Returns true if the "Mark as done" copy/button should be shown.
+ * Aligns with backend: only shown when all four conditions are true (isTrackIntentUser, isSubmitAndClose, isSubmitter, isSubmittingToSelf).
+ *
+ */
+function shouldShowMarkAsDone({isTrackIntentUser, report, policy}: {isTrackIntentUser?: boolean; report: OnyxEntry<Report>; policy: OnyxEntry<Policy>}): boolean {
+    if (!isTrackIntentUser || !isSubmitAndClose(policy) || !isReportOwner(report)) {
+        return false;
+    }
+    return getNextApproverAccountID(report) === report?.ownerAccountID;
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     buildConciergeGreetingReportAction,
@@ -13227,8 +13399,7 @@ export {
     isOpenExpenseReport,
     isOpenTaskReport,
     isOptimisticPersonalDetail,
-    isPaidGroupPolicy,
-    isPaidGroupPolicyExpenseReport,
+    isGroupPolicyExpenseReport,
     isPayer,
     isPolicyAdmin,
     isPolicyExpenseChat,
@@ -13353,6 +13524,7 @@ export {
     getReportPersonalDetailsParticipants,
     isWorkspaceEligibleForReportChange,
     pushTransactionViolationsOnyxData,
+    pushTransactionAutoSelectionsOnyxData,
     navigateOnDeleteExpense,
     canRejectReportAction,
     hasReportBeenReopened,
@@ -13382,6 +13554,7 @@ export {
     getTransactionSortValue,
     isSortableColumnName,
     getLinkedIOUTransaction,
+    shouldShowMarkAsDone,
     hasHeldExpensesFromTransactions,
     canModifyHoldStatus,
 };

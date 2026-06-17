@@ -1658,7 +1658,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 getRecentAttendees(),
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (attendee) => attendee.email || attendee.displayName,
-            ).slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW),
+            ).slice(0, CONST.IOU.MAX_RECENT_ATTENDEES),
         });
     }
 
@@ -1743,6 +1743,10 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasModifiedCategory && transactionChanges.category === ''
                 ? optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY)
                 : optimisticViolations;
+        // Clearing the tag can't be "out of policy"; strip it here since the recompute skips tag logic when tags
+        // aren't required and the tag is now empty, which would otherwise leave the stale violation offline.
+        optimisticViolations =
+            hasModifiedTag && transactionChanges.tag === '' ? optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY) : optimisticViolations;
         if (hasPendingWaypoints) {
             optimisticViolations = optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.NO_ROUTE);
         }

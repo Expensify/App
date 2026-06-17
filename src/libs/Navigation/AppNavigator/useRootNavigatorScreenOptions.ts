@@ -9,6 +9,7 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
+import RHP_WEB_TRANSITION_SPEC from './RHPTransitionSpec';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import type {EnterAnimation} from './useModalCardStyleInterpolator';
 
@@ -36,6 +37,7 @@ const useRootNavigatorScreenOptions = () => {
 
     const fullScreenEnter: EnterAnimation = shouldUseNarrowLayout ? {kind: 'slide-from-width'} : {kind: 'none'};
     const onboardingEnter: EnterAnimation = onboardingIsMediumOrLargerScreenWidth ? {kind: 'fade'} : {kind: 'slide-from-width'};
+    const rhpEnter: EnterAnimation = shouldUseNarrowLayout ? {kind: 'slide-from-width'} : {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB};
 
     return {
         rightModalNavigator: {
@@ -49,9 +51,10 @@ const useRootNavigatorScreenOptions = () => {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) =>
                     modalCardStyleInterpolator({
                         props,
-                        enter: {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB},
+                        enter: rhpEnter,
                         applySidePanelOffset: true,
                     }),
+                transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC,
             },
         },
         basicModalNavigator: {
