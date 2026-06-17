@@ -26,6 +26,7 @@ function ExpenseReportListItemRow(props: ExpenseReportListItemRowProps) {
                 isFocused={props.isFocused}
                 isPendingDelete={props.isPendingDelete}
                 columns={props.columns}
+                isMarkAsDone={props.isMarkAsDone}
             />
         );
     }
