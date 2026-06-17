@@ -3046,12 +3046,6 @@ ${amount} für ${merchant} – ${date}`,
         welcome: 'Willkommen!',
         welcomeSignOffTitleManageTeam: 'Sobald du die Aufgaben oben abgeschlossen hast, können wir weitere Funktionen wie Genehmigungs-Workflows und Regeln erkunden!',
         welcomeSignOffTitle: 'Schön, dich kennenzulernen!',
-        explanationModal: {
-            title: 'Willkommen bei Expensify',
-            description:
-                'Eine App, um Ihre geschäftlichen und privaten Ausgaben in Chat-Geschwindigkeit zu verwalten. Probieren Sie es aus und sagen Sie uns, was Sie denken. Da kommt noch viel mehr!',
-            secondaryDescription: 'Um zurück zu Expensify Classic zu wechseln, tippe einfach auf dein Profilbild > Gehe zu Expensify Classic.',
-        },
         getStarted: 'Loslegen',
         whatsYourName: 'Wie heißt du?',
         peopleYouMayKnow: 'Prüfen Sie, ob Ihr Team in Expensify ist',

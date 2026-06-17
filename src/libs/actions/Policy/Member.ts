@@ -23,7 +23,7 @@ import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getDefaultApprover, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as FormActions from '@userActions/FormActions';
@@ -1024,6 +1024,19 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
     );
     const importFinalModal = getImportMembersFinalModal(added, updated);
 
+    const shouldUpdateApprovalMode = members.some((member) => !!member.submitsTo || !!member.forwardsTo || !!member.overLimitForwardsTo || !!member.approvalLimit) && isControlPolicy(policy);
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    if (shouldUpdateApprovalMode) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            },
+        });
+    }
+
     const parameters = {
         policyID: policy.id,
         employees: JSON.stringify(
@@ -1044,7 +1057,7 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
         // We need the server result immediately so the initiating page can show the final confirmation modal
         // without storing transient modal state in Onyx.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters);
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, {successData});
         return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();
     } catch {
         return getImportFailedFinalModal();
