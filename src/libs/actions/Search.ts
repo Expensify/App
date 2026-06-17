@@ -459,6 +459,17 @@ function openSearchCardFiltersPage() {
     API.read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
 }
 
+type ParseExpenseFiltersResult = {success: true; query: string; humanReadableSummary: string} | {success: false; message: string};
+
+function parseExpenseFilters(nlQuery: string, policyID?: string): Promise<ParseExpenseFiltersResult | undefined> {
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PARSE_EXPENSE_FILTERS, {nlQuery, policyID}).then((response) => {
+        if (response?.success === true && response.query) {
+            return {success: true, query: response.query, humanReadableSummary: response.humanReadableSummary ?? ''} as const;
+        }
+        return {success: false, message: response?.message ?? ''} as const;
+    });
+}
+
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
         {
@@ -1484,5 +1495,6 @@ export {
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,
     openSearchCardFiltersPage,
+    parseExpenseFilters,
 };
-export type {TransactionPreviewData};
+export type {TransactionPreviewData, ParseExpenseFiltersResult};

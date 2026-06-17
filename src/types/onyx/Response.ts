@@ -121,6 +121,15 @@ type Response<TKey extends OnyxKey> = {
 
     /** Transactions pending 3DS review returned from GetTransactionsPending3DSReview */
     transactionsPending3DSReview?: TransactionsPending3DSReview;
+
+    /** Whether the ParseExpenseFilters command successfully parsed the natural-language query */
+    success?: boolean;
+
+    /** Parsed filter query string returned by ParseExpenseFilters on success */
+    query?: string;
+
+    /** Human-readable summary of the parsed filters returned by ParseExpenseFilters on success */
+    humanReadableSummary?: string;
 };
 
 export default Response;
