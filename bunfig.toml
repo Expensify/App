@@ -7,7 +7,4 @@ pathIgnorePatterns = [
   "**/.dev/**",
   "**/__output__/**",
   "**/__golden__/**",
-  "**/render.test.ts",
 ]
-
-# Golden PNG suite (render.test.ts) compiles a standalone binary per run; use npm run server:vcr:test.
