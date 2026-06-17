@@ -62,7 +62,7 @@ function hasAnyLoadedTypeface(typefaces: ChartDefaultTypeface): boolean {
 }
 
 async function loadChartSkiaTypefaces(): Promise<ChartDefaultTypeface> {
-    return loadChartTypefacesFromAssets(CHART_SKIA_TYPEFACE_ASSETS, async (_assetKey, source) => loadTypefaceFromAsset(source), logChartFontLoadError) as Promise<ChartDefaultTypeface>;
+    return loadChartTypefacesFromAssets(CHART_SKIA_TYPEFACE_ASSETS, async (source) => loadTypefaceFromAsset(source), logChartFontLoadError);
 }
 
 async function buildChartFontsValue(typefaces: ChartDefaultTypeface): Promise<ChartFontsValue> {
@@ -71,7 +71,7 @@ async function buildChartFontsValue(typefaces: ChartDefaultTypeface): Promise<Ch
     }
 
     const fontMgr = buildSkiaFontManager(typefaces);
-    const supplementalTypefaces = await loadChartTypefacesFromAssets(CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, async (_familyName, asset) => loadTypefaceFromAsset(asset), logChartFontLoadError);
+    const supplementalTypefaces = await loadChartTypefacesFromAssets(CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, async (asset) => loadTypefaceFromAsset(asset), logChartFontLoadError);
 
     for (const [familyName, typeface] of Object.entries(supplementalTypefaces)) {
         if (typeface) {

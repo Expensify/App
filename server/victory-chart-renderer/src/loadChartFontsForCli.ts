@@ -2,7 +2,6 @@ import type {DataModule, SkTypeface} from '@shopify/react-native-skia';
 import {Skia} from '@shopify/react-native-skia';
 import {dirname, isAbsolute, join} from 'node:path';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
-import type {ChartDefaultTypeface} from '@components/Charts/types/chartSkiaTypefaceTypes';
 import buildSkiaFontManager from '@components/Charts/utils/buildSkiaFontManager';
 import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from '@components/Charts/utils/chartFontAssets';
 import loadChartTypefacesFromAssets from '@components/Charts/utils/loadChartTypefacesFromAssets';
@@ -43,23 +42,15 @@ function logChartFontLoadError(assetKey: string, error: unknown): void {
     });
 }
 
-function hasAnyLoadedTypeface(typefaces: ChartDefaultTypeface): boolean {
-    return Object.values(typefaces).some((typeface) => typeface !== null);
-}
-
 async function loadChartFontsForCli(): Promise<ChartFontsValue> {
-    const typefaces = (await loadChartTypefacesFromAssets(
-        CHART_SKIA_TYPEFACE_ASSETS,
-        async (_assetKey, asset) => loadTypefaceFromAsset(asset),
-        logChartFontLoadError,
-    )) as ChartDefaultTypeface;
+    const typefaces = await loadChartTypefacesFromAssets(CHART_SKIA_TYPEFACE_ASSETS, async (asset) => loadTypefaceFromAsset(asset), logChartFontLoadError);
 
-    if (!hasAnyLoadedTypeface(typefaces)) {
+    if (!Object.values(typefaces).some((typeface) => typeface !== null)) {
         return {typefaces, fontMgr: null};
     }
 
     const fontMgr = buildSkiaFontManager(typefaces);
-    const supplementalTypefaces = await loadChartTypefacesFromAssets(CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, async (_familyName, asset) => loadTypefaceFromAsset(asset), logChartFontLoadError);
+    const supplementalTypefaces = await loadChartTypefacesFromAssets(CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, async (asset) => loadTypefaceFromAsset(asset), logChartFontLoadError);
 
     for (const [familyName, typeface] of Object.entries(supplementalTypefaces)) {
         if (typeface) {
