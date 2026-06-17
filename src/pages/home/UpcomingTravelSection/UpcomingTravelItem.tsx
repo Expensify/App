@@ -10,11 +10,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatCancelledDescription, getTripReservationIcon} from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Reservation} from '@src/types/onyx/Transaction';
 import type {UpcomingReservation} from './useUpcomingTravelReservations';
 
@@ -101,7 +102,12 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
     const subtitle = typeId ? `${relativeTime} ${CONST.DOT_SEPARATOR} ${typeId}` : relativeTime;
 
     const handlePress = () => {
-        Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(reportID, transactionID, reservation.reservationID, sequenceIndex));
+        if (!reportID || !transactionID || !reservation.reservationID) {
+            return;
+        }
+        Navigation.navigate(
+            createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.getRoute(transactionID, String(reservation.reservationID), sequenceIndex), ROUTES.REPORT_WITH_ID.getRoute(reportID)),
+        );
     };
 
     return (

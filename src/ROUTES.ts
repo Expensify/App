@@ -823,6 +823,16 @@ const DYNAMIC_ROUTES = {
         path: 'workspace-confirmation',
         entryScreens: [SCREENS.TRAVEL.DYNAMIC_UPGRADE],
     },
+    TRAVEL_TRIP_SUMMARY: {
+        path: 'trip/:transactionID',
+        entryScreens: [SCREENS.REPORT],
+        getRoute: (transactionID: string) => `trip/${transactionID}` as const,
+    },
+    TRAVEL_TRIP_DETAILS: {
+        path: 'trip/:transactionID/:pnr/:sequenceIndex',
+        entryScreens: [SCREENS.REPORT],
+        getRoute: (transactionID: string, pnr: string, sequenceIndex: number | string) => `trip/${transactionID}/${pnr}/${sequenceIndex}` as const,
+    },
     REPORT_CHANGE_APPROVER: {
         path: 'change-approver',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
@@ -3267,26 +3277,6 @@ const ROUTES = {
         },
     },
     TRACK_TRAINING_MODAL: 'track-training',
-    TRAVEL_TRIP_SUMMARY: {
-        route: 'r/:reportID/trip/:transactionID',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, backTo?: string) => {
-            if (!reportID || !transactionID) {
-                Log.warn('Invalid reportID or transactionID is used to build the TRAVEL_TRIP_SUMMARY route');
-            }
-
-            return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}`, backTo);
-        },
-    },
-    TRAVEL_TRIP_DETAILS: {
-        route: 'r/:reportID/trip/:transactionID/:pnr/:sequenceIndex',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, pnr: string | undefined, sequenceIndex: number, backTo?: string) => {
-            if (!reportID || !transactionID || !pnr) {
-                Log.warn('Invalid reportID, transactionID or pnr is used to build the TRAVEL_TRIP_DETAILS route');
-            }
-
-            return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${sequenceIndex}`, backTo);
-        },
-    },
     ONBOARDING_ROOT: {
         route: 'onboarding',
 

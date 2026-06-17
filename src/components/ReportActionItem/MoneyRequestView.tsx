@@ -57,6 +57,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
 import {isBillableEnabledOnPolicy, isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
@@ -132,7 +133,7 @@ import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyState
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -1433,10 +1434,17 @@ function MoneyRequestView({
                         icon={icons.Suitcase}
                         onPress={() => {
                             const reservations = transaction?.receipt?.reservationList?.length ?? 0;
+                            const reportID = transactionThreadReport?.reportID;
                             if (reservations > 1) {
-                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(transactionThreadReport?.reportID, transaction.transactionID, getReportRHPActiveRoute()));
+                                if (!reportID) {
+                                    return;
+                                }
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(transaction.transactionID), ROUTES.REPORT_WITH_ID.getRoute(reportID)));
                             }
-                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(transactionThreadReport?.reportID, transaction.transactionID, '0', 0, getReportRHPActiveRoute()));
+                            if (!reportID) {
+                                return;
+                            }
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.getRoute(transaction.transactionID, '0', 0), ROUTES.REPORT_WITH_ID.getRoute(reportID)));
                         }}
                     />
                 )}

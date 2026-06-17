@@ -1921,13 +1921,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: ROUTES.TRAVEL_DOT_LINK_WEB_VIEW.route,
                         [SCREENS.TRAVEL.DYNAMIC_UPGRADE]: DYNAMIC_ROUTES.TRAVEL_UPGRADE.path,
                         [SCREENS.TRAVEL.DYNAMIC_TCS]: DYNAMIC_ROUTES.TRAVEL_TCS.path,
-                        [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
-                        [SCREENS.TRAVEL.TRIP_DETAILS]: {
-                            path: ROUTES.TRAVEL_TRIP_DETAILS.route,
-                            parse: {
-                                reservationIndex: (reservationIndex: string) => parseInt(reservationIndex, 10),
-                            },
-                        },
+                        [SCREENS.TRAVEL.DYNAMIC_TRIP_SUMMARY]: DYNAMIC_ROUTES.TRAVEL_TRIP_SUMMARY.path,
+                        [SCREENS.TRAVEL.DYNAMIC_TRIP_DETAILS]: DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.path,
                         [SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR]: DYNAMIC_ROUTES.TRAVEL_DOMAIN_SELECTOR.path,
                         [SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO]: DYNAMIC_ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.path,
                         [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path,
