@@ -2594,6 +2594,61 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/TestMerchant/)).toBeOnTheScreen();
         });
 
+        it('isIOURequestReportAction renders TransactionPreview when the action lives in an expense report', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}txn456`, {
+                    transactionID: 'txn456',
+                    amount: 1200,
+                    currency: 'USD',
+                    merchant: 'ExpenseReportMerchant',
+                    created: '2026-06-16',
+                    reportID: 'expenseReport1',
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}expenseReport1`, {
+                    reportID: 'expenseReport1',
+                    chatReportID: 'workspaceChat1',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}workspaceChat1`, {
+                    reportID: 'workspaceChat1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: 'txn456',
+                }),
+                reportID: 'expenseReport1',
+            } as ReportAction;
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItem
+                                    chatReport={undefined}
+                                    report={{reportID: 'expenseReport1', chatReportID: 'workspaceChat1', type: CONST.REPORT.TYPE.EXPENSE}}
+                                    transactionThreadReport={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/ExpenseReportMerchant/)).toBeOnTheScreen();
+        });
+
         it('isTripPreview renders TripRoomPreview', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW, {linkedReportID: 'tripReport1'});
             renderItemWithAction(action);
