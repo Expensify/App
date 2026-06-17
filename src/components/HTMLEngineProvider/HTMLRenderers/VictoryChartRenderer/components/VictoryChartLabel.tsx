@@ -6,6 +6,8 @@ import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface'
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeTextAnchorPosition';
 import {getLocalizedVictoryChartLabelText} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/localizeVictoryChartLabelText';
+import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+import useTheme from '@hooks/useTheme';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 type VictoryChartLabelsProps = LabelItem & {
@@ -27,10 +29,11 @@ type ProcessedLine = {
  */
 function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle', timezone}: VictoryChartLabelsProps) {
     const typefaces = useChartTypefaces();
+    const theme = useTheme();
     const displayText = getLocalizedVictoryChartLabelText(text, timezone);
     const processedLines = displayText.split('\n').reduce(
         (acc, line, index) => {
-            const lineColor = color?.[index];
+            const lineColor = resolveChartThemeColor(color?.[index], theme);
             const lineFontSize = fontSize?.[index];
             const lineFontWeight = fontWeight?.[index];
             const lineFontFamily = fontFamily?.[index];
