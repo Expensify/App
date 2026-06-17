@@ -961,7 +961,7 @@ const SCREENS = {
     },
 
     CURRENCY: {
-        SELECTION: 'Currency_Selection',
+        DYNAMIC_SELECTION: 'Dynamic_Currency_Selection',
     },
 
     EXPLANATION_MODAL: {

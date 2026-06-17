@@ -127,6 +127,10 @@ const DYNAMIC_ROUTES = {
         path: 'workspace/confirmation',
         entryScreens: ['*'],
     },
+    WORKSPACE_CONFIRMATION_CURRENCY: {
+        path: 'currency',
+        entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT],
+    },
     EXPENSE_LIMIT_TYPE_SELECTOR: {
         path: 'expense-limit-type',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER],
@@ -3341,11 +3345,6 @@ const ROUTES = {
         route: 'onboarding/work-email-validation',
 
         getRoute: () => 'onboarding/work-email-validation' as const,
-    },
-    WORKSPACE_CURRENCY_SELECTION: {
-        route: 'workspace/confirmation/currency',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation/currency`, backTo),
     },
     ONBOARDING_PERSONAL_TRACK_GOAL: {
         route: 'onboarding/personaltrackcase',

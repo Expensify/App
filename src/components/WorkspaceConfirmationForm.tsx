@@ -251,7 +251,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                                 label={translate('workspace.editor.currencyInputLabel')}
                                 value={userCurrency}
                                 shouldShowCurrencySymbol
-                                currencySelectorRoute={ROUTES.WORKSPACE_CURRENCY_SELECTION}
+                                useWorkspaceConfirmationCurrencySelector
                             />
                         </View>
                         {isApprovedAccountant && (
