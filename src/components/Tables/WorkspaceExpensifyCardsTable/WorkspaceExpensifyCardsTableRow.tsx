@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
@@ -36,23 +36,19 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     const theme = useTheme();
     const session = useSession();
 
-    const cardholderName = useMemo(() => getDisplayNameOrDefault(item.cardholder), [item.cardholder]);
+    const cardholderName = getDisplayNameOrDefault(item.cardholder);
     const cardType = item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
     const limitTypeLabel = translate(getTranslationKeyForLimitType(item.limitType));
     const formattedLimit = convertToShortDisplayString(item.limit, item.currency);
     const formattedFrozenDate = item.frozenDate ? DateUtils.formatWithUTCTimeZone(item.frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
     const frozenByAdminPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedFrozenDate});
-    const frozenByText = useMemo(() => {
-        if (!formattedFrozenDate) {
-            return undefined;
-        }
-
-        if (item.frozenByAccountID === session?.accountID) {
-            return translate('cardPage.youFroze', {date: formattedFrozenDate});
-        }
-
-        return `${frozenByAdminPrefix}${item.frozenByDisplayName ?? translate('common.someone')}`;
-    }, [formattedFrozenDate, frozenByAdminPrefix, item.frozenByAccountID, item.frozenByDisplayName, session?.accountID, translate]);
+    let frozenByText: string | undefined;
+    if (formattedFrozenDate) {
+        frozenByText =
+            item.frozenByAccountID === session?.accountID
+                ? translate('cardPage.youFroze', {date: formattedFrozenDate})
+                : `${frozenByAdminPrefix}${item.frozenByDisplayName ?? translate('common.someone')}`;
+    }
 
     const accessibilityLabel = [cardholderName, item.name, cardType, limitTypeLabel, item.lastFourPAN, formattedLimit, frozenByText].filter(Boolean).join(', ');
 
