@@ -16,6 +16,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import FailedKYC from '@pages/EnablePayments/shared/FailedKYC';
 import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
+import type {EnablePaymentsPage, EnablePaymentsSubPage} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -31,9 +32,9 @@ const PERSONAL_INFO_SUB_PAGES = CONST.ENABLE_PAYMENTS.PERSONAL_INFO_STEP.SUB_PAG
 const FEES_AND_TERMS_SUB_PAGES = CONST.ENABLE_PAYMENTS.FEES_AND_TERMS_STEP.SUB_PAGE_NAMES;
 
 type PageEntry = {
-    pageName: string;
+    pageName: EnablePaymentsPage;
     component: React.ComponentType;
-    firstSubPage?: string;
+    firstSubPage?: EnablePaymentsSubPage;
     serverSteps: Array<ValueOf<typeof CONST.WALLET.STEP>>;
 };
 

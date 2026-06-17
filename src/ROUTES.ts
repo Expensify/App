@@ -8,7 +8,7 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
-import type {IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONST';
+import type {EnablePaymentsPage, EnablePaymentsSubPage, IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONST';
 import type {ReplacementReason} from './libs/actions/Card';
 import Log from './libs/Log';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
@@ -1260,11 +1260,12 @@ const ROUTES = {
     SETTINGS_BANK_ACCOUNT_PURPOSE: 'settings/wallet/bank-account-purpose',
     SETTINGS_ENABLE_PAYMENTS: {
         route: 'settings/wallet/enable-payments/:page?/:subPage?/:action?',
-        getRoute: ({page, subPage, action}: {page?: string; subPage?: string; action?: 'edit'} = {}) => {
+        getRoute: ({page, subPage, action}: {page?: EnablePaymentsPage; subPage?: EnablePaymentsSubPage; action?: 'edit'} = {}) => {
             const base = 'settings/wallet/enable-payments';
-            const pagePart = page ? `/${page}` : '';
-            const subPagePart = subPage ? `/${subPage}` : '';
-            const actionPart = action ? `/${action}` : '';
+            // The interpolated values are cast to `string` to keep the resulting template literal type simple and avoid TS2590 union complexity errors.
+            const pagePart = page ? `/${page as string}` : '';
+            const subPagePart = subPage ? `/${subPage as string}` : '';
+            const actionPart = action ? `/${action as string}` : '';
             return `${base}${pagePart}${subPagePart}${actionPart}` as const;
         },
     },

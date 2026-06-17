@@ -16,6 +16,7 @@ import {updateCurrentStep} from '@libs/actions/Wallet';
 import Navigation from '@navigation/Navigation';
 import useIsBankAccountAdded from '@pages/EnablePayments/Wallet/utils/useIsBankAccountAdded';
 import CONST from '@src/CONST';
+import type {EnablePaymentsSubPage} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SetupMethod from './SetupMethod';
@@ -66,7 +67,7 @@ function AddBankAccount() {
 
     const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
-    const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
+    const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps, EnablePaymentsSubPage>({
         pages: plaidPages,
         // Once the bank account is added there is nothing to redo on the Plaid sub-page, so a revisit shows only the confirmation.
         startFrom: isBankAccountAlreadyAdded ? confirmationPageIndex : 0,

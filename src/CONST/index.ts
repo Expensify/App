@@ -8941,6 +8941,15 @@ type IOUActionParams = ValueOf<typeof CONST.IOU.ACTION_PARAMS>;
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
+/** Valid `page` values for the Enable Payments flow */
+type EnablePaymentsPage = ValueOf<typeof CONST.ENABLE_PAYMENTS.PAGE_NAMES>;
+
+/** Valid `subPage` values for the Enable Payments flow */
+type EnablePaymentsSubPage =
+    | ValueOf<typeof CONST.ENABLE_PAYMENTS.ADD_BANK_ACCOUNT_STEP.SUB_PAGE_NAMES>
+    | ValueOf<typeof CONST.ENABLE_PAYMENTS.PERSONAL_INFO_STEP.SUB_PAGE_NAMES>
+    | ValueOf<typeof CONST.ENABLE_PAYMENTS.FEES_AND_TERMS_STEP.SUB_PAGE_NAMES>;
+
 export type {
     Country,
     IOUAction,
@@ -8953,6 +8962,8 @@ export type {
     OnboardingInvite,
     OnboardingAccounting,
     IOUActionParams,
+    EnablePaymentsPage,
+    EnablePaymentsSubPage,
 };
 
 export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
