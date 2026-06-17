@@ -422,7 +422,7 @@ type BuildOptimisticIOUReportActionParams = {
 };
 
 type OptimisticIOUReportAction = Pick<
-    ReportAction,
+    ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>,
     | 'actionName'
     | 'actorAccountID'
     | 'automatic'

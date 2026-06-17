@@ -878,8 +878,7 @@ function markReportPaymentReceived(
     // buildOptimisticIOUReportAction formats the action's `message` as "paid ... elsewhere", so override it with
     // the "received payment" copy here. Keeping the action's message in sync fixes the optimistic chat/report
     // preview, which derives lastMessageText/lastMessageHtml from this action.
-    // translateLocal is used because this runs outside a React component where the useLocalize hook is unavailable;
-    // originalMessage is read directly because the action is freshly built here with a known IOU shape.
+    // translateLocal is used because this runs outside a React component where the useLocalize hook is unavailable.
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const receivedPaymentMessage = getElsewherePaymentReportActionMessage(translateLocal, optimisticIOUReportAction.originalMessage);
     optimisticIOUReportAction.message = [{html: receivedPaymentMessage, text: receivedPaymentMessage, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}];
