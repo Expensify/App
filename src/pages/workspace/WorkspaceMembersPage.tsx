@@ -10,7 +10,8 @@ import DecisionModal from '@components/DecisionModal';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import type {WorkspaceMemberRowData} from '@components/Tables/WorkspaceMembersTable';
+import {TableHandle} from '@components/Table';
+import type {WorkspaceMemberRowData, WorkspaceMembersTableColumnKey} from '@components/Tables/WorkspaceMembersTable';
 import WorkspaceMembersTable from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -49,6 +50,7 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
@@ -92,6 +94,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
+    const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -111,6 +114,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isPolicyAdmin = canEditWorkspaceSettings(policy);
+
     // Group policies (Collect/Control + Submit) allow member management.
     const canManageMembers = isGroupPolicy(policy);
     const isLoading = useMemo(
@@ -123,7 +127,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler', 'EmptyShelves']);
+
+    const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
+    const prevAccountIDs = usePrevious(accountIDs);
+    const invitedEmails = Object.keys(invitedEmailsToAccountIDsDraft ?? {});
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const {approvalWorkflows} = useMemo(
@@ -355,6 +364,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 accountID,
                 name: memberName,
                 email: memberEmail,
+                shouldAnimateInHighlight: invitedEmails.includes(login),
                 employeeUserID: policyEmployee.employeeUserID,
                 employeePayrollID: policyEmployee.employeePayrollID,
                 isInteractive: !details.isOptimisticPersonalDetail,
@@ -376,6 +386,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         policy?.owner,
         policy?.ownerAccountID,
         formatPhoneNumber,
+        invitedEmails,
         session?.accountID,
         shouldShowCustomField1Column,
         shouldShowCustomField2Column,
@@ -383,6 +394,30 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         openMemberDetails,
         dismissError,
     ]);
+
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || accountIDs === prevAccountIDs) {
+            return;
+        }
+
+        const tableMembers = tableRef.current?.getProcessedData() ?? [];
+        if (!tableMembers.length) {
+            return;
+        }
+
+        const invitedMemberIndex = tableMembers.findIndex((member) => invitedEmails.includes(member.login));
+        tableRef.current?.scrollToIndex({index: invitedMemberIndex});
+
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => clearInviteDraft(policyID),
+        });
+
+        return () => handle.cancel();
+    }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, invitedEmails, policyID]);
 
     useHRSyncResultsModal(policyID, connectionSyncProgress, isFocused);
 
@@ -706,6 +741,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     )}
 
                     <WorkspaceMembersTable
+                        ref={tableRef}
                         members={data}
                         policy={policy}
                         isPolicyAdmin={isPolicyAdmin}

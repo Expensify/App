@@ -26,6 +26,7 @@ type WorkspaceMemberRowData = TableData & {
     email: string;
     shouldShowEmployeeUserID: boolean;
     shouldShowEmployeePayrollID: boolean;
+    shouldAnimateInHighlight?: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     invitedSecondaryLogin: string;

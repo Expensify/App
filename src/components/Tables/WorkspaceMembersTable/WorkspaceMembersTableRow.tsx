@@ -39,7 +39,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
-    const roleLabel = item.role !== CONST.POLICY.ROLE.USER ? translate('workspace.common.roleName', CONST.POLICY.ROLE.ADMIN) : '';
+    const roleLabel = item.role !== CONST.POLICY.ROLE.USER ? translate('workspace.common.roleName', item.role) : '';
     const accessibilityLabel = `${item.name}, ${item.email}, ${roleLabel}`;
 
     const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
@@ -53,6 +53,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
+            shouldAnimateInHighlight={item.shouldAnimateInHighlight}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.LIST_ROW}
             skeletonReasonAttributes={{context: 'WorkspaceMembersTableRow'}}
             offlineWithFeedback={{errors: item.errors, pendingAction: item.pendingAction, dismissError: item.dismissError}}
