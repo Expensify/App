@@ -25,6 +25,11 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
         }
     }
 
+    // `transactionIDSet` is rebuilt fresh on every render, so key the memoized selector on its
+    // contents (a stable, order-independent string) rather than the Set reference — otherwise the
+    // selector identity changes each render and defeats useOnyx's memoization, re-subscribing
+    // endlessly under the store-based engine.
+    const transactionIDsKey = Array.from(transactionIDSet).sort().join(',');
     const transactionViolationSelector = useCallback(
         (violations: OnyxCollection<TransactionViolations>) => {
             if (!violations) {
@@ -46,7 +51,8 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
 
             return filteredViolations;
         },
-        [transactionIDSet],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [transactionIDsKey],
     );
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
