@@ -2523,8 +2523,7 @@ function getApprovalModeForNewWorkspace(
 }
 
 /**
- * Builds the default title report field (`fieldList`) used when seeding a new policy. The object intentionally omits the
- * non-essential `PolicyReportField` properties (orderWeight, values, keys, etc.), so it is cast to the expected type.
+ * Builds the default title report field (`fieldList`) used when seeding a new policy.
  */
 function buildDefaultTitleFieldList(pendingFields?: Record<string, PendingAction>): Policy['fieldList'] {
     return {
@@ -2535,9 +2534,15 @@ function buildDefaultTitleFieldList(pendingFields?: Record<string, PendingAction
             name: CONST.POLICY.DEFAULT_FIELD_LIST_NAME,
             fieldID: CONST.POLICY.FIELDS.FIELD_LIST_TITLE,
             deletable: true,
+            orderWeight: 0,
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            isTax: false,
             ...(pendingFields ? {pendingFields} : {}),
         },
-    } as unknown as Policy['fieldList'];
+    };
 }
 
 /**
