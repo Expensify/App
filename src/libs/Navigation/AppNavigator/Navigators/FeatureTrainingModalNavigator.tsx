@@ -19,9 +19,9 @@ function FeatureTrainingModalNavigator() {
             <Stack.Navigator
                 screenOptions={{
                     headerShown: false,
-                    animation: Animations.SLIDE_FROM_RIGHT, web: {transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC}
+                    animation: Animations.SLIDE_FROM_RIGHT,
+                    web: {cardStyle: {backgroundColor: 'transparent'}, transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC},
                     native: {contentStyle: {backgroundColor: 'transparent'}},
-                    web: {cardStyle: {backgroundColor: 'transparent'}},
                 }}
             >
                 <Stack.Screen
