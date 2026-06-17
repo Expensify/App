@@ -57,7 +57,7 @@ const LETTER_AVATAR_COLOR_OPTIONS: LetterAvatarColorStyle[] = Object.values(LETT
 const DEFAULT_LETTER_AVATAR_SCHEME: LetterAvatarColorStyle = LETTER_AVATAR_SCHEMES.blue100;
 
 function isLetterAvatarSchemeKey(value: string): value is LetterAvatarSchemeKey {
-    return value in LETTER_AVATAR_SCHEMES;
+    return Object.hasOwn(LETTER_AVATAR_SCHEMES, value);
 }
 
 export {LETTER_AVATAR_SCHEMES, LETTER_AVATAR_COLOR_OPTIONS, DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey};

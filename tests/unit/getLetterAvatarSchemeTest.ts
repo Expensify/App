@@ -10,6 +10,11 @@ describe('getLetterAvatarScheme', () => {
         expect(getLetterAvatarScheme('not-a-real-key')).toEqual(DEFAULT_LETTER_AVATAR_SCHEME);
     });
 
+    it('falls back to the default scheme for inherited Object keys', () => {
+        expect(getLetterAvatarScheme('toString')).toEqual(DEFAULT_LETTER_AVATAR_SCHEME);
+        expect(getLetterAvatarScheme('constructor')).toEqual(DEFAULT_LETTER_AVATAR_SCHEME);
+    });
+
     it('falls back to the default scheme when no key is given', () => {
         expect(getLetterAvatarScheme()).toEqual(DEFAULT_LETTER_AVATAR_SCHEME);
     });
