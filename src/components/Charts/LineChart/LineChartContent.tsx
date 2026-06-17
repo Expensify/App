@@ -86,9 +86,10 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         unitPosition: yAxisUnitPosition,
     });
 
+    const hasNegativeValues = data.some((point) => point.total < 0);
     const yAxisLabelWidth = useYAxisLabelWidth(
-        Math.max(...data.map((p) => p.total)),
-        Math.min(...data.map((p) => p.total)),
+        Math.max(...data.map((p) => p.total), ...(hasNegativeValues ? [] : [0])),
+        Math.min(...data.map((p) => p.total), ...(hasNegativeValues ? [] : [0])),
         VictoryTheme.axis.tickCount,
         formatValue,
         fontMgr,

@@ -741,6 +741,10 @@ describe('getNiceYAxisTicks', () => {
         expect(getNiceYAxisTicks(90, 0, 5)).toEqual([0, 20, 40, 60, 80, 100]);
     });
 
+    it('returns ticks anchored at zero for a high positive-only range', () => {
+        expect(getNiceYAxisTicks(9000, 0, 5)).toEqual([0, 2000, 4000, 6000, 8000, 10000]);
+    });
+
     it('returns every nice step tick for mixed positive and negative data', () => {
         expect(getNiceYAxisTicks(100, -50, 5)).toEqual([-60, -40, -20, 0, 20, 40, 60, 80, 100]);
     });
