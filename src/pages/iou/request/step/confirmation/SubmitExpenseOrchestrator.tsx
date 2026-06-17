@@ -455,16 +455,14 @@ function SubmitExpenseOrchestrator({
                     resetPermissionFlow={() => {
                         setStartLocationPermissionFlow(false);
                     }}
-                    // onGrant/onDeny fire before the permission modal finishes closing.
-                    // On iOS, navigating immediately would break the modal close animation.
                     onGrant={() => {
-                        Navigation.runAfterUpcomingTransition(() => dispatchSubmitHandler(true));
+                        dispatchSubmitHandler(true);
                     }}
                     onDeny={(wasUserInitiated) => {
                         if (wasUserInitiated) {
                             updateLastLocationPermissionPrompt();
                         }
-                        Navigation.runAfterUpcomingTransition(() => dispatchSubmitHandler(false));
+                        dispatchSubmitHandler(false);
                     }}
                     onInitialGetLocationCompleted={() => {
                         setIsConfirming(false);
