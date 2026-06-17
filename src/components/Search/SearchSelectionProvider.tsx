@@ -1,13 +1,9 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
-import {hasValidModifiedAmount} from '@libs/TransactionUtils';
-import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
-import type {SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from './types';
+import {deriveSelectedReports} from './selectionBuilders';
+import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from './types';
 
 type SearchSelectionProviderProps = {
     children: React.ReactNode;
@@ -19,6 +15,7 @@ type SelectionState = {
     selectedReports: SelectedReports[];
     currentSelectedTransactionReportID: string | undefined;
     shouldTurnOffSelectionMode: boolean;
+    areAllMatchingItemsSelected: boolean;
 };
 
 const defaultSelectionState: SelectionState = {
@@ -27,88 +24,17 @@ const defaultSelectionState: SelectionState = {
     selectedReports: [],
     currentSelectedTransactionReportID: undefined,
     shouldTurnOffSelectionMode: false,
+    areAllMatchingItemsSelected: false,
 };
 
-function deriveSelectedReports(
-    transactionIDs: SelectedTransactions,
-    data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[],
-): SelectedReports[] {
-    if (data.length && data.every(isTransactionReportGroupListItemType)) {
-        return data
-            .filter((item) => {
-                if (!isMoneyRequestReport(item)) {
-                    return false;
-                }
-                if (item.transactions.length === 0) {
-                    return !!item.keyForList && transactionIDs[item.keyForList]?.isSelected;
-                }
-                return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
-            })
-            .map(
-                ({
-                    reportID,
-                    action = CONST.SEARCH.ACTION_TYPES.VIEW,
-                    total = CONST.DEFAULT_NUMBER_ID,
-                    policyID,
-                    allActions = [action],
-                    currency,
-                    chatReportID,
-                    managerID,
-                    ownerAccountID,
-                    parentReportActionID,
-                    parentReportID,
-                    type,
-                }) => ({
-                    reportID,
-                    action,
-                    total,
-                    policyID,
-                    allActions,
-                    currency,
-                    chatReportID,
-                    managerID,
-                    ownerAccountID,
-                    parentReportActionID,
-                    parentReportID,
-                    type,
-                }),
-            );
-    }
-    if (data.length && data.every(isTransactionListItemType)) {
-        return data
-            .filter(({keyForList}) => !!keyForList && transactionIDs[keyForList]?.isSelected)
-            .map((item) => {
-                const total = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : (item.amount ?? CONST.DEFAULT_NUMBER_ID);
-                const action = item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
-
-                return {
-                    reportID: item.reportID,
-                    action,
-                    total,
-                    policyID: item.policyID,
-                    allActions: item.allActions ?? [action],
-                    currency: item.currency,
-                    chatReportID: item.report?.chatReportID,
-                    managerID: item.report?.managerID,
-                    ownerAccountID: item.report?.ownerAccountID,
-                    parentReportActionID: item.report?.parentReportActionID,
-                    parentReportID: item.report?.parentReportID,
-                    type: item.report?.type,
-                };
-            });
-    }
-    return [];
-}
-
+// Owns selection state + pure setters only; the write actions (toggle/toggleAll) live in SearchWriteActionsProvider.
 function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const {currentSearchHash} = useSearchQueryContext();
 
     const areTransactionsEmpty = useRef(true);
-    const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
     const [selectionState, setSelectionState] = useState<SelectionState>(defaultSelectionState);
 
     const currentSearchHashRef = useRef(currentSearchHash);
-
     useEffect(() => {
         currentSearchHashRef.current = currentSearchHash;
     }, [currentSearchHash]);
@@ -128,8 +54,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         }
 
         // When the caller provides `data`, derive `selectedReports` in the same commit so the
-        // two state slices can't diverge for a render. Used by callers (e.g. the refresh-selection
-        // effect) that already have `filteredData` in scope and react to it changing.
+        // two state slices can't diverge for a render.
         if (data) {
             setSelectionState((prevState) => ({
                 ...prevState,
@@ -145,6 +70,31 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             selectedTransactions: transactionIDs,
             shouldTurnOffSelectionMode: false,
         }));
+    };
+
+    // Read-modify-write the selection atomically. The updater receives the previous map so write actions never
+    // need to close over (and re-render on) selection state. `totalSelectableItemsCount` unchecks select-all when
+    // the new selection no longer covers every item; omitting it (e.g. during data reconcile) leaves select-all
+    // untouched, which is what the former `isRefreshingSelection` flag protected.
+    const applySelection: SearchSelectionActionsValue['applySelection'] = (updater, options) => {
+        setSelectionState((prevState) => {
+            const selectedTransactions = updater(prevState.selectedTransactions);
+            if (selectedTransactions === prevState.selectedTransactions) {
+                return prevState;
+            }
+
+            const totalSelectableItemsCount = options?.totalSelectableItemsCount;
+            const areAllMatchingItemsSelected =
+                totalSelectableItemsCount && totalSelectableItemsCount !== Object.keys(selectedTransactions).length ? false : prevState.areAllMatchingItemsSelected;
+
+            return {
+                ...prevState,
+                selectedTransactions,
+                areAllMatchingItemsSelected,
+                selectedReports: options?.data ? deriveSelectedReports(selectedTransactions, options.data) : prevState.selectedReports,
+                shouldTurnOffSelectionMode: false,
+            };
+        });
     };
 
     const setSelectedReports: SearchSelectionActionsValue['setSelectedReports'] = (reports) => {
@@ -171,6 +121,18 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         });
     };
 
+    const selectAllMatchingItems: SearchSelectionActionsValue['selectAllMatchingItems'] = (shouldSelectAll) => {
+        setSelectionState((prevState) => {
+            if (prevState.areAllMatchingItemsSelected === shouldSelectAll) {
+                return prevState;
+            }
+            return {
+                ...prevState,
+                areAllMatchingItemsSelected: shouldSelectAll,
+            };
+        });
+    };
+
     const clearSelectedTransactions: SearchSelectionActionsValue['clearSelectedTransactions'] = (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
         if (typeof searchHashOrClearIDsFlag === 'boolean') {
             setSelectedTransactions([]);
@@ -182,7 +144,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         }
 
         setSelectionState((prevState) => {
-            if (prevState.selectedReports.length === 0 && isEmptyObject(prevState.selectedTransactions) && !prevState.shouldTurnOffSelectionMode) {
+            if (prevState.selectedReports.length === 0 && isEmptyObject(prevState.selectedTransactions) && !prevState.shouldTurnOffSelectionMode && !prevState.areAllMatchingItemsSelected) {
                 return prevState;
             }
             return {
@@ -190,10 +152,9 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                 shouldTurnOffSelectionMode,
                 selectedTransactions: {},
                 selectedReports: [],
+                areAllMatchingItemsSelected: false,
             };
         });
-
-        selectAllMatchingItems(false);
     };
 
     const removeTransaction: SearchSelectionActionsValue['removeTransaction'] = (transactionID) => {
@@ -232,11 +193,11 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const selectionValue: SearchSelectionContextValue = {
         ...selectionState,
         hasSelectedTransactions,
-        areAllMatchingItemsSelected,
     };
 
     const selectionActionsValue: SearchSelectionActionsValue = {
         setSelectedTransactions,
+        applySelection,
         setSelectedReports,
         setCurrentSelectedTransactionReportID,
         clearSelectedTransactions,
@@ -253,7 +214,6 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
 
 /**
  * Derives `selectedReports` from the current selection + visible rows and syncs it into context.
- * Used by the Search component so `toggleTransaction` can stay independent of `filteredData`.
  *
  * Note: `selectedTransactionIDs` and `selectedTransactions` are two separate properties.
  * Setting or clearing one of them does not influence the other.
@@ -263,7 +223,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
  * Without that, a `data` change (e.g. Onyx push) would fire this effect with a stale
  * `selectedTransactions` from closure and clobber any atomic update made in the same commit.
  */
-function useSyncSelectedReports(data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]) {
+function useSyncSelectedReports(data: SearchData) {
     const {selectedTransactions} = useSearchSelectionContext();
     const {setSelectedReports} = useSearchSelectionActions();
 
@@ -277,4 +237,20 @@ function useSyncSelectedReports(data: TransactionListItemType[] | TransactionGro
     }, [selectedTransactions, setSelectedReports]);
 }
 
-export {SearchSelectionProvider, useSyncSelectedReports};
+/** Narrow per-row selection read: whether the row for `keyForList` is selected (or covered by select-all). */
+function useRowSelection(keyForList: string | undefined): {isSelected: boolean} {
+    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    if (!keyForList) {
+        return {isSelected: false};
+    }
+    return {isSelected: areAllMatchingItemsSelected || !!selectedTransactions[keyForList]?.isSelected};
+}
+
+/** Aggregate count of currently-selected transactions, for the selection top bar. */
+function useSelectionCounts(): {selected: number} {
+    const {selectedTransactions} = useSearchSelectionContext();
+    const selected = Object.values(selectedTransactions).filter((value) => value?.isSelected).length;
+    return {selected};
+}
+
+export {SearchSelectionProvider, useSyncSelectedReports, useRowSelection, useSelectionCounts};

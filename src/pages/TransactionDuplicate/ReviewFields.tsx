@@ -70,6 +70,7 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
                     <InteractiveStepSubHeader
                         stepNames={stepNames}
                         startStepIndex={index}
+                        currentStepAccessibilityDescription={label}
                     />
                 </View>
             )}

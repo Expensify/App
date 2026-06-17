@@ -1,21 +1,46 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
+import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useOnyx from '@hooks/useOnyx';
 import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {isModalActiveSelector} from '@src/selectors/Modal';
 import type BaseSearchListProps from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
+
+type CellRendererComponentProps = ViewProps & {
+    ref?: React.Ref<View>;
+    style?: StyleProp<ViewStyle>;
+};
+
+function CellRendererComponent({children, ref, style, ...props}: CellRendererComponentProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <View
+            ref={ref}
+            {...props}
+            // Keep the FlashList cell itself tracking the animated search pane width.
+            style={[style, styles.w100]}
+        >
+            {children}
+        </View>
+    );
+}
 
 function BaseSearchList({
     data,
@@ -34,13 +59,19 @@ function BaseSearchList({
     contentContainerStyle,
     flattenedItemsLength,
     newTransactions,
-    selectedTransactions,
     isAttendeesEnabledForMovingPolicy,
     nonPersonalAndWorkspaceCards,
+    stickyHeaderIndices,
+    stickyHeaderConfig,
+    getItemType,
+    disabledIndexes,
+    overrideItemLayout,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
     const {focusedCellId, isEditingCell} = useEditingCellState();
+
+    const [isModalVisible] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
 
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
@@ -54,7 +85,7 @@ function BaseSearchList({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
         maxIndex: flattenedItemsLength - 1,
-        isActive: isFocused,
+        isActive: isFocused && !isModalVisible,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
@@ -64,6 +95,7 @@ function BaseSearchList({
         setHasKeyBeenPressed,
         isFocused,
         captureOnInputs: false,
+        ...(disabledIndexes ? {disabledIndexes} : {}),
     });
 
     const handleFocusByIndex = (index: number, event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
@@ -121,7 +153,7 @@ function BaseSearchList({
         captureOnInputs: true,
         shouldBubble: false,
         shouldPreventDefault: false,
-        isActive: isFocused && focusedIndex >= 0,
+        isActive: isFocused && focusedIndex >= 0 && !isModalVisible,
         // Propagation is controlled manually in selectFocusedOption based on editing state
         shouldStopPropagation: false,
     });
@@ -133,8 +165,8 @@ function BaseSearchList({
     }, [setHasKeyBeenPressed]);
 
     const extraData = useMemo(
-        () => [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
-        [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
+        () => [focusedIndex, columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
+        [focusedIndex, columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
     );
 
     return (
@@ -151,10 +183,15 @@ function BaseSearchList({
             ListFooterComponent={ListFooterComponent}
             onViewableItemsChanged={onViewableItemsChanged}
             onLayout={onLayout}
+            CellRendererComponent={CellRendererComponent}
             removeClippedSubviews
             drawDistance={250}
             contentContainerStyle={contentContainerStyle}
             maintainVisibleContentPosition={{disabled: true}}
+            stickyHeaderIndices={stickyHeaderIndices}
+            stickyHeaderConfig={stickyHeaderConfig}
+            getItemType={getItemType}
+            overrideItemLayout={overrideItemLayout}
         />
     );
 }

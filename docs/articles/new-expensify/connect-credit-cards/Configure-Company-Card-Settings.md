@@ -1,15 +1,15 @@
 ---
 title: Configure Company Card Settings
 description: Learn how to manage third-party company card feeds in Expensify, including commercial and direct feeds, accounting exports, and automated eReceipts.
-keywords: [New Expensify, company cards, card feed settings, third-party cards, commercial feeds, direct feeds, accounting exports, ereceipts, expense automation, card management]
-internalScope: Applies to Workspace Admins. Covers how to manage third-party feed settings on the workspace level. Does not cover company card troubleshooting, setup or card assignment. 
+keywords: [New Expensify, company cards, card feed settings, third-party cards, commercial feeds, direct feeds, accounting exports, ereceipts, expense automation, card management, e-receipt, electronic receipt, digital receipt, auto-generated receipt, card admin]
+internalScope: Applies to Workspace Admins and Card Admins. Covers how to manage third-party feed settings on the workspace level. Does not cover company card troubleshooting, setup or card assignment. 
 ---
 
 # Configure Company Card Settings
 
-Workspace Admins can manage company card settings, export logic, and eReceipt functionality at the workspace level. This guide outlines how to configure your company card connection, route expenses to accounting systems, and automate receipt handling.
+Workspace Admins can manage company card settings, export logic, and eReceipt functionality at the workspace level. Card Admins can manage company card feed settings and assign export accounts to individual cards. This guide outlines how to configure your company card connection, route expenses to accounting systems, and automate receipt handling.
 
-To set up a direct company credit card feed on a Workspace, see [Direct Feeds](/articles/new-expensify/connect-credit-cards/Direct-feeds)). 
+To set up a direct company credit card feed on a Workspace, see [Direct Feeds](/articles/new-expensify/connect-credit-cards/Direct-feeds). 
 
 To set up a commercial card file feed on a Workspace, see [Commercial Feeds](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds). 
 

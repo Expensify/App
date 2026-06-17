@@ -21,6 +21,7 @@ import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import {isValidEmail} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -43,7 +44,7 @@ type WorkspaceCompanyCardAddWorkEmailPageProps = PlatformStackScreenProps<Settin
 function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWorkEmailPageProps) {
     const {policyID, feed} = route.params;
     const primaryContactMethod = usePrimaryContactMethod();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const [loading, setLoading] = useState(false);
@@ -131,6 +132,8 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="WorkspaceCompanyCardAddWorkEmailPage"

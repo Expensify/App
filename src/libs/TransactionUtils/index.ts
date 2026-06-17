@@ -178,12 +178,29 @@ function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
 }
 
-function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
+/**
+ * Whether a distance expense's receipt is a map/route receipt (as opposed to an odometer photo or a
+ * pure manual entry that has no route). Used to decide whether the full distance e-receipt (map +
+ * amount + waypoints) should be shown. A merged distance expense can be typed `distance-manual` yet
+ * still carry waypoints, so the presence of waypoints keeps those included.
+ */
+function isMapBasedDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    if (!isDistanceRequest(transaction) || isOdometerDistanceRequest(transaction)) {
+        return false;
+    }
+    const hasWaypoints = Object.keys(getWaypoints(transaction) ?? {}).length > 0;
+    return isMapDistanceRequest(transaction) || isGPSDistanceRequest(transaction) || hasWaypoints;
+}
+
+function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'>>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
 }
 
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
-    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
+    if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
+        return true;
+    }
+    return transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
 }
 
 function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -509,6 +526,22 @@ function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boo
         return false;
     }
     return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
+}
+
+/**
+ * Builds the optimistic transaction used when an IOU report is converted to an expense report.
+ *
+ * Expense reports store amounts with the opposite sign of IOU reports (see `getAmount`/`getConvertedAmount`),
+ * so `amount`, `modifiedAmount` and `convertedAmount` are negated to match the expense-report convention.
+ * Absent converted values are not added so they keep being derived from the amount.
+ */
+function getNegatedAmountTransaction(transaction: Transaction): Transaction {
+    return {
+        ...transaction,
+        amount: -transaction.amount,
+        modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
+        ...(transaction.convertedAmount != null && {convertedAmount: -transaction.convertedAmount}),
+    };
 }
 
 function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
@@ -943,7 +976,7 @@ function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, date
 /**
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
-function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
+function getCurrency(transaction: OnyxInputOrEntry<Pick<Transaction, 'modifiedCurrency' | 'currency'>>): string {
     const currency = transaction?.modifiedCurrency ?? '';
     if (currency) {
         return currency;
@@ -1040,6 +1073,24 @@ function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalC
  */
 function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.pendingFields?.waypoints;
+}
+
+// Editing any of these fields makes the server regenerate the distance map receipt. `customUnitRateID`/`distance`
+// aren't typed `pendingFields` keys (they live on the comment), so this is matched by name rather than property access.
+const DISTANCE_RECEIPT_REGENERATION_FIELDS = new Set(['waypoints', 'distance', 'merchant', 'customUnitRateID']);
+
+/**
+ * After a distance/rate/waypoint edit the server regenerates the map receipt and invalidates the prior URL, but the
+ * local `receipt.source` only refreshes once the Pusher push arrives. While any of these edits are pending the stored
+ * map image is stale and can't be regenerated locally.
+ */
+function hasPendingDistanceReceiptRegeneration(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    const pendingFields = transaction?.pendingFields;
+    if (!pendingFields) {
+        return false;
+    }
+    const hasPendingRegenerationField = Object.entries(pendingFields).some(([field, pendingAction]) => !!pendingAction && DISTANCE_RECEIPT_REGENERATION_FIELDS.has(field));
+    return hasPendingRegenerationField;
 }
 
 /**
@@ -1151,6 +1202,18 @@ function getMCCGroup(transaction: Transaction): ValueOf<typeof CONST.MCC_GROUPS>
     return transaction?.modifiedMCCGroup ? transaction.modifiedMCCGroup : transaction?.mccGroup;
 }
 
+function getMCCForDisplay(mcc: number | string | null | undefined): string {
+    if (!mcc || mcc === CONST.DEFAULT_NUMBER_ID || mcc === String(CONST.DEFAULT_NUMBER_ID)) {
+        return '';
+    }
+
+    return String(mcc);
+}
+
+function hasDisplayableMCC(mcc: number | string | null | undefined): boolean {
+    return getMCCForDisplay(mcc) !== '';
+}
+
 /**
  * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
  */
@@ -1246,7 +1309,7 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
  * Return the tag from the transaction. When the tagIndex is passed, return the tag based on the index.
  * This "tag" field has no "modified" complement.
  */
-function getTag(transaction: OnyxInputOrEntry<Transaction>, tagIndex?: number): string {
+function getTag(transaction: OnyxInputOrEntry<Pick<Transaction, 'tag'>>, tagIndex?: number): string {
     if (tagIndex !== undefined) {
         const tagsArray = getTagArrayFromName(transaction?.tag ?? '');
         return tagsArray.at(tagIndex) ?? '';
@@ -1255,7 +1318,7 @@ function getTag(transaction: OnyxInputOrEntry<Transaction>, tagIndex?: number): 
     return transaction?.tag ?? '';
 }
 
-function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
+function getTagForDisplay(transaction: OnyxEntry<Pick<Transaction, 'tag'>>, tagIndex?: number): string {
     return getCommaSeparatedTagNameWithSanitizedColons(getTag(transaction, tagIndex));
 }
 
@@ -1282,7 +1345,7 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
 /**
  * Determine whether a transaction is made with a centrally managed card (Expensify or Company Card).
  */
-function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'managedCard'>>): boolean {
     return !!transaction?.managedCard;
 }
 
@@ -2112,6 +2175,18 @@ function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transacti
 }
 
 /**
+ * Returns the maximum allowed tax amount (in the smallest currency units) for a transaction,
+ * i.e. the tax computed from the selected tax rate (or the policy default) and the expense amount.
+ * Used to validate manually entered tax amounts so they can't exceed the calculated tax.
+ */
+function getCalculatedTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency: string, decimals: number): number {
+    const taxableAmount = Math.abs(getAmount(transaction));
+    const taxCode = transaction?.taxCode ?? getDefaultTaxCode(policy, transaction, currency) ?? '';
+    const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
+    return convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, decimals));
+}
+
+/**
  * Gets the tax name for Workspace Taxes Settings
  */
 function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: string) {
@@ -2863,6 +2938,7 @@ export {
     getDefaultTaxCode,
     transformedTaxRates,
     getTaxValue,
+    getCalculatedTaxAmount,
     getTaxName,
     getTaxRateTitle,
     hasTaxRateWithMatchingValue,
@@ -2906,11 +2982,13 @@ export {
     haveWaypointAddressesChanged,
     isDistanceRequest,
     isMapDistanceRequest,
+    isMapBasedDistanceRequest,
     isGPSDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     isDistanceExpenseType,
     isFetchingWaypointsFromServer,
+    hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
     isDuplicate,
@@ -2927,6 +3005,7 @@ export {
     hasPendingRTERViolation,
     hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
+    getNegatedAmountTransaction,
     allHavePendingRTERViolation,
     hasPendingUI,
     getWaypointIndex,
@@ -2993,6 +3072,8 @@ export {
     willFieldBeAutomaticallyFilled,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
+    getMCCForDisplay,
+    hasDisplayableMCC,
     getConvertedAmount,
     shouldShowExpenseBreakdown,
     isTimeRequest,

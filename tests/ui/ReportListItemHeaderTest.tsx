@@ -13,11 +13,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import MockSearchContextProvider from '../utils/MockSearchContextProvider';
+import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@components/AvatarWithDisplayName.tsx');
+
+jest.mock('@hooks/usePaymentContext', () => {
+    const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../utils/mockUsePaymentContext');
+    return mockUsePaymentContext;
+});
 
 // Mock search context with all required SearchContextStateValue and SearchContextActionsValue fields
 const mockSearchStateContext = {
@@ -46,6 +52,7 @@ const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    applySelection: jest.fn(),
     setSelectedReports: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
     selectAllMatchingItems: jest.fn(),

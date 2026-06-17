@@ -2125,6 +2125,34 @@ function getEmptyDateValues(): SearchDateValues {
 }
 
 /**
+ * Returns an object containing the filter values needed to reset
+ * the currently applied advanced filters back to their initial state.
+ *
+ * - STATUS is reset to `ALL`
+ * - TYPE is reset to `EXPENSE`
+ * - COLUMNS is reset to undefined only if the current TYPE is not EXPENSE
+ * - Other filters are reset to `undefined`
+ */
+function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>) {
+    const isTypeExpense = searchAdvancedFiltersForm.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+    return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
+        if (filterKey === FILTER_KEYS.STATUS) {
+            if (searchAdvancedFiltersForm[filterKey] !== CONST.SEARCH.STATUS.EXPENSE.ALL) {
+                acc[filterKey] = CONST.SEARCH.STATUS.EXPENSE.ALL;
+            }
+        } else if (filterKey === FILTER_KEYS.TYPE) {
+            if (!isTypeExpense) {
+                acc[filterKey] = CONST.SEARCH.DATA_TYPES.EXPENSE;
+            }
+        } else if (filterKey !== FILTER_KEYS.COLUMNS || !isTypeExpense) {
+            Object.assign(acc, {[filterKey]: undefined});
+        }
+
+        return acc;
+    }, {} as Partial<SearchAdvancedFiltersForm>);
+}
+
+/**
  * Fields where `:` should still be sent to the backend as `contains`.
  * Merchant is intentionally excluded because `merchant:` is exact and `merchant*:` is contains.
  */
@@ -2212,6 +2240,7 @@ export {
     buildOptimisticSnapshotData,
     getDateFilterKeys,
     getEmptyDateValues,
+    getAdvancedFiltersToReset,
     getDateModifierTitle,
     applyContainsOperatorToTextFields,
     serializeQueryJSONForBackend,

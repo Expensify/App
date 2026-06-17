@@ -1,9 +1,10 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
@@ -21,7 +22,7 @@ import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditRe
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {PersonalDetails, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Report, Transaction} from '@src/types/onyx';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -31,6 +32,7 @@ type TransactionGroupListItem = ListItem & {
 function SearchTransactionsChangeReport() {
     const {selectedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {currentSearchResults} = useSearchResultsContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const transactions = useMemo(
         () =>
@@ -97,6 +99,46 @@ function SearchTransactionsChangeReport() {
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
+
+    useEffect(() => {
+        const snapshotData = currentSearchResults?.data;
+        if (!snapshotData) {
+            return;
+        }
+
+        const onyxUpdates: Array<{
+            onyxMethod: typeof Onyx.METHOD.MERGE;
+            key: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
+            value: Report;
+        }> = [];
+
+        for (const key of Object.keys(snapshotData)) {
+            if (!key.startsWith(ONYXKEYS.COLLECTION.REPORT) || key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) || key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS)) {
+                continue;
+            }
+
+            const typedKey = key as `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
+            if (allReports?.[typedKey]) {
+                continue;
+            }
+
+            const report = snapshotData[typedKey];
+            if (report) {
+                onyxUpdates.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: typedKey,
+                    value: report,
+                });
+            }
+        }
+
+        if (onyxUpdates.length > 0) {
+            Onyx.update(onyxUpdates);
+        }
+        // Hydration should only run once on mount using the initial snapshot data
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
         const optimisticReport = createNewReport(
             targetOwnerPersonalDetails,
@@ -121,6 +163,7 @@ function SearchTransactionsChangeReport() {
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
                 allTransactions: transactions,
                 policyTagList,
+                allTransactionViolation: transactionViolations,
             });
             clearSelectedTransactions();
         });
@@ -170,7 +213,7 @@ function SearchTransactionsChangeReport() {
         if (
             policyForMovingExpensesID &&
             policyForMovingExpenses &&
-            shouldRestrictUserBillableActions(policyForMovingExpenses, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID)
+            shouldRestrictUserBillableActions(policyForMovingExpenses, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)
         ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
@@ -197,6 +240,7 @@ function SearchTransactionsChangeReport() {
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
             allTransactions: transactions,
             policyTagList,
+            allTransactionViolation: transactionViolations,
         });
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
@@ -218,6 +262,7 @@ function SearchTransactionsChangeReport() {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions: transactions,
             policyTagList,
+            allTransactionViolation: transactionViolations,
         });
         clearSelectedTransactions();
         Navigation.goBack();
