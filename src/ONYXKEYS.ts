@@ -300,7 +300,11 @@ const ONYXKEYS = {
     /**  The NVP containing the target url to navigate to when deleting a transaction */
     NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL: 'nvp_deleteTransactionNavigateBackURL',
 
-    /** A timestamp of when the last full reconnect should have been done */
+    /**
+     * Server-set cutoff time for a full reconnect. If this client's last full reconnect
+     * (LAST_FULL_RECONNECT_TIME) is older than this value, the app refetches all of its data.
+     * The server sets this value; the client only reads it.
+     */
     NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE: 'nvp_reconnectAppIfFullReconnectBefore',
 
     /** User's first policy creation date */
