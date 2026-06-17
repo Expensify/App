@@ -86,7 +86,7 @@
 "../../src/components/AnimatedFlatListWithCellRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AnimatedFlatListWithCellRenderer.tsx"	"react-hooks/refs"	2
 "../../src/components/AnimatedSubmitButton/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/AnimatedSubmitButton/index.tsx"	"react-hooks/refs"	12
+"../../src/components/AnimatedSubmitButton/index.tsx"	"react-hooks/refs"	6
 "../../src/components/AnimatedSubmitButton/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/AttachmentPicker/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AttachmentPicker/index.native.tsx"	"react-hooks/refs"	1
