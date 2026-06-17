@@ -341,8 +341,6 @@ function Search({
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
@@ -374,8 +372,10 @@ function Search({
     });
 
     const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
-    // Only the boolean derived from policyForMovingExpenses is consumed by row components downstream.
-    // Drilling the policy object causes ref churn on every unrelated policy update (Pusher pushes).
+    // getSections only needs the boolean (it gates attendees on unreported transactions for the
+    // attendees sort columns), not the policy object. Passing the object would churn the screen-level
+    // getSections memo on every unrelated policy update (Pusher pushes); the boolean only flips when
+    // attendee tracking on the moving policy toggles. Rows derive their own display gate independently.
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
     const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
@@ -591,7 +591,6 @@ function Search({
         const [filteredData1, allLength, hasDeletedTransactionFromSections] = getSections({
             type,
             data: searchDataWithOptimisticTransaction,
-            policies,
             currentAccountID: accountID,
             currentUserEmail: email ?? '',
             translate,
@@ -607,11 +606,10 @@ function Search({
             cardList: personalAndWorkspaceCards,
             nonPersonalAndWorkspaceCardList: nonPersonalAndWorkspaceCards,
             isOffline,
-            allTransactionViolations: violations,
             customCardNames,
             conciergeReportID,
             onyxPersonalDetailsList,
-            policyForMovingExpenses,
+            isAttendeesEnabledForMovingPolicy,
             convertToDisplayString,
             reportAttributesDerivedValue,
             optimisticTransactionID: optimisticTrackingState.optimisticWatchKey?.toString().replace(ONYXKEYS.COLLECTION.TRANSACTION, ''),
@@ -642,13 +640,11 @@ function Search({
         cardFeeds,
         personalAndWorkspaceCards,
         nonPersonalAndWorkspaceCards,
-        policies,
         bankAccountList,
-        violations,
         customCardNames,
         conciergeReportID,
         onyxPersonalDetailsList,
-        policyForMovingExpenses,
+        isAttendeesEnabledForMovingPolicy,
         convertToDisplayString,
         reportAttributesDerivedValue,
         optimisticTrackingState.optimisticWatchKey,
@@ -1933,7 +1929,6 @@ function Search({
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     isActionColumnWide={isTask || hasDeletedTransaction}
                 />

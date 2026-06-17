@@ -113,7 +113,7 @@ import type Pages from './Pages';
 import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
-import type {AddNewPersonalCard, PersonalCardFeed} from './PersonalCard';
+import type {AddNewPersonalCard} from './PersonalCard';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
@@ -210,7 +210,6 @@ export type {
     Beta,
     AddNewPersonalCard,
     BetaConfiguration,
-    PersonalCardFeed,
     BlockedFromConcierge,
     Card,
     CardList,
