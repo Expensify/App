@@ -36,6 +36,7 @@ const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.Report
 
 function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates}: MoneyRequestReportRHPNavigationButtonsProps) {
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+    const [threadReportIDsByTransactionID] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -125,6 +126,17 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
             backTo = params?.backTo ?? backTo;
         }
+
+        // Snapshot-backed flows (e.g. Home "Recently added") seed the thread reportID up front because the
+        // sibling transactions may be absent from the main Onyx collections. When present, navigate to it
+        // directly and let OpenReport hydrate the thread on arrival.
+        const precomputedNextThreadReportID = nextTransactionID ? threadReportIDsByTransactionID?.[nextTransactionID] : undefined;
+        if (precomputedNextThreadReportID) {
+            markReportIDAsExpense(precomputedNextThreadReportID);
+            requestAnimationFrame(() => Navigation.setParams({reportID: precomputedNextThreadReportID, reportActionID: undefined, backTo}));
+            return;
+        }
+
         const nextThreadReportID = nextParentReportAction?.childReportID;
         const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, backTo};
 
@@ -161,6 +173,15 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
             backTo = params?.backTo ?? backTo;
         }
+
+        // See onNext: prefer the snapshot-seeded thread reportID when available.
+        const precomputedPrevThreadReportID = prevTransactionID ? threadReportIDsByTransactionID?.[prevTransactionID] : undefined;
+        if (precomputedPrevThreadReportID) {
+            markReportIDAsExpense(precomputedPrevThreadReportID);
+            requestAnimationFrame(() => Navigation.setParams({reportID: precomputedPrevThreadReportID, reportActionID: undefined, backTo}));
+            return;
+        }
+
         const prevThreadReportID = prevParentReportAction?.childReportID;
         const navigationParams = {reportID: prevThreadReportID, reportActionID: undefined, backTo};
 

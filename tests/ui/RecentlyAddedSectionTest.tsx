@@ -10,6 +10,7 @@ import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Transaction} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -86,10 +87,31 @@ type RecentlyAddedRowFixture = {
     merchant: string;
     amount: number;
     currency: string;
+    transaction: Transaction;
 };
 
-const ROW_1: RecentlyAddedRowFixture = {transactionID: 't1', reportID: 'thread1', created: '2026-03-26', merchant: 'Velocity Systems', amount: 87690, currency: 'USD'};
-const ROW_2: RecentlyAddedRowFixture = {transactionID: 't2', reportID: 'thread2', created: '2026-03-25', merchant: 'Nitro Fuel Supply Co.', amount: 97622, currency: 'USD'};
+function buildTransaction(transactionID: string, reportID: string): Transaction {
+    return {transactionID, reportID, amount: 0, created: '', currency: 'USD', merchant: '', comment: {}} as Transaction;
+}
+
+const ROW_1: RecentlyAddedRowFixture = {
+    transactionID: 't1',
+    reportID: 'thread1',
+    created: '2026-03-26',
+    merchant: 'Velocity Systems',
+    amount: 87690,
+    currency: 'USD',
+    transaction: buildTransaction('t1', 'thread1'),
+};
+const ROW_2: RecentlyAddedRowFixture = {
+    transactionID: 't2',
+    reportID: 'thread2',
+    created: '2026-03-25',
+    merchant: 'Nitro Fuel Supply Co.',
+    amount: 97622,
+    currency: 'USD',
+    transaction: buildTransaction('t2', 'thread2'),
+};
 
 function setWideLayout() {
     mockUseResponsiveLayout.mockReturnValue({
@@ -210,12 +232,13 @@ describe('RecentlyAddedSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             fireEvent.press(screen.getByTestId('recentlyAddedRow-t1'));
+            await waitForBatchedUpdatesWithAct();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
             expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: ROW_1.reportID, backTo: ROUTES.HOME}));
         });
 
-        it('navigates to REPORT_WITH_ID with backTo Home on narrow layout', async () => {
+        it('navigates to SEARCH_REPORT with backTo Home on narrow layout (carousel available on both layouts)', async () => {
             setNarrowLayout();
             mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1]});
 
@@ -223,9 +246,10 @@ describe('RecentlyAddedSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             fireEvent.press(screen.getByTestId('recentlyAddedRow-t1'));
+            await waitForBatchedUpdatesWithAct();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ROW_1.reportID, undefined, undefined, ROUTES.HOME));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: ROW_1.reportID, backTo: ROUTES.HOME}));
         });
 
         it('opens the tapped expense in a multi-expense report by navigating to its transaction thread', async () => {
@@ -251,6 +275,7 @@ describe('RecentlyAddedSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             fireEvent.press(screen.getByTestId('recentlyAddedRow-t1'));
+            await waitForBatchedUpdatesWithAct();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
             expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: ROUTES.HOME}));
@@ -270,9 +295,43 @@ describe('RecentlyAddedSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             fireEvent.press(screen.getByTestId('recentlyAddedRow-t1'));
+            await waitForBatchedUpdatesWithAct();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
             expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, backTo: ROUTES.HOME}));
+        });
+
+        it('seeds the prev/next carousel with every recently added expense and its thread reportID', async () => {
+            setWideLayout();
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1, ROW_2]});
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByTestId('recentlyAddedRow-t1'));
+            await waitForBatchedUpdatesWithAct();
+
+            const seededIDs = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            const seededThreadReportIDs = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(seededIDs).toEqual([ROW_1.transactionID, ROW_2.transactionID]);
+            expect(seededThreadReportIDs).toEqual({[ROW_1.transactionID]: ROW_1.reportID, [ROW_2.transactionID]: ROW_2.reportID});
         });
     });
 

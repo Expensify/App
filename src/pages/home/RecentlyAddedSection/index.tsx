@@ -16,6 +16,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createTransactionThreadReport} from '@libs/actions/Report';
+import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, isOneTransactionReport} from '@libs/ReportUtils';
@@ -103,14 +104,25 @@ function RecentlyAddedSection() {
 
     const openExpense = (expense: RecentlyAddedExpense) => {
         const reportID = getReportIDToOpen(expense);
-        if (shouldUseNarrowLayout) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME));
-            return;
-        }
-        // Each row opens a single-expense view that always lands in Wide RHP. Marking the report as an expense
-        // lets the RHP open wide immediately, before its data loads, instead of flickering from narrow to wide.
-        markReportIDAsExpense(reportID);
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME}));
+
+        // Seed the prev/next carousel with every recently added expense so the single-expense RHP can navigate
+        // between them. This data is snapshot-backed and may be missing from the main Onyx collections, so we
+        // also seed each expense's resolved thread reportID; the carousel navigates to it directly and lets
+        // OpenReport hydrate the thread on arrival.
+        const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);
+        const threadReportIDsByTransactionID = transactions.reduce<Record<string, string>>((map, sibling) => {
+            // eslint-disable-next-line no-param-reassign
+            map[sibling.transactionID] = sibling.transactionID === expense.transactionID ? reportID : getReportIDToOpen(sibling);
+            return map;
+        }, {});
+
+        // Each row opens a single-expense view that always lands in (Wide) RHP on both layouts so the carousel
+        // arrows are available. Marking the report as an expense lets the RHP open wide immediately, before its
+        // data loads, instead of flickering from narrow to wide.
+        setActiveTransactionIDs(siblingTransactionIDs, threadReportIDsByTransactionID).then(() => {
+            markReportIDAsExpense(reportID);
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME}));
+        });
     };
 
     const openOverflowMenu = () => {
