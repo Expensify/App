@@ -161,13 +161,21 @@ function getRecalculatedWorkspaceDistanceRateIDForExpenseDate({
         return undefined;
     }
 
+    if (isSelfDM(parentReport) || isTrackExpenseReport(transactionThreadReport) || !isExpenseReport(parentReport)) {
+        return undefined;
+    }
+
     const currentRateID = transaction.comment?.customUnit?.customUnitRateID;
     if (!currentRateID || currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
         return undefined;
     }
 
     const currentMileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: currentRateID, policy});
-    if (currentMileageRate?.enabled !== false && DistanceRequestUtils.isRateEligibleForDate(currentMileageRate, expenseDate)) {
+    if (!currentMileageRate) {
+        return undefined;
+    }
+
+    if (currentMileageRate.enabled !== false && DistanceRequestUtils.isRateEligibleForDate(currentMileageRate, expenseDate)) {
         return undefined;
     }
 
