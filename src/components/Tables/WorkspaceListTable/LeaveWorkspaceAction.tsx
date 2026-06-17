@@ -6,10 +6,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {close} from '@libs/actions/Modal';
 import {leaveWorkspace} from '@libs/actions/Policy/Policy';
-import {getConnectionExporters, isPolicyAdmin, isPolicyApprover, isPolicyAuditor} from '@libs/PolicyUtils';
+import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type LeaveWorkspaceActionProps = {
@@ -21,10 +21,6 @@ type LeaveWorkspaceActionProps = {
 };
 
 const ownerDisplayNameSelector = (ownerAccountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[ownerAccountID]?.displayName ?? '';
-
-function isUserReimburserForPolicy(policy: OnyxEntry<Policy>, userEmail: string | undefined): boolean {
-    return !!userEmail && policy?.achAccount?.reimburser === userEmail;
-}
 
 /**
  * Self-contained "leave workspace" flow, mounted only after the user picks Leave in the row menu.
@@ -41,37 +37,6 @@ function LeaveWorkspaceAction({policyID, onDismiss}: LeaveWorkspaceActionProps) 
 
     const isLoadingData = isLoadingOnyxValue(sessionResult, policyResult);
 
-    const confirmModalPrompt = () => {
-        const userEmail = session?.email ?? '';
-        const exporters = getConnectionExporters(policy);
-
-        if (isUserReimburserForPolicy(policy, userEmail)) {
-            return translate('common.leaveWorkspaceReimburser');
-        }
-
-        if (policy?.technicalContact === userEmail) {
-            return translate('common.leaveWorkspaceConfirmationTechContact', policyOwnerDisplayName ?? '');
-        }
-
-        if (exporters.some((exporter) => exporter === userEmail)) {
-            return translate('common.leaveWorkspaceConfirmationExporter', policyOwnerDisplayName ?? '');
-        }
-
-        if (isPolicyApprover(policy, userEmail)) {
-            return translate('common.leaveWorkspaceConfirmationApprover', policyOwnerDisplayName ?? '');
-        }
-
-        if (isPolicyAdmin(policy)) {
-            return translate('common.leaveWorkspaceConfirmationAdmin');
-        }
-
-        if (isPolicyAuditor(policy)) {
-            return translate('common.leaveWorkspaceConfirmationAuditor');
-        }
-
-        return translate('common.leaveWorkspaceConfirmation');
-    };
-
     // Closes the row popover (if still open) and shows the confirmation modal once the policy entry has loaded.
     const hasStartedRef = useRef(false);
     useEffect(() => {
@@ -81,10 +46,12 @@ function LeaveWorkspaceAction({policyID, onDismiss}: LeaveWorkspaceActionProps) 
         hasStartedRef.current = true;
 
         close(() => {
-            if (isUserReimburserForPolicy(policy, session?.email)) {
+            const userEmail = session?.email ?? '';
+            const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, policyOwnerDisplayName ?? '', translate);
+            if (policy?.achAccount?.reimburser === userEmail) {
                 showConfirmModal({
                     title: translate('common.leaveWorkspace'),
-                    prompt: confirmModalPrompt(),
+                    prompt: prompt,
                     confirmText: translate('common.buttonConfirm'),
                     success: true,
                     shouldShowCancelButton: false,
@@ -94,7 +61,7 @@ function LeaveWorkspaceAction({policyID, onDismiss}: LeaveWorkspaceActionProps) 
 
             showConfirmModal({
                 title: translate('common.leaveWorkspace'),
-                prompt: confirmModalPrompt(),
+                prompt: prompt,
                 confirmText: translate('common.leaveWorkspace'),
                 cancelText: translate('common.cancel'),
                 danger: true,
