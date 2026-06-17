@@ -79,31 +79,35 @@ function AddAgentRulePage({
             linkPressedRef.current = true;
             closeModal();
         };
-        showConfirmModal({
-            title: translate('workspace.rules.agentRules.agentCreatedTitle'),
-            titleStyles: styles.textHeadlineH1,
-            prompt: (
-                <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                    <RenderHTML
-                        html={translate('workspace.rules.agentRules.agentCreatedDescription', ROUTES.SETTINGS_AGENTS)}
-                        onLinkPress={handleAgentsLinkPress}
-                    />
-                </View>
-            ),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-            shouldUseSuccessStyleForConfirm: true,
-            iconSource: BotAvatarBlue,
-            iconFill: false,
-            shouldCenterIcon: true,
-            iconWidth: variables.iconSizeUltraLarge,
-            iconHeight: variables.iconSizeUltraLarge,
-            iconAdditionalStyles: {borderRadius: variables.iconSizeUltraLarge / 2, overflow: 'hidden', marginTop: 12},
-        }).then(() => {
-            Navigation.goBack();
-            if (linkPressedRef.current) {
-                Navigation.navigate(ROUTES.SETTINGS_AGENTS);
-            }
+        Navigation.dismissModal({
+            afterTransition: () => {
+                showConfirmModal({
+                    title: translate('workspace.rules.agentRules.agentCreatedTitle'),
+                    titleStyles: styles.textHeadlineH1,
+                    prompt: (
+                        <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
+                            <RenderHTML
+                                html={translate('workspace.rules.agentRules.agentCreatedDescription', ROUTES.SETTINGS_AGENTS)}
+                                onLinkPress={handleAgentsLinkPress}
+                            />
+                        </View>
+                    ),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                    shouldUseSuccessStyleForConfirm: true,
+                    iconSource: BotAvatarBlue,
+                    iconFill: false,
+                    shouldCenterIcon: true,
+                    iconWidth: variables.iconSizeUltraLarge,
+                    iconHeight: variables.iconSizeUltraLarge,
+                    iconAdditionalStyles: {borderRadius: variables.iconSizeUltraLarge / 2, overflow: 'hidden', marginTop: 12},
+                }).then(() => {
+                    if (!linkPressedRef.current) {
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SETTINGS_AGENTS);
+                });
+            },
         });
     };
 
@@ -137,10 +141,6 @@ function AddAgentRulePage({
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
                 >
                     <View style={styles.flex1}>
-                        <View style={[styles.gap2, styles.mv4]}>
-                            <Text style={[styles.textHeadlineH2]}>{translate('workspace.rules.agentRules.describeRuleTitle')}</Text>
-                            <Text style={[styles.textSupporting]}>{translate('workspace.rules.agentRules.describeRuleSubtitle')}</Text>
-                        </View>
                         <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
                             <InputWrapper
                                 InputComponent={TextInput}
@@ -150,6 +150,7 @@ function AddAgentRulePage({
                                 role={CONST.ROLE.PRESENTATION}
                                 onKeyPress={handleKeyPress}
                                 multiline
+                                shouldLabelStayOnSingleLine
                                 containerStyles={[styles.flex1]}
                                 touchableInputWrapperStyle={[styles.flex1]}
                                 textInputContainerStyles={[styles.flex1]}

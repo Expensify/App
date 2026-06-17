@@ -168,6 +168,18 @@ function getPersonalDetailsListByIDs(accountIDs: Array<number | undefined>, pers
     }, {} as PersonalDetailsList);
 }
 
+/**
+ * Build a personal details list scoped to the given participant accountIDs. A participant that is missing from the
+ * source list stays missing (mapped to `null`) so optimistic-account detection keeps the same semantics as the full list.
+ */
+function getParticipantsPersonalDetails(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+    const result: PersonalDetailsList = {};
+    for (const accountID of accountIDs) {
+        result[accountID] = personalDetails?.[accountID] ?? null;
+    }
+    return result;
+}
+
 function getDisplayNameOrYou(displayName: string, accountID: number, currentUserAccountID: number, translate: LocalizedTranslate) {
     if (accountID === currentUserAccountID) {
         return translate('common.you');
@@ -514,6 +526,7 @@ export {
     getPersonalDetailsByID,
     getPersonalDetailsByIDs,
     newGetPersonalDetailsByIDs,
+    getParticipantsPersonalDetails,
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
     getPersonalDetailByEmail,
