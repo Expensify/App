@@ -160,6 +160,7 @@ import {
     isIOUReportUsingReport,
     isMoneyRequestReport,
     isOpenExpenseReport,
+    isOptimisticPersonalDetail,
     isProcessingReport,
     isReportManuallyReimbursed,
     isReportNotFound,
@@ -1879,7 +1880,7 @@ function pruneReportActionPagesToNewestWindow(reportID: string | undefined, sort
  * Create a group chat report. Simplified version specifically for group chats without unnecessary logic.
  *
  * @param reportID The ID of the group chat report to open
- * @param participantLoginList The list of user logins included in the group chat
+ * @param participantsPersonalDetails The personal details of the participants included in the group chat. Logins and accountIDs are derived from this, and entries flagged with `isOptimisticPersonalDetail` are the new participants we still need to create optimistic personal details for.
  * @param newReportObject The optimistic report object for the new group chat
  * @param currentUserLogin The login of the current user
  * @param introSelected The intro selected data for guided setup
@@ -1887,7 +1888,7 @@ function pruneReportActionPagesToNewestWindow(reportID: string | undefined, sort
  */
 function createGroupChat(
     reportID: string,
-    participantLoginList: string[],
+    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
     newReportObject: OptimisticChatReport,
     currentUserLogin: string,
     introSelected: OnyxEntry<IntroSelected>,
@@ -1895,6 +1896,10 @@ function createGroupChat(
     betas: OnyxEntry<Beta[]>,
     avatar?: File | CustomRNImageManipulatorResult,
 ) {
+    const participantLoginList = Object.values(participantsPersonalDetails ?? {})
+        .map((participant) => participant?.login)
+        .filter((login): login is string => !!login);
+
     const optimisticReport = {
         reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
     };
@@ -2015,7 +2020,7 @@ function createGroupChat(
 
     for (const [index, login] of participantLoginList.entries()) {
         const accountID = participantAccountIDs.at(index) ?? -1;
-        const isOptimisticAccount = !allPersonalDetails?.[accountID];
+        const isOptimisticAccount = isOptimisticPersonalDetail(accountID);
 
         if (!isOptimisticAccount) {
             continue;
@@ -2338,8 +2343,9 @@ function navigateToAndOpenReport(
     navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
 }
 
+// TODO: update to object structure https://github.com/Expensify/App/issues/73656
 function navigateToAndCreateGroupChat(
-    userLogins: string[],
+    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
     reportName: string,
     currentUserLogin: string,
     optimisticReportID: string,
@@ -2350,11 +2356,14 @@ function navigateToAndCreateGroupChat(
     avatarUri?: string,
     avatarFile?: File | CustomRNImageManipulatorResult | undefined,
 ) {
+    const userLogins = Object.values(participantsPersonalDetails ?? {})
+        .map((participant) => participant?.login)
+        .filter((login): login is string => !!login);
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
 
     // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', currentUserAccountID, optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
-    createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, isSelfTourViewed, betas, avatarFile);
+    createGroupChat(newChat.reportID, participantsPersonalDetails, newChat, currentUserLogin, introSelected, isSelfTourViewed, betas, avatarFile);
 
     navigateToReport(newChat.reportID, {afterTransition: clearGroupChat});
 }
@@ -2455,10 +2464,11 @@ function navigateToAndOpenChildReport(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     betas: OnyxEntry<Beta[]>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    // The personal details of the child report participants (the current user and the parent action's actor).
+    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
     isSelfTourViewed: boolean | undefined,
 ) {
-    const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, personalDetails);
+    const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails);
 
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
@@ -2480,8 +2490,8 @@ function createChildReport(
     introSelected: OnyxEntry<IntroSelected>,
     betas: OnyxEntry<Beta[]>,
     isSelfTourViewed: boolean | undefined,
-    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
-    personalDetails?: OnyxEntry<PersonalDetailsList>,
+    // The personal details of the child report participants (the current user and the parent action's actor).
+    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
 ): Report {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
     // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
@@ -2519,8 +2529,7 @@ function createChildReport(
             reportID: newChat.reportID,
             introSelected,
             participants,
-            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            personalDetails: personalDetails ?? allPersonalDetails,
+            personalDetails: participantsPersonalDetails,
             newReportObject: newChat,
             parentReportActionID: parentReportAction.reportActionID,
             isNewThread: true,
@@ -2538,6 +2547,8 @@ function createChildReport(
  * Creates an explanation thread for a report action with reasoning
  * Adds a "Please explain this to me." comment from the user
  */
+// TODO: update to object structure https://github.com/Expensify/App/issues/73656
+// eslint-disable-next-line @typescript-eslint/max-params
 function explain(
     childReport: OnyxEntry<Report>,
     originalReport: OnyxEntry<Report>,
@@ -2548,6 +2559,8 @@ function explain(
     betas: OnyxEntry<Beta[]>,
     isSelfTourViewed: boolean | undefined,
     delegateAccountID: number | undefined,
+    // The personal details of the explanation thread participants (the current user and the report action's actor).
+    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
     timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
 ) {
     if (!originalReport?.reportID || !reportAction) {
@@ -2555,7 +2568,7 @@ function explain(
     }
 
     // Check if explanation thread report already exists
-    const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, isSelfTourViewed);
+    const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails);
 
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
@@ -6326,9 +6339,9 @@ function deleteAppReport({
         // 2. Move the report action to self DM
         const updatedReportAction = {
             ...reportAction,
+            reportID: selfDMReportID,
             originalMessage: {
                 ...reportAction.originalMessage,
-                IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 type: CONST.IOU.TYPE.TRACK,
             },
             reportActionID: newReportActionID,

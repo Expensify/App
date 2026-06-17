@@ -2,6 +2,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -10,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {openLink} from '@libs/actions/Link';
 import {explain} from '@libs/actions/Report';
+import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
 import {hasReasoning} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,6 +44,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const delegateAccountID = useDelegateAccountID();
+    const personalDetails = usePersonalDetails();
 
     const actionHasReasoning = hasReasoning(action);
     const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}` : message;
@@ -49,7 +52,20 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const handleLinkPress = (event: GestureResponderEvent | KeyboardEvent, href: string) => {
         // Handle the special "Explain" link
         if (href.endsWith(CONST.CONCIERGE_EXPLAIN_LINK_PATH)) {
-            explain(childReport, originalReport, action, translate, personalDetail.accountID, introSelected, betas, isSelfTourViewed, delegateAccountID, personalDetail?.timezone);
+            const participantsPersonalDetails = getParticipantsPersonalDetails([personalDetail.accountID, Number(action?.actorAccountID)], personalDetails);
+            explain(
+                childReport,
+                originalReport,
+                action,
+                translate,
+                personalDetail.accountID,
+                introSelected,
+                betas,
+                isSelfTourViewed,
+                delegateAccountID,
+                participantsPersonalDetails,
+                personalDetail?.timezone,
+            );
             return;
         }
 
