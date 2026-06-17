@@ -57,6 +57,12 @@ import {isValidDate} from './ValidationUtils';
 
 type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 type SearchRootParams = SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+type NavigationRouteLike = {
+    key?: unknown;
+    name?: unknown;
+    params?: unknown;
+    state?: unknown;
+};
 
 // This map contains chars that match each operator
 const operatorToCharMap = {
@@ -1927,6 +1933,43 @@ function isSearchRootParams(params: unknown): params is SearchRootParams {
     );
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isUnknownArray(value: unknown): value is unknown[] {
+    return Array.isArray(value);
+}
+
+function getRouteKey(route: unknown): string | undefined {
+    return isRecord(route) && typeof route.key === 'string' ? route.key : undefined;
+}
+
+function getRouteParams(route: unknown): unknown {
+    return isRecord(route) ? route.params : undefined;
+}
+
+function getRouteState(route: unknown): unknown {
+    return isRecord(route) ? route.state : undefined;
+}
+
+function getParamsState(params: unknown): unknown {
+    return isRecord(params) ? params.state : undefined;
+}
+
+function getRoutes(state: unknown): unknown[] | undefined {
+    if (!isRecord(state) || !isUnknownArray(state.routes)) {
+        return undefined;
+    }
+    return state.routes;
+}
+
+function getLastRouteByName(state: unknown, routeName: string): NavigationRouteLike | undefined {
+    const routes = getRoutes(state);
+    const route = routes?.findLast((candidate) => isRecord(candidate) && candidate.name === routeName);
+    return isRecord(route) ? route : undefined;
+}
+
 function getSearchRootParamsFromNestedNavigatorParams(params: unknown): SearchRootParams | undefined {
     if (!params || typeof params !== 'object') {
         return undefined;
@@ -1945,6 +1988,17 @@ function getSearchRootParamsFromNestedNavigatorParams(params: unknown): SearchRo
     return undefined;
 }
 
+function getSearchRootParamsFromSearchNavigatorState(state: unknown): SearchRootParams | undefined {
+    const searchRootRoute = getLastRouteByName(state, SCREENS.SEARCH.ROOT);
+    const searchRootParams = getRouteParams(searchRootRoute);
+    return isSearchRootParams(searchRootParams) ? searchRootParams : undefined;
+}
+
+function getSearchRootParamsFromTabState(state: unknown): SearchRootParams | undefined {
+    const searchNavigatorRoute = getLastRouteByName(state, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    return getSearchRootParamsFromNestedNavigatorParams(getRouteParams(searchNavigatorRoute)) ?? getSearchRootParamsFromSearchNavigatorState(getRouteState(searchNavigatorRoute));
+}
+
 function getSearchQueryJSONFromRouteParams(params: unknown) {
     if (!isSearchRootParams(params)) {
         return undefined;
@@ -1956,14 +2010,19 @@ function getSearchQueryJSONFromRouteParams(params: unknown) {
 function getCurrentSearchQueryJSON() {
     const rootState = navigationRef.getRootState();
     const lastTabNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-    const tabState = lastTabNavigator?.state ?? (lastTabNavigator?.key ? getPreservedNavigatorState(lastTabNavigator.key) : undefined);
-    const lastSearchNavigator = tabState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    let lastSearchNavigatorState = lastSearchNavigator?.state;
+    const tabStateFromParams = getParamsState(lastTabNavigator?.params);
+    const tabState = lastTabNavigator?.state ?? (lastTabNavigator?.key ? getPreservedNavigatorState(lastTabNavigator.key) : undefined) ?? tabStateFromParams;
+    const lastSearchNavigator = getLastRouteByName(tabState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    let lastSearchNavigatorState = getRouteState(lastSearchNavigator);
     if (!lastSearchNavigatorState) {
-        lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+        const lastSearchNavigatorKey = getRouteKey(lastSearchNavigator);
+        lastSearchNavigatorState = lastSearchNavigatorKey ? getPreservedNavigatorState(lastSearchNavigatorKey) : undefined;
     }
 
-    const nestedSearchRootParams = getSearchRootParamsFromNestedNavigatorParams(lastSearchNavigator?.params) ?? getSearchRootParamsFromNestedNavigatorParams(lastTabNavigator?.params);
+    const nestedSearchRootParams =
+        getSearchRootParamsFromNestedNavigatorParams(getRouteParams(lastSearchNavigator)) ??
+        getSearchRootParamsFromNestedNavigatorParams(lastTabNavigator?.params) ??
+        getSearchRootParamsFromTabState(tabStateFromParams);
 
     // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
     // neither .state nor the preserved state map will have an entry. Use nested route params when
@@ -1976,8 +2035,8 @@ function getCurrentSearchQueryJSON() {
         return buildSearchQueryJSON(buildSearchQueryString());
     }
 
-    const lastSearchRoute = lastSearchNavigatorState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
-    const queryJSON = getSearchQueryJSONFromRouteParams(lastSearchRoute?.params);
+    const lastSearchRoute = getLastRouteByName(lastSearchNavigatorState, SCREENS.SEARCH.ROOT);
+    const queryJSON = getSearchQueryJSONFromRouteParams(getRouteParams(lastSearchRoute));
     if (!queryJSON) {
         return;
     }

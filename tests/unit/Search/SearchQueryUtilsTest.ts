@@ -100,6 +100,34 @@ describe('SearchQueryUtils', () => {
 
             expect(getCurrentSearchQueryJSON()?.type).toBe(CONST.SEARCH.DATA_TYPES.INVOICE);
         });
+
+        test('reads nested Search params from tab params state', () => {
+            mockGetRootState.mockReturnValue({
+                routes: [
+                    {
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        params: {
+                            state: {
+                                index: 2,
+                                routes: [
+                                    {name: SCREENS.HOME},
+                                    {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                    {
+                                        name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                        params: {
+                                            screen: SCREENS.SEARCH.ROOT,
+                                            params: {q: 'type:invoice'},
+                                        },
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                ],
+            });
+
+            expect(getCurrentSearchQueryJSON()?.type).toBe(CONST.SEARCH.DATA_TYPES.INVOICE);
+        });
     });
 
     describe('getDateRangeDisplayValueFromFormValue', () => {
