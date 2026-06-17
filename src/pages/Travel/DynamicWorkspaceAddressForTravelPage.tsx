@@ -1,6 +1,7 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -15,12 +16,14 @@ import {updateAddress} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type WorkspaceAddressForTravelPageProps = PlatformStackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.WORKSPACE_ADDRESS>;
+type DynamicWorkspaceAddressForTravelPageProps = PlatformStackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS>;
 
-function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPageProps) {
+function DynamicWorkspaceAddressForTravelPage({route}: DynamicWorkspaceAddressForTravelPageProps) {
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_ADDRESS.path);
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
@@ -33,8 +36,7 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
         // Always validate OTP first before allowing address submission
         if (!isUserValidated) {
             // After OTP validation, redirect back to this address page
-            const currentRoute = ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(route.params.domain, policyID, route.params.backTo);
-            setTravelProvisioningNextStep(currentRoute);
+            setTravelProvisioningNextStep(Navigation.getActiveRoute() as Route);
             Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain, policyID));
             return;
         }
@@ -56,10 +58,10 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
                 isLoadingApp={false}
                 updateAddress={updatePolicyAddress}
                 title={translate('common.companyAddress')}
-                backTo={route.params.backTo}
+                backTo={backPath}
             />
         </AccessOrNotFoundWrapper>
     );
 }
 
-export default WorkspaceAddressForTravelPage;
+export default DynamicWorkspaceAddressForTravelPage;

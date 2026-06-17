@@ -2638,10 +2638,8 @@ type TravelNavigatorParamList = {
         policyID?: string;
     };
     [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION]: undefined;
-    [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
+    [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS]: {
         domain: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
         policyID?: string;
     };
     [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: {
