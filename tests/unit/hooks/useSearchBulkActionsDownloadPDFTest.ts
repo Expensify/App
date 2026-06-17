@@ -10,7 +10,8 @@ import {getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUt
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
-import type {SearchResultDataType, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
+import type {SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
+import {makeSearchData, makeSelectedTransaction, makeSettlementGroup} from '../../utils/ExpensifyCardStatementTestUtils';
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
 jest.mock('@libs/actions/Report', () => ({
@@ -164,31 +165,9 @@ const expensifyCardStatementQueryJSON: SearchQueryJSON = {
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense'},
 };
 
-function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]> = {}): SelectedTransactions[string] {
-    return {
-        isSelected: true,
-        canReject: false,
-        canHold: false,
-        canSplit: false,
-        hasBeenSplit: false,
-        canChangeReport: false,
-        isHeld: false,
-        canUnhold: false,
-        action: CONST.SEARCH.ACTION_TYPES.VIEW,
-        reportID: 'report1',
-        policyID: 'policy1',
-        amount: 100,
-        currency: 'USD',
-        isFromOneTransactionReport: false,
-        ...overrides,
-    };
-}
-
 function makeCurrentSearchResults(groups: Record<string, SearchWithdrawalIDGroup>): SearchResults {
     return {
-        // The hook only reads the group_-prefixed entries, so a record of those is a sufficient fixture.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        data: groups as unknown as SearchResultDataType,
+        data: makeSearchData(groups),
         search: {
             offset: 0,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -395,18 +374,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             txn1: makeSelectedTransaction({groupKey, reportID: undefined}),
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
-            [groupKey]: {
-                entryID: 123,
-                count: 2,
-                total: 1000,
-                currency: 'USD',
-                accountNumber: '1234',
-                bankName: 'American Express',
-                debitPosted: '2026-05-31',
-                state: 8,
-                policyID: 'policy1',
-                feedCountry: 'US',
-            },
+            [groupKey]: makeSettlementGroup({count: 2}),
         });
 
         expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, mockSelectedTransactions, mockCurrentSearchResults?.data)).toBeDefined();
@@ -425,18 +393,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             txn1: makeSelectedTransaction({groupKey, reportID: undefined}),
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
-            [groupKey]: {
-                entryID: 123,
-                count: 2,
-                total: 1000,
-                currency: 'USD',
-                accountNumber: '1234',
-                bankName: 'American Express',
-                debitPosted: '2026-05-31',
-                state: 8,
-                policyID: 'policy1',
-                feedCountry: 'US',
-            },
+            [groupKey]: makeSettlementGroup({count: 2}),
         });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
@@ -462,18 +419,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             txn0: makeSelectedTransaction({groupKey, reportID: undefined}),
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
-            [groupKey]: {
-                entryID: 123,
-                count: 1,
-                total: 1000,
-                currency: 'USD',
-                accountNumber: '1234',
-                bankName: 'American Express',
-                debitPosted: '2026-05-31',
-                state: 8,
-                policyID: 'policy1',
-                feedCountry: 'US',
-            },
+            [groupKey]: makeSettlementGroup(),
         });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
@@ -503,30 +449,8 @@ describe('useSearchBulkActions - Download as PDF', () => {
             secondTxn: makeSelectedTransaction({groupKey: secondGroupKey, reportID: undefined}),
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
-            [firstGroupKey]: {
-                entryID: 123,
-                count: 1,
-                total: 100,
-                currency: 'USD',
-                accountNumber: '1234',
-                bankName: 'American Express',
-                debitPosted: '2026-05-31',
-                state: 8,
-                policyID: 'policy1',
-                feedCountry: 'US',
-            },
-            [secondGroupKey]: {
-                entryID: 456,
-                count: 1,
-                total: 200,
-                currency: 'USD',
-                accountNumber: '5678',
-                bankName: 'American Express',
-                debitPosted: '2026-05-30',
-                state: 8,
-                policyID: 'policy2',
-                feedCountry: 'US',
-            },
+            [firstGroupKey]: makeSettlementGroup({entryID: 123, total: 100}),
+            [secondGroupKey]: makeSettlementGroup({entryID: 456, total: 200, accountNumber: '5678', debitPosted: '2026-05-30', policyID: 'policy2'}),
         });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
@@ -550,16 +474,8 @@ describe('useSearchBulkActions - Download as PDF', () => {
             firstTxn: makeSelectedTransaction({groupKey, reportID: undefined}),
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
-            [groupKey]: {
-                entryID: 123,
-                count: 1,
-                total: 100,
-                currency: 'USD',
-                accountNumber: '1234',
-                bankName: 'American Express',
-                debitPosted: '2026-05-31',
-                state: 8,
-            },
+            // A mixed-workspace settlement has no single policyID/feedCountry.
+            [groupKey]: makeSettlementGroup({total: 100, policyID: undefined, feedCountry: undefined}),
         });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
@@ -580,30 +496,8 @@ describe('useSearchBulkActions - Download as PDF', () => {
             firstTxn1: makeSelectedTransaction({groupKey: firstGroupKey, reportID: undefined}),
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
-            [firstGroupKey]: {
-                entryID: 123,
-                count: 2,
-                total: 1000,
-                currency: 'USD',
-                accountNumber: '1234',
-                bankName: 'American Express',
-                debitPosted: '2026-05-31',
-                state: 8,
-                policyID: 'policy1',
-                feedCountry: 'US',
-            },
-            [secondGroupKey]: {
-                entryID: 456,
-                count: 2,
-                total: 2000,
-                currency: 'USD',
-                accountNumber: '5678',
-                bankName: 'American Express',
-                debitPosted: '2026-05-30',
-                state: 8,
-                policyID: 'policy1',
-                feedCountry: 'US',
-            },
+            [firstGroupKey]: makeSettlementGroup({entryID: 123, count: 2}),
+            [secondGroupKey]: makeSettlementGroup({entryID: 456, count: 2, total: 2000, accountNumber: '5678', debitPosted: '2026-05-30'}),
         });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
@@ -649,18 +543,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             txn1: makeSelectedTransaction({groupKey, reportID: undefined}),
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
-            [groupKey]: {
-                entryID: 123,
-                count: 2,
-                total: 1000,
-                currency: 'USD',
-                accountNumber: '1234',
-                bankName: 'American Express',
-                debitPosted: '2026-05-31',
-                state: 8,
-                policyID: 'policy1',
-                feedCountry: 'US',
-            },
+            [groupKey]: makeSettlementGroup({count: 2}),
         });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));

@@ -1,7 +1,8 @@
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch} from '@libs/ExpensifyCardStatementUtils';
 import type {SearchQueryJSON, SelectedTransactions} from '@src/components/Search/types';
 import CONST from '@src/CONST';
-import type {SearchResultDataType, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+import {makeSearchData, makeSelectedTransaction, makeSettlementGroup, makeSettlementSelection} from '../utils/ExpensifyCardStatementTestUtils';
 
 // Mirrors how production turns a selection into download params (useSearchBulkActions.exportExpensifyCardStatementPDF):
 // the export is only offered for a single feed, otherwise the multi-feed alert is shown instead.
@@ -31,60 +32,6 @@ const expensifyCardStatementQueryJSON: SearchQueryJSON = {
     policyID: ['policy1'],
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense'},
 };
-
-function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]> = {}): SelectedTransactions[string] {
-    return {
-        isSelected: true,
-        canReject: false,
-        canHold: false,
-        canSplit: false,
-        hasBeenSplit: false,
-        canChangeReport: false,
-        isHeld: false,
-        canUnhold: false,
-        action: CONST.SEARCH.ACTION_TYPES.VIEW,
-        reportID: 'report1',
-        policyID: 'policy1',
-        amount: 100,
-        currency: 'USD',
-        isFromOneTransactionReport: false,
-        ...overrides,
-    };
-}
-
-/**
- * Selecting a settlement adds its transactions (keyed by transaction ID), each tagged with the settlement's groupKey.
- * Build `selectedTransactionCount` such entries so tests can model whole-settlement vs partial (line-item) selections.
- */
-function makeSettlementSelection(groupKey: string, selectedTransactionCount: number): SelectedTransactions {
-    const selection: SelectedTransactions = {};
-    for (let index = 0; index < selectedTransactionCount; index++) {
-        selection[`${groupKey}_txn${index}`] = makeSelectedTransaction({groupKey, reportID: undefined});
-    }
-    return selection;
-}
-
-function makeSearchData(groups: Record<string, SearchWithdrawalIDGroup>): SearchResultDataType {
-    // The util only reads the group_-prefixed entries, so a record of those is a sufficient fixture.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return groups as unknown as SearchResultDataType;
-}
-
-function makeSettlementGroup(overrides: Partial<SearchWithdrawalIDGroup> = {}): SearchWithdrawalIDGroup {
-    return {
-        entryID: 123,
-        count: 1,
-        total: 1000,
-        currency: 'USD',
-        accountNumber: '1234',
-        bankName: CONST.BANK_NAMES.AMERICAN_EXPRESS,
-        debitPosted: '2026-05-31',
-        state: 8,
-        policyID: 'policy1',
-        feedCountry: 'US',
-        ...overrides,
-    };
-}
 
 describe('ExpensifyCardStatementUtils', () => {
     it('identifies Expensify Card withdrawal-group searches', () => {
