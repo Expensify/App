@@ -156,7 +156,7 @@ function ToggleSettingOptionRow({
         if (typeof subtitle === 'string') {
             if (!!subtitle && shouldParseSubtitle) {
                 return (
-                    <View style={[styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}]}>
+                    <View style={[styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch ? styles.mt3 : {...styles.mt1, ...styles.mr5}]}>
                         <RenderHTML html={processedSubtitle} />
                     </View>
                 );
@@ -169,7 +169,7 @@ function ToggleSettingOptionRow({
                 <Text
                     accessible={!areSubtitleAndSwitchAccessibilityLabelEqual}
                     aria-hidden={areSubtitleAndSwitchAccessibilityLabelEqual}
-                    style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}, subtitleStyle]}
+                    style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt3 : {...styles.mt1, ...styles.mr5}, subtitleStyle]}
                 >
                     {subtitle}
                 </Text>
@@ -182,6 +182,7 @@ function ToggleSettingOptionRow({
         shouldParseSubtitle,
         styles.mutedNormalTextLabel,
         styles.mt1,
+        styles.mt3,
         styles.mr5,
         styles.flexRow,
         styles.renderHTML,
@@ -202,7 +203,7 @@ function ToggleSettingOptionRow({
                 />
             )}
             {customTitle ?? (
-                <View style={[styles.flexColumn, styles.flex1]}>
+                <View style={[styles.flexColumn, styles.flex1, styles.mr6]}>
                     <Text
                         style={[styles.textNormal, styles.lh20, titleStyle]}
                         accessibilityRole={titleAccessibilityRole}
