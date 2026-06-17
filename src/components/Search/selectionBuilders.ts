@@ -23,6 +23,11 @@ type MapTransactionItemToSelectedEntryParams = {
     parentReport: OnyxEntry<Report> | undefined;
 };
 
+/**
+ * Builds the `[keyForList, SelectedTransactionInfo]` entry for a single transaction row, precomputing the
+ * per-row action flags (hold/unhold, reject, split, change-report, etc.) that the selection footer and bulk
+ * actions rely on.
+ */
 function mapTransactionItemToSelectedEntry({
     item,
     itemTransaction,
@@ -142,6 +147,10 @@ type PrepareTransactionsListParams = {
     parentReport: OnyxEntry<Report> | undefined;
 };
 
+/**
+ * Toggles a single transaction in the selection map: removes its entry when it is already selected, otherwise
+ * adds it (built via `mapTransactionItemToSelectedEntry`). Returns the next selection map.
+ */
 function prepareTransactionsList({
     item,
     itemTransaction,
