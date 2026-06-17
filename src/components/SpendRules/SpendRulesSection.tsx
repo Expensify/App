@@ -1,26 +1,29 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,9 +31,11 @@ import ROUTES from '@src/ROUTES';
 
 type SpendRulesSectionProps = {
     policyID: string;
+    canWriteRules: boolean;
+    showReadOnlyModal: () => void;
 };
 
-function SpendRulesSection({policyID}: SpendRulesSectionProps) {
+function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -39,11 +44,17 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Plus']);
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardProtectionIllustration']);
-    const {isProduction} = useEnvironment();
     const {isOffline} = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
+
+    const filterCardRules = (cardRule: TupleToUnion<typeof cardRules>, searchInput: string) => {
+        const results = tokenizedSearch([cardRule], searchInput, (option) => option.searchTokens);
+        return results.length > 0;
+    };
+
+    const [inputValue, setInputValue, filteredCardRules] = useSearchResults(cardRules, filterCardRules);
 
     useEffect(() => {
         if (!defaultFundID || defaultFundID === CONST.DEFAULT_NUMBER_ID) {
@@ -132,8 +143,17 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
             isCentralPane
             subtitleMuted
         >
+            {cardRules.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.card.searchRules')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={!isLoadingCardRules && filteredCardRules.length === 0}
+                    style={[styles.mb0, styles.mt5, styles.mh0]}
+                />
+            )}
             <MenuItem
-                wrapperStyle={[styles.borderedContentCard, styles.mt6, styles.ph4, styles.pv4]}
+                wrapperStyle={[styles.borderedContentCard, styles.mt5, styles.ph4, styles.pv4]}
                 titleComponent={menuItemBody}
                 accessibilityLabel={`${descriptionLabel}. ${blockLabel} ${defaultRuleTitle}`}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
@@ -152,15 +172,15 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                     />
                 </View>
             ) : (
-                cardRules.map((rule) => (
+                filteredCardRules.map((rule) => (
                     <OfflineWithFeedback
                         key={rule.ruleID}
                         pendingAction={rule.pendingAction}
                     >
                         <MenuItem
-                            shouldShowRightIcon
                             accessibilityLabel={rule.accessibilityLabel}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
+                            shouldShowRightIcon
                             disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                             onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
                             wrapperStyle={[styles.borderedContentCard, styles.mt2, styles.ph4, styles.pv4]}
@@ -198,18 +218,22 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                     </OfflineWithFeedback>
                 ))
             )}
-            {!isProduction && (
-                <MenuItem
-                    title={translate('workspace.rules.spendRules.addSpendRule')}
-                    titleStyle={styles.textStrong}
-                    icon={expensifyIcons.Plus}
-                    iconHeight={20}
-                    iconWidth={20}
-                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                    onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_SPEND_RULE}
-                />
-            )}
+            <MenuItem
+                title={translate('workspace.rules.spendRules.addSpendRule')}
+                titleStyle={styles.textStrong}
+                icon={expensifyIcons.Plus}
+                iconHeight={20}
+                iconWidth={20}
+                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_SPEND_RULE}
+                onPress={() => {
+                    if (!canWriteRules) {
+                        showReadOnlyModal();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+                }}
+            />
         </Section>
     );
 }

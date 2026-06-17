@@ -40,7 +40,6 @@ function HeaderWithBackButton({
     onRotateButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
-    policy,
     policyAvatar,
     shouldShowReportAvatarWithDisplay = false,
     shouldDisplayStatus,
@@ -79,6 +78,7 @@ function HeaderWithBackButton({
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
+    shouldSkipFocusAfterTransition = false,
 }: HeaderWithBackButtonProps) {
     // Avatar-header routes skip Header, so register the dialog label here.
     useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
@@ -137,7 +137,6 @@ function HeaderWithBackButton({
             return (
                 <AvatarWithDisplayName
                     report={report}
-                    policy={policy}
                     shouldDisplayStatus={shouldDisplayStatus}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     openParentReportInCurrentTab={openParentReportInCurrentTab}
@@ -153,6 +152,7 @@ function HeaderWithBackButton({
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={1}
                 isScreenHeader
+                shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
             />
         );
     }, [
@@ -161,7 +161,6 @@ function HeaderWithBackButton({
         shouldUseHeadlineHeader,
         progressBarPercentage,
         report,
-        policy,
         shouldEnableDetailPageNavigation,
         shouldShowReportAvatarWithDisplay,
         stepCounter,
@@ -176,6 +175,7 @@ function HeaderWithBackButton({
         translate,
         openParentReportInCurrentTab,
         shouldDisplayStatus,
+        shouldSkipFocusAfterTransition,
     ]);
     const ThreeDotMenuButton = useMemo(() => {
         if (shouldShowThreeDotsButton) {

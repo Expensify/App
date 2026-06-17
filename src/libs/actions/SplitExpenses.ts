@@ -5,7 +5,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
-import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
+import {getTransactionDetails, isOpenReport, isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -90,25 +90,31 @@ function initSplitExpense(
     transaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
     report: OnyxEntry<Report>,
-    {navigateToEditSplitExpense = false}: {navigateToEditSplitExpense?: boolean} = {},
+    currentUserAccountID: number,
+    {navigateToEditSplitExpense = false, isProduction = false}: {navigateToEditSplitExpense?: boolean; isProduction?: boolean} = {},
 ): void {
     if (!transaction) {
         return;
     }
 
-    if (!!policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+    if (!!policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
 
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+
+    if (isProduction && (isSelfDM(report) || isSelfDM(parentReport))) {
+        return;
+    }
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-    const relatedTransactions = getChildTransactions(allTransactions, originalTransactionID);
-    const hasMultipleSplits = relatedTransactions.length > 1;
+    const relatedTransactions = getChildTransactions(allTransactions, originalTransactionID, isProduction);
+    const hasMultipleSplits = getChildTransactions(allTransactions, originalTransactionID, false).length > 1;
     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-    const shouldShowSplitIndicator = isExpenseSplit && hasMultipleSplits;
+    const isReportOpen = isOpenReport(transactionReport);
+    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || (isProduction && isReportOpen));
 
     const isSelfDMReport = isSelfDM(report) || isSelfDM(parentReport);
 

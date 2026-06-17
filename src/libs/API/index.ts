@@ -114,7 +114,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
         command,
         data,
         initiatedOffline: getIsOffline(),
-        requestID: requestIndex++,
+        requestIndex: requestIndex++,
         ...onyxDataWithoutOptimisticData,
         successData,
         failureData,

@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
-import {emailSelector} from '@selectors/Session';
 import type {ReactNode} from 'react';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -11,6 +10,7 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -146,24 +146,17 @@ function WorkspacePageWithSections({
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {
-        selector: emailSelector,
-    });
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
+    const isLoading = isPageLoading ? true : !shouldSkipVBBACall && (reimbursementAccount?.isLoading ?? false);
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
     const content = typeof children === 'function' ? children(policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const firstRender = useRef(showLoadingAsFirstRender);
     const isFocused = useIsFocused();
     const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
     const prevPolicy = usePrevious(policy);
-
-    useEffect(() => {
-        // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
-        firstRender.current = false;
-    }, []);
+    // Because isLoading is false before merging in Onyx, show the loading page while the policy data is still empty.
+    const shouldShowInitialLoading = showLoadingAsFirstRender && isEmptyObject(policy);
 
     useEffect(() => {
         fetchData(policyID, shouldSkipVBBACall);
@@ -172,7 +165,7 @@ function WorkspacePageWithSections({
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
     let hasAccessToPolicyFeature: boolean | undefined;
     if (policyFeature) {
-        hasAccessToPolicyFeature = currentUserLogin ? canMemberRead(policy, currentUserLogin, policyFeature) : false;
+        hasAccessToPolicyFeature = canMemberRead(policy, currentUserLogin ?? '', policyFeature);
     }
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
@@ -193,7 +186,8 @@ function WorkspacePageWithSections({
         // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
         const canShowPage = hasAccessToPolicyFeature ?? (canEditWorkspaceSettings(policy, currentUserLogin) || shouldShowNonAdmin);
 
-        return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
+        const shouldShowPolicyOrFeature = hasAccessToPolicyFeature ?? shouldShowPolicy;
+        return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicyOrFeature && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUserLogin, hasAccessToPolicyFeature, isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
 
@@ -248,7 +242,7 @@ function WorkspacePageWithSections({
                 >
                     {headerContent}
                 </HeaderWithBackButton>
-                {!isOffline && (isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
+                {!isOffline && (isLoading || shouldShowInitialLoading) && shouldShowLoading && isFocused ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -256,7 +250,7 @@ function WorkspacePageWithSections({
                                 {
                                     context: 'WorkspacePageWithSections',
                                     isLoading,
-                                    isFirstRender: firstRender.current,
+                                    shouldShowInitialLoading,
                                 } satisfies SkeletonSpanReasonAttributes
                             }
                         />

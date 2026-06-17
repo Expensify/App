@@ -17,6 +17,7 @@ import type {
     RemoveFullscreenUnderRHPActionType,
     ReplaceActionType,
     ReplaceFullscreenUnderRHPActionType,
+    ToggleMfaModalNavigatorWithHistoryActionType,
     ToggleSidePanelWithHistoryActionType,
 } from './types';
 
@@ -35,6 +36,7 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR,
     NAVIGATORS.SHARE_MODAL_NAVIGATOR,
     NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR,
+    NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR,
     SCREENS.NOT_FOUND,
     SCREENS.REPORT_ATTACHMENTS,
     SCREENS.REPORT_ADD_ATTACHMENT,
@@ -564,6 +566,30 @@ function handleToggleSidePanelWithHistoryAction(state: StackNavigationState<Para
     return state;
 }
 
+/**
+ * Push or pop the MFA modal navigator marker on the root history.
+ *
+ * Idempotent: appends only if the marker is not already on top; removes by filter so
+ * multiple removals are safe. useLinking mirrors these history changes to synthetic
+ * browser entries that share the underlying screen's URL, giving the overlay a
+ * back-button target without exposing it through routing.
+ */
+function handleToggleMfaModalNavigatorWithHistoryAction(state: StackNavigationState<ParamListBase>, action: ToggleMfaModalNavigatorWithHistoryActionType) {
+    if (!state?.history) {
+        return state;
+    }
+
+    if (action.payload.isVisible && state.history.at(-1) !== CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR) {
+        return {...state, history: [...state.history, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR]};
+    }
+
+    if (!action.payload.isVisible) {
+        return {...state, history: state.history.filter((entry) => entry !== CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR)};
+    }
+
+    return state;
+}
+
 export {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
@@ -575,6 +601,7 @@ export {
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,
+    handleToggleMfaModalNavigatorWithHistoryAction,
     getPreInsertedOriginalTabRoute,
     clearPreInsertedOriginalTabRoute,
     // Exported for unit-test access; not used outside of testing.

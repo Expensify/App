@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DebugUtils from '@libs/DebugUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
@@ -27,6 +28,19 @@ import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
 
 type DebugReportActionCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
+
+function isParsedReportAction(value: unknown): value is ReportAction {
+    return typeof value === 'object' && value !== null && 'reportActionID' in value;
+}
+
+function parseReportActionJSON(draftReportAction: string): ReportAction | null {
+    try {
+        const parsedReportAction: unknown = JSON.parse(draftReportAction.replaceAll('\n', ''));
+        return isParsedReportAction(parsedReportAction) ? parsedReportAction : null;
+    } catch {
+        return null;
+    }
+}
 
 const getInitialReportAction = (reportID: string, session: OnyxEntry<Session>, personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     DebugUtils.stringifyJSON({
@@ -49,16 +63,24 @@ function DebugReportActionCreatePage({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+
+    const reportAction = useMemo(() => parseReportActionJSON(draftReportAction), [draftReportAction]);
+
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
 
     const [error, setError] = useState<string>();
 
     const createReportAction = useCallback(() => {
-        const parsedReportAction = JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction;
+        if (!reportAction) {
+            return;
+        }
         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            [parsedReportAction.reportActionID]: parsedReportAction,
+            [reportAction.reportActionID]: reportAction,
         });
         Navigation.navigate(ROUTES.DEBUG_REPORT_TAB_ACTIONS.getRoute(reportID));
-    }, [draftReportAction, reportID]);
+    }, [reportAction, reportID]);
 
     const editJSON = useCallback(
         (updatedJSON: string) => {
@@ -105,16 +127,17 @@ function DebugReportActionCreatePage({
                         </View>
                         <View>
                             <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('debug.preview')}</Text>
-                            {!error ? (
+                            {!error && reportAction ? (
                                 <ReportActionItem
-                                    action={JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction}
-                                    report={{reportID}}
+                                    action={reportAction}
+                                    transactionThreadReport={transactionThreadReport}
+                                    report={report}
+                                    chatReport={chatReport}
                                     parentReportAction={undefined}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
                                     isFirstVisibleReportAction={false}
                                     shouldDisplayContextMenu={false}
-                                    personalDetails={personalDetailsList}
                                 />
                             ) : (
                                 <Text>{translate('debug.nothingToPreview')}</Text>

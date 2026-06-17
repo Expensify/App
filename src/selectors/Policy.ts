@@ -2,11 +2,10 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE
@@ -17,6 +16,28 @@ type ReusablePolicyConnectionName =
 const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
+
+type OwnedPaidPoliciesCounts = {
+    /** Number of paid policies owned by the user */
+    total: number;
+
+    /** Number of owned paid policies that are not pending deletion */
+    active: number;
+};
+
+/**
+ * Creates a selector returning only the counts of owned paid policies, so subscribers don't re-render
+ * when anything else on the policy collection changes.
+ */
+const createOwnedPaidPoliciesCountsSelector =
+    (currentUserAccountID: number | undefined) =>
+    (policies: OnyxCollection<Policy>): OwnedPaidPoliciesCounts => {
+        const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
+        return {
+            total: ownedPaidPolicies.length,
+            active: ownedPaidPolicies.filter((policy) => !isPendingDeletePolicy(policy)).length,
+        };
+    };
 
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
 
@@ -86,15 +107,6 @@ const hasMultipleOutputCurrenciesSelector = (policies: OnyxCollection<Policy>) =
     }
 
     return false;
-};
-
-const groupPaidPoliciesWithExpenseChatEnabledSelector = (policies: OnyxCollection<Policy>, currentUserLogin: string | undefined) => {
-    if (isEmptyObject(policies)) {
-        return CONST.EMPTY_ARRAY;
-    }
-    return Object.values(policies ?? {}).filter(
-        (policy): policy is Policy => !!policy?.isPolicyExpenseChatEnabled && !policy?.isJoinRequestPending && isPaidGroupPolicy(policy) && shouldShowPolicy(policy, false, currentUserLogin),
-    );
 };
 
 type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
@@ -223,6 +235,10 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
+const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
+
+const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
+
 function isAdminForPolicyByIDSelector(policyID?: string) {
     return (policies: OnyxCollection<Policy> | null): boolean => {
         if (!policyID) {
@@ -254,17 +270,14 @@ export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
+    createOwnedPaidPoliciesCountsSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
     hasMultipleOutputCurrenciesSelector,
-    groupPaidPoliciesWithExpenseChatEnabledSelector,
     iouRequestPolicyCollectionSelector,
     policyMapper,
-    adminPoliciesConnectedToSageIntacctSelector,
-    adminPoliciesConnectedToCertiniaSelector,
-    adminPoliciesConnectedToNetSuiteSelector,
     adminPoliciesConnectedToQBDSelector,
     reusablePoliciesConnectedToSelector,
     hasPoliciesConnectedToQBDSelector,
@@ -272,6 +285,8 @@ export {
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
     policyNameSelector,
+    policyTypeSelector,
+    areInvoicesEnabledSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
 };

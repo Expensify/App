@@ -18,7 +18,7 @@ import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {UpdateMoneyRequestDataKeys} from '../../src/libs/actions/IOU/UpdateMoneyRequest';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {PersonalDetails, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
@@ -55,11 +55,11 @@ const FAKE_SELF_DM_REPORT_ID = '4';
 function generateIOUAction(transaction: Transaction, reportID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return {
         reportActionID: rand64(),
+        reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: CURRENT_USER_ID,
         created: DateUtils.getDBTime(),
         originalMessage: {
-            IOUReportID: reportID,
             IOUTransactionID: transaction.transactionID,
             amount: transaction.amount,
             currency: transaction.currency,
@@ -116,11 +116,11 @@ describe('Transaction', () => {
         function createIOUAction(transaction: Transaction, reportID = transaction.reportID, type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE> = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
             return {
                 reportActionID: rand64(),
+                reportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -349,7 +349,7 @@ describe('Transaction', () => {
             mockAPIWrite.mockRestore();
         });
 
-        it('updates the source submitted report next step without reopening when it becomes empty', async () => {
+        it('updates the source submitted report next step and reopens it when it becomes empty', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const buildOptimisticNextStepSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep');
 
@@ -363,7 +363,7 @@ describe('Transaction', () => {
                 ...createExpenseReport(6),
                 reportID: FAKE_OLD_REPORT_ID,
                 ownerAccountID: CURRENT_USER_ID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 currency: CONST.CURRENCY.USD,
                 total: -100,
@@ -394,13 +394,18 @@ describe('Transaction', () => {
                 const sourceNextStepCall = buildOptimisticNextStepCalls.find(([params]) => params.report?.reportID === FAKE_OLD_REPORT_ID);
 
                 expect(sourceNextStepCall).toBeDefined();
-                expect(sourceNextStepCall?.[0].predictedNextStatus).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+                expect(sourceNextStepCall?.[0].predictedNextStatus).toBe(CONST.REPORT.STATUS_NUM.OPEN);
 
                 const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-                const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string}>})?.optimisticData;
+                const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string; value: Partial<Report>}>})?.optimisticData;
                 const sourceNextStepUpdate = optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_OLD_REPORT_ID}`);
+                const sourceReportStateUpdate = optimisticData?.find(
+                    (data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}` && 'stateNum' in data.value && 'statusNum' in data.value,
+                );
 
                 expect(sourceNextStepUpdate).toBeDefined();
+                expect(sourceReportStateUpdate?.value.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+                expect(sourceReportStateUpdate?.value.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
             } finally {
                 buildOptimisticNextStepSpy.mockRestore();
                 mockAPIWrite.mockRestore();
@@ -693,12 +698,14 @@ describe('Transaction', () => {
             expect(report?.total).toBe(0);
         });
 
-        it('should update the old report total when the currency is the same', async () => {
+        it('should reset the old report total to 0 and reopen it when moving the last same-currency expense', async () => {
             const oldExpenseReport = {
                 ...createRandomReport(1, undefined),
                 total: -200,
                 nonReimbursableTotal: -200,
                 currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const transaction = {
                 ...generateTransaction({
@@ -738,11 +745,13 @@ describe('Transaction', () => {
                 });
             });
 
-            expect(report?.total).toBe(oldExpenseReport.total - transaction.amount);
-            expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal - transaction.amount);
+            expect(report?.total).toBe(0);
+            expect(report?.nonReimbursableTotal).toBe(0);
+            expect(report?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
         });
 
-        it('should not update the old report total when the currency is different', async () => {
+        it('should reset the old report total to 0 when no expenses remain, even if the currency is different', async () => {
             const oldExpenseReport = {
                 ...createRandomReport(1, undefined),
                 total: -200,
@@ -787,8 +796,73 @@ describe('Transaction', () => {
                 });
             });
 
-            expect(report?.total).toBe(oldExpenseReport.total);
-            expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal);
+            expect(report?.total).toBe(0);
+            expect(report?.nonReimbursableTotal).toBe(0);
+        });
+
+        it('should reset the old report total to 0 after moving all same-currency expenses to a new report', async () => {
+            const oldExpenseReport = {
+                ...createRandomReport(1, undefined),
+                total: -300,
+                nonReimbursableTotal: -300,
+                currency: CONST.CURRENCY.USD,
+                transactionCount: 2,
+            };
+            const firstTransaction = {
+                ...generateTransaction({
+                    reportID: oldExpenseReport.reportID,
+                }),
+                amount: -100,
+                reimbursable: false,
+                currency: CONST.CURRENCY.USD,
+            };
+            const secondTransaction = {
+                ...generateTransaction({
+                    reportID: oldExpenseReport.reportID,
+                }),
+                amount: -200,
+                reimbursable: false,
+                currency: CONST.CURRENCY.USD,
+            };
+            const firstIOUAction = createIOUAction(firstTransaction, FAKE_OLD_REPORT_ID);
+            const secondIOUAction = createIOUAction(secondTransaction, FAKE_OLD_REPORT_ID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`, firstTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`, secondTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`, oldExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {
+                [firstIOUAction.reportActionID]: firstIOUAction,
+                [secondIOUAction.reportActionID]: secondIOUAction,
+            });
+
+            const fakeReport = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`]: firstTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`]: secondTransaction,
+            };
+            changeTransactionsReport({
+                transactionIDs: [firstTransaction.transactionID, secondTransaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: fakeReport,
+                policy: undefined,
+                allTransactions,
+                policyTagList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(report?.total).toBe(0);
+            expect(report?.nonReimbursableTotal).toBe(0);
         });
 
         it('should keep both reports stale and preserve the displayed totals for mixed-currency partial moves', async () => {
@@ -1265,6 +1339,7 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList: undefined,
+                allTransactionViolation: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [receiptNoticeViolation]},
             });
             await waitForBatchedUpdates();
 
@@ -1336,6 +1411,50 @@ describe('Transaction', () => {
             expect(missingTagViolations.some((violation) => violation.data?.tagName === 'City')).toBe(true);
         });
 
+        it('removes AUTO_REPORTED_REJECTED_EXPENSE from transaction violations when moving to a paid group policy', async () => {
+            const policyID = '1001';
+            const transaction = generateTransaction({reportID: FAKE_OLD_REPORT_ID});
+            const oldIOUAction = createIOUAction(transaction);
+            const newExpenseReport = {
+                ...createExpenseReport(Number(FAKE_NEW_REPORT_ID)),
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ID,
+            };
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                requiresTag: false,
+                requiresCategory: false,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [
+                {name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+            ]);
+            await waitForBatchedUpdates();
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: newExpenseReport,
+                policy,
+                allTransactions,
+                policyTagList: {},
+            });
+            await waitForBatchedUpdates();
+
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
+            expect(updatedViolations?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)).toBe(false);
+        });
+
         it('should auto-select a valid distance rate when moving a distance expense with an invalid P2P rate to a workspace', async () => {
             const policyID = '100';
             const validRateID = 'valid_rate_1';
@@ -1343,6 +1462,7 @@ describe('Transaction', () => {
                 reportID: FAKE_OLD_REPORT_ID,
                 amount: -500,
                 currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -1419,6 +1539,7 @@ describe('Transaction', () => {
                 reportID: FAKE_OLD_REPORT_ID,
                 amount: -500,
                 currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -1500,6 +1621,7 @@ describe('Transaction', () => {
                 reportID: FAKE_OLD_REPORT_ID,
                 amount: -500,
                 currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -1575,6 +1697,7 @@ describe('Transaction', () => {
                 reportID: FAKE_OLD_REPORT_ID,
                 amount: -500,
                 currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -1651,11 +1774,11 @@ describe('Transaction', () => {
             });
             const IOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
                 reportActionID: rand64(),
+                reportID: FAKE_OLD_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
                     IOUTransactionID: transaction.transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -2034,12 +2157,12 @@ describe('Transaction', () => {
             const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
             const iouAction = {
                 reportActionID: rand64(),
+                reportID: FAKE_OLD_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: threadReportID,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
                     IOUTransactionID: transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -2061,6 +2184,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
             });
             await waitForBatchedUpdates();
 
@@ -2099,12 +2223,12 @@ describe('Transaction', () => {
             const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
             const iouAction = {
                 reportActionID: rand64(),
+                reportID: FAKE_OLD_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: threadReportID,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
                     IOUTransactionID: transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
@@ -2125,6 +2249,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
             });
             await waitForBatchedUpdates();
 
@@ -2178,12 +2303,12 @@ describe('Transaction', () => {
 
             const iouAction = {
                 reportActionID: rand64(),
+                reportID: FAKE_OLD_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: threadReportID,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
                     IOUTransactionID: transactionID,
                     amount: transactionInOnyx.amount,
                     currency: transactionInOnyx.currency,
@@ -2202,6 +2327,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions: {[transactionKey]: staleTransaction},
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
             });
             await waitForBatchedUpdates();
 
@@ -2265,12 +2391,12 @@ describe('Transaction', () => {
                 const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
                 const iouAction = {
                     reportActionID: rand64(),
+                    reportID: FAKE_OLD_REPORT_ID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     childReportID: threadReportID,
                     actorAccountID: CURRENT_USER_ID,
                     created: DateUtils.getDBTime(),
                     originalMessage: {
-                        IOUReportID: FAKE_OLD_REPORT_ID,
                         IOUTransactionID: transactionID,
                         amount: transaction.amount,
                         currency: transaction.currency,
@@ -2294,6 +2420,7 @@ describe('Transaction', () => {
                         policy: undefined,
                         isASAPSubmitBetaEnabled: false,
                         allTransactions,
+                        currentTransactionViolations: [{transactionID, violations: mockViolations}],
                     });
                     await waitForBatchedUpdates();
                 });
