@@ -1,4 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -12,16 +11,17 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
-import addTrailingForwardSlash from '@libs/UrlUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {buildSecureDownloadURL} from '@libs/UrlUtils';
 import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
-import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Modal from './Modal';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
-import TextLink from './TextLink';
 
 type ExportDownloadStatusModalProps = {
     /** The export ID to subscribe to */
@@ -43,13 +43,10 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     // isSmallScreenWidth is needed here because the modal type depends on actual screen width, not layout mode
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {environment} = useEnvironment();
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [encryptedAuthToken] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.encryptedAuthToken});
 
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
@@ -70,10 +67,10 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         if (!fileName || !currentUserLogin) {
             return;
         }
-        const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
+        const baseURL = getOldDotURLFromEnvironment(environment);
         const isCSV = fileName.endsWith('.csv');
-        const secureType = isCSV ? 'csvexport' : 'pdfreport';
-        const url = `${baseURL}secure?secureType=${secureType}&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(fileName)}&email=${encodeURIComponent(currentUserLogin)}`;
+        const secureType = isCSV ? CONST.SECURE_DOWNLOAD_TYPE.CSV_EXPORT : CONST.SECURE_DOWNLOAD_TYPE.PDF_REPORT;
+        const url = buildSecureDownloadURL({baseURL, secureType, fileName, downloadName: fileName, email: currentUserLogin});
         fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), fileName, '', isMobileSafari());
     };
 
@@ -94,7 +91,9 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
 
     const handleGoToConcierge = () => {
         onClose();
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+        if (conciergeReportID) {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: conciergeReportID}));
+        }
     };
 
     const handleClose = () => {
@@ -150,24 +149,14 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                 <>
                     <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
                     {isPartialFailure ? (
-                        <Text style={styles.mb5}>
-                            {translate('exportDownload.readyPartialBody', {
-                                count: reportCount,
-                                total: reportCount + failedReportCount,
-                                concierge: '\u0000',
-                            })
-                                .split('\u0000')
-                                .map((part, i) =>
-                                    i === 0 ? (
-                                        part
-                                    ) : (
-                                        <Text key={`concierge-${part}`}>
-                                            <TextLink onPress={handleGoToConcierge}>Concierge</TextLink>
-                                            {part}
-                                        </Text>
-                                    ),
-                                )}
-                        </Text>
+                        <View style={styles.mb5}>
+                            <RenderHTML
+                                html={translate('exportDownload.readyPartialBody', {
+                                    count: reportCount,
+                                    total: reportCount + failedReportCount,
+                                })}
+                            />
+                        </View>
                     ) : (
                         <Text style={styles.mb5}>{translate('exportDownload.readyBody')}</Text>
                     )}

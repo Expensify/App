@@ -495,6 +495,11 @@ const CONST = {
         },
     },
 
+    SECURE_DOWNLOAD_TYPE: {
+        CSV_EXPORT: 'csvexport',
+        PDF_REPORT: 'pdfreport',
+    },
+
     EXPORT_LABELS: {
         NETSUITE: 'NetSuite',
         QBO: 'QuickBooks Online',

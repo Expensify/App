@@ -3,18 +3,21 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 import fileDownload from '@libs/fileDownload';
+import Navigation from '@libs/Navigation/Navigation';
 import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
-import {navigateToConciergeChat} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/fileDownload');
+jest.mock('@components/RenderHTML', () => {
+    function MockRenderHTML({html}: {html: string}) {
+        return html;
+    }
+    return MockRenderHTML;
+});
 jest.mock('@userActions/Export', () => ({
     sendExportFileFromConcierge: jest.fn(),
     clearExportDownload: jest.fn(),
-}));
-jest.mock('@userActions/Report', () => ({
-    navigateToConciergeChat: jest.fn(),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -36,7 +39,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 const mockFileDownload = fileDownload as jest.MockedFunction<typeof fileDownload>;
 const mockSendFromConcierge = sendExportFileFromConcierge as jest.MockedFunction<typeof sendExportFileFromConcierge>;
 const mockClearExportDownload = clearExportDownload as jest.MockedFunction<typeof clearExportDownload>;
-const mockNavigateToConcierge = navigateToConciergeChat as jest.MockedFunction<typeof navigateToConciergeChat>;
+const mockNavigate = Navigation.navigate as jest.MockedFunction<typeof Navigation.navigate>;
 
 const EXPORT_ID = 'test-export-123';
 const FILE_NAME = 'test-report-file';
@@ -157,6 +160,8 @@ describe('ExportDownloadStatusModal', () => {
 
     it('"Go to Concierge" navigates and closes', async () => {
         const onClose = jest.fn();
+        const conciergeReportID = '12345';
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing', shouldSendFromConcierge: true});
 
         renderModal({onClose});
@@ -165,7 +170,7 @@ describe('ExportDownloadStatusModal', () => {
         fireEvent.press(screen.getByText('exportDownload.goToConcierge'));
 
         expect(onClose).toHaveBeenCalled();
-        expect(mockNavigateToConcierge).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining(conciergeReportID));
     });
 
     it('shows partial failure body when failedReportCount > 0 in ready state', async () => {
