@@ -466,7 +466,7 @@ function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName
 
 function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, originalMessage: OriginalMessageIOU | undefined, payer?: string): string {
     if (originalMessage?.isSubmitterMarkedPaymentReceived) {
-        return translate('iou.receivedPaymentReportAction');
+        return translate('iou.receivedPaymentReportAction', payer);
     }
 
     return translate('iou.paidElsewhere', {payer, comment: originalMessage?.comment?.trim()});

@@ -1340,7 +1340,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Marcar ${formattedAmount} como pago` : `Marcar como pago`),
         confirmPaymentReceivedModalTitle: 'Confirmar recebimento do pagamento',
         receivedPayment: 'Pagamento recebido',
-        receivedPaymentReportAction: 'pagamento recebido',
+        receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}pagamento recebido`,
         receivedPaymentConfirmation: 'Prossiga apenas se você já tiver recebido o pagamento fora do Expensify.',
         confirmReceivedPayment: 'Sim, recebi o pagamento.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `pagou ${amount} com a conta pessoal ${last4Digits}` : `Pago com conta pessoal`),
