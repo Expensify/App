@@ -10,7 +10,7 @@ index 2b5f16b..f716161 100644
  #include <unordered_map>
  #include <utility>
  
-@@ -56,17 +57,35 @@ class RuntimeAwareCache : public BaseRuntimeAwareCache,
+@@ -56,17 +57,37 @@ class RuntimeAwareCache : public BaseRuntimeAwareCache,
  
  public:
    void onRuntimeDestroyed(jsi::Runtime *rt) override {
@@ -31,19 +31,21 @@ index 2b5f16b..f716161 100644
    }
  
    ~RuntimeAwareCache() {
-+    if (_primaryRuntime != nullptr) {
-+      RuntimeLifecycleMonitor::removeListener(*_primaryRuntime, this);
++    {
++      // Claim the primary cache so a concurrent onRuntimeDestroyed can't release
++      // it while members are destructed here. If it hasn't been handled yet, the
++      // primary runtime is still alive, so deregistering the listener here is
++      // safe (and destroying the cache is too).
++      std::lock_guard<std::mutex> lock(_primaryCacheMutex);
++      if (_primaryRuntime != nullptr && !_primaryCacheHandled) {
++        RuntimeLifecycleMonitor::removeListener(*_primaryRuntime, this);
++      }
++      _primaryCacheHandled = true;
 +    }
      for (auto &cache : _secondaryRuntimeCaches) {
        RuntimeLifecycleMonitor::removeListener(
            *static_cast<jsi::Runtime *>(cache.first), this);
      }
-+
-+    // Claim _primaryCache so a concurrent onRuntimeDestroyed can't release it
-+    // while the member is destructed here. If not already released, the runtime
-+    // is still alive so destroying it is safe.
-+    std::lock_guard<std::mutex> lock(_primaryCacheMutex);
-+    _primaryCacheHandled = true;
    }
  
    T &get(jsi::Runtime &rt) {
