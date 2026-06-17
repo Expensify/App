@@ -1697,6 +1697,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Você pode duplicar até ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} despesas por vez. Selecione menos despesas e tente novamente.`,
         deleted: 'Excluído',
+        categoryDisabledAlert: {
+            title: 'Categoria desativada',
+            prompt: 'Ative as categorias no workspace para editar os detalhes da despesa ou excluir a categoria desta despesa.',
+            confirmText: 'Excluir categoria',
+        },
+        tagDisabledAlert: {title: 'Tag desativada', prompt: 'Ative as tags no workspace para editar os detalhes da despesa ou excluir a tag desta despesa.', confirmText: 'Excluir tag'},
     },
     transactionMerge: {
         listPage: {
@@ -2813,9 +2819,12 @@ ${amount} para ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agentes',
-        subtitle: 'Crie agentes para gerenciar seu fluxo de trabalho. Pule o trabalho manual e ganhe horas de volta no seu dia.',
+        subtitle: `<muted-text>Crie agentes para cuidar do seu fluxo de trabalho. Pule o trabalho manual e ganhe horas de volta no seu dia. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Saiba mais</a>.</muted-text>`,
         newAgent: 'Novo agente',
-        emptyAgents: {title: 'Nenhum agente criado', subtitle: 'Pare de fazer tudo manualmente. Instrua um agente e economize muito tempo.'},
+        emptyAgents: {
+            title: 'Nenhum agente criado',
+            subtitle: `<muted-text><centered-text>Pare de fazer tudo manualmente. Instrua um agente e economize muito tempo. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Saiba mais</a>.</centered-text></muted-text>`,
+        },
         error: {
             genericAdd: 'Houve um problema ao adicionar este agente',
             genericUpdate: 'Ocorreu um problema ao atualizar este agente',
@@ -3018,11 +3027,6 @@ ${amount} para ${merchant} - ${date}`,
         welcome: 'Bem-vindo!',
         welcomeSignOffTitleManageTeam: 'Quando você concluir as tarefas acima, poderemos explorar mais funcionalidades, como fluxos de aprovação e regras!',
         welcomeSignOffTitle: 'É ótimo conhecer você!',
-        explanationModal: {
-            title: 'Bem-vindo ao Expensify',
-            description: 'Um só app para gerenciar seus gastos empresariais e pessoais na velocidade de um chat. Experimente e conte para a gente o que achou. Muito mais vindo por aí!',
-            secondaryDescription: 'Para voltar para o Expensify Classic, basta tocar na sua foto de perfil > Ir para Expensify Classic.',
-        },
         getStarted: 'Começar',
         whatsYourName: 'Qual é o seu nome?',
         peopleYouMayKnow: 'Veja se sua equipe está no Expensify',
@@ -3503,7 +3507,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Status',
-        statusExplanation: 'Adicione um emoji para que seus colegas e amigos saibam facilmente o que está acontecendo. Você também pode adicionar uma mensagem, se quiser!',
+        statusExplanation: 'Defina seu status com um emoji e uma mensagem opcional.',
         today: 'Hoje',
         clearStatus: 'Limpar status',
         save: 'Salvar',
@@ -4807,6 +4811,7 @@ ${amount} para ${merchant} - ${date}`,
             bankTransactions: 'Transações bancárias',
             travelInvoicingDescription: 'As despesas de viagem serão exportadas como transações bancárias para a conta do Xero especificada abaixo.',
             xeroBankAccount: 'Conta bancária Xero',
+            bankAccount: 'Conta bancária',
             xeroBankAccountDescription: 'Escolha onde as despesas serão lançadas como transações bancárias.',
             exportExpensesDescription: 'Os relatórios serão exportados como uma conta de compra com a data e o status selecionados abaixo.',
             purchaseBillDate: 'Data da fatura de compra',
@@ -4943,8 +4948,9 @@ ${amount} para ${merchant} - ${date}`,
             exportStatus: {
                 label: 'Status da fatura a pagar',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Concluir',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Concluir',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'Em andamento',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Aprovado',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
                 },
             },
@@ -6613,6 +6619,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             exportCompanyCard: 'Exportar despesas de cartão corporativo como',
             exportDate: 'Data de exportação',
             defaultVendor: 'Fornecedor padrão',
+            defaultAccount: 'Conta padrão',
             autoSync: 'Sincronização automática',
             autoSyncDescription: 'Sincronize NetSuite e Expensify automaticamente, todos os dias. Exporte relatórios finalizados em tempo real',
             reimbursedReports: 'Sincronizar relatórios reembolsados',
@@ -6814,11 +6821,9 @@ Se você quiser assumir a cobrança de toda a assinatura deles, peça para que a
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `Os seguintes relatórios já foram exportados para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:
+            }: ExportAgainModalDescriptionParams) => `Os seguintes relatórios já foram exportados para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Tem certeza de que quer exportá-los novamente?
 
-${reportName}
-
-Tem certeza de que deseja exportá-los novamente?`,
+${reportName}`,
             confirmText: 'Sim, exportar novamente',
             cancelText: 'Cancelar',
         },
@@ -6954,6 +6959,12 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             },
             commonFeatures: {
                 title: 'Faça upgrade para o plano Control',
+                collect: {
+                    title: 'Faça upgrade para o plano Collect',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>O plano Collect começa em <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`} <a href="${learnMoreMethodsRoute}">Saiba mais</a> sobre nossos planos e preços.</muted-text>`,
+                    note: 'Desbloqueie os recursos essenciais para o seu negócio, incluindo:',
+                },
                 note: 'Desbloqueie nossos recursos mais avançados, incluindo:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -7347,18 +7358,20 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueado' : 'Permitido'} ${shownCount > 1 ? 'categorias' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
             },
-            aiRules: {
-                title: 'Regras de IA',
-                subtitle: 'Descreva regras flexíveis que rodam quando você precisa',
-                addRule: 'Adicionar regra de IA',
-                findRule: 'Encontrar regra de IA',
+            agentRules: {
+                title: 'Regras de Agente',
+                subtitle: 'Descreva regras flexíveis que rodam quando você precisa.',
+                addRule: 'Adicionar regra de Agente',
+                findRule: 'Encontrar regra de Agente',
                 addRuleTitle: 'Adicionar regra',
                 editRuleTitle: 'Editar regra',
                 deleteRule: 'Excluir regra',
                 deleteRuleConfirmation: 'Tem certeza de que quer excluir esta regra?',
-                describeRuleTitle: 'Descreva sua regra',
-                describeRuleSubtitle: 'Descreva sua regra e a Concierge vai criá-la',
+                describeRuleTitle: 'Descreva sua regra e a Concierge vai criá-la',
                 disclaimer: 'Os agentes de IA podem cometer erros.',
+                agentCreatedTitle: 'O RuleBot foi adicionado ao seu espaço de trabalho!',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `<muted-text>Para aplicar suas regras de agente, criamos um agente para você e o adicionamos como administrador do seu espaço de trabalho.<br><br>Edite os detalhes do seu agente em <a href="${agentsRoute}">Conta &gt; Agentes</a>.</muted-text>`,
             },
         },
         planTypePage: {
@@ -8014,10 +8027,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 }),
                 phraseVerb: {added: 'adicionado', removed: 'removido', changed: 'alterado', set: 'definir', applied: 'aplicado'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `comerciante ${adjective} '${value}'` : `estabelecimento comercial '${value}'`),
+                bodyMerchantValueOnly: ({value}: {value: string}) => `'${value}'`,
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} comerciante de '${oldValue}' para '${newValue}'` : `estabelecimento comercial de '${oldValue}' para '${newValue}'`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
                     adjective !== '' ? `Categoria de gasto ${adjective} '${value}'` : `categoria de gastos '${value}'`,
+                bodySpendCategoryValueOnly: ({value}: {value: string}) => `'${value}'`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `Categoria de gasto ${adjective} de '${oldValue}' para '${newValue}'` : `categoria de gasto de '${oldValue}' para '${newValue}'`,
                 bodyMaxAmount: 'valor máximo',
@@ -8341,10 +8356,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Anos',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
         },
-        moneyRequestReport: {
-            emptyStateTitle: 'Este relatório não tem despesas.',
-            accessPlaceHolder: 'Abrir para ver detalhes',
-        },
+        moneyRequestReport: {emptyStateTitle: 'Ainda não há despesas', accessPlaceHolder: 'Abrir para ver detalhes'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Selecione datas para De e Até',
         },
@@ -9557,6 +9569,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         expenseLevelExport: 'Todos os dados - nível de despesa',
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'O Concierge enviará o arquivo para você em breve.',
+        currentView: 'Exportar visão atual',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
@@ -9570,6 +9583,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         readyBody: "If it didn't automatically download, use the button below.",
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
+        csvFailedBody: 'Your export could not be completed. Please try again later.',
         close: 'Close',
     },
     domain: {

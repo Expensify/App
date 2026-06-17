@@ -10,7 +10,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
-import {getLastVisibleAction, getLastVisibleMessage, getOriginalMessage, getReportActionMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getLastVisibleAction, getLastVisibleMessage, getReportActionMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getOutstandingChildRequest,
@@ -573,7 +573,7 @@ function getCleanUpTransactionThreadReportOnyxData({
     }
 
     // Update the child comment visible count for reportPreviewAction.
-    const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
+    const iouReportID = isMoneyRequestAction(reportAction) ? reportAction?.reportID : undefined;
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
     const originalReportPreviewAction = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID) ?? undefined;

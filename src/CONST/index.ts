@@ -1318,6 +1318,8 @@ const CONST = {
     CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     COMPANY_CARD_PLAID: `${CLOUDFRONT_URL}/images/plaid/`,
+    // The version below must stay in sync with the `@lottiefiles/dotlottie-web` version pinned in package-lock.json.
+    DOTLOTTIE_WASM_URL: 'https://cdn.expensify.com/cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web@0.44.0/dist/dotlottie-player.wasm',
     CONCIERGE_EXPLAIN_LINK_PATH: '/concierge/explain',
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
@@ -1385,6 +1387,7 @@ const CONST = {
     CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Configure-approval-workflows',
     SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
+    CUSTOM_AGENTS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents',
     BULK_UPLOAD_HELP_URL: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense#option-4-bulk-upload-receipts-desktop-only',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
@@ -2076,6 +2079,8 @@ const CONST = {
             RHP_DURATION_OUT_WEB: 100,
             CENTERED_DURATION_IN_WEB: 120,
             CENTERED_DURATION_OUT_WEB: 80,
+            NARROW_SLIDE_DURATION_IN_WEB: 300,
+            NARROW_SLIDE_DURATION_OUT_WEB: 200,
         },
         RHP_ENTER_OFFSET_PX_WEB: 60,
     },
@@ -2741,6 +2746,8 @@ const CONST = {
 
     MULTI_LEVEL_TAGS_FILE_NAME: 'MultiLevelTags.csv',
 
+    DEFAULT_ATTACHMENT_FILENAME: 'chat_attachment',
+
     ATTACHMENT_TYPE: {
         REPORT: 'r',
         NOTE: 'n',
@@ -3009,10 +3016,13 @@ const CONST = {
         COMPANY: 'company',
     },
 
+    // These are the native values stored in the connection's export.exportStatus config, shared with
+    // OldDot and pushed to Certinia at export time. COMPLETE/IN_PROGRESS apply to FFA, APPROVED/SUBMITTED to PSA.
     CERTINIA_EXPORT_STATUS: {
-        APPROVED: 'APPROVED',
-        IN_PROGRESS: 'IN_PROGRESS',
-        SUBMITTED: 'SUBMITTED',
+        COMPLETE: 'Complete',
+        IN_PROGRESS: 'In Progress',
+        APPROVED: 'Approved',
+        SUBMITTED: 'Submitted',
     },
 
     CERTINIA_EXPORT_DATE: {
@@ -4812,6 +4822,10 @@ const CONST = {
             ALLOW: 'allow',
             BLOCK: 'block',
         },
+        NOUN: {
+            MERCHANT: 'merchant',
+            SPEND_CATEGORY: 'spendCategory',
+        },
     },
     get SUBSCRIPTION_PRICES() {
         return {
@@ -5129,6 +5143,7 @@ const CONST = {
     },
     EXPENSE_PENDING_ACTION: {
         SUBMIT: 'SUBMIT',
+        SUBMIT_FAILED: 'SUBMIT_FAILED',
         APPROVE: 'APPROVE',
     },
     BRICK_ROAD_INDICATOR_STATUS: {
@@ -6315,8 +6330,6 @@ const CONST = {
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 
     EXPENSIFY_ICON_NAME: 'Expensify',
-
-    WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
@@ -8507,10 +8520,10 @@ const CONST = {
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
-                AI_RULE_ITEM: 'WorkspaceRules-AIRuleItem',
-                ADD_AI_RULE: 'WorkspaceRules-AddAIRule',
-                AI_RULE_SAVE: 'WorkspaceRules-AIRuleSave',
-                AI_RULE_DELETE: 'WorkspaceRules-AIRuleDelete',
+                AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',
+                ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',
+                AGENT_RULE_SAVE: 'WorkspaceRules-AgentRuleSave',
+                AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
