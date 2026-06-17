@@ -311,7 +311,7 @@ function ReportSubmitToContent({
         });
     }, [
         hasSelectedSubmitToMember,
-        selectedSubmitToMember,
+        selectedSubmitToMember?.accountID,
         managerEmail,
         report,
         policy,
