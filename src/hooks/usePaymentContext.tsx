@@ -2,15 +2,13 @@ import React, {createContext, useContext} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy, ReportNextStepDeprecated} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
-import useParticipantsInvoiceReport from './useParticipantsInvoiceReport';
 import usePolicy from './usePolicy';
 
 type PaymentContextValue = {
@@ -33,13 +31,11 @@ type PaymentContextValue = {
 type ReportPaymentContextValue = PaymentContextValue & {
     nextStep: OnyxEntry<ReportNextStepDeprecated>;
     chatReportPolicy: OnyxEntry<Policy>;
-    existingB2BInvoiceReport: OnyxEntry<Report>;
 };
 
 type UseReportPaymentContextParams = {
     reportID: string | undefined;
     chatReportPolicyID: string | undefined;
-    invoiceReceiverPolicyID?: string | undefined;
 };
 
 const PaymentContext = createContext<PaymentContextValue | undefined>(undefined);
@@ -96,17 +92,15 @@ function usePaymentContext(): PaymentContextValue {
     return context;
 }
 
-function useReportPaymentContext({reportID, chatReportPolicyID, invoiceReceiverPolicyID}: UseReportPaymentContextParams): ReportPaymentContextValue {
+function useReportPaymentContext({reportID, chatReportPolicyID}: UseReportPaymentContextParams): ReportPaymentContextValue {
     const paymentContext = usePaymentContext();
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(reportID)}`);
     const chatReportPolicy = usePolicy(chatReportPolicyID);
-    const existingB2BInvoiceReport = useParticipantsInvoiceReport(paymentContext.activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, invoiceReceiverPolicyID ?? chatReportPolicyID);
 
     return {
         ...paymentContext,
         nextStep,
         chatReportPolicy,
-        existingB2BInvoiceReport,
     };
 }
 
