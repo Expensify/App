@@ -161,9 +161,18 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
                 return;
             }
 
-            // Inbox + wide layout: open the expense report in a super wide RHP underneath, then
-            // stack the transaction thread RHP on top of it.
-            if (iouReportID) {
+            // Inbox + wide layout. A report with multiple transactions opens in a super wide RHP, so
+            // we open the expense report underneath and stack the transaction thread RHP on top of it -
+            // the super wide RHP keeps both visible as one cohesive surface. A single-transaction report
+            // does NOT use the super wide RHP (see SearchMoneyRequestReportPage's `shouldShowSuperWideRHP`),
+            // so stacking would surface as two separate RHP panels (RHP appears to open twice). In that
+            // case navigate straight to the transaction thread instead; the report still shows underneath
+            // via the Wide RHP machinery, matching the Spend-context path above.
+            const hasMultipleReportTransactions =
+                Object.values(allTransactions).filter((transaction) => transaction.reportID === iouReportID && transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    .length > 1;
+
+            if (iouReportID && hasMultipleReportTransactions) {
                 Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
             }
             setNavigationActionToMicrotaskQueue(() => {
