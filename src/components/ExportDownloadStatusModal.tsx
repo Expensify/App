@@ -55,6 +55,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const state = displayedExport?.state;
     const shouldSendFromConcierge = displayedExport?.shouldSendFromConcierge;
     const fileName = displayedExport?.fileName;
+    const exportType = displayedExport?.exportType;
     const failedReportCount = displayedExport?.failedReportCount ?? 0;
     const reportCount = displayedExport?.reportCount ?? 0;
     const isPreparing = state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !shouldSendFromConcierge;
@@ -173,7 +174,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         }
 
         if (isFailed) {
-            const resolvedFailedBody = failedBody ?? (fileName?.endsWith('.csv') ? translate('exportDownload.csvFailedBody') : translate('exportDownload.pdfFailedBody'));
+            const resolvedFailedBody = failedBody ?? (exportType === CONST.EXPORT_DOWNLOAD.TYPE.CSV ? translate('exportDownload.csvFailedBody') : translate('exportDownload.pdfFailedBody'));
             return (
                 <>
                     <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('exportDownload.failedTitle')}</Text>

@@ -493,6 +493,10 @@ const CONST = {
             READY: 'ready',
             FAILED: 'failed',
         },
+        TYPE: {
+            CSV: 'csv',
+            PDF: 'pdf',
+        },
     },
 
     SECURE_DOWNLOAD_TYPE: {

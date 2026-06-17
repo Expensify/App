@@ -83,7 +83,7 @@ function exportReportsToPDF(reportIDs: number[]): string {
         {
             onyxMethod: Onyx.METHOD.SET,
             key: onyxKey,
-            value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING},
+            value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING, exportType: CONST.EXPORT_DOWNLOAD.TYPE.PDF},
         },
     ];
 
@@ -91,7 +91,7 @@ function exportReportsToPDF(reportIDs: number[]): string {
         {
             onyxMethod: Onyx.METHOD.SET,
             key: onyxKey,
-            value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED},
+            value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED, exportType: CONST.EXPORT_DOWNLOAD.TYPE.PDF},
         },
     ];
 
