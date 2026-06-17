@@ -1,17 +1,34 @@
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
+import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useReportAttributes from '@hooks/useReportAttributes';
+import {selectFilteredReportActions} from '@libs/ReportUtils';
+import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
+import {getColumnsToShow, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
+import {shouldShowAttendees} from '@libs/TransactionUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import type {ReportAction} from '@src/types/onyx';
 
 /**
- * Public contract of the Search data layer (Slice S4, callstack-internal/expensify-issues#2546).
+ * Public contract of the Search data layer (Slices S4+S5, callstack-internal/expensify-issues#2546/#2547).
  *
- * Returns row identities plus list-level meta only. It never returns a React component,
- * a render function, or per-row pre-joined display data. Rows self-hydrate from their own
- * live Onyx subscriptions once the shell decomposition (S5/S6) consumes this hook.
+ * Returns row identities plus list-level meta. Never a React component, a render function, or
+ * per-row pre-joined display data. Flat-expense rows self-hydrate their display from their own live
+ * Onyx subscriptions (verified in `TransactionListItem`), so the live inputs `getSections` still
+ * receives are kept only for the sort/group comparators and list-level projection, not for display.
  */
 type SearchSnapshotResult = {
-    /** Row identities only (keyForList + the id discriminant per variant). Never pre-joined display data. */
+    /** Sorted row items for the current query. Rows read identities + ids off these and self-hydrate display. */
     data: SearchListItem[];
     /** Columns to render, derived from the snapshot. */
     columns: SearchColumnType[];
@@ -23,44 +40,125 @@ type SearchSnapshotResult = {
     hasLoadedAllTransactions: boolean;
 };
 
+const EMPTY_DATA: SearchListItem[] = [];
+const EMPTY_COLUMNS: SearchColumnType[] = [];
+
 /**
  * Single data layer for the Search screen.
  *
- * SCOPE NOTE (S4 is shipping as a draft, do not consume in the render path yet):
- * - This v1 owns the narrow snapshot subscription and the snapshot-only meta (`isLoading`, `hasMore`).
- * - The sorted/grouped identity projection (`data`), `columns`, and `hasLoadedAllTransactions` are
- *   produced today by `getSections` + `getSortedSections` inside `<Search>`. Moving that projection
- *   in here depends on an OPEN contract decision on #2546: `getSections` is NOT snapshot-only post-S3
- *   (it still merges ~15 live Onyx inputs that S3 judged load-bearing), so the PRD's "single narrow
- *   subscription" goal is not achievable as written. The hook must instead OWN the snapshot plus the
- *   retained live subscriptions. That reframe needs sign-off before the projection lands here.
- * - The two-phase optimistic-row resilience (`useOptimisticSearchTracking` Phase 1 +
- *   `useStableOptimisticSortedData` Phase 2) is absorbed in follow-up commits and validated with
- *   unit tests covering injection and the 3s re-injection window. The legacy hooks are deleted in S5,
- *   not here, because legacy `<Search>` still renders through them during the transition.
+ * This commit lands the snapshot-only projection: the narrow snapshot subscription plus the
+ * sort/group/paginate projection via `getSections` + `getSortedSections`, returning the sorted items
+ * and meta. The hook owns the snapshot plus the live inputs `getSections` needs for sort/group
+ * correctness (S3 judged these load-bearing).
  *
- * Serves both top-level snapshots (called with a `SearchQueryJSON`) and, once the projection lands,
- * group sub-snapshots (called with a `SnapshotHash`). One contract, two consumption sites.
+ * Follow-up commits on this PR:
+ * - Absorb optimistic Phase 1 (snapshot augmentation) and Phase 2 (3s re-injection).
+ * - Grouped sub-snapshot enrichment + accurate `hasLoadedAllTransactions` (currently flat-first).
+ * - `useSearchSnapshot(hash)` overload for group sub-snapshots (must use the conditional-key C-1 form).
  */
 function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshotResult {
-    const {hash} = queryJSON;
+    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     // `hash` is a required number, so the interpolated key can never collapse to a bare collection
-    // key (C-1). The future group overload will accept a `SnapshotHash` that can be undefined, and
-    // that path must use the conditional `hash ? key : undefined` form before subscribing.
+    // key (C-1). The future group overload accepts a hash that can be undefined and must guard with
+    // the conditional `hash ? key : undefined` form before subscribing.
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+
+    const {isOffline} = useNetwork();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {accountID, email} = useCurrentUserPersonalDetails();
+    const {convertToDisplayString} = useCurrencyListActions();
+    const {currentSearchKey} = useSearchQueryContext();
+    const isActionLoadingSet = useActionLoadingReportIDs();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const reportAttributesDerivedValue = useReportAttributes();
+    const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
+
+    const [exportReportActions] = useOnyx<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction[]> | undefined>(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector: selectFilteredReportActions,
+    });
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+
+    const validGroupBy = getValidGroupBy(groupBy);
+    const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
 
     const isLoading = !!snapshot?.search?.isLoading;
     const hasMore = !!snapshot?.search?.hasMoreResults;
 
-    // TODO(#2546): produce sorted/grouped identities + columns + hasLoadedAllTransactions here once the
-    // getSections-ownership contract is confirmed, then absorb optimistic Phase 1/2. Inert until then.
+    const data = ((): SearchListItem[] => {
+        // Group-by is not valid for chats or tasks; mirror the legacy `<Search>` guard.
+        if (!snapshot?.data || (validGroupBy && (isChat || isTask))) {
+            return EMPTY_DATA;
+        }
+
+        const [filteredData] = getSections({
+            type,
+            data: snapshot.data,
+            currentAccountID: accountID,
+            currentUserEmail: email ?? '',
+            translate,
+            formatPhoneNumber,
+            bankAccountList,
+            groupBy: validGroupBy,
+            reportActions: exportReportActions,
+            currentSearch: currentSearchKey,
+            archivedReportsIDList: archivedReportsIDSet,
+            queryJSON,
+            isActionLoadingSet,
+            cardFeeds,
+            cardList: personalAndWorkspaceCards,
+            nonPersonalAndWorkspaceCardList: nonPersonalAndWorkspaceCards,
+            isOffline,
+            customCardNames,
+            conciergeReportID,
+            onyxPersonalDetailsList,
+            isAttendeesEnabledForMovingPolicy,
+            convertToDisplayString,
+            reportAttributesDerivedValue,
+            optimisticTransactionID: undefined,
+        });
+
+        return getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
+            policyCategories,
+            fallbackPolicyID: policyForMovingExpensesID,
+        }) as SearchListItem[];
+    })();
+
+    const columns = ((): SearchColumnType[] => {
+        if (!snapshot?.data) {
+            return EMPTY_COLUMNS;
+        }
+        return getColumnsToShow({
+            currentAccountID: accountID,
+            data: snapshot.data,
+            visibleColumns,
+            type: snapshot?.search?.type ?? type,
+            groupBy: validGroupBy,
+            shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
+            policyCategories,
+            fallbackPolicyID: policyForMovingExpensesID,
+        });
+    })();
+
+    // TODO(#2548): grouped views must check every group's sub-snapshot `hasMoreResults`; flat-first here.
+    const hasLoadedAllTransactions = !validGroupBy || !hasMore;
+
     return {
-        data: [],
-        columns: [],
+        data,
+        columns,
         isLoading,
         hasMore,
-        hasLoadedAllTransactions: !hasMore,
+        hasLoadedAllTransactions,
     };
 }
 
