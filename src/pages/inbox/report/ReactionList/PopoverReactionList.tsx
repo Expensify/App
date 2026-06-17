@@ -33,9 +33,14 @@ function PopoverReactionList({isVisible, emojiName, reportActionID, anchorPositi
     const isReady = !!selectedReaction;
     const {emojiCodes = [], reactionCount = 0, hasUserReacted = false, userAccountIDs = []} = selectedReaction ? getEmojiReactionDetails(emojiName, selectedReaction, accountID) : {};
 
+    // `userAccountIDs` is destructured fresh on every render, so key the memoized selector on its
+    // contents rather than the array reference — otherwise the selector identity changes each render
+    // and defeats useOnyx's memoization (re-subscribing endlessly under the store-based engine).
+    const userAccountIDsKey = userAccountIDs.join(',');
     const reactionUsersSelector = useCallback(
         (personalDetailsList: OnyxEntry<PersonalDetailsList>) => multiPersonalDetailsSelector(isReady ? userAccountIDs : [])(personalDetailsList),
-        [isReady, userAccountIDs],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [isReady, userAccountIDsKey],
     );
     const [users = getEmptyArray<PersonalDetails>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: reactionUsersSelector,

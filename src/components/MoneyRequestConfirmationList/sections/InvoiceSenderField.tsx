@@ -55,10 +55,16 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouTy
 
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
+    // `selectedParticipants` is a `.filter()` result (fresh array every render), so key the memoized
+    // selector on its contents rather than the array reference — otherwise the selector identity
+    // changes each render and defeats useOnyx's memoization (re-subscribing endlessly under the
+    // store-based engine).
+    const selectedParticipantsKey = JSON.stringify(selectedParticipants);
     // canSendInvoice needs the full policy collection to check all admin workspaces
     const canUpdateSenderWorkspaceSelector = useCallback(
         (policies: OnyxCollection<OnyxTypes.Policy>) => createCanUpdateSenderWorkspaceSelector(selectedParticipants, currentUserLogin, isFromGlobalCreate)(policies),
-        [selectedParticipants, currentUserLogin, isFromGlobalCreate],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [selectedParticipantsKey, currentUserLogin, isFromGlobalCreate],
     );
     const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: canUpdateSenderWorkspaceSelector});
 

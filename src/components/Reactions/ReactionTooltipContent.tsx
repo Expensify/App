@@ -45,9 +45,14 @@ function userNamesStringSelector(accountIDs: number[], currentUserAccountID: num
 function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserAccountID}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
+    // `accountIDs` is a prop array with no stability guarantee, so key the memoized selector on its
+    // contents rather than the array reference — otherwise the selector identity changes each render
+    // and defeats useOnyx's memoization (re-subscribing endlessly under the store-based engine).
+    const accountIDsKey = accountIDs.join(',');
     const namesStringSelector = useCallback(
         (personalDetails: OnyxEntry<PersonalDetailsList>) => userNamesStringSelector(accountIDs, currentUserAccountID, translate)(personalDetails),
-        [accountIDs, currentUserAccountID, translate],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [accountIDsKey, currentUserAccountID, translate],
     );
     const [namesString] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: namesStringSelector,
