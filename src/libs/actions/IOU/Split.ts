@@ -22,6 +22,7 @@ import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
+    buildOptimisticCommuterExclusionReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReport,
@@ -2093,6 +2094,71 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
         onyxData = moneyRequestOnyxData;
         distanceIouReport = iouReport;
+
+        // Compute the commuter exclusion client-side for `fixedDistance` so the breakdown and
+        // system message render instantly. The server's createDistanceRequest response will
+        // confirm or correct these values via the success-data replay. For any other method
+        // (R2 homeAndOffice, future types) we leave optimistic behavior unchanged.
+        const exclusionConfig = policy?.commuterExclusions;
+        const fixedExclusionDistance = exclusionConfig?.method === CONST.COMMUTER_EXCLUSIONS.METHOD.FIXED_DISTANCE ? Math.max(0, exclusionConfig.fixedDistance ?? 0) : 0;
+        const quantity = transaction.comment?.customUnit?.quantity ?? 0;
+        const distanceUnit = transaction.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+        const distanceRate = transaction.comment?.customUnit?.defaultP2PRate ?? 0;
+        if (fixedExclusionDistance > 0 && quantity > 0 && chatReport?.reportID && currentUserAccountID) {
+            const commuterExclusion = Math.min(fixedExclusionDistance, quantity);
+            const reimbursableDistance = Math.max(0, quantity - commuterExclusion);
+            const modifiedRequestAmount = Math.round(reimbursableDistance * distanceRate);
+            const modifiedRequestMerchant = `${reimbursableDistance.toFixed(2)} ${distanceUnit} @ ${distanceRate} / ${distanceUnit}`;
+
+            onyxData?.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    modifiedAmount: modifiedRequestAmount,
+                    modifiedMerchant: modifiedRequestMerchant,
+                    comment: {
+                        customUnit: {
+                            commuterExclusion,
+                            reimbursableDistance,
+                            commuterExclusionMethod: CONST.COMMUTER_EXCLUSIONS.METHOD.FIXED_DISTANCE,
+                        },
+                    },
+                },
+            });
+
+            const optimisticCommuterExclusionAction = buildOptimisticCommuterExclusionReportAction(commuterExclusion.toFixed(2), distanceUnit, currentUserAccountID);
+            onyxData?.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                value: {
+                    [optimisticCommuterExclusionAction.reportActionID]: optimisticCommuterExclusionAction,
+                },
+            });
+
+            // Failure: revert the optimistic transaction merge and remove the optimistic system action.
+            onyxData?.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    modifiedAmount: null,
+                    modifiedMerchant: null,
+                    comment: {
+                        customUnit: {
+                            commuterExclusion: null,
+                            reimbursableDistance: null,
+                            commuterExclusionMethod: null,
+                        },
+                    },
+                },
+            });
+            onyxData?.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                value: {
+                    [optimisticCommuterExclusionAction.reportActionID]: null,
+                },
+            });
+        }
 
         const isGPSDistanceRequest = transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
 
