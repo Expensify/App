@@ -411,12 +411,14 @@ type SearchChartProps = {
     unitPosition?: UnitPosition;
 };
 
-type SearchFilterCommonProps = {
+type SearchFilterCommonProps<T> = {
+    value: T;
     selectionListTextInputStyle?: StyleProp<ViewStyle>;
     selectionListStyle?: SelectionListStyle;
     autoFocus?: boolean;
     ready?: boolean;
     footer?: React.ReactNode;
+    onChange: (value: T) => void;
 };
 
 export type {

@@ -3517,7 +3517,7 @@ ${amount} per ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Stato',
-        statusExplanation: "Aggiungi un'emoji per dare a colleghi e amici un modo semplice per capire cosa sta succedendo. Puoi anche aggiungere un messaggio, se vuoi!",
+        statusExplanation: "Imposta il tuo stato con un'emoji e un messaggio facoltativo.",
         today: 'Oggi',
         clearStatus: 'Cancella stato',
         save: 'Salva',
@@ -4962,8 +4962,9 @@ ${amount} per ${merchant} - ${date}`,
             exportStatus: {
                 label: 'Stato fattura da pagare',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Completa',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Completa',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In corso',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Approvato',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Inviato',
                 },
             },
@@ -6841,11 +6842,9 @@ Se vuoi assumere la fatturazione per l'intero abbonamento, chiedi loro di aggiun
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `I seguenti report sono già stati esportati su ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:
+            }: ExportAgainModalDescriptionParams) => `I seguenti report sono già stati esportati in ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Sei sicuro di volerli esportare di nuovo?
 
-${reportName}
-
-Vuoi davvero esportarli di nuovo?`,
+${reportName}`,
             confirmText: 'Sì, esporta di nuovo',
             cancelText: 'Annulla',
         },
