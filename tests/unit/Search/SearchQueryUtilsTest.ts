@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
 import type {OnyxCollection} from 'react-native-onyx';
-import type {ASTNode, SearchQueryJSON} from '@components/Search/types';
+import type {ASTNode, QueryFilter, SearchQueryJSON} from '@components/Search/types';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
@@ -10,6 +10,7 @@ import {
     applyContainsOperatorToTextFields,
     buildFilterFormValuesFromQuery,
     buildFilterQueryWithSortDefaults,
+    buildFilterValuesString,
     buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -114,7 +115,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} amount:2000000 foo test`);
+            expect(result).toEqual(`${defaultQuery} amount:2000000 "foo" "test"`);
         });
 
         test('returns query with user emails substituted', () => {
@@ -122,7 +123,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} from:12345 hello`);
+            expect(result).toEqual(`${defaultQuery} from:12345 "hello"`);
         });
 
         test('returns query with user emails substituted and preserves user ids', () => {
@@ -138,7 +139,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} from:9876,87654 to:78901 amount:15000 hello test`);
+            expect(result).toEqual(`${defaultQuery} from:9876,87654 to:78901 amount:15000 "hello" "test"`);
         });
 
         test('returns query with updated groupBy', () => {
@@ -219,7 +220,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('type:expense policyID:67890 merchant:Amazon description:Electronics laptop category:electronics,gadgets');
+            expect(result).toEqual('type:expense policyID:67890 merchant:Amazon description:Electronics "laptop" category:electronics,gadgets');
         });
 
         test('currencies and categories', () => {
@@ -523,7 +524,7 @@ describe('SearchQueryUtils', () => {
 
                 // "10 90" is not a valid positive integer, so limit is dropped entirely
                 expect(result).not.toContain('limit');
-                expect(result).toEqual('type:expense hi');
+                expect(result).toEqual('type:expense "hi"');
             });
 
             test('non-numeric limit value (JSON-like) is discarded to prevent keyword contamination', () => {
@@ -537,7 +538,7 @@ describe('SearchQueryUtils', () => {
 
                 // JSON-like string is not a valid positive integer, so limit is dropped
                 expect(result).not.toContain('limit');
-                expect(result).toEqual('type:expense hi');
+                expect(result).toEqual('type:expense "hi"');
 
                 // Round-trip: keyword must NOT be contaminated
                 const queryJSON = buildSearchQueryJSON(result);
@@ -565,7 +566,7 @@ describe('SearchQueryUtils', () => {
                 };
 
                 const queryString = buildQueryStringFromFilterFormValues(filterValues);
-                expect(queryString).toEqual('type:expense hello limit:50');
+                expect(queryString).toEqual('type:expense "hello" limit:50');
 
                 const queryJSON = buildSearchQueryJSON(queryString);
                 expect(queryJSON?.limit).toBe(50);
@@ -1980,6 +1981,108 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('view:line');
             expect(result).toContain('category:travel');
         });
+
+        test('wraps keyword values in quotes so they are not re-interpreted as filter syntax', () => {
+            // A quoted keyword that looks like the `type` filter should round-trip back as a quoted keyword
+            const queryJSON = buildSearchQueryJSON('type:expense "type:expense"');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('"type:expense"');
+        });
+
+        test('escapes each keyword individually', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense foo bar');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('"foo" "bar"');
+        });
+
+        test('keyword escaping round-trips through the parser preserving the keyword value', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense "status:done"');
+            const result = buildSearchQueryString(queryJSON);
+
+            // Re-parsing the built string must keep "status:done" as a keyword, not a status filter
+            const reparsed = buildSearchQueryJSON(result);
+            const keywordFilter = reparsed?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            expect(keywordFilter?.filters.at(0)?.value).toBe('status:done');
+            expect(reparsed?.status).toBe(CONST.SEARCH.STATUS.EXPENSE.ALL);
+        });
+
+        test('does not add quotes to non-keyword filter values', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:Amazon');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('merchant:Amazon');
+            expect(result).not.toContain('"Amazon"');
+        });
+    });
+
+    describe('buildFilterValuesString', () => {
+        test('joins keyword values with spaces using a leading space', () => {
+            const queryFilters: QueryFilter[] = [
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'hello'},
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'world'},
+            ];
+
+            const result = buildFilterValuesString(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, queryFilters);
+
+            expect(result.trim()).toBe('hello world');
+        });
+
+        test('wraps keyword values containing spaces in quotes', () => {
+            const queryFilters: QueryFilter[] = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'hello world'}];
+
+            const result = buildFilterValuesString(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, queryFilters);
+
+            expect(result.trim()).toBe('"hello world"');
+        });
+
+        test('joins equal-to values for non-keyword filters with commas', () => {
+            const queryFilters: QueryFilter[] = [
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'a'},
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'b'},
+            ];
+
+            const result = buildFilterValuesString(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, queryFilters);
+
+            expect(result.trim()).toBe('category:a,b');
+        });
+
+        test('renders not-equal-to values with a negated key prefix', () => {
+            const queryFilters: QueryFilter[] = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'travel'}];
+
+            const result = buildFilterValuesString(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, queryFilters);
+
+            expect(result.trim()).toBe('-category:travel');
+        });
+
+        test('expands a range operator into inclusive boundary expressions', () => {
+            const queryFilters: QueryFilter[] = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.RANGE, value: '2025-03-01,2025-03-10'}];
+
+            const result = buildFilterValuesString(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, queryFilters);
+
+            expect(result.trim()).toBe('date>=2025-03-01 date<=2025-03-10');
+        });
+
+        test('renders comparison operators using their operator character', () => {
+            const queryFilters: QueryFilter[] = [
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, value: '100'},
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, value: '500'},
+            ];
+
+            const result = buildFilterValuesString(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, queryFilters);
+
+            expect(result.trim()).toBe('amount>100 amount<500');
+        });
+
+        test('returns an empty string when there are no filters', () => {
+            const result = buildFilterValuesString(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, []);
+
+            expect(result).toBe('');
+        });
     });
 
     describe('buildFilterQueryWithSortDefaults', () => {
@@ -2910,7 +3013,17 @@ describe('SearchQueryUtils', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
             const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('hello world', currentQueryJSON) : '';
-            expect(result).toContain('hello world');
+            // Each word is escaped as its own quoted keyword to avoid being interpreted as filter syntax
+            expect(result).toContain('"hello" "world"');
+            expect(result).toContain('type:trip');
+        });
+
+        it('should escape input that looks like filter syntax so it is treated as a keyword', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('type:expense', currentQueryJSON) : '';
+            // The user typed "type:expense" as free text, so it must be quoted instead of overriding the context type
+            expect(result).toContain('"type:expense"');
             expect(result).toContain('type:trip');
         });
     });

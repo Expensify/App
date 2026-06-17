@@ -138,6 +138,24 @@ function sanitizeSearchValue(str: string) {
     return str;
 }
 
+/**
+ * Quotes each keyword to escape query syntax. For example, `type:expense`
+ * becomes `"type:expense"` and is matched as a keyword instead of being
+ * interpreted as the `type` filter with value `expense`.
+ */
+function escapeKeyword(keywords: string) {
+    return keywords
+        .split(' ')
+        .map((q) => {
+            const sanitizedKeyword = sanitizeSearchValue(q);
+            if (sanitizedKeyword.startsWith('"') && sanitizedKeyword.endsWith('"')) {
+                return sanitizedKeyword;
+            }
+            return `"${q}"`;
+        })
+        .join(' ');
+}
+
 function getRangeQueryValue(from?: string, to?: string) {
     if (from && to) {
         return `${from},${to}`;
@@ -645,8 +663,8 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
     const filters = queryJSON.flatFilters;
 
     for (const filter of filters) {
-        const filterValueString = buildFilterValuesString(filter.key, filter.filters);
-        queryParts.push(filterValueString.trim());
+        const filterValueString = buildFilterValuesString(filter.key, filter.filters).trim();
+        queryParts.push(filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? escapeKeyword(filterValueString) : filterValueString);
     }
 
     return queryParts.join(' ');
@@ -775,8 +793,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             }
 
             if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
-                const value = (filterValue as string).split(' ').map(sanitizeSearchValue).join(' ');
-                return `${value}`;
+                return `${escapeKeyword(filterValue as string)}`;
             }
 
             if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && filterValue) {
@@ -1668,7 +1685,7 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQue
 function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString, currentQueryJSON: Readonly<SearchQueryJSON>): SearchQueryString {
     const currentFiltersWithoutKeywords = currentQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
     const currentQueryString = buildSearchQueryString({...currentQueryJSON, flatFilters: currentFiltersWithoutKeywords});
-    return `${currentQueryString} ${queryString}`;
+    return `${currentQueryString} ${escapeKeyword(queryString)}`;
 }
 
 /**
