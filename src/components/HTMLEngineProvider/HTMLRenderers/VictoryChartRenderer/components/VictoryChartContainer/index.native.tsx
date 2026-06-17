@@ -3,7 +3,9 @@ import {View} from 'react-native';
 import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import computeChartScale from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeChartScale';
+import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -16,6 +18,7 @@ const POLAR_CONTAINER_HEIGHT_RATIO = 0.9;
 
 function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {chartContentStyles, chartContainerStyles, type} = useVictoryChartContext();
     const {windowWidth} = useWindowDimensions();
     const {left: safeAreaLeft, right: safeAreaRight} = useSafeAreaInsets();
@@ -29,7 +32,8 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const availableWidth = windowWidth - safeAreaLeft - safeAreaRight - CHAT_MESSAGE_HORIZONTAL_PADDING;
     const scale = hasExplicitDimensions ? computeChartScale(designWidth, availableWidth) : 1;
 
-    const {backgroundColor, borderRadius, ...layoutContainerStyles} = chartContainerStyles;
+    const {backgroundColor: rawBgColor, borderRadius, ...layoutContainerStyles} = chartContainerStyles;
+    const backgroundColor = resolveChartContainerBgColor(rawBgColor, theme);
 
     const contentStyle = hasExplicitDimensions
         ? [chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden' as const, transform: [{scale}], transformOrigin: 'top left' as const}]

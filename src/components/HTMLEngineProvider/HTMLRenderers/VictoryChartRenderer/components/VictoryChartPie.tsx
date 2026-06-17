@@ -2,7 +2,6 @@ import React from 'react';
 import type {TNode} from 'react-native-render-html';
 import {HTMLContentModel, useAmbientTRenderEngine} from 'react-native-render-html';
 import {Pie} from 'victory-native';
-import VictoryTheme from '@components/Charts/VictoryTheme';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import parseShiftedLineSegmentNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/shiftedLineSegmentParser';
 import parseVictoryLabelNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryLabelParser';
@@ -10,6 +9,8 @@ import type {PolarChartData} from '@components/HTMLEngineProvider/HTMLRenderers/
 import convertAngleToArcLength from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertAngleToArcLength';
 import {parseAttributeAsNumber, parseAttributeAsStringArray} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
+import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+import useTheme from '@hooks/useTheme';
 import VictoryChartPieLabel from './VictoryChartPieLabel';
 
 type VictoryChartPieProps = {tnode: TNode};
@@ -23,6 +24,7 @@ const ODD_SLICE_LABEL_RADIUS_FACTOR = 0.9;
 
 function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const {data, chartContainerStyles} = useVictoryChartContext();
+    const theme = useTheme();
     const renderEngine = useAmbientTRenderEngine();
     const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel', HTMLContentModel.textual);
     const baseLabelItem = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
@@ -33,10 +35,12 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const radius = parseAttributeAsNumber(tnode.attributes.radius);
     const size = radius ? radius * 2 : undefined;
     const angularStrokeWidth = padAngle && radius ? 2 * convertAngleToArcLength(padAngle, radius) : 0;
-    const angularStrokeColor = typeof chartContainerStyles.backgroundColor === 'string' ? chartContainerStyles.backgroundColor : VictoryTheme.colors.default;
+    const resolvedBgColor = resolveChartThemeColor(typeof chartContainerStyles.backgroundColor === 'string' ? chartContainerStyles.backgroundColor : undefined, theme);
+    const angularStrokeColor = resolvedBgColor ?? theme.cardBG;
     const labelIndicatorNode = parseComponent(tnode.attributes.labelindicator, renderEngine, 'shiftedlinesegment', HTMLContentModel.block);
     const labelIndicatorStyles = labelIndicatorNode ? parseShiftedLineSegmentNode(labelIndicatorNode) : undefined;
-    const {xShift: labelIndicatorXShift, yShift: labelIndicatorYShift, stroke: labelIndicatorStroke, strokeWidth: labelIndicatorStrokeWidth} = labelIndicatorStyles ?? {};
+    const {xShift: labelIndicatorXShift, yShift: labelIndicatorYShift, strokeWidth: labelIndicatorStrokeWidth} = labelIndicatorStyles ?? {};
+    const labelIndicatorStroke = resolveChartThemeColor(labelIndicatorStyles?.stroke, theme);
     const labelIndicatorInnerOffset = parseAttributeAsNumber(tnode.attributes.labelindicatorinneroffset);
     const labelIndicatorOuterOffset = parseAttributeAsNumber(tnode.attributes.labelindicatorouteroffset);
     const perSliceData = Object.values(data)
