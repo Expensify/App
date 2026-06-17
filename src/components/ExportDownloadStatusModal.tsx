@@ -79,9 +79,6 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             return;
         }
         downloadFile();
-        // We intentionally omit downloadFile from deps to avoid re-triggering the download
-        // when its closure variables (environment, encryptedAuthToken, etc.) change.
-        // The download should only fire when the export transitions to ready.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady, fileName, shouldSendFromConcierge]);
 
@@ -176,10 +173,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         }
 
         if (isFailed) {
+            const resolvedFailedBody = failedBody ?? (fileName?.endsWith('.csv') ? translate('exportDownload.csvFailedBody') : translate('exportDownload.pdfFailedBody'));
             return (
                 <>
                     <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('exportDownload.failedTitle')}</Text>
-                    {!!failedBody && <Text style={styles.mb5}>{failedBody}</Text>}
+                    {!!resolvedFailedBody && <Text style={styles.mb5}>{resolvedFailedBody}</Text>}
                     <Button
                         text={translate('exportDownload.close')}
                         onPress={handleClose}

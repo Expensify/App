@@ -42,7 +42,8 @@ const mockClearExportDownload = clearExportDownload as jest.MockedFunction<typeo
 const mockNavigate = Navigation.navigate as jest.MockedFunction<typeof Navigation.navigate>;
 
 const EXPORT_ID = 'test-export-123';
-const FILE_NAME = 'test-report-file';
+const CSV_FILE_NAME = 'export_2026-06-09_02-41-38_6a277d629c569.csv';
+const PDF_FILE_NAME = 'test-report-file';
 
 function renderModal(props: Partial<React.ComponentProps<typeof ExportDownloadStatusModal>> = {}) {
     return render(
@@ -110,18 +111,28 @@ describe('ExportDownloadStatusModal', () => {
         expect(screen.getByText('exportDownload.dismiss')).toBeTruthy();
     });
 
-    it('auto-downloads on ready state transition with a secure URL built from the fileName', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
+    it('auto-downloads CSV on ready state transition with csvexport secureType', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME});
 
         renderModal();
         await waitForBatchedUpdatesWithAct();
 
-        const expectedURLPart = `secure?secureType=pdfreport&filename=${encodeURIComponent(FILE_NAME)}&downloadName=${encodeURIComponent(FILE_NAME)}`;
-        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining(expectedURLPart), FILE_NAME, expect.anything(), expect.anything());
+        const expectedURLPart = `secure?secureType=csvexport&filename=${encodeURIComponent(CSV_FILE_NAME)}&downloadName=${encodeURIComponent(CSV_FILE_NAME)}`;
+        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining(expectedURLPart), CSV_FILE_NAME, expect.anything(), expect.anything());
+    });
+
+    it('auto-downloads PDF on ready state transition with pdfreport secureType', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: PDF_FILE_NAME});
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        const expectedURLPart = `secure?secureType=pdfreport&filename=${encodeURIComponent(PDF_FILE_NAME)}&downloadName=${encodeURIComponent(PDF_FILE_NAME)}`;
+        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining(expectedURLPart), PDF_FILE_NAME, expect.anything(), expect.anything());
     });
 
     it('shows ready state with Download and Close buttons', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME});
 
         renderModal();
         await waitForBatchedUpdatesWithAct();
@@ -145,7 +156,7 @@ describe('ExportDownloadStatusModal', () => {
     });
 
     it('retains last state when Onyx key becomes null', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME});
 
         renderModal();
         await waitForBatchedUpdatesWithAct();
@@ -160,7 +171,7 @@ describe('ExportDownloadStatusModal', () => {
 
     it('"Go to Concierge" navigates and closes', async () => {
         const onClose = jest.fn();
-        const conciergeReportID = '12345';
+        const conciergeReportID = 'concierge-report-123';
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing', shouldSendFromConcierge: true});
 
@@ -176,7 +187,7 @@ describe('ExportDownloadStatusModal', () => {
     it('shows partial failure body when failedReportCount > 0 in ready state', async () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {
             state: 'ready',
-            fileName: FILE_NAME,
+            fileName: PDF_FILE_NAME,
             reportCount: 3,
             failedReportCount: 2,
         });
@@ -191,7 +202,7 @@ describe('ExportDownloadStatusModal', () => {
     it('shows standard ready body when failedReportCount is 0', async () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {
             state: 'ready',
-            fileName: FILE_NAME,
+            fileName: PDF_FILE_NAME,
             reportCount: 5,
             failedReportCount: 0,
         });
@@ -205,7 +216,7 @@ describe('ExportDownloadStatusModal', () => {
 
     it('Close button calls clearExportDownload', async () => {
         const onClose = jest.fn();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME});
 
         renderModal({onClose});
         await waitForBatchedUpdatesWithAct();
