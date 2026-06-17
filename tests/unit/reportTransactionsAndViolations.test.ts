@@ -104,4 +104,47 @@ describe('reportTransactionsAndViolations derived value', () => {
         expect(result).toEqual({});
         expect(context.shouldSkipUpdate).toBe(true);
     });
+
+    it('applies resolvable violation updates when the same batch has unresolved transactions', () => {
+        const reportID = '91016-mixed-batch';
+        const transactionID = '91016-visible-transaction';
+        const missingTransactionID = '91016-missing-transaction';
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+        const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
+        const missingViolationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${missingTransactionID}` as const;
+        const transaction: Transaction = {
+            transactionID,
+            reportID,
+            amount: 8700,
+            currency: CONST.CURRENCY.EUR,
+            merchant: 'Merchant',
+            created: '2026-06-10',
+        };
+        const violation = {
+            name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+        } as TransactionViolation;
+        const missingViolation = {
+            name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+        } as TransactionViolation;
+        const context = {
+            currentValue: reportTransactionsAndViolationsConfig.compute([{[transactionKey]: transaction}, {}], {currentValue: undefined, sourceValues: undefined}),
+            sourceValues: {
+                [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {
+                    [violationKey]: [violation],
+                    [missingViolationKey]: [missingViolation],
+                },
+            },
+            shouldSkipUpdate: false,
+        };
+
+        const result = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: transaction}, {[violationKey]: [violation], [missingViolationKey]: [missingViolation]}], context);
+
+        expect(context.shouldSkipUpdate).toBe(false);
+        expect(result[reportID]?.transactions[transactionKey]).toBe(transaction);
+        expect(result[reportID]?.violations[violationKey]).toEqual([violation]);
+    });
 });

@@ -71,12 +71,12 @@ export default createOnyxDerivedValueConfig({
         };
 
         if (!transactionsUpdates && transactionViolationsUpdates) {
-            const hasUnresolvedTransaction = transactionsToProcess.some((transactionKey) => {
+            transactionsToProcess = transactionsToProcess.filter((transactionKey) => {
                 const previousReportID = getPreviousReportID(transactionKey);
-                return !transactions[transactionKey] && !previousReportID;
+                return !!transactions[transactionKey] || !!previousReportID;
             });
 
-            if (hasUnresolvedTransaction) {
+            if (transactionsToProcess.length === 0) {
                 context.shouldSkipUpdate = true;
                 return reportTransactionsAndViolations;
             }
