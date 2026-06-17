@@ -56,21 +56,47 @@ type SearchWriteActionsProviderProps = {
     children: React.ReactNode;
 };
 
-/** Inputs for {@link useReconcileSelectionWithData}: the live data, search context, and current-user/policy details needed to rebuild the selection. */
 type ReconcileSelectionParams = {
+    /** Whether the search screen is currently focused */
     isFocused: boolean;
+
+    /** The search data type (expense, chat, etc.) */
     type: SearchDataTypes;
+
+    /** Whether rows are grouped (a group-by view or the expense-report view) */
     areItemsGrouped: boolean;
+
+    /** Whether this is the expense-report view */
     isExpenseReportType: boolean;
+
+    /** The currently displayed (filtered, grouped) rows */
     filteredData: SearchData;
+
+    /** Raw search snapshot data, used for denormalized transaction/report lookups */
     searchResultsData: SearchResults['data'] | undefined;
+
+    /** The live TRANSACTION Onyx collection */
     transactions: OnyxCollection<Transaction>;
+
+    /** Email of the current user */
     currentUserEmail: string;
+
+    /** Login (email or phone) of the current user */
     currentUserLogin: string;
+
+    /** Account ID of the current user */
     currentUserAccountID: number;
+
+    /** The current user's self-DM report, used as the parent for unreported (track) expenses */
     selfDMReport: OnyxEntry<Report>;
+
+    /** Whether the app is running in production (affects split eligibility) */
     isProduction: boolean;
+
+    /** Set of archived report IDs, used for the change-report eligibility check */
     archivedReportsIDSet: ArchivedReportsIDSet;
+
+    /** Derived outstanding reports per policy, used for the change-report eligibility check */
     outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
 };
 

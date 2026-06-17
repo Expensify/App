@@ -10,16 +10,37 @@ import type {TransactionGroupListItemType, TransactionListItemType, TransactionR
 import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type MapTransactionItemToSelectedEntryParams = {
+    /** The transaction row being added to the selection */
     item: TransactionListItemType;
+
+    /** Live Onyx transaction for the row, used for hold/split checks */
     itemTransaction: OnyxEntry<Transaction>;
+
+    /** Original transaction when the row is a split, used to derive split info */
     originalItemTransaction: OnyxEntry<Transaction>;
+
+    /** Email of the current user */
     currentUserLogin: string;
+
+    /** Account ID of the current user */
     currentUserAccountID: number;
+
+    /** Set of archived report IDs, used for the change-report eligibility check */
     archivedReportsIDSet: ArchivedReportsIDSet;
+
+    /** Derived outstanding reports per policy, used for the change-report eligibility check */
     outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
+
+    /** The current user's self-DM report, used as the parent for unreported (track) expenses */
     selfDMReport: OnyxEntry<Report>;
+
+    /** Whether the app is running in production (affects split eligibility) */
     isProduction: boolean;
+
+    /** Keep the amount signed instead of taking its absolute value */
     allowNegativeAmount: boolean;
+
+    /** The row's parent report, used for split eligibility */
     parentReport: OnyxEntry<Report> | undefined;
 };
 
@@ -134,16 +155,37 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
 }
 
 type PrepareTransactionsListParams = {
+    /** The transaction row being toggled in the selection */
     item: TransactionListItemType;
+
+    /** Live Onyx transaction for the row, used for hold/split checks */
     itemTransaction: OnyxEntry<Transaction>;
+
+    /** Original transaction when the row is a split, used to derive split info */
     originalItemTransaction: OnyxEntry<Transaction>;
+
+    /** Current selection map the row is toggled against */
     selectedTransactions: SelectedTransactions;
+
+    /** Email of the current user */
     currentUserLogin: string;
+
+    /** Account ID of the current user */
     currentUserAccountID: number;
+
+    /** Set of archived report IDs, used for the change-report eligibility check */
     archivedReportsIDSet: ArchivedReportsIDSet;
+
+    /** Derived outstanding reports per policy, used for the change-report eligibility check */
     outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
+
+    /** The current user's self-DM report, used as the parent for unreported (track) expenses */
     selfDMReport: OnyxEntry<Report>;
+
+    /** Whether the app is running in production (affects split eligibility) */
     isProduction: boolean;
+
+    /** The row's parent report, used for split eligibility */
     parentReport: OnyxEntry<Report> | undefined;
 };
 
