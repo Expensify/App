@@ -267,6 +267,23 @@ type TodosDerivedValue = {
 };
 
 /**
+ * The derived value for flagged expenses.
+ *
+ * Aggregates transactions on the current user's `OPEN`/`OPEN` expense reports that have
+ * at least one transaction-level violation (excluding `showInReview === false` entries and
+ * `REPORT_VIOLATIONS.FIELD_REQUIRED` entries that may slip into the collection).
+ */
+type FlaggedExpensesDerivedValue = {
+    /** Ordered list of flagged transactions with their parent report IDs */
+    flaggedExpenses: Array<{
+        /** ID of the flagged transaction */
+        transactionID: string;
+        /** ID of the parent expense report */
+        reportID: string;
+    }>;
+};
+
+/**
  * The derived value for sorted report actions, last report actions, and cached transaction thread report IDs.
  */
 type SortedReportActionsDerivedValue = {
@@ -302,6 +319,7 @@ export type {
     CardFeedErrorsDerivedValue,
     TodosDerivedValue,
     TodoMetadata,
+    FlaggedExpensesDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,
