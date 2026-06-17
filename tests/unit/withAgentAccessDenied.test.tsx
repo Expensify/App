@@ -1,5 +1,7 @@
+import type * as NativeNavigation from '@react-navigation/native';
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
+import type * as ReactModule from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -20,8 +22,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native');
-    const react = jest.requireActual<typeof import('react')>('react');
+    const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
+    const react = jest.requireActual<typeof ReactModule>('react');
     return {
         ...actualNav,
         useFocusEffect: (effect: React.EffectCallback) => {
