@@ -5,6 +5,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ExpensifyCardStatementPDFDownloadModal from '@components/ExpensifyCardStatementPDFDownloadModal';
+import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import KYCWall from '@components/KYCWall';
@@ -87,6 +88,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         allTransactions,
         allReports,
         searchData,
+        activeExportID,
+        handleExportModalClose,
     } = useSearchBulkActions({queryJSON});
     const currentSelectedPolicyID = selectedPolicyIDs?.at(0);
     const currentSelectedReportID = selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0);
@@ -295,6 +298,14 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 <HoldSubmitterEducationalModal
                     onClose={dismissModalAndUpdateUseHold}
                     onConfirm={dismissModalAndUpdateUseHold}
+                />
+            )}
+            {!!activeExportID && (
+                <ExportDownloadStatusModal
+                    exportID={activeExportID}
+                    isVisible
+                    onClose={handleExportModalClose}
+                    failedBody={translate('exportDownload.csvFailedBody')}
                 />
             )}
         </>
