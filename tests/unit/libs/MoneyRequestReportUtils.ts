@@ -91,7 +91,7 @@ describe('getAllNonDeletedTransactions', () => {
     });
 });
 
-describe('getAllNonDeletedTransactions - Expensify Card pending/posted dedup', () => {
+describe('getAllNonDeletedTransactions - Expensify Card pending/posted deduplication', () => {
     function makeCardTransaction(transactionID: string, status: Transaction['status'], parentTransactionID = ''): Transaction {
         return {
             ...transactionR14932,
@@ -103,7 +103,7 @@ describe('getAllNonDeletedTransactions - Expensify Card pending/posted dedup', (
     }
 
     // Pass empty reportActions + includeOrphanedTransactions so the existing action-based filtering keeps every
-    // transaction, isolating the card pending/posted dedup behaviour.
+    // transaction, isolating the card pending/posted deduplication behaviour.
     function getTransactions(transactions: Record<string, Transaction>) {
         return getAllNonDeletedTransactions(transactions, [], false, true);
     }
@@ -147,7 +147,7 @@ describe('getAllNonDeletedTransactions - Expensify Card pending/posted dedup', (
         expect(result).toHaveLength(2);
     });
 
-    test('does not dedup across unrelated card auth chains', () => {
+    test('does not deduplicate across unrelated card auth chains', () => {
         const cardAPending = makeCardTransaction('authA', CONST.TRANSACTION.STATUS.PENDING);
         const cardAPosted = makeCardTransaction('clearA', CONST.TRANSACTION.STATUS.POSTED, 'authA');
         const cardBPending = makeCardTransaction('authB', CONST.TRANSACTION.STATUS.PENDING);
