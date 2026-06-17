@@ -1152,7 +1152,7 @@ const translations: TranslationDeepObject<typeof en> = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Belege per SMS an ${phoneNumber} senden (nur US-Nummern)</label-text>`,
         takePhoto: 'Foto aufnehmen',
         cameraAccess: 'Für das Fotografieren von Belegen ist Kamerazugriff erforderlich.',
-        deniedCameraAccess: `<centered-text>Der Kamerazugriff wurde noch nicht gewährt. Bitte folge <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">diesen Anweisungen</a>.</centered-text>`,
+        deniedCameraAccess: `Der Kamerazugriff wurde noch nicht gewährt. Bitte folge <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">diesen Anweisungen</a>.`,
         cameraErrorTitle: 'Kamerafehler',
         cameraErrorMessage: 'Beim Aufnehmen eines Fotos ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         locationAccessTitle: 'Standortzugriff erlauben',

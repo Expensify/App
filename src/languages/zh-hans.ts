@@ -1112,7 +1112,7 @@ const translations: TranslationDeepObject<typeof en> = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>将收据短信发送至 ${phoneNumber}（仅限美国号码）</label-text>`,
         takePhoto: '拍照',
         cameraAccess: '需要相机访问权限才能为收据拍照。',
-        deniedCameraAccess: `<centered-text>仍未授予相机访问权限，请按照<a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">这些说明</a>进行操作。</centered-text>`,
+        deniedCameraAccess: `仍未授予相机访问权限，请按照<a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">这些说明</a>进行操作。`,
         cameraErrorTitle: '相机错误',
         cameraErrorMessage: '拍照时发生错误。请重试。',
         locationAccessTitle: '允许访问位置信息',
