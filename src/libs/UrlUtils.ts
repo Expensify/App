@@ -1,3 +1,4 @@
+import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
 /**
@@ -17,8 +18,6 @@ type BuildSecureDownloadURLParams = {
     downloadName: string;
     email: string;
 };
-
-type ValueOf<T> = T[keyof T];
 
 /**
  * Builds a secure download URL for OldDot file downloads (PDF reports, CSV exports, etc.).
