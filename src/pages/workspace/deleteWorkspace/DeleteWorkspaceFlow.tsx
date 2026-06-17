@@ -135,7 +135,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
                 localeCompare,
                 personalPolicyID,
                 hasDeleteWorkspaceExpensifyCardsError,
-                currentUserAccountID: session?.accountID ?? 0,
+                currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 accountIDToLogin: accountIDToLogin ?? {},
             });
             if (isOffline) {
@@ -225,7 +225,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
         }
 
         showErrorModal();
-    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyLatestErrorMessage, isPendingDelete, isFocused, closeModal, onDismiss]);
+    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyLatestErrorMessage, isPendingDelete, isFocused, closeModal, onDismiss, showErrorModal]);
 
     return outstandingBalanceModal;
 }
