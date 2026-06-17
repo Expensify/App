@@ -1,9 +1,10 @@
+import {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
+import {clearExportDownload} from '@libs/actions/Export';
 import {openOldDotLink} from '@libs/actions/Link';
 import {exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate} from '@libs/actions/Search';
@@ -15,7 +16,6 @@ import {getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUti
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import useConfirmModal from './useConfirmModal';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDecisionModal from './useDecisionModal';
 import useExportAgainModal from './useExportAgainModal';
@@ -39,6 +39,12 @@ type UseExportActionsReturn = {
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
     showOfflineModal: () => void;
     showDownloadErrorModal: () => void;
+
+    /** The ID of the in-progress template export, used by the consumer to render ExportDownloadStatusModal */
+    activeExportID: string | undefined;
+
+    /** Closes the export download status modal (no-op while still preparing, unless handed off to Concierge) */
+    handleExportModalClose: () => void;
 };
 
 function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsParams): UseExportActionsReturn {
@@ -64,10 +70,12 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
     const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy);
     const isExported = isExportedUtils(reportActions, moneyRequestReport);
 
-    const {showConfirmModal} = useConfirmModal();
     const {showDecisionModal} = useDecisionModal();
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
     const {clearSelectedTransactions} = useSearchSelectionActions();
+
+    const [activeExportID, setActiveExportID] = useState<string | undefined>(undefined);
+    const [activeExportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${activeExportID}`);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Table',
@@ -101,15 +109,6 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         });
     };
 
-    const showExportProgressModal = () => {
-        return showConfirmModal({
-            title: translate('export.exportInProgress'),
-            prompt: translate('export.conciergeWillSend'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    };
-
     const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
         if (isOffline) {
             showOfflineModal();
@@ -120,21 +119,30 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             return;
         }
 
-        showExportProgressModal().then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            clearSelectedTransactions(undefined, true);
-        });
+        const exportID = queueExportSearchWithTemplate(
+            {
+                templateName,
+                templateType,
+                jsonQuery: '{}',
+                reportIDList: [moneyRequestReport.reportID],
+                transactionIDList,
+                policyID,
+            },
+            true,
+        );
+        setActiveExportID(exportID);
+    };
 
-        queueExportSearchWithTemplate({
-            templateName,
-            templateType,
-            jsonQuery: '{}',
-            reportIDList: [moneyRequestReport.reportID],
-            transactionIDList,
-            policyID,
-        });
+    const handleExportModalClose = () => {
+        // Keep the modal open while the export is still preparing (unless it was handed off to Concierge).
+        if (activeExportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !activeExportDownload?.shouldSendFromConcierge) {
+            return;
+        }
+        if (activeExportID) {
+            clearExportDownload(activeExportID, activeExportDownload);
+        }
+        setActiveExportID(undefined);
+        clearSelectedTransactions(undefined, true);
     };
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = {
@@ -267,6 +275,8 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         beginExportWithTemplate,
         showOfflineModal,
         showDownloadErrorModal,
+        activeExportID,
+        handleExportModalClose,
     };
 }
 

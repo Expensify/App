@@ -8,6 +8,7 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdown';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
@@ -311,7 +312,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         onRejectModalOpen: openRejectModal,
     });
 
-    const {exportActionEntries} = useExportActions({
+    const {exportActionEntries, activeExportID, handleExportModalClose} = useExportActions({
         reportID,
         policy,
         onPDFModalOpen: openPDFDownload,
@@ -399,22 +400,34 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         });
     };
 
+    const exportDownloadStatusModal = !!activeExportID && (
+        <ExportDownloadStatusModal
+            exportID={activeExportID}
+            isVisible
+            onClose={handleExportModalClose}
+            failedBody={translate('exportDownload.csvFailedBody')}
+        />
+    );
+
     if (!applicableSecondaryActions.length) {
-        return null;
+        return exportDownloadStatusModal || null;
     }
 
     return (
-        <MoneyReportHeaderKYCDropdown
-            chatReportID={chatReport?.reportID}
-            iouReport={moneyRequestReport}
-            onPaymentSelect={onPaymentSelect}
-            onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-            primaryAction={primaryAction}
-            applicableSecondaryActions={applicableSecondaryActions}
-            dropdownMenuRef={dropdownMenuRef}
-            onOptionsMenuHide={handleOptionsMenuHide}
-            ref={kycWallRef}
-        />
+        <>
+            {exportDownloadStatusModal}
+            <MoneyReportHeaderKYCDropdown
+                chatReportID={chatReport?.reportID}
+                iouReport={moneyRequestReport}
+                onPaymentSelect={onPaymentSelect}
+                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+                primaryAction={primaryAction}
+                applicableSecondaryActions={applicableSecondaryActions}
+                dropdownMenuRef={dropdownMenuRef}
+                onOptionsMenuHide={handleOptionsMenuHide}
+                ref={kycWallRef}
+            />
+        </>
     );
 }
 

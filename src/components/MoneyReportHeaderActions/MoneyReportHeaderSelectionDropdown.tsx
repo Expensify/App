@@ -8,6 +8,7 @@ import type {ValueOf} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -154,7 +155,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(PAYMENT_ICONS);
 
-    const {beginExportWithTemplate, showOfflineModal, showDownloadErrorModal} = useExportActions({
+    const {beginExportWithTemplate, showOfflineModal, showDownloadErrorModal, activeExportID, handleExportModalClose} = useExportActions({
         reportID,
         policy,
     });
@@ -510,10 +511,20 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         />
     ) : null;
 
+    const exportDownloadStatusModal = !!activeExportID && (
+        <ExportDownloadStatusModal
+            exportID={activeExportID}
+            isVisible
+            onClose={handleExportModalClose}
+            failedBody={translate('exportDownload.csvFailedBody')}
+        />
+    );
+
     if (hasPayInSelectionMode) {
         return (
             <>
                 {bulkDuplicateHandler}
+                {exportDownloadStatusModal}
                 <MoneyReportHeaderKYCDropdown
                     chatReportID={chatReport?.reportID}
                     iouReport={moneyRequestReport}
@@ -538,6 +549,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     return (
         <>
             {bulkDuplicateHandler}
+            {exportDownloadStatusModal}
             <ButtonWithDropdownMenu
                 onPress={() => null}
                 options={selectedTransactionsOptions}
