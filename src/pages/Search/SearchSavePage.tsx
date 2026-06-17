@@ -5,6 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useFilterBankAccountValue from '@components/Search/hooks/useFilterBankAccountValue';
 import useFilterCardValue from '@components/Search/hooks/useFilterCardValue';
 import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
 import useFilterReportValue from '@components/Search/hooks/useFilterReportValue';
@@ -62,6 +63,10 @@ function FilterReportValue({value}: FilterValueProps) {
     return useFilterReportValue(value);
 }
 
+function FilterBankAccountValue({value}: FilterValueProps) {
+    return useFilterBankAccountValue(value as string[]);
+}
+
 function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
     if (
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -90,6 +95,10 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
 
     if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return <FilterReportValue value={value} />;
+    }
+
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
+        return <FilterBankAccountValue value={value} />;
     }
 
     return value;
