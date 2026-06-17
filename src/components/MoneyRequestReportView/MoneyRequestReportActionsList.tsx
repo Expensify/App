@@ -180,7 +180,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return true;
         });
 
-        return filteredActions.toReversed();
+        return filteredActions.slice().reverse();
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
 
     const shouldShowOpenReportLoadingSkeleton = !isOffline && !!showReportActionsLoadingState && visibleReportActions.length === 0;
@@ -427,7 +427,13 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report?.reportID ?? reportIDFromRoute ?? '',
         currentVerticalScrollingOffsetRef: scrollingVerticalBottomOffset,
-        readActionSkippedRef: readActionSkipped,
+        onUnreadActionVisible: () => {
+            if (!readActionSkipped.current) {
+                return;
+            }
+            readActionSkipped.current = false;
+            readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+        },
         unreadMarkerReportActionIndex,
         isInverted: false,
         hasNewerActions,
@@ -445,7 +451,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             // We additionally track the top offset to be able to scroll to the new transaction when it's added
             scrollingVerticalTopOffset.current = contentOffset.y;
         },
-        hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
     });
 
     useScrollToEndOnNewMessageReceived({
@@ -568,6 +573,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
                         report={reportStable}
                         transactionThreadReport={transactionThreadReport}
+                        chatReport={chatReport}
                         displayAsGroup={displayAsGroup}
                         shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
                         shouldDisplayReplyDivider={visibleReportActions.length > 1}
@@ -584,6 +590,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             visibleReportActions,
             parentReportAction,
             reportStable,
+            chatReport,
             isOffline,
             transactionThreadReport,
             unreadMarkerReportActionID,
