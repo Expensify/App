@@ -101,15 +101,17 @@ function ExpenseRulesPage() {
         setSelectedRules([]);
     };
 
-    const personalExpenseRules: PersonalExpenseRuleRowData[] = expenseRules.map((rule, index) => ({
-        keyForList: getKeyForList(rule, index),
-        merchant: rule.merchantToMatch,
-        changes: formatExpenseRuleChanges(rule, translate),
-        errors: rule.errors,
-        pendingAction: rule.pendingAction,
-        disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        action: () => navigateToEditRulePage(getKeyForList(rule, index)),
-    }));
+    const personalExpenseRules: PersonalExpenseRuleRowData[] = expenseRules
+        .filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .map((rule, index) => ({
+            keyForList: getKeyForList(rule, index),
+            merchant: rule.merchantToMatch,
+            changes: formatExpenseRuleChanges(rule, translate),
+            errors: rule.errors,
+            pendingAction: rule.pendingAction,
+            disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            action: () => navigateToEditRulePage(getKeyForList(rule, index)),
+        }));
 
     const headerDropdownOptions: Array<DropdownOption<DeepValueOf<typeof CONST.EXPENSE_RULES.BULK_ACTION_TYPES>>> = [
         {
