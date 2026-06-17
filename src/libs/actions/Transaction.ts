@@ -862,6 +862,8 @@ function changeTransactionsReport({
     const updatedReportTransactionCounts: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};
     const updatedReportUnheldNonReimbursableTotals: Record<string, number> = {};
+    const updatedReportStateNums: Record<string, NonNullable<Report['stateNum']>> = {};
+    const updatedReportStatusNums: Record<string, NonNullable<Report['statusNum']>> = {};
     const staleReportIDs = new Set<string>();
     const optimisticPendingFieldsByReport: Record<string, Partial<NonNullable<Report['pendingFields']>>> = {};
     const targetReportCurrenciesByReport: Record<string, Set<string>> = {};
@@ -1006,6 +1008,19 @@ function changeTransactionsReport({
             ...pendingFields,
         };
     };
+    const clearOptimisticPendingFields = (reportIDToUpdate: string | undefined, fieldNames: Array<keyof NonNullable<Report['pendingFields']>>) => {
+        if (!reportIDToUpdate || !optimisticPendingFieldsByReport[reportIDToUpdate]) {
+            return;
+        }
+
+        for (const fieldName of fieldNames) {
+            delete optimisticPendingFieldsByReport[reportIDToUpdate][fieldName];
+        }
+
+        if (Object.keys(optimisticPendingFieldsByReport[reportIDToUpdate]).length === 0) {
+            delete optimisticPendingFieldsByReport[reportIDToUpdate];
+        }
+    };
     const clearAccumulatedReportTotals = (reportIDToUpdate: string) => {
         delete updatedReportTotals[reportIDToUpdate];
         delete updatedReportNonReimbursableTotals[reportIDToUpdate];
@@ -1021,6 +1036,14 @@ function changeTransactionsReport({
         mergeOptimisticPendingFields(reportIDToUpdate, {
             total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         });
+    };
+    const clearStaleReportState = (reportIDToUpdate: string | undefined) => {
+        if (!reportIDToUpdate) {
+            return;
+        }
+
+        staleReportIDs.delete(reportIDToUpdate);
+        clearOptimisticPendingFields(reportIDToUpdate, ['total']);
     };
     const getTargetReportCurrencies = (targetReportID: string) => {
         if (!targetReportCurrenciesByReport[targetReportID]) {
@@ -1064,10 +1087,10 @@ function changeTransactionsReport({
         const actionType = isUnreported ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE;
         const newIOUAction = {
             ...oldIOUAction,
+            reportID,
             originalMessage: {
                 ...originalMessage,
                 IOUTransactionID: originalMessage?.IOUTransactionID ?? transaction.transactionID,
-                IOUReportID: reportID,
                 type: actionType,
             },
             reportActionID: optimisticMoneyRequestReportActionID,
@@ -1311,22 +1334,32 @@ function changeTransactionsReport({
         const {amount: targetTransactionAmount = 0, currency: targetTransactionCurrency} = getTransactionDetails(transactionForViolations, undefined, undefined, allowNegative) ?? {};
         const resolvedTargetTransactionCurrency = targetTransactionCurrency ?? transaction.currency;
         const oldReportTotal = oldReport?.total ?? 0;
-        const updatedReportTotal = sourceTransactionAmount < 0 ? oldReportTotal - sourceTransactionAmount : oldReportTotal + sourceTransactionAmount;
 
         if (oldReport) {
             const oldReportTransactionCount = updatedReportTransactionCounts[oldReportID] ?? oldReport.transactionCount ?? 0;
-            updatedReportTransactionCounts[oldReportID] = Math.max(0, oldReportTransactionCount - 1);
+            const updatedOldReportTransactionCount = Math.max(0, oldReportTransactionCount - 1);
+            updatedReportTransactionCounts[oldReportID] = updatedOldReportTransactionCount;
+            const willBeEmpty = updatedOldReportTransactionCount === 0;
 
-            if (staleReportIDs.has(oldReportID) || oldReport.pendingFields?.total) {
+            if (willBeEmpty) {
+                clearStaleReportState(oldReportID);
+                updatedReportTotals[oldReportID] = 0;
+                updatedReportNonReimbursableTotals[oldReportID] = 0;
+                updatedReportUnheldNonReimbursableTotals[oldReportID] = 0;
+                updatedReportStateNums[oldReportID] = CONST.REPORT.STATE_NUM.OPEN;
+                updatedReportStatusNums[oldReportID] = CONST.REPORT.STATUS_NUM.OPEN;
+            } else if (staleReportIDs.has(oldReportID) || oldReport.pendingFields?.total) {
                 markReportTotalAsStale(oldReportID);
             } else if (oldReport.currency === sourceTransactionCurrency) {
-                updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : updatedReportTotal;
-                updatedReportNonReimbursableTotals[oldReportID] =
-                    (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
-                    (transaction?.reimbursable ? 0 : sourceTransactionAmount);
+                const currentTotal = updatedReportTotals[oldReportID] ?? oldReportTotal;
+                updatedReportTotals[oldReportID] = currentTotal + sourceTransactionAmount;
+
+                const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[oldReportID] ?? oldReport?.nonReimbursableTotal ?? 0;
+                updatedReportNonReimbursableTotals[oldReportID] = currentNonReimbursableTotal + (transaction?.reimbursable ? 0 : sourceTransactionAmount);
+
+                const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[oldReportID] ?? oldReport?.unheldNonReimbursableTotal ?? 0;
                 updatedReportUnheldNonReimbursableTotals[oldReportID] =
-                    (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
-                    (transaction?.reimbursable && !isOnHold(transaction) ? 0 : sourceTransactionAmount);
+                    currentUnheldNonReimbursableTotal + (transaction?.reimbursable && !isOnHold(transaction) ? 0 : sourceTransactionAmount);
             } else {
                 markReportTotalAsStale(oldReportID);
             }
@@ -1657,6 +1690,26 @@ function changeTransactionsReport({
         });
     }
 
+    for (const reportIDToUpdate of Object.keys(updatedReportStateNums)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {
+                stateNum: updatedReportStateNums[reportIDToUpdate],
+                statusNum: updatedReportStatusNums[reportIDToUpdate],
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {
+                stateNum: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.stateNum,
+                statusNum: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.statusNum,
+            },
+        });
+    }
+
     const reportTransactions = getReportTransactions(reportID);
     for (const transaction of reportTransactions) {
         if (!isGroupPolicy(policy) || !policy?.id) {
@@ -1710,6 +1763,8 @@ function changeTransactionsReport({
             ...affectedReport,
             total: updatedTotal,
             transactionCount: updatedTransactionCount,
+            stateNum: updatedReportStateNums[affectedReportID] ?? affectedReport.stateNum,
+            statusNum: updatedReportStatusNums[affectedReportID] ?? affectedReport.statusNum,
             reportID: affectedReport.reportID ?? affectedReportID,
         };
 
