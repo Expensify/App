@@ -1070,6 +1070,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1122,6 +1123,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1171,6 +1173,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1221,6 +1224,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
@@ -1273,6 +1277,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    chatReport={undefined}
                                     report={report}
                                     transactionThreadReport={undefined}
                                     parentReportAction={undefined}
