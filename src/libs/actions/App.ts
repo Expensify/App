@@ -538,8 +538,8 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  * response re-delivers the cutoff. Recording first means the stored time is already at or above the
  * cutoff by the time the response lands, so subscribeToFullReconnect does not fire a second reconnect.
  */
-function triggerFullReconnect(serverReconnectCutoff: string) {
-    Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getLastFullReconnectTimeToRecord(serverReconnectCutoff));
+function triggerFullReconnect(cutoff: string) {
+    Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getLastFullReconnectTimeToRecord(cutoff));
     reconnectApp();
 }
 
