@@ -19,10 +19,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import MultiSelect from './MultiSelect';
 
-type ExportedToSelectorProps = SearchFilterCommonProps & {
-    value: string[] | undefined;
+type ExportedToSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
     policyIDs: string[] | undefined;
-    onChange: (exportedTo: string[]) => void;
 };
 
 const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {

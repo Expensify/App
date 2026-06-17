@@ -24,10 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ListFilterView from './ListFilterViewWrapper';
 
-type CardSelectorProps = SearchFilterCommonProps & {
-    value: string[] | undefined;
-    onChange: (cards: string[]) => void;
-};
+type CardSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 function CardSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CardSelectorProps) {
     const theme = useTheme();
