@@ -6,9 +6,10 @@ import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from '@libs/LauncherStack';
+import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {collectRouteKeys, diffNavigationState} from '@libs/navigationStateDiff';
+import {diffNavigationState} from '@libs/navigationStateDiff';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 import {isCycleIdle, Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';
 
@@ -319,6 +320,7 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitFor
                 }
                 framesLeft -= 1;
                 if (framesLeft <= 0) {
+                    Log.warn('[NavigationFocusReturn] restore budget exhausted', {routeKey, frames: MAX_RESTORE_FRAMES});
                     triggerMap.delete(routeKey);
                     pendingRestore = null;
                     return;
@@ -485,8 +487,6 @@ export {
     setupNavigationFocusReturn,
     teardownNavigationFocusReturn,
     handleStateChange,
-    diffNavigationState,
-    collectRouteKeys,
     captureTriggerForRoute,
     restoreTriggerForRoute,
     notifyPushParamsForward,
@@ -496,7 +496,6 @@ export {
     notifyPressedTrigger,
     registerPressable,
     isFocusRestoreInProgress,
-    compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,
     setLastInteractiveElementForTests,

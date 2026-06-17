@@ -2,7 +2,7 @@ import {FocusTrap} from 'focus-trap-react';
 import React, {useRef} from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import {scheduleClearActivePopoverLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
+import {markActivePopoverLauncherDeactivated, setActivePopoverLauncher} from '@libs/LauncherStack';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
@@ -33,7 +33,7 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                         restoreFocusWithModality(launcher);
                     }
                     // Deferred so popover paths that navigate after modal-hide can still consume.
-                    scheduleClearActivePopoverLauncher(launcher);
+                    markActivePopoverLauncherDeactivated(launcher);
                 },
                 preventScroll: shouldPreventScroll,
                 trapStack: sharedTrapStack,

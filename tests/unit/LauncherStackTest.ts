@@ -1,10 +1,10 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
 /* eslint-disable import/extensions */
-const {pickLauncher, consumeLauncher, setActivePopoverLauncher, scheduleClearActivePopoverLauncher, resetLauncherStackForTests} = require<{
+const {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests} = require<{
     pickLauncher: () => HTMLElement | null;
     consumeLauncher: (element: HTMLElement) => void;
     setActivePopoverLauncher: (element: HTMLElement) => void;
-    scheduleClearActivePopoverLauncher: (element?: HTMLElement) => void;
+    markActivePopoverLauncherDeactivated: (element?: HTMLElement) => void;
     resetLauncherStackForTests: () => void;
 }>('../../src/libs/LauncherStack.ts');
 /* eslint-enable import/extensions */
@@ -48,7 +48,7 @@ describe('LauncherStack', () => {
             const inner = appendButton();
             setActivePopoverLauncher(outer);
             setActivePopoverLauncher(inner);
-            scheduleClearActivePopoverLauncher(inner);
+            markActivePopoverLauncherDeactivated(inner);
             expect(pickLauncher()).toBe(outer);
         });
 
@@ -57,8 +57,8 @@ describe('LauncherStack', () => {
             const b = appendButton();
             setActivePopoverLauncher(a);
             setActivePopoverLauncher(b);
-            scheduleClearActivePopoverLauncher(a);
-            scheduleClearActivePopoverLauncher(b);
+            markActivePopoverLauncherDeactivated(a);
+            markActivePopoverLauncherDeactivated(b);
             expect(pickLauncher()).toBe(b);
         });
 
@@ -66,7 +66,7 @@ describe('LauncherStack', () => {
             withFakeTimers(() => {
                 const a = appendButton();
                 setActivePopoverLauncher(a);
-                scheduleClearActivePopoverLauncher();
+                markActivePopoverLauncherDeactivated();
                 jest.advanceTimersByTime(2000);
                 expect(pickLauncher()).toBeNull();
             });
@@ -85,7 +85,7 @@ describe('LauncherStack', () => {
                 const a = appendButton();
                 const b = appendButton();
                 setActivePopoverLauncher(a);
-                scheduleClearActivePopoverLauncher(a);
+                markActivePopoverLauncherDeactivated(a);
                 jest.advanceTimersByTime(500);
                 setActivePopoverLauncher(b);
                 // b active; a still within window but deactivated → b wins.
@@ -98,7 +98,7 @@ describe('LauncherStack', () => {
             const a = appendButton();
             const b = appendButton();
             setActivePopoverLauncher(a);
-            scheduleClearActivePopoverLauncher(a);
+            markActivePopoverLauncherDeactivated(a);
             setActivePopoverLauncher(b);
             setActivePopoverLauncher(a);
             expect(pickLauncher()).toBe(a);
@@ -121,11 +121,11 @@ describe('LauncherStack', () => {
         });
     });
 
-    describe('scheduleClearActivePopoverLauncher', () => {
+    describe('markActivePopoverLauncherDeactivated', () => {
         it('marks the entry deactivated without immediate removal (deferred-clear within window)', () => {
             const a = appendButton();
             setActivePopoverLauncher(a);
-            scheduleClearActivePopoverLauncher(a);
+            markActivePopoverLauncherDeactivated(a);
             expect(pickLauncher()).toBe(a);
         });
 
@@ -134,7 +134,7 @@ describe('LauncherStack', () => {
             const b = appendButton();
             setActivePopoverLauncher(a);
             setActivePopoverLauncher(b);
-            scheduleClearActivePopoverLauncher();
+            markActivePopoverLauncherDeactivated();
             expect(pickLauncher()).toBe(a);
         });
 
@@ -143,7 +143,7 @@ describe('LauncherStack', () => {
                 const a = appendButton();
                 const b = appendButton();
                 setActivePopoverLauncher(a);
-                scheduleClearActivePopoverLauncher();
+                markActivePopoverLauncherDeactivated();
                 jest.advanceTimersByTime(100);
                 setActivePopoverLauncher(b);
                 jest.advanceTimersByTime(2000);
@@ -157,8 +157,8 @@ describe('LauncherStack', () => {
             const inner = appendButton();
             setActivePopoverLauncher(outer);
             setActivePopoverLauncher(inner);
-            scheduleClearActivePopoverLauncher(inner);
-            scheduleClearActivePopoverLauncher(outer);
+            markActivePopoverLauncherDeactivated(inner);
+            markActivePopoverLauncherDeactivated(outer);
             expect(pickLauncher()).toBe(outer);
         });
     });

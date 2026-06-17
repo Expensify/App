@@ -81,7 +81,7 @@ function setActivePopoverLauncher(element: HTMLElement): void {
 }
 
 /** Mark a launcher (or top-of-stack) as deactivated. pickLauncher lazy-prunes on LAUNCHER_CLEAR_DELAY_MS. */
-function scheduleClearActivePopoverLauncher(element?: HTMLElement): void {
+function markActivePopoverLauncherDeactivated(element?: HTMLElement): void {
     if (typeof document === 'undefined') {
         return;
     }
@@ -100,4 +100,4 @@ function resetLauncherStackForTests(): void {
     hasWarnedAboutOverflow = false;
 }
 
-export {pickLauncher, consumeLauncher, setActivePopoverLauncher, scheduleClearActivePopoverLauncher, resetLauncherStackForTests};
+export {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests};

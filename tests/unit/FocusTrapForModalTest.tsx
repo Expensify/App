@@ -1,11 +1,11 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal/index.web';
-import {scheduleClearActivePopoverLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
+import {markActivePopoverLauncherDeactivated, setActivePopoverLauncher} from '@libs/LauncherStack';
 
 jest.mock('@libs/LauncherStack', () => ({
     setActivePopoverLauncher: jest.fn(),
-    scheduleClearActivePopoverLauncher: jest.fn(),
+    markActivePopoverLauncherDeactivated: jest.fn(),
 }));
 
 let capturedOptions: {onActivate?: () => void; onPostDeactivate?: () => void} | null = null;
@@ -36,7 +36,7 @@ describe('FocusTrapForModal — launcher capture', () => {
     beforeEach(() => {
         capturedOptions = null;
         (setActivePopoverLauncher as jest.Mock).mockClear();
-        (scheduleClearActivePopoverLauncher as jest.Mock).mockClear();
+        (markActivePopoverLauncherDeactivated as jest.Mock).mockClear();
         document.body.innerHTML = '';
     });
 
@@ -52,7 +52,7 @@ describe('FocusTrapForModal — launcher capture', () => {
         });
 
         expect(setActivePopoverLauncher).toHaveBeenCalledWith(launcher);
-        expect(scheduleClearActivePopoverLauncher).toHaveBeenCalled();
+        expect(markActivePopoverLauncherDeactivated).toHaveBeenCalled();
     });
 
     it('captures the launcher even when shouldReturnFocus is false (PopoverMenu / ThreeDotsMenu / ReanimatedModal with new focus management)', () => {
@@ -75,7 +75,7 @@ describe('FocusTrapForModal — launcher capture', () => {
         });
 
         expect(setActivePopoverLauncher).toHaveBeenCalledWith(launcher);
-        expect(scheduleClearActivePopoverLauncher).toHaveBeenCalled();
+        expect(markActivePopoverLauncherDeactivated).toHaveBeenCalled();
     });
 
     it('skips launcher capture when activeElement is document.body (nothing to capture)', () => {
@@ -87,6 +87,6 @@ describe('FocusTrapForModal — launcher capture', () => {
         });
 
         expect(setActivePopoverLauncher).not.toHaveBeenCalled();
-        expect(scheduleClearActivePopoverLauncher).not.toHaveBeenCalled();
+        expect(markActivePopoverLauncherDeactivated).not.toHaveBeenCalled();
     });
 });

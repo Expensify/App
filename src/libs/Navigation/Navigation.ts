@@ -15,7 +15,6 @@ import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfCompose
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
-import {setupNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
@@ -63,9 +62,8 @@ type FocusedScreen = {
     params?: Record<string, unknown>;
 };
 
-// Installs the modality flag (keydown/mousedown) and focus-return listeners (focusin/click); NavigationRoot.onReady attaches the state listener once live.
+// Modality must be tracked from the first interaction; the focus-return listeners install under NavigationRoot's lifecycle so they can be torn down.
 setupHadTabNavigation();
-setupNavigationFocusReturn();
 
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
 const SET_UP_2FA_SCREENS = new Set<string>([

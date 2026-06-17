@@ -1,9 +1,9 @@
 import {useEffect} from 'react';
+import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import isHTMLElement from '@libs/isHTMLElement';
 import markProgrammaticFocus from '@libs/programmaticFocus';
+import {Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';
 import type UseAccessibilityFocus from './type';
-
-const FOCUSABLE_ELEMENTS_SELECTOR = 'button, [href], [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
 
 const useAccessibilityFocus: UseAccessibilityFocus = ({didScreenTransitionEnd, isFocused, ref, shouldMoveAccessibilityFocus}) => {
     useEffect(() => {
@@ -25,7 +25,11 @@ const useAccessibilityFocus: UseAccessibilityFocus = ({didScreenTransitionEnd, i
             return;
         }
 
-        const focusTargets = element.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS_SELECTOR);
+        if (!tryClaim(Priorities.AUTO)) {
+            return;
+        }
+
+        const focusTargets = element.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
         for (const focusTarget of focusTargets) {
             const isDisabledTarget = focusTarget.matches(':disabled') || focusTarget.getAttribute('aria-disabled') === 'true';
             if (isDisabledTarget || focusTarget.getAttribute('aria-hidden') === 'true') {
@@ -46,6 +50,8 @@ const useAccessibilityFocus: UseAccessibilityFocus = ({didScreenTransitionEnd, i
 
             unmarkProgrammaticFocus();
         }
+        // No target accepted focus — release so a later claim isn't blocked.
+        resetCycle();
     }, [didScreenTransitionEnd, isFocused, ref, shouldMoveAccessibilityFocus]);
 };
 

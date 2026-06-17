@@ -91,7 +91,7 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const setBackButtonRef = useInitialFocusRef();
+    const setBackButtonRef = useInitialFocusRef({skip: shouldSkipFocusAfterTransition});
 
     const downloadReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
         () => ({

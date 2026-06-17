@@ -30,13 +30,14 @@ const MAX_INITIAL_FOCUS_FRAMES = 5;
  * Takes the attached node (not a ref) so late attachment — skeleton → real header, Suspense — re-runs the effect.
  * Hover-capable devices gate on Tab (WCAG 2.4.7); touch-primary devices bypass.
  */
-const useScreenInitialFocus: UseScreenInitialFocus = (node) => {
+const useScreenInitialFocus: UseScreenInitialFocus = (node, options) => {
     const status = useContext(ScreenWrapperStatusContext);
     const {isInsideDialog} = useDialogLabelData();
     const claimedRef = useRef(false);
+    const skip = options?.skip ?? false;
 
     useEffect(() => {
-        if (isInsideDialog) {
+        if (skip || isInsideDialog) {
             return;
         }
         if (!status?.didScreenTransitionEnd) {
@@ -72,7 +73,7 @@ const useScreenInitialFocus: UseScreenInitialFocus = (node) => {
             }
             cancelAnimationFrame(rafId);
         };
-    }, [isInsideDialog, status?.didScreenTransitionEnd, node]);
+    }, [skip, isInsideDialog, status?.didScreenTransitionEnd, node]);
 };
 
 export default useScreenInitialFocus;

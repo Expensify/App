@@ -31,8 +31,6 @@ const {resetForTests: resetHadTabNavigation, setupHadTabNavigation} = require<{
     setupHadTabNavigation: () => void;
 }>('../../src/libs/hadTabNavigation.ts');
 const {
-    diffNavigationState,
-    collectRouteKeys,
     captureTriggerForRoute,
     restoreTriggerForRoute,
     handleStateChange,
@@ -44,13 +42,10 @@ const {
     cancelPendingFocusRestore,
     skipNextFocusRestore,
     isFocusRestoreInProgress,
-    compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
     setupNavigationFocusReturn,
     teardownNavigationFocusReturn,
 } = require<{
-    diffNavigationState: (prev: unknown, next: unknown) => {action: {type: string; captureKey?: string; restoreKey?: string}; removedKeys: string[]};
-    collectRouteKeys: (state: unknown) => Set<string>;
     captureTriggerForRoute: (routeKey: string) => void;
     restoreTriggerForRoute: (routeKey: string) => boolean;
     handleStateChange: (state: unknown) => void;
@@ -62,14 +57,18 @@ const {
     cancelPendingFocusRestore: () => void;
     skipNextFocusRestore: () => void;
     isFocusRestoreInProgress: () => boolean;
-    compoundParamsKey: (routeKey: string, params: unknown) => string;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
     setupNavigationFocusReturn: () => void;
     teardownNavigationFocusReturn: () => void;
 }>('../../src/libs/NavigationFocusReturn/index.ts');
-const {setActivePopoverLauncher, scheduleClearActivePopoverLauncher} = require<{
+const {diffNavigationState, collectRouteKeys} = require<{
+    diffNavigationState: (prev: unknown, next: unknown) => {action: {type: string; captureKey?: string; restoreKey?: string}; removedKeys: string[]};
+    collectRouteKeys: (state: unknown) => Set<string>;
+}>('../../src/libs/navigationStateDiff.ts');
+const {default: compoundParamsKey} = require<{default: (routeKey: string, params: unknown) => string}>('../../src/libs/compoundParamsKey.ts');
+const {setActivePopoverLauncher, markActivePopoverLauncherDeactivated} = require<{
     setActivePopoverLauncher: (element: HTMLElement) => void;
-    scheduleClearActivePopoverLauncher: (element?: HTMLElement) => void;
+    markActivePopoverLauncherDeactivated: (element?: HTMLElement) => void;
 }>('../../src/libs/LauncherStack.ts');
 const {default: hasFocusableAttributes} = require<{
     default: (el: Element) => boolean;
@@ -466,7 +465,7 @@ describe('captureTriggerForRoute', () => {
 
             // Popover opens then closes: launcher set, deferred clear pending.
             setActivePopoverLauncher(launcher);
-            scheduleClearActivePopoverLauncher();
+            markActivePopoverLauncherDeactivated();
 
             // FocusTrap returnFocus puts focus on launcher first.
             launcher.focus();

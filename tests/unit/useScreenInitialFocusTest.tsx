@@ -9,7 +9,7 @@ jest.mock('@libs/DeviceCapabilities/hasHoverSupport', () => ({
 }));
 
 /* eslint-disable import/extensions */
-const {default: useScreenInitialFocus} = require<{default: (node: HTMLElement | null) => void}>('../../src/hooks/useScreenInitialFocus/index.ts');
+const {default: useScreenInitialFocus} = require<{default: (node: HTMLElement | null, options?: {skip?: boolean}) => void}>('../../src/hooks/useScreenInitialFocus/index.ts');
 const {resetCycle: resetArbiter, tryClaim: arbiterClaim, Priorities: arbiterPriorities} = require<{
     resetCycle: () => void;
     tryClaim: (priority: 1 | 2 | 3) => boolean;
@@ -30,18 +30,21 @@ function simulatePointer() {
     document.dispatchEvent(new Event('pointerdown', {bubbles: true}));
 }
 
-type HarnessProps = {target: HTMLElement | null; didScreenTransitionEnd: boolean};
+type HarnessProps = {target: HTMLElement | null; didScreenTransitionEnd: boolean; skip?: boolean};
 
-function MountedHarness({target, didScreenTransitionEnd}: HarnessProps) {
+function MountedHarness({target, didScreenTransitionEnd, skip}: HarnessProps) {
     const contextValue = useMemo(() => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}), [didScreenTransitionEnd]);
     return (
         <ScreenWrapperStatusContext.Provider value={contextValue}>
-            <Inner target={target} />
+            <Inner
+                target={target}
+                skip={skip}
+            />
         </ScreenWrapperStatusContext.Provider>
     );
 }
-function Inner({target}: {target: HTMLElement | null}) {
-    useScreenInitialFocus(target);
+function Inner({target, skip}: {target: HTMLElement | null; skip?: boolean}) {
+    useScreenInitialFocus(target, skip === undefined ? undefined : {skip});
     return null;
 }
 
@@ -237,5 +240,19 @@ describe('useScreenInitialFocus', () => {
             />,
         );
         expect(spy).toHaveBeenCalledTimes(1);
+    });
+
+    it('bails when skip=true so screens that opt out of post-transition focus', () => {
+        simulateTab();
+        const button = makeButton();
+        const spy = jest.spyOn(button, 'focus');
+        render(
+            <MountedHarness
+                target={button}
+                didScreenTransitionEnd
+                skip
+            />,
+        );
+        expect(spy).not.toHaveBeenCalled();
     });
 });
