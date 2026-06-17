@@ -3037,12 +3037,6 @@ ${amount} voor ${merchant} - ${date}`,
         welcome: 'Welkom!',
         welcomeSignOffTitleManageTeam: 'Zodra je de bovenstaande taken hebt afgerond, kunnen we meer functionaliteit verkennen, zoals goedkeuringsworkflows en regels!',
         welcomeSignOffTitle: 'Leuk om je te ontmoeten!',
-        explanationModal: {
-            title: 'Welkom bij Expensify',
-            description:
-                'Eén app om je zakelijke en persoonlijke uitgaven af te handelen met de snelheid van chat. Probeer het uit en laat ons weten wat je ervan vindt. Er komt nog veel meer aan!',
-            secondaryDescription: 'Om terug te schakelen naar Expensify Classic, tik je gewoon op je profielfoto > Ga naar Expensify Classic.',
-        },
         getStarted: 'Aan de slag',
         whatsYourName: 'Hoe heet je?',
         peopleYouMayKnow: 'Kijk of je team al in Expensify zit',
