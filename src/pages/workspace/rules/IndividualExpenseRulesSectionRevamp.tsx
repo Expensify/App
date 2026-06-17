@@ -38,7 +38,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Receipt']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -193,6 +193,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
                     onToggle={() => (canWriteRules ? setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts) : undefined)}
                     pendingAction={policy?.pendingFields?.eReceipts}
+                    rowIcon={icons.Receipt}
                 />
                 <ToggleSettingOptionRow
                     title={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
@@ -207,6 +208,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     showLockIcon={!canWriteRules}
                     onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
+                    rowIcon={icons.Users}
                 />
             </View>
         </Section>
