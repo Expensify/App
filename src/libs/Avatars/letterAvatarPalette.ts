@@ -1,13 +1,9 @@
 import colors from '@styles/theme/colors';
 
-/** The background + foreground colour pair that renders a letter/initials avatar. */
+/** Background and fill colours for a letter avatar. */
 type LetterAvatarColorStyle = {backgroundColor: string; fillColor: string};
 
-/**
- * Stable key for a letter-avatar colour scheme, used to store and restore a user's choice.
- * Keys mirror the colour tokens in our Figma design system, so a key like "blue100" maps
- * directly to the Figma token of the same name.
- */
+/** Colour-scheme key for a letter avatar. Matches the colour token names in the design system. */
 type LetterAvatarSchemeKey =
     | 'blue100'
     | 'blue400'
@@ -29,16 +25,9 @@ type LetterAvatarSchemeKey =
     | 'ice700';
 
 /**
- * The letter-avatar colour palette: scheme key → {background, fill}. Single source of truth for
- * letter/initials avatar colours — a restyle edits this table and nothing else.
- *
- * The keys are a persisted contract: a scheme a user picks is saved server-side, so keys may be
- * added or retired but never repurposed. Re-pointing a scheme's colours here is safe; renaming or
- * retiring a key strands existing stored picks, which fall back to the hashed default via
- * `isLetterAvatarSchemeKey` (see `getLetterAvatarScheme`).
- *
- * Insertion order is significant: hashed-default avatars index into `LETTER_AVATAR_COLOR_OPTIONS`
- * (the `Object.values` of this table), so reordering re-colours every default user.
+ * Letter-avatar colour palette mapping each scheme key to its colours. A restyle edits this table.
+ * Keys are persisted when a user picks a colour, so they can be added or retired but not repurposed.
+ * Order is significant: LETTER_AVATAR_COLOR_OPTIONS reads it by index.
  */
 const LETTER_AVATAR_SCHEMES: Record<LetterAvatarSchemeKey, LetterAvatarColorStyle> = {
     blue100: {backgroundColor: colors.blue100, fillColor: colors.blue600},
@@ -61,10 +50,10 @@ const LETTER_AVATAR_SCHEMES: Record<LetterAvatarSchemeKey, LetterAvatarColorStyl
     ice700: {backgroundColor: colors.ice700, fillColor: colors.ice200},
 };
 
-/** The schemes as an ordered array. Order mirrors `LETTER_AVATAR_SCHEMES` (significant — see above). */
+/** The schemes as an ordered array. */
 const LETTER_AVATAR_COLOR_OPTIONS: LetterAvatarColorStyle[] = Object.values(LETTER_AVATAR_SCHEMES);
 
-/** The first scheme in the table; used when no colour has been picked or resolved. */
+/** Used when no colour has been picked. */
 const DEFAULT_LETTER_AVATAR_SCHEME: LetterAvatarColorStyle = LETTER_AVATAR_SCHEMES.blue100;
 
 function isLetterAvatarSchemeKey(value: string): value is LetterAvatarSchemeKey {

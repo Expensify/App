@@ -78,12 +78,9 @@ function getAccountIDHashBucket({accountID = CONST.DEFAULT_NUMBER_ID, accountEma
 }
 
 /**
- * Resolves the colour scheme for a generated letter avatar from a scheme key — the one the user
- * picked (`avatarStyle.color`) or the one parsed out of a backend recipe URL. Falls back to the
- * default scheme when the key is absent or unknown.
+ * Returns the colours for a letter-avatar scheme key, falling back to the default scheme when the key is missing or unknown.
  *
- * @param avatarSchemeKey - A scheme key (e.g. "blue100"); maps into `LETTER_AVATAR_SCHEMES`
- * @returns The letter-avatar colour scheme (background and fill colours)
+ * @param avatarSchemeKey - A scheme key, e.g. "blue100"
  */
 function getLetterAvatarScheme(avatarSchemeKey?: string): LetterAvatarColorStyle {
     if (avatarSchemeKey && isLetterAvatarSchemeKey(avatarSchemeKey)) {

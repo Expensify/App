@@ -57,9 +57,9 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Avatar original file name with extension */
     originalFileName?: string;
 
-    /** Picked colour scheme for a generated letter avatar (backend `avatarStyle` NVP). Set only when the user picks a colour; absent means the colour is derived (not stored) */
+    /** Letter-avatar colour scheme, only set when the user picks a colour */
     avatarStyle?: {
-        /** Colour-scheme key the user picked (e.g. "blue100"); maps into `LETTER_AVATAR_SCHEMES` */
+        /** Colour-scheme key, e.g. "blue100" */
         color: LetterAvatarSchemeKey;
     };
 
