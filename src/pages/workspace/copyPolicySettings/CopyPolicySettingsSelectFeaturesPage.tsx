@@ -48,6 +48,10 @@ const CODING_PARTS_TIED_TO_CONNECTION = ['categories', 'tags', 'reports', 'taxes
 
 const isCodingPart = (part: Part): boolean => (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part);
 
+type FeatureListItem = ListItem & {
+    keyForList: Part;
+};
+
 function CopyPolicySettingsSelectFeaturesPage() {
     const route = useRoute<PlatformStackRouteProp<PolicyCopySettingsNavigatorParamList, typeof SCREENS.POLICY_COPY_SETTINGS.SELECT_FEATURES>>();
     const sourcePolicyID = route?.params?.policyID;
@@ -133,7 +137,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const availablePartSet = new Set(availableFeatureRows.map((row) => row.part));
 
     const [selectedFeatures, setSelectedFeatures] = useState<readonly Part[] | null>(null);
-    const resolvedSelectedFeatures = selectedFeatures ?? (copyPolicySettings?.parts as Part[] | undefined) ?? [];
+    const resolvedSelectedFeatures = selectedFeatures ?? copyPolicySettings?.parts ?? [];
     const selectedAvailableFeatures = resolvedSelectedFeatures.filter((part) => availablePartSet.has(part) && !isPartIncompatible(part));
     const isAccountingSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
 
@@ -204,7 +208,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         return getSourceDescription(part);
     };
 
-    const listItems: ListItem[] = availableFeatureRows.map((row) => {
+    const listItems: FeatureListItem[] = availableFeatureRows.map((row) => {
         const isDisabled = isFeatureDisabled(row.part);
         const isSelected = effectiveSelectedFeatures.includes(row.part);
         const alternateText = getAlternateText(row.part);
@@ -221,9 +225,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const selectableFeatures: Part[] = availableFeatureRows.filter((row) => !isFeatureDisabled(row.part)).map((row) => row.part);
 
-    const toggleFeature = (item: ListItem) => {
-        const part = item.keyForList as Part | undefined;
-        if (!part || isFeatureDisabled(part)) {
+    const toggleFeature = (item: FeatureListItem) => {
+        const part = item.keyForList;
+        if (isFeatureDisabled(part)) {
             return;
         }
         setSelectedFeatures((prev) => {
@@ -248,8 +252,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
         if (!sourcePolicyID) {
             return;
         }
-        setCopyPolicySettingsData({parts: effectiveSelectedFeatures.slice()});
-        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
+        setCopyPolicySettingsData({parts: effectiveSelectedFeatures.slice()}).then(() => {
+            Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
+        });
     };
 
     const onConfirm = () => {
@@ -293,7 +298,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.copyPolicySettings.title')}
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={() => Navigation.goBack(sourcePolicyID ? ROUTES.POLICY_COPY_SETTINGS.getRoute(sourcePolicyID) : undefined)}
                 />
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.selectSettings.title')}</Text>

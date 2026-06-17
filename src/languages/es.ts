@@ -315,7 +315,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText2: 'o crea algo usando el botón',
             subtitleText3: '.',
             noUnreadChats: 'No hay chats sin leer',
-            noTodos: 'No hay tareas pendientes',
+            noTodos: 'No hay pendientes',
             caughtUp: 'Te has puesto al día. ¡Bien hecho!',
             seeAllChats: 'Ver todos los chats',
         },
@@ -1304,6 +1304,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payElsewhere: (formattedAmount) => (formattedAmount ? `Marcar ${formattedAmount} como pagado` : `Marcar como pagado`),
         confirmPaymentReceivedModalTitle: 'Confirmar el pago recibido',
         receivedPayment: 'Pago recibido',
+        receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}pago recibido`,
         receivedPaymentConfirmation: 'Por favor, continúa solo si ya has recibido el pago fuera de Expensify.',
         confirmReceivedPayment: 'Sí, he recibido el pago.',
         settleInvoicePersonal: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta personal ${last4Digits}` : `Pagado con cuenta personal`),
@@ -1763,7 +1764,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (actor, actorType, _eta, _etaType) => {
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Esperando a que <strong>tú</strong> lo marques como listo.`;
@@ -2819,7 +2819,7 @@ ${amount} para ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Mantente al tanto de todo viendo solo los chats no leídos o los chats que necesitan tu atención. No te preocupes, puedes cambiarlo en cualquier momento en los <a href="${priorityModePageUrl}">ajustes</a>.`,
     },
-    inboxTabs: {all: 'Todo', todo: 'Tareas pendientes', unread: 'No leído'},
+    inboxTabs: {all: 'Todo', todo: 'Pendientes', unread: 'No leído'},
     reportDetailsPage: {
         goToRoom: 'Ir a la sala',
         inWorkspace: (policyName) => `en ${policyName}`,
@@ -7301,12 +7301,12 @@ ${amount} para ${merchant} - ${date}`,
                 },
             },
             agentRules: {
-                title: 'Reglas de Agente',
-                subtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas.',
-                addRule: 'Añadir regla de Agente',
-                findRule: 'Buscar regla de Agente',
+                title: 'Reglas del agente',
+                subtitle: 'Configura reglas para cómo los agentes de IA gestionan los gastos en este espacio de trabajo.',
+                addRule: 'Añadir regla de agente',
+                findRule: 'Encontrar regla de agente',
                 addRuleTitle: 'Añadir regla',
-                describeRuleTitle: 'Describe tu regla y Concierge la creará',
+                describeRuleTitle: 'Describe la regla que debe seguir tu agente de IA',
                 editRuleTitle: 'Editar regla',
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',
