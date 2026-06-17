@@ -290,10 +290,7 @@ function FeatureTrainingContent({
 
     const toggleWillShowAgain = () => {
         onWillShowAgainChange?.(!willShowAgain);
-        setWillShowAgain((prev) => {
-            const next = !prev;
-            return next;
-        });
+        setWillShowAgain((prev) => !prev);
     };
 
     const handleConfirm = () => {

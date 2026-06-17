@@ -2,7 +2,6 @@ import React, {useRef} from 'react';
 import CenteredModalLayout from '@components/CenteredModalLayout';
 import FeatureTrainingContent from '@components/FeatureTrainingContent';
 import useBeforeRemove from '@hooks/useBeforeRemove';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {openExternalLink} from '@userActions/Link';
@@ -31,8 +30,6 @@ function TrackTrainingPage() {
     const onHelp = () => {
         openExternalLink(CONST.FEATURE_TRAINING[CONST.FEATURE_TRAINING.CONTENT_TYPES.TRACK_EXPENSE]?.LEARN_MORE_LINK);
     };
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleClose, {shouldBubble: false});
 
     return (
         <CenteredModalLayout onBackdropPress={handleClose}>

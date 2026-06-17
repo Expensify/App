@@ -3,7 +3,6 @@ import CenteredModalLayout from '@components/CenteredModalLayout';
 import ChangeWorkspaceMenuSectionList from '@components/ChangeWorkspaceMenuSectionList';
 import FeatureTrainingContent from '@components/FeatureTrainingContent';
 import useBeforeRemove from '@hooks/useBeforeRemove';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -30,8 +29,6 @@ function ChangePolicyEducationalModal() {
         Navigation.goBack();
     };
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleClose, {shouldBubble: false});
-
     return (
         <CenteredModalLayout
             onBackdropPress={handleClose}
@@ -51,7 +48,6 @@ function ChangePolicyEducationalModal() {
                 illustrationOuterContainerStyle={styles.p0}
                 contentInnerContainerStyles={[styles.mb5, styles.gap2]}
                 onClose={handleClose}
-                onConfirm={handleConfirm}
                 shouldUseScrollView
             >
                 <ChangeWorkspaceMenuSectionList />

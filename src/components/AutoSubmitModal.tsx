@@ -1,13 +1,13 @@
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import useBeforeRemove from '@hooks/useBeforeRemove';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {dismissASAPSubmitExplanation} from '@userActions/User';
@@ -48,8 +48,14 @@ function AutoSubmitModal() {
             return;
         }
 
-        dismissASAPSubmitExplanation(!willShowAgainRef.current);
+        const shouldDismiss = !willShowAgainRef.current;
         willShowAgainRef.current = null;
+
+        // Defer the Onyx write until after the close transition finishes. This prevents potential checkbox flicker.
+        TransitionTracker.runAfterTransitions({
+            callback: () => dismissASAPSubmitExplanation(shouldDismiss),
+            waitForUpcomingTransition: true,
+        });
     };
 
     useBeforeRemove(persistDismiss);
@@ -59,8 +65,6 @@ function AutoSubmitModal() {
     const onConfirm = (willShowAgain: boolean) => {
         willShowAgainRef.current = willShowAgain;
     };
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleClose, {shouldBubble: false});
 
     return (
         <CenteredModalLayout
