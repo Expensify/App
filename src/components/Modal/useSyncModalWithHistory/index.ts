@@ -101,6 +101,7 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
             return;
         }
 
+        // Sentinel was removed by an intentional close dispatch, not a browser Back — skip onClose to avoid double-firing it.
         if (isClosingByDispatch.current) {
             isClosingByDispatch.current = false;
             return;
