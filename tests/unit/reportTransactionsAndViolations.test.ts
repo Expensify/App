@@ -59,6 +59,30 @@ describe('reportTransactionsAndViolations derived value', () => {
         expect(result[reportID]?.transactions[transactionKey]).toBeUndefined();
     });
 
+    it('removes the report bucket when the last transaction is deleted', () => {
+        const reportID = '91016-empty-report';
+        const transactionID = '91016-empty-report-transaction';
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+        const transaction: Transaction = {
+            transactionID,
+            reportID,
+            amount: 8700,
+            currency: CONST.CURRENCY.EUR,
+            merchant: 'Merchant',
+            created: '2026-06-10',
+        };
+
+        const currentValue = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: transaction}, {}], {currentValue: undefined, sourceValues: undefined});
+        const result = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: undefined}, {}], {
+            currentValue,
+            sourceValues: {
+                [ONYXKEYS.COLLECTION.TRANSACTION]: {[transactionKey]: undefined},
+            },
+        });
+
+        expect(result[reportID]).toBeUndefined();
+    });
+
     it('skips violation-only updates when the affected transaction is unavailable', () => {
         const transactionID = '91016-missing-transaction';
         const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;

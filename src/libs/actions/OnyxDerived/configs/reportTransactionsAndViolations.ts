@@ -56,6 +56,20 @@ export default createOnyxDerivedValueConfig({
             transactionReportIDMapping[transactionKey] ??
             Object.keys(reportTransactionsAndViolations).find((reportID) => !!reportTransactionsAndViolations[reportID].transactions[transactionKey]);
 
+        // Empty buckets carry no derived data and can make deleted reports appear again.
+        const deleteReportIfEmpty = (reportID: string | undefined) => {
+            if (!reportID || !reportTransactionsAndViolations[reportID]) {
+                return;
+            }
+
+            if (Object.keys(reportTransactionsAndViolations[reportID].transactions).length > 0 || Object.keys(reportTransactionsAndViolations[reportID].violations).length > 0) {
+                return;
+            }
+
+            delete reportTransactionsAndViolations[reportID];
+            clonedReportIDs.delete(reportID);
+        };
+
         if (!transactionsUpdates && transactionViolationsUpdates) {
             const hasUnresolvedTransaction = transactionsToProcess.some((transactionKey) => {
                 const previousReportID = getPreviousReportID(transactionKey);
@@ -84,6 +98,7 @@ export default createOnyxDerivedValueConfig({
                 if (transactionID) {
                     delete reportTransactionsAndViolations[previousReportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
                 }
+                deleteReportIfEmpty(previousReportID);
             }
 
             if (transactionWasUpdated && !transaction && transactionReportIDMapping[transactionKey]) {
@@ -127,6 +142,10 @@ export default createOnyxDerivedValueConfig({
         }
 
         previousViolations = violations;
+
+        for (const reportID of Object.keys(reportTransactionsAndViolations)) {
+            deleteReportIfEmpty(reportID);
+        }
 
         return reportTransactionsAndViolations;
     },
