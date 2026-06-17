@@ -41,7 +41,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
-import {getYourSpendSnapshotTransactionRemovalUpdates} from './YourSpendSnapshotUpdate';
+import {getYourSpendSnapshotReportMoveUpdates, getYourSpendSnapshotTransactionRemovalUpdates} from './YourSpendSnapshotUpdate';
 
 type RejectMoneyRequestData = {
     optimisticData: Array<
@@ -1188,7 +1188,19 @@ function rejectExpenseReport(
         rejectedCommentReportActionID: optimisticCommentAction.reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
+    const yourSpendSnapshotUpdates = getYourSpendSnapshotReportMoveUpdates({
+        iouReport: report,
+        reportTransactions: getReportTransactions(reportID),
+        fromStatus: {stateNum: report.stateNum, statusNum: report.statusNum},
+        toStatus: {stateNum: optimisticStateNum, statusNum: optimisticStatusNum},
+        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+    });
+
+    API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {
+        optimisticData: [...optimisticData, ...yourSpendSnapshotUpdates.optimisticData],
+        successData: [...successData, ...yourSpendSnapshotUpdates.successData],
+        failureData: [...failureData, ...yourSpendSnapshotUpdates.failureData],
+    });
 }
 
 export {dismissRejectUseExplanation, prepareRejectMoneyRequestData, rejectMoneyRequest, markRejectViolationAsResolved, rejectExpenseReport};
