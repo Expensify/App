@@ -1380,16 +1380,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const completeReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+                const snapshotReport = getReportFromSearchSnapshot(report.reportID, currentSearchResults?.data, allReports);
 
-                if (!completeReport) {
+                if (!snapshotReport) {
                     return false;
                 }
 
                 const reportExportOptions = getSecondaryExportReportActions(
                     currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserPersonalDetails?.login ?? '',
-                    completeReport,
+                    snapshotReport,
                     bankAccountList,
                     reportPolicy,
                 );
@@ -1417,7 +1417,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     let areAnyReportsExported = false;
 
                     for (const reportID of selectedReportIDs) {
-                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
                         if (!report?.pendingFields?.export && !report?.isExportedToIntegration) {
                             continue;
@@ -1425,8 +1425,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                         areAnyReportsExported = true;
 
-                        if (report.reportName) {
-                            exportedReportNames.push(report.reportName);
+                        // The live Onyx report can be an incomplete optimistic record (e.g. exported offline before it
+                        // was ever loaded) that lacks `reportName`, so fall back to the Search snapshot for the name.
+                        const reportName = report.reportName ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
+                        if (reportName) {
+                            exportedReportNames.push(reportName);
                         }
                     }
 
@@ -1439,6 +1442,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             }),
                             confirmText: translate('workspace.exportAgainModal.confirmText'),
                             cancelText: translate('workspace.exportAgainModal.cancelText'),
+                            shouldEnablePromptScroll: true,
                         }).then((result) => {
                             if (result.action !== ModalActions.CONFIRM) {
                                 return;

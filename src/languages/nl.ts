@@ -3514,7 +3514,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Status',
-        statusExplanation: 'Voeg een emoji toe zodat je collega’s en vrienden eenvoudig kunnen zien wat er aan de hand is. Je kunt er ook nog een bericht bij zetten.',
+        statusExplanation: 'Stel je status in met een emoji en een optioneel bericht.',
         today: 'Vandaag',
         clearStatus: 'Status wissen',
         save: 'Opslaan',
@@ -4953,8 +4953,9 @@ ${amount} voor ${merchant} - ${date}`,
             exportStatus: {
                 label: 'Status te betalen factuur',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Voltooien',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Voltooien',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'Bezig',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Goedgekeurd',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Ingediend',
                 },
             },
@@ -6821,11 +6822,9 @@ Als je de facturering voor hun volledige abonnement wilt overnemen, laat hen je 
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `De volgende rapporten zijn al geëxporteerd naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:
+            }: ExportAgainModalDescriptionParams) => `De volgende rapporten zijn al geëxporteerd naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Weet je zeker dat je ze opnieuw wilt exporteren?
 
-${reportName}
-
-Weet je zeker dat je ze opnieuw wilt exporteren?`,
+${reportName}`,
             confirmText: 'Ja, opnieuw exporteren',
             cancelText: 'Annuleren',
         },

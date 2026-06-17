@@ -372,8 +372,10 @@ function Search({
     });
 
     const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
-    // Only the boolean derived from policyForMovingExpenses is consumed by row components downstream.
-    // Drilling the policy object causes ref churn on every unrelated policy update (Pusher pushes).
+    // getSections only needs the boolean (it gates attendees on unreported transactions for the
+    // attendees sort columns), not the policy object. Passing the object would churn the screen-level
+    // getSections memo on every unrelated policy update (Pusher pushes); the boolean only flips when
+    // attendee tracking on the moving policy toggles. Rows derive their own display gate independently.
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
     const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
@@ -607,7 +609,7 @@ function Search({
             customCardNames,
             conciergeReportID,
             onyxPersonalDetailsList,
-            policyForMovingExpenses,
+            isAttendeesEnabledForMovingPolicy,
             convertToDisplayString,
             reportAttributesDerivedValue,
             optimisticTransactionID: optimisticTrackingState.optimisticWatchKey?.toString().replace(ONYXKEYS.COLLECTION.TRANSACTION, ''),
@@ -642,7 +644,7 @@ function Search({
         customCardNames,
         conciergeReportID,
         onyxPersonalDetailsList,
-        policyForMovingExpenses,
+        isAttendeesEnabledForMovingPolicy,
         convertToDisplayString,
         reportAttributesDerivedValue,
         optimisticTrackingState.optimisticWatchKey,
@@ -1932,7 +1934,6 @@ function Search({
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     isActionColumnWide={isTask || hasDeletedTransaction}
                 />
