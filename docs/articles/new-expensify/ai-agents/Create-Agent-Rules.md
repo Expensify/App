@@ -89,10 +89,10 @@ For example, RuleBot might:
  - Approve certain reports automatically 
    
 ---
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Your Workspace]**.
+
 ## How to delete an Agent Rule
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Your Workspace]**
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace name]**
 2. Click **Rules**.
 3. In the **Agent Rules** section, select the AI rule you want to remove.
 4. Click **Delete**.

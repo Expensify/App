@@ -793,6 +793,7 @@ const SCREENS = {
         REPORT_FIELDS_VALUE_SETTINGS: 'Workspace_ReportFields_ValueSettings',
         REPORT_FIELDS_EDIT_VALUE: 'Workspace_ReportFields_EditValue',
         REPORT_FIELDS_EDIT_INITIAL_VALUE: 'Workspace_ReportFields_EditInitialValue',
+        REPORT_FIELDS_TYPE_SELECTOR: 'Workspace_ReportFields_TypeSelector',
         TAX_EDIT: 'Workspace_Tax_Edit',
         TAX_NAME: 'Workspace_Tax_Name',
         TAX_VALUE: 'Workspace_Tax_Value',
@@ -961,10 +962,6 @@ const SCREENS = {
 
     CURRENCY: {
         SELECTION: 'Currency_Selection',
-    },
-
-    EXPLANATION_MODAL: {
-        ROOT: 'Explanation_Modal_Root',
     },
 
     MIGRATED_USER_WELCOME_MODAL: {

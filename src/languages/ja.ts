@@ -1687,6 +1687,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `一度に複製できる経費は最大で ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 件です。経費の数を減らして、もう一度お試しください。`,
         deleted: '削除済み',
+        categoryDisabledAlert: {
+            title: 'カテゴリは無効です',
+            prompt: 'ワークスペースでカテゴリを有効にすると、この経費の詳細を編集したり、この経費からカテゴリを削除したりできます。',
+            confirmText: 'カテゴリを削除',
+        },
+        tagDisabledAlert: {
+            title: 'タグは無効です',
+            prompt: 'ワークスペースでタグを有効にすると、この経費の詳細を編集したり、この経費からタグを削除したりできます。',
+            confirmText: 'タグを削除',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3006,12 +3016,6 @@ ${date} の ${merchant} への ${amount}`,
         welcome: 'ようこそ！',
         welcomeSignOffTitleManageTeam: '上記のタスクが完了したら、承認ワークフローやルールなど、さらに多くの機能を試してみましょう！',
         welcomeSignOffTitle: 'お会いできてうれしいです！',
-        explanationModal: {
-            title: 'Expensify へようこそ',
-            description:
-                '1つのアプリで、ビジネスとプライベートの支出をチャットのスピードで管理しましょう。ぜひお試しいただき、ご意見をお聞かせください。今後もさらに機能を追加していきます！',
-            secondaryDescription: 'Expensify Classic に戻るには、プロフィール写真をタップし、「Expensify Classic に移動」を選択してください。',
-        },
         getStarted: 'はじめる',
         whatsYourName: 'あなたの名前は何ですか？',
         peopleYouMayKnow: 'あなたのチームが Expensify を利用しているか確認する',
@@ -3492,7 +3496,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     statusPage: {
         status: 'ステータス',
-        statusExplanation: '同僚や友人が状況をひと目で分かるように、絵文字を追加しましょう。必要であればメッセージも追加できます。',
+        statusExplanation: '絵文字と任意のメッセージでステータスを設定します。',
         today: '今日',
         clearStatus: 'ステータスをクリア',
         save: '保存',
@@ -4921,8 +4925,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             exportStatus: {
                 label: '買掛請求書のステータス',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '完了',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: '完了',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: '進行中',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '承認済み',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '送信済み',
                 },
             },
@@ -6769,11 +6774,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `次のレポートはすでに ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポートされています。
+            }: ExportAgainModalDescriptionParams) => `次のレポートはすでに ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポートされています。もう一度エクスポートしてもよろしいですか？
 
-${reportName}
-
-もう一度エクスポートしてもよろしいですか？`,
+${reportName}`,
             confirmText: 'はい、再度エクスポートします',
             cancelText: 'キャンセル',
         },
@@ -9503,6 +9506,7 @@ ${reportName}
         readyBody: "If it didn't automatically download, use the button below.",
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
+        csvFailedBody: 'Your export could not be completed. Please try again later.',
         close: 'Close',
     },
     domain: {

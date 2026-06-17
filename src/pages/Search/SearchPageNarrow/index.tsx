@@ -15,8 +15,8 @@ import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
 import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
-import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPageHeaderNarrow';
+import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
@@ -53,15 +53,6 @@ type SearchPageNarrowProps = {
     metadata?: SearchResultsInfo;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
-    footerData: {
-        count: number | undefined;
-        total: number | undefined;
-        currency: string | undefined;
-    };
-    footerDefaultCurrency: string | undefined;
-    isFooterTotalLoading: boolean;
-    onFooterCurrencyChange: (currency: string | undefined) => void;
-    shouldShowFooter: boolean;
     onSortPressedCallback: () => void;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
     searchOverlayContent: React.ReactNode;
@@ -80,11 +71,6 @@ function SearchPageNarrow({
     searchResults,
     isMobileSelectionModeEnabled,
     metadata,
-    footerData,
-    footerDefaultCurrency,
-    isFooterTotalLoading,
-    onFooterCurrencyChange,
-    shouldShowFooter,
     onSortPressedCallback,
     searchOverlayContent,
     onSearchContentReady,
@@ -432,16 +418,7 @@ function SearchPageNarrow({
                             )}
                         </View>
                     )}
-                    {shouldShowFooter && !searchRouterListVisible && (
-                        <SearchPageFooter
-                            count={footerData.count}
-                            total={footerData.total}
-                            currency={footerData.currency}
-                            defaultCurrency={footerDefaultCurrency}
-                            isTotalLoading={isFooterTotalLoading}
-                            onCurrencyChange={onFooterCurrencyChange}
-                        />
-                    )}
+                    {!searchRouterListVisible && <SearchSelectionFooter searchResults={searchResults} />}
                 </View>
             </ScreenWrapper>
             {(!useStaticRendering || isHeaderInteractive) && (
