@@ -343,9 +343,9 @@ function openReportFromDeepLink(
                             return;
                         }
 
-                        // Pre-onboarding deep links to non-report routes flash the "Not here" page (#91437); drop them.
-                        // Report URLs fall through to navigateHandler below, so legit first-time sign-up links survive.
-                        if (initialHasCompletedGuidedSetupFlow === false && !reportID) {
+                        // Drop a deep link captured before onboarding finished: navigateAfterOnboarding owns the
+                        // post-onboarding destination and overrides it anyway, so honoring it only risks the flash (#91437).
+                        if (initialHasCompletedGuidedSetupFlow === false) {
                             return;
                         }
 
