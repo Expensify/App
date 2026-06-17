@@ -1209,10 +1209,9 @@ describe('ReportActionItem', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            const missingFields = ['merchant', 'date'];
             const report = {reportID: 'scanReport6', parentReportID, parentReportActionID};
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {
-                missingFields,
+                missingFields: ['merchant', 'date'],
                 reasoning: 'The merchant and date could not be read from this receipt.',
             });
 
@@ -1237,8 +1236,61 @@ describe('ReportActionItem', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('violations.smartscanFailed', {canEdit: true, missingFields}))).toBeOnTheScreen();
+            // Partial match because the WithExplain branch strips the trailing period
+            // before the AskToExplain link suffix is rendered into a separate text node.
+            expect(screen.getByText(/missing merchant and date/)).toBeOnTheScreen();
             expect(screen.getByText('Explain')).toBeOnTheScreen();
+        });
+
+        it('RECEIPT_SCAN_FAILED action with reasoning does not produce double period before Explain', async () => {
+            const parentReportID = 'parentReport7';
+            const parentReportActionID = 'iouAction7';
+
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentReportActionID]: {
+                        reportActionID: parentReportActionID,
+                        actorAccountID: ACTOR_ACCOUNT_ID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2025-07-12 09:03:17.653',
+                        message: [{type: 'COMMENT', html: '', text: ''}],
+                        originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const report = {reportID: 'scanReport7', parentReportID, parentReportActionID};
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {
+                missingFields: ['amount'],
+                reasoning: "The amount couldn't be read from this receipt.",
+            });
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItem
+                                    report={report}
+                                    transactionThreadReport={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // The rendered text must not contain ".." before "Explain"
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+            expect(document.body.textContent).not.toMatch(/\.\.\s*Explain/);
         });
 
         it('HOLD_COMMENT action renders via ReportActionItemBasicMessage', async () => {

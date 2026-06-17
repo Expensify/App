@@ -43,9 +43,11 @@ function ReceiptScanFailedContent({reportID, actionReportID, parentReportID, par
     const message = translate('violations.smartscanFailed', {canEdit, missingFields});
 
     if (hasReasoning(action)) {
+        // `AskToExplain` already supplies its own leading period; strip the trailing period
+        // from the localized message so the rendered string reads "…manually. Explain" not "…manually.. Explain".
         return (
             <ReportActionItemMessageWithExplain
-                message={message}
+                message={message.replace(/\.\s*$/, '')}
                 action={action}
                 childReport={childReport}
                 originalReport={originalReport}
