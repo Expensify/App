@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -17,11 +17,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import {updateAddPersonalBankAccountDraft} from '@userActions/BankAccounts';
+import {clearPersonalBankAccount, updateAddPersonalBankAccountDraft} from '@userActions/BankAccounts';
 import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type AccountFlowEntryPointProps = {
     /** The workspace name */
@@ -39,6 +40,20 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock']);
 
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
+    const [personalBankAccount, personalBankAccountResult] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const isLoadingPersonalBankAccount = isLoadingOnyxValue(personalBankAccountResult);
+    const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute;
+
+    useEffect(() => {
+        if (isLoadingPersonalBankAccount) {
+            return;
+        }
+
+        // Clear stale flow state on entry while preserving onSuccessFallbackRoute if it was set before entering this screen (e.g. from a pay/KYC flow or deep link).
+        // openPersonalBankAccountSetupView also resets state, but this handles direct navigation to this screen.
+        clearPersonalBankAccount(onSuccessFallbackRoute ? {onSuccessFallbackRoute} : undefined);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only run once after Onyx hydration, not when the route changes from our own write
+    }, [isLoadingPersonalBankAccount]);
 
     const handleConnectManually = () => {
         updateAddPersonalBankAccountDraft({

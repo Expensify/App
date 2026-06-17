@@ -118,7 +118,10 @@ function setPlaidEvent(eventName: string | null) {
 }
 
 /**
- * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
+ * Opens the personal bank account setup flow and resets PERSONAL_BANK_ACCOUNT state before navigation.
+ * Any existing PERSONAL_BANK_ACCOUNT data is fully replaced with only the fields passed to this function,
+ * so callers that pass no parameters (e.g. Wallet > Add bank account) clear all existing data including
+ * a leftover onSuccessFallbackRoute from a previous flow.
  */
 function openPersonalBankAccountSetupView({
     exitReportID,
@@ -144,6 +147,7 @@ function openPersonalBankAccountSetupView({
             personalBankAccountState.onSuccessFallbackRoute = onSuccessFallbackRoute;
         }
 
+        // Use set instead of merge so each new flow starts with only the fields we explicitly pass, not leftover fields from a previous flow.
         Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, Object.keys(personalBankAccountState).length > 0 ? personalBankAccountState : null);
         Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
 
@@ -313,9 +317,13 @@ function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Rout
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute});
 }
 
-function clearPersonalBankAccount() {
+/**
+ * Clears personal bank account state, Plaid data, and the form draft.
+ * Pass `preservedData` to retain specific fields (e.g. onSuccessFallbackRoute) across the reset.
+ */
+function clearPersonalBankAccount(preservedData?: Partial<PersonalBankAccount>) {
     clearPlaid();
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, null);
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, preservedData ?? null);
     Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
     clearPersonalBankAccountSetupType();
 }

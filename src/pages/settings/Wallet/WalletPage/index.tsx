@@ -800,6 +800,9 @@ function WalletPage() {
                                     <KYCWall
                                         ref={kycWallRef}
                                         onSuccessfulKYC={(_iouPaymentType?: PaymentMethodType, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
+                                        // Wallet cannot pass personalBankAccountOnSuccessFallbackRoute via triggerKYCFlow like pay flows do, because the fallback route
+                                        // depends on wallet-specific state (hasActivatedWallet) and is only known when the user selects "Personal bank account".
+                                        // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
                                         getPersonalBankAccountOnSuccessFallbackRoute={(selectedPaymentMethod) =>
                                             !hasActivatedWallet && selectedPaymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? ROUTES.SETTINGS_WALLET : undefined
                                         }

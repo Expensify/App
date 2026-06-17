@@ -83,7 +83,9 @@ function KYCWall({
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
-    const [pendingPersonalBankAccountOnSuccessFallbackRoute, setPendingPersonalBankAccountOnSuccessFallbackRoute] = useState<Route | undefined>();
+    // Holds the fallback route while the add-payment menu is open. When the user picks "Personal bank account" from the menu,
+    // we pass this route into openPersonalBankAccountSetupView so the KYC flow can continue after the bank account is added.
+    const [pendingPersonalBankAccountOnSuccessFallbackRoute, setPendingPersonalBankAccountOnSuccessFallbackRoute] = useState<Route | null>(null);
 
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionVertical: 0,
@@ -275,7 +277,7 @@ function KYCWall({
 
             if (shouldShowAddPaymentMenu) {
                 setShouldShowAddPaymentMenu(false);
-                setPendingPersonalBankAccountOnSuccessFallbackRoute(undefined);
+                setPendingPersonalBankAccountOnSuccessFallbackRoute(null);
                 return;
             }
 
@@ -309,6 +311,7 @@ function KYCWall({
 
                 if (iouPaymentType && isExpenseReport) {
                     setShouldShowAddPaymentMenu(false);
+                    // Expense reports use a business bank account, so the personal bank account fallback route is not applicable.
                     selectPaymentMethod(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
                     return;
                 }
@@ -317,7 +320,7 @@ function KYCWall({
                 const position = getAnchorPosition(clickedElementLocation);
 
                 setPositionAddPaymentMenu(position);
-                setPendingPersonalBankAccountOnSuccessFallbackRoute(personalBankAccountOnSuccessFallbackRoute);
+                setPendingPersonalBankAccountOnSuccessFallbackRoute(personalBankAccountOnSuccessFallbackRoute ?? null);
                 setShouldShowAddPaymentMenu(true);
 
                 return;
@@ -400,7 +403,7 @@ function KYCWall({
                 iouReport={iouReport}
                 onClose={() => {
                     setShouldShowAddPaymentMenu(false);
-                    setPendingPersonalBankAccountOnSuccessFallbackRoute(undefined);
+                    setPendingPersonalBankAccountOnSuccessFallbackRoute(null);
                 }}
                 anchorRef={anchorRef}
                 anchorPosition={{
@@ -410,8 +413,8 @@ function KYCWall({
                 anchorAlignment={anchorAlignment}
                 onItemSelected={(item: PaymentMethod) => {
                     setShouldShowAddPaymentMenu(false);
-                    selectPaymentMethod(item, undefined, pendingPersonalBankAccountOnSuccessFallbackRoute);
-                    setPendingPersonalBankAccountOnSuccessFallbackRoute(undefined);
+                    selectPaymentMethod(item, undefined, pendingPersonalBankAccountOnSuccessFallbackRoute ?? undefined);
+                    setPendingPersonalBankAccountOnSuccessFallbackRoute(null);
                 }}
                 shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
             />
