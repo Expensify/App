@@ -3394,7 +3394,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Estado',
-        statusExplanation: 'Añade un emoji para que tus colegas y amigos puedan saber fácilmente qué está pasando. ¡También puedes añadir un mensaje opcionalmente!',
+        statusExplanation: 'Configura tu estado con un emoji y un mensaje opcional.',
         today: 'Hoy',
         clearStatus: 'Borrar estado',
         save: 'Guardar',
@@ -4859,8 +4859,9 @@ ${amount} para ${merchant} - ${date}`,
             exportStatus: {
                 label: 'Estado de factura por pagar',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Completar',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Completar',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'En curso',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Aprobado',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
                 },
             },
@@ -6763,7 +6764,7 @@ ${amount} para ${merchant} - ${date}`,
         exportAgainModal: {
             title: '¡Cuidado!',
             description: ({reportName, connectionName}) =>
-                `Los siguientes informes ya se han exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\n¿Estás seguro de que deseas exportarlos de nuevo?`,
+                `Los siguientes informes ya se han exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. ¿Estás seguro de que deseas exportarlos de nuevo?\n\n${reportName}`,
             confirmText: 'Sí, exportar de nuevo',
             cancelText: 'Cancelar',
         },

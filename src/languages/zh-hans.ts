@@ -3430,7 +3430,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     statusPage: {
         status: '状态',
-        statusExplanation: '添加一个表情符号，让同事和朋友更容易了解你的状态。你也可以选择添加一条消息！',
+        statusExplanation: '使用表情符号和可选消息设置你的状态。',
         today: '今天',
         clearStatus: '清除状态',
         save: '保存',
@@ -4834,8 +4834,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             exportStatus: {
                 label: '应付发票状态',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '完成',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: '完成',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: '进行中',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '已批准',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '已提交',
                 },
             },
@@ -6647,11 +6648,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         },
         exportAgainModal: {
             title: '小心！',
-            description: ({reportName, connectionName}: ExportAgainModalDescriptionParams) => `以下报表已导出至 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}：
+            description: ({
+                reportName,
+                connectionName,
+            }: ExportAgainModalDescriptionParams) => `以下报表已导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}。确定要再次导出吗？
 
-${reportName}
-
-确定要再次导出吗？`,
+${reportName}`,
             confirmText: '是，再次导出',
             cancelText: '取消',
         },

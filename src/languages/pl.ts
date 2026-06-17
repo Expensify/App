@@ -3505,7 +3505,7 @@ ${amount} dla ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Status',
-        statusExplanation: 'Dodaj emotikon, aby ułatwić współpracownikom i znajomym zorientowanie się, co się dzieje. Opcjonalnie możesz dodać też wiadomość!',
+        statusExplanation: 'Ustaw swój status za pomocą emotikony i opcjonalnej wiadomości.',
         today: 'Dzisiaj',
         clearStatus: 'Wyczyść status',
         save: 'Zapisz',
@@ -4945,8 +4945,9 @@ ${amount} dla ${merchant} - ${date}`,
             exportStatus: {
                 label: 'Status faktury do zapłaty',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Zakończ',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Zakończ',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'W toku',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Zatwierdzone',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Wysłano',
                 },
             },
@@ -6814,11 +6815,9 @@ Jeśli chcesz przejąć rozliczenia za całą ich subskrypcję, poproś ich najp
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `Następujące raporty zostały już wyeksportowane do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:
+            }: ExportAgainModalDescriptionParams) => `Następujące raporty zostały już wyeksportowane do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Na pewno chcesz wyeksportować je ponownie?
 
-${reportName}
-
-Czy na pewno chcesz wyeksportować je ponownie?`,
+${reportName}`,
             confirmText: 'Tak, wyeksportuj ponownie',
             cancelText: 'Anuluj',
         },
