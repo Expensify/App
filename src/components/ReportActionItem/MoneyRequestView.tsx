@@ -7,6 +7,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import DistanceWithCommuterExclusion from '@components/MoneyRequestConfirmationList/DistanceWithCommuterExclusion';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
@@ -862,6 +863,7 @@ function MoneyRequestView({
                     copyable={!!distanceRateCopyValue}
                 />
             </OfflineWithFeedback>
+            <DistanceWithCommuterExclusion transaction={transaction} />
         </>
     );
 
