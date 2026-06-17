@@ -4,6 +4,16 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
+    paths:
+      - 'server/**'
+      - 'src/components/Charts/**'
+      - 'src/components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/**'
+      - 'src/languages/**'
+      - 'src/libs/Localize/**'
+      - 'src/libs/telemetry/**'
+      - '.bun-version'
+      - 'package.json'
+      - 'package-lock.json'
 
 concurrency:
   group: ${{ github.ref }}-vcr-test
@@ -18,42 +28,21 @@ jobs:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
-      - name: Filter paths
-        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
-        id: filter
-        with:
-          filters: |
-            vcr:
-              - 'server/**'
-              - 'src/components/Charts/**'
-              - 'src/components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/**'
-              - 'src/languages/**'
-              - 'src/libs/Localize/**'
-              - 'src/libs/telemetry/**'
-              - '.bun-version'
-              - 'package.json'
-              - 'package-lock.json'
-
       - name: Setup Node
-        if: steps.filter.outputs.vcr == 'true'
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Bun
-        if: steps.filter.outputs.vcr == 'true'
         # v2.2.0
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version-file: .bun-version
 
       - name: Build victory-chart-renderer Linux x64 binary
-        if: steps.filter.outputs.vcr == 'true'
         run: npm run server:vcr:build:linux
 
       - name: Smoke-test compiled binary
-        if: steps.filter.outputs.vcr == 'true'
         run: ./server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64 --chart-xml "$(cat server/victory-chart-renderer/tests/fixtures/top-categories-6.xml)" --out /tmp/vcr-smoke.png && test -s /tmp/vcr-smoke.png
 
       - name: Run victory-chart-renderer unit tests
-        if: steps.filter.outputs.vcr == 'true'
         working-directory: server/victory-chart-renderer
         run: bun test tests/stubExports.test.ts tests/resolveCanvasSize.test.ts
