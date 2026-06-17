@@ -4,16 +4,10 @@ import CONST from '@src/CONST';
 import type {SearchResultDataType, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getOldDotURLFromEnvironment} from './Environment/Environment';
-import getEnvironment from './Environment/getEnvironment';
 import type EnvironmentType from './Environment/getEnvironment/types';
 import fileDownload from './fileDownload';
 import {getSettlementStatus} from './SearchUIUtils';
 import addTrailingForwardSlash from './UrlUtils';
-
-let environment: EnvironmentType;
-getEnvironment().then((env) => {
-    environment = env;
-});
 
 type ExpensifyCardStatementFeed = {
     policyID: string;
@@ -176,7 +170,14 @@ function getExpensifyCardStatementParamsFromFeed(feed: ExpensifyCardStatementFee
     };
 }
 
-function downloadExpensifyCardStatementPDF(translate: LocalizedTranslate, fileName: string, statementKey: string, currentUserEmail: string, encryptedAuthToken: string): Promise<void> {
+function downloadExpensifyCardStatementPDF(
+    translate: LocalizedTranslate,
+    fileName: string,
+    statementKey: string,
+    currentUserEmail: string,
+    encryptedAuthToken: string,
+    environment: EnvironmentType,
+): Promise<void> {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `Expensify_Card_Statement_${statementKey}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(currentUserEmail)}`;

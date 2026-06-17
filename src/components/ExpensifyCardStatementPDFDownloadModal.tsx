@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -40,6 +41,7 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
 
+    const {environment} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails?.login ?? '';
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
@@ -59,9 +61,9 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
             return;
         }
 
-        downloadExpensifyCardStatementPDF(translate, statementFileName, statementKey, currentUserLogin, encryptedAuthToken);
+        downloadExpensifyCardStatementPDF(translate, statementFileName, statementKey, currentUserLogin, encryptedAuthToken, environment);
         shouldAutoDownloadPDF.current = false;
-    }, [currentUserLogin, encryptedAuthToken, hasFinishedPDFDownload, isGeneratingPDF, isVisible, statementFileName, statementKey, translate]);
+    }, [currentUserLogin, encryptedAuthToken, environment, hasFinishedPDFDownload, isGeneratingPDF, isVisible, statementFileName, statementKey, translate]);
 
     const pdfLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SearchBulkActions.ExpensifyCardStatementPDFModal',
@@ -104,7 +106,7 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
                                 return;
                             }
 
-                            downloadExpensifyCardStatementPDF(translate, statementFileName, statementKey, currentUserLogin, encryptedAuthToken);
+                            downloadExpensifyCardStatementPDF(translate, statementFileName, statementKey, currentUserLogin, encryptedAuthToken, environment);
                         }}
                         text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
                     />
