@@ -1481,6 +1481,10 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
         FLASH_DELAY_MS: 2000,
+        // Maximum magnification applied while hover-zooming a receipt (see ReceiptHoverZoom).
+        // Remote PDFs are rendered at this multiple of their on-screen size so the magnified
+        // view shows real pixels instead of an upscaled low-resolution raster.
+        HOVER_ZOOM_SCALE: 2.5,
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
