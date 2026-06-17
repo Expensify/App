@@ -1,5 +1,5 @@
-import {accountIDSelector, emailSelector} from '@selectors/Session';
-import React, {useEffect} from 'react';
+import {accountIDSelector} from '@selectors/Session';
+import React from 'react';
 import MenuItemList from '@components/MenuItemList';
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -12,10 +12,10 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShareSavedSearch from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {seedMyExpensesSearch, setSearchContext} from '@libs/actions/Search';
+import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates, isDualRoleUser} from '@libs/PolicyUtils';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -77,7 +77,6 @@ function SavedSearchList({hash}: SavedSearchListProps) {
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [hasSeededMyExpensesSearch] = useOnyx(ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetails = usePersonalDetails();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -88,22 +87,9 @@ function SavedSearchList({hash}: SavedSearchListProps) {
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {
         selector: accountIDSelector,
     });
-    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {
-        selector: emailSelector,
-    });
     const reportAttributes = useReportAttributes();
 
     const {showDeleteModal} = useDeleteSavedSearch();
-
-    useEffect(() => {
-        if (hasSeededMyExpensesSearch || currentUserAccountID === -1 || !currentUserEmail || allPolicies === undefined) {
-            return;
-        }
-
-        if (isDualRoleUser(allPolicies, currentUserEmail)) {
-            seedMyExpensesSearch(currentUserAccountID, translate('search.mySavedSearch'));
-        }
-    }, [hasSeededMyExpensesSearch, currentUserAccountID, currentUserEmail, allPolicies, translate]);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
     const {copiedHash, handleShare} = useShareSavedSearch();
