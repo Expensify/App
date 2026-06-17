@@ -4,7 +4,6 @@ import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableDat
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -30,7 +29,6 @@ type DomainAdminsTableProps = {
 };
 
 export default function DomainAdminsTable({admins}: DomainAdminsTableProps) {
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -47,9 +45,6 @@ export default function DomainAdminsTable({admins}: DomainAdminsTableProps) {
             label: '',
             sortable: false,
             width: variables.domainAdminsTableActionColumnWidth,
-            styling: {
-                containerStyles: [styles.justifyContentEnd, styles.pr3],
-            },
         },
     ];
 
