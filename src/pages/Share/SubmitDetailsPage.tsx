@@ -40,7 +40,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
@@ -425,7 +424,7 @@ function SubmitDetailsPage({
                             setIsConfirming(false);
                             return;
                         }
-                        navigateAfterInteraction(() => performUpload(participant, true));
+                        performUpload(participant, true);
                     }}
                     onDeny={(wasUserInitiated) => {
                         setStartLocationPermissionFlow(false);
@@ -437,7 +436,7 @@ function SubmitDetailsPage({
                             setIsConfirming(false);
                             return;
                         }
-                        navigateAfterInteraction(() => performUpload(participant, false));
+                        performUpload(participant, false);
                     }}
                     onInitialGetLocationCompleted={() => setIsConfirming(false)}
                 />

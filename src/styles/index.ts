@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
-import type {LineLayer} from 'react-map-gl';
+import type {LineLayerSpecification} from 'react-map-gl/mapbox';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
@@ -104,7 +104,7 @@ type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' |
 
 type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth' | 'lineCap'>;
 
-type MapDirectionLayerStyle = Pick<LineLayer, 'layout' | 'paint'>;
+type MapDirectionLayerStyle = Pick<LineLayerSpecification, 'layout' | 'paint'>;
 
 type StyleObject = ViewStyle | TextStyle | ImageStyle | WebViewStyle | OfflineFeedbackStyle | MapDirectionStyle | MapDirectionLayerStyle | AnchorPosition | CustomPickerStyle;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -2784,6 +2784,11 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 2,
             opacity: 1,
             backgroundColor: 'transparent',
+        },
+
+        confirmModalPromptScrollable: {
+            maxHeight: 300,
+            paddingRight: 8,
         },
 
         modalBackdrop: {
@@ -5629,8 +5634,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         agentsPageEmptyStateSubtitle: {
-            maxWidth: 335,
             alignSelf: 'center',
+            maxWidth: 335,
         },
 
         emptyStateFolderWithPaperIconSize: {
