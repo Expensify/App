@@ -51,7 +51,7 @@ function LeaveWorkspaceAction({policyID, onDismiss}: LeaveWorkspaceActionProps) 
             if (policy?.achAccount?.reimburser === userEmail) {
                 showConfirmModal({
                     title: translate('common.leaveWorkspace'),
-                    prompt: prompt,
+                    prompt,
                     confirmText: translate('common.buttonConfirm'),
                     success: true,
                     shouldShowCancelButton: false,
@@ -61,7 +61,7 @@ function LeaveWorkspaceAction({policyID, onDismiss}: LeaveWorkspaceActionProps) 
 
             showConfirmModal({
                 title: translate('common.leaveWorkspace'),
-                prompt: prompt,
+                prompt,
                 confirmText: translate('common.leaveWorkspace'),
                 cancelText: translate('common.cancel'),
                 danger: true,
