@@ -2,7 +2,7 @@
 title: Create and Use Custom Agents
 description: Create personal Custom Agents in New Expensify to handle your workflow, then chat with them, Copilot into them, edit, or delete them.
 keywords: [custom agents, agents, new agent, ai agent, agent instructions, copilot into account, new expensify]
-internalScope: Audience is individual New Expensify users. Covers creating, configuring, and managing personal Custom Agents from the Agents page in Account settings. Does not cover Agent Rules, RuleBot, or workspace-level automation.
+internalScope: Audience is individual New Expensify users. Covers creating, configuring, and managing personal Custom Agents from the Agents page in Account settings. Does not cover agent rules, RuleBot, or workspace-level automation.
 ---
 
 # Create and Use Custom Agents
@@ -11,7 +11,7 @@ Custom Agents are AI-powered virtual members of your Expensify account that can 
 
 Each Custom Agent has its own Expensify account with a profile, display name, and instructions you control. 
 
-Expensify also supports Agent Rules, which are workspace-level AI automations enforced by RuleBot. [Learn how to Create Agent Rules](/articles/new-expensify/ai-agents/Create-Agent-Rules). 
+Expensify also supports agent rules, which are workspace-level AI automations enforced by RuleBot. [Learn how to create agent rules](/articles/new-expensify/ai-agents/Create-Agent-Rules). 
 
 ---
 
@@ -58,7 +58,7 @@ Agent instructions are written in natural language. Describe the role, responsib
 
 If you’re unsure how to write instructions, you can chat with the agent and describe the outcome you want. The agent can ask clarifying questions, help draft instructions, and explain how it would behave in a specific situation based on the instructions.
 
-Custom Agent instructions use the same natural-language prompting concepts as Agent Rules. For guidance, examples, and prompt-writing best practices, [learn how to write Agent Rules](/articles/new-expensify/ai-agents/How-to-Write-Agent-Rules).
+Custom Agent instructions use the same natural-language prompting concepts as agent rules. For guidance, examples, and prompt-writing best practices, [learn how to write agent rules](/articles/new-expensify/ai-agents/How-to-Write-Agent-Rules).
 
 ---
 

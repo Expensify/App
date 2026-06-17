@@ -1,31 +1,31 @@
 ---
-title: How to Write Agent Rules
-description: Learn how to write effective Agent Rules using natural-language instructions and examples.
+title: How to write agent rules
+description: Learn how to write effective agent rules using natural-language instructions and examples.
 keywords: [agent rules, RuleBot, prompt writing, ai rules, agent rule examples, agent rule best practices]
-internalScope: Audience is Workspace Admins. Covers best practices for writing Agent Rules and examples of effective instructions. Does not cover creating Agent Rules or managing Custom Agents.
+internalScope: Audience is Workspace Admins. Covers best practices for writing agent rules and examples of effective instructions. Does not cover creating agent rules or managing Custom Agents.
 ---
 
-# How to Write Agent Rules
+# How to write agent rules
 
-Agent Rules are written in natural language. Describe the behavior you want, and RuleBot evaluates reports against those instructions. Well-written Agent Rules help RuleBot make more consistent decisions and reduce unexpected behavior.
+Agent rules are written in natural language. Describe the behavior you want, and RuleBot evaluates reports against those instructions. Well-written agent rules help RuleBot make more consistent decisions and reduce unexpected behavior.
 
 If you're unsure how to write a rule, you can chat with RuleBot and describe the outcome you want. RuleBot can ask clarifying questions, help draft a rule, and explain how an existing rule would behave in a specific situation.
 
 ---
 
-## Who can write Agent Rules
+## Who can write agent rules
 
-Any Workspace Admin on a workspace with an Agent Rule configured can edit the rules. 
+Any Workspace Admin on a workspace with an agent rule configured can edit the rules. 
 
-If you haven't created an Agent Rule yet, [learn how to create Agent Rules](/articles/new-expensify/ai-agents/Create-Agent-Rules).
+If you haven't created an agent rule yet, [learn how to create agent rules](/articles/new-expensify/ai-agents/Create-Agent-Rules).
 
 ---
 
-## How to write clear Agent Rules
+## How to write clear agent rules
 
-The best Agent Rules describe a specific outcome using clear, action-oriented language.
+The best agent rules describe a specific outcome using clear, action-oriented language.
 
-When writing Agent Rules:
+When writing agent rules:
 
  - Be specific and clear. Describe exactly what RuleBot should do and avoid vague instructions.
  - Provide context when necessary. Include relevant details about your workflow, approval process, or company policies.
@@ -37,7 +37,7 @@ When writing Agent Rules:
 
 ---
 
-## How to write Agent Rules for approvals 
+## How to write agent rules for approvals 
 
 Approval rules work best when they define clear approval criteria. 
 
@@ -49,7 +49,7 @@ More specific approval rules generally produce more predictable results than bro
 
 > Approve reports that seem reasonable.
 
-## How to write Agent Rules for routing
+## How to write agent rules for routing
 
 Routing rules can be used to send reports to different approvers based on report details.
 
@@ -57,17 +57,17 @@ Example:
 
 > Forward reports over $500 to Alice and all other reports to Bob.
 
-## How to write Agent Rules that request information
+## How to write agent rules that request information
 
-Agent Rules can ask submitters for additional information when specific conditions are met.
+Agent rules can ask submitters for additional information when specific conditions are met.
 
 Example:
 
 > Ask the submitter to justify any meal expense over $75.
 
-## How to write Agent Rules that modify expenses
+## How to write agent rules that modify expenses
 
-Agent Rules can automatically update expenses when conditions are met.
+Agent rules can automatically update expenses when conditions are met.
 
 Example: 
 
@@ -77,9 +77,9 @@ When writing rules that modify expenses, be explicit about which expenses should
 
 ---
 
-## How to use RuleBot to draft Agent Rules
+## How to use RuleBot to draft agent rules
 
-If you're not sure how to write an Agent Rule, you can chat with RuleBot and describe the outcome you want.
+If you're not sure how to write an agent rule, you can chat with RuleBot and describe the outcome you want.
 
 For example:
 
@@ -87,7 +87,7 @@ For example:
 
 RuleBot may ask follow-up questions to clarify your requirements and then suggest a rule based on your answers.
 
-You can also ask RuleBot questions about existing Agent Rules to better understand how they work.
+You can also ask RuleBot questions about existing agent rules to better understand how they work.
 
 To chat with RuleBot:
 
@@ -99,7 +99,7 @@ To chat with RuleBot:
 
 ---
 
-## What to do when an Agent Rule doesn't behave as expected
+## What to do when an agent rule doesn't behave as expected
 
  - Rewrite the rule using more specific language.
  - Break large rules into multiple focused rules.
@@ -118,10 +118,10 @@ Small changes often produce more reliable results than completely rewriting a ru
 
 Multiple focused rules are generally easier to understand, maintain, and troubleshoot than a single rule that handles many different scenarios.
 
-## How specific should Agent Rules be?
+## How specific should agent rules be?
 
 As a general rule, the more specific the instruction, the more predictable the result.
 
-## Can Agent Rules make mistakes?
+## Can agent rules make mistakes?
 
-Yes. Agent Rules are evaluated by an LLM and may occasionally behave unexpectedly. Review AI-generated actions and instructions carefully.
+Yes. Agent rules are evaluated by an LLM and may occasionally behave unexpectedly. Review AI-generated actions and instructions carefully.
