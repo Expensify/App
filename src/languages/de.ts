@@ -6746,10 +6746,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             workspaceNeeds: 'Ein Arbeitsbereich benötigt mindestens einen aktivierten Entfernungssatz.',
             distance: 'Entfernung',
             centrallyManage: 'Tarife zentral verwalten, in Meilen oder Kilometern nachverfolgen und eine Standardkategorie festlegen.',
-            emptyRates: {
-                title: 'Noch keine Entfernungstarife',
-                subtitle: 'Füge einen Tarif hinzu, um Kilometergeld zu individuellen Tarifen zu erstatten.',
-            },
+            emptyRates: {title: 'Noch keine Entfernungssätze', subtitle: 'Fügen Sie einen Satz hinzu, um Kilometer mit benutzerdefinierten Sätzen zu erstatten.'},
             rate: 'Bewerten',
             addRate: 'Satz hinzufügen',
             findRate: 'Kurs finden',
