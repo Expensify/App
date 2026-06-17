@@ -1,23 +1,20 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {getDisplayNameOrDefault, getLoginByAccountID, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailsByID, getPersonalDetailsListByIDs, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
-import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 
-const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => (accountID ? personalDetailsList?.[accountID] : undefined);
+const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsByID(accountID, personalDetailsList);
 
 const multiPersonalDetailsSelector = (accountIDs: number[]) => (personalDetails: OnyxEntry<PersonalDetailsList>) => newGetPersonalDetailsByIDs(accountIDs, personalDetails);
+
+const personalDetailsListSelector = (accountIDs: Array<number | undefined>) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
+    getPersonalDetailsListByIDs(accountIDs, personalDetailsList);
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
 const personalDetailsDisplayNameSelector = (accountID: number) => (personalDetails: OnyxEntry<PersonalDetailsList>) => getDisplayNameOrDefault(personalDetails?.[accountID]);
 
-const personalDetailByAccountIDSelector =
-    (accountID: number | undefined) =>
-    (personalDetailsList: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> =>
-        accountID ? (personalDetailsList?.[accountID] ?? undefined) : undefined;
-
-const conciergePersonalDetailSelector = personalDetailByAccountIDSelector(CONST.ACCOUNT_ID.CONCIERGE);
+const conciergePersonalDetailSelector = personalDetailsSelector(CONST.ACCOUNT_ID.CONCIERGE);
 
 const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
     const map: Record<number, string> = {};
@@ -33,9 +30,9 @@ const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetail
 export {
     personalDetailsSelector,
     multiPersonalDetailsSelector,
+    personalDetailsListSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsLoginSelector,
-    personalDetailByAccountIDSelector,
     conciergePersonalDetailSelector,
     accountIDToLoginSelector,
 };

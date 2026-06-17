@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
-import {canShowReportRecipientLocalTime, getPolicyIDsWithEmptyReportsForAccount, isChatRoom, isOpenExpenseReport, isPolicyExpenseChat, isThread} from '@libs/ReportUtils';
+import {canShowReportRecipientLocalTime, getPolicyIDsWithEmptyReportsForAccount, isChatRoom, isClosedReport, isOpenExpenseReport, isPolicyExpenseChat, isThread} from '@libs/ReportUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,6 +56,9 @@ const policyChatRoomsSelector =
                 continue;
             }
             if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
+                continue;
+            }
+            if (isClosedReport(report)) {
                 continue;
             }
             if (archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`)) {
@@ -197,3 +200,5 @@ export {
     openExpenseReportIDsSelector,
     getStableReportSelector,
 };
+
+export type {StableReport};

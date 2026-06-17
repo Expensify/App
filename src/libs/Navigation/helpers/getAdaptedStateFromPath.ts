@@ -413,6 +413,12 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         normalizedPath = '/';
     }
 
+    // PublicScreens registers SCREENS.HOME ('Home') without a path mapping, so React Navigation derives `/Home` as the URL.
+    // The authenticated config maps SCREENS.HOME to lowercase 'home', and the case-sensitive mismatch falls to NOT_FOUND.
+    if (normalizedPath === `/${SCREENS.HOME}`) {
+        normalizedPath = '/';
+    }
+
     const state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
         replacePathInNestedState(state, normalizedPath);

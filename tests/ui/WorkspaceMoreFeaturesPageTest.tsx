@@ -15,6 +15,7 @@ import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import WorkspaceMoreFeaturesPage from '@pages/workspace/WorkspaceMoreFeaturesPage';
 import * as ReportActions from '@userActions/Report';
@@ -254,6 +255,57 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(navigateSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Travel toggle (locked when Travel Invoicing is enabled)', () => {
+        const workspaceAccountID = LHNTestUtils.getFakePolicy().policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+        const enableTravelInvoicing = () => Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {[CONST.TRAVEL.PROGRAM_TRAVEL_US]: {isEnabled: true}});
+
+        it('locks the Travel switch when Travel Invoicing is enabled', async () => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, isTravelEnabled: true}));
+                await enableTravelInvoicing();
+            });
+
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+
+            await expect(findLockedSwitch('workspace.moreFeatures.travel.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it('leaves the Travel switch interactive when Travel Invoicing is not enabled', async () => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, isTravelEnabled: true}));
+            });
+
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+
+            await expect(findUnlockedSwitch('workspace.moreFeatures.travel.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it('navigates to Travel settings when the user confirms the disable-Travel warning', async () => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, isTravelEnabled: true}));
+                await enableTravelInvoicing();
+            });
+
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await findLockedSwitch('workspace.moreFeatures.travel.subtitle'));
+
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.travel.disableTravelPrompt'))).toBeOnTheScreen();
+            });
+            fireEvent.press(await screen.findByLabelText(TestHelper.translateLocal('workspace.moreFeatures.travel.disableTravelButton')));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_TRAVEL.getRoute(POLICY_ID));
         });
     });
 

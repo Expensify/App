@@ -1,19 +1,25 @@
 # Victory Chart Renderer
 
-Standalone Bun CLI that will render Expensify chart XML to PNG using the same chart code as the App.
+Standalone Bun CLI (`@expensify/victory-chart-renderer`) that renders Expensify chart XML to PNG in a headless skia environment, reusing as much code from the main app as possible.
 
-## Project layout
-
-- `src/` — CLI source
-- `tests/` — Bun integration tests (`bun:test`)
-- `dist/` — compiled binaries (gitignored)
-
-## Development
+## Usage
 
 From the App repository root:
 
 ```bash
-npm run server:vcr:dev /tmp/out.txt
+npm run server:vcr:dev -- --chart-xml '<victorychart width="400" height="300">...</victorychart>' --out /tmp/out.png
+```
+
+To render from a file, pass its contents with `cat`:
+
+```bash
+npm run server:vcr:dev -- --chart-xml "$(cat server/victory-chart-renderer/tests/fixtures/monthly-spend.xml)" --out /tmp/out.png
+```
+
+From this directory:
+
+```bash
+npm run dev -- --chart-xml "$(cat path/to/chart.xml)" --out /tmp/out.png
 ```
 
 ## Tests
@@ -24,17 +30,22 @@ From the App repository root:
 npm run server:vcr:test
 ```
 
-Or from this directory:
+The suite compiles a standalone binary and runs it from an isolated temp directory (no `node_modules` or App checkout assets on the load path), then compares output against golden PNGs.
+
+To refresh reference PNGs after an intentional rendering change:
 
 ```bash
-bun test
+UPDATE_GOLDEN=1 npm run server:vcr:test
 ```
 
 ## Compiled binaries
 
+From the App repository root:
+
 ```bash
 npm run server:vcr:build:linux
+npm run server:vcr:build:linux-arm
 npm run server:vcr:build:macos
 ```
 
-Binaries are written to `server/victory-chart-renderer/dist/` (gitignored).
+Binaries are written to `dist/` (gitignored).

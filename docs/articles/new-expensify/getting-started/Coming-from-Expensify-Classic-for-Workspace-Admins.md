@@ -13,6 +13,8 @@ New Expensify reorganizes these workflows into a more unified experience to make
 
 This guide explains where familiar Workspace workflows now happen in New Expensify and highlights new tools available to Workspace Admins.
 
+If you want a curated tour of what's new, what's better, and how to take advantage of it as an admin, see [Explore what's changed in New Expensify](/articles/new-expensify/getting-started/Explore-whats-changed-in-New-Expensify). A few of the most popular improvements for Workspace Admins include **customizable, savable searches**, **bulk paying reports**, **full approver visibility into direct reports' activity in every status**, **Workspace merchant rules**, **seeing unassigned company cards**, and **better Insights reporting**.
+
 If you'd like a guided walkthrough of common Workspace workflows in New Expensify, explore the interactive product tours:
 - [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/qlgnexxbsdtp)
 - [Launch the New Expensify interactive tour for mobile](https://expensify.storylane.io/share/fgireksbt2oh)
@@ -54,6 +56,8 @@ Use the examples below to understand where common Expensify Classic workflows no
 
 New Expensify continues to introduce new Workspace management, automation, approval, and collaboration features for Workspace Admins.
 
+For a curated walkthrough of the most useful improvements available today — including customizable and savable searches, bulk paying reports, Workspace merchant rules, visibility into unassigned company cards, and natural language expense editing with Concierge — see [Explore what's changed in New Expensify](/articles/new-expensify/getting-started/Explore-whats-changed-in-New-Expensify).
+
 Visit the [Expensify Product Updates blog](https://use.expensify.com/blog/category/Product+Updates) to stay up to date on the latest Workspace improvements and releases.
 
 ---
@@ -73,6 +77,8 @@ For example, you can:
 - Follow guided actions surfaced throughout the app
 
 These features help keep conversations, approvals, and expense activity together in one place.
+
+For a full rundown of the most useful improvements available in New Expensify, see [Explore what's changed in New Expensify](/articles/new-expensify/getting-started/Explore-whats-changed-in-New-Expensify).
 
 ## How do I know what to do next in New Expensify?
 

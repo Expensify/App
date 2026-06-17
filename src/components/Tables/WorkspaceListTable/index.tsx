@@ -2,7 +2,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import type {ValueOf} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -18,10 +18,9 @@ import WorkspaceRow from './WorkspaceTableRow';
 
 type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 
-type WorkspaceRowData = {
+type WorkspaceRowData = TableData & {
     title: string;
     icon: AvatarSource;
-    disabled: boolean;
     isDefault: boolean;
     isDeleted: boolean;
     isLoadingBill: boolean;
@@ -41,7 +40,6 @@ type WorkspaceRowData = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     action: (event?: ModifiedMouseEvent) => void;
     dismissError: () => void;
-    resetLoadingSpinnerIconIndex?: () => void;
 };
 
 type WorkspaceListTableProps = {
@@ -56,10 +54,28 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const workspaceTableColumns: Array<TableColumn<WorkspaceTableColumnKey>> = [
-        {key: 'workspaces', label: translate('common.workspaces'), sortable: true},
-        {key: 'owner', label: translate('common.owner'), sortable: true},
-        {key: 'type', label: translate('workspace.common.workspaceType'), sortable: true},
-        {key: 'actions', width: variables.workspaceTableActionColumnWidth, label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}, sortable: false},
+        {
+            sortable: true,
+            key: 'workspaces',
+            label: translate('common.workspaces'),
+        },
+        {
+            sortable: true,
+            key: 'owner',
+            label: translate('common.owner'),
+        },
+        {
+            sortable: true,
+            key: 'type',
+            label: translate('workspace.common.workspaceType'),
+        },
+        {
+            sortable: false,
+            key: 'actions',
+            width: variables.workspaceTableActionColumnWidth,
+            label: '',
+            styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]},
+        },
     ];
 
     const compareTableItems: CompareItemsCallback<WorkspaceRowData, WorkspaceTableColumnKey> = (item1, item2, activeSorting) => {

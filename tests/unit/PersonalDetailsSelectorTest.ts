@@ -1,4 +1,10 @@
-import {multiPersonalDetailsSelector, personalDetailsDisplayNameSelector, personalDetailsLoginSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import {
+    multiPersonalDetailsSelector,
+    personalDetailsDisplayNameSelector,
+    personalDetailsListSelector,
+    personalDetailsLoginSelector,
+    personalDetailsSelector,
+} from '@selectors/PersonalDetails';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList} from '@src/types/onyx';
@@ -110,6 +116,28 @@ describe('PersonalDetailsSelector', () => {
         it('should return an empty array if the personalDetailsList is undefined', () => {
             const result = multiPersonalDetailsSelector([accountID])(undefined);
             expect(result).toEqual([]);
+        });
+    });
+
+    describe('personalDetailsListSelector', () => {
+        it('should return the personal details list for the given accountIDs', () => {
+            const result = personalDetailsListSelector([accountID])(personalDetailsList);
+            expect(result).toEqual(personalDetailsList);
+        });
+
+        it('should filter out accountIDs that do not exist in the list', () => {
+            const result = personalDetailsListSelector([accountID, 999])(personalDetailsList);
+            expect(result).toEqual(personalDetailsList);
+        });
+
+        it('should return an empty object if accountIDs is empty', () => {
+            const result = personalDetailsListSelector([])(personalDetailsList);
+            expect(result).toEqual({});
+        });
+
+        it('should return an empty object if the personalDetailsList is undefined', () => {
+            const result = personalDetailsListSelector([accountID])(undefined);
+            expect(result).toEqual({});
         });
     });
 });

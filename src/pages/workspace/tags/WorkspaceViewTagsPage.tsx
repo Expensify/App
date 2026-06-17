@@ -83,7 +83,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
     const currentPolicyTag = policyTags?.[currentTagListName];
-    const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
+    const {canWrite: canWriteTags, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path);
     const fetchTags = useCallback(() => {
@@ -145,7 +145,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         <Switch
                             isOn={tag.enabled}
                             disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !canWriteTags}
-                            disabledAction={!canWriteTags ? showReadOnlyModal : undefined}
+                            disabledAction={withReadOnlyFallback()}
                             accessibilityLabel={translate('workspace.tags.enableTag')}
                             onToggle={(newValue: boolean) => {
                                 if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])) {
@@ -177,7 +177,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     rightElement,
                 };
             }),
-        [currentPolicyTag, hasDependentTags, canWriteTags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, showConfirmModal, showReadOnlyModal],
+        [currentPolicyTag, hasDependentTags, canWriteTags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, showConfirmModal, withReadOnlyFallback],
     );
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
@@ -436,7 +436,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}
                             onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex: orderWeight, errorField: 'required', policyTags})}
                             disabled={!canWriteTags || (!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled))}
-                            disabledAction={!canWriteTags ? showReadOnlyModal : undefined}
+                            disabledAction={withReadOnlyFallback()}
                             showLockIcon={!canWriteTags || !isMultiLevelTags || isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])}
                         />
                     </View>

@@ -19,7 +19,7 @@ namespace margelo::nitro::utils {
    */
   struct JContactFields final: public jni::JavaClass<JContactFields> {
   public:
-    static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/ContactFields;";
+    static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/utils/ContactFields;";
 
   public:
     /**

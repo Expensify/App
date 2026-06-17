@@ -10,11 +10,14 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteExpensifyCardRule, setExpensifyCardRule} from '@libs/actions/Card';
 import {clearDraftSpendRule, setDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
@@ -60,6 +63,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const policy = usePolicy(policyID);
+    const {showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
+    const canWriteSpendRules = useCanWriteCardSpendRules(policyID);
     const domainAccountID = useDefaultFundID(policyID);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
@@ -150,6 +156,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const errorMessage = getErrorMessage(hasSelectedCards, hasAnyRuleApplied, translate);
 
     const handleSaveRule = () => {
+        if (!canWriteSpendRules) {
+            return;
+        }
         if (errorMessage) {
             setIsErrorVisible(true);
             return;
@@ -166,6 +175,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     };
 
     const handleDeleteRule = () => {
+        if (!canWriteSpendRules) {
+            return;
+        }
         if (!existingRule) {
             return;
         }
@@ -191,11 +203,16 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         return <NotFoundPage />;
     }
 
+    if (!isEditing && !!policy && !canWriteSpendRules) {
+        return <NotFoundPage />;
+    }
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            shouldBeBlocked={!!policy?.id && !canWriteSpendRules}
         >
             <ScreenWrapper
                 testID={testID}
@@ -207,11 +224,16 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     <Text style={[styles.textStrong, styles.ph5, styles.pv2]}>{translate('workspace.rules.spendRules.cardsSectionTitle')}</Text>
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.spendRules.chooseCards')}
-                        onPress={() => {
-                            clearError();
-                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
-                        }}
-                        shouldShowRightIcon
+                        onPress={
+                            canWriteSpendRules
+                                ? () => {
+                                      clearError();
+                                      navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
+                                  }
+                                : undefined
+                        }
+                        shouldShowRightIcon={canWriteSpendRules}
+                        interactive={canWriteSpendRules}
                         title={cardsMenuTitle}
                         numberOfLinesTitle={2}
                         titleStyle={styles.flex1}
@@ -222,6 +244,10 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         <SpendRuleRestrictionTypeToggle
                             restrictionAction={restrictionAction}
                             onSelect={(action) => {
+                                if (!canWriteSpendRules) {
+                                    showReadOnlyModal();
+                                    return;
+                                }
                                 clearError();
                                 updateDraftSpendRule({restrictionAction: action});
                             }}
@@ -229,11 +255,16 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     </View>
                     <MenuItemWithTopDescription
                         description={translate('common.merchant')}
-                        onPress={() => {
-                            clearError();
-                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS, {policyID, ruleID: currentRuleID});
-                        }}
-                        shouldShowRightIcon
+                        onPress={
+                            canWriteSpendRules
+                                ? () => {
+                                      clearError();
+                                      navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS, {policyID, ruleID: currentRuleID});
+                                  }
+                                : undefined
+                        }
+                        shouldShowRightIcon={canWriteSpendRules}
+                        interactive={canWriteSpendRules}
                         title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
                         numberOfLinesTitle={2}
                         titleStyle={styles.flex1}
@@ -241,11 +272,16 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     />
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.spendRules.spendCategory')}
-                        onPress={() => {
-                            clearError();
-                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CATEGORY, {policyID, ruleID: currentRuleID});
-                        }}
-                        shouldShowRightIcon
+                        onPress={
+                            canWriteSpendRules
+                                ? () => {
+                                      clearError();
+                                      navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CATEGORY, {policyID, ruleID: currentRuleID});
+                                  }
+                                : undefined
+                        }
+                        shouldShowRightIcon={canWriteSpendRules}
+                        interactive={canWriteSpendRules}
                         title={categoriesMenuTitle}
                         numberOfLinesTitle={2}
                         titleStyle={styles.flex1}
@@ -253,41 +289,48 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     />
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.spendRules.maxAmount')}
-                        onPress={() => {
-                            clearError();
-                            if (!selectedCurrency) {
-                                openCurrencyMismatchModal();
-                                return;
-                            }
-                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT, {policyID, ruleID: currentRuleID});
-                        }}
-                        shouldShowRightIcon
+                        onPress={
+                            canWriteSpendRules
+                                ? () => {
+                                      clearError();
+                                      if (!selectedCurrency) {
+                                          openCurrencyMismatchModal();
+                                          return;
+                                      }
+                                      navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT, {policyID, ruleID: currentRuleID});
+                                  }
+                                : undefined
+                        }
+                        shouldShowRightIcon={canWriteSpendRules}
+                        interactive={canWriteSpendRules}
                         title={maxAmountMenuTitle}
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                     />
                 </ScrollView>
-                <FormAlertWithSubmitButton
-                    buttonText={translate('workspace.rules.spendRules.saveRule')}
-                    containerStyles={[styles.m4, styles.mb5]}
-                    message={errorMessage}
-                    isAlertVisible={isErrorVisible}
-                    onSubmit={handleSaveRule}
-                    enabledWhenOffline
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
-                    shouldRenderFooterAboveSubmit
-                    footerContent={
-                        isEditing ? (
-                            <Button
-                                text={translate('workspace.rules.spendRules.deleteRule')}
-                                onPress={handleDeleteRule}
-                                style={[styles.mb4]}
-                                large
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
-                            />
-                        ) : undefined
-                    }
-                />
+                {canWriteSpendRules && (
+                    <FormAlertWithSubmitButton
+                        buttonText={translate('workspace.rules.spendRules.saveRule')}
+                        containerStyles={[styles.m4, styles.mb5]}
+                        message={errorMessage}
+                        isAlertVisible={isErrorVisible}
+                        onSubmit={handleSaveRule}
+                        enabledWhenOffline
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
+                        shouldRenderFooterAboveSubmit
+                        footerContent={
+                            isEditing ? (
+                                <Button
+                                    text={translate('workspace.rules.spendRules.deleteRule')}
+                                    onPress={handleDeleteRule}
+                                    style={[styles.mb4]}
+                                    large
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
+                                />
+                            ) : undefined
+                        }
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

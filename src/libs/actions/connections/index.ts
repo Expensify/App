@@ -146,7 +146,7 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_ZENEFITS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZENEFITS_SYNC_TITLE};
         }
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
-            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_CONNECTION};
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_TITLE};
         }
         default:
             return undefined;
@@ -353,6 +353,9 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
             break;
         case CONST.POLICY.CONNECTIONS.NAME.QBD:
             stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_TITLE;
             break;
         default:
             stageInProgress = null;

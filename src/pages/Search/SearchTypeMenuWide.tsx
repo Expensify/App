@@ -77,6 +77,8 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
         return () => onUnmount();
     }, []);
 
+    const isSavedSearchesSection = section.translationPath === 'search.savedSearchesMenuItemTitle';
+
     return (
         <SearchTypeMenuAccordion
             isExpanded={isExpanded}
@@ -89,12 +91,13 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
             title={translate(section.translationPath)}
             badgeText={getSectionBadgeText(section.translationPath, reportCounts)}
         >
-            {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
+            {isSavedSearchesSection && (
                 <SavedSearchList
                     hash={hash}
                     areAllSectionsExpanded={areAllSectionsExpanded}
                 />
-            ) : (
+            )}
+            {!isSavedSearchesSection &&
                 section.menuItems.map((item, itemIndex) => {
                     const flattenedIndex = sectionStartIndex + itemIndex;
                     const focused = activeItemIndex === flattenedIndex;
@@ -110,8 +113,7 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
                             onPress={() => onItemPress(item.searchQuery)}
                         />
                     );
-                })
-            )}
+                })}
         </SearchTypeMenuAccordion>
     );
 }

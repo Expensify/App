@@ -32,12 +32,15 @@ type WorkspaceInvoiceVBASectionProps = {
 
     /** Whether the current user can edit miscellaneous settings. */
     canWriteMoreFeatures: boolean;
+
+    /** Shows the read-only access modal. */
+    showReadOnlyModal: () => void;
 };
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 // TODO: can be refactored to use ThreeDotsMenu component instead handling the popover and positioning
-function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures}: WorkspaceInvoiceVBASectionProps) {
+function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnlyModal}: WorkspaceInvoiceVBASectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -50,11 +53,15 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures}: WorkspaceI
     const {showConfirmModal} = useConfirmModal();
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
     const isPopoverBottomMount = shouldUseNarrowLayout;
-    const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault;
     const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
-    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
+    const eligibleBusinessBankAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency);
+    const hasValidExistingAccounts = eligibleBusinessBankAccounts.length > 0;
+    const hasMultipleEligibleBankAccounts = eligibleBusinessBankAccounts.length > 1;
+    const hasInvoiceDefaultBankAccount = transferBankAccountID !== CONST.DEFAULT_NUMBER_ID;
+    const isInvoiceDefaultBankAccountMissing = hasInvoiceDefaultBankAccount && !eligibleBusinessBankAccounts.some((account) => account.accountData?.bankAccountID === transferBankAccountID);
+    const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault && (hasMultipleEligibleBankAccounts || isInvoiceDefaultBankAccountMissing);
     const isSupportedGlobalReimbursement = isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType);
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
@@ -103,10 +110,17 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures}: WorkspaceI
 
     const deletePaymentMethod = useCallback(() => {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
-            deletePaymentBankAccount(bankAccountID, personalPolicyID);
+        if (paymentMethod.selectedPaymentMethodType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || !bankAccountID) {
+            return;
         }
-    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID]);
+
+        const remainingEligibleBankAccountID = eligibleBusinessBankAccounts.find((account) => account.accountData?.bankAccountID !== bankAccountID)?.accountData?.bankAccountID;
+        if (transferBankAccountID === bankAccountID && remainingEligibleBankAccountID) {
+            setInvoicingTransferBankAccount(remainingEligibleBankAccountID, policyID, bankAccountID);
+        }
+
+        deletePaymentBankAccount(bankAccountID, personalPolicyID);
+    }, [eligibleBusinessBankAccounts, paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID, policyID, transferBankAccountID]);
 
     const makeDefaultPaymentMethod = useCallback(() => {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
@@ -128,6 +142,11 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures}: WorkspaceI
     };
 
     const onAddBankAccountPress = () => {
+        if (!canWriteMoreFeatures) {
+            showReadOnlyModal();
+            return;
+        }
+
         if (!isSupportedGlobalReimbursement) {
             showConfirmModal({
                 danger: true,
@@ -242,11 +261,11 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures}: WorkspaceI
                 onPress={onBankAccountRowPressed}
                 onAddBankAccountPress={onAddBankAccountPress}
                 onThreeDotsMenuPress={paymentMethodPressed}
-                shouldSkipDefaultAccountValidation={!isSupportedGlobalReimbursement}
+                shouldSkipDefaultAccountValidation={!canWriteMoreFeatures || !isSupportedGlobalReimbursement}
                 invoiceTransferBankAccountID={transferBankAccountID}
                 activePaymentMethodID={transferBankAccountID}
                 threeDotsMenuItems={canWriteMoreFeatures ? threeDotsMenuItems : undefined}
-                shouldShowAddBankAccount={canWriteMoreFeatures}
+                addBankAccountItemStyle={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
                 style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                 policyID={policyID}

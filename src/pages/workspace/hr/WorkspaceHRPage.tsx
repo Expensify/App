@@ -8,7 +8,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,7 +25,6 @@ import {openPolicyHRPage} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -49,7 +48,6 @@ function WorkspaceHRPage({
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policy = usePolicy(policyID);
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare']);
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
@@ -87,7 +85,7 @@ function WorkspaceHRPage({
     connectedCards.sort(byName);
     disconnectedCards.sort(byName);
 
-    const canWriteMoreFeatures = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const handleConnect = (setupLink: string | undefined) => {
         if (!setupLink) {
@@ -127,6 +125,7 @@ function WorkspaceHRPage({
                     <ConnectToHRFlow
                         key={activeHRFlow.key}
                         setupLink={activeHRFlow.setupLink}
+                        onDone={() => setActiveHRFlow(undefined)}
                     />
                 )}
                 <HeaderWithBackButton
@@ -154,6 +153,7 @@ function WorkspaceHRPage({
                                         policy={policy}
                                         handleConnect={() => handleConnect(card.setupLink)}
                                         canWriteMoreFeatures={canWriteMoreFeatures}
+                                        showReadOnlyModal={showReadOnlyModal}
                                     />
                                 ))}
                                 {connectedCards.length === 0 &&
@@ -164,6 +164,7 @@ function WorkspaceHRPage({
                                             policy={policy}
                                             handleConnect={() => handleConnect(card.setupLink)}
                                             canWriteMoreFeatures={canWriteMoreFeatures}
+                                            showReadOnlyModal={showReadOnlyModal}
                                         />
                                     ))}
                             </View>
@@ -182,6 +183,7 @@ function WorkspaceHRPage({
                                             policy={policy}
                                             handleConnect={() => handleConnect(card.setupLink)}
                                             canWriteMoreFeatures={canWriteMoreFeatures}
+                                            showReadOnlyModal={showReadOnlyModal}
                                         />
                                     ))}
                                 </CollapsibleSection>

@@ -1,10 +1,12 @@
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
 import React, {useEffect, useLayoutEffect} from 'react';
+import {cancelDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
 import CONST from '@src/CONST';
 import type {SortableItemProps} from './types';
 
 const PRESSABLE_SELECTOR = '[data-tag="pressable"]';
+const FOCUSABLE_ELEMENTS_SELECTOR = 'button, [tabindex]:not([tabindex="-1"])';
 
 function SortableItem({id, children, disabled = false, isFocused = false}: SortableItemProps) {
     const {attributes, listeners, setNodeRef, transform, transition, isDragging, node} = useSortable({id, disabled});
@@ -29,12 +31,23 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
     // The sortable wrapper is the single Tab stop (tabIndex: 0 via dnd-kit attributes).
     // Inner pressables must be non-focusable to avoid a double Tab stop per item.
     useLayoutEffect(() => {
-        for (const el of node.current?.querySelectorAll<HTMLElement>(PRESSABLE_SELECTOR) ?? []) {
+        if (!node.current) {
+            return;
+        }
+        for (const el of Array.from(node.current.querySelectorAll<HTMLElement>(PRESSABLE_SELECTOR))) {
             el.setAttribute('tabindex', '-1');
         }
     }, [children, node]);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
+        // Cancel drag on Tab but let default Tab behavior move focus naturally.
+        // This must happen in capture phase (before blur) so the drag ends
+        // before the browser moves focus, avoiding a render that eats the Tab.
+        if (isDragging && e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+            cancelDndKeyboardDrag();
+            return;
+        }
+
         if (e.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             return;
         }
@@ -76,6 +89,27 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
             // Use capture phase to intercept Enter before inner MenuItem handles it
             onKeyDownCapture={handleKeyDown}
             onClick={handleClick}
+            // Cancel keyboard drag when focus leaves the sortable wrapper.
+            // dnd-kit attaches its KeyboardSensor listener on `document`, so arrow
+            // keys keep reordering even after focus moves (e.g. Tab to the map).
+            onBlur={(e) => {
+                if (!isDragging || e.currentTarget.contains(e.relatedTarget as Node)) {
+                    return;
+                }
+                cancelDndKeyboardDrag();
+            }}
+            // Maintain single tab stop per item (WCAG 1.3.2): when focus lands on a
+            // nested interactive element via Tab, pull it back to the sortable wrapper
+            // and remove the child from tab order so the next Tab advances correctly.
+            onFocus={(e) => {
+                for (const element of Array.from(e.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS_SELECTOR))) {
+                    element.setAttribute('tabindex', '-1');
+                }
+                if (e.target === e.currentTarget) {
+                    return;
+                }
+                e.currentTarget.focus();
+            }}
             {...attributes}
             {...(disabled ? {} : listeners)}
             role="button"

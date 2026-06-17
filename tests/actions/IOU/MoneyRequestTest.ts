@@ -53,7 +53,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-// Pass-through spy so behavior is unchanged but the call args (incl. currentUserAccountID) are assertable.
+// Pass-through spy so behavior is unchanged but the call args (incl. currentUserAccountID) can be asserted.
 jest.mock('@libs/shouldUseDefaultExpensePolicy', () => {
     const actual = jest.requireActual<{default: typeof shouldUseDefaultExpensePolicy}>('@libs/shouldUseDefaultExpensePolicy');
     return {
@@ -66,7 +66,7 @@ jest.mock('@libs/getCurrentPosition');
 
 // Fire executeWrite synchronously so downstream writes can be asserted.
 jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual<typeof SubmitWithDismissFirstMock>('../../__mocks__/submitWithDismissFirst'));
-// Cleanup helpers are spies so the move-from-track cleanup-id contract is assertable.
+// Cleanup helpers are spies so the move-from-track cleanup-id contract can be asserted.
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
 const mockCleanupAfterExpenseCreate = jest.fn();
 jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({
@@ -133,6 +133,7 @@ describe('MoneyRequest', () => {
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionIDs: ['mock-txn-id'],
             optimisticChatReportID: undefined,
+            currentUserLocalCurrency: undefined,
         };
 
         beforeEach(async () => {
@@ -285,9 +286,9 @@ describe('MoneyRequest', () => {
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: '',
+                reportID: 'report456',
                 originalMessage: {
                     IOUTransactionID: draftTransaction.transactionID,
-                    IOUReportID: 'report456',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
             };
@@ -613,6 +614,7 @@ describe('MoneyRequest', () => {
             conciergeReportID: undefined,
             action: CONST.IOU.ACTION.CREATE,
             reportDraft: undefined,
+            currentUserLocalCurrency: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1234,7 +1236,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(true);
         });
 
         it('should return false when iouType is not CREATE', () => {
@@ -1244,9 +1246,9 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when policy is not a paid group policy', () => {
@@ -1256,7 +1258,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when isPolicyExpenseChatEnabled is false', () => {
@@ -1266,15 +1268,15 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: false,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when policy is undefined', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when policy is null', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should handle amountOwed being undefined', () => {
@@ -1284,7 +1286,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined, currentUserAccountID)).toBe(true);
         });
 
         it('should pass ownerBillingGracePeriodEnd through to shouldRestrictUserBillableActions', async () => {
@@ -1299,7 +1301,7 @@ describe('MoneyRequest', () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate, TEST_USER_ACCOUNT_ID)).toBe(false);
 
             await Onyx.clear();
         });

@@ -32,7 +32,7 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrai
     }, [isCopied]);
 
     return (
-        <View style={[isDisabledItem && styles.pointerEventsNone]}>
+        <View style={[styles.searchTypeMenuAccessoryBox, isDisabledItem && styles.pointerEventsNone]}>
             <ThreeDotsMenu
                 shouldSelfPosition
                 menuItems={menuItems}

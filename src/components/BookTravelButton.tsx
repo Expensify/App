@@ -123,7 +123,7 @@ function BookTravelButton({
             return;
         }
 
-        if (isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING) && areTravelPersonalDetailsMissing(privatePersonalDetails)) {
+        if (areTravelPersonalDetailsMissing(privatePersonalDetails)) {
             shouldResumeBookingRef.current = true;
             Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
             return;

@@ -1,4 +1,5 @@
 import React from 'react';
+import type {PropsWithChildren} from 'react';
 import {View} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,7 +16,7 @@ import ComposerInput from './ComposerInput';
 import ComposerLocalTime from './ComposerLocalTime';
 import ComposerSendButton from './ComposerSendButton';
 
-function ComposerInputArea() {
+function ComposerInputArea({children}: PropsWithChildren) {
     const {reportID} = useComposerState();
     const styles = useThemeStyles();
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
@@ -36,6 +37,7 @@ function ComposerInputArea() {
                             <ComposerSendButton />
                         </ComposerBox>
                     </ComposerDropZone>
+                    {children}
                 </ComposerContainer>
                 <ComposerImportedState />
             </View>

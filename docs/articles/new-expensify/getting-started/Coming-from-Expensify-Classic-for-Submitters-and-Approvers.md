@@ -11,6 +11,8 @@ If you previously used Expensify Classic, many of the workflows you already know
 
 This guide explains where familiar features and workflows now live so you can get comfortable navigating New Expensify more confidently.
 
+If you want to see what's new, what's better, and how to take advantage of it, see [Explore what's changed in New Expensify](/articles/new-expensify/getting-started/Explore-whats-changed-in-New-Expensify). A few of the most popular improvements include **customizable, savable searches**, **full approver visibility into direct reports' activity in every status**, **expense-level commenting**, and **better Insights reporting**.
+
 If you'd like a guided walkthrough of the New Expensify experience, explore the interactive product tours:
 - [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/v9dr1rjqsd9y)
 - [Launch the New Expensify interactive tour for mobile](https://expensify.storylane.io/share/qbbob6zvapqo)
@@ -59,7 +61,7 @@ New Expensify introduces several workflow and collaboration improvements while s
 
 - **Consistent web and mobile navigation** — Web and mobile use the same core navigation structure, making it easier to switch between devices without learning separate workflows. Learn how to [navigate New Expensify on web and mobile](/articles/new-expensify/getting-started/Navigating-New-Expensify).
 
-- **More powerful search and reporting tools** — Use advanced search operators, saved searches, pre-built reports, and Insights dashboards to analyze expenses and financial activity more efficiently. [Learn more about how to use Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
+- **More powerful search and reporting tools** — Customize the columns you see, apply far more filters than Expensify Classic offered, and save searches you run often so they're one click away. Combine that with pre-built reports and Insights dashboards to analyze expenses and financial activity more efficiently. [Learn how to use advanced search operators](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze), [save a search](/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-save-a-search), and [use Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
 
 ---
 
@@ -78,6 +80,8 @@ For example, you can:
 - Follow guided actions surfaced throughout the app
 
 These features help keep conversations, approvals, and expense activity together in one place.
+
+For a full rundown of the most useful improvements available in New Expensify, see [Explore what's changed in New Expensify](/articles/new-expensify/getting-started/Explore-whats-changed-in-New-Expensify).
 
 ## How do I know what to do next in New Expensify?
 

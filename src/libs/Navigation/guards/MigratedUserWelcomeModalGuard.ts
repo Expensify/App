@@ -123,6 +123,16 @@ const MigratedUserWelcomeModalGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
+        // Guard against the race condition where NVP_TRY_NEW_DOT arrives before
+        // NVP_DISMISSED_PRODUCT_TRAINING has been fetched. Without this check, a
+        // navigation firing between those two Onyx callbacks would see an undefined
+        // dismissedProductTraining and incorrectly redirect users who already dismissed
+        // the modal (most noticeable in copilot sessions or on large accounts with
+        // slow OpenApp responses).
+        if (!isDismissedProductTrainingLoaded) {
+            return {type: 'ALLOW'};
+        }
+
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
             Log.info('[MigratedUserWelcomeModalGuard] Redirecting to migrated user welcome modal');
             hasRedirectedToMigratedUserModal = true;
@@ -139,3 +149,15 @@ const MigratedUserWelcomeModalGuard: NavigationGuard = {
 
 export default MigratedUserWelcomeModalGuard;
 export {resetSessionFlag, onSessionOrLoadingAppChanged};
+
+/**
+ * Resets the dismissal-NVP loaded flag and cached value.
+ * Only intended for use in unit tests to simulate the race condition where
+ * NVP_DISMISSED_PRODUCT_TRAINING has not yet been delivered by Onyx.
+ */
+function resetDismissedProductTrainingState() {
+    isDismissedProductTrainingLoaded = false;
+    dismissedProductTraining = undefined;
+}
+
+export {resetDismissedProductTrainingState};

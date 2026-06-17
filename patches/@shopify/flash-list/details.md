@@ -129,3 +129,15 @@
 - Upstream PR/issue: https://github.com/Shopify/flash-list/issues/1955
 - E/App issue: https://github.com/Expensify/App/issues/86126
 - PR introducing patch: https://github.com/Expensify/App/pull/85825
+
+### [@shopify+flash-list+2.3.0+012+fix-scrollbar-oscillation-crash.patch](@shopify+flash-list+2.3.0+012+fix-scrollbar-oscillation-crash.patch)
+
+- Reason: Fixes a "Maximum update depth exceeded" (#185) infinite render loop on web with classic (non-overlay) scrollbars — i.e. Windows/Linux Chrome and macOS with "Always show scroll bars". For a vertical list FlashList derives its cross-axis bounded size from `firstChildViewLayout.width` (the scroll viewport's **client** width, which excludes the scrollbar). When the vertical scrollbar toggles, that width steps by the scrollbar size (e.g. 375 ↔ 355); each change re-triggers layout, which changes content height, which toggles the scrollbar again — an infinite loop. This patch breaks the loop inside `LinearLayoutManager.updateLayoutParams` by detecting the scrollbar ping-pong and settling `boundedSize` instead of thrashing it — reserving no width. A change is treated as scrollbar-induced only when all hold, so a real window resize is never misread:
+  1. **Strict alternation**: the last 4 *rounded* cross-axis sizes form a clean `A,B,A,B` (exactly two values, three consecutive flips). A manual drag sweeps through many distinct values and never matches; rounding keeps the equality robust against subpixel drift.
+  2. **Scrollbar-sized delta**: the two values differ by no more than `SCROLLBAR_OSCILLATION_TOLERANCE` (25px — classic scrollbars are ~15–17px, with headroom for thicker/zoomed bars).
+
+  When detected, `boundedSize` settles on the **smaller** of the two values, which already accounts for the scrollbar so items never overflow the client width.
+- Files changed: `dist/recyclerview/layout-managers/LinearLayoutManager.js` only.
+- Upstream PR/issue: TBD
+- E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263
+- PR introducing patch: TBD
