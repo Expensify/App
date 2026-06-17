@@ -7964,7 +7964,7 @@ ${reportName}
         deleteSavedSearchConfirm: '确定要删除此搜索吗？',
         searchName: '搜索名称',
         savedSearchesMenuItemTitle: '已保存',
-        mySavedSearch: 'My expenses',
+        mySavedSearch: '我的报销费用',
         urlCopied: 'URL 已复制',
         groupedExpenses: '已分组的报销费用',
         bulkActions: {
