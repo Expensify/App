@@ -183,7 +183,7 @@ PODS:
     - ExpoModulesJSI
     - ExpoModulesWorklets
     - RNWorklets
-  - ExpoStoreReview (9.0.9):
+  - ExpoStoreReview (56.0.3):
     - ExpoModulesCore
   - ExpoTaskManager (56.0.16):
     - ExpoModulesCore
@@ -4809,7 +4809,7 @@ SPEC CHECKSUMS:
   ExpoModulesJSI: 31051e6e3d88a96cc48747eabad1d4a6a29c554e
   ExpoModulesWorklets: 3f847eb6ba544bd4b55d585f89b3b18f8cd73a72
   ExpoModulesWorkletsAdapter: 4ced459d91107d4f32a8decf8b7827f58153436a
-  ExpoStoreReview: 32bb43b6fae9c8db3e33cad69996dff3785eef5f
+  ExpoStoreReview: f785057aececd9c63a113c69a82b491e5f90694e
   ExpoTaskManager: f9511a17a4528adb8da94efb639ad592eef8bc53
   ExpoVideo: 8ebbbf65778c5f986d65fc17bb60b79e9d7624e6
   ExpoWebBrowser: 6e3d90e3fe1952d21a8494872b1e1a485cd50e2f

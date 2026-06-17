@@ -145,7 +145,7 @@
     "expo-image-manipulator": "56.0.16",
     "expo-location": "56.0.15",
     "expo-modules-core": "56.0.14",
-    "expo-store-review": "~9.0.8",
+    "expo-store-review": "56.0.3",
     "expo-task-manager": "56.0.16",
     "expo-video": "56.1.2",
     "expo-web-browser": "56.0.5",
