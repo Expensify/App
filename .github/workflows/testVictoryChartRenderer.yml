@@ -28,6 +28,7 @@ jobs:
               - 'src/components/Charts/**'
               - 'src/components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/**'
               - 'src/languages/**'
+              - 'src/libs/Localize/**'
               - 'src/libs/telemetry/**'
               - '.bun-version'
               - 'package.json'
