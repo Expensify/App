@@ -73,8 +73,10 @@ function useOnboardingFlowRouter() {
                         return;
                     }
 
+                    // Make sure hybrid app onboarding is completed and will not start startOnboardingFlow for users that switched from OldDot.
                     if (isHybridAppOnboardingCompleted === false) {
                         completeHybridAppOnboarding();
+                        return;
                     }
                 }
 
@@ -89,8 +91,7 @@ function useOnboardingFlowRouter() {
                 // We use startOnboardingFlow (which calls resetRoot) instead of Navigation.navigate because
                 // navigate goes through the router where OnboardingGuard would block the navigation.
                 // waitForProtectedRoutes ensures navigation is ready, which is critical during fresh login.
-                // Skip when HybridApp explanation modal is active (OldDot-transitioning users).
-                if (isOnboardingCompleted === false && !(CONFIG.IS_HYBRID_APP && isHybridAppOnboardingCompleted === false)) {
+                if (isOnboardingCompleted === false) {
                     Navigation.waitForProtectedRoutes().then(() => {
                         startOnboardingFlow({
                             onboardingValuesParam: onboardingValues ?? undefined,
