@@ -57,7 +57,7 @@ maybeCompleteAuthSession();
 
 // On web, dotlottie-web fetches its WASM binary from a third-party CDN (jsdelivr/unpkg) at runtime,
 // which is blocked by our Content Security Policy. Point it at the Expensify CDN proxy instead.
-setWasmUrl('https://cdn.expensify.com/cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web@0.44.0/dist/dotlottie-player.wasm');
+setWasmUrl(CONST.DOTLOTTIE_WASM_URL);
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
