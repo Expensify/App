@@ -1010,7 +1010,8 @@
         "NitroFetch",
         "Prefetch",
         "Prefetcher",
-        "knip"
+        "knip",
+        "lottiefiles"
     ],
     "ignorePaths": [
         ".gitignore",
