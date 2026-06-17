@@ -53,6 +53,13 @@ jobs:
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         uses: ./.github/actions/composite/setupNode
 
+      # Pack the reviewer instructions + all coding-standards rules into one
+      # deterministic system-prompt file (see .github/scripts/pack-reviewer-prompt.sh),
+      # supplied to the reviewer below as a byte-stable, cacheable prefix.
+      - name: Pack reviewer system prompt
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
+        run: .github/scripts/pack-reviewer-prompt.sh "$RUNNER_TEMP/reviewer-system-prompt.md"
+
       - name: Filter paths
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
@@ -86,10 +93,12 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: "*"
-          prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
+          prompt: "Review PR #${{ github.event.pull_request.number }} in ${{ github.repository }}. Follow your system-prompt instructions and return the violations JSON."
           claude_args: |
             --model claude-opus-4-8
-            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.toolkit.outputs.schema_json }}'
+            --append-system-prompt-file "${{ runner.temp }}/reviewer-system-prompt.md"
+            --exclude-dynamic-system-prompt-sections
+            --allowedTools "Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.toolkit.outputs.schema_json }}'
 
       - name: Post code review results
         if: |
