@@ -2291,6 +2291,23 @@ function removeWorkspace(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
 }
 
+/**
+ * Dismisses the errors on a workspace based on its pending action
+ */
+function dismissWorkspaceError(policyID: string, pendingAction: PendingAction | undefined) {
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        clearDeleteWorkspaceError(policyID);
+        return;
+    }
+
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        removeWorkspace(policyID);
+        return;
+    }
+
+    clearErrors(policyID);
+}
+
 function setDuplicateWorkspaceData(data: Partial<DuplicateWorkspace>) {
     Onyx.merge(ONYXKEYS.DUPLICATE_WORKSPACE, {...data});
 }
@@ -7508,6 +7525,7 @@ export {
     updateAddress,
     updateLastAccessedWorkspace,
     clearDeleteWorkspaceError,
+    dismissWorkspaceError,
     setWorkspaceDefaultSpendCategory,
     getDisplayNameForWorkspace,
     generateDefaultWorkspaceName,
