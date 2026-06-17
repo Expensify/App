@@ -472,4 +472,199 @@ describe('AmountSubmission', () => {
             );
         });
     });
+
+    describe('submitAmount reads collection state from module caches', () => {
+
+        beforeEach(() => {
+            mockSendMoneyElsewhere.mockClear();
+            mockSendMoneyWithWallet.mockClear();
+            mockTrackExpense.mockClear();
+            mockRequestMoney.mockClear();
+            mockSetDraftSplitTransaction.mockClear();
+            mockUpdateMoneyRequestAmountAndCurrency.mockClear();
+            mockSetTransactionReport.mockClear();
+        });
+
+        const buildBaseArgs = (overrides: Partial<Parameters<typeof submitAmount>[0]> = {}): Parameters<typeof submitAmount>[0] => {
+            const baseReport: Report = {
+                ...createRandomReport(200, undefined),
+                reportID: 'report-200',
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [OTHER_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const currentUserPersonalDetails: PersonalDetails = {
+                accountID: CURRENT_USER_ACCOUNT_ID,
+                login: 'me@test.com',
+                localCurrencyCode: CONST.CURRENCY.USD,
+            };
+            return {
+                report: baseReport,
+                transaction: undefined,
+                splitDraftTransaction: undefined,
+                policy: undefined,
+                selectedCurrency: CONST.CURRENCY.USD,
+                decimals: 2,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                transactionID: 'tx-1',
+                reportID: 'report-200',
+                action: CONST.IOU.ACTION.CREATE,
+                backTo: undefined,
+                backToReport: undefined,
+                shouldKeepUserInput: false,
+                shouldSkipConfirmation: false,
+                isReportArchived: false,
+                currentUserPersonalDetails,
+                delegateAccountID: undefined,
+                selfDMReport: undefined,
+                defaultExpensePolicy: undefined,
+                personalPolicy: undefined,
+                navigateBack: jest.fn(),
+                amount: '10',
+                paymentMethod: undefined,
+                ...overrides,
+            };
+        };
+
+        it('requestMoney receives cached transactionViolations on skip-confirm SUBMIT', async () => {
+            const violations = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}tv-100`, violations);
+            await waitForBatchedUpdates();
+
+            submitAmount(buildBaseArgs({iouType: CONST.IOU.TYPE.SUBMIT, shouldSkipConfirmation: true}));
+
+            expect(mockRequestMoney).toHaveBeenCalledTimes(1);
+            expect(mockRequestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionViolations: expect.objectContaining({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}tv-100`]: violations,
+                    }),
+                }),
+            );
+        });
+
+        it('trackExpense receives draftTransactionIDs derived from cached TRANSACTION_DRAFT', async () => {
+            const draft: Transaction = {
+                transactionID: 'draft-track-1',
+                amount: -200,
+                currency: CONST.CURRENCY.USD,
+                created: '2024-01-01',
+                merchant: 'draft',
+                reportID: 'r1',
+                comment: {},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draft-track-1`, draft);
+            await waitForBatchedUpdates();
+
+            submitAmount(buildBaseArgs({iouType: CONST.IOU.TYPE.TRACK, shouldSkipConfirmation: true}));
+
+            expect(mockTrackExpense).toHaveBeenCalledTimes(1);
+            expect(mockTrackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    draftTransactionIDs: expect.arrayContaining(['draft-track-1']),
+                }),
+            );
+        });
+
+        it('edit non-split reads parentReport, parentReportNextStep, policyCategories from caches', async () => {
+            const parentReport: Report = {...createRandomReport(300, undefined), reportID: 'parent-300'};
+            const nextStep = {};
+            const policyCategories = {Travel: {name: 'Travel', enabled: true, areCommentsRequired: false, glCode: '', externalID: ''}};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}parent-300`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.NEXT_STEP}parent-300`, nextStep);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy-cat-1`, policyCategories);
+            await waitForBatchedUpdates();
+
+            const tx: Transaction = {
+                transactionID: 'tx-1',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+                created: '2024-01-01',
+                merchant: 'Test',
+                reportID: 'report-200',
+                comment: {},
+            };
+            const reportWithPolicyAndParent: Report = {
+                ...createRandomReport(200, undefined),
+                reportID: 'report-200',
+                parentReportID: 'parent-300',
+                policyID: 'policy-cat-1',
+            };
+
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.EDIT,
+                    report: reportWithPolicyAndParent,
+                    transaction: tx,
+                    selectedCurrency: CONST.CURRENCY.USD,
+                    amount: '99',
+                }),
+            );
+
+            expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledTimes(1);
+            expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    parentReport,
+                    parentReportNextStep: nextStep,
+                    policyCategories,
+                }),
+            );
+        });
+
+        it('edit non-split computes duplicate-tx inline from cached TRANSACTION + TRANSACTION_VIOLATIONS', async () => {
+            // Seed a duplicate violation and the duplicated transactions in the caches.
+            const dupViolation = {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {duplicates: ['dup-tx-1']},
+            };
+            const dupTransaction: Transaction = {
+                transactionID: 'dup-tx-1',
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+                created: '2024-01-01',
+                merchant: 'duplicate',
+                reportID: 'report-200',
+                comment: {},
+            };
+            const mainTransaction: Transaction = {
+                transactionID: 'tx-1',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+                created: '2024-01-01',
+                merchant: 'main',
+                reportID: 'report-200',
+                comment: {},
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}tx-1`, [dupViolation]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}tx-1`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}dup-tx-1`, dupTransaction);
+            await waitForBatchedUpdates();
+
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.EDIT,
+                    transaction: mainTransaction,
+                    selectedCurrency: CONST.CURRENCY.USD,
+                    amount: '99',
+                }),
+            );
+
+            expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledTimes(1);
+            expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactions: expect.objectContaining({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}tx-1`]: mainTransaction,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}dup-tx-1`]: dupTransaction,
+                    }),
+                    transactionViolations: expect.objectContaining({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}tx-1`]: [dupViolation],
+                    }),
+                }),
+            );
+        });
+    });
 });
