@@ -1,6 +1,8 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {selectTransactionsWithDuplicates, selectViolationsWithDuplicates} from '@hooks/useDuplicateTransactionsAndViolations';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {
     calculateDefaultReimbursable,
@@ -132,6 +134,55 @@ Onyx.connectWithoutView({
     callback: (value) => (reportAttributesDerivedValue = value),
 });
 
+let allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allTransactionDrafts = value),
+});
+
+let allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allTransactionViolations = value),
+});
+
+let allTransactions: OnyxCollection<OnyxTypes.Transaction>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (value) => (allTransactions = value),
+});
+
+let allNextSteps: OnyxCollection<OnyxTypes.ReportNextStepDeprecated>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.NEXT_STEP,
+    waitForCollectionCallback: true,
+    callback: (value) => (allNextSteps = value),
+});
+
+let allReportNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportNVPs = value),
+});
+
+let allPolicyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicyCategories = value),
+});
+
+let userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+    waitForCollectionCallback: true,
+    callback: (value) => (userBillingGracePeriodEnds = value),
+});
+
 type SubmitAmountArgs = {
     report: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -156,17 +207,6 @@ type SubmitAmountArgs = {
     navigateBack: () => void;
     amount: string;
     paymentMethod?: PaymentMethodType;
-
-    // Submit-time collection data — passed in by the screen until follow-up PRs cache these at module scope.
-    transactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
-    storedTransaction: OnyxEntry<OnyxTypes.Transaction>;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
-    allReportNVPs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
-    duplicateTransactions: OnyxCollection<OnyxTypes.Transaction>;
-    duplicateTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
 };
 
 /**
@@ -235,15 +275,6 @@ function submitAmount({
     navigateBack,
     amount,
     paymentMethod,
-    transactionDrafts,
-    transactionViolations,
-    storedTransaction,
-    parentReportNextStep,
-    policyCategories,
-    userBillingGracePeriodEnds,
-    allReportNVPs,
-    duplicateTransactions,
-    duplicateTransactionViolations,
 }: SubmitAmountArgs): void {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
@@ -354,7 +385,8 @@ function submitAmount({
                     return;
                 }
                 const isTrackExpenseSubmit = iouType === CONST.IOU.TYPE.TRACK;
-                const draftTransactionIDsList = Object.keys(transactionDrafts ?? {});
+                const validDrafts = validTransactionDraftsSelector(allTransactionDrafts);
+                const draftTransactionIDsList = Object.keys(validDrafts ?? {});
                 const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
                 const executeExpenseWrite = (overrides: WriteOverrides) => {
                     if (isTrackExpenseSubmit) {
@@ -387,7 +419,8 @@ function submitAmount({
                             optimisticTransactionID,
                         });
                     } else {
-                        const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
+                        const existingTransactionDraft = existingTransactionID ? validDrafts?.[existingTransactionID] : undefined;
+                        const storedTransaction = existingTransactionID ? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`] : undefined;
                         requestMoney({
                             report,
                             betas,
@@ -409,7 +442,7 @@ function submitAmount({
                             isASAPSubmitBetaEnabled,
                             currentUserAccountIDParam,
                             currentUserEmailParam,
-                            transactionViolations,
+                            transactionViolations: allTransactionViolations,
                             quickAction,
                             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                             existingTransactionDraft,
@@ -537,12 +570,18 @@ function submitAmount({
         resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountIDParam, false);
     }
 
-    // `parentReport` is read from the module-scope REPORT cache (introduced in PR 3); the rest
-    // of the edit-branch collection data (`parentReportNextStep`, `policyCategories`,
-    // `duplicateTransactions`, `duplicateTransactionViolations`) comes in via args until the
-    // follow-up PR caches `NEXT_STEP`, `POLICY_CATEGORIES`, `TRANSACTION`, and
-    // `TRANSACTION_VIOLATIONS` at module scope.
+    // Duplicate-tx and per-member edit-branch state are read from the module-scope caches
+    // (NEXT_STEP, POLICY_CATEGORIES, TRANSACTION, TRANSACTION_VIOLATIONS, REPORT). Duplicate-tx
+    // is computed on demand from the cached collections — the create path never enters this
+    // branch, so it never pays the cost.
+    const editingTransactionIDs = transactionID ? [transactionID] : [];
+    const duplicateTransactionViolations = selectViolationsWithDuplicates(editingTransactionIDs, allTransactionViolations);
+    const duplicateTransactions = selectTransactionsWithDuplicates(editingTransactionIDs, allTransactions, duplicateTransactionViolations);
+
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
+    const parentReportNextStep = report?.parentReportID ? allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${report.parentReportID}`] : undefined;
+    const policyID = report?.policyID;
+    const policyCategories = policyID ? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] : undefined;
 
     updateMoneyRequestAmountAndCurrency({
         transactionID,

@@ -141,3 +141,4 @@ function useDuplicateTransactionsAndViolations(transactionIDs: string[]): Duplic
 }
 
 export default useDuplicateTransactionsAndViolations;
+export {selectViolationsWithDuplicates, selectTransactionsWithDuplicates};
