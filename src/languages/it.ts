@@ -1704,6 +1704,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Puoi duplicare fino a ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} spese alla volta. Seleziona meno spese e riprova.`,
         deleted: 'Eliminato',
+        categoryDisabledAlert: {
+            title: 'Categoria disattivata',
+            prompt: 'Attiva le categorie nello spazio di lavoro per modificare i dettagli della spesa o eliminare la categoria da questa spesa.',
+            confirmText: 'Elimina categoria',
+        },
+        tagDisabledAlert: {
+            title: 'Tag disattivato',
+            prompt: 'Abilita le etichette nello spazio di lavoro per modificare i dettagli della spesa o eliminare l’etichetta da questa spesa.',
+            confirmText: 'Elimina tag',
+        },
     },
     transactionMerge: {
         listPage: {

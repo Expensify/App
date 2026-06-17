@@ -1699,6 +1699,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Je kunt maximaal ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} uitgaven tegelijk dupliceren. Selecteer minder uitgaven en probeer het opnieuw.`,
         deleted: 'Verwijderd',
+        categoryDisabledAlert: {
+            title: 'Categorie uitgeschakeld',
+            prompt: 'Schakel categorieën in de workspace in om de onkostendetails te bewerken of de categorie uit deze onkost te verwijderen.',
+            confirmText: 'Categorie verwijderen',
+        },
+        tagDisabledAlert: {
+            title: 'Label uitgeschakeld',
+            prompt: 'Schakel tags in op de werkruimte om de onkostendetails te bewerken of de tag uit deze onkosten te verwijderen.',
+            confirmText: 'Label verwijderen',
+        },
     },
     transactionMerge: {
         listPage: {

@@ -1687,6 +1687,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `一度に複製できる経費は最大で ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 件です。経費の数を減らして、もう一度お試しください。`,
         deleted: '削除済み',
+        categoryDisabledAlert: {
+            title: 'カテゴリは無効です',
+            prompt: 'ワークスペースでカテゴリを有効にすると、この経費の詳細を編集したり、この経費からカテゴリを削除したりできます。',
+            confirmText: 'カテゴリを削除',
+        },
+        tagDisabledAlert: {
+            title: 'タグは無効です',
+            prompt: 'ワークスペースでタグを有効にすると、この経費の詳細を編集したり、この経費からタグを削除したりできます。',
+            confirmText: 'タグを削除',
+        },
     },
     transactionMerge: {
         listPage: {
