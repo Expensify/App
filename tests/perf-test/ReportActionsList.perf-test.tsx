@@ -96,6 +96,9 @@ beforeEach(() => {
     setHasRadio(true);
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     signUpWithTestUser();
+
+    // Mark the report actions as loaded
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`, {hasOnceLoadedReportActions: true});
 });
 
 afterEach(() => {
