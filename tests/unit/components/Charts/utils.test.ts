@@ -9,6 +9,7 @@ import {
     getAdditionalOffset,
     getNiceLowerBound,
     getNiceUpperBound,
+    getNiceYAxisTicks,
     isAngleInSlice,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
@@ -728,5 +729,23 @@ describe('getNiceLowerBound', () => {
         // rawMin=-50, rawMax=100 → range=150, roughStep=37.5, magnitude=10, normalized=3.75 >= 2 → step=20
         // floor(-50/20)*20=floor(-2.5)*20=-3*20=-60
         expect(getNiceLowerBound(-50, 5, 100)).toBe(-60);
+    });
+});
+
+describe('getNiceYAxisTicks', () => {
+    it('expands a flat series by ±1 to mirror victory-native equal-domain ticks', () => {
+        expect(getNiceYAxisTicks(-1, -1, VictoryTheme.axis.tickCount)).toEqual([0, -0.5, -1, -1.5, -2]);
+    });
+
+    it('returns every nice step tick for varied positive data', () => {
+        expect(getNiceYAxisTicks(90, 0, 5)).toEqual([0, 20, 40, 60, 80, 100]);
+    });
+
+    it('returns every nice step tick for mixed positive and negative data', () => {
+        expect(getNiceYAxisTicks(100, -50, 5)).toEqual([-60, -40, -20, 0, 20, 40, 60, 80, 100]);
+    });
+
+    it('returns every nice step tick for varied negative data', () => {
+        expect(getNiceYAxisTicks(-10, -90, 5)).toEqual([-100, -80, -60, -40, -20, 0]);
     });
 });

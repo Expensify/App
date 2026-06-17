@@ -87,8 +87,8 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     });
 
     const yAxisLabelWidth = useYAxisLabelWidth(
-        Math.max(...data.map((p) => p.total), 0),
-        Math.min(...data.map((p) => p.total), 0),
+        Math.max(...data.map((p) => p.total)),
+        Math.min(...data.map((p) => p.total)),
         VictoryTheme.axis.tickCount,
         formatValue,
         fontMgr,

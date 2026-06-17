@@ -457,16 +457,42 @@ function getNiceLowerBound(rawMin: number, tickCount: number, rawMax = 0): numbe
 }
 
 /**
- * Returns the pixel width needed for Y-axis labels given the data extremes.
- *
- * Both nice bounds are measured because negative labels (e.g. "−2 000 zł") are
- * typically wider than their positive counterparts. Pass rawDataMin = 0 when
- * there are no negative values.
+ * Predicts Y-axis tick values that victory-native will generate from the data extremes.
+ * Flat series use victory-native's ±1 expansion; varied series use nice step intervals.
  */
-function getYAxisLabelWidth(rawDataMax: number, rawDataMin: number, tickCount: number, formatValue: (value: number) => string, fontMgr: SkTypefaceFontProvider, fontSize: number): number {
+function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: number): number[] {
+    if (tickCount <= 0) {
+        return [];
+    }
+    if (tickCount === 1) {
+        return [rawDataMax];
+    }
+    if (rawDataMin === rawDataMax) {
+        return Array.from({length: tickCount}, (_, index) => rawDataMin + 1 - (index * 2) / (tickCount - 1));
+    }
+
+    const range = rawDataMax - rawDataMin;
+    if (range <= 0) {
+        return [rawDataMax];
+    }
+
     const niceMax = getNiceUpperBound(rawDataMax, tickCount, rawDataMin);
     const niceMin = getNiceLowerBound(rawDataMin, tickCount, rawDataMax);
-    return Math.max(measureTextWidth(formatValue(niceMax), fontMgr, fontSize), measureTextWidth(formatValue(niceMin), fontMgr, fontSize));
+    const niceStep = getNiceStep(range, tickCount);
+
+    const ticks: number[] = [];
+    for (let tick = niceMin; tick <= niceMax + Number.EPSILON; tick += niceStep) {
+        ticks.push(tick);
+    }
+    if (ticks.at(-1) !== niceMax) {
+        ticks.push(niceMax);
+    }
+    return ticks;
+}
+
+/** Returns the pixel width needed for Y-axis labels given the data extremes. */
+function getYAxisLabelWidth(rawDataMax: number, rawDataMin: number, tickCount: number, formatValue: (value: number) => string, fontMgr: SkTypefaceFontProvider, fontSize: number): number {
+    return Math.max(0, ...getNiceYAxisTicks(rawDataMax, rawDataMin, tickCount).map((tick) => measureTextWidth(formatValue(tick), fontMgr, fontSize)));
 }
 
 export {
@@ -493,6 +519,7 @@ export {
     isCursorOverChartLabel,
     getNiceUpperBound,
     getNiceLowerBound,
+    getNiceYAxisTicks,
     getYAxisLabelWidth,
 };
 

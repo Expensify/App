@@ -228,8 +228,8 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const yAxisLabelWidth = useYAxisLabelWidth(
-        Math.max(...data.map((p) => p.total), 0),
-        Math.min(...data.map((p) => p.total), 0),
+        Math.max(...data.map((p) => p.total)),
+        Math.min(...data.map((p) => p.total)),
         VictoryTheme.axis.tickCount,
         formatValue,
         fontMgr,
