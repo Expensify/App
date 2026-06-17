@@ -936,6 +936,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const activeRoute = Navigation.getActiveRoute();
             const searchData = searchResults?.data;
+            const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
 
             for (const item of selectedOptions) {
                 const itemPolicyID = item.policyID;
@@ -992,7 +993,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         itemReport,
                         adminPolicy,
                         formatPhoneNumber,
-                        getAllPolicyExpenseChatReportActions(allReports, allReportActions),
+                        policyExpenseChatReportActions,
                         accountID,
                         getLoginByAccountID(itemReport?.ownerAccountID, personalDetails),
                         reportTransactions,
