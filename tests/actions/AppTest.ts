@@ -77,14 +77,14 @@ describe('actions/App', () => {
         // The lastFullReconnectTime should be updated
         expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeTruthy();
 
-        // And when a new reconnectAppIfFullReconnectBefore is received
-        const fullReconnectBefore = DateUtils.getDBTime();
-        Onyx.set(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, fullReconnectBefore);
+        // And when a new server cutoff is received
+        const serverReconnectCutoff = DateUtils.getDBTime();
+        Onyx.set(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, serverReconnectCutoff);
         await waitForBatchedUpdates();
 
-        // Then a full reconnect should be triggered for the received NVP demand
+        // Then a full reconnect should be triggered for the received server cutoff
         expect(triggerFullReconnect).toHaveBeenCalledTimes(1);
-        expect(triggerFullReconnect).toHaveBeenCalledWith(fullReconnectBefore);
+        expect(triggerFullReconnect).toHaveBeenCalledWith(serverReconnectCutoff);
     });
 
     test("don't trigger full reconnect", async () => {
@@ -98,7 +98,7 @@ describe('actions/App', () => {
         // The lastFullReconnectTime should be updated
         expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeTruthy();
 
-        // And when a reconnectAppIfFullReconnectBefore is received with a timestamp in the past
+        // And when a server cutoff is received with a timestamp in the past
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         Onyx.set(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, DateUtils.getDBTime(yesterday.toISOString()));

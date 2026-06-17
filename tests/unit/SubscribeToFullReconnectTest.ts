@@ -14,19 +14,19 @@ jest.mock('@libs/Log');
 
 const mockWriteCommand = jest.mocked(writeWithNoDuplicatesConflictAction);
 
-// The skew regime under test: the server's NVP demand is ahead of the client clock.
+// The case under test: this device's clock is behind the server, so the server cutoff is ahead of "now".
 const CLIENT_NOW = '2026-06-12 10:00:00.000';
-const SERVER_DEMAND = '2026-06-12 10:05:00.000';
-const NEWER_SERVER_DEMAND = '2026-06-12 10:10:00.000';
+const SERVER_CUTOFF = '2026-06-12 10:05:00.000';
+const NEWER_SERVER_CUTOFF = '2026-06-12 10:10:00.000';
 
-// Ordered observation log: receipt writes (via the Onyx subscription below) and reconnect
-// requests (via the API mock), so tests can assert seed-before-request ordering.
-let events: Array<{type: 'receipt' | 'request'; value: string}> = [];
+// Ordered log of two things: when we record the completion time (via the Onyx subscription below) and
+// when a reconnect request is sent (via the API mock). Lets tests assert we record before we request.
+let events: Array<{type: 'completion' | 'request'; value: string}> = [];
 let capturedOnyxData: Array<NonNullable<Parameters<typeof writeWithNoDuplicatesConflictAction>[2]>> = [];
 Onyx.connectWithoutView({
     key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
     callback: (value) => {
-        events.push({type: 'receipt', value: value ?? ''});
+        events.push({type: 'completion', value: value ?? ''});
     },
 });
 
@@ -45,19 +45,20 @@ async function waitForCondition(predicate: () => boolean, label: string): Promis
 }
 
 /**
- * Simulates the server response the way applyHTTPSOnyxUpdates does: onyxData (re-delivering the NVP)
- * before successData (the receipt write), then drains so any re-arm surfaces before assertions.
+ * Simulates a server response the way applyHTTPSOnyxUpdates does: it applies onyxData (which re-delivers
+ * the cutoff) before successData (which records the completion time), then drains pending work so any
+ * unwanted re-trigger shows up before we assert.
  */
-async function applyServerResponse(redeliveredNVP: string): Promise<void> {
-    await Onyx.merge(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, redeliveredNVP);
+async function applyServerResponse(redeliveredCutoff: string): Promise<void> {
+    await Onyx.merge(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, redeliveredCutoff);
     await waitForBatchedUpdates();
     await Onyx.update(capturedOnyxData.at(0)?.successData ?? []);
     await waitForBatchedUpdates();
     await waitForBatchedUpdates();
 }
 
-async function triggerFullReconnectDemand(nvp: string): Promise<void> {
-    await Onyx.merge(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, nvp);
+async function setServerCutoff(cutoff: string): Promise<void> {
+    await Onyx.merge(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, cutoff);
     await waitForCondition(() => getReconnectRequests().length > 0, 'first ReconnectApp request');
 }
 
@@ -89,38 +90,38 @@ describe('subscribeToFullReconnect', () => {
     });
 
     it('fires exactly one ReconnectApp across a full response cycle on a client clock behind the server', async () => {
-        await triggerFullReconnectDemand(SERVER_DEMAND);
+        await setServerCutoff(SERVER_CUTOFF);
 
-        await applyServerResponse(SERVER_DEMAND);
+        await applyServerResponse(SERVER_CUTOFF);
 
         expect(getReconnectRequests()).toHaveLength(1);
         expect(mockWriteCommand.mock.calls).toHaveLength(1);
-        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBe(SERVER_DEMAND);
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBe(SERVER_CUTOFF);
     });
 
-    it('writes the receipt to max(now, NVP) before the reconnect request is created', async () => {
-        await triggerFullReconnectDemand(SERVER_DEMAND);
+    it('records the completion time as max(now, cutoff) before the reconnect request is sent', async () => {
+        await setServerCutoff(SERVER_CUTOFF);
 
         const firstRequestIndex = events.findIndex((event) => event.type === 'request');
-        const seedIndex = events.findIndex((event) => event.type === 'receipt' && event.value === SERVER_DEMAND);
+        const completionIndex = events.findIndex((event) => event.type === 'completion' && event.value === SERVER_CUTOFF);
 
         expect(firstRequestIndex).toBeGreaterThan(-1);
-        expect(seedIndex).toBeGreaterThan(-1);
-        expect(seedIndex).toBeLessThan(firstRequestIndex);
+        expect(completionIndex).toBeGreaterThan(-1);
+        expect(completionIndex).toBeLessThan(firstRequestIndex);
     });
 
-    it('still fires a fresh reconnect when a genuinely newer NVP arrives after a completed cycle', async () => {
-        await triggerFullReconnectDemand(SERVER_DEMAND);
-        await applyServerResponse(SERVER_DEMAND);
+    it('still fires a fresh reconnect when a genuinely newer cutoff arrives after a completed cycle', async () => {
+        await setServerCutoff(SERVER_CUTOFF);
+        await applyServerResponse(SERVER_CUTOFF);
         expect(getReconnectRequests()).toHaveLength(1);
 
-        await Onyx.merge(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, NEWER_SERVER_DEMAND);
-        await waitForCondition(() => getReconnectRequests().length > 1, 'reconnect for the newer NVP demand');
+        await Onyx.merge(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, NEWER_SERVER_CUTOFF);
+        await waitForCondition(() => getReconnectRequests().length > 1, 'reconnect for the newer server cutoff');
 
         expect(getReconnectRequests()).toHaveLength(2);
     });
 
-    it('does not fire a redundant reconnect on the clear-and-seed path and seeds client-now when the NVP is empty', async () => {
+    it('does not fire a redundant reconnect through clearOnyxAndSeedFullReconnect and records client-now when there is no cutoff', async () => {
         await clearOnyxAndSeedFullReconnect([]);
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();

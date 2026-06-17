@@ -1,25 +1,36 @@
 import DateUtils from './DateUtils';
 
 /**
- * Whether a full reconnect should fire: the receipt (LAST_FULL_RECONNECT_TIME) is older than the
- * server's demand (NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE). Both are Onyx DB-time strings, so
- * lexicographic comparison is correct — an empty receipt always triggers, an empty demand never does.
+ * Full reconnect: the app refetches all of its data from the server.
+ *
+ * The server can ask for one by setting a cutoff time in the Onyx value
+ * NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE. If the app last reconnected before that cutoff, its
+ * data is stale. The app stores its own last reconnect time in LAST_FULL_RECONNECT_TIME. Both are
+ * date strings from DateUtils.getDBTime(), which sort in the same order as the dates they represent,
+ * so comparing them as strings is correct.
  */
-function shouldTriggerFullReconnect(lastFullReconnectTime: string, reconnectAppIfFullReconnectBefore: string): boolean {
-    return lastFullReconnectTime < reconnectAppIfFullReconnectBefore;
+
+/**
+ * Whether the app needs a full reconnect: its last reconnect is older than the server's cutoff.
+ * An empty last reconnect time means the app has never reconnected, so this returns true. An empty
+ * cutoff means the server has not asked for one, so this returns false.
+ */
+function shouldTriggerFullReconnect(lastFullReconnectTime: string, serverReconnectCutoff: string): boolean {
+    return lastFullReconnectTime < serverReconnectCutoff;
 }
 
 /**
- * The receipt value to write when answering an NVP full-reconnect demand: max(client-now, demand).
+ * The time to write to LAST_FULL_RECONNECT_TIME after a full reconnect. It is the current time, held
+ * to be no earlier than the server's cutoff.
  *
- * Plain client-now is unsafe. Every OpenApp/full-ReconnectApp response re-delivers the NVP before
- * writing the receipt, so on a client whose clock is behind the server the receipt always compares
- * below the NVP and re-triggers subscribeToFullReconnect — a storm at round-trip pace. Seeding to
- * the demand closes the loop; a genuinely newer NVP still compares above and triggers a fresh one.
+ * If this device's clock is behind the server, the current time can fall before the cutoff. The app
+ * would then still read as stale and reconnect again at once, over and over. Taking the later of the
+ * two values stops that loop. A newer cutoff sent later is still greater, so it triggers the next
+ * reconnect as normal.
  */
-function getFullReconnectSeedTime(reconnectAppIfFullReconnectBefore: string): string {
+function getLastFullReconnectTimeToRecord(serverReconnectCutoff: string): string {
     const now = DateUtils.getDBTime();
-    return now >= reconnectAppIfFullReconnectBefore ? now : reconnectAppIfFullReconnectBefore;
+    return now >= serverReconnectCutoff ? now : serverReconnectCutoff;
 }
 
-export {shouldTriggerFullReconnect, getFullReconnectSeedTime};
+export {shouldTriggerFullReconnect, getLastFullReconnectTimeToRecord};
