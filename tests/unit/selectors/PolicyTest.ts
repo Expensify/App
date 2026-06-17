@@ -36,10 +36,10 @@ describe('createOwnedPaidPoliciesCountsSelector', () => {
 
     it('counts only paid policies owned by the user', () => {
         const policies: OnyxCollection<Policy> = {
-            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM)},
-            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE)},
-            policy3: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.PERSONAL)},
-            policy4: {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM)},
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
+            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: null},
+            policy3: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.PERSONAL), pendingAction: null},
+            policy4: {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: null},
         };
         const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
         expect(selector(policies)).toEqual({total: 2, active: 2});
@@ -47,7 +47,7 @@ describe('createOwnedPaidPoliciesCountsSelector', () => {
 
     it('excludes policies pending deletion from active count but includes them in total', () => {
         const policies: OnyxCollection<Policy> = {
-            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM)},
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
             policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
         };
         const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
