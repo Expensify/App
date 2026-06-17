@@ -36,6 +36,13 @@ type OriginalMessageIOU = {
     /** The ID of the `IOU` transaction */
     IOUTransactionID?: string;
 
+    /**
+     * ID of the IOU/expense report the action belongs to. Temporary fallback for resolving the report when the
+     * backend omits `reportID` on hydrated IOU actions. Remove once the backend reliably sends `reportID`.
+     * See https://github.com/Expensify/App/issues/93882.
+     */
+    IOUReportID?: string;
+
     /** ID of the expense report */
     expenseReportID?: string;
 
@@ -74,6 +81,9 @@ type OriginalMessageIOU = {
 
     /** Masked number (e.g., 'XXXXXX1234') of the bank account used to fund the payment */
     accountNumber?: string;
+
+    /** True when the submitter marked the report as payment received outside Expensify */
+    isSubmitterMarkedPaymentReceived?: boolean;
 
     /** How much was transaction */
     amount?: number;
