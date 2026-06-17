@@ -4873,7 +4873,7 @@ function canEditMoneyRequest(
     // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
     // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
     // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882.
-    const moneyRequestReportID = reportAction?.reportID || originalMessage?.IOUReportID;
+    const moneyRequestReportID = reportAction?.reportID ?? originalMessage?.IOUReportID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
 
     if (!moneyRequestReportID) {
@@ -5093,7 +5093,7 @@ function canEditFieldOfMoneyRequest({
     // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
     // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
     // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882.
-    const iouReportID = reportAction?.reportID || getOriginalMessage(reportAction)?.IOUReportID;
+    const iouReportID = reportAction?.reportID ?? getOriginalMessage(reportAction)?.IOUReportID;
     const moneyRequestReport = report ?? (iouReportID ? (getReport(iouReportID, deprecatedAllReports) ?? ({} as Report)) : ({} as Report));
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
@@ -5245,7 +5245,7 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
         // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
         // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
         // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882. See https://github.com/Expensify/App/issues/93882.
-        const moneyRequestReportID = reportAction?.reportID || getOriginalMessage(reportAction)?.IOUReportID;
+        const moneyRequestReportID = reportAction?.reportID ?? getOriginalMessage(reportAction)?.IOUReportID;
         if (moneyRequestReportID) {
             const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
             if (isSettled(moneyRequestReport?.reportID) || isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport)) {
