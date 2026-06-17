@@ -254,6 +254,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             chatReportPolicy,
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData,
+            isTrackIntentUser,
         });
     }, [
         currentSearchHash,

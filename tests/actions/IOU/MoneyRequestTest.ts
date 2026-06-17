@@ -149,6 +149,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
                 allTransactionDrafts: {},
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(1);
@@ -190,6 +191,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SEND,
                 allTransactionDrafts: {},
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
@@ -238,6 +240,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 files,
                 allTransactionDrafts: {},
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(files.length);
@@ -252,6 +255,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 files,
                 allTransactionDrafts: {},
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -271,6 +275,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 currentUserEmail: undefined,
                 allTransactionDrafts: {},
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -303,6 +308,7 @@ describe('MoneyRequest', () => {
                 allTransactionDrafts: {
                     [draftTransaction.transactionID]: draftTransaction,
                 },
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -317,6 +323,7 @@ describe('MoneyRequest', () => {
             createTransaction({
                 ...baseParams,
                 allTransactionDrafts: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -332,6 +339,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 billable: true,
                 reimbursable: false,
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -348,6 +356,7 @@ describe('MoneyRequest', () => {
             createTransaction({
                 ...baseParams,
                 allTransactionDrafts: {},
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -360,13 +369,13 @@ describe('MoneyRequest', () => {
 
         // getMoneyRequestInformation derives isScanRequest from existingTransaction; dropping it would silently downgrade a scanned receipt to a manual request.
         it('should pass the receipt transaction as existingTransaction to requestMoney', () => {
-            createTransaction({...baseParams});
+            createTransaction({...baseParams, isTrackIntentUser: false});
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: fakeTransaction}));
         });
 
         it('should pass the receipt transaction as existingTransaction to trackExpense', () => {
-            createTransaction({...baseParams, iouType: CONST.IOU.TYPE.TRACK});
+            createTransaction({...baseParams, iouType: CONST.IOU.TYPE.TRACK, isTrackIntentUser: false});
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: fakeTransaction}));
         });
@@ -381,6 +390,7 @@ describe('MoneyRequest', () => {
                     [draft1.transactionID]: draft1,
                     [draft2.transactionID]: draft2,
                 },
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -396,6 +406,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
                 gpsPoint,
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -431,6 +442,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 transactions: [transactionWithoutTax],
                 policyParams: {policy: policyWithTax},
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -467,6 +479,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.REQUEST,
                 transactions: [transactionWithoutTax],
                 policyParams: {policy: policyWithTax},
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -503,6 +516,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 transactions: [transactionWithTax],
                 policyParams: {policy: policyWithTax},
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -527,6 +541,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.REQUEST,
                 transactions: [transactionWithoutTax],
                 policyParams: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
@@ -545,6 +560,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.REQUEST,
                 optimisticTransactionIDs: ['ui-id-1'],
                 allTransactionDrafts: {},
+                isTrackIntentUser: false,
             });
             const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
             expect(requestMoneyArg?.optimisticTransactionID).toBe('ui-id-1');
@@ -558,6 +574,7 @@ describe('MoneyRequest', () => {
                 participant: {accountID: 222, login: 'test@test.com'},
                 optimisticChatReportID: 'ui-resolved-chat',
                 allTransactionDrafts: {},
+                isTrackIntentUser: false,
             });
             const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
             expect(requestMoneyArg?.optimisticChatReportID).toBe('ui-resolved-chat');
@@ -648,6 +665,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 backTo,
                 draftTransactionIDs: [baseParams.transactionID],
+                isTrackIntentUser: false,
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -658,6 +676,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 backTo,
                 draftTransactionIDs: undefined,
+                isTrackIntentUser: false,
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -676,6 +695,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
+                isTrackIntentUser: false,
             });
 
             expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1);
@@ -688,6 +708,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
+                isTrackIntentUser: false,
             });
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
@@ -741,6 +762,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 optimisticTransactionID: 'optimistic-should-be-ignored',
                 draftTransactionIDs: [baseParams.transactionID],
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -762,6 +784,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 optimisticTransactionID: 'optimistic-should-be-ignored',
                 draftTransactionIDs: [baseParams.transactionID],
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -806,6 +829,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -871,6 +895,7 @@ describe('MoneyRequest', () => {
                 manualDistance: 20,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
+                isTrackIntentUser: false,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -910,6 +935,7 @@ describe('MoneyRequest', () => {
                 manualDistance: undefined,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
+                isTrackIntentUser: false,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -948,6 +974,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: false,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -984,6 +1011,7 @@ describe('MoneyRequest', () => {
                 isAutoReporting: true,
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1025,6 +1053,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy,
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1037,6 +1066,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
+                isTrackIntentUser: false,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
@@ -1049,6 +1079,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy: undefined,
                 iouType: CONST.IOU.TYPE.CREATE,
                 amountOwed: 8010,
+                isTrackIntentUser: false,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
@@ -1063,6 +1094,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.CREATE,
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
+                isTrackIntentUser: false,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
@@ -1074,6 +1106,7 @@ describe('MoneyRequest', () => {
                 report: undefined,
                 defaultExpensePolicy: fakePolicy,
                 iouType: CONST.IOU.TYPE.CREATE,
+                isTrackIntentUser: false,
             });
 
             const lastCallArgs = jest.mocked(shouldUseDefaultExpensePolicy).mock.calls.at(-1) ?? [];
@@ -1089,6 +1122,7 @@ describe('MoneyRequest', () => {
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
                 conciergeReportID,
+                isTrackIntentUser: false,
             });
 
             // When report exists and iouType is not CREATE, the function calls getMoneyRequestParticipantOptions
@@ -1105,6 +1139,7 @@ describe('MoneyRequest', () => {
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
                 conciergeReportID: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1123,6 +1158,7 @@ describe('MoneyRequest', () => {
                 setDistanceRequestData: (participants) => {
                     capturedParticipants = participants;
                 },
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1142,6 +1178,7 @@ describe('MoneyRequest', () => {
                 setDistanceRequestData: (participants) => {
                     capturedParticipants = participants;
                 },
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();

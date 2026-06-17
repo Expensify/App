@@ -284,6 +284,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                isTrackIntentUser,
             });
         } else {
             payMoneyRequest({
@@ -306,6 +307,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                 onPaid: () => {
                     startAnimation();
                 },
+                isTrackIntentUser,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -490,6 +492,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             amountOwed,
             ownerBillingGracePeriodEnd,
             delegateEmail,
+            isTrackIntentUser,
         });
     };
 

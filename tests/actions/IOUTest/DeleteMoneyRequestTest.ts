@@ -186,6 +186,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -441,6 +442,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -699,6 +701,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     policyRecentlyUsedCurrencies: [],
                     parentReportNextStep: undefined,
+                    isTrackIntentUser: false,
                 });
             }
             await waitForBatchedUpdates();
@@ -1134,6 +1137,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    isTrackIntentUser: false,
                 });
             }
 
@@ -1215,6 +1219,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -1386,6 +1391,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     existingTransactionDraft: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    isTrackIntentUser: false,
                 });
             }
 

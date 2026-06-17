@@ -1,4 +1,5 @@
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
@@ -86,6 +87,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
         selector: shouldStartLocationPermissionFlowSelector,
     });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
@@ -291,19 +293,20 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
                                 },
+                                isTrackIntentUser,
                             });
                             runCleanup();
                         },
                         (errorData) => {
                             Log.info('[ScanSkipConfirmation] getCurrentPosition failed', false, errorData);
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                            createTransaction(baseParams);
+                            createTransaction({...baseParams, isTrackIntentUser});
                             runCleanup();
                         },
                     );
                     return;
                 }
-                createTransaction(baseParams);
+                createTransaction({...baseParams, isTrackIntentUser});
                 runCleanup();
             },
             destinationReportID: scanDestinationReportID,

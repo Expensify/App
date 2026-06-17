@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {policyIDsWithEmptyReportsSelector} from '@selectors/Report';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useEffect, useMemo, useState} from 'react';
@@ -75,6 +76,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
@@ -126,6 +128,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     allTransactions,
                     policyTagList,
                     allTransactionViolation: transactionViolations,
+                    isTrackIntentUser,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values

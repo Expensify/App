@@ -174,6 +174,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 startApprovedAnimation();
             },
             delegateEmail,
+            isTrackIntentUser,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);
@@ -209,6 +210,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 },
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
+                isTrackIntentUser,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -257,6 +259,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         amountOwed,
                         ownerBillingGracePeriodEnd,
                         delegateEmail,
+                        isTrackIntentUser,
                     });
                 });
             },
@@ -295,7 +298,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         CONST.IOU.REPORT_ACTION_TYPE.PAY,
                         () => {
                             startAnimation();
-                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '');
+                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', isTrackIntentUser);
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     );
@@ -303,7 +306,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 startAnimation();
-                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '');
+                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', isTrackIntentUser);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
@@ -338,7 +341,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail);
+                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail, isTrackIntentUser);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -359,7 +362,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     return;
                 }
 
-                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations);
+                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations, isTrackIntentUser);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
@@ -393,7 +396,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail);
+                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail, isTrackIntentUser);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
@@ -427,7 +430,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, chatReport);
+                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, chatReport, isTrackIntentUser);
             },
         },
     };

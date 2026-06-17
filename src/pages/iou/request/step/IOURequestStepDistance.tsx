@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -150,6 +151,7 @@ function IOURequestStepDistance({
     const {nonEmptyWaypointsCount, isWaypointsNullIslandError, duplicateWaypointsError, atLeastTwoDifferentWaypointsError} = useWaypointValidation({waypoints, validatedWaypoints});
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const iouRequestType = getRequestType(currentTransaction);
     const customUnitRateID = getRateID(currentTransaction);
 
@@ -483,6 +485,7 @@ function IOURequestStepDistance({
                     parentReportNextStep,
                     delegateAccountID,
                     distanceOriginalPolicy,
+                    isTrackIntentUser,
                 });
             }
             transactionWasSaved.current = true;
@@ -592,6 +595,7 @@ function IOURequestStepDistance({
             delegateAccountID,
             recentWaypoints,
             distanceOriginalPolicy,
+            isTrackIntentUser,
         });
         transactionWasSaved.current = true;
         // Remove the backup eagerly so the parent report view reads the optimistic transaction

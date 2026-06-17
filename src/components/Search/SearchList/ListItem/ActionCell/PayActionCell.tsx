@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -40,6 +41,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const {
@@ -101,6 +103,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
                 isSelfTourViewed,
                 defaultWorkspaceName,
                 additionalOnyxData,
+                isTrackIntentUser,
             });
             return;
         }
@@ -123,6 +126,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
             ownerBillingGracePeriodEnd,
             methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
             additionalOnyxData,
+            isTrackIntentUser,
         });
     };
 

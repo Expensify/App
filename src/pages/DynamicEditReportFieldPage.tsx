@@ -1,4 +1,5 @@
 import reportByIDsSelector from '@selectors/Attributes';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -54,6 +55,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
         selector: reportAttributesSelector,
     });
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const isTitleField = route.params.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
     let reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
@@ -146,6 +148,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
                     hasViolationsParam: hasViolations,
                     recentlyUsedReportFields,
                     shouldFixViolations: hasOtherViolations ?? false,
+                    isTrackIntentUser,
                 });
             }
             goBack();

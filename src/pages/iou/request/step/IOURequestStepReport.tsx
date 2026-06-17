@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
@@ -87,6 +88,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const isCreateReportRestricted = useCreateReportRestrictionCheck(session);
     const handleGoBack = () => {
         if (isEditing) {
@@ -145,7 +147,16 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(
+            ownerPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policyForNewReport,
+            betas,
+            false,
+            isTrackIntentUser,
+            shouldDismissEmptyReportsConfirmation,
+        );
         handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID, policyID: policyForNewReport?.id}, optimisticReport);
     };
 

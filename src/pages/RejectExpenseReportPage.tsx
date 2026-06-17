@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -21,7 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getSortedReportActions} from '@libs/ReportActionsUtils';
+import {getSortedReportActions, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import {rejectExpenseReport} from '@userActions/IOU/RejectMoneyRequest';
 import CONST from '@src/CONST';
@@ -45,6 +46,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const [selectedTargetAccountID, setSelectedTargetAccountID] = useState<string>('');
     const [selectionError, setSelectionError] = useState<string>('');
     const isSubmitAttempt = useRef(false);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const previousApprover = useMemo(() => {
         if (!reportActions) {
@@ -144,6 +146,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             currentUserPersonalDetails?.accountID,
             currentUserPersonalDetails?.displayName,
             currentUserPersonalDetails?.avatar,
+            isTrackIntentUser,
         );
         Navigation.goBack();
     };

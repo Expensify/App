@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -54,6 +55,7 @@ function IOURequestStepAttendees({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {isOffline} = useNetwork();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -76,6 +78,7 @@ function IOURequestStepAttendees({
                     parentReportNextStep,
                     isOffline,
                     delegateAccountID,
+                    isTrackIntentUser,
                 });
             } else {
                 setMoneyRequestAttendees(transactionID, attendees, !isEditing);

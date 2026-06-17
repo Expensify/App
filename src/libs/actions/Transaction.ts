@@ -482,6 +482,7 @@ type DismissDuplicateTransactionViolationProps = {
         transactionID: string;
         violations: TransactionViolations;
     }>;
+    isTrackIntentUser: boolean | undefined;
 };
 
 /**
@@ -496,6 +497,7 @@ function dismissDuplicateTransactionViolation({
     isASAPSubmitBetaEnabled,
     allTransactions,
     currentTransactionViolations = [],
+    isTrackIntentUser,
 }: DismissDuplicateTransactionViolationProps) {
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
     const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction?.reportID, transaction?.transactionID));
@@ -537,6 +539,7 @@ function dismissDuplicateTransactionViolation({
             currentUserEmailParam: dismissedPersonalDetails.login ?? '',
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
+            isTrackIntentUser,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: expenseReport,
@@ -547,6 +550,7 @@ function dismissDuplicateTransactionViolation({
             currentUserEmailParam: dismissedPersonalDetails.login ?? '',
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
+            isTrackIntentUser,
         });
 
         optimisticData.push({
@@ -839,6 +843,7 @@ type ChangeTransactionsReportProps = {
     allTransactions: OnyxCollection<Transaction>;
     policyTagList: OnyxEntry<PolicyTagLists>;
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function changeTransactionsReport({
@@ -853,6 +858,7 @@ function changeTransactionsReport({
     allTransactions,
     policyTagList,
     allTransactionViolation = {},
+    isTrackIntentUser,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1730,6 +1736,7 @@ function changeTransactionsReport({
             isASAPSubmitBetaEnabled,
             predictedNextStatus,
             shouldFixViolations: shouldFixViolationsForReport,
+            isTrackIntentUser,
         });
         const optimisticNextStepForReport = buildOptimisticNextStep({
             report: updatedReport,
@@ -1740,6 +1747,7 @@ function changeTransactionsReport({
             isASAPSubmitBetaEnabled,
             predictedNextStatus,
             shouldFixViolations: shouldFixViolationsForReport,
+            isTrackIntentUser,
         });
 
         optimisticData.push({

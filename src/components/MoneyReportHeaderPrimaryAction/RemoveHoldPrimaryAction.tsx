@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import Button from '@components/Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -22,6 +23,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
     const {moneyRequestReport, isOffline, reportActions, transactionThreadReportID, requestParentReportAction} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {transactions: reportTransactionsMap} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);
@@ -43,7 +45,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                     for (const action of IOUActions) {
                         const linkedTransaction = getLinkedIOUTransaction(action, transactions);
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransaction?.transactionID}`];
-                        changeMoneyRequestHoldStatus(action, linkedTransaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations);
+                        changeMoneyRequestHoldStatus(action, linkedTransaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser);
                     }
                     return;
                 }
@@ -55,7 +57,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
 
                 const linkedTransaction = getLinkedIOUTransaction(moneyRequestAction, transactions);
                 const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransaction?.transactionID}`];
-                changeMoneyRequestHoldStatus(moneyRequestAction, linkedTransaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations);
+                changeMoneyRequestHoldStatus(moneyRequestAction, linkedTransaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser);
             }}
         />
     );

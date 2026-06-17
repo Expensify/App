@@ -275,6 +275,7 @@ type SetWorkspaceApprovalModeAdditionalData = {
     reportNextSteps?: OnyxCollection<ReportNextStepDeprecated>;
     transactionViolations?: OnyxCollection<TransactionViolations>;
     betas?: Beta[];
+    isTrackIntentUser: boolean | undefined;
 };
 
 let deprecatedAllReportActions: OnyxCollection<ReportActions>;
@@ -910,7 +911,7 @@ function setWorkspaceApprovalMode(
     // We want to toggle off preventSelfApproval when the user turns off Approvals and has preventSelfApproval enabled.
     const shouldResetPreventSelfApproval = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && !!policy?.preventSelfApproval;
     if (shouldUpdateNextSteps) {
-        const {reportNextSteps, transactionViolations, betas} = additionalData;
+        const {reportNextSteps, transactionViolations, betas, isTrackIntentUser} = additionalData;
         const resolvedTransactionViolations: OnyxCollection<TransactionViolations> = transactionViolations ?? {};
         const resolvedReportNextSteps: NonNullable<OnyxCollection<ReportNextStepDeprecated>> = reportNextSteps ?? {};
         const resolvedBetas: Beta[] = betas ?? [];
@@ -937,6 +938,7 @@ function setWorkspaceApprovalMode(
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
+                isTrackIntentUser,
             });
 
             nextStepOptimisticData.push({

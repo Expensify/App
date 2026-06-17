@@ -106,6 +106,7 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
                 onSubmitted: startSubmittingAnimation,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
+                isTrackIntentUser,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

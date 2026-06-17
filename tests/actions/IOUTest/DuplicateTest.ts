@@ -1262,6 +1262,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1326,6 +1327,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1382,6 +1384,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1431,6 +1434,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1480,6 +1484,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1532,6 +1537,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1594,6 +1600,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1641,6 +1648,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1681,6 +1689,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1724,6 +1733,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1773,6 +1783,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1838,6 +1849,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1903,6 +1915,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1952,6 +1965,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2012,6 +2026,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2183,6 +2198,7 @@ describe('actions/Duplicate', () => {
             currentUserLogin: RORY_EMAIL,
             recentWaypoints: [],
             ...overrides,
+            isTrackIntentUser: false,
         });
 
         const countWriteCommandCalls = (command: string) => writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === command).length;
@@ -2751,6 +2767,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2867,6 +2884,7 @@ describe('actions/Duplicate', () => {
             translate: mockTranslate,
             recentWaypoints: [],
             ...overrides,
+            isTrackIntentUser: false,
         });
 
         const countWriteCommandCalls = (command: string) => writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === command).length;

@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
@@ -66,6 +67,7 @@ function IOURequestStepCategoryCreate({
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportReal?.parentReportID ?? reportDraft?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(reportReal?.parentReportID ?? reportDraft?.parentReportID)}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const report = reportReal ?? reportDraft;
 
@@ -143,6 +145,7 @@ function IOURequestStepCategoryCreate({
                 isASAPSubmitBetaEnabled,
                 hash: currentSearchHash,
                 delegateAccountID,
+                isTrackIntentUser,
             });
         } else {
             setMoneyRequestCategory(transactionID, categoryName, policy);

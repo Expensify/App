@@ -175,6 +175,7 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         draftTransactionIDs: [DRAFT_ID],
         privateIsArchivedMap: {},
         ...overrides,
+        isTrackIntentUser: false,
     };
 }
 

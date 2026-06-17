@@ -185,6 +185,7 @@ type GetIouParamsInput = {
     parentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -294,6 +295,7 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
         transactionViolations: allTransactionViolations,
         isOffline: params.isOffline,
         hash: params.hash,
+        isTrackIntentUser: params.isTrackIntentUser,
     });
 }
 
@@ -311,6 +313,7 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
         value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         hash: params.hash,
         isOffline: params.isOffline,
+        isTrackIntentUser: params.isTrackIntentUser,
     });
 }
 
@@ -321,6 +324,7 @@ function editTransactionDescriptionInline(params: TransactionInlineEditParams, n
         ...iouParams,
         comment: newDescription,
         hash: params.hash,
+        isTrackIntentUser: params.isTrackIntentUser,
     });
 }
 
@@ -331,6 +335,7 @@ function editTransactionCategoryInline(params: TransactionInlineEditParams, newC
         ...iouParams,
         category: newCategory,
         hash: params.hash,
+        isTrackIntentUser: params.isTrackIntentUser,
     });
 }
 
@@ -364,6 +369,7 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
         transactionViolations: allTransactionViolations,
         policyRecentlyUsedCurrencies: [],
         hash: params.hash,
+        isTrackIntentUser: params.isTrackIntentUser,
     });
 }
 
@@ -376,6 +382,7 @@ function editTransactionTagInline(params: TransactionInlineEditParams, newTag: s
         policyRecentlyUsedTags: iouParams.policyRecentlyUsedTags,
         hash: params.hash,
         isOffline: params.isOffline,
+        isTrackIntentUser: params.isTrackIntentUser,
     });
 }
 

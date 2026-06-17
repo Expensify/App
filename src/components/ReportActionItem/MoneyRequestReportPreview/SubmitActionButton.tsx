@@ -87,6 +87,7 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
                         onSubmitted: startSubmittingAnimation,
                         ownerBillingGracePeriodEnd,
                         delegateEmail,
+                        isTrackIntentUser,
                     });
                 });
             }}

@@ -3316,6 +3316,7 @@ describe('actions/Policy', () => {
                 },
                 transactionViolations: {},
                 betas: [],
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
@@ -3385,6 +3386,7 @@ describe('actions/Policy', () => {
                 },
                 transactionViolations: {},
                 betas: [],
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 

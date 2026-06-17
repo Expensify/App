@@ -89,6 +89,7 @@ describe('getMoneyRequestInformation', () => {
                     ...baseParams.transactionParams,
                     tag: TAG_NAME,
                 },
+                isTrackIntentUser: false,
             });
 
             const expectedKey = `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${POLICY_ID}`;
@@ -104,6 +105,7 @@ describe('getMoneyRequestInformation', () => {
                 policyParams: {
                     policyTagList: policyTagListA,
                 },
+                isTrackIntentUser: false,
             });
 
             const expectedKey = `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${POLICY_ID}`;
@@ -122,6 +124,7 @@ describe('getMoneyRequestInformation', () => {
                     ...baseParams.transactionParams,
                     tag: TAG_NAME,
                 },
+                isTrackIntentUser: false,
             });
 
             const expectedKey = `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${POLICY_ID}`;
@@ -147,6 +150,7 @@ describe('getMoneyRequestInformation', () => {
                     ...baseParams.transactionParams,
                     tag: TAG_NAME,
                 },
+                isTrackIntentUser: false,
             });
 
             const expectedKey = `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${otherPolicyID}`;
@@ -181,6 +185,7 @@ describe('getMoneyRequestInformation', () => {
                     ...baseParams.transactionParams,
                     tag: TAG_NAME,
                 },
+                isTrackIntentUser: false,
             });
 
             const expectedKey = `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${differentPolicyID}`;
@@ -201,6 +206,7 @@ describe('getMoneyRequestInformation', () => {
                     ...baseParams.transactionParams,
                     tag: TAG_NAME,
                 },
+                isTrackIntentUser: false,
             });
 
             const expectedKey = `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${POLICY_ID}`;

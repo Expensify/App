@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -219,6 +220,7 @@ function IOURequestStepConfirmation({
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const receiptFilename = transaction?.receipt?.filename;
     const receiptPath = transaction?.receipt?.source;
@@ -426,6 +428,7 @@ function IOURequestStepConfirmation({
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
+        isTrackIntentUser,
     });
 
     // handleSearchDismiss doesn't pre-insert - it just dismisses the modal when search is

@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useMemo} from 'react';
 import type {ColorValue} from 'react-native';
 import {View} from 'react-native';
@@ -240,6 +241,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     }, [snapshot, snapshotReport?.chatReportID, reportItem.parentReportID]);
     const [parentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(snapshotReport?.policyID ?? reportItem.policyID)}`);
     const [parentChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? reportItem.parentReportID)}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const chatReport = parentChatReport ?? snapshotChatReport;
     const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext({
         reportID: reportItem.reportID,
@@ -280,6 +282,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             chatReportPolicy,
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData: snapshot?.data,
+            isTrackIntentUser,
         });
     };
     return !isLargeScreenWidth ? (

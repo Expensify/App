@@ -2,6 +2,7 @@
 // SearchStaticList (src/components/Search/SearchStaticList.tsx) used for fast
 // perceived performance. If you change the narrow-layout UI here, verify the
 // static version still looks visually identical.
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
@@ -74,6 +75,7 @@ function TransactionListItem<TItem extends ListItem>({
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
     const [activePolicyIDFromOnyx] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
     // Derived here (from this row's own live policy data) rather than drilled from the Search screen,
@@ -191,6 +193,7 @@ function TransactionListItem<TItem extends ListItem>({
             chatReportPolicy,
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData: currentSearchResults?.data,
+            isTrackIntentUser,
         });
     };
 

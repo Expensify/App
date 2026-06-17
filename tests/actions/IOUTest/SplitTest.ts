@@ -405,6 +405,7 @@ describe('split expense', () => {
                         policyRecentlyUsedTags: undefined,
                         betas: [CONST.BETAS.ALL],
                         personalDetails: mockPersonalDetails,
+                        isTrackIntentUser: false,
                     },
                 );
                 return waitForBatchedUpdates();
@@ -740,6 +741,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -789,6 +791,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -812,6 +815,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -842,6 +846,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -877,6 +882,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -898,6 +904,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -963,6 +970,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -1013,6 +1021,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -1074,6 +1083,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         waitForBatchedUpdates();
@@ -1146,7 +1156,7 @@ describe('split expense', () => {
         expect(iouAction).toBeTruthy();
 
         // Complete this split bill without changing the description
-        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], mockPersonalDetails, RORY_EMAIL);
+        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], mockPersonalDetails, false, RORY_EMAIL);
 
         await waitForBatchedUpdates();
 
@@ -1287,6 +1297,7 @@ describe('split expense', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -1354,6 +1365,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: testPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -1415,6 +1427,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: participantPersonalDetails,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -1542,7 +1555,7 @@ describe('split expense', () => {
             },
         };
 
-        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], completeSplitPersonalDetails, RORY_EMAIL);
+        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], completeSplitPersonalDetails, false, RORY_EMAIL);
 
         await waitForBatchedUpdates();
 
@@ -1793,6 +1806,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -1913,6 +1927,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -2045,6 +2060,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -2123,6 +2139,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             existingTransactionDraft: undefined,
             personalDetails: {},
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -2211,6 +2228,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -2272,6 +2290,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -2349,6 +2368,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             existingTransactionDraft: undefined,
             personalDetails: {},
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -2437,6 +2457,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -2545,6 +2566,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -2721,6 +2743,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports1.transactionReport,
             expenseReport: reports1.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -2856,6 +2879,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports2.transactionReport,
             expenseReport: reports2.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -2931,6 +2955,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -3041,6 +3066,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -3109,6 +3135,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -3219,6 +3246,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -3292,6 +3320,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -3411,6 +3440,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -3485,6 +3515,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -3513,7 +3544,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Put the expense on hold
         if (originalTransactionID && transactionThreadReportID) {
-            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
+            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, [], false);
         }
         await waitForBatchedUpdates();
 
@@ -3626,6 +3657,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -3743,6 +3775,7 @@ describe('updateSplitTransactions', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -3810,6 +3843,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -3876,6 +3910,7 @@ describe('updateSplitTransactions', () => {
             personalDetails: {},
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -3943,6 +3978,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: true,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -4009,6 +4045,7 @@ describe('updateSplitTransactions', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -4074,6 +4111,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -4151,6 +4189,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -4252,6 +4291,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -4316,6 +4356,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
 
         const updateSplitTransactionCall = writeSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION);
@@ -4355,7 +4396,7 @@ describe('updateSplitTransactions', () => {
         // Put the original transaction on hold before splitting it.
         const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
         const ancestors = getAncestors(transactionThreadReport, allReports, {}, allReportActions);
-        putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, ancestors);
+        putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, ancestors, false);
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
@@ -4519,7 +4560,7 @@ describe('updateSplitTransactions', () => {
         // Put the split transaction 1 on hold before reverting it
         const {allReports: allReports2, allReportActions: allReportActions2} = await getCollections();
         const ancestors2 = getAncestors(split1ThreadReport, allReports2, {}, allReportActions2);
-        putOnHold(splitTransactionID1, 'Test hold reason', split1ThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, ancestors2);
+        putOnHold(splitTransactionID1, 'Test hold reason', split1ThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, ancestors2, false);
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID1);
@@ -4570,6 +4611,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -4679,6 +4721,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -4753,6 +4796,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -4817,6 +4861,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            isTrackIntentUser: false,
         });
         await waitForBatchedUpdates();
 
@@ -6778,6 +6823,7 @@ describe('createDistanceRequest', () => {
             recentWaypoints: recentWaypoints ?? [],
             personalDetails: distanceMockPersonalDetails,
             betas: [CONST.BETAS.ALL],
+            isTrackIntentUser: false,
         };
     }
 

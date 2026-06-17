@@ -200,6 +200,7 @@ type HandleActionButtonPressParams = {
     chatReportPolicy?: OnyxEntry<Policy>;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     searchData?: SearchResultDataType;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function handleActionButtonPress({
@@ -230,6 +231,7 @@ function handleActionButtonPress({
     chatReportPolicy,
     iouReportCurrentNextStepDeprecated,
     searchData,
+    isTrackIntentUser,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -279,6 +281,7 @@ function handleActionButtonPress({
                 amountOwed,
                 policy,
                 searchData,
+                isTrackIntentUser,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -444,6 +447,7 @@ type GetPayActionCallbackParams = {
     amountOwed: OnyxEntry<number>;
     policy: OnyxEntry<Policy>;
     searchData?: SearchResultDataType;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function getPayActionCallback({
@@ -469,6 +473,7 @@ function getPayActionCallback({
     amountOwed,
     policy,
     searchData,
+    isTrackIntentUser,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
@@ -515,6 +520,7 @@ function getPayActionCallback({
         ownerBillingGracePeriodEnd,
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
+        isTrackIntentUser,
     });
 }
 

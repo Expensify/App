@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -57,6 +58,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         [personalDetails, selectedReport?.ownerAccountID],
     );
     const selectedReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport?.policyID}`];
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const hasPerDiemTransactions = useHasPerDiemTransactions(transactionIDs);
 
@@ -95,6 +97,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 allTransactions,
                 policyTagList,
                 allTransactionViolation: transactionViolations,
+                isTrackIntentUser,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -117,6 +120,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             allTransactions,
             policyTagList,
             allTransactionViolation: transactionViolations,
+            isTrackIntentUser,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
@@ -131,7 +135,16 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         }
 
         const policyForNewReport = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(
+            ownerPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policyForNewReport,
+            betas,
+            false,
+            isTrackIntentUser,
+            shouldDismissEmptyReportsConfirmation,
+        );
         selectReport(
             {
                 value: optimisticReport.reportID,

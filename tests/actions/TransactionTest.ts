@@ -183,7 +183,7 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL]);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], undefined, false);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -281,6 +281,7 @@ describe('actions/Transaction', () => {
                 policy: mockPolicy,
                 allTransactions,
                 policyTagList,
+                isTrackIntentUser: false,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
@@ -350,7 +351,7 @@ describe('actions/Transaction', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {isTrackIntentUser: false});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -386,6 +387,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -496,6 +498,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -529,7 +532,7 @@ describe('actions/Transaction', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {isTrackIntentUser: false});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -565,6 +568,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -675,6 +679,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -711,7 +716,7 @@ describe('actions/Transaction', () => {
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {isTrackIntentUser: false});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -749,6 +754,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -868,6 +874,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -904,7 +911,7 @@ describe('actions/Transaction', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {isTrackIntentUser: false});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -943,6 +950,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
 
@@ -971,7 +979,7 @@ describe('actions/Transaction', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, []);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, [], false);
                 }
                 await waitForBatchedUpdates();
 
@@ -1084,6 +1092,7 @@ describe('actions/Transaction', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    isTrackIntentUser: false,
                 });
 
                 await waitForBatchedUpdates();

@@ -210,6 +210,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -475,6 +476,7 @@ describe('actions/IOU', () => {
                         quickAction: undefined,
                         betas: [CONST.BETAS.ALL],
                         personalDetails: {},
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -708,6 +710,7 @@ describe('actions/IOU', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -877,6 +880,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
             return (
                 waitForBatchedUpdates()
@@ -1399,6 +1403,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -1431,6 +1436,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -1463,6 +1469,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
             // Verify that the iouReport is created successfully when isSelfTourViewed is true
             expect(iouReport).toBeDefined();
@@ -1514,6 +1521,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1558,6 +1566,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1628,6 +1637,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
             waitForBatchedUpdates();
 
@@ -1696,6 +1706,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 personalDetails: testPersonalDetails,
                 betas: [CONST.BETAS.ALL],
+                isTrackIntentUser: false,
             });
 
             expect(iouReport).toBeDefined();
@@ -1769,6 +1780,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 personalDetails: testPersonalDetails,
                 betas: [CONST.BETAS.ALL],
+                isTrackIntentUser: false,
             });
 
             expect(iouReport).toBeDefined();
@@ -1813,6 +1825,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 personalDetails: {},
                 betas: [CONST.BETAS.ALL],
+                isTrackIntentUser: false,
             });
 
             // Should still create the expense even with empty personalDetails
@@ -1972,6 +1985,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 personalDetails: {},
                 betas: [CONST.BETAS.ALL],
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2047,6 +2061,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2134,6 +2149,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2212,6 +2228,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2285,6 +2302,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2359,6 +2377,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2451,6 +2470,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -2524,6 +2544,7 @@ describe('actions/IOU', () => {
                 existingTransactionDraft: undefined,
                 draftTransactionIDs: [],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();

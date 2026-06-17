@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -59,6 +60,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [chatReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${chatReport?.policyID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
@@ -82,6 +84,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         personalDetails,
                         betas,
                         policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
+                        isTrackIntentUser,
                     });
                 } else {
                     changeTransactionsReport({
@@ -96,6 +99,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         allTransactions: selectedTransactions,
                         policyTagList,
                         allTransactionViolation: transactionViolations,
+                        isTrackIntentUser,
                     });
                 }
             },

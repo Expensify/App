@@ -311,6 +311,7 @@ function useSelectionModeReportActions({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
+                isTrackIntentUser,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -350,6 +351,7 @@ function useSelectionModeReportActions({
                 delegateEmail,
                 full: true,
                 expenseReportPolicy: policy,
+                isTrackIntentUser,
             });
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();
@@ -391,6 +393,7 @@ function useSelectionModeReportActions({
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                isTrackIntentUser,
             });
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();
@@ -412,6 +415,7 @@ function useSelectionModeReportActions({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                isTrackIntentUser,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -468,6 +472,7 @@ function useSelectionModeReportActions({
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
                 expenseReportPolicy: policy,
+                isTrackIntentUser,
             });
         });
     };

@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
@@ -228,6 +229,7 @@ function IOURequestStepAmount({
     // Use the stored transaction instead of the draft to preserve existing values, especially for distance requests while create a new request.
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
         isSaveButtonPressed.current = true;
@@ -384,6 +386,7 @@ function IOURequestStepAmount({
                             personalDetails,
                             optimisticChatReportID,
                             optimisticTransactionID,
+                            isTrackIntentUser,
                         });
                     }
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
@@ -523,6 +526,7 @@ function IOURequestStepAmount({
             isASAPSubmitBetaEnabled,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             delegateAccountID,
+            isTrackIntentUser,
         });
         navigateBack();
     };

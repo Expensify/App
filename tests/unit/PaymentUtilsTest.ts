@@ -200,6 +200,7 @@ describe('PaymentUtils', () => {
             amountOwed: 0,
             ownerBillingGracePeriodEnd: undefined,
             delegateEmail: undefined,
+            isTrackIntentUser: false,
         };
 
         beforeEach(() => {

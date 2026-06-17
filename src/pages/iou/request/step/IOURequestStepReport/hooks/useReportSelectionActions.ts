@@ -1,4 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -106,6 +107,7 @@ function useReportSelectionActions({
     const {removeTransaction} = useSearchSelectionActions();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const buildParticipants = (report: OnyxEntry<Report>) => [
         {
@@ -202,6 +204,7 @@ function useReportSelectionActions({
                         allTransactions,
                         policyTagList,
                         allTransactionViolation: transactionViolations,
+                        isTrackIntentUser,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -225,6 +228,7 @@ function useReportSelectionActions({
                 allTransactions,
                 policyTagList,
                 allTransactionViolation: transactionViolations,
+                isTrackIntentUser,
             });
             removeTransaction(transaction.transactionID);
         });

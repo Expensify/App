@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
@@ -58,6 +59,7 @@ function SearchTransactionsChangeReport() {
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -147,6 +149,7 @@ function SearchTransactionsChangeReport() {
             policyForMovingExpenses,
             betas,
             false,
+            isTrackIntentUser,
             shouldDismissEmptyReportsConfirmation,
         );
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
@@ -164,6 +167,7 @@ function SearchTransactionsChangeReport() {
                 allTransactions: transactions,
                 policyTagList,
                 allTransactionViolation: transactionViolations,
+                isTrackIntentUser,
             });
             clearSelectedTransactions();
         });
@@ -241,6 +245,7 @@ function SearchTransactionsChangeReport() {
             allTransactions: transactions,
             policyTagList,
             allTransactionViolation: transactionViolations,
+            isTrackIntentUser,
         });
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
@@ -263,6 +268,7 @@ function SearchTransactionsChangeReport() {
             allTransactions: transactions,
             policyTagList,
             allTransactionViolation: transactionViolations,
+            isTrackIntentUser,
         });
         clearSelectedTransactions();
         Navigation.goBack();

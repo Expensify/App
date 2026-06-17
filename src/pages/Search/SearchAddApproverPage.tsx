@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import lodashIntersection from 'lodash/intersection';
 import lodashPick from 'lodash/pick';
 import React, {useEffect, useState} from 'react';
@@ -36,6 +37,7 @@ function SearchAddApproverPage() {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {selectedReports} = useSearchSelectionContext();
     const [isSaving, setIsSaving] = useState(false);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -143,6 +145,7 @@ function SearchAddApproverPage() {
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 reportNextStep,
+                isTrackIntentUser,
             );
         }
 

@@ -1,5 +1,6 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -45,6 +46,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -76,6 +78,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 onApproved: animationCallback,
                 expenseReportPolicy: policy,
                 delegateEmail,
+                isTrackIntentUser,
             });
         } else if (chatReport && paymentType) {
             payMoneyRequest({
@@ -97,6 +100,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 ownerBillingGracePeriodEnd,
                 methodID,
                 onPaid: animationCallback,
+                isTrackIntentUser,
             });
         }
         onClose();

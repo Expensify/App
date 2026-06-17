@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -277,6 +278,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     };
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const onSaveSplitExpense = () => {
         if (isPerDiemRequest(transaction) && hasCustomUnitOutOfPolicyViolation) {
@@ -369,6 +371,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             transactionReport: draftTransactionReport,
             expenseReport,
             isOffline,
+            isTrackIntentUser,
         });
     };
 

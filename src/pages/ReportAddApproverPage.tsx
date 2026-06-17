@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useState} from 'react';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
@@ -45,6 +46,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const employeeList = policy?.employeeList;
     const allApprovers = useMemo(() => {
@@ -100,6 +102,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             hasViolations,
             isASAPSubmitBetaEnabled,
             reportNextStep,
+            isTrackIntentUser,
         );
         Navigation.dismissToPreviousRHP();
     }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep]);

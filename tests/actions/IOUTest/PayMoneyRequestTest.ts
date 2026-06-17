@@ -159,6 +159,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                isTrackIntentUser: false,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -253,6 +254,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -429,6 +431,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -465,6 +468,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -594,6 +598,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -631,6 +636,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -685,6 +691,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 chatReportPolicy,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -782,7 +789,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
+                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, [], false);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -802,6 +809,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(partialPayChatReport),
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -899,6 +907,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
+                isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
@@ -936,6 +945,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 chatReportPolicy: chatReportPolicyTrueTour,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -986,6 +996,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 chatReportPolicy: chatReportPolicyFalseTour,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1082,7 +1093,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            markReportPaymentReceived(chatReport, reimbursedReport, undefined, currentUserAccountID, currentUserEmail);
+            markReportPaymentReceived(chatReport, reimbursedReport, undefined, currentUserAccountID, currentUserEmail, false);
             await waitForBatchedUpdates();
 
             const updatedChatReport = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -1151,6 +1162,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 ownerBillingGracePeriodEnd: pastDate,
                 policy,
                 chatReportPolicy: policy,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1217,6 +1229,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 ownerBillingGracePeriodEnd: pastDate,
                 policy: expensePolicy,
                 chatReportPolicy: workspacePolicy,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1273,6 +1286,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 ownerBillingGracePeriodEnd: futureGraceEnd,
                 chatReportPolicy: workspacePolicy,
                 policy: workspacePolicy,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1309,6 +1323,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 chatReportPolicy: chatReportPolicyAmountZero,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1401,6 +1416,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            isTrackIntentUser: false,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1433,13 +1449,14 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                        isTrackIntentUser: false,
                     });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     if (chatReport && expenseReport) {
                         // And when the payment is cancelled
-                        cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true);
+                        cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -1526,6 +1543,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    isTrackIntentUser: false,
                 });
             }
             await waitForBatchedUpdates();
@@ -1542,7 +1560,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             if (chatReport && expenseReport) {
                 mockFetch?.pause?.();
                 // And when the payment is cancelled
-                cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true);
+                cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false);
             }
             await waitForBatchedUpdates();
 
@@ -1624,7 +1642,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            cancelPayment(expenseReport, chatReport, policy, true, adminAccountID, adminEmail, false);
+            cancelPayment(expenseReport, chatReport, policy, true, adminAccountID, adminEmail, false, false);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
@@ -1697,7 +1715,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            cancelPayment(expenseReport, chatReport, policy, true, adminAccountID, adminEmail, false);
+            cancelPayment(expenseReport, chatReport, policy, true, adminAccountID, adminEmail, false, false);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
@@ -1776,6 +1794,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    isTrackIntentUser: false,
                 });
             }
             await waitForBatchedUpdates();
@@ -1805,6 +1824,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                    isTrackIntentUser: false,
                 });
             }
             await waitForBatchedUpdates();

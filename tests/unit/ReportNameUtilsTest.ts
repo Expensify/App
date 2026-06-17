@@ -45,6 +45,7 @@ describe('ReportNameUtils', () => {
             reportActions,
             currentUserAccountID: currentUserID,
             currentUserLogin,
+            isTrackIntentUser: false,
         });
     const participantsPersonalDetails: PersonalDetailsList = [
         {
@@ -554,6 +555,7 @@ describe('ReportNameUtils', () => {
                 currentUserAccountID,
                 currentUserLogin: '',
                 allPolicyTags: policyTagsCollection,
+                isTrackIntentUser: false,
             });
 
             expect(name).toContain('Cost Center');

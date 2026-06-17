@@ -183,6 +183,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     isSelfDMSplit: true,
                     selfDMReportID: selfDMReport.reportID,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    isTrackIntentUser: false,
                 };
             }
 
@@ -323,6 +324,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     quickAction: undefined,
                     isSelfDMSplit: false,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    isTrackIntentUser: false,
                 };
             }
 
@@ -362,6 +364,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     isSelfDMSplit: true,
                     selfDMReportID: undefined,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    isTrackIntentUser: false,
                 };
             }
 

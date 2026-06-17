@@ -3602,6 +3602,7 @@ function updateReportField({
     hasViolationsParam,
     recentlyUsedReportFields,
     shouldFixViolations = false,
+    isTrackIntentUser,
 }: {
     report: Report;
     reportField: PolicyReportField;
@@ -3613,6 +3614,7 @@ function updateReportField({
     hasViolationsParam: boolean;
     recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
     shouldFixViolations: boolean | undefined;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
@@ -3631,6 +3633,7 @@ function updateReportField({
         currentUserEmailParam: email,
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report,
@@ -3641,6 +3644,7 @@ function updateReportField({
         currentUserEmailParam: email,
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
 
     const optimisticData: Array<
@@ -3973,6 +3977,7 @@ function buildNewReportOptimisticData(
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     betas: OnyxEntry<Beta[]>,
+    isTrackIntentUser: boolean | undefined,
     reportName?: string,
 ) {
     const {accountID, login, email} = ownerPersonalDetails;
@@ -3992,6 +3997,7 @@ function buildNewReportOptimisticData(
         currentUserEmailParam: email ?? '',
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
     if (optimisticNextStep) {
         optimisticReportData.nextStep = optimisticNextStep;
@@ -4051,6 +4057,7 @@ function buildNewReportOptimisticData(
         currentUserEmailParam: email ?? '',
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
     const outstandingChildRequest = getOutstandingChildRequest(optimisticReportData);
 
@@ -4212,6 +4219,7 @@ function createNewReport(
     policy: OnyxEntry<Policy>,
     betas: OnyxEntry<Beta[]>,
     shouldNotifyNewAction = false,
+    isTrackIntentUser: boolean | undefined,
     shouldDismissEmptyReportsConfirmation?: boolean,
     reportName?: string,
 ) {
@@ -4228,6 +4236,7 @@ function createNewReport(
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         betas,
+        isTrackIntentUser,
         reportName,
     );
 
@@ -7022,6 +7031,7 @@ function buildOptimisticChangePolicyData({
     isReportLastVisibleArchived,
     reportNextStep,
     optimisticPolicyExpenseChatReport,
+    isTrackIntentUser,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7034,6 +7044,7 @@ function buildOptimisticChangePolicyData({
     isReportLastVisibleArchived: boolean | undefined;
     reportNextStep?: ReportNextStepDeprecated;
     optimisticPolicyExpenseChatReport?: Report;
+    isTrackIntentUser: boolean | undefined;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -7144,6 +7155,7 @@ function buildOptimisticChangePolicyData({
             hasViolations: hasViolationsParam,
             isASAPSubmitBetaEnabled,
             bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
+            isTrackIntentUser,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: {...report, policyID: policy.id},
@@ -7154,6 +7166,7 @@ function buildOptimisticChangePolicyData({
             hasViolations: hasViolationsParam,
             isASAPSubmitBetaEnabled,
             bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
+            isTrackIntentUser,
         });
 
         optimisticData.push({
@@ -7520,6 +7533,7 @@ function changeReportPolicy({
     isASAPSubmitBetaEnabled,
     reportNextStep,
     isReportLastVisibleArchived = false,
+    isTrackIntentUser,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7532,6 +7546,7 @@ function changeReportPolicy({
     isASAPSubmitBetaEnabled: boolean;
     reportNextStep?: ReportNextStepDeprecated;
     isReportLastVisibleArchived?: boolean;
+    isTrackIntentUser: boolean | undefined;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
@@ -7548,6 +7563,7 @@ function changeReportPolicy({
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
         reportNextStep,
+        isTrackIntentUser,
     });
 
     const params = {
@@ -7581,6 +7597,7 @@ function changeReportPolicyAndInviteSubmitter({
     isReportLastVisibleArchived,
     reportNextStep,
     reportActionsList,
+    isTrackIntentUser,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7596,6 +7613,7 @@ function changeReportPolicyAndInviteSubmitter({
     isReportLastVisibleArchived: boolean | undefined;
     reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     reportActionsList: OnyxCollection<ReportActions>;
+    isTrackIntentUser: boolean | undefined;
 }) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID || !submitterLogin) {
         return;
@@ -7644,6 +7662,7 @@ function changeReportPolicyAndInviteSubmitter({
         isReportLastVisibleArchived,
         reportNextStep,
         optimisticPolicyExpenseChatReport: membersChats.reportCreationData[submitterLogin],
+        isTrackIntentUser,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];

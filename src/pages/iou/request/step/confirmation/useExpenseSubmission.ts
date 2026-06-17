@@ -132,6 +132,7 @@ type UseExpenseSubmissionParams = {
 
     // Navigation
     backToReport?: string;
+    isTrackIntentUser: boolean | undefined;
 };
 
 type SendMoneyReportIDs = {
@@ -180,6 +181,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
+        isTrackIntentUser,
     } = params;
 
     // Localization
@@ -478,6 +480,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                isTrackIntentUser,
             });
             existingIOUReport = iouReport;
             if (!iouReport) {
@@ -585,6 +588,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                isTrackIntentUser,
             });
             const targetReportID = backToReport ?? activeReportID;
             // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
@@ -755,6 +759,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             shouldHandleNavigation,
             shouldDeferForSearch,
             previousOdometerDraft: odometerDraft,
+            isTrackIntentUser,
         });
     }
 
@@ -859,6 +864,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    isTrackIntentUser,
                 });
             }
             markSubmitExpenseEnd();
@@ -896,6 +902,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     personalDetails,
                     shouldHandleNavigation,
                     shouldDeferForSearch: shouldDeferSplitForSearch,
+                    isTrackIntentUser,
                 });
             }
             markSubmitExpenseEnd();

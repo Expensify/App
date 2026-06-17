@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {policyTypeSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
@@ -429,6 +430,7 @@ function MoneyRequestView({
     const [moneyRequestReportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {
         selector: policyTypeSelector,
     });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const isPolicyExpenseChat = isGroupPolicyByType(moneyRequestReportPolicyType);
     const policyTagLists = getTagLists(policyTagList);
 
@@ -580,6 +582,7 @@ function MoneyRequestView({
             parentReportNextStep,
             isOffline,
             delegateAccountID,
+            isTrackIntentUser,
         });
     };
 
@@ -602,6 +605,7 @@ function MoneyRequestView({
             parentReportNextStep,
             isOffline,
             delegateAccountID,
+            isTrackIntentUser,
         });
     };
 
@@ -741,6 +745,7 @@ function MoneyRequestView({
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
                 delegateAccountID,
+                isTrackIntentUser,
             });
         });
     };
