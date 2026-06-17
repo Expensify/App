@@ -5,6 +5,7 @@ import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
+import Text from '@components/Text';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
@@ -200,11 +201,23 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             />
                         )}
                         {secondLineText ? (
-                            <Button.DoubleLineText
-                                primaryText={customText ?? selectedItem?.text ?? ''}
-                                secondLineText={secondLineText}
-                                textStyle={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}, !!splitButtonIcon && styles.textAlignLeft]}
-                            />
+                            <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
+                                <Button.Text
+                                    style={[
+                                        isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {},
+                                        !!splitButtonIcon && styles.textAlignLeft,
+                                        styles.noPaddingBottom,
+                                    ]}
+                                >
+                                    {customText ?? selectedItem?.text ?? ''}
+                                </Button.Text>
+                                <Text
+                                    style={[styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker, styles.textExtraSmallSupporting, styles.textWhite, styles.textBold]}
+                                    numberOfLines={1}
+                                >
+                                    {secondLineText}
+                                </Text>
+                            </View>
                         ) : (
                             <Button.Text style={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}]}>
                                 {customText ?? selectedItem?.text ?? ''}
@@ -284,11 +297,15 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     )}
                     {!!singleOptionButtonIcon && <Button.Icon src={singleOptionButtonIcon} />}
                     {secondLineText ? (
-                        <Button.DoubleLineText
-                            primaryText={selectedItem?.text ?? ''}
-                            secondLineText={secondLineText}
-                            textStyle={!!singleOptionButtonIcon && styles.textAlignLeft}
-                        />
+                        <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
+                            <Button.Text style={[!!singleOptionButtonIcon && styles.textAlignLeft, styles.noPaddingBottom]}>{selectedItem?.text ?? ''}</Button.Text>
+                            <Text
+                                style={[styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker, styles.textExtraSmallSupporting, styles.textWhite, styles.textBold]}
+                                numberOfLines={1}
+                            >
+                                {secondLineText}
+                            </Text>
+                        </View>
                     ) : (
                         <Button.Text>{selectedItem?.text ?? ''}</Button.Text>
                     )}

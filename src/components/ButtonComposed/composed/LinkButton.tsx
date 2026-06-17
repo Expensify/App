@@ -1,6 +1,5 @@
 import React from 'react';
 import Button from '@components/ButtonComposed/Button';
-import ButtonDoubleLineText from '@components/ButtonComposed/primitives/ButtonDoubleLineText';
 import ButtonIcon from '@components/ButtonComposed/primitives/ButtonIcon';
 import ButtonKeyboardShortcut from '@components/ButtonComposed/primitives/ButtonKeyboardShortcut';
 import type {ButtonTextProps} from '@components/ButtonComposed/primitives/ButtonText';
@@ -85,7 +84,6 @@ function LinkButtonComponent({innerStyles = [], children, ...rest}: LinkButtonPr
 const LinkButton = Object.assign(LinkButtonComponent, {
     Icon: ButtonIcon,
     Text: LinkButtonText,
-    DoubleLineText: ButtonDoubleLineText,
     KeyboardShortcut: ButtonKeyboardShortcut,
 });
 
