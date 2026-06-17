@@ -20,6 +20,7 @@ import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
+import SidebarUtils from '@libs/SidebarUtils';
 import {getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -144,8 +145,23 @@ describe('actions/IOU/TrackExpense', () => {
                     [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
                 },
             };
+            const selfDMReportKey = `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`;
             const distanceTransaction = createRandomDistanceRequestTransaction(1, true);
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+            const hiddenReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
+                currentReportId: undefined,
+                reports: {[selfDMReportKey]: selfDMReport},
+                betas: [],
+                priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                draftComments: {},
+                transactionViolations: {},
+                transactions: {},
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                reportNameValuePairs: {},
+                reportAttributes: undefined,
+            });
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${distanceTransaction.transactionID}`, distanceTransaction);
             mockFetch?.pause?.();
@@ -181,7 +197,28 @@ describe('actions/IOU/TrackExpense', () => {
             await waitForBatchedUpdates();
 
             const optimisticSelfDMReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`);
+            if (!optimisticSelfDMReport) {
+                throw new Error('Expected optimistic Self DM report to exist.');
+            }
+
+            const optimisticReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
+                currentReportId: 'different-report-id',
+                reports: {[selfDMReportKey]: optimisticSelfDMReport},
+                betas: [],
+                priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                draftComments: {},
+                transactionViolations: {},
+                transactions: {},
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                reportNameValuePairs: {},
+                reportAttributes: undefined,
+            });
+
+            expect(hiddenReportsToDisplay).not.toHaveProperty(selfDMReportKey);
             expect(optimisticSelfDMReport?.participants?.[RORY_ACCOUNT_ID]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE);
+            expect(optimisticReportsToDisplay).toHaveProperty(selfDMReportKey);
 
             await mockFetch?.resume?.();
         });
