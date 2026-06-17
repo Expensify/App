@@ -475,19 +475,19 @@ function PolicyDistanceRatesPage({
                     />
                 )}
                 {!isLoading && (
-                    <>
-                        {ratesData.length > 0 && (
-                            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
-                            </View>
-                        )}
-                        <WorkspaceDistanceRatesTable
-                            ratesData={ratesData}
-                            selectionEnabled={canWriteDistanceRates}
-                            selectedKeys={selectedDistanceRates}
-                            onRowSelectionChange={setSelectedDistanceRates}
-                        />
-                    </>
+                    <WorkspaceDistanceRatesTable
+                        ratesData={ratesData}
+                        selectionEnabled={canWriteDistanceRates}
+                        selectedKeys={selectedDistanceRates}
+                        onRowSelectionChange={setSelectedDistanceRates}
+                        headerComponent={
+                            ratesData.length > 0 ? (
+                                <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
+                                </View>
+                            ) : undefined
+                        }
+                    />
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

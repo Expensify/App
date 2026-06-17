@@ -1,4 +1,5 @@
 import {FlashList} from '@shopify/flash-list';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
@@ -9,6 +10,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TableData} from '.';
 import {useTableContext} from './TableContext';
+import TableHeader from './TableHeader';
+
+const TABLE_HEADER_KEY = '__table_header__';
 
 /**
  * Props for the TableBody component.
@@ -57,9 +61,20 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         shouldUseNarrowTableLayout,
         hasActiveFilters,
         hasSearchString,
+        headerComponent,
         isEmptyResult,
+        shouldRenderStickyHeader,
     } = useTableContext<DataType>();
-    const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
+    const {
+        ListEmptyComponent,
+        ListHeaderComponent,
+        contentContainerStyle: listContentContainerStyle,
+        getItemType,
+        keyExtractor,
+        renderItem,
+        stickyHeaderIndices,
+        ...restListProps
+    } = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -82,6 +97,36 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const tableHeaderItem = {keyForList: TABLE_HEADER_KEY} as DataType;
+    const listData = shouldRenderStickyHeader ? [tableHeaderItem, ...filteredAndSortedData] : filteredAndSortedData;
+    const getDataIndex = (index: number) => (shouldRenderStickyHeader ? index - 1 : index);
+    const isTableHeaderItem = (index: number) => shouldRenderStickyHeader && index === 0;
+
+    const renderListItem = (info: ListRenderItemInfo<DataType>) => {
+        if (isTableHeaderItem(info.index)) {
+            return <TableHeader />;
+        }
+
+        return renderItem?.({...info, index: getDataIndex(info.index)}) ?? null;
+    };
+
+    const keyExtractorForList = (item: DataType, index: number) => {
+        if (isTableHeaderItem(index)) {
+            return TABLE_HEADER_KEY;
+        }
+
+        return keyExtractor?.(item, getDataIndex(index)) ?? item.keyForList;
+    };
+
+    const getItemTypeForList = (item: DataType, index: number, extraData: unknown) => {
+        if (isTableHeaderItem(index)) {
+            return TABLE_HEADER_KEY;
+        }
+
+        return getItemType?.(item, getDataIndex(index), extraData);
+    };
+
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
             <Text
@@ -100,13 +145,18 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         >
             <FlashList<DataType>
                 ref={listRef}
-                data={filteredAndSortedData}
+                data={listData}
                 style={[styles.flex1, styles.mnh0]}
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
+                ListHeaderComponent={headerComponent ?? ListHeaderComponent}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
+                stickyHeaderIndices={shouldRenderStickyHeader ? [0] : stickyHeaderIndices}
                 contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flexGrow1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
                 keyboardShouldPersistTaps="handled"
+                renderItem={renderListItem}
+                keyExtractor={keyExtractorForList}
+                getItemType={getItemTypeForList}
                 {...restListProps}
             />
         </View>

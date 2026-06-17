@@ -1,5 +1,5 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
-import type {PropsWithChildren} from 'react';
+import type {PropsWithChildren, ReactElement} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
@@ -119,6 +119,9 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
     PropsWithChildren<{
         /** The title for the table when shown on smaller screens */
         title?: string;
+
+        /** Optional content rendered above the sticky table header inside the table list. */
+        headerComponent?: ReactElement;
 
         /** Array of data items to display in the table. */
         data: DataType[] | undefined;

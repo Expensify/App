@@ -362,13 +362,6 @@ function WorkspaceCompanyCardsTable({
         />
     );
 
-    const ListHeader = (
-        <>
-            {headerButtonsComponent}
-            {!isLoadingFeed && !isFeedPending && showCards && <Table.Header />}
-        </>
-    );
-
     return (
         <Table
             ref={tableRef}
@@ -382,10 +375,10 @@ function WorkspaceCompanyCardsTable({
             isItemInFilter={isItemInFilter}
             initialSortColumn="member"
             title={translate('workspace.common.companyCards')}
-            ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
+            headerComponent={showCards ? (headerButtonsComponent ?? <View />) : undefined}
             ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
-            {!shouldUseNarrowTableLayout && ListHeader}
+            {!showCards && !shouldUseNarrowTableLayout && headerButtonsComponent}
 
             {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (
                 <ScrollView addBottomSafeAreaPadding>

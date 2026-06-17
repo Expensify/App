@@ -18,6 +18,13 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+    },
+}));
+
 // Mock useLocalize hook
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -309,6 +316,32 @@ describe('Table', () => {
             expect(screen.getByText('Name')).toBeTruthy();
             expect(screen.getByText('Category')).toBeTruthy();
             expect(screen.getByText('Value')).toBeTruthy();
+        });
+
+        it('should render headerComponent and keep row indexes aligned with data rows', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <View testID={`row-${item.id}`}>
+                    <Text testID={`row-index-${item.id}`}>{index}</Text>
+                    <Text>{item.name}</Text>
+                </View>
+            );
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(screen.getAllByText('Name').length).toBeGreaterThan(0);
+            expect(screen.getByTestId('row-index-1').props.children).toBe(0);
         });
     });
 

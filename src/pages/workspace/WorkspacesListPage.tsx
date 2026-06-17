@@ -480,32 +480,40 @@ function WorkspacesListPage() {
             activeTabKey="workspaces"
             headerButton={headerButton}
         >
-            {shouldShowLoadingIndicator ? (
-                <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={
-                            {
-                                context: 'WorkspacesListPage',
-                                isOffline,
-                            } satisfies SkeletonSpanReasonAttributes
-                        }
-                    />
-                </View>
-            ) : (
-                <WorkspaceListTable
-                    ref={tableRef}
-                    workspaces={workspaceRows}
-                />
+            {(headerComponent) => (
+                <>
+                    {shouldShowLoadingIndicator ? (
+                        <>
+                            {headerComponent}
+                            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                                <ActivityIndicator
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                    reasonAttributes={
+                                        {
+                                            context: 'WorkspacesListPage',
+                                            isOffline,
+                                        } satisfies SkeletonSpanReasonAttributes
+                                    }
+                                />
+                            </View>
+                        </>
+                    ) : (
+                        <WorkspaceListTable
+                            ref={tableRef}
+                            workspaces={workspaceRows}
+                            headerComponent={headerComponent}
+                        />
+                    )}
+                    {!!policyIDToDelete && (
+                        <DeleteWorkspaceFlow
+                            key={policyIDToDelete}
+                            policyID={policyIDToDelete}
+                            onDismiss={() => setPolicyIDToDelete(undefined)}
+                        />
+                    )}
+                    <CopyPolicySettingsProgressModal />
+                </>
             )}
-            {!!policyIDToDelete && (
-                <DeleteWorkspaceFlow
-                    key={policyIDToDelete}
-                    policyID={policyIDToDelete}
-                    onDismiss={() => setPolicyIDToDelete(undefined)}
-                />
-            )}
-            <CopyPolicySettingsProgressModal />
         </WorkspaceListLayout>
     );
 }

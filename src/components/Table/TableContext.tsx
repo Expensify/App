@@ -15,6 +15,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** The title of the table when shown on smaller screens. */
     title?: string;
 
+    /** Content rendered as the FlashList header so it scrolls with the table rows. */
+    headerComponent?: React.ReactElement;
+
     /** Reference to the underlying FlashList for programmatic control. */
     listRef: React.RefObject<FlashListRef<DataType> | null>;
 
@@ -54,6 +57,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Whether search string is not empty. */
     hasSearchString: boolean;
 
+    /** Whether the table header is rendered as a sticky FlashList item. */
+    shouldRenderStickyHeader: boolean;
+
     /** Whether the table has an empty result caused by search or filters. */
     isEmptyResult: boolean;
 
@@ -80,6 +86,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     listProps: {} as SharedListProps<TableData>,
     hasActiveFilters: false,
     hasSearchString: false,
+    shouldRenderStickyHeader: false,
     isEmptyResult: false,
     shouldUseNarrowTableLayout: false,
     isMobileSelectionEnabled: false,
