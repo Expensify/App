@@ -7759,7 +7759,7 @@ const CONST = {
     AI_FEATURES_PROMO_LEARN_MORE_URLS: {
         SPEND_ANALYSIS: 'https://help.expensify.com/articles/new-expensify/concierge-ai/How-Concierge-Analyzes-Spend',
         EXPENSE_ASSISTANT: 'https://help.expensify.com/articles/new-expensify/concierge-ai/Expense-Assistant',
-        BUILD_AGENTS: 'https://help.expensify.com/articles/new-expensify/concierge-ai/Expense-Assistant',
+        BUILD_AGENTS: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-Agent-Rules',
     },
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
