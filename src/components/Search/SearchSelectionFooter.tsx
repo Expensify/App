@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import {search} from '@libs/actions/Search';
 import {buildFlatQueryWithoutGroupBy} from '@libs/SearchQueryUtils';
@@ -60,12 +61,25 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const metadataCount = metadata?.count;
     const metadataCurrency = metadata?.currency;
     const metadataTotal = metadata?.total;
+    const isMetadataLoading = !!metadata?.isLoading;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
     const firstSelectedTransaction = firstSelectedTransactionKey ? selectedTransactions[firstSelectedTransactionKey] : undefined;
     const selectedTransactionDefaultCurrency = firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency;
     const effectiveDefaultCurrency = defaultFooterCurrency ?? metadataCurrency ?? selectedTransactionDefaultCurrency;
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
+    const wasMetadataLoading = usePrevious(isMetadataLoading);
+
+    const shouldResetCustomCurrencyAfterLiveRefresh =
+        !!selectedCurrency && selectedCurrency !== effectiveDefaultCurrency && !!wasMetadataLoading && !isMetadataLoading && metadata?.offset === 0;
+    if (shouldResetCustomCurrencyAfterLiveRefresh) {
+        setFooterCurrencyState({
+            searchHash: currentSearchHash,
+            selectedCurrency: undefined,
+            defaultCurrency: effectiveDefaultCurrency,
+            footerTotalHash: undefined,
+        });
+    }
 
     const handleFooterCurrencyChange = useCallback(
         (currency: string | undefined) => {
