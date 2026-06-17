@@ -253,11 +253,21 @@ function SignInPage({ref}: SignInPageProps) {
             return;
         }
 
+        let ignore = false;
+
         Navigation.isNavigationReady().then(() => {
+            if (ignore) {
+                return;
+            }
+
             setHasInitiatedSAMLLogin(true);
             hasPendingSAMLRedirectForCurrentSignIn = false;
             Navigation.navigate(ROUTES.SAML_SIGN_IN);
         });
+
+        return () => {
+            ignore = true;
+        };
     }, [shouldInitiateSAMLLogin]);
 
     useEffect(() => {
