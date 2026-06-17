@@ -1,5 +1,6 @@
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-imports -- Your spend "Awaiting approval"/"Repaid" totals are a billing/paid-only feature (Collect/Control), so paid-group scoping is intentional here.
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -88,8 +89,8 @@ function transactionMatchesRepaidLast30DaysQuery(iouReport: OnyxEntry<Report>, t
     return created >= get30DaysAgoDateString();
 }
 
-function buildSnapshotTotalUpdatesForHash(snapshotHash: number | undefined, diff: number, currency: string): YourSpendSnapshotOnyxData {
-    if (!snapshotHash || diff === 0) {
+function buildSnapshotTotalUpdatesForHash(snapshotHash: number | undefined, diff: number, currency: string, countDiff = 0): YourSpendSnapshotOnyxData {
+    if (!snapshotHash || (diff === 0 && countDiff === 0)) {
         return {optimisticData: [], successData: [], failureData: []};
     }
 
@@ -97,6 +98,7 @@ function buildSnapshotTotalUpdatesForHash(snapshotHash: number | undefined, diff
     const currentSnapshot = allSnapshots?.[snapshotKey];
     const currentTotal = currentSnapshot?.search?.total;
     const currentCurrency = currentSnapshot?.search?.currency;
+    const currentCount = currentSnapshot?.search?.count ?? 0;
 
     if (currentTotal === undefined || currentTotal === null) {
         return {optimisticData: [], successData: [], failureData: []};
@@ -106,6 +108,9 @@ function buildSnapshotTotalUpdatesForHash(snapshotHash: number | undefined, diff
     }
 
     const updatedTotal = currentTotal + diff;
+    // `count` drives the Home row's visibility (see getYourSpendRowState): it must move in lockstep with `total`,
+    // otherwise an add into a previously empty bucket stays hidden and a removal of the last item shows a stale $0.00.
+    const updatedCount = Math.max(0, currentCount + countDiff);
     return {
         optimisticData: [
             {
@@ -114,6 +119,7 @@ function buildSnapshotTotalUpdatesForHash(snapshotHash: number | undefined, diff
                 value: {
                     search: {
                         total: updatedTotal,
+                        count: updatedCount,
                         currency,
                     },
                 },
@@ -127,6 +133,7 @@ function buildSnapshotTotalUpdatesForHash(snapshotHash: number | undefined, diff
                 value: {
                     search: {
                         total: currentTotal,
+                        count: currentCount,
                         currency: currentCurrency ?? currency,
                     },
                 },
@@ -218,10 +225,22 @@ function getReimbursableTransactionAmountInCurrency(transaction: Transaction, io
     return null;
 }
 
-/** Sums reimbursable transactions in the snapshot currency, optionally restricted to the last 30 days. */
-function getReportReimbursableTotal(iouReport: OnyxEntry<Report>, reportTransactions: Transaction[], onlyWithinLast30Days: boolean, targetCurrency: string): number | null {
+type ReportReimbursableAggregate = {
+    total: number;
+    // Number of reimbursable transactions contributing to `total`. Kept alongside `total` so the snapshot's
+    // result `count` can be patched in lockstep when the report enters or leaves a Your spend section.
+    count: number;
+};
+
+/** Sums reimbursable transactions (and counts them) in the snapshot currency, optionally restricted to the last 30 days. */
+function getReportReimbursableTotal(
+    iouReport: OnyxEntry<Report>,
+    reportTransactions: Transaction[],
+    onlyWithinLast30Days: boolean,
+    targetCurrency: string,
+): ReportReimbursableAggregate | null {
     let total = 0;
-    let hasReimbursableTransaction = false;
+    let count = 0;
 
     for (const reportTransaction of reportTransactions) {
         if (!reportTransaction || reportTransaction.reimbursable === false) {
@@ -234,15 +253,15 @@ function getReportReimbursableTotal(iouReport: OnyxEntry<Report>, reportTransact
             }
         }
 
-        hasReimbursableTransaction = true;
         const amount = getReimbursableTransactionAmountInCurrency(reportTransaction, iouReport, targetCurrency);
         if (amount === null) {
             return null;
         }
         total += amount;
+        count += 1;
     }
 
-    return hasReimbursableTransaction ? total : 0;
+    return {total, count};
 }
 
 /**
@@ -267,11 +286,14 @@ function getYourSpendSnapshotReportMoveUpdates({
     const approvalSnapshotCurrency = getSnapshotSearchResults(approvalQueryJSON?.hash)?.currency;
 
     if (reportInAwaitingApprovalScope(iouReport, currentUserAccountID, paidGroupPolicyIDs) && approvalSnapshotCurrency) {
-        const total = getReportReimbursableTotal(iouReport, reportTransactions, false, approvalSnapshotCurrency);
-        if (total !== null) {
-            const diff = (isAwaitingApprovalStatus(toStatus) ? total : 0) - (isAwaitingApprovalStatus(fromStatus) ? total : 0);
-            if (diff !== 0) {
-                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, diff, approvalSnapshotCurrency));
+        const aggregate = getReportReimbursableTotal(iouReport, reportTransactions, false, approvalSnapshotCurrency);
+        if (aggregate !== null) {
+            const enters = isAwaitingApprovalStatus(toStatus);
+            const leaves = isAwaitingApprovalStatus(fromStatus);
+            const diff = (enters ? aggregate.total : 0) - (leaves ? aggregate.total : 0);
+            const countDiff = (enters ? aggregate.count : 0) - (leaves ? aggregate.count : 0);
+            if (diff !== 0 || countDiff !== 0) {
+                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, diff, approvalSnapshotCurrency, countDiff));
             }
         }
     }
@@ -280,11 +302,14 @@ function getYourSpendSnapshotReportMoveUpdates({
         const paymentQueryJSON = buildSearchQueryJSON(buildRepaidLast30DaysQuery(currentUserAccountID));
         const paymentSnapshotCurrency = getSnapshotSearchResults(paymentQueryJSON?.hash)?.currency;
         if (paymentSnapshotCurrency) {
-            const total = getReportReimbursableTotal(iouReport, reportTransactions, true, paymentSnapshotCurrency);
-            if (total !== null) {
-                const diff = (isRepaidStatus(toStatus) ? total : 0) - (isRepaidStatus(fromStatus) ? total : 0);
-                if (diff !== 0) {
-                    mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, diff, paymentSnapshotCurrency));
+            const aggregate = getReportReimbursableTotal(iouReport, reportTransactions, true, paymentSnapshotCurrency);
+            if (aggregate !== null) {
+                const enters = isRepaidStatus(toStatus);
+                const leaves = isRepaidStatus(fromStatus);
+                const diff = (enters ? aggregate.total : 0) - (leaves ? aggregate.total : 0);
+                const countDiff = (enters ? aggregate.count : 0) - (leaves ? aggregate.count : 0);
+                if (diff !== 0 || countDiff !== 0) {
+                    mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, diff, paymentSnapshotCurrency, countDiff));
                 }
             }
         }
@@ -316,8 +341,8 @@ function getYourSpendSnapshotTransactionRemovalUpdates({transaction, iouReport, 
         const approvalSnapshotCurrency = getSnapshotSearchResults(approvalQueryJSON?.hash)?.currency;
         if (approvalSnapshotCurrency) {
             const amount = getReimbursableTransactionAmountInCurrency(transaction, iouReport, approvalSnapshotCurrency);
-            if (amount !== null && amount !== 0) {
-                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, -amount, approvalSnapshotCurrency));
+            if (amount !== null) {
+                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, -amount, approvalSnapshotCurrency, -1));
             }
         }
     }
@@ -327,8 +352,8 @@ function getYourSpendSnapshotTransactionRemovalUpdates({transaction, iouReport, 
         const paymentSnapshotCurrency = getSnapshotSearchResults(paymentQueryJSON?.hash)?.currency;
         if (paymentSnapshotCurrency) {
             const amount = getReimbursableTransactionAmountInCurrency(transaction, iouReport, paymentSnapshotCurrency);
-            if (amount !== null && amount !== 0) {
-                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, -amount, paymentSnapshotCurrency));
+            if (amount !== null) {
+                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, -amount, paymentSnapshotCurrency, -1));
             }
         }
     }

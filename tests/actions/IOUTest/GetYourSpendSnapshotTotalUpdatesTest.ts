@@ -121,6 +121,7 @@ describe('getYourSpendSnapshotTotalUpdates', () => {
                 value: {
                     search: {
                         total: 20000,
+                        count: 1,
                         currency: CONST.CURRENCY.USD,
                     },
                 },
@@ -132,6 +133,7 @@ describe('getYourSpendSnapshotTotalUpdates', () => {
                 value: {
                     search: {
                         total: 10000,
+                        count: 1,
                         currency: CONST.CURRENCY.USD,
                     },
                 },
@@ -181,13 +183,13 @@ describe('getYourSpendSnapshotTransactionRemovalUpdates', () => {
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 20000, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: 20000, count: 0, currency: CONST.CURRENCY.USD}},
             }),
         ]);
         expect(failureData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 30000, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: 30000, count: 1, currency: CONST.CURRENCY.USD}},
             }),
         ]);
     });
@@ -242,6 +244,7 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
                 value: {
                     search: {
                         total: 20000,
+                        count: 1,
                         currency: CONST.CURRENCY.USD,
                     },
                 },

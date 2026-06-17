@@ -33,8 +33,8 @@ function getSnapshotKey(hash: number): `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${
     return `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`;
 }
 
-/** Builds a fully-typed `SearchResults` snapshot with the given total/currency. */
-function buildSnapshotSearchResults(total: number, currency: string): SearchResults {
+/** Builds a fully-typed `SearchResults` snapshot with the given total/currency/count. */
+function buildSnapshotSearchResults(total: number, currency: string, count = 1): SearchResults {
     return {
         search: {
             offset: 0,
@@ -43,7 +43,7 @@ function buildSnapshotSearchResults(total: number, currency: string): SearchResu
             hasMoreResults: false,
             hasResults: true,
             isLoading: false,
-            count: 1,
+            count,
             total,
             currency,
         },
@@ -133,13 +133,13 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 20000, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: 20000, count: 2, currency: CONST.CURRENCY.USD}},
             }),
         ]);
         expect(failureData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 10000, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: 10000, count: 1, currency: CONST.CURRENCY.USD}},
             }),
         ]);
     });
@@ -158,7 +158,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 20000, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: 20000, count: 0, currency: CONST.CURRENCY.USD}},
             }),
         ]);
     });
@@ -177,7 +177,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 20000, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: 20000, count: 0, currency: CONST.CURRENCY.USD}},
             }),
         ]);
     });
@@ -196,7 +196,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 20000, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: 20000, count: 2, currency: CONST.CURRENCY.USD}},
             }),
         ]);
     });
@@ -215,7 +215,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 20000, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: 20000, count: 0, currency: CONST.CURRENCY.USD}},
             }),
         ]);
     });
@@ -293,7 +293,30 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 15000, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: 15000, count: 2, currency: CONST.CURRENCY.USD}},
+            }),
+        ]);
+    });
+
+    it('adds the report total to a previously empty awaiting approval bucket (count 0 -> visible)', async () => {
+        const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
+        const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(0, CONST.CURRENCY.USD, 0));
+        await waitForBatchedUpdates();
+
+        const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
+            iouReport: buildExpenseReport(SUBMITTED_STATUS),
+            reportTransactions: [buildTransaction()],
+            fromStatus: OPEN_STATUS,
+            toStatus: SUBMITTED_STATUS,
+            currentUserAccountID: ACCOUNT_ID,
+        });
+
+        expect(optimisticData).toEqual([
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {search: {total: 10000, count: 1, currency: CONST.CURRENCY.USD}},
             }),
         ]);
     });
