@@ -9,6 +9,7 @@ import {clearFinancialForceErrorField, updateFinancialForceCompany} from '@libs/
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+import {isCertiniaSRPConnection} from '@pages/workspace/accounting/certinia/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -27,7 +28,7 @@ function CertiniaCompanySelectorPage({policy}: WithPolicyConnectionsProps) {
     const companyID = config?.credentials?.companyID;
     const companies = data?.companies ?? [];
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
-    const shouldShowCompanySelector = !!config?.hasPSA && config?.hasPSAOnly === false;
+    const shouldShowCompanySelector = isCertiniaSRPConnection(config);
 
     const dataOptions: CompanyListItem[] = companies.map((company) => ({
         value: company.id,

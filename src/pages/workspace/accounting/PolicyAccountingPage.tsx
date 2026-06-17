@@ -54,6 +54,7 @@ import {
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {isCertiniaSRPConnection} from '@pages/workspace/accounting/certinia/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {openOldDotLink} from '@userActions/Link';
 import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
@@ -322,7 +323,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           interactive: false,
                       };
             case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
-                return !certiniaConfig?.hasPSA || certiniaConfig?.hasPSAOnly !== false
+                return !isCertiniaSRPConnection(certiniaConfig)
                     ? {}
                     : {
                           description: translate('workspace.certinia.company'),
