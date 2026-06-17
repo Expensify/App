@@ -37,6 +37,7 @@
 import TableComponent from './Table';
 import TableBody from './TableBody';
 import TableContext from './TableContext';
+import TableFilterBar from './TableFilterBar';
 import TableFilterButtons from './TableFilterButtons';
 import TableHeader from './TableHeader';
 import TableRow from './TableRow';
@@ -70,6 +71,9 @@ const Table = Object.assign(TableComponent, {
 
     /** Renders a row in the table */
     Row: TableRow,
+
+    /** The filter bar with a searchbar/filters menu */
+    FilterBar: TableFilterBar,
 });
 
 export default Table;

@@ -30,7 +30,7 @@ function TableSearchBar({label}: TableSearchBarProps) {
     }, []);
 
     const textInputContainerStyles = [styles.border, styles.borderRadiusComponentNormal, styles.appBG, styles.p2];
-    const touchableInputWrapperStyle = [styles.mnw200, shouldUseNarrowTableLayout && styles.w100, shouldUseNarrowTableLayout ? styles.h8 : styles.h11];
+    const touchableInputWrapperStyle = [styles.mnw200, shouldUseNarrowTableLayout && styles.w100, !shouldUseNarrowTableLayout ? styles.h8 : styles.h11];
 
     return (
         <TextInput

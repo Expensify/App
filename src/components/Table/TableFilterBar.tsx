@@ -1,8 +1,9 @@
+import React from 'react';
 import type {PropsWithChildren} from 'react';
 import {View} from 'react-native-web';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Table from '.';
 import {useTableContext} from './TableContext';
+import TableSearchBar from './TableSearchBar';
 
 type TableFilterBarProps = PropsWithChildren<{
     /** Label and accessibility label for the search input. */
@@ -17,7 +18,7 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
 
     return (
         <View style={[styles.w100, styles.flexRow, styles.gap3, styles.justifyContentBetween, styles.pb3, styles.ph5]}>
-            <Table.SearchBar label={label} />
+            <TableSearchBar label={label} />
             <View style={[styles.flexRow, styles.gap1]}>{children}</View>
         </View>
     );
