@@ -139,19 +139,21 @@ function sanitizeSearchValue(str: string) {
 }
 
 /**
- * Quotes each keyword to escape query syntax. For example, `type:expense`
- * becomes `"type:expense"` and is matched as a keyword instead of being
- * interpreted as the `type` filter with value `expense`.
+ * Escapes each keyword that would otherwise be re-interpreted as query syntax by wrapping it in quotes.
+ * A keyword that looks like a filter (e.g. `type:expense`) becomes `"type:expense"` so it is matched as a
+ * keyword instead of being parsed as the `type` filter. Keywords containing spaces are wrapped by
+ * `sanitizeSearchValue`. Plain keywords (e.g. `foo`) are left untouched.
  */
 function escapeKeyword(keywords: string) {
     return keywords
         .split(' ')
         .map((q) => {
             const sanitizedKeyword = sanitizeSearchValue(q);
-            if (sanitizedKeyword.startsWith('"') && sanitizedKeyword.endsWith('"')) {
-                return sanitizedKeyword;
+            if (sanitizedKeyword.match(/^\w+:\w+$/)) {
+                // The keyword is not escaped yet by sanitizeSearchValue, so we do it here.
+                return `"${q}"`;
             }
-            return `"${q}"`;
+            return sanitizedKeyword;
         })
         .join(' ');
 }
@@ -317,9 +319,9 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
         const nextValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index + 1)?.operator === queryFilter.operator;
 
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
-        if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
-        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
+        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
+            filterValueString += `${delimiter}${escapeKeyword(queryFilter.value.toString())}`;
+        } else if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
             filterValueString += ` -${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
@@ -664,7 +666,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
 
     for (const filter of filters) {
         const filterValueString = buildFilterValuesString(filter.key, filter.filters).trim();
-        queryParts.push(filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? escapeKeyword(filterValueString) : filterValueString);
+        queryParts.push(filterValueString);
     }
 
     return queryParts.join(' ');

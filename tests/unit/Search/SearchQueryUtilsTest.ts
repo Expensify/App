@@ -115,7 +115,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} amount:2000000 "foo" "test"`);
+            expect(result).toEqual(`${defaultQuery} amount:2000000 foo test`);
         });
 
         test('returns query with user emails substituted', () => {
@@ -123,7 +123,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} from:12345 "hello"`);
+            expect(result).toEqual(`${defaultQuery} from:12345 hello`);
         });
 
         test('returns query with user emails substituted and preserves user ids', () => {
@@ -139,7 +139,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} from:9876,87654 to:78901 amount:15000 "hello" "test"`);
+            expect(result).toEqual(`${defaultQuery} from:9876,87654 to:78901 amount:15000 hello test`);
         });
 
         test('returns query with updated groupBy', () => {
@@ -220,7 +220,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('type:expense policyID:67890 merchant:Amazon description:Electronics "laptop" category:electronics,gadgets');
+            expect(result).toEqual('type:expense policyID:67890 merchant:Amazon description:Electronics laptop category:electronics,gadgets');
         });
 
         test('currencies and categories', () => {
@@ -524,7 +524,7 @@ describe('SearchQueryUtils', () => {
 
                 // "10 90" is not a valid positive integer, so limit is dropped entirely
                 expect(result).not.toContain('limit');
-                expect(result).toEqual('type:expense "hi"');
+                expect(result).toEqual('type:expense hi');
             });
 
             test('non-numeric limit value (JSON-like) is discarded to prevent keyword contamination', () => {
@@ -538,7 +538,7 @@ describe('SearchQueryUtils', () => {
 
                 // JSON-like string is not a valid positive integer, so limit is dropped
                 expect(result).not.toContain('limit');
-                expect(result).toEqual('type:expense "hi"');
+                expect(result).toEqual('type:expense hi');
 
                 // Round-trip: keyword must NOT be contaminated
                 const queryJSON = buildSearchQueryJSON(result);
@@ -566,7 +566,7 @@ describe('SearchQueryUtils', () => {
                 };
 
                 const queryString = buildQueryStringFromFilterFormValues(filterValues);
-                expect(queryString).toEqual('type:expense "hello" limit:50');
+                expect(queryString).toEqual('type:expense hello limit:50');
 
                 const queryJSON = buildSearchQueryJSON(queryString);
                 expect(queryJSON?.limit).toBe(50);
@@ -1991,12 +1991,12 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('"type:expense"');
         });
 
-        test('escapes each keyword individually', () => {
+        test('does not quote plain keywords that cannot be confused with filter syntax', () => {
             const queryJSON = buildSearchQueryJSON('type:expense foo bar');
 
             const result = buildSearchQueryString(queryJSON);
 
-            expect(result).toContain('"foo" "bar"');
+            expect(result).toContain('foo bar');
         });
 
         test('keyword escaping round-trips through the parser preserving the keyword value', () => {
@@ -2030,14 +2030,6 @@ describe('SearchQueryUtils', () => {
             const result = buildFilterValuesString(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, queryFilters);
 
             expect(result.trim()).toBe('hello world');
-        });
-
-        test('wraps keyword values containing spaces in quotes', () => {
-            const queryFilters: QueryFilter[] = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'hello world'}];
-
-            const result = buildFilterValuesString(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, queryFilters);
-
-            expect(result.trim()).toBe('"hello world"');
         });
 
         test('joins equal-to values for non-keyword filters with commas', () => {
@@ -3013,8 +3005,7 @@ describe('SearchQueryUtils', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
             const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('hello world', currentQueryJSON) : '';
-            // Each word is escaped as its own quoted keyword to avoid being interpreted as filter syntax
-            expect(result).toContain('"hello" "world"');
+            expect(result).toContain('hello world');
             expect(result).toContain('type:trip');
         });
 
