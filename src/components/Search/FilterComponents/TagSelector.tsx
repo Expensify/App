@@ -12,10 +12,8 @@ import type {PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import MultiSelect from './MultiSelect';
 
-type TagSelectorProps = SearchFilterCommonProps & {
-    value: string[] | undefined;
+type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
     policyIDs: string[] | undefined;
-    onChange: (tags: string[]) => void;
 };
 
 function TagSelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {

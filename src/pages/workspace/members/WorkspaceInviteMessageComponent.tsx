@@ -192,7 +192,9 @@ function WorkspaceInviteMessageComponent({
             if (nestedBackTo) {
                 Navigation.goBack(nestedBackTo as Routes);
             } else {
-                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0));
+                // forceReplace so the invite page is removed from the stack. Otherwise it stays
+                // underneath the Approver page and an iOS swipe-back reopens the invite confirm page.
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0), {forceReplace: true});
             }
             return;
         }

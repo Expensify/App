@@ -12,6 +12,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
+import {clearExportDownload} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -384,6 +385,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     > | null>(null);
 
     const [emptyReportsCount, setEmptyReportsCount] = useState<number>(0);
+    const [activeExportID, setActiveExportID] = useState<string | undefined>(undefined);
+    const [activeExportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${activeExportID}`);
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
@@ -557,7 +560,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionsKeys);
 
     const beginExportWithTemplate = useCallback(
-        async (templateName: string, templateType: string, policyID: string | undefined) => {
+        (templateName: string, templateType: string, policyID: string | undefined) => {
             const emptyReports =
                 selectedReports?.filter((selectedReport) => {
                     if (!selectedReport) {
@@ -578,52 +581,37 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
+            let exportID: string;
 
             if (areAllMatchingItemsSelected) {
-                queueExportSearchWithTemplate({
-                    templateName,
-                    templateType,
-                    jsonQuery: serializedQuery,
-                    reportIDList: [],
-                    transactionIDList: [],
-                    policyID,
-                });
+                exportID = queueExportSearchWithTemplate(
+                    {
+                        templateName,
+                        templateType,
+                        jsonQuery: serializedQuery,
+                        reportIDList: [],
+                        transactionIDList: [],
+                        policyID,
+                    },
+                    true,
+                );
             } else {
                 const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
-                queueExportSearchWithTemplate({
-                    templateName,
-                    templateType,
-                    jsonQuery: isGroupExport ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)) : '{}',
-                    reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
-                    transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
-                    policyID,
-                });
+                exportID = queueExportSearchWithTemplate(
+                    {
+                        templateName,
+                        templateType,
+                        jsonQuery: isGroupExport ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)) : '{}',
+                        reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
+                        transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
+                        policyID,
+                    },
+                    true,
+                );
             }
-
-            const result = await showConfirmModal({
-                title: translate('export.exportInProgress'),
-                prompt: translate('export.conciergeWillSend'),
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-            });
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            clearSelectedTransactions(undefined, true);
+            setActiveExportID(exportID);
         },
-        [
-            selectedReports,
-            selectedTransactions,
-            isOffline,
-            areAllMatchingItemsSelected,
-            showConfirmModal,
-            translate,
-            clearSelectedTransactions,
-            currentSearchResults?.data,
-            queryJSON,
-            selectedTransactionReportIDs,
-            selectedTransactionsKeys,
-        ],
+        [selectedReports, selectedTransactions, isOffline, areAllMatchingItemsSelected, currentSearchResults?.data, queryJSON, selectedTransactionReportIDs, selectedTransactionsKeys],
     );
 
     const policyIDsWithVBBA = useMemo(() => {
@@ -683,21 +671,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             if (areAllMatchingItemsSelected) {
-                const result = await showConfirmModal({
-                    title: translate('search.exportSearchResults.title'),
-                    prompt: translate('search.exportSearchResults.description'),
-                    confirmText: translate('search.exportSearchResults.title'),
-                    cancelText: translate('common.cancel'),
-                });
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
                 if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
                     return;
                 }
                 const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
                 const exportParameters = getCSVExportParameters(isBasicExport, queryJSON);
-                queueExportSearchItemsToCSV({
+                const exportID = queueExportSearchItemsToCSV({
                     query: status,
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
@@ -705,8 +684,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
                 });
-                selectAllMatchingItems(false);
-                clearSelectedTransactions();
+                setActiveExportID(exportID);
                 return;
             }
 
@@ -747,9 +725,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             selectedTransactionsKeys,
             translate,
             clearSelectedTransactions,
-            showConfirmModal,
             hash,
-            selectAllMatchingItems,
             currentSearchResults?.data,
             getCSVExportParameters,
         ],
@@ -1379,16 +1355,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const completeReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+                const snapshotReport = getReportFromSearchSnapshot(report.reportID, currentSearchResults?.data, allReports);
 
-                if (!completeReport) {
+                if (!snapshotReport) {
                     return false;
                 }
 
                 const reportExportOptions = getSecondaryExportReportActions(
                     currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserPersonalDetails?.login ?? '',
-                    completeReport,
+                    snapshotReport,
                     bankAccountList,
                     reportPolicy,
                 );
@@ -1416,7 +1392,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     let areAnyReportsExported = false;
 
                     for (const reportID of selectedReportIDs) {
-                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
                         if (!report?.pendingFields?.export && !report?.isExportedToIntegration) {
                             continue;
@@ -1424,8 +1400,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                         areAnyReportsExported = true;
 
-                        if (report.reportName) {
-                            exportedReportNames.push(report.reportName);
+                        // The live Onyx report can be an incomplete optimistic record (e.g. exported offline before it
+                        // was ever loaded) that lacks `reportName`, so fall back to the Search snapshot for the name.
+                        const reportName = report.reportName ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
+                        if (reportName) {
+                            exportedReportNames.push(reportName);
                         }
                     }
 
@@ -1438,6 +1417,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             }),
                             confirmText: translate('workspace.exportAgainModal.confirmText'),
                             cancelText: translate('workspace.exportAgainModal.cancelText'),
+                            shouldEnablePromptScroll: true,
                         }).then((result) => {
                             if (result.action !== ModalActions.CONFIRM) {
                                 return;
@@ -2011,7 +1991,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         hash,
         selectedTransactions,
         queryJSON?.type,
-        queryJSON?.groupBy,
         expensifyIcons,
         translate,
         areAllMatchingItemsSelected,
@@ -2044,7 +2023,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         dismissedRejectUseExplanation,
         showDelegateNoAccessModal,
         bulkPayButtonOptions,
-        businessBankAccountOptions?.length,
         shouldShowBusinessBankAccountOptions,
         onBulkPaySelected,
         areAllTransactionsFromSubmitter,
@@ -2116,6 +2094,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setRejectModalAction(null);
     }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
 
+    const handleExportModalClose = useCallback(() => {
+        if (activeExportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !activeExportDownload?.shouldSendFromConcierge) {
+            return;
+        }
+        if (activeExportID) {
+            clearExportDownload(activeExportID, activeExportDownload);
+        }
+        setActiveExportID(undefined);
+        selectAllMatchingItems(false);
+        clearSelectedTransactions(undefined, true);
+    }, [activeExportID, activeExportDownload, selectAllMatchingItems, clearSelectedTransactions]);
+
     return {
         headerButtonsOptions,
         selectedPolicyIDs,
@@ -2143,6 +2133,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allTransactions: allTransactionsForDuplicate,
         allReports,
         searchData: currentSearchResults?.data,
+        activeExportID,
+        handleExportModalClose,
     };
 }
 

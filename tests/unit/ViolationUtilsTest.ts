@@ -945,6 +945,38 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
             expect(result.value).not.toContainEqual(missingCategoryViolation);
         });
+
+        it('should add categoryOutOfPolicy when the transaction has a category that is not in policy', () => {
+            transaction.category = 'Office Supplies';
+            policyCategories = {Food: {name: 'Food', enabled: true}};
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).toContainEqual(categoryOutOfPolicyViolation);
+        });
+
+        it('should remove a stale missingCategory violation when categories are not required', () => {
+            // e.g. after the workspace disables categories: a leftover missingCategory must clear optimistically.
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: [missingCategoryViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).not.toContainEqual(missingCategoryViolation);
+        });
     });
 
     describe('policyRequiresTags', () => {
@@ -1141,7 +1173,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(missingTagViolation);
         });
 
-        it('should not add tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+        it('should add tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
             policyTags = {
                 Meals: {
                     name: 'Meals',
@@ -1165,10 +1197,10 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual({...tagOutOfPolicyViolation, data: {tagName: 'Meals'}});
         });
 
-        it('should remove existing tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+        it('should keep existing tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
             policyTags = {
                 Meals: {
                     name: 'Meals',
@@ -1193,7 +1225,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual(tagOutOfPolicyViolation);
             expect(result.value).toContainEqual(duplicatedTransactionViolation);
         });
     });
@@ -1787,6 +1819,38 @@ describe('getViolationsOnyxData', () => {
 
             it('should remove taxOutOfPolicy violation when taxCode becomes valid', () => {
                 transaction.taxCode = 'TAX_10';
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
+                transactionViolations = [taxOutOfPolicyViolation];
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should not add taxOutOfPolicy violation when the transaction has no tax code', () => {
+                // An expense whose tax was deleted has an empty tax code; re-enabling tax tracking must not flag it.
+                transaction.taxCode = '';
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should remove a stale taxOutOfPolicy violation when the tax code has been cleared', () => {
+                transaction.taxCode = '';
                 policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
                 transactionViolations = [taxOutOfPolicyViolation];
                 const result = ViolationsUtils.getViolationsOnyxData({

@@ -5,10 +5,7 @@ import useNetwork from '@hooks/useNetwork';
 import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import MultiSelect from './MultiSelect';
 
-type FeedSelectorProps = SearchFilterCommonProps & {
-    value: string[] | undefined;
-    onChange: (item: string[]) => void;
-};
+type FeedSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 function FeedSelector({value, selectionListStyle, footer, onChange}: FeedSelectorProps) {
     const {isOffline} = useNetwork();
