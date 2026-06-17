@@ -50,7 +50,7 @@ const oldRoutes: Record<string, string> = {
     '/referral/*': '/home/referral/$1',
     '/a/*/avatar': '/avatar/$1',
     '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
-    '/home-page': '/home',
+    '/workspace/confirmation': '/workspaces/workspace/confirmation',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 
