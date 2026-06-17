@@ -327,7 +327,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     };
 
     const [workflowSearchInput, setWorkflowSearchInput, searchFilteredWorkflows] = useSearchResults(filteredApprovalWorkflows, filterWorkflow);
-    const [visibleWorkflowsCount, setVisibleWorkflowsCount] = useState<number>(CONST.WORKFLOW_APPROVALS_INITIAL_BATCH);
+    const [isWorkflowListExpanded, setIsWorkflowListExpanded] = useState(false);
 
     useEffect(() => {
         if (filteredApprovalWorkflows.length > CONST.SEARCH_BAR_THRESHOLD) {
@@ -336,12 +336,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         setWorkflowSearchInput('');
     }, [filteredApprovalWorkflows.length, setWorkflowSearchInput]);
 
-    // Searching reveals every match, so pagination is bypassed while a query is active.
+    // Searching reveals every match, so pagination is bypassed while a query is active. Pressing "Load more" reveals all remaining workflows at once.
     const isSearchingWorkflows = workflowSearchInput.length > 0;
-    const displayedWorkflows = isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, visibleWorkflowsCount);
+    const displayedWorkflows = isWorkflowListExpanded || isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH);
     const hiddenWorkflowsCount = searchFilteredWorkflows.length - displayedWorkflows.length;
-    // The button reveals the next batch (up to 5), so its label shows how many that next tap will load.
-    const nextWorkflowsBatchCount = Math.min(hiddenWorkflowsCount, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH);
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
     const isHRConnected = isAnyHRConnected(policy);
@@ -557,9 +555,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         })}
                         {hiddenWorkflowsCount > 0 && (
                             <WorkflowsLoadMoreCard
-                                count={nextWorkflowsBatchCount}
+                                count={hiddenWorkflowsCount}
                                 icon={expensifyIcons.CircularArrowBackwards}
-                                onPress={() => setVisibleWorkflowsCount((prev) => prev + CONST.WORKFLOW_APPROVALS_INITIAL_BATCH)}
+                                onPress={() => setIsWorkflowListExpanded(true)}
                             />
                         )}
                         {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
@@ -802,7 +800,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         searchFilteredWorkflows.length,
         displayedWorkflows,
         hiddenWorkflowsCount,
-        nextWorkflowsBatchCount,
         addApprovalAction,
         isOffline,
         isPolicyAdmin,

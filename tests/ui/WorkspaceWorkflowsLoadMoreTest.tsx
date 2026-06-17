@@ -159,32 +159,26 @@ describe('WorkspaceWorkflowsPage - Approvals Load more', () => {
         expect(screen.queryByText(loadMoreLabel(BATCH))).not.toBeOnTheScreen();
     });
 
-    it('shows only the initial batch with a "Load more" button capped at the batch size when more workflows exist', async () => {
-        // 10 custom + 1 default = 11 total, so 6 are hidden but the button label is capped at BATCH (5).
+    it('shows only the initial batch with a "Load more" button labelled with the full remaining count', async () => {
+        // 10 custom + 1 default = 11 total, so BATCH are shown and the remaining (11 - BATCH) are hidden.
         await setupPolicy(10);
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
         expect(countWorkflowCards()).toBe(BATCH);
-        expect(screen.getByText(loadMoreLabel(BATCH))).toBeOnTheScreen();
+        expect(screen.getByText(loadMoreLabel(11 - BATCH))).toBeOnTheScreen();
     });
 
-    it('reveals the next batch on each press and hides the button once everything is visible', async () => {
+    it('reveals all remaining workflows in a single press and hides the button', async () => {
         await setupPolicy(10); // 11 total
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        // First press: 5 -> 10 visible, 1 remaining -> "Load 1 more".
-        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: loadMoreLabel(BATCH)}));
-        await waitForBatchedUpdatesWithAct();
-        expect(countWorkflowCards()).toBe(2 * BATCH);
-        expect(screen.getByText(loadMoreLabel(1))).toBeOnTheScreen();
-
-        // Second press: 10 -> 11 visible, nothing remaining -> button gone.
-        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: loadMoreLabel(1)}));
+        // Single press reveals every remaining workflow at once.
+        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: loadMoreLabel(11 - BATCH)}));
         await waitForBatchedUpdatesWithAct();
         expect(countWorkflowCards()).toBe(11);
-        expect(screen.queryByText(loadMoreLabel(1))).not.toBeOnTheScreen();
+        expect(screen.queryByText(loadMoreLabel(11 - BATCH))).not.toBeOnTheScreen();
     });
 
     it('shows every match and hides the Load more button while searching (search bypasses pagination)', async () => {
