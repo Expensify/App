@@ -597,20 +597,25 @@ const DYNAMIC_ROUTES = {
     },
     EXPENSIFY_CARD_DETAILS: {
         path: 'expensify-card-details/:cardID/:policyID',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.DYNAMIC_PROFILE],
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.DYNAMIC_PROFILE],
         getRoute: (cardID: string, policyID: string) => `expensify-card-details/${cardID}/${policyID}` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_DETAILS: {
+        path: 'workspace-expensify-card-details/:cardID',
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.WORKSPACE.MEMBER_DETAILS],
+        getRoute: (cardID: string) => `workspace-expensify-card-details/${cardID}` as const,
     },
     EXPENSIFY_CARD_LIMIT_TYPE: {
         path: 'edit/limit-type',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
     },
     EXPENSIFY_CARD_LIMIT: {
         path: 'edit/limit',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
     },
     EXPENSIFY_CARD_NAME: {
         path: 'edit/name',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: {
         path: 'account',
@@ -2851,11 +2856,6 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/expensify-card` as const;
         },
-    },
-    WORKSPACE_EXPENSIFY_CARD_DETAILS: {
-        route: 'workspaces/:policyID/expensify-card/:cardID',
-
-        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/${cardID}`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT: {
         route: 'workspaces/:policyID/expensify-card/choose-bank-account',
