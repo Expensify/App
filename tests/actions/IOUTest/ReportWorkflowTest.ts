@@ -23,6 +23,7 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {submitMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -3020,6 +3021,91 @@ describe('actions/IOU/ReportWorkflow', () => {
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${singleApproverReport.reportID}`);
             expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
             expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        });
+
+        it('uses the expense report policy for approval optimism when active policy is DEW', () => {
+            const activeDEWPolicy: Policy = {
+                ...policy,
+                id: '2',
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            };
+            const reportPreviewActionID = 'preview-action-1';
+            const parentReportID = 'parent-report-1';
+            const normalReport: Report = {
+                ...expenseReport,
+                reportID: '789',
+                parentReportID,
+                parentReportActionID: reportPreviewActionID,
+                managerID: managerAccountID,
+            };
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: normalReport.reportID,
+            };
+
+            return Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {
+                    email: managerEmail,
+                    accountID: managerAccountID,
+                },
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activeDEWPolicy.id,
+                [`${ONYXKEYS.COLLECTION.POLICY}${activeDEWPolicy.id}`]: activeDEWPolicy,
+                [`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`]: normalReport,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: {
+                    [reportPreviewActionID]: {
+                        reportActionID: reportPreviewActionID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                        childReportID: normalReport.reportID,
+                        childStateNum: normalReport.stateNum,
+                        childStatusNum: normalReport.statusNum,
+                        childManagerAccountID: normalReport.managerID,
+                    },
+                },
+            })
+                .then(() => {
+                    approveMoneyRequest({
+                        expenseReport: normalReport,
+                        expenseReportPolicy: policy,
+                        policy: activeDEWPolicy,
+                        currentUserAccountIDParam: managerAccountID,
+                        currentUserEmailParam: managerEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        expenseReportCurrentNextStepDeprecated: undefined,
+                        betas: [CONST.BETAS.ALL],
+                        userBillingGracePeriodEnds: undefined,
+                        amountOwed: 0,
+                        ownerBillingGracePeriodEnd: undefined,
+                        delegateEmail: undefined,
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`))
+                .then((updatedReport) => {
+                    expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+                    expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    expect(updatedReport?.managerID).toBe(adminAccountID);
+
+                    const previewAction = getReportPreviewAction({
+                        isReportArchived: false,
+                        currentUserAccountID: managerAccountID,
+                        currentUserLogin: managerEmail,
+                        report: updatedReport,
+                        policy,
+                        transactions: [transaction],
+                        bankAccountList: {},
+                        reportMetadata: undefined,
+                    });
+                    expect(previewAction).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+
+                    return getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
+                })
+                .then((parentReportActions) => {
+                    expect(parentReportActions?.[reportPreviewActionID]?.childStateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+                    expect(parentReportActions?.[reportPreviewActionID]?.childStatusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    expect(parentReportActions?.[reportPreviewActionID]?.childManagerAccountID).toBe(adminAccountID);
+                });
         });
     });
 

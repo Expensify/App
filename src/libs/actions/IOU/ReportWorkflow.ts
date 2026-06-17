@@ -409,18 +409,19 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         return;
     }
 
+    const workflowPolicy = expenseReportPolicy ?? policy;
     const reportTransactions = getReportTransactions(expenseReport.reportID);
     let total = expenseReport.total ?? 0;
     const hasHeldExpenses = hasHeldExpensesReportUtils(reportTransactions);
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, currentUserAccountIDParam, expenseReport, policy, getAllTransactionViolations());
+    const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, currentUserAccountIDParam, expenseReport, workflowPolicy, getAllTransactionViolations());
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
     const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam, delegateEmail);
 
-    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    const isDEWPolicy = hasDynamicExternalWorkflow(workflowPolicy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
 
     const nextApproverAccountID = getNextApproverAccountID(expenseReport);
@@ -433,7 +434,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         ? null
         : buildNextStepNew({
               report: expenseReport,
-              policy,
+              policy: workflowPolicy,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,
@@ -444,7 +445,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         ? null
         : buildOptimisticNextStep({
               report: expenseReport,
-              policy,
+              policy: workflowPolicy,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,
@@ -620,6 +621,32 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         });
     }
 
+    if (!isDEWPolicy && expenseReport.parentReportID && expenseReport.parentReportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.parentReportID}`,
+            value: {
+                [expenseReport.parentReportActionID]: {
+                    childStateNum: predictedNextState,
+                    childStatusNum: predictedNextStatus,
+                    ...(nextApproverAccountID ? {childManagerAccountID: managerID} : {}),
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.parentReportID}`,
+            value: {
+                [expenseReport.parentReportActionID]: {
+                    childStateNum: expenseReport.stateNum,
+                    childStatusNum: expenseReport.statusNum,
+                    ...(nextApproverAccountID ? {childManagerAccountID: expenseReport.managerID} : {}),
+                },
+            },
+        });
+    }
+
     if (shouldAddOptimisticApproveAction) {
         if (isDEWPolicy) {
             failureData.push({
@@ -688,7 +715,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             chatReport,
             iouReport: expenseReport,
             recipient: {accountID: expenseReport.ownerAccountID},
-            policy,
+            policy: workflowPolicy,
             createdTimestamp: originalCreated,
             isApprovalFlow: true,
             betas,
@@ -712,7 +739,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                 currentUserEmailParam,
                 currentUserAccountIDParam,
                 expenseReport,
-                policy,
+                workflowPolicy,
                 // TODO: https://github.com/Expensify/App/issues/66512
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 getAllTransactionViolations()?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
