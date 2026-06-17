@@ -1,7 +1,8 @@
-import {useState} from 'react';
+import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {clearExportDownload} from '@libs/actions/Export';
@@ -40,11 +41,8 @@ type UseExportActionsReturn = {
     showOfflineModal: () => void;
     showDownloadErrorModal: () => void;
 
-    /** The ID of the in-progress template export, used by the consumer to render ExportDownloadStatusModal */
-    activeExportID: string | undefined;
-
-    /** Closes the export download status modal (no-op while still preparing, unless handed off to Concierge) */
-    handleExportModalClose: () => void;
+    /** The realtime export status modal for the in-progress template export (or null when none is active). Render it directly in the consumer. */
+    exportDownloadStatusModal: React.JSX.Element | null;
 };
 
 function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsParams): UseExportActionsReturn {
@@ -269,14 +267,22 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         },
     };
 
+    const exportDownloadStatusModal = activeExportID ? (
+        <ExportDownloadStatusModal
+            exportID={activeExportID}
+            isVisible
+            onClose={handleExportModalClose}
+            failedBody={translate('exportDownload.csvFailedBody')}
+        />
+    ) : null;
+
     return {
         exportActionEntries,
         secondaryExportActions,
         beginExportWithTemplate,
         showOfflineModal,
         showDownloadErrorModal,
-        activeExportID,
-        handleExportModalClose,
+        exportDownloadStatusModal,
     };
 }
 

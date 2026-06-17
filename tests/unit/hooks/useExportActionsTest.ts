@@ -9,6 +9,8 @@ const mockClearExportDownload = jest.mocked(clearExportDownload);
 const REPORT_ID = 'report1';
 const POLICY_ID = 'policy1';
 
+type ExportDownloadStatusModalProps = {exportID: string; onClose: () => void};
+
 jest.mock('@libs/actions/Search', () => ({
     getExportTemplates: jest.fn(() => []),
     queueExportSearchWithTemplate: jest.fn(() => 'mock-export-id'),
@@ -97,7 +99,7 @@ describe('useExportActions - template export status modal', () => {
         mockIsOffline = false;
     });
 
-    it('queues the export with progress tracking and exposes the activeExportID', () => {
+    it('queues the export with progress tracking and renders the status modal', () => {
         const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
 
         act(() => {
@@ -115,7 +117,8 @@ describe('useExportActions - template export status modal', () => {
             },
             true,
         );
-        expect(result.current.activeExportID).toBe('mock-export-id');
+        const modalProps = result.current.exportDownloadStatusModal?.props as ExportDownloadStatusModalProps | undefined;
+        expect(modalProps?.exportID).toBe('mock-export-id');
     });
 
     it('does not queue the export and shows the offline modal when offline', () => {
@@ -128,22 +131,23 @@ describe('useExportActions - template export status modal', () => {
 
         expect(mockQueueExportSearchWithTemplate).not.toHaveBeenCalled();
         expect(mockShowDecisionModal).toHaveBeenCalled();
-        expect(result.current.activeExportID).toBeUndefined();
+        expect(result.current.exportDownloadStatusModal).toBeNull();
     });
 
-    it('clears the export download and resets activeExportID on modal close', () => {
+    it('clears the export download and hides the modal on close', () => {
         const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
 
         act(() => {
             result.current.beginExportWithTemplate('Test Template', 'csv', ['1'], POLICY_ID);
         });
-        expect(result.current.activeExportID).toBe('mock-export-id');
+        const modalProps = result.current.exportDownloadStatusModal?.props as ExportDownloadStatusModalProps | undefined;
+        expect(modalProps?.exportID).toBe('mock-export-id');
 
         act(() => {
-            result.current.handleExportModalClose();
+            modalProps?.onClose();
         });
 
         expect(mockClearExportDownload).toHaveBeenCalledWith('mock-export-id', undefined);
-        expect(result.current.activeExportID).toBeUndefined();
+        expect(result.current.exportDownloadStatusModal).toBeNull();
     });
 });
