@@ -753,9 +753,25 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         optimisticCreatedReportForUnapprovedTransactionsActionID,
     };
 
+    // DEW policies don't optimistically change the report state (the backend decides the workflow), so there's
+    // nothing to patch into Your spend until the next online refresh.
+    const yourSpendSnapshotUpdates = isDEWPolicy
+        ? {optimisticData: [], successData: [], failureData: []}
+        : getYourSpendSnapshotReportMoveUpdates({
+              iouReport: expenseReport,
+              reportTransactions,
+              fromStatus: {stateNum: expenseReport.stateNum, statusNum: expenseReport.statusNum},
+              toStatus: {stateNum: predictedNextState, statusNum: predictedNextStatus},
+              currentUserAccountID: currentUserAccountIDParam,
+          });
+
     onApproved?.();
     playSound(SOUNDS.SUCCESS);
-    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {
+        optimisticData: [...optimisticData, ...yourSpendSnapshotUpdates.optimisticData],
+        successData: [...successData, ...yourSpendSnapshotUpdates.successData],
+        failureData: [...failureData, ...yourSpendSnapshotUpdates.failureData],
+    });
     return optimisticHoldReportID;
 }
 
