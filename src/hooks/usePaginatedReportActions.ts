@@ -2,7 +2,7 @@ import {useCallback, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getContinuousChain} from '@libs/PaginationUtils';
-import {getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
+import {getSortedReportActionsForDisplay, isReportActionUnread} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -45,6 +45,10 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`);
 
     const initialReportLastReadTime = useRef(report?.lastReadTime);
+    // Whether the report itself was already loaded at first render. A loaded report with an empty
+    // lastReadTime is genuinely unread (e.g. a brand-new conversation); an unloaded report just
+    // hadn't hydrated yet, so we must not treat its missing lastReadTime as "everything unread".
+    const wasReportLoadedInitially = useRef(!!report);
 
     const id = useMemo(() => {
         /* eslint-disable react-hooks/refs -- initialReportLastReadTime snapshots lastRead at first render for stable unread deep-link anchor */
@@ -61,8 +65,20 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         }
 
         const initialLastReadTime = initialReportLastReadTime.current;
-        if (!initialLastReadTime || !sortedAllReportActions?.length) {
+        if (!sortedAllReportActions?.length) {
             return undefined;
+        }
+
+        // For a brand-new/unread conversation the report's lastReadTime is empty, so the previous
+        // `created > lastReadTime` check found nothing and the unread marker was lost. When the report
+        // was already loaded with an empty lastReadTime, anchor to the oldest unread action instead —
+        // `isReportActionUnread` treats every non-CREATED action as unread for an empty lastReadTime,
+        // matching the marker logic and keeping the marker pinned above the first received message.
+        if (!initialLastReadTime) {
+            if (!wasReportLoadedInitially.current) {
+                return undefined;
+            }
+            return sortedAllReportActions.findLast((reportAction) => isReportActionUnread(reportAction, initialLastReadTime))?.reportActionID;
         }
 
         return sortedAllReportActions.findLast((reportAction) => reportAction.created > initialLastReadTime)?.reportActionID;
