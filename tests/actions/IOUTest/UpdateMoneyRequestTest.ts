@@ -1739,11 +1739,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
     describe('updateMoneyRequestDate distance rate recalculation', () => {
         it('calls UpdateMoneyRequestDistanceRate with created when a workspace distance expense date change selects a different rate', async () => {
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => {});
-            const transactionID = 'distance_date_recalc';
-            const transactionThreadReportID = 'thread_date_recalc';
-            const expenseReportID = 'expense_report_date_recalc';
-            const policyID = 'policy_date_recalc';
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const transactionID = 'distance_date_rate_switch';
+            const transactionThreadReportID = 'thread_date_rate_switch';
+            const expenseReportID = 'expense_report_date_rate_switch';
+            const policyID = 'policy_date_rate_switch';
             const rate2025 = 'rate_2025';
             const rate2026 = 'rate_2026';
 
