@@ -76,7 +76,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [searchTerm, setSearchTerm] = useState('');
     const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT);
-    const [selectedPayer, setSelectedPayer] = useState<string | undefined | null>(policy?.achAccount?.reimburser);
+    const [selectedPayer, setSelectedPayer] = useState<string | undefined | null>(policy?.achAccount?.reimburser ?? policy?.owner);
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
@@ -179,7 +179,11 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             setIsAlertVisible(true);
             return;
         }
-        if (policy?.achAccount?.reimburser === authorizedPayerEmail || !isAutoReimbursement) {
+        // When no payer is stored on the policy, the owner is the fallback payer
+        const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
+
+        // Skip bank-account sharing when the selection matches the payer, or when manual reimbursement has no bank account to share.
+        if (reimburserEmail === authorizedPayerEmail || !isAutoReimbursement) {
             Navigation.goBack();
             return;
         }
@@ -208,7 +212,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         }
 
         const isSelectedPayerOwner = policy?.owner === selectedPayer;
-        const isSelectedAlreadyAPayer = policy?.achAccount?.reimburser === selectedPayer;
+        const isSelectedAlreadyAPayer = (policy?.achAccount?.reimburser ?? policy?.owner) === selectedPayer;
         const isAccountAlreadyShared = bankAccountInfo?.accountData?.sharees ? bankAccountInfo?.accountData.sharees.includes(selectedPayer) : false;
         const isAccountAlreadySharedOnMainBankAccount = policy?.achAccount?.sharees ? policy?.achAccount.sharees.includes(selectedPayer) : false;
 
