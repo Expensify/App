@@ -303,11 +303,6 @@ function AuthScreens() {
                             listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
-                            name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
-                            component={ExplanationModalNavigator}
-                        />
-                        <RootStack.Screen
                             name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
                             options={rootNavigatorScreenOptions.basicModalNavigator}
                             component={MigratedUserWelcomeModalNavigator}
