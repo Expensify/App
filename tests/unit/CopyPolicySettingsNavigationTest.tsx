@@ -89,6 +89,7 @@ function createTestPolicy(id: string, name: string): Policy {
         role: 'admin',
         owner: TEST_USER_EMAIL,
         ownerAccountID: TEST_USER_ACCOUNT_ID,
+        pendingAction: null,
         employeeList: {
             [TEST_USER_EMAIL]: {
                 email: TEST_USER_EMAIL,
