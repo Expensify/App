@@ -1,82 +1,32 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 import DescriptionField from '@components/MoneyRequestConfirmationList/sections/DescriptionField';
 import DistanceField from '@components/MoneyRequestConfirmationList/sections/DistanceField';
 import MerchantField from '@components/MoneyRequestConfirmationList/sections/MerchantField';
 import RateField from '@components/MoneyRequestConfirmationList/sections/RateField';
 import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFields';
+import type {AmountDisplay, DistanceData, ErrorState, RequiredFlags} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import type CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
 import type {FieldVisibility} from './fieldVisibility';
 
 type TransactionDetailsFieldsProps = {
-    /** Action being performed (drives section navigation targets) */
-    action: IOUAction;
-
-    /** Type of IOU being confirmed */
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-
-    /** ID of the active transaction */
-    transactionID: string | undefined;
-
-    /** ID of the report the transaction belongs to */
-    reportID: string;
-
-    /** ID of the originating report action when editing */
-    reportActionID: string | undefined;
-
-    /** Active policy */
+    /** Active policy (read by Amount/Description/Rate/Merchant) */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Whether the surface is read-only */
-    isReadOnly: boolean;
+    /** Pre-formatted amount values consumed by Amount/Attendee fields */
+    amountDisplay: AmountDisplay;
 
-    /** Whether the user has confirmed (locks editable controls) */
-    didConfirm: boolean;
+    /** Distance-rate metadata threaded into Distance/Rate fields */
+    distanceData: DistanceData;
 
-    /** Whether the new manual expense flow beta is enabled */
-    isNewManualExpenseFlowEnabled: boolean;
+    /** Per-field "required" flags driven by policy/workflow */
+    requiredFlags: RequiredFlags;
 
-    /** Whether we're editing an existing split expense */
-    isEditingSplitBill: boolean;
-
-    /** Whether the surface is in a policy-expense chat */
-    isPolicyExpenseChat: boolean;
-
-    /** Whether the active transaction is a manual distance request */
-    isManualDistanceRequest: boolean;
-
-    /** Whether the active transaction is an odometer-driven distance request */
-    isOdometerDistanceRequest: boolean;
-
-    /** Whether the active transaction is a GPS-driven distance request */
-    isGPSDistanceRequest: boolean;
-
-    /** Whether the merchant is required to submit */
-    isMerchantRequired: boolean | undefined;
-
-    /** Per-field visibility decisions resolved by `computeFieldVisibility` */
-    fieldVisibility: Pick<FieldVisibility, 'amount' | 'distance' | 'rate' | 'merchant' | 'time'>;
-
-    /** Whether the description is required to submit */
-    isDescriptionRequired: boolean;
-
-    /** Whether to display per-field validation errors */
-    shouldDisplayFieldError: boolean;
-
-    /** Form-level error message */
-    formError: string;
-
-    /** Clears specific form errors by key */
-    clearFormErrors: (errors: string[]) => void;
-
-    /** Sets a form error message */
-    setFormError: (error: TranslationPaths | '') => void;
+    /** Error state surfaced into Amount/Merchant */
+    errorState: ErrorState;
 
     /** Whether navigating to upgrade is required to proceed past blocked workspaces */
     shouldNavigateToUpgradePath: boolean;
@@ -87,32 +37,11 @@ type TransactionDetailsFieldsProps = {
     /** ISO currency code for the transaction */
     iouCurrencyCode: string;
 
-    /** Total amount, in the smallest currency unit */
-    amount: number;
-
-    /** Pre-formatted amount string for display */
-    formattedAmount: string;
-
-    /** Distance value */
-    distance: number;
-
-    /** Whether a route is available */
-    hasRoute: boolean;
-
-    /** Distance unit */
-    unit: Unit | undefined;
-
-    /** Distance rate (per-unit cost) */
-    rate: number | undefined;
-
-    /** Display name of the active distance rate */
-    distanceRateName: string | undefined;
-
-    /** Currency of the active distance rate */
-    distanceRateCurrency: string;
-
     /** When true, suppresses the below-show-more entries (Amount, Rate, Merchant, Time) */
     isCompactMode: boolean;
+
+    /** Per-field visibility decisions resolved by `computeFieldVisibility` */
+    fieldVisibility: Pick<FieldVisibility, 'amount' | 'distance' | 'rate' | 'merchant' | 'time'>;
 
     /** Triggers submit from inline inputs */
     onSubmitForm?: () => void;
@@ -122,42 +51,33 @@ type TransactionDetailsFieldsProps = {
 };
 
 function TransactionDetailsFields({
-    action,
-    iouType,
-    transactionID,
-    reportID,
-    reportActionID,
     policy,
-    isReadOnly,
-    didConfirm,
-    isNewManualExpenseFlowEnabled,
-    isEditingSplitBill,
-    isPolicyExpenseChat,
-    isManualDistanceRequest,
-    isOdometerDistanceRequest,
-    isGPSDistanceRequest,
-    isMerchantRequired,
-    isDescriptionRequired,
-    shouldDisplayFieldError,
-    formError,
-    clearFormErrors,
-    setFormError,
+    amountDisplay,
+    distanceData,
+    requiredFlags,
+    errorState,
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
     iouCurrencyCode,
-    amount,
-    formattedAmount,
-    distance,
-    hasRoute,
-    unit,
-    rate,
-    distanceRateName,
-    distanceRateCurrency,
     isCompactMode,
     fieldVisibility,
     onSubmitForm,
     isParticipantPickerVisible,
 }: TransactionDetailsFieldsProps) {
+    const {
+        action,
+        iouType,
+        transactionID,
+        reportID,
+        reportActionID,
+        isReadOnly,
+        didConfirm,
+        isNewManualExpenseFlowEnabled,
+        isPolicyExpenseChat,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+        isGPSDistanceRequest,
+    } = useConfirmationFields();
     const shouldAutoFocusAmountField = !canUseTouchScreen();
 
     return (
@@ -165,25 +85,24 @@ function TransactionDetailsFields({
             {!isCompactMode && fieldVisibility.amount && (
                 <AmountField
                     action={action}
-                    amount={amount}
-                    formattedAmount={formattedAmount}
-                    distanceRateCurrency={distanceRateCurrency}
+                    amount={amountDisplay.amount}
+                    formattedAmount={amountDisplay.formattedAmount}
+                    distanceRateCurrency={distanceData.distanceRateCurrency}
                     iouCurrencyCode={iouCurrencyCode}
                     isDistanceRequest={fieldVisibility.distance}
                     isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                     didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
                     shouldShowTimeRequestFields={fieldVisibility.time}
-                    shouldDisplayFieldError={shouldDisplayFieldError}
-                    formError={formError}
+                    shouldDisplayFieldError={errorState.shouldDisplayFieldError}
+                    formError={errorState.formError}
                     transactionID={transactionID}
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
-                    isEditingSplitBill={isEditingSplitBill}
                     policy={policy}
-                    clearFormErrors={clearFormErrors}
-                    setFormError={setFormError}
+                    clearFormErrors={errorState.clearFormErrors}
+                    setFormError={errorState.setFormError}
                     autoFocus={shouldAutoFocusAmountField}
                     isParticipantPickerVisible={isParticipantPickerVisible}
                 />
@@ -191,18 +110,17 @@ function TransactionDetailsFields({
 
             {!isCompactMode && fieldVisibility.merchant && (
                 <MerchantField
-                    isMerchantRequired={isMerchantRequired}
+                    isMerchantRequired={requiredFlags.isMerchantRequired}
                     isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                     isReadOnly={isReadOnly}
                     didConfirm={didConfirm}
-                    shouldDisplayFieldError={shouldDisplayFieldError}
-                    formError={formError}
+                    shouldDisplayFieldError={errorState.shouldDisplayFieldError}
+                    formError={errorState.formError}
                     transactionID={transactionID}
                     action={action}
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
-                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
@@ -210,23 +128,22 @@ function TransactionDetailsFields({
                 isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                 isReadOnly={isReadOnly}
                 didConfirm={didConfirm}
-                isDescriptionRequired={isDescriptionRequired}
+                isDescriptionRequired={requiredFlags.isDescriptionRequired}
                 transactionID={transactionID}
                 action={action}
                 iouType={iouType}
                 reportID={reportID}
                 reportActionID={reportActionID}
                 policy={policy}
-                isEditingSplitBill={isEditingSplitBill}
                 onSubmitForm={onSubmitForm}
             />
 
             {fieldVisibility.distance && (
                 <DistanceField
-                    hasRoute={hasRoute}
-                    distance={distance}
-                    unit={unit}
-                    rate={rate}
+                    hasRoute={distanceData.hasRoute}
+                    distance={distanceData.distance}
+                    unit={distanceData.unit}
+                    rate={distanceData.rate}
                     isManualDistanceRequest={isManualDistanceRequest}
                     isOdometerDistanceRequest={isOdometerDistanceRequest}
                     isGPSDistanceRequest={isGPSDistanceRequest}
@@ -242,10 +159,10 @@ function TransactionDetailsFields({
 
             {!isCompactMode && fieldVisibility.rate && (
                 <RateField
-                    distanceRateName={distanceRateName}
-                    distanceRateCurrency={distanceRateCurrency}
-                    unit={unit}
-                    rate={rate}
+                    distanceRateName={distanceData.distanceRateName}
+                    distanceRateCurrency={distanceData.distanceRateCurrency}
+                    unit={distanceData.unit}
+                    rate={distanceData.rate}
                     didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
                     isPolicyExpenseChat={isPolicyExpenseChat}
@@ -255,9 +172,10 @@ function TransactionDetailsFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
-                    formError={formError}
+                    formError={errorState.formError}
                     shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                     shouldSelectPolicy={shouldSelectPolicy}
+                    shouldShowRateAutoUpdatedTooltip={distanceData.shouldShowRateAutoUpdatedTooltip}
                 />
             )}
 

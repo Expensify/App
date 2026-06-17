@@ -1,13 +1,10 @@
-import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
-import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -32,10 +29,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const {setIsClosing} = useCloseImportPage();
-    const [shouldShowConfirmModal, setShouldShowConfirmModal] = useState(true);
+    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const isFocused = useIsFocused();
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -74,7 +70,16 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         return errors;
     }, [requiredColumns, spreadsheet?.columns, translate]);
 
-    const importMembers = useCallback(() => {
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImporting(false);
+    };
+
+    const navigateBackToMembers = () => {
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {waitForTransition: true});
+    };
+
+    const importMembers = async () => {
         setIsValidationEnabled(true);
 
         const errors = validate();
@@ -87,14 +92,16 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const columns = Object.values(spreadsheet?.columns ?? {});
 
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
-        const hasAuditorRole =
+        const controlPolicyOnlyRoles = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
+        const hasControlPolicyOnlyRole =
             membersRolesColumn !== -1 &&
-            spreadsheet?.data
-                ?.at(membersRolesColumn)
-                ?.some((role, index) => (containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR);
+            spreadsheet?.data?.at(membersRolesColumn)?.some((role, index) => {
+                const memberRole = containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '');
+                return controlPolicyOnlyRoles.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === memberRole);
+            });
 
-        if (hasAuditorRole && !isControlPolicy(policy)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.auditor.alias, Navigation.getActiveRoute()));
+        if (hasControlPolicyOnlyRole && !isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.controlPolicyRoles.alias, Navigation.getActiveRoute()));
             return;
         }
 
@@ -205,9 +212,15 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
         } else {
             setIsImporting(true);
-            importPolicyMembers(policy, allMembers);
+            const importFinalModal = await importPolicyMembers(policy, allMembers);
+            const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {onModalHide: navigateBackToMembers});
+            if (!didShowImportFinalModal) {
+                setIsImporting(false);
+                return;
+            }
+            closeImportPageAndModal();
         }
-    }, [validate, spreadsheet?.columns, spreadsheet?.data, policy, containsHeader, route.params.policyID, policyID]);
+    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
@@ -217,12 +230,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     if (!spreadsheetColumns) {
         return <NotFoundPage />;
     }
-
-    const closeImportPageAndModal = () => {
-        setIsClosing(true);
-        setIsImporting(false);
-        setShouldShowConfirmModal(false);
-    };
 
     return (
         <ScreenWrapper
@@ -242,13 +249,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 columnRoles={columnRoles}
                 isButtonLoading={isImporting}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
-            />
-            <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal && isFocused}
-                closeImportPageAndModal={closeImportPageAndModal}
-                onModalHide={() => {
-                    InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
-                }}
             />
         </ScreenWrapper>
     );

@@ -5,7 +5,6 @@ import CreatedReportForUnapprovedTransactionsAction from '@components/ReportActi
 import CreateHarvestReportAction from '@components/ReportActionItem/CreateHarvestReportAction';
 import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
-import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import MovedTransactionAction from '@components/ReportActionItem/MovedTransactionAction';
 import TaskAction from '@components/ReportActionItem/TaskAction';
@@ -13,10 +12,12 @@ import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import UnreportedTransactionAction from '@components/ReportActionItem/UnreportedTransactionAction';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getChangedApproverActionMessage,
     getCompanyCardConnectionBrokenMessage,
+    getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
@@ -44,11 +45,14 @@ import {
 import {getMovedActionMessage, isExpenseReport} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
+import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import FraudAlertContent from './FraudAlertContent';
 import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
@@ -71,11 +75,8 @@ type ActionContentRouterProps = {
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
-    /** Original report from which the given reportAction is first created */
-    originalReport: OnyxEntry<OnyxTypes.Report>;
-
     /** ID of the original report from which the given reportAction is first created */
-    originalReportID: string;
+    originalReportID?: string;
 
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
@@ -107,26 +108,22 @@ type ActionContentRouterProps = {
     /** Whether the report action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport: boolean;
 
-    /** Personal details list */
-    personalDetails?: OnyxTypes.PersonalDetailsList;
-
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
 
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
-    /** Position index of the report action in the overall report FlatList view */
-    index: number;
-
     /** Toggle whether the payment method popover is active */
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
+
+    /** Whether the user is a track intent user */
+    isTrackIntentUser?: boolean;
 };
 
 function ActionContentRouter({
     action,
     report,
-    originalReport,
     originalReportID,
     iouReport,
     reportID,
@@ -138,56 +135,41 @@ function ActionContentRouter({
     updateHiddenState,
     isClosedExpenseReportWithNoExpenses,
     isHarvestCreatedExpenseReport,
-    personalDetails,
     shouldShowBorder,
     isOnSearch,
-    index,
     setIsPaymentMethodPopoverActive,
+    isTrackIntentUser,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
 
-    // Report that owns this action for mutations (thread / merged-list cases use originalReport).
-    const actionOwnerReport = originalReport ?? report;
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
+
+    // Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped).
+    const actionOwnerReportStable = originalReport ?? report;
+
     const actionOwnerReportID = originalReportID ?? reportID;
     const policyID = report?.policyID;
     const reportOwnerAccountID = report?.ownerAccountID;
 
     if (isIOURequestReportAction(action)) {
-        const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
-        // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
-        const chatReportID = moneyRequestOriginalMessage?.IOUReportID ? report?.chatReportID : reportID;
-
-        if (report?.type === CONST.REPORT.TYPE.CHAT) {
-            const isSplitBill = moneyRequestOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
-            const isSplitScanWithNoAmount = isSplitBill && moneyRequestOriginalMessage?.amount === 0;
-            const shouldShowSplitPreview = isSplitBill || isSplitScanWithNoAmount;
-            if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || shouldShowSplitPreview) {
-                return (
-                    <ChatTransactionPreview
-                        action={action}
-                        reportID={reportID}
-                        chatReportID={chatReportID}
-                        iouReport={iouReport}
-                        shouldShowSplitPreview={shouldShowSplitPreview}
-                        transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
-                    />
-                );
-            }
-            // No per-action preview in non-self-DM chats — the preview lives in the linked expense report.
+        if (report?.type !== CONST.REPORT.TYPE.CHAT) {
             return null;
         }
-
+        const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
+        const isSplitBill = moneyRequestOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+        const isSplitScanWithNoAmount = isSplitBill && moneyRequestOriginalMessage?.amount === 0;
+        const shouldShowSplitPreview = isSplitBill || isSplitScanWithNoAmount;
+        if (report.chatType !== CONST.REPORT.CHAT_TYPE.SELF_DM && !shouldShowSplitPreview) {
+            return null;
+        }
         return (
-            <MoneyRequestAction
-                chatReportID={chatReportID}
-                // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-                requestReportID={moneyRequestOriginalMessage?.IOUReportID?.toString()}
-                reportID={reportID}
+            <ChatTransactionPreview
                 action={action}
-                isHovered={hovered}
-                style={displayAsGroup ? [] : [styles.mt2]}
-                isWhisper={isWhisper}
+                reportID={reportID}
+                iouReport={iouReport}
+                shouldShowSplitPreview={shouldShowSplitPreview}
+                transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
             />
         );
     }
@@ -238,7 +220,6 @@ function ActionContentRouter({
                 action={action}
                 report={report}
                 iouReport={iouReport}
-                personalDetails={personalDetails}
             />
         );
     }
@@ -259,6 +240,14 @@ function ActionContentRouter({
             />
         );
     }
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR) {
+        return (
+            <ConciergeAutoMatchVendorContent
+                action={action}
+                originalReport={originalReport}
+            />
+        );
+    }
     if (isApprovalFlowAction(action)) {
         return (
             <ApprovalFlowContent
@@ -266,6 +255,7 @@ function ActionContentRouter({
                 policyID={policyID}
                 reportID={reportID}
                 originalReport={originalReport}
+                isTrackIntentUser={isTrackIntentUser ?? false}
             />
         );
     }
@@ -293,6 +283,7 @@ function ActionContentRouter({
                 parentReportID={report?.parentReportID}
                 parentReportActionID={report?.parentReportActionID}
                 actionReportID={action.reportID}
+                action={action}
             />
         );
     }
@@ -308,7 +299,7 @@ function ActionContentRouter({
                 </ReportActionItemBasicMessage>
             );
         }
-        return <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
+        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(action, translate)} />;
     }
     if (isHandledPolicyChangeLogAction(action)) {
         return (
@@ -380,9 +371,10 @@ function ActionContentRouter({
         return (
             <MentionWhisperContent
                 action={action}
-                report={report}
-                originalReport={originalReport}
+                actionOwnerReportStable={actionOwnerReportStable}
                 originalReportID={originalReportID}
+                parentReport={originalReport ? report : undefined}
+                policyID={policyID}
             />
         );
     }
@@ -391,7 +383,7 @@ function ActionContentRouter({
             <ReportMentionWhisperContent
                 action={action}
                 reportID={reportID}
-                actionOwnerReport={actionOwnerReport}
+                actionOwnerReportStable={actionOwnerReportStable}
             />
         );
     }
@@ -400,7 +392,7 @@ function ActionContentRouter({
             <ConfirmWhisperContent
                 action={action}
                 reportID={reportID}
-                actionOwnerReport={actionOwnerReport}
+                actionOwnerReportStable={actionOwnerReportStable}
                 originalReportID={originalReportID}
             />
         );
@@ -485,7 +477,6 @@ function ActionContentRouter({
             originalReportID={originalReportID}
             displayAsGroup={displayAsGroup}
             draftMessage={draftMessage}
-            index={index}
             isHidden={isHidden}
             updateHiddenState={updateHiddenState}
             isOnSearch={isOnSearch}

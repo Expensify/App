@@ -830,9 +830,9 @@ describe('getExistingTransactionID', () => {
             reportActionID: 'action1',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             created: '',
+            reportID: 'report456',
             originalMessage: {
                 IOUTransactionID: 'txn123',
-                IOUReportID: 'report456',
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
         } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
@@ -943,73 +943,63 @@ describe('getExistingTransactionID', () => {
             expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: processingPick, routeReport, policy: harvestingDisabledPolicy})).toBeUndefined();
         });
     });
+});
 
-    describe('updateIOUOwnerAndTotal', () => {
-        const baseIOUReport = {
-            reportID: '1',
-            currency: 'USD',
-            ownerAccountID: 1,
-            managerID: 2,
-            total: 5000,
-            unheldTotal: 5000,
-            reimbursableTotal: 5000,
-            unheldReimbursableTotal: 5000,
-            chatReportID: '0',
-            stateNum: 1,
-            statusNum: 1,
-        } as Report;
+describe('isParticipantP2P', () => {
+    it('should return true for P2P participant with accountID and isPolicyExpenseChat false', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: false,
+        };
 
-        test('mirrors total update onto reimbursableTotal when actor is the owner adding amount', () => {
-            const updated = IOUUtils.updateIOUOwnerAndTotal(baseIOUReport, 1, 2000, 'USD');
-            expect(updated?.total).toBe(7000);
-            expect(updated?.reimbursableTotal).toBe(7000);
-            expect(updated?.unheldTotal).toBe(7000);
-            expect(updated?.unheldReimbursableTotal).toBe(7000);
-        });
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(true);
+    });
 
-        test('mirrors total update onto reimbursableTotal when actor is the manager (subtracts)', () => {
-            const updated = IOUUtils.updateIOUOwnerAndTotal(baseIOUReport, 2, 2000, 'USD');
-            expect(updated?.total).toBe(3000);
-            expect(updated?.reimbursableTotal).toBe(3000);
-            expect(updated?.unheldTotal).toBe(3000);
-            expect(updated?.unheldReimbursableTotal).toBe(3000);
-        });
+    it('should return false when participant is undefined', () => {
+        expect(IOUUtils.isParticipantP2P(undefined)).toBe(false);
+    });
 
-        test('mirrors total update onto reimbursableTotal when deleting an expense by the owner', () => {
-            const updated = IOUUtils.updateIOUOwnerAndTotal(baseIOUReport, 1, 1500, 'USD', true);
-            expect(updated?.total).toBe(3500);
-            expect(updated?.reimbursableTotal).toBe(3500);
-        });
+    it('should return false when participant has no accountID', () => {
+        const participant = {
+            isPolicyExpenseChat: false,
+        };
 
-        test('flips reimbursableTotal sign when total goes negative and owner/manager swap', () => {
-            const smallReport = {...baseIOUReport, total: 1000, reimbursableTotal: 1000, unheldTotal: 1000, unheldReimbursableTotal: 1000};
-            // Manager subtracts a larger amount than the report total, flipping the sign
-            const updated = IOUUtils.updateIOUOwnerAndTotal(smallReport, 2, 2500, 'USD');
-            expect(updated?.ownerAccountID).toBe(2);
-            expect(updated?.managerID).toBe(1);
-            expect(updated?.total).toBe(1500);
-            expect(updated?.reimbursableTotal).toBe(1500);
-            expect(updated?.unheldTotal).toBe(1500);
-            expect(updated?.unheldReimbursableTotal).toBe(1500);
-        });
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
 
-        test('seeds reimbursableTotal from total when the freshly tracked field is missing', () => {
-            // Older locally cached IOU reports will not have reimbursableTotal yet, so the helper should
-            // start from total and apply the diff there.
-            const legacyReport = {...baseIOUReport, reimbursableTotal: undefined, unheldReimbursableTotal: undefined} as Report;
-            const updated = IOUUtils.updateIOUOwnerAndTotal(legacyReport, 1, 1000, 'USD');
-            expect(updated?.total).toBe(6000);
-            expect(updated?.reimbursableTotal).toBe(6000);
-            expect(updated?.unheldReimbursableTotal).toBe(6000);
-        });
+    it('should return false when participant is a policy expense chat', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: true,
+        };
 
-        test('skips the unheld mirror when the transaction is on hold', () => {
-            const updated = IOUUtils.updateIOUOwnerAndTotal(baseIOUReport, 1, 2000, 'USD', false, false, true);
-            expect(updated?.total).toBe(7000);
-            expect(updated?.reimbursableTotal).toBe(7000);
-            // unheld values should not change because the transaction is on hold
-            expect(updated?.unheldTotal).toBe(5000);
-            expect(updated?.unheldReimbursableTotal).toBe(5000);
-        });
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return false when accountID is 0', () => {
+        const participant = {
+            accountID: 0,
+            isPolicyExpenseChat: false,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return true for P2P participant without isPolicyExpenseChat property', () => {
+        const participant = {
+            accountID: 456,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(true);
+    });
+
+    it('should return false for self-DM participant', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: false,
+            isSelfDM: true,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
     });
 });

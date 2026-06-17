@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
@@ -39,12 +39,14 @@ jest.mock('@libs/PolicyUtils', () => ({
         return undefined;
     }),
     isPaidGroupPolicy: jest.fn((policy: OnyxEntry<Policy>) => policy?.type === 'team' || policy?.type === 'corporate'),
+    isGroupPolicy: jest.fn((policy: OnyxEntry<Policy>) => policy?.type === 'team' || policy?.type === 'corporate' || policy?.type === 'submit2026'),
 }));
 
 jest.mock('@libs/interceptAnonymousUser', () => jest.fn((cb: () => void) => cb()));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
 }));
 
 const reportIDCounter = {value: 100};
@@ -135,7 +137,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
             expect(onCreateReport).not.toHaveBeenCalled();
         });
 
@@ -161,7 +163,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
         });
 
         it('navigates to workspace selector when default is personal and there are 2+ non-personal workspaces', () => {
@@ -188,7 +190,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
             expect(onCreateReport).not.toHaveBeenCalled();
         });
 
@@ -212,7 +214,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
             expect(onCreateReport).toHaveBeenCalledWith(false);
         });
 
@@ -240,7 +242,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
             expect(onCreateReport).toHaveBeenCalledWith(false);
         });
     });

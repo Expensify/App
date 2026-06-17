@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getTypeOptions} from '@libs/SearchUIUtils';
@@ -10,10 +10,7 @@ import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
 import SingleSelect from './SingleSelect';
 
-type TypeSelectorProps = SearchFilterSelectionListProps & {
-    value: string | undefined;
-    onChange: (item: string) => void;
-};
+type TypeSelectorProps = SearchFilterCommonProps<string | undefined>;
 
 /**
  * Extracts only the fields needed by getTypeOptions (canSendInvoice check).

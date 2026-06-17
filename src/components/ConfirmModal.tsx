@@ -113,6 +113,9 @@ type ConfirmModalProps = {
     /** Whether the confirm button is loading */
     isConfirmLoading?: boolean;
 
+    /** Whether to show a loading indicator next to the title */
+    isTitleLoading?: boolean;
+
     /** Whether to handle navigation back when modal show. */
     shouldHandleNavigationBack?: boolean;
 
@@ -121,6 +124,12 @@ type ConfirmModalProps = {
 
     /** Merged into the modal container after default confirm styles (e.g. `width` overrides `variables.sideBarWidth` on wide screens). */
     innerContainerStyle?: ViewStyle;
+
+    /** Whether the prompt should be scrollable when it is taller than the screen (e.g. a long list of items) */
+    shouldEnablePromptScroll?: boolean;
+
+    /** Force the confirm button to use the success style even when no cancel button is shown */
+    shouldUseSuccessStyleForConfirm?: boolean;
 };
 
 /**
@@ -160,9 +169,12 @@ function ConfirmModal({
     shouldEnableNewFocusManagement,
     restoreFocusType,
     isConfirmLoading,
+    isTitleLoading,
     shouldHandleNavigationBack,
     shouldIgnoreBackHandlerDuringTransition,
     innerContainerStyle,
+    shouldEnablePromptScroll = false,
+    shouldUseSuccessStyleForConfirm,
 }: ConfirmModalProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -223,6 +235,9 @@ function ConfirmModal({
                 imageStyles={imageStyles}
                 shouldFitImageToContainer={shouldFitImageToContainer}
                 isConfirmLoading={isConfirmLoading}
+                isTitleLoading={isTitleLoading}
+                shouldEnablePromptScroll={shouldEnablePromptScroll}
+                shouldUseSuccessStyleForConfirm={shouldUseSuccessStyleForConfirm}
             />
         </Modal>
     );

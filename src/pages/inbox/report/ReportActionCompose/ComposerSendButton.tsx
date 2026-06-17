@@ -6,11 +6,12 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useComposerEditState, useComposerSendState} from './ComposerContext';
+import {useComposerEditState, useComposerSendState, useComposerState} from './ComposerContext';
 import SubmitDraftButton from './SubmitDraftButton';
 import useComposerSubmit from './useComposerSubmit';
 
-function ComposerSendButton({reportID}: {reportID: string}) {
+function ComposerSendButton() {
+    const {reportID} = useComposerState();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Send', 'Checkmark']);

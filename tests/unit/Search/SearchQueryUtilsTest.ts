@@ -254,6 +254,31 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense category:equipment,consulting,none,Uncategorized');
         });
 
+        test('serializes No Tag filter as missing tag query', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense -has:tag');
+            expect(result).not.toContain('tag:none');
+        });
+
+        test('serializes real tag values as tag filters', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                tag: ['Engineering'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense tag:Engineering');
+        });
+
         test('empty filter values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {};
 
@@ -1195,6 +1220,39 @@ describe('SearchQueryUtils', () => {
             const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result['reportFieldRange-start-date']).toBeUndefined();
+        });
+
+        test('hydrates missing tag query as No Tag filter', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense -has:tag');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
+            });
+        });
+
+        test('hydrates missing tag query while preserving other has filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense has:receipt -has:tag');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                has: [CONST.SEARCH.HAS_VALUES.RECEIPT],
+                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
+            });
         });
 
         describe('view parameter', () => {
@@ -2910,47 +2968,47 @@ describe('SearchQueryUtils', () => {
 
     describe('getKeywordQueryWithCurrentSearchContext', () => {
         it('should prepend current search context to keyword-only input', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:outstanding') as SearchQueryJSON;
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:outstanding');
 
-            const result = getKeywordQueryWithCurrentSearchContext('hello', currentQueryJSON);
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('hello', currentQueryJSON) : '';
             expect(result).toContain('hello');
             expect(result).toContain('type:trip');
             expect(result).toContain('status:outstanding');
         });
 
         it('should return query unchanged when it contains explicit filters', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
-            const result = getKeywordQueryWithCurrentSearchContext('type:expense hello', currentQueryJSON);
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('type:expense hello', currentQueryJSON) : '';
             expect(result).toBe('type:expense hello');
         });
 
         it('should return query unchanged when it contains only explicit filters without keywords', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
-            const result = getKeywordQueryWithCurrentSearchContext('type:expense status:open', currentQueryJSON);
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('type:expense status:open', currentQueryJSON) : '';
             expect(result).toBe('type:expense status:open');
         });
 
         it('should return empty query unchanged', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
-            const result = getKeywordQueryWithCurrentSearchContext('', currentQueryJSON);
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('', currentQueryJSON) : '';
             expect(result).toBe('');
         });
 
         it('should strip existing keyword filters from current context before prepending', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:expense status:all existing') as SearchQueryJSON;
+            const currentQueryJSON = buildSearchQueryJSON('type:expense status:all existing');
 
-            const result = getKeywordQueryWithCurrentSearchContext('new-keyword', currentQueryJSON);
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('new-keyword', currentQueryJSON) : '';
             expect(result).toContain('new-keyword');
             expect(result).not.toContain('existing');
         });
 
         it('should handle multi-word keyword input', () => {
-            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all') as SearchQueryJSON;
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
-            const result = getKeywordQueryWithCurrentSearchContext('hello world', currentQueryJSON);
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('hello world', currentQueryJSON) : '';
             expect(result).toContain('hello world');
             expect(result).toContain('type:trip');
         });
@@ -3014,8 +3072,9 @@ describe('SearchQueryUtils', () => {
             });
         });
 
-        it('should exclude columns from being reset', () => {
+        it('should exclude columns from being reset if type is expense', () => {
             const form: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 columns: [CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.DATE, CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.MERCHANT],
                 merchant: 'test',
             };
@@ -3023,6 +3082,21 @@ describe('SearchQueryUtils', () => {
             expect(result.columns).toBeUndefined();
             expect(result).toEqual({
                 merchant: undefined,
+            });
+        });
+
+        it('should exclude columns from being reset', () => {
+            const form: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                columns: [CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.DATE, CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.MERCHANT],
+                merchant: 'test',
+            };
+            const result = getAdvancedFiltersToReset(form);
+            expect(result.columns).toBeUndefined();
+            expect(result).toEqual({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                merchant: undefined,
+                columns: undefined,
             });
         });
     });

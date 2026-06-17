@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import type {SearchFilterSelectionListProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
@@ -21,17 +21,12 @@ type MultiSelectItem<T> = {
     value: T;
     icons?: Icon[];
     leftElement?: ReactNode;
+    searchableText?: string;
 };
 
-type MultiSelectProps<T> = SearchFilterSelectionListProps & {
+type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & {
     /** The list of all items to show up in the list */
     items: Array<MultiSelectItem<T>>;
-
-    /** The currently selected items */
-    value: Array<MultiSelectItem<T>>;
-
-    /** Function to call when changes are applied */
-    onChange: (item: Array<MultiSelectItem<T>>) => void;
 
     /** Whether the search input should be displayed. */
     isSearchable?: boolean;
@@ -42,19 +37,20 @@ type MultiSelectProps<T> = SearchFilterSelectionListProps & {
     /** Whether the data for the popover is loading */
     loading?: boolean;
 
-    /** Whether the text input should be auto-focused or not. Defaults to true. */
-    autoFocus?: boolean;
+    /** Whether to show the loading placeholder */
+    shouldShowLoadingPlaceholder?: boolean;
 };
 
 function MultiSelect<T extends string>({
     loading,
+    shouldShowLoadingPlaceholder,
     value,
     items,
     isSearchable,
     searchPlaceholder,
     selectionListTextInputStyle,
     selectionListStyle,
-    autoFocus = true,
+    autoFocus,
     footer,
     onChange,
 }: MultiSelectProps<T>) {
@@ -65,7 +61,8 @@ function MultiSelect<T extends string>({
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
-    const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) : items;
+    const searchLower = debouncedSearchTerm.toLowerCase();
+    const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower)) : items;
     const listData: ListItem[] = filteredItems.map((item) => ({
         text: item.text,
         keyForList: item.value,
@@ -122,6 +119,7 @@ function MultiSelect<T extends string>({
             ) : (
                 <SelectionList
                     shouldSingleExecuteRowSelect
+                    shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     data={listData}
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
