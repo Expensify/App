@@ -365,7 +365,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     customText={translate('workspace.common.selected', {count: selectedRuleKeys.length})}
                     options={getBulkActionsButtonOptions()}
                     isSplitButton={false}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.w100, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     isDisabled={!selectedRuleKeys.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.BULK_ACTIONS_DROPDOWN}
                 />
@@ -382,10 +382,12 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 onPress={handleNewRule}
                 text={translate('workspace.rules.merchantRules.addRuleTitle')}
                 icon={icons.Plus}
-                style={shouldUseNarrowLayout && styles.flex1}
+                style={[shouldDisplayButtonsInSeparateLine && styles.w100]}
             />
         );
     };
+
+    const headerButtons = getHeaderContent();
 
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled;
 
@@ -479,34 +481,43 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding
-                headerContent={getHeaderContent()}
+                headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             >
-                <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, activeTab !== RULES_TAB.GENERAL && [styles.flex1, styles.mw100]]}>
-                    <View style={[styles.flexRow, styles.mb1]}>
-                        <TabSelectorBase
-                            tabs={tabs}
-                            activeTabKey={activeTab}
-                            onTabPress={(key) => {
-                                if (!isRulesTab(key)) {
-                                    return;
-                                }
-                                setSelectedSpendRuleKeys([]);
-                                setSelectedExpenseDefaultKeys([]);
-                                turnOffMobileSelectionMode();
-                                Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
-                            }}
-                        />
+                <View style={[styles.flex1, styles.w100, styles.mnh0]}>
+                    <View style={[styles.flexShrink0, styles.w100]}>
+                        <View style={[styles.flexRow, styles.mb1, styles.w100]}>
+                            <TabSelectorBase
+                                tabs={tabs}
+                                activeTabKey={activeTab}
+                                onTabPress={(key) => {
+                                    if (!isRulesTab(key)) {
+                                        return;
+                                    }
+                                    setSelectedSpendRuleKeys([]);
+                                    setSelectedExpenseDefaultKeys([]);
+                                    turnOffMobileSelectionMode();
+                                    Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
+                                }}
+                            />
+                        </View>
                     </View>
-                    {activeTab === RULES_TAB.GENERAL && renderTabContent()}
-                    {activeTab === RULES_TAB.CARD_RESTRICTIONS && renderCardRestrictionsContent()}
-                    {activeTab === RULES_TAB.EXPENSE_DEFAULTS && renderExpenseDefaultsContent()}
-                    {isCustomAgentBetaEnabled && !isRulesRevampEnabled && (
-                        <AgentRulesSection
-                            policyID={policyID}
-                            canWriteRules={canWriteRules}
-                            showReadOnlyModal={showReadOnlyModal}
-                        />
-                    )}
+                    {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View>}
+                    <View style={[styles.flex1, styles.mnh0, styles.w100, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, isTableTab && styles.mw100]}>
+                        {activeTab === RULES_TAB.GENERAL && renderTabContent()}
+                        {isTableTab && (
+                            <View style={[styles.flex1, styles.mnh0]}>
+                                {activeTab === RULES_TAB.CARD_RESTRICTIONS && renderCardRestrictionsContent()}
+                                {activeTab === RULES_TAB.EXPENSE_DEFAULTS && renderExpenseDefaultsContent()}
+                            </View>
+                        )}
+                        {isCustomAgentBetaEnabled && !isRulesRevampEnabled && (
+                            <AgentRulesSection
+                                policyID={policyID}
+                                canWriteRules={canWriteRules}
+                                showReadOnlyModal={showReadOnlyModal}
+                            />
+                        )}
+                    </View>
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
