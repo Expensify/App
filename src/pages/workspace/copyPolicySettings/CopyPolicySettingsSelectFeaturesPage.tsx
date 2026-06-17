@@ -48,6 +48,10 @@ const CODING_PARTS_TIED_TO_CONNECTION = ['categories', 'tags', 'reports', 'taxes
 
 const isCodingPart = (part: Part): boolean => (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part);
 
+type FeatureListItem = ListItem & {
+    keyForList: Part;
+};
+
 function CopyPolicySettingsSelectFeaturesPage() {
     const route = useRoute<PlatformStackRouteProp<PolicyCopySettingsNavigatorParamList, typeof SCREENS.POLICY_COPY_SETTINGS.SELECT_FEATURES>>();
     const sourcePolicyID = route?.params?.policyID;
@@ -204,7 +208,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         return getSourceDescription(part);
     };
 
-    const listItems: ListItem[] = availableFeatureRows.map((row) => {
+    const listItems: FeatureListItem[] = availableFeatureRows.map((row) => {
         const isDisabled = isFeatureDisabled(row.part);
         const isSelected = effectiveSelectedFeatures.includes(row.part);
         const alternateText = getAlternateText(row.part);
@@ -221,9 +225,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const selectableFeatures: Part[] = availableFeatureRows.filter((row) => !isFeatureDisabled(row.part)).map((row) => row.part);
 
-    const toggleFeature = (item: ListItem) => {
-        const part = item.keyForList as Part | undefined;
-        if (!part || isFeatureDisabled(part)) {
+    const toggleFeature = (item: FeatureListItem) => {
+        const part = item.keyForList;
+        if (isFeatureDisabled(part)) {
             return;
         }
         setSelectedFeatures((prev) => {

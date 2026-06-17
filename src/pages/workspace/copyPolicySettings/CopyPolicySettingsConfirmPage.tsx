@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function CopyPolicySettingsConfirmPage() {
     const route = useRoute<PlatformStackRouteProp<PolicyCopySettingsNavigatorParamList, typeof SCREENS.POLICY_COPY_SETTINGS.CONFIRM>>();
@@ -38,7 +39,7 @@ function CopyPolicySettingsConfirmPage() {
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettingsState?.targetPolicyIDs ?? [];
     const parts = copyPolicySettingsState?.parts ?? [];
-    const isDataLoaded = policiesMetadata.status === 'loaded' && copyPolicySettingsMetadata.status === 'loaded';
+    const isDataLoaded = !isLoadingOnyxValue(policiesMetadata, copyPolicySettingsMetadata);
 
     const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter((policy) => policy !== undefined);
 
