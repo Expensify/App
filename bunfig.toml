@@ -1,0 +1,13 @@
+# Bun test discovery for server-side tooling (Jest owns src/ and tests/).
+[test]
+root = "server"
+pathIgnorePatterns = [
+  "**/fixtures/**",
+  "**/dist/**",
+  "**/.dev/**",
+  "**/__output__/**",
+  "**/__golden__/**",
+  "**/render.test.ts",
+]
+
+# Golden PNG suite (render.test.ts) compiles a standalone binary per run; use npm run server:vcr:test.

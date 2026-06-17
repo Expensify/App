@@ -1,4 +1,4 @@
-name: Victory Chart Renderer Tests
+name: Bun tests
 
 on:
   pull_request:
@@ -7,17 +7,19 @@ on:
     paths:
       - 'server/**'
       - 'src/**'
+      - 'bunfig.toml'
       - '.bun-version'
       - 'package.json'
       - 'package-lock.json'
+      - '.github/workflows/bunTests.yml'
 
 concurrency:
-  group: ${{ github.ref }}-vcr-test
+  group: ${{ github.ref }}-bun-tests
   cancel-in-progress: true
 
 jobs:
   test:
-    name: Test victory-chart-renderer
+    name: Bun tests
     runs-on: blacksmith-8vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -32,12 +34,11 @@ jobs:
         with:
           bun-version-file: .bun-version
 
+      - name: Run Bun tests
+        run: bun test
+
       - name: Build victory-chart-renderer Linux x64 binary
         run: npm run server:vcr:build:linux
 
-      - name: Smoke-test compiled binary
+      - name: Smoke-test compiled victory-chart-renderer binary
         run: ./server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64 --chart-xml "$(cat server/victory-chart-renderer/tests/fixtures/top-categories-6.xml)" --out /tmp/vcr-smoke.png && test -s /tmp/vcr-smoke.png
-
-      - name: Run victory-chart-renderer unit tests
-        working-directory: server/victory-chart-renderer
-        run: bun test tests/stubExports.test.ts tests/resolveCanvasSize.test.ts
