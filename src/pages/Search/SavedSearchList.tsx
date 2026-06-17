@@ -15,7 +15,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {seedMyExpensesSearch, setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports -- isDualRoleUser checks paid-policy approval flow; free Submit plans have no approval flow so there is no dual-role use case to seed.
 import {getAllTaxRates, isDualRoleUser} from '@libs/PolicyUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';

@@ -11,11 +11,13 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const USER_EMAIL = 'employee@test.com';
 const APPROVER_EMAIL = 'approver@test.com';
+const PEER_EMAIL = 'peer@test.com';
 const ACCOUNT_ID = 12345;
 
 function makePaidPolicy(overrides: Partial<Policy> = {}): Policy {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return {
-        id: 'policy_paid',
+        id: 'policyPaid',
         type: CONST.POLICY.TYPE.TEAM,
         approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
         employeeList: {},
@@ -24,8 +26,9 @@ function makePaidPolicy(overrides: Partial<Policy> = {}): Policy {
 }
 
 function makeFreePolicy(overrides: Partial<Policy> = {}): Policy {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return {
-        id: 'policy_free',
+        id: 'policyFree',
         type: CONST.POLICY.TYPE.SUBMIT,
         approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
         employeeList: {},
@@ -52,72 +55,72 @@ describe('isDualRoleUser', () => {
     it('returns true for a user who submits on one policy and approves on another', () => {
         // submitter: role=user on a free policy
         const submitPolicy = makeFreePolicy({
-            id: 'submit_policy',
+            id: 'submitPolicy',
             employeeList: {
                 [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER_EMAIL},
             },
         });
         // approver: paid+basic policy where user receives submissions
         const approvePolicy = makePaidPolicy({
-            id: 'approve_policy',
+            id: 'approvePolicy',
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
-                'peer@test.com': {email: 'peer@test.com', role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
+                [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
             },
         });
-        expect(isDualRoleUser({submit_policy: submitPolicy, approve_policy: approvePolicy}, USER_EMAIL)).toBe(true);
+        expect(isDualRoleUser({submitPolicy, approvePolicy}, USER_EMAIL)).toBe(true);
     });
 
     it('returns true when the user is both submitter and approver on the same paid policy', () => {
         const policy = makePaidPolicy({
-            id: 'dual_policy',
+            id: 'dualPolicy',
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
                 [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER_EMAIL},
-                'peer@test.com': {email: 'peer@test.com', role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
+                [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
             },
         });
-        expect(isDualRoleUser({dual_policy: policy}, USER_EMAIL)).toBe(true);
+        expect(isDualRoleUser({dualPolicy: policy}, USER_EMAIL)).toBe(true);
     });
 
     it('returns false for a submit-only user (no one submits to them)', () => {
         const policy = makePaidPolicy({
-            id: 'submit_only',
+            id: 'submitOnly',
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
                 [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER_EMAIL},
             },
         });
-        expect(isDualRoleUser({submit_only: policy}, USER_EMAIL)).toBe(false);
+        expect(isDualRoleUser({submitOnly: policy}, USER_EMAIL)).toBe(false);
     });
 
     it('returns false for an approve-only user (admin role, not role=user anywhere)', () => {
         const policy = makePaidPolicy({
-            id: 'approve_only',
+            id: 'approveOnly',
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
                 [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ''},
-                'peer@test.com': {email: 'peer@test.com', role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
+                [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
             },
         });
-        expect(isDualRoleUser({approve_only: policy}, USER_EMAIL)).toBe(false);
+        expect(isDualRoleUser({approveOnly: policy}, USER_EMAIL)).toBe(false);
     });
 
     it('returns false when the approver policy has OPTIONAL approval mode (no approval flow)', () => {
         const submitPolicy = makeFreePolicy({
-            id: 'submit_policy',
+            id: 'submitPolicy',
             employeeList: {
                 [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER_EMAIL},
             },
         });
         const optionalApprovePolicy = makePaidPolicy({
-            id: 'optional_approve',
+            id: 'optionalApprove',
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             employeeList: {
-                'peer@test.com': {email: 'peer@test.com', role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
+                [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
             },
         });
-        expect(isDualRoleUser({submit_policy: submitPolicy, optional_approve: optionalApprovePolicy}, USER_EMAIL)).toBe(false);
+        expect(isDualRoleUser({submitPolicy, optionalApprovePolicy}, USER_EMAIL)).toBe(false);
     });
 
     it('returns false for an empty policy collection', () => {
@@ -152,7 +155,7 @@ describe('seedMyExpensesSearch', () => {
         const entries = Object.values(savedSearches ?? {});
         expect(entries).toHaveLength(1);
 
-        const entry = entries[0];
+        const entry = entries.at(0);
         expect(entry.name).toBe('My expenses');
         // pendingAction is cleared by successData once the mock fetch resolves, so only name/query are stable
     });
@@ -162,7 +165,7 @@ describe('seedMyExpensesSearch', () => {
         await waitForBatchedUpdates();
 
         const savedSearches = await getOnyxValue(ONYXKEYS.SAVED_SEARCHES);
-        const query = Object.values(savedSearches ?? {})[0]?.query ?? '';
+        const query = Object.values(savedSearches ?? {}).at(0)?.query ?? '';
 
         const queryJSON = buildSearchQueryJSON(query);
         expect(queryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
