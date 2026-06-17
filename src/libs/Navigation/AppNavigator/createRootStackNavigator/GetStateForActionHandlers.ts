@@ -113,6 +113,19 @@ type TabNavigatorPushPayloadParams = {
 
 type TabRouteForReplacement = NavigationState['routes'][number] | NavigationPartialRoute;
 type TabStateForReplacement = Omit<NavigationState, 'routes' | 'stale'> & {routes: TabRouteForReplacement[]; stale?: true | false};
+type StaleTabStateOverrides = {routes: TabRouteForReplacement[]; index: number; routeNames?: string[]};
+
+function toStaleTabState(existingTabState: NavigationState, overrides: StaleTabStateOverrides): TabStateForReplacement {
+    return {
+        type: existingTabState.type,
+        key: existingTabState.key,
+        stale: true as const,
+        routeNames: overrides.routeNames ?? existingTabState.routeNames,
+        routes: overrides.routes,
+        index: overrides.index,
+        history: existingTabState.history,
+    };
+}
 
 /**
  * True when this push is `TAB_NAVIGATOR` with nested `{ screen, params }`. That combination is the case we patch below:
@@ -207,6 +220,12 @@ function getTargetTabRoute(existingTabRoute: TabRouteForReplacement | undefined,
         mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
     }
 
+    if (focusedTargetTab.name === NAVIGATORS.WORKSPACE_NAVIGATOR && mergedNestedState?.routes?.length && !mergedNestedState.routes.some((route) => route.name === SCREENS.WORKSPACES_LIST)) {
+        const workspaceRoutes = [{name: SCREENS.WORKSPACES_LIST}, ...mergedNestedState.routes];
+        const focusedIndex = typeof mergedNestedState.index === 'number' ? mergedNestedState.index + 1 : workspaceRoutes.length - 1;
+        mergedNestedState = {...mergedNestedState, routes: workspaceRoutes, index: focusedIndex};
+    }
+
     if (!existingTabRoute) {
         return {
             name: focusedTargetTab.name,
@@ -266,15 +285,11 @@ function getTabStateWithFocusedTarget(existingTabState: NavigationState, focused
     // router would trust the keyless partial routes as-is.
     // Preserve history so valid existing tab entries still work after the reveal;
     // TabRouter filters entries whose route keys are no longer present.
-    return {
-        type: existingTabState.type,
-        key: existingTabState.key,
-        stale: true as const,
+    return toStaleTabState(existingTabState, {
         routeNames: [...TAB_SCREENS],
         routes: updatedTabRoutes,
         index: completeTargetTabIndex,
-        history: existingTabState.history,
-    };
+    });
 }
 
 /**
@@ -452,15 +467,10 @@ function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existin
     delete (routeWithoutKey as Partial<Pick<typeof routeWithoutKey, 'key'>>).key;
     patchedRoutes[tabState.index] = routeWithoutKey as TabRouteForReplacement;
 
-    return {
-        type: existingTabState.type,
-        key: existingTabState.key,
-        stale: true as const,
-        routeNames: existingTabState.routeNames,
+    return toStaleTabState(existingTabState, {
         routes: patchedRoutes,
         index: tabState.index,
-        history: existingTabState.history,
-    };
+    });
 }
 
 /**

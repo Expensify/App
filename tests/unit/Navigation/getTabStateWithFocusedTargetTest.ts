@@ -82,6 +82,25 @@ describe('getTabStateWithFocusedTarget', () => {
             expect((homeRoute?.state as {routes: Array<{name: string}>})?.routes?.at(0)?.name).toBe('HomeContent');
         });
 
+        it('prepends WorkspacesList when reconstructing a missing workspace tab', () => {
+            const slicedState = makeTabState([{name: SCREENS.HOME}], 0);
+
+            const result = getTabStateWithFocusedTarget(slicedState, {
+                name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                state: {
+                    routes: [{name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, state: {routes: [{name: SCREENS.WORKSPACE.INITIAL, params: {policyID: '1'}}], index: 0}}],
+                    index: 0,
+                },
+            });
+
+            expect(result).not.toBeUndefined();
+            const workspaceRoute = result?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- narrowing mock state for assertion
+            const workspaceState = workspaceRoute?.state as {routes: Array<{name: string}>; index: number} | undefined;
+            expect(workspaceState?.routes.map((route) => route.name)).toEqual([SCREENS.WORKSPACES_LIST, NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]);
+            expect(workspaceState?.index).toBe(1);
+        });
+
         it('preserves history and marks state as stale so TabRouter rehydrates properly', () => {
             const slicedState = {
                 ...makeTabState([{name: SCREENS.HOME}], 0),
