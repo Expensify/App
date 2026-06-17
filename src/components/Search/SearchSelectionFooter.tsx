@@ -24,12 +24,16 @@ type FooterCurrencyState = {
     footerTotalHash: number | undefined;
 };
 
-function getNumberMember(value: unknown, memberName: string): number | undefined {
+function getObjectMember(value: unknown, memberName: string): unknown {
     if (!value || typeof value !== 'object') {
         return undefined;
     }
 
-    const memberValue: unknown = Reflect.get(value, memberName);
+    return Reflect.get(value, memberName);
+}
+
+function getNumberMember(value: unknown, memberName: string): number | undefined {
+    const memberValue = getObjectMember(value, memberName);
     return typeof memberValue === 'number' ? memberValue : undefined;
 }
 
@@ -57,24 +61,27 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const metadataCurrency = metadata?.currency;
     const metadataTotal = metadata?.total;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
+    const firstSelectedTransaction = firstSelectedTransactionKey ? selectedTransactions[firstSelectedTransactionKey] : undefined;
+    const selectedTransactionDefaultCurrency = firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency;
+    const effectiveDefaultCurrency = defaultFooterCurrency ?? metadataCurrency ?? selectedTransactionDefaultCurrency;
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
     const handleFooterCurrencyChange = useCallback(
         (currency: string | undefined) => {
-            const fallbackDefaultCurrency = defaultFooterCurrency ?? metadataCurrency;
-            const nextCurrency = currency ?? fallbackDefaultCurrency;
+            const nextCurrency = currency ?? effectiveDefaultCurrency;
             if (!currentSearchQueryJSON || !nextCurrency) {
                 return;
             }
 
-            const isResettingToDefault = nextCurrency === fallbackDefaultCurrency;
+            const isResettingToDefault = nextCurrency === effectiveDefaultCurrency;
             // Fetch converted footer totals in a currency-scoped snapshot so the live search snapshot stays in its original currency.
             const flatQueryJSON = !isResettingToDefault ? buildFlatQueryWithoutGroupBy(currentSearchQueryJSON, nextCurrency) : undefined;
 
             setFooterCurrencyState({
                 searchHash: currentSearchHash,
                 selectedCurrency: currency,
-                defaultCurrency: fallbackDefaultCurrency,
+                defaultCurrency: effectiveDefaultCurrency,
                 footerTotalHash: flatQueryJSON?.hash,
             });
 
@@ -92,7 +99,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 targetCurrency: nextCurrency,
             });
         },
-        [currentSearchHash, currentSearchQueryJSON, defaultFooterCurrency, metadataCurrency],
+        [currentSearchHash, currentSearchQueryJSON, effectiveDefaultCurrency],
     );
 
     const footerData = useMemo(() => {
@@ -114,7 +121,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         }, 0);
         const areAllSelectedForFooter = areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount);
         const shouldUseClientTotal = !metadataCount || (selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter);
-        const defaultCurrency = defaultFooterCurrency ?? metadataCurrency;
+        const defaultCurrency = effectiveDefaultCurrency;
         const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== defaultCurrency;
         const isServerTotalConfirmed = !hasCustomFooterCurrency || footerTotalMetadata?.currency === selectedCurrency;
         const canConvertSelectedTotal = shouldUseClientTotal && hasCustomFooterCurrency && footerTotalMetadata?.currency === selectedCurrency;
@@ -128,7 +135,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             selectedTransactionsKeys.every((key) => {
                 const transaction = selectedTransactions[key];
                 const convertedTransactionKey = transaction?.transaction?.transactionID ? `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transaction.transactionID}` : key;
-                const convertedTransaction: unknown = footerTotalData?.[convertedTransactionKey];
+                const convertedTransaction = getObjectMember(footerTotalData, convertedTransactionKey);
                 return getNumberMember(convertedTransaction, 'groupAmount') !== undefined;
             });
         const shouldUseConvertedSelectedTotal = canConvertSelectedTotal && areAllSelectedRowsConverted;
@@ -151,7 +158,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             total = selectedTransactionsKeys.reduce((acc, key) => {
                 const transaction = selectedTransactions[key];
                 const convertedTransactionKey = transaction.transaction?.transactionID ? `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transaction.transactionID}` : key;
-                const convertedTransaction: unknown = shouldUseConvertedSelectedTotal && footerTotalData ? footerTotalData[convertedTransactionKey] : undefined;
+                const convertedTransaction = shouldUseConvertedSelectedTotal ? getObjectMember(footerTotalData, convertedTransactionKey) : undefined;
                 return acc - (getNumberMember(convertedTransaction, 'groupAmount') ?? transaction.groupAmount ?? -Math.abs(transaction.amount));
             }, 0);
         } else if (hasCustomFooterCurrency) {
@@ -163,7 +170,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         return {count, total, currency, isLoading: isFooterTotalConverting};
     }, [
         areAllMatchingItemsSelected,
-        defaultFooterCurrency,
+        effectiveDefaultCurrency,
         footerTotalData,
         footerTotalMetadata?.currency,
         footerTotalMetadata?.isLoading,
@@ -191,7 +198,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             count={footerData.count}
             total={footerData.total}
             currency={footerData.currency}
-            defaultCurrency={defaultFooterCurrency ?? metadata?.currency}
+            defaultCurrency={effectiveDefaultCurrency}
             isTotalLoading={isFooterTotalLoading}
             onCurrencyChange={handleFooterCurrencyChange}
         />
