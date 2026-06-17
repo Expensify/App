@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import Animated from 'react-native-reanimated';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
@@ -48,16 +48,18 @@ function SearchPage({route}: SearchPageProps) {
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
+    const hasSeededRef = useRef(false);
 
     useConfirmReadyToOpenApp();
     useSearchPageSetup(currentSearchQueryJSON);
 
     useEffect(() => {
-        if (hasSeededMyExpensesSearch || currentUserAccountID === -1 || !currentUserEmail || allPolicies === undefined) {
+        if (hasSeededRef.current || hasSeededMyExpensesSearch || currentUserAccountID === -1 || !currentUserEmail || allPolicies === undefined) {
             return;
         }
 
         if (isDualRoleUser(allPolicies, currentUserEmail)) {
+            hasSeededRef.current = true;
             seedMyExpensesSearch(currentUserAccountID, translate('search.mySavedSearch'));
         }
     }, [hasSeededMyExpensesSearch, currentUserAccountID, currentUserEmail, allPolicies, translate]);
