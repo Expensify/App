@@ -1,6 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
@@ -13,6 +13,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
@@ -70,6 +71,7 @@ import ExpenseReportRulesSection from '@pages/workspace/rules/ExpenseReportRules
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import variables from '@styles/variables';
 import {pressLockedBankAccount} from '@userActions/BankAccounts';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
@@ -79,6 +81,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -107,13 +110,43 @@ function WorkflowNoResultsView({message, shouldShow, searchValue}: {message: str
     );
 }
 
+// Bordered "Load more" card matching the workflow rows: the whole card is the tap target and gets the row-hover state (per #91727 design).
+function WorkflowsLoadMoreCard({count, icon, onPress}: {count: number; icon: IconAsset; onPress: () => void}) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const label = translate('workflowsPage.loadMoreWorkflows', {count});
+
+    return (
+        <PressableWithFeedback
+            accessibilityLabel={label}
+            role={CONST.ROLE.BUTTON}
+            onPress={onPress}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.LOAD_MORE_APPROVALS}
+            hoverStyle={styles.hoveredComponentBG}
+            style={[styles.border, shouldUseNarrowLayout ? styles.ph3 : styles.ph4, styles.pv3, styles.mt6, styles.mbn3, styles.alignItemsCenter, styles.justifyContentCenter]}
+        >
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, {minHeight: variables.componentSizeSmall}]}>
+                <Icon
+                    src={icon}
+                    fill={theme.textSupporting}
+                    extraSmall
+                    additionalStyles={styles.mr1}
+                />
+                <Text style={[styles.buttonSmallText, {color: theme.textSupporting}]}>{label}</Text>
+            </View>
+        </PressableWithFeedback>
+    );
+}
+
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['Workflows']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['CircularArrowBackwards', 'DotIndicator', 'Info', 'Plus']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -294,6 +327,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     };
 
     const [workflowSearchInput, setWorkflowSearchInput, searchFilteredWorkflows] = useSearchResults(filteredApprovalWorkflows, filterWorkflow);
+    const [visibleWorkflowsCount, setVisibleWorkflowsCount] = useState<number>(CONST.WORKFLOW_APPROVALS_INITIAL_BATCH);
 
     useEffect(() => {
         if (filteredApprovalWorkflows.length > CONST.SEARCH_BAR_THRESHOLD) {
@@ -301,6 +335,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         }
         setWorkflowSearchInput('');
     }, [filteredApprovalWorkflows.length, setWorkflowSearchInput]);
+
+    // Searching reveals every match, so pagination is bypassed while a query is active.
+    const isSearchingWorkflows = workflowSearchInput.length > 0;
+    const displayedWorkflows = isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, visibleWorkflowsCount);
+    const hiddenWorkflowsCount = searchFilteredWorkflows.length - displayedWorkflows.length;
+    // The button reveals the next batch (up to 5), so its label shows how many that next tap will load.
+    const nextWorkflowsBatchCount = Math.min(hiddenWorkflowsCount, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH);
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
     const isHRConnected = isAnyHRConnected(policy);
@@ -473,7 +514,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             shouldShow={searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0}
                             searchValue={workflowSearchInput}
                         />
-                        {searchFilteredWorkflows.map((workflow) => {
+                        {displayedWorkflows.map((workflow) => {
                             const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
 
                             return (
@@ -514,6 +555,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 </OfflineWithFeedback>
                             );
                         })}
+                        {hiddenWorkflowsCount > 0 && (
+                            <WorkflowsLoadMoreCard
+                                count={nextWorkflowsBatchCount}
+                                icon={expensifyIcons.CircularArrowBackwards}
+                                onPress={() => setVisibleWorkflowsCount((prev) => prev + CONST.WORKFLOW_APPROVALS_INITIAL_BATCH)}
+                            />
+                        )}
                         {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
                             <MenuItem
                                 title={translate('workflowsPage.addApprovalButton')}
@@ -742,6 +790,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         promptConfigureApprovalsInHR,
         isDEWEnabled,
         shouldUseNarrowLayout,
+        expensifyIcons.CircularArrowBackwards,
         expensifyIcons.Info,
         expensifyIcons.Plus,
         expensifyIcons.DotIndicator,
@@ -750,7 +799,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         filteredApprovalWorkflows.length,
         workflowSearchInput,
         setWorkflowSearchInput,
-        searchFilteredWorkflows,
+        searchFilteredWorkflows.length,
+        displayedWorkflows,
+        hiddenWorkflowsCount,
+        nextWorkflowsBatchCount,
         addApprovalAction,
         isOffline,
         isPolicyAdmin,

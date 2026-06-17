@@ -5091,6 +5091,8 @@ const CONST = {
     STANDARD_LENGTH_LIMIT: 100,
     STANDARD_LIST_ITEM_LIMIT: 12,
     SEARCH_BAR_THRESHOLD: 3,
+    // Number of approval workflow cards rendered before the "Load more" affordance on Workspace → Workflows.
+    WORKFLOW_APPROVALS_INITIAL_BATCH: 5,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
@@ -8487,6 +8489,7 @@ const CONST = {
             WORKFLOWS: {
                 AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
                 ADD_APPROVAL: 'WorkspaceWorkflows-AddApproval',
+                LOAD_MORE_APPROVALS: 'WorkspaceWorkflows-LoadMoreApprovals',
                 BANK_ACCOUNT: 'WorkspaceWorkflows-BankAccount',
                 ADD_BANK_ACCOUNT: 'WorkspaceWorkflows-AddBankAccount',
                 AUTHORIZED_PAYER: 'WorkspaceWorkflows-AuthorizedPayer',
