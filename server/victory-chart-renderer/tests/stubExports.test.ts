@@ -1,7 +1,7 @@
+import * as telemetryActiveSpansStub from '@server/stubs/telemetry-activeSpans';
 import {expect, test} from 'bun:test';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import * as telemetryActiveSpansStub from '@server/stubs/telemetry-activeSpans';
 
 const appRoot = join(import.meta.dir, '../../..');
 const activeSpansSourcePath = join(appRoot, 'src/libs/telemetry/activeSpans.ts');
