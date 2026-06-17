@@ -105,26 +105,26 @@ function NewTaskPage({route}: NewTaskPageProps) {
             return;
         }
 
-        const {title} = task;
+        const taskParams = {
+            parentReport,
+            title: task.title,
+            description: task?.description ?? '',
+            assigneeEmail: task?.assignee ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserEmail: currentUserPersonalDetails.email ?? '',
+            currentUserDisplayName: currentUserPersonalDetails.displayName,
+            currentUserAvatar: currentUserPersonalDetails.avatar,
+            assigneeAccountID: task.assigneeAccountID,
+            assigneeChatReport: task.assigneeChatReport,
+            policyID: parentReport?.policyID,
+            isCreatedUsingMarkdown: false,
+            quickAction,
+            ancestors,
+            taskCreatorAndAssigneeDetails,
+        };
         startPressLoading(() => {
             setIsSubmitting(true);
-            createTaskAndNavigate({
-                parentReport,
-                title,
-                description: task?.description ?? '',
-                assigneeEmail: task?.assignee ?? '',
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                currentUserEmail: currentUserPersonalDetails.email ?? '',
-                currentUserDisplayName: currentUserPersonalDetails.displayName,
-                currentUserAvatar: currentUserPersonalDetails.avatar,
-                assigneeAccountID: task.assigneeAccountID,
-                assigneeChatReport: task.assigneeChatReport,
-                policyID: parentReport?.policyID,
-                isCreatedUsingMarkdown: false,
-                quickAction,
-                ancestors,
-                taskCreatorAndAssigneeDetails,
-            });
+            createTaskAndNavigate(taskParams);
         });
     };
 
