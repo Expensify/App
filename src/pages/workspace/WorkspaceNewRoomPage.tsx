@@ -158,10 +158,8 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
         }
 
         setNewRoomFormLoading();
-        requestAnimationFrame(() => {
-            addPolicyReport(policyReport);
-            Navigation.dismissModalWithReport({reportID: policyReport.reportID});
-        });
+        addPolicyReport(policyReport);
+        Navigation.dismissModalWithReport({reportID: policyReport.reportID});
     };
 
     useEffect(() => {
