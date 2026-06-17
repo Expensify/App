@@ -16,9 +16,6 @@ type SettingsFieldsProps = {
     /** Whether the reimbursable toggle should be displayed */
     shouldShowReimbursable: boolean;
 
-    /** Whether the active transaction is a per-diem request */
-    isPerDiemRequest: boolean;
-
     /** Toggle callbacks for billable/reimbursable */
     toggleHandlers: ToggleHandlers;
 
@@ -34,8 +31,8 @@ type SettingsFieldsProps = {
  * Gating ReportField behind `isPolicyExpenseChat` keeps its 5 Onyx subscriptions
  * (including `COLLECTION.REPORT_NVP`) from instantiating on non-policy-expense flows.
  */
-function SettingsFields({selectedParticipants, shouldShowBillable, shouldShowReimbursable, isPerDiemRequest, toggleHandlers, isCompactMode, fieldVisibility}: SettingsFieldsProps) {
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, isPolicyExpenseChat} = useConfirmationFields();
+function SettingsFields({selectedParticipants, shouldShowBillable, shouldShowReimbursable, toggleHandlers, isCompactMode, fieldVisibility}: SettingsFieldsProps) {
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, isPolicyExpenseChat, isPerDiemRequest} = useConfirmationFields();
 
     if (isCompactMode) {
         return null;
