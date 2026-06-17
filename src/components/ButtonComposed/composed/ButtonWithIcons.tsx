@@ -6,7 +6,6 @@ import ButtonIcon from '@components/ButtonComposed/primitives/ButtonIcon';
 import ButtonKeyboardShortcut from '@components/ButtonComposed/primitives/ButtonKeyboardShortcut';
 import ButtonText from '@components/ButtonComposed/primitives/ButtonText';
 import type {BaseButtonProps, ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -47,10 +46,9 @@ function ButtonWithIcons({
     style = [],
     disabledStyle,
     innerStyles = [],
-    shouldUseDefaultHover = true,
     variant,
-    shouldRemoveBorderRadius,
-    shouldEnableHapticFeedback = false,
+    removeBorderRadius,
+    enableHapticFeedback = false,
     isLongPressDisabled = false,
     id = '',
     testID = undefined,
@@ -58,8 +56,8 @@ function ButtonWithIcons({
     accessibilityState,
     isPressOnEnterActive,
     isNested = false,
-    shouldBlendOpacity = false,
-    shouldStayNormalOnDisable = false,
+    blendOpacity = false,
+    stayNormalOnDisable = false,
     sentryLabel,
     ref,
     iconLeft,
@@ -76,7 +74,6 @@ function ButtonWithIcons({
     iconRightHoverFill,
     iconRightStyles = [],
 }: ButtonWithIconsProps) {
-    const styles = useThemeStyles();
     return (
         <Button
             contentContainerStyle={contentContainerStyle}
@@ -92,18 +89,17 @@ function ButtonWithIcons({
             style={style}
             disabledStyle={disabledStyle}
             innerStyles={innerStyles}
-            shouldUseDefaultHover={shouldUseDefaultHover}
             variant={variant}
-            shouldRemoveBorderRadius={shouldRemoveBorderRadius}
-            shouldEnableHapticFeedback={shouldEnableHapticFeedback}
+            removeBorderRadius={removeBorderRadius}
+            enableHapticFeedback={enableHapticFeedback}
             isLongPressDisabled={isLongPressDisabled}
             id={id}
             testID={testID}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={accessibilityState}
             isNested={isNested}
-            shouldBlendOpacity={shouldBlendOpacity}
-            shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+            blendOpacity={blendOpacity}
+            stayNormalOnDisable={stayNormalOnDisable}
             sentryLabel={sentryLabel}
             ref={ref}
         >
@@ -131,14 +127,14 @@ function ButtonWithIcons({
                     primaryText={text}
                     secondLineText={secondLineText}
                     hoverStyle={textHoverStyles}
-                    textStyle={[!!iconLeft && styles.textAlignLeft, textStyles]}
+                    textStyle={textStyles}
                     primaryTextNumberOfLines={textNumberOfLines}
                 />
             ) : (
                 !!text && (
                     <ButtonText
                         hoverStyle={textHoverStyles}
-                        style={[!!iconLeft && styles.textAlignLeft, textStyles]}
+                        style={textStyles}
                         numberOfLines={textNumberOfLines}
                     >
                         {text}
@@ -148,8 +144,8 @@ function ButtonWithIcons({
             {!!iconRight && (
                 <ButtonIcon
                     src={iconRight}
-                    fill={iconRightFill ?? iconLeftFill}
-                    hoverFill={iconRightHoverFill ?? iconLeftHoverFill}
+                    fill={iconRightFill}
+                    hoverFill={iconRightHoverFill}
                     style={iconRightStyles}
                 />
             )}
