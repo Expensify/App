@@ -16,7 +16,6 @@ import {
     FAB_OUT as ANIMATION_TIMING_FAB_OUT,
     MENU_ANIMATION_DURATION as ANIMATION_TIMING_MENU_ANIMATION_DURATION,
 } from '@libs/Animation/animationTiming';
-import type {MileageRate} from '@libs/DistanceRequestUtils';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import variables from '@styles/variables';
@@ -260,6 +259,7 @@ const CONST = {
     COMPOSER_FOCUS_DELAY: 150,
     MAX_TRANSITION_DURATION_MS: 1000,
     MAX_TRANSITION_START_WAIT_MS: 1000,
+    EXPENSE_REPORT_DELETE_DELAY_MS: 300,
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
@@ -283,6 +283,9 @@ const CONST = {
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
+    ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
+    ADVANCED_FILTERS_POPOVER_WIDTH: 582,
+    ADVANCED_FILTERS_CONTENT_WIDTH: 331,
     TOOLTIP_ANIMATION_DURATION: 500,
     DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
@@ -366,6 +369,8 @@ const CONST = {
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
 
     API_TRANSACTION_TAG_MAX_LENGTH: 255,
+
+    TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES: 5,
 
     AUTO_AUTH_STATE: {
         NOT_STARTED: 'not-started',
@@ -1313,6 +1318,8 @@ const CONST = {
     CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     COMPANY_CARD_PLAID: `${CLOUDFRONT_URL}/images/plaid/`,
+    // The version below must stay in sync with the `@lottiefiles/dotlottie-web` version pinned in package-lock.json.
+    DOTLOTTIE_WASM_URL: 'https://cdn.expensify.com/cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web@0.44.0/dist/dotlottie-player.wasm',
     CONCIERGE_EXPLAIN_LINK_PATH: '/concierge/explain',
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
@@ -1380,6 +1387,7 @@ const CONST = {
     CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Configure-approval-workflows',
     SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
+    CUSTOM_AGENTS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents',
     BULK_UPLOAD_HELP_URL: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense#option-4-bulk-upload-receipts-desktop-only',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
@@ -1473,6 +1481,10 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
         FLASH_DELAY_MS: 2000,
+        // Maximum magnification applied while hover-zooming a receipt (see ReceiptHoverZoom).
+        // Remote PDFs are rendered at this multiple of their on-screen size so the magnified
+        // view shows real pixels instead of an upscaled low-resolution raster.
+        HOVER_ZOOM_SCALE: 2.5,
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -1643,6 +1655,7 @@ const CONST = {
                 MARK_REIMBURSED_FROM_INTEGRATION: 'ACTIONMARKEDREIMBURSEDFROMINTEGRATION', // OldDot Action
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
+                CONCIERGE_AUTO_MATCH_VENDOR: 'CONCIERGEAUTOMATCHVENDOR',
                 MOVED: 'MOVED',
                 MOVED_TRANSACTION: 'MOVEDTRANSACTION',
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
@@ -1740,6 +1753,7 @@ const CONST = {
                     UPDATE_AUTO_REPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
                     UPDATE_BUDGET: 'POLICYCHANGELOG_UPDATE_BUDGET',
                     UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
+                    UPDATE_CATEGORY_TAX_RATE: 'POLICYCHANGELOG_UPDATE_CATEGORY_TAX_RATE',
                     UPDATE_CATEGORIES: 'POLICYCHANGELOG_UPDATE_CATEGORIES',
                     UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
                     UPDATE_CUSTOM_UNIT: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT',
@@ -1960,6 +1974,7 @@ const CONST = {
         MESSAGE_KEY: {
             WAITING_TO_ADD_TRANSACTIONS: 'waitingToAddTransactions',
             WAITING_TO_SUBMIT: 'waitingToSubmit',
+            WAITING_TO_MARK_AS_DONE: 'waitingToMarkAsDone',
             NO_FURTHER_ACTION: 'noFurtherAction',
             WAITING_FOR_SUBMITTER_ACCOUNT: 'waitingForSubmitterAccount',
             WAITING_FOR_AUTOMATIC_SUBMIT: 'waitingForAutomaticSubmit',
@@ -2068,6 +2083,8 @@ const CONST = {
             RHP_DURATION_OUT_WEB: 100,
             CENTERED_DURATION_IN_WEB: 120,
             CENTERED_DURATION_OUT_WEB: 80,
+            NARROW_SLIDE_DURATION_IN_WEB: 300,
+            NARROW_SLIDE_DURATION_OUT_WEB: 200,
         },
         RHP_ENTER_OFFSET_PX_WEB: 60,
     },
@@ -2325,6 +2342,11 @@ const CONST = {
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
+    },
+    INBOX_TAB: {
+        ALL: 'all',
+        TODO: 'todo',
+        UNREAD: 'unread',
     },
     THEME: {
         DEFAULT: 'system',
@@ -2728,6 +2750,8 @@ const CONST = {
 
     MULTI_LEVEL_TAGS_FILE_NAME: 'MultiLevelTags.csv',
 
+    DEFAULT_ATTACHMENT_FILENAME: 'chat_attachment',
+
     ATTACHMENT_TYPE: {
         REPORT: 'r',
         NOTE: 'n',
@@ -2974,6 +2998,7 @@ const CONST = {
     CERTINIA_FFA_BUNDLE_VERSION: '1.4',
 
     CERTINIA_CONFIG: {
+        COMPANY_ID: 'companyID',
         EXPORTER: 'exporter',
         EXPORT_STATUS: 'exportStatus',
         EXPORT_DATE: 'exportDate',
@@ -2995,10 +3020,13 @@ const CONST = {
         COMPANY: 'company',
     },
 
+    // These are the native values stored in the connection's export.exportStatus config, shared with
+    // OldDot and pushed to Certinia at export time. COMPLETE/IN_PROGRESS apply to FFA, APPROVED/SUBMITTED to PSA.
     CERTINIA_EXPORT_STATUS: {
-        APPROVED: 'APPROVED',
-        IN_PROGRESS: 'IN_PROGRESS',
-        SUBMITTED: 'SUBMITTED',
+        COMPLETE: 'Complete',
+        IN_PROGRESS: 'In Progress',
+        APPROVED: 'Approved',
+        SUBMITTED: 'Submitted',
     },
 
     CERTINIA_EXPORT_DATE: {
@@ -3087,6 +3115,7 @@ const CONST = {
             MANAGER: 'manager',
             CUSTOM: 'custom',
         },
+        COOKIE_CLEAR_DELAY_MS: 500,
         SYNC_STATUS: {
             SYNCING: 'SYNCING',
             DONE: 'DONE',
@@ -3681,6 +3710,8 @@ const CONST = {
 
     IOU: {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
+        MAX_RECENT_ATTENDEES: 40,
+
         // This will guranatee that the quantity input will not exceed 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
@@ -3965,6 +3996,7 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
             MAKE_AUDITOR: 'makeAuditor',
+            MAKE_CARD_ADMIN: 'makeCardAdmin',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -3979,7 +4011,6 @@ const CONST = {
             ARE_DISTANCE_RATES_ENABLED: 'areDistanceRatesEnabled',
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
             ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
-            ARE_INVOICE_FIELDS_ENABLED: 'areInvoiceFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
             ARE_RECEIPT_PARTNERS_ENABLED: 'receiptPartners',
             ARE_COMPANY_CARDS_ENABLED: 'areCompanyCardsEnabled',
@@ -4033,7 +4064,6 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GENERAL_SETTINGS: 'generalSettings',
-            ADD_AGENT: 'addAgent',
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
@@ -4280,6 +4310,12 @@ const CONST = {
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         MILES_TO_KILOMETERS: 1.609344,
         KILOMETERS_TO_MILES: 0.621371,
+        RATE_STATUS: {
+            ACTIVE: 'active',
+            FUTURE: 'future',
+            EXPIRED: 'expired',
+            INACTIVE: 'inactive',
+        },
         RATE_FIELD: {
             START_DATE: 'startDate',
             END_DATE: 'endDate',
@@ -4790,6 +4826,10 @@ const CONST = {
             ALLOW: 'allow',
             BLOCK: 'block',
         },
+        NOUN: {
+            MERCHANT: 'merchant',
+            SPEND_CATEGORY: 'spendCategory',
+        },
     },
     get SUBSCRIPTION_PRICES() {
         return {
@@ -5107,6 +5147,7 @@ const CONST = {
     },
     EXPENSE_PENDING_ACTION: {
         SUBMIT: 'SUBMIT',
+        SUBMIT_FAILED: 'SUBMIT_FAILED',
         APPROVE: 'APPROVE',
     },
     BRICK_ROAD_INDICATOR_STATUS: {
@@ -5114,6 +5155,7 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
+        GO_TO_ROOM: 'goToRoom',
         MEMBERS: 'member',
         INVITE: 'invite',
         SETTINGS: 'settings',
@@ -6293,8 +6335,6 @@ const CONST = {
 
     EXPENSIFY_ICON_NAME: 'Expensify',
 
-    WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
     CREATE_EXPENSE_ONBOARDING_CHOICES: {...createExpenseOnboardingChoices},
@@ -6328,6 +6368,7 @@ const CONST = {
     // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
     MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
     MERGE_ACCOUNT_2FA_ERROR: 'is a login for an Expensify account with Two-Factor Authentication (2FA) enabled',
+    MERGE_ACCOUNT_SINGLE_SIGN_ON_ERROR: 'is a login for an Expensify account with Single Sign-On (SSO/SAML) enabled',
 
     // Returned when a user tries to add a work email tied to a closed work account, so we can show a specific error message instead of the generic blocking screen subtitle
     WORK_ACCOUNT_CLOSED_ERROR: '401 work account is closed',
@@ -6371,678 +6412,6 @@ const CONST = {
             },
         },
     },
-
-    /* If we update these values, let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge. */
-    CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{
-        "AED": {
-            "rate": 428.5,
-            "unit": "km"
-        },
-        "AFN": {
-            "rate": 7703.93,
-            "unit": "km"
-        },
-        "ALL": {
-            "rate": 9633.54,
-            "unit": "km"
-        },
-        "AMD": {
-            "rate": 44504.28,
-            "unit": "km"
-        },
-        "ANG": {
-            "rate": 208.86,
-            "unit": "km"
-        },
-        "AOA": {
-            "rate": 106762.22,
-            "unit": "km"
-        },
-        "ARS": {
-            "rate": 171174.53,
-            "unit": "km"
-        },
-        "AUD": {
-            "rate": 88,
-            "unit": "km"
-        },
-        "AWG": {
-            "rate": 210.31,
-            "unit": "km"
-        },
-        "AZN": {
-            "rate": 198.35,
-            "unit": "km"
-        },
-        "BAM": {
-            "rate": 194.86,
-            "unit": "km"
-        },
-        "BBD": {
-            "rate": 233.35,
-            "unit": "km"
-        },
-        "BDT": {
-            "rate": 14251.98,
-            "unit": "km"
-        },
-        "BGN": {
-            "rate": 195.25,
-            "unit": "km"
-        },
-        "BHD": {
-            "rate": 43.98,
-            "unit": "km"
-        },
-        "BIF": {
-            "rate": 345436.14,
-            "unit": "km"
-        },
-        "BMD": {
-            "rate": 116.68,
-            "unit": "km"
-        },
-        "BND": {
-            "rate": 149.25,
-            "unit": "km"
-        },
-        "BOB": {
-            "rate": 807.7,
-            "unit": "km"
-        },
-        "BRL": {
-            "rate": 626.95,
-            "unit": "km"
-        },
-        "BSD": {
-            "rate": 116.68,
-            "unit": "km"
-        },
-        "BTN": {
-            "rate": 10516.86,
-            "unit": "km"
-        },
-        "BWP": {
-            "rate": 1619.97,
-            "unit": "km"
-        },
-        "BYN": {
-            "rate": 342.9,
-            "unit": "km"
-        },
-        "BYR": {
-            "rate": 2336612.1,
-            "unit": "km"
-        },
-        "BZD": {
-            "rate": 234.56,
-            "unit": "km"
-        },
-        "CAD": {
-            "rate": 72,
-            "unit": "km"
-        },
-        "CDF": {
-            "rate": 264869.39,
-            "unit": "km"
-        },
-        "CHF": {
-            "rate": 76,
-            "unit": "km"
-        },
-        "CLP": {
-            "rate": 104301.62,
-            "unit": "km"
-        },
-        "CNY": {
-            "rate": 814.84,
-            "unit": "km"
-        },
-        "COP": {
-            "rate": 439901.44,
-            "unit": "km"
-        },
-        "CRC": {
-            "rate": 57973.09,
-            "unit": "km"
-        },
-        "CUC": {
-            "rate": 116.68,
-            "unit": "km"
-        },
-        "CUP": {
-            "rate": 3004.45,
-            "unit": "km"
-        },
-        "CVE": {
-            "rate": 11004.01,
-            "unit": "km"
-        },
-        "CZK": {
-            "rate": 2413.34,
-            "unit": "km"
-        },
-        "DJF": {
-            "rate": 20752.5,
-            "unit": "km"
-        },
-        "DKK": {
-            "rate": 394,
-            "unit": "km"
-        },
-        "DOP": {
-            "rate": 7398.54,
-            "unit": "km"
-        },
-        "DZD": {
-            "rate": 15153.28,
-            "unit": "km"
-        },
-        "EEK": {
-            "rate": 1704.36,
-            "unit": "km"
-        },
-        "EGP": {
-            "rate": 5512.97,
-            "unit": "km"
-        },
-        "ERN": {
-            "rate": 1750.16,
-            "unit": "km"
-        },
-        "ETB": {
-            "rate": 18077.09,
-            "unit": "km"
-        },
-        "EUR": {
-            "rate": 30,
-            "unit": "km"
-        },
-        "FJD": {
-            "rate": 265.25,
-            "unit": "km"
-        },
-        "FKP": {
-            "rate": 86.44,
-            "unit": "km"
-        },
-        "GBP": {
-            "rate": 45,
-            "unit": "mi"
-        },
-        "GEL": {
-            "rate": 313.87,
-            "unit": "km"
-        },
-        "GHS": {
-            "rate": 1246.23,
-            "unit": "km"
-        },
-        "GIP": {
-            "rate": 86.44,
-            "unit": "km"
-        },
-        "GMD": {
-            "rate": 8575.79,
-            "unit": "km"
-        },
-        "GNF": {
-            "rate": 1019841.61,
-            "unit": "km"
-        },
-        "GTQ": {
-            "rate": 893.94,
-            "unit": "km"
-        },
-        "GYD": {
-            "rate": 24400.12,
-            "unit": "km"
-        },
-        "HKD": {
-            "rate": 908.6,
-            "unit": "km"
-        },
-        "HNL": {
-            "rate": 3080.03,
-            "unit": "km"
-        },
-        "HRK": {
-            "rate": 752.16,
-            "unit": "km"
-        },
-        "HTG": {
-            "rate": 15266.76,
-            "unit": "km"
-        },
-        "HUF": {
-            "rate": 38407.92,
-            "unit": "km"
-        },
-        "IDR": {
-            "rate": 1954232.16,
-            "unit": "km"
-        },
-        "ILS": {
-            "rate": 540,
-            "unit": "km"
-        },
-        "INR": {
-            "rate": 10518.19,
-            "unit": "km"
-        },
-        "IQD": {
-            "rate": 152781.51,
-            "unit": "km"
-        },
-        "IRR": {
-            "rate": 4910488.26,
-            "unit": "km"
-        },
-        "ISK": {
-            "rate": 14694.92,
-            "unit": "km"
-        },
-        "JMD": {
-            "rate": 18515.8,
-            "unit": "km"
-        },
-        "JOD": {
-            "rate": 82.72,
-            "unit": "km"
-        },
-        "JPY": {
-            "rate": 18278.93,
-            "unit": "km"
-        },
-        "KES": {
-            "rate": 15058.57,
-            "unit": "km"
-        },
-        "KGS": {
-            "rate": 10202.68,
-            "unit": "km"
-        },
-        "KHR": {
-            "rate": 468558.4,
-            "unit": "km"
-        },
-        "KMF": {
-            "rate": 49237.89,
-            "unit": "km"
-        },
-        "KPW": {
-            "rate": 105009.73,
-            "unit": "km"
-        },
-        "KRW": {
-            "rate": 168722.07,
-            "unit": "km"
-        },
-        "KWD": {
-            "rate": 35.82,
-            "unit": "km"
-        },
-        "KYD": {
-            "rate": 97.19,
-            "unit": "km"
-        },
-        "KZT": {
-            "rate": 59441.07,
-            "unit": "km"
-        },
-        "LAK": {
-            "rate": 2520371.89,
-            "unit": "km"
-        },
-        "LBP": {
-            "rate": 10444573.37,
-            "unit": "km"
-        },
-        "LKR": {
-            "rate": 36161.18,
-            "unit": "km"
-        },
-        "LRD": {
-            "rate": 20916.15,
-            "unit": "km"
-        },
-        "LSL": {
-            "rate": 1909.99,
-            "unit": "km"
-        },
-        "LTL": {
-            "rate": 376.1,
-            "unit": "km"
-        },
-        "LVL": {
-            "rate": 76.56,
-            "unit": "km"
-        },
-        "LYD": {
-            "rate": 631.41,
-            "unit": "km"
-        },
-        "MAD": {
-            "rate": 1070.73,
-            "unit": "km"
-        },
-        "MDL": {
-            "rate": 1950.82,
-            "unit": "km"
-        },
-        "MGA": {
-            "rate": 537347.25,
-            "unit": "km"
-        },
-        "MKD": {
-            "rate": 6144.12,
-            "unit": "km"
-        },
-        "MMK": {
-            "rate": 245011.43,
-            "unit": "km"
-        },
-        "MNT": {
-            "rate": 415371.81,
-            "unit": "km"
-        },
-        "MOP": {
-            "rate": 935.53,
-            "unit": "km"
-        },
-        "MRO": {
-            "rate": 41653.05,
-            "unit": "km"
-        },
-        "MRU": {
-            "rate": 4631.69,
-            "unit": "km"
-        },
-        "MUR": {
-            "rate": 5402.17,
-            "unit": "km"
-        },
-        "MVR": {
-            "rate": 1803.83,
-            "unit": "km"
-        },
-        "MWK": {
-            "rate": 202409.9,
-            "unit": "km"
-        },
-        "MXN": {
-            "rate": 93,
-            "unit": "km"
-        },
-        "MYR": {
-            "rate": 472.6,
-            "unit": "km"
-        },
-        "MZN": {
-            "rate": 7456.85,
-            "unit": "km"
-        },
-        "NAD": {
-            "rate": 1910.94,
-            "unit": "km"
-        },
-        "NGN": {
-            "rate": 166247.91,
-            "unit": "km"
-        },
-        "NIO": {
-            "rate": 4291.54,
-            "unit": "km"
-        },
-        "NOK": {
-            "rate": 350,
-            "unit": "km"
-        },
-        "NPR": {
-            "rate": 16827.52,
-            "unit": "km"
-        },
-        "NZD": {
-            "rate": 117,
-            "unit": "km"
-        },
-        "OMR": {
-            "rate": 44.87,
-            "unit": "km"
-        },
-        "PAB": {
-            "rate": 116.68,
-            "unit": "km"
-        },
-        "PEN": {
-            "rate": 392.29,
-            "unit": "km"
-        },
-        "PGK": {
-            "rate": 501.36,
-            "unit": "km"
-        },
-        "PHP": {
-            "rate": 6917.8,
-            "unit": "km"
-        },
-        "PKR": {
-            "rate": 32652.84,
-            "unit": "km"
-        },
-        "PLN": {
-            "rate": 89,
-            "unit": "km"
-        },
-        "PYG": {
-            "rate": 787561.7,
-            "unit": "km"
-        },
-        "QAR": {
-            "rate": 424.92,
-            "unit": "km"
-        },
-        "RON": {
-            "rate": 508.07,
-            "unit": "km"
-        },
-        "RSD": {
-            "rate": 11713.4,
-            "unit": "km"
-        },
-        "RUB": {
-            "rate": 9392.54,
-            "unit": "km"
-        },
-        "RWF": {
-            "rate": 169805.16,
-            "unit": "km"
-        },
-        "SAR": {
-            "rate": 437.58,
-            "unit": "km"
-        },
-        "SBD": {
-            "rate": 948.61,
-            "unit": "km"
-        },
-        "SCR": {
-            "rate": 1615.27,
-            "unit": "km"
-        },
-        "SDG": {
-            "rate": 70123.16,
-            "unit": "km"
-        },
-        "SEK": {
-            "rate": 250,
-            "unit": "km"
-        },
-        "SGD": {
-            "rate": 149.43,
-            "unit": "km"
-        },
-        "SHP": {
-            "rate": 86.44,
-            "unit": "km"
-        },
-        "SLL": {
-            "rate": 2446668.74,
-            "unit": "km"
-        },
-        "SLE": {
-            "rate": 2800.26,
-            "unit": "km"
-        },
-        "SOS": {
-            "rate": 66591.46,
-            "unit": "km"
-        },
-        "SRD": {
-            "rate": 4468.75,
-            "unit": "km"
-        },
-        "STD": {
-            "rate": 2599784.99,
-            "unit": "km"
-        },
-        "STN": {
-            "rate": 2440.86,
-            "unit": "km"
-        },
-        "SVC": {
-            "rate": 1020.49,
-            "unit": "km"
-        },
-        "SYP": {
-            "rate": 1517040.54,
-            "unit": "km"
-        },
-        "SZL": {
-            "rate": 1910.2,
-            "unit": "km"
-        },
-        "THB": {
-            "rate": 3641.51,
-            "unit": "km"
-        },
-        "TJS": {
-            "rate": 1077.65,
-            "unit": "km"
-        },
-        "TMT": {
-            "rate": 408.37,
-            "unit": "km"
-        },
-        "TND": {
-            "rate": 336.58,
-            "unit": "km"
-        },
-        "TOP": {
-            "rate": 280.93,
-            "unit": "km"
-        },
-        "TRY": {
-            "rate": 5022.36,
-            "unit": "km"
-        },
-        "TTD": {
-            "rate": 791.64,
-            "unit": "km"
-        },
-        "TWD": {
-            "rate": 3676.16,
-            "unit": "km"
-        },
-        "TZS": {
-            "rate": 288716.35,
-            "unit": "km"
-        },
-        "UAH": {
-            "rate": 4966.74,
-            "unit": "km"
-        },
-        "UGX": {
-            "rate": 422422.35,
-            "unit": "km"
-        },
-        "USD": {
-            "rate": 72.5,
-            "unit": "mi"
-        },
-        "UYU": {
-            "rate": 4544.27,
-            "unit": "km"
-        },
-        "UZS": {
-            "rate": 1395513.79,
-            "unit": "km"
-        },
-        "VEB": {
-            "rate": 735113.61,
-            "unit": "km"
-        },
-        "VEF": {
-            "rate": 28992910.93,
-            "unit": "km"
-        },
-        "VES": {
-            "rate": 35909.77,
-            "unit": "km"
-        },
-        "VND": {
-            "rate": 3065619.41,
-            "unit": "km"
-        },
-        "VUV": {
-            "rate": 14152.58,
-            "unit": "km"
-        },
-        "WST": {
-            "rate": 322.95,
-            "unit": "km"
-        },
-        "XAF": {
-            "rate": 65490.66,
-            "unit": "km"
-        },
-        "XCD": {
-            "rate": 315.32,
-            "unit": "km"
-        },
-        "XCG": {
-            "rate": 210.2,
-            "unit": "km"
-        },
-        "XOF": {
-            "rate": 65490.66,
-            "unit": "km"
-        },
-        "XPF": {
-            "rate": 11913.98,
-            "unit": "km"
-        },
-        "YER": {
-            "rate": 27815.91,
-            "unit": "km"
-        },
-        "ZAR": {
-            "rate": 476,
-            "unit": "km"
-        },
-        "ZMK": {
-            "rate": 612915.63,
-            "unit": "km"
-        },
-        "ZMW": {
-            "rate": 2440.41,
-            "unit": "km"
-        },
-        "ZWG": {
-            "rate": 3023.59,
-            "unit": "km"
-        }
-    }`) as Record<string, MileageRate>,
 
     EXIT_SURVEY: {
         REASONS: {
@@ -7916,14 +7285,6 @@ const CONST = {
                 description: 'workspace.upgrade.reportFields.description' as const,
                 icon: 'Pencil',
             },
-            invoiceFields: {
-                id: 'invoiceFields' as const,
-                alias: 'invoice-fields',
-                name: 'Invoice Fields',
-                title: 'workspace.upgrade.invoiceFields.title' as const,
-                description: 'workspace.upgrade.invoiceFields.description' as const,
-                icon: 'Pencil',
-            },
             policyPreventMemberChangingTitle: {
                 id: 'policyPreventMemberChangingTitle' as const,
                 alias: 'policy-prevent-member-changing-title',
@@ -8097,12 +7458,12 @@ const CONST = {
                 description: 'workspace.upgrade.distanceRates.description' as const,
                 icon: 'CarIce',
             },
-            auditor: {
-                id: 'auditor' as const,
-                alias: 'auditor',
-                name: 'Auditor',
-                title: 'workspace.upgrade.auditor.title' as const,
-                description: 'workspace.upgrade.auditor.description' as const,
+            controlPolicyRoles: {
+                id: 'controlPolicyRoles' as const,
+                alias: 'control-policy-roles',
+                name: 'Control policy roles',
+                title: 'workspace.upgrade.controlPolicyRoles.title' as const,
+                description: 'workspace.upgrade.controlPolicyRoles.description' as const,
                 icon: 'BlueShield',
             },
             reports: {
@@ -8184,10 +7545,6 @@ const CONST = {
         DATE: 'date',
         LIST: 'dropdown',
         FORMULA: 'formula',
-    },
-    REPORT_FIELD_TARGETS: {
-        EXPENSE: 'expense',
-        INVOICE: 'invoice',
     },
 
     NAVIGATION_ACTIONS: {
@@ -8419,9 +7776,9 @@ const CONST = {
         MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
         GPS_TOOLTIP: 'gpsTooltip',
         HAS_FILTER_NEGATION: 'hasFilterNegation',
+        MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
-    AGENTS_WORKFLOWS_BANNER: 'agentsWorkflowsBanner',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
     SMART_BANNER_HEIGHT: 152,
 
@@ -8568,9 +7925,6 @@ const CONST = {
         HIGH_CONTRAST_MODE_SWITCHER: {
             TOGGLE: 'HighContrastModeSwitcher-Toggle',
         },
-        AGENTS_WORKFLOWS_BANNER: {
-            DISMISS: 'AgentsWorkflowsBanner-Dismiss',
-        },
         AGENTS_RULES_BANNER: {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
@@ -8702,11 +8056,8 @@ const CONST = {
             FILTER_POPUP_APPLY_MULTI_SELECT: 'Search-FilterPopupApplyMultiSelect',
             FILTER_POPUP_RESET_TEXT_INPUT: 'Search-FilterPopupResetTextInput',
             FILTER_POPUP_APPLY_TEXT_INPUT: 'Search-FilterPopupApplyTextInput',
-            FILTER_POPUP_RESET_AMOUNT: 'Search-FilterPopupResetAmount',
             FILTER_POPUP_APPLY_AMOUNT: 'Search-FilterPopupApplyAmount',
-            FILTER_POPUP_RESET_DATE: 'Search-FilterPopupResetDate',
             FILTER_POPUP_APPLY_DATE: 'Search-FilterPopupApplyDate',
-            FILTER_POPUP_RESET_REPORT_FIELD: 'Search-FilterPopupResetReportField',
             FILTER_POPUP_APPLY_REPORT_FIELD: 'Search-FilterPopupApplyReportField',
             TRANSACTION_LIST_ITEM_CHECKBOX: 'Search-TransactionListItemCheckbox',
             EXPANDED_TRANSACTION_ROW: 'Search-ExpandedTransactionRow',
@@ -8717,6 +8068,7 @@ const CONST = {
             ADVANCED_FILTER_ITEM: 'Search-AdvancedFilterItem',
             SAVE_VIEW_BUTTON: 'Search-SaveViewButton',
             VIEW_RESULTS_BUTTON: 'Search-ViewResultsButton',
+            CLEAR_FILTERS_BUTTON: 'Search-ClearFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
             ACTION_CELL_PAY: 'Search-ActionCellPay',
             ACTION_CELL_ACTION: 'Search-ActionCellAction',
@@ -8753,7 +8105,7 @@ const CONST = {
             REPORT_ACTION_ITEM_SINGLE_ACTOR_BUTTON: 'Report-ReportActionItemSingleActorButton',
             REPORT_ACTION_ITEM_THREAD: 'Report-ReportActionItemThread',
             THREAD_DIVIDER: 'Report-ThreadDivider',
-            PURE_REPORT_ACTION_ITEM: 'Report-PureReportActionItem',
+            REPORT_ACTION_ITEM: 'Report-ReportActionItem',
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
@@ -9134,6 +8486,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTaxes-BulkActionsDropdown',
             },
             DISTANCE_RATES: {
+                ROW: 'WorkspaceDistanceRates-Row',
                 ADD_BUTTON: 'WorkspaceDistanceRates-AddButton',
                 MORE_DROPDOWN: 'WorkspaceDistanceRates-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceDistanceRates-BulkActionsDropdown',
@@ -9171,10 +8524,10 @@ const CONST = {
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
-                AI_RULE_ITEM: 'WorkspaceRules-AIRuleItem',
-                ADD_AI_RULE: 'WorkspaceRules-AddAIRule',
-                AI_RULE_SAVE: 'WorkspaceRules-AIRuleSave',
-                AI_RULE_DELETE: 'WorkspaceRules-AIRuleDelete',
+                AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',
+                ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',
+                AGENT_RULE_SAVE: 'WorkspaceRules-AgentRuleSave',
+                AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
@@ -9354,6 +8707,8 @@ const CONST = {
             DELEGATE_ITEM: 'SettingsSecurity-DelegateItem',
             DELEGATE_CHANGE_ACCESS: 'SettingsSecurity-DelegateChangeAccess',
             DELEGATE_REMOVE: 'SettingsSecurity-DelegateRemove',
+            DELEGATOR_ITEM: 'SettingsSecurity-DelegatorItem',
+            DELEGATOR_REMOVE: 'SettingsSecurity-DelegatorRemove',
         },
         SETTINGS_WALLET: {
             ADD_BANK_ACCOUNT: 'SettingsWallet-AddBankAccount',

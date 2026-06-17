@@ -1,3 +1,4 @@
+import {NavigationContainer} from '@react-navigation/native';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
@@ -725,20 +726,22 @@ describe('Table', () => {
             };
 
             render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                    compareItems={props.compareItems}
-                    filters={filterConfig}
-                >
-                    <Table.SearchBar label="Search" />
-                    <Table.FilterButtons />
-                    <Table.Header />
-                    <Table.Body />
-                </Table>,
+                <NavigationContainer>
+                    <Table<TestItem, TestColumnKey>
+                        data={props.data}
+                        columns={props.columns}
+                        renderItem={props.renderItem}
+                        keyExtractor={props.keyExtractor}
+                        isItemInSearch={props.isItemInSearch}
+                        compareItems={props.compareItems}
+                        filters={filterConfig}
+                    >
+                        <Table.SearchBar label="Search" />
+                        <Table.FilterButtons />
+                        <Table.Header />
+                        <Table.Body />
+                    </Table>
+                </NavigationContainer>,
             );
 
             expect(screen.getByTestId('search-input')).toBeTruthy();

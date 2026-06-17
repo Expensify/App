@@ -203,6 +203,8 @@
         "Marqeta",
         "McAfee",
         "Michelina",
+        "Melvin",
+        "MelvinBot",
         "Menlo",
         "Microtransaction",
         "Miniwarehouses",
@@ -210,6 +212,7 @@
         "Monzo",
         "Multifactor",
         "NAICS",
+        "NANP",
         "NBSA",
         "NETSUITE",
         "NEWDOT",
@@ -513,6 +516,7 @@
         "creditamount",
         "creditcards",
         "crios",
+        "csvexport",
         "csvg",
         "customairshipextender",
         "customfield",
@@ -1006,7 +1010,8 @@
         "NitroFetch",
         "Prefetch",
         "Prefetcher",
-        "knip"
+        "knip",
+        "lottiefiles"
     ],
     "ignorePaths": [
         ".gitignore",
