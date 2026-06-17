@@ -23,13 +23,14 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
+    isGroupPolicy,
     isInstantSubmitEnabled,
-    isPaidGroupPolicy,
     isPolicyAdmin,
     isPolicyApprover,
     isPolicyMember,
     isPreferredExporter,
     isSubmitAndClose,
+    isSubmitPolicy,
 } from './PolicyUtils';
 import {
     getAllReportActions,
@@ -239,7 +240,7 @@ function isSubmitAction({
 
     const isExpenseReport = isExpenseReportUtils(report);
 
-    if (!isExpenseReport || (report?.total === 0 && reportTransactions.length === 0) || !isPaidGroupPolicy(policy)) {
+    if (!isExpenseReport || (report?.total === 0 && reportTransactions.length === 0) || !isGroupPolicy(policy)) {
         return false;
     }
 
@@ -445,7 +446,16 @@ function isReceivedPaymentAction(report: Report, reportTransactions: Transaction
         return false;
     }
 
-    if (policy?.role === CONST.POLICY.ROLE.ADMIN || report.isWaitingOnBankAccount || hasHeldExpensesFromTransactions(reportTransactions)) {
+    if (report.isWaitingOnBankAccount || hasHeldExpensesFromTransactions(reportTransactions)) {
+        return false;
+    }
+
+    // Submit workspaces allow submitters to mark Outstanding (processing) reports as paid without requiring manager approval.
+    if (isSubmitPolicy(policy) && isProcessingReportUtils(report)) {
+        return true;
+    }
+
+    if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
         return false;
     }
 
@@ -513,8 +523,8 @@ function isMarkAsExportedAction(currentAccountID: number, currentUserLogin: stri
         return false;
     }
 
-    const hasAccountingConnection = !!getValidConnectedIntegration(policy);
-    if (!hasAccountingConnection) {
+    const connectedIntegration = getConnectedIntegration(policy);
+    if (!connectedIntegration) {
         return false;
     }
 
@@ -535,26 +545,22 @@ function isMarkAsExportedAction(currentAccountID: number, currentUserLogin: stri
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
-    const isReportClosedOrApproved = isReportClosed || isReportApproved;
-
-    if (isReportPayer && arePaymentsEnabled && isReportClosedOrApproved) {
-        return true;
-    }
-
     const isReportReimbursed = isSettled(report);
-    const connectedIntegration = getConnectedIntegration(policy);
-    const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const isReportFinished = isReportClosedOrApproved || isReportReimbursed;
+    const isReportFinished = isReportClosed || isReportApproved || isReportReimbursed;
 
     if (!isReportFinished) {
         return false;
+    }
+
+    if (isReportPayer && arePaymentsEnabled) {
+        return true;
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const isExporter = isPreferredExporter(policy, currentUserLogin);
 
-    return (isAdmin && syncEnabled) || (isExporter && !syncEnabled);
+    return isAdmin || isExporter;
 }
 
 function isHoldAction(

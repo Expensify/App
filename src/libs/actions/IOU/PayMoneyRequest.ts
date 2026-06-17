@@ -59,6 +59,8 @@ type PayInvoiceArgs = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName: string;
+    additionalOnyxData?: AdditionalPayOnyxData;
+    shouldPlaySuccessSound?: boolean;
 };
 
 type PayMoneyRequestData = {
@@ -73,6 +75,14 @@ type PayMoneyRequestData = {
         | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         | BuildPolicyDataKeys
     >;
+};
+
+type SearchPayOnyxKey = typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT;
+
+type AdditionalPayOnyxData = {
+    optimisticData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
+    successData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
+    failureData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
 };
 
 type PayMoneyRequestFunctionParams = {
@@ -95,9 +105,30 @@ type PayMoneyRequestFunctionParams = {
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     methodID?: number;
     onPaid?: () => void;
+    additionalOnyxData?: AdditionalPayOnyxData;
+    shouldPlaySuccessSound?: boolean;
     // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
 };
+
+function mergeAdditionalPayOnyxData<
+    T extends {
+        optimisticData?: readonly unknown[];
+        successData?: readonly unknown[];
+        failureData?: readonly unknown[];
+    },
+>(onyxData: T, additionalOnyxData?: AdditionalPayOnyxData): T {
+    if (!additionalOnyxData) {
+        return onyxData;
+    }
+
+    return {
+        ...onyxData,
+        optimisticData: [...(onyxData.optimisticData ?? []), ...(additionalOnyxData.optimisticData ?? [])],
+        successData: [...(onyxData.successData ?? []), ...(additionalOnyxData.successData ?? [])],
+        failureData: [...(onyxData.failureData ?? []), ...(additionalOnyxData.failureData ?? [])],
+    };
+}
 
 function getPayMoneyRequestParams({
     initialChatReport,
@@ -764,6 +795,8 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         ownerBillingGracePeriodEnd,
         methodID,
         onPaid,
+        additionalOnyxData,
+        shouldPlaySuccessSound = true,
         delegateAccountID,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
@@ -805,8 +838,10 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
 
     onPaid?.();
-    playSound(SOUNDS.SUCCESS);
-    API.write(apiCommand, payMoneyRequestParams, onyxData);
+    if (shouldPlaySuccessSound) {
+        playSound(SOUNDS.SUCCESS);
+    }
+    API.write(apiCommand, payMoneyRequestParams, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);
     return payMoneyRequestParams.optimisticHoldReportID;
 }
@@ -999,6 +1034,8 @@ function payInvoice({
     betas,
     isSelfTourViewed,
     defaultWorkspaceName,
+    additionalOnyxData,
+    shouldPlaySuccessSound = true,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -1068,8 +1105,10 @@ function payInvoice({
         };
     }
 
-    playSound(SOUNDS.SUCCESS);
-    API.write(WRITE_COMMANDS.PAY_INVOICE, params, onyxData);
+    if (shouldPlaySuccessSound) {
+        playSound(SOUNDS.SUCCESS);
+    }
+    API.write(WRITE_COMMANDS.PAY_INVOICE, params, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
 }
 
 /** Save the preferred payment method for a policy or personal DM */
@@ -1095,3 +1134,4 @@ function savePreferredPaymentMethod(
 }
 
 export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export type {AdditionalPayOnyxData};
