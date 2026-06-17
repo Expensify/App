@@ -65,7 +65,6 @@ import {
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyApprover,
-    isSubmitPolicy,
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';

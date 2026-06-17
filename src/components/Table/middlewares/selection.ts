@@ -67,7 +67,7 @@ export default function useSelection<DataType extends TableData>({
 
     const clearSelection = useCallback(() => {
         onRowSelectionChange?.([]);
-    }, []);
+    }, [onRowSelectionChange]);
 
     // Sync the selection mode with the screen size & selection state
     useEffect(() => {
