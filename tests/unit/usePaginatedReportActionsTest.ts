@@ -4,7 +4,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportActions} from '@src/types/onyx';
 import {getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -50,10 +50,7 @@ function setUpOnyx(lastReadTime: string) {
         lastVisibleActionCreated: MESSAGE_3.created,
     } as Report;
 
-    return Onyx.multiSet({
-        [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: report,
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`]: REPORT_ACTIONS,
-    });
+    return Promise.all([Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report), Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, REPORT_ACTIONS)]);
 }
 
 function renderPaginatedReportActions() {
