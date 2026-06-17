@@ -1022,7 +1022,7 @@ function MenuItem({
                                                                 fsClass={forwardedFSClass}
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
-                                                                    <View style={styles.renderHTMLTitle}>
+                                                                    <View style={[styles.renderHTMLTitle, styles.textAlignLeft]}>
                                                                         <RenderHTML html={processedTitle} />
                                                                     </View>
                                                                 )}

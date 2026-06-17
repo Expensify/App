@@ -168,7 +168,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             </View>
                         </UserDetailsTooltip>
                     )}
-                    <View style={[styles.alignSelfCenter, styles.flex1]}>
+                    <View style={[styles.alignSelfCenter, styles.flex1, styles.textAlignLeft]}>
                         <RenderHTML html={getTaskHTML()} />
                     </View>
                 </View>

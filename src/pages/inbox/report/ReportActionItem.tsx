@@ -552,10 +552,15 @@ function ReportActionItem({
                                             />
                                         )}
                                         <View
-                                            style={StyleUtils.getReportActionItemStyle(
-                                                hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || hasDraft || isPaymentMethodPopoverActive,
-                                                !hasDraft && !!onPress,
-                                            )}
+                                            style={[
+                                                StyleUtils.getReportActionItemStyle(
+                                                    hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || hasDraft || isPaymentMethodPopoverActive,
+                                                    !hasDraft && !!onPress,
+                                                ),
+                                                // The Pressable above renders as a role=button, whose UA text-align:center is inherited by
+                                                // bare inline content (e.g. an auto-linked URL with no wrapping Text). Reset it to left here.
+                                                styles.textAlignLeft,
+                                            ]}
                                         >
                                             <OfflineWithFeedback
                                                 onClose={onClose}

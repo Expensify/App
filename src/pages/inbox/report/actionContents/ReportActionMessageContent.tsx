@@ -77,7 +77,7 @@ function ReportActionMessageContent({action, displayAsGroup, reportID, style, is
     };
 
     return (
-        <View style={[styles.chatItemMessage, styles.textAlignLeft, style]}>
+        <View style={[styles.chatItemMessage, style]}>
             {!isHidden ? (
                 renderReportActionItemFragments(isApprovedOrSubmittedReportAction)
             ) : (

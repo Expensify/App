@@ -181,7 +181,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                     disabled={!isTaskActionable}
                                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                                 />
-                                                <View style={[styles.flexRow, styles.flex1]}>
+                                                <View style={[styles.flexRow, styles.flex1, styles.textAlignLeft]}>
                                                     <RenderHTML html={taskTitle} />
                                                 </View>
                                                 {!isDisableInteractive && (

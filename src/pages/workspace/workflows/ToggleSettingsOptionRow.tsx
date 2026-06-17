@@ -149,7 +149,7 @@ function ToggleSettingOptionRow({
         if (typeof subtitle === 'string') {
             if (!!subtitle && shouldParseSubtitle) {
                 return (
-                    <View style={[styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}]}>
+                    <View style={[styles.flexRow, styles.renderHTML, styles.textAlignLeft, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}]}>
                         <RenderHTML html={processedSubtitle} />
                     </View>
                 );
@@ -178,6 +178,7 @@ function ToggleSettingOptionRow({
         styles.mr5,
         styles.flexRow,
         styles.renderHTML,
+        styles.textAlignLeft,
         shouldPlaceSubtitleBelowSwitch,
         subtitleStyle,
         processedSubtitle,
