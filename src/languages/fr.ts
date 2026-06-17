@@ -3043,12 +3043,6 @@ ${amount} pour ${merchant} - ${date}`,
         welcomeSignOffTitleManageTeam:
             'Une fois que vous aurez terminé les tâches ci-dessus, nous pourrons explorer davantage de fonctionnalités, comme les workflows d’approbation et les règles !',
         welcomeSignOffTitle: 'Ravi de faire votre connaissance !',
-        explanationModal: {
-            title: 'Bienvenue sur Expensify',
-            description:
-                'Une seule application pour gérer vos dépenses professionnelles et personnelles à la vitesse d’un chat. Essayez-la et dites-nous ce que vous en pensez. Et ce n’est qu’un début !',
-            secondaryDescription: 'Pour revenir à Expensify Classic, appuyez simplement sur votre photo de profil > Aller à Expensify Classic.',
-        },
         getStarted: 'Commencer',
         whatsYourName: 'Comment vous appelez-vous ?',
         peopleYouMayKnow: 'Vérifier si votre équipe est sur Expensify',

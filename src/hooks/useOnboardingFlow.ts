@@ -6,6 +6,7 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
+import {completeHybridAppOnboarding} from '@userActions/Welcome';
 import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,9 +73,8 @@ function useOnboardingFlowRouter() {
                         return;
                     }
 
-                    // When user is transitioning from OldDot to NewDot, we usually show the explanation modal
                     if (isHybridAppOnboardingCompleted === false) {
-                        Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
+                        completeHybridAppOnboarding();
                     }
                 }
 
