@@ -1848,5 +1848,109 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             writeSpy.mockRestore();
         });
+
+        it('calls UpdateMoneyRequestDate only when the current rate remains eligible for the new date even if another rate was last selected', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const transactionID = 'distance_date_same_rate';
+            const transactionThreadReportID = 'thread_date_same_rate';
+            const expenseReportID = 'expense_report_date_same_rate';
+            const policyID = 'policy_date_same_rate';
+            const rate2025 = 'rate_2025';
+            const defaultRate = 'rate_default';
+
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: expenseReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+            };
+            const transactionThread: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: expenseReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: expenseReportID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-03-15',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 10,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        customUnitRateID: rate2025,
+                    },
+                },
+            };
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                customUnits: {
+                    unitId: {
+                        attributes: {unit: 'mi'},
+                        customUnitID: 'unitId',
+                        defaultCategory: 'Car',
+                        enabled: true,
+                        name: 'Distance',
+                        rates: {
+                            [rate2025]: {
+                                currency: 'USD',
+                                customUnitRateID: rate2025,
+                                enabled: true,
+                                name: '2025 mileage',
+                                rate: 65.5,
+                                startDate: '2025-01-01',
+                                endDate: '2025-12-31',
+                            },
+                            [defaultRate]: {
+                                currency: 'USD',
+                                customUnitRateID: defaultRate,
+                                enabled: true,
+                                name: 'Default mileage',
+                                rate: 50,
+                            },
+                        },
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThread);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policyID]: defaultRate});
+            await waitForBatchedUpdates();
+
+            updateMoneyRequestDate({
+                transactionID,
+                transactionThreadReport: transactionThread,
+                parentReport: expenseReport,
+                transactions: {},
+                transactionViolations: {},
+                value: '2025-06-15',
+                policy,
+                policyTags: {},
+                policyCategories: {},
+                currentUserAccountIDParam: 1,
+                currentUserEmailParam: 'test@test.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+                isOffline: false,
+                delegateAccountID: undefined,
+                lastSelectedDistanceRates: {[policyID]: defaultRate},
+            });
+
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2025-06-15'}), expect.anything());
+            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, expect.anything(), expect.anything());
+
+            writeSpy.mockRestore();
+        });
     });
 });

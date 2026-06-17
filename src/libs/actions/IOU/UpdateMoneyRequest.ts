@@ -191,14 +191,12 @@ function getRecalculatedWorkspaceDistanceRateIDForExpenseDate({
     parentReport,
     policy,
     expenseDate,
-    lastSelectedDistanceRates,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
     expenseDate: string;
-    lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
 }): string | undefined {
     if (!transaction || !policy || !isGroupPolicy(policy) || !isDistanceRequestTransactionUtils(transaction)) {
         return undefined;
@@ -209,12 +207,16 @@ function getRecalculatedWorkspaceDistanceRateIDForExpenseDate({
         return undefined;
     }
 
+    const currentMileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: currentRateID, policy});
+    if (currentMileageRate?.enabled !== false && DistanceRequestUtils.isRateEligibleForDate(currentMileageRate, expenseDate)) {
+        return undefined;
+    }
+
     const reportID = parentReport?.reportID ?? transactionThreadReport?.reportID ?? transaction.reportID;
     const newRateID = DistanceRequestUtils.getCustomUnitRateID({
         reportID,
         isPolicyExpenseChat: true,
         policy,
-        lastSelectedDistanceRates,
         expenseDate,
     });
 
@@ -243,7 +245,6 @@ function updateMoneyRequestDate({
     isOffline,
     hash,
     delegateAccountID,
-    lastSelectedDistanceRates,
 }: UpdateMoneyRequestDateParams) {
     const transaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const newRateID = getRecalculatedWorkspaceDistanceRateIDForExpenseDate({
@@ -252,7 +253,6 @@ function updateMoneyRequestDate({
         parentReport,
         policy,
         expenseDate: value,
-        lastSelectedDistanceRates,
     });
     const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
 
@@ -276,6 +276,7 @@ function updateMoneyRequestDate({
             hash,
             transactions,
             transactionViolations,
+            isOffline,
             ...taxUpdates,
         });
         return;
@@ -1167,6 +1168,7 @@ function updateMoneyRequestDistanceRate({
     hash,
     transactions,
     transactionViolations,
+    isOffline,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1187,6 +1189,7 @@ function updateMoneyRequestDistanceRate({
     hash?: number;
     transactions?: OnyxCollection<OnyxTypes.Transaction>;
     transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
+    isOffline?: boolean;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -1228,6 +1231,7 @@ function updateMoneyRequestDistanceRate({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
+            isOffline,
             hash,
             delegateAccountID,
         });
