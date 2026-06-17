@@ -62,7 +62,7 @@ type FocusedScreen = {
     params?: Record<string, unknown>;
 };
 
-// Modality must be tracked from the first interaction; the focus-return listeners install under NavigationRoot's lifecycle so they can be torn down.
+// Modality is module-load (must catch the first interaction); focus-return runs under NavigationRoot (needs navigationRef + a teardown point).
 setupHadTabNavigation();
 
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay

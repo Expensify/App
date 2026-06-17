@@ -5,6 +5,7 @@ import Accessibility from '@libs/Accessibility';
 import fireFocusEvent from '@libs/Accessibility/fireFocusEvent';
 import scheduleRefocus from '@libs/Accessibility/scheduleRefocus';
 import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from '@libs/compoundParamsKey';
+import {MAX_RESTORE_FRAMES, PRESS_TRIGGER_TTL_MS, TRIGGER_MAP_MAX} from '@libs/focusReturnTimings';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -12,10 +13,6 @@ import {diffNavigationState} from '@libs/navigationStateDiff';
 import CONST from '@src/CONST';
 
 type TriggerEntry = {ref: RefObject<View | null>; identifier?: string};
-
-const TRIGGER_MAP_MAX = 64;
-const PRESS_TRIGGER_TTL_MS = 3_000;
-const MAX_RESTORE_FRAMES = 5;
 
 const COLLISION_TOLERANT_IDENTIFIERS = new Set<string>([CONST.BACK_BUTTON_NATIVE_ID]);
 

@@ -1,11 +1,11 @@
-import {NavigationRouteContext} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useRouteKey from '@hooks/useRouteKey';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,7 +54,7 @@ function GenericPressable({
     const isRoleButton = [rest.accessibilityRole, rest.role].includes(CONST.ROLE.BUTTON);
     const internalRef = useRef<View | null>(null);
     const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
-    const routeKey = useContext(NavigationRouteContext)?.key ?? null;
+    const routeKey = useRouteKey();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `||` falls empty-string ids through to the next identity prop; the registry rescue must key off a stable identity prop, never the (often value-derived) accessibility label.
     const focusIdentifier = rest.id || rest.nativeID || rest.testID || undefined;
 

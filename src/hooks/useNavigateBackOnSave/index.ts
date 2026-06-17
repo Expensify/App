@@ -4,9 +4,8 @@ import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import type {Route} from '@src/ROUTES';
 
 /**
- * Save-and-close flow for IOU step forms: `armNavigateBack()` navigates back once `isSaved` flips. Pass
- * `shouldSkipFocusRestore` true only when the destination has a submit Enter a re-focused row would hijack (create flow);
- * editing an existing expense passes false so focus returns. `navigateBack` (the Back button) always restores.
+ * `navigateBack` — direct goBack(), focus restores. `armNavigateBack` — arms the next `isSaved` transition to dispatch goBack once;
+ * does not navigate immediately. Pass `shouldSkipFocusRestore: true` only when the destination has a submit Enter a re-focused row would hijack.
  */
 function useNavigateBackOnSave(
     isSaved: boolean,

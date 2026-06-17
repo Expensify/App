@@ -1,5 +1,5 @@
 type UseScreenInitialFocusOptions = {
-    /** Opts the screen out of post-transition initial focus (e.g. when Enter must trigger a form submit, not the Back button). */
+    /** Opts the screen out of post-transition initial focus. */
     skip?: boolean;
 };
 

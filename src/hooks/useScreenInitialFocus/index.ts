@@ -3,6 +3,7 @@ import {useDialogLabelData} from '@components/DialogLabelContext';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import claimInitialFocus from '@libs/claimInitialFocus';
 import hasHoverSupport from '@libs/DeviceCapabilities/hasHoverSupport';
+import {MAX_INITIAL_FOCUS_FRAMES} from '@libs/focusReturnTimings';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import type UseScreenInitialFocus from './types';
 
@@ -22,8 +23,6 @@ function isOnScreen(el: HTMLElement): boolean {
     }
     return true;
 }
-
-const MAX_INITIAL_FOCUS_FRAMES = 5;
 
 /*
  * Mobile-web counterpart to `useDialogContainerFocus` (RHP-only): focuses `node` once after `didScreenTransitionEnd`.

@@ -1,5 +1,6 @@
 import React, {createContext, useContext, useRef} from 'react';
 import type {View} from 'react-native';
+import isHTMLElement from '@libs/isHTMLElement';
 
 type LabelEntry = {id: number; text: string};
 
@@ -30,6 +31,7 @@ type DialogLabelProviderProps = {
     containerRef: React.RefObject<View | null>;
 };
 
+// Title-stack and initial-focus claim are co-located: each pushLabel re-arms the focus claim so a sub-screen re-receives initial focus.
 function DialogLabelProvider({children, containerRef}: DialogLabelProviderProps) {
     const nextIdRef = useRef(0);
     const labelStackRef = useRef<LabelEntry[]>([]);
@@ -37,8 +39,14 @@ function DialogLabelProvider({children, containerRef}: DialogLabelProviderProps)
 
     const updateContainerLabel = () => {
         const top = labelStackRef.current.at(-1);
-        const node = containerRef.current as unknown as HTMLElement | null;
-        if (!node || typeof node.setAttribute !== 'function') {
+        const node = containerRef.current;
+        if (!isHTMLElement(node)) {
+            return;
+        }
+        // aria-label on a roleless element is ignored by screen readers; skip the set on mobile (where the RHP container has no dialog role).
+        const hasDialogSemantics = node.getAttribute('role') === 'dialog' || node.getAttribute('aria-modal') === 'true';
+        if (!hasDialogSemantics) {
+            node.removeAttribute('aria-label');
             return;
         }
         if (top?.text) {
