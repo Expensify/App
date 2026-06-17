@@ -35,6 +35,7 @@ describe('DialogLabelContext', () => {
         it('pushLabel sets aria-label on the container element', () => {
             const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
             const mockElement = document.createElement('div');
+            mockElement.setAttribute('aria-modal', 'true');
             (result.current.containerRef as {current: unknown}).current = mockElement;
 
             act(() => {
@@ -42,6 +43,18 @@ describe('DialogLabelContext', () => {
             });
 
             expect(mockElement.getAttribute('aria-label')).toBe('Settings');
+        });
+
+        it('pushLabel does not set aria-label when the container has no dialog semantics', () => {
+            const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
+            const mockElement = document.createElement('div');
+            (result.current.containerRef as {current: unknown}).current = mockElement;
+
+            act(() => {
+                result.current.pushLabel('Settings');
+            });
+
+            expect(mockElement.hasAttribute('aria-label')).toBe(false);
         });
 
         it('pushLabel is safe when containerRef is not set', () => {
@@ -58,6 +71,7 @@ describe('DialogLabelContext', () => {
         it('popLabel removes the label and restores the previous one', () => {
             const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
             const mockElement = document.createElement('div');
+            mockElement.setAttribute('aria-modal', 'true');
             (result.current.containerRef as {current: unknown}).current = mockElement;
 
             let idA: number;
@@ -88,6 +102,7 @@ describe('DialogLabelContext', () => {
         it('popLabel removes by ID, not by stack position', () => {
             const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
             const mockElement = document.createElement('div');
+            mockElement.setAttribute('aria-modal', 'true');
             (result.current.containerRef as {current: unknown}).current = mockElement;
 
             let idA: number;

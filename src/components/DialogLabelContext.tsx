@@ -43,7 +43,7 @@ function DialogLabelProvider({children, containerRef}: DialogLabelProviderProps)
         if (!isHTMLElement(node)) {
             return;
         }
-        // aria-label on a roleless element is ignored by screen readers; skip the set on mobile (where the RHP container has no dialog role).
+        // aria-label on a container without dialog semantics is ignored by screen readers; skip the set on mobile where the RHP has no dialog role.
         const hasDialogSemantics = node.getAttribute('role') === 'dialog' || node.getAttribute('aria-modal') === 'true';
         if (!hasDialogSemantics) {
             node.removeAttribute('aria-label');
