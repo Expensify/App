@@ -88,7 +88,7 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
         animationTypeForReplace: 'push',
     },
-    [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
+    [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS]: {
         animationTypeForReplace: 'push',
     },
     [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: {
@@ -237,7 +237,7 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
     [SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicDomainPermissionInfoPage').default,
     [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicPublicDomainErrorPage').default,
     [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/Travel/WorkspaceConfirmationForTravelPage').default,
-    [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/Travel/WorkspaceAddressForTravelPage').default,
+    [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicWorkspaceAddressForTravelPage').default,
     [SCREENS.TRAVEL.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/VerifyAccountPage').default,
 });
 

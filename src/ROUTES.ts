@@ -462,7 +462,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
-            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
+            SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS,
             SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT,
         ],
         getRoute: (country = '') => `country?country=${country}`,
@@ -790,10 +790,15 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.TRAVEL,
             SCREENS.SEARCH.ROOT,
             SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR,
-            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
+            SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS,
             SCREENS.TRAVEL.VERIFY_ACCOUNT,
         ],
         getRoute: (domain: string, policyID?: string) => `terms/${domain}/accept${policyID ? `/${policyID}` : ''}`,
+    },
+    TRAVEL_WORKSPACE_ADDRESS: {
+        path: 'workspace-address/:domain/:policyID?',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT, SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR],
+        getRoute: (domain: string, policyID?: string) => `workspace-address/${domain}${policyID ? `/${policyID}` : ''}`,
     },
     TRAVEL_DOMAIN_PERMISSION_INFO: {
         path: 'domain-permission-info',
@@ -3277,11 +3282,6 @@ const ROUTES = {
         route: 'travel/upgrade/workspace/confirmation',
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/upgrade/workspace/confirmation`, backTo),
-    },
-    TRAVEL_WORKSPACE_ADDRESS: {
-        route: 'travel/:domain/workspace-address',
-
-        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_VERIFY_ACCOUNT: {
         route: `travel/${VERIFY_ACCOUNT}`,

@@ -65,7 +65,7 @@ function DynamicDomainSelectorPage({route}: DomainSelectorPageProps) {
         if (!isUserValidated) {
             // Determine where to redirect after OTP validation
             const nextStep = isEmptyObject(policy?.address)
-                ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute())
+                ? createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID))
                 : createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID));
             setTravelProvisioningNextStep(nextStep);
             Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID));
@@ -73,7 +73,7 @@ function DynamicDomainSelectorPage({route}: DomainSelectorPageProps) {
         }
         if (isEmptyObject(policy?.address)) {
             // Spotnana requires an address anytime an entity is created for a policy
-            Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID)));
         } else {
             cleanupTravelProvisioningSession();
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID)));
