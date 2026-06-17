@@ -8,7 +8,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import DomainGroupsTableRow, {type DomainGroupRowData} from './DomainGroupsTableRow';
+import type {DomainGroupRowData} from './DomainGroupsTableRow';
+import DomainGroupsTableRow from './DomainGroupsTableRow';
 
 type DomainGroupsTableColumnKey = 'name' | 'members' | 'actions';
 
