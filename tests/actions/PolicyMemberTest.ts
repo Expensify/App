@@ -431,7 +431,17 @@ describe('actions/PolicyMember', () => {
             // When adding a new admin, scoped admin, and user members
             mockFetch?.pause?.();
             Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber, undefined, currentUser, {});
-            Member.addMembersToWorkspace({[cardAdminEmail]: cardAdminAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.CARD_ADMIN, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace(
+                {[cardAdminEmail]: cardAdminAccountID},
+                'Welcome',
+                policy,
+                [],
+                CONST.POLICY.ROLE.CARD_ADMIN,
+                TestHelper.formatPhoneNumber,
+                undefined,
+                currentUser,
+                {},
+            );
             Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
 
             await waitForBatchedUpdates();
