@@ -1,5 +1,7 @@
 import {createNavigationContainerRef, StackActions} from '@react-navigation/native';
 import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navigation/types';
+import CONFIG from '@src/CONFIG';
+import SCREENS from '@src/SCREENS';
 
 /**
  * Internal placeholder used only as a mount-time buffer inside this module.
@@ -13,6 +15,22 @@ const MFA_INITIAL_SCREEN = 'MFA_Initial' as const;
 type MultifactorAuthenticationModalNavigatorInternalParamList = MultifactorAuthenticationModalNavigatorParamList & Record<typeof MFA_INITIAL_SCREEN, undefined>;
 
 const mfaNavigationRef = createNavigationContainerRef<MultifactorAuthenticationModalNavigatorInternalParamList>();
+
+// Outcome screens are terminal states the flow ends on.
+const OUTCOME_SCREENS = new Set<keyof MultifactorAuthenticationModalNavigatorParamList>([
+    SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE,
+]);
+
+// Screens that live inside this independent overlay navigator. REVOKE and AUTHORIZE_TRANSACTION are intentionally excluded: they
+// render in the main RHP modal stack, not this tree.
+const MFA_OVERLAY_SCREENS = new Set<string>([
+    MFA_INITIAL_SCREEN,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE,
+]);
 
 let pendingNavigation: {screen: string; params?: Record<string, unknown>} | undefined;
 
@@ -53,6 +71,16 @@ function navigate<T extends keyof MultifactorAuthenticationModalNavigatorParamLi
         return;
     }
 
+    // In HybridApp the MFA overlay renders in an independent BaseNavigationContainer presented inside a native
+    // modal, where StackActions.replace silently fails to commit (the computed state is never applied), stranding
+    // the user on the spinner-bearing Prompt screen. For the terminal outcome screens we push instead, which
+    // commits reliably; outcome screens end the flow (the stack is reset when the overlay closes) so the extra
+    // stack entry has no downside. Standalone keeps replace, where it works as expected.
+    if (CONFIG.IS_HYBRID_APP && OUTCOME_SCREENS.has(screen)) {
+        mfaNavigationRef.dispatch(StackActions.push(screen, params));
+        return;
+    }
+
     mfaNavigationRef.dispatch(StackActions.replace(screen, params));
 }
 
@@ -73,5 +101,5 @@ function resetMfaNavigation() {
     hasInitialLaidOut = false;
 }
 
-export {MFA_INITIAL_SCREEN, mfaNavigationRef, navigate, handleInitialScreenLayout, resetMfaNavigation};
+export {MFA_INITIAL_SCREEN, MFA_OVERLAY_SCREENS, mfaNavigationRef, navigate, handleInitialScreenLayout, resetMfaNavigation};
 export type {MultifactorAuthenticationModalNavigatorInternalParamList};
