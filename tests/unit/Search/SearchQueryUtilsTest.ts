@@ -15,6 +15,7 @@ import {
     buildSearchQueryString,
     buildUserReadableQueryString,
     getAdvancedFiltersToReset,
+    getCurrentSearchQueryJSON,
     getDateRangeDisplayValueFromFormValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
@@ -27,10 +28,21 @@ import {
     shouldResetSortForViewChange,
     sortOptionsWithEmptyValue,
 } from '@src/libs/SearchQueryUtils';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type * as OnyxTypes from '@src/types/onyx';
 import {localeCompare, translateLocal} from '../../utils/TestHelper';
+
+const mockGetRootState = jest.fn();
+
+jest.mock('@libs/Navigation/navigationRef', () => ({
+    __esModule: true,
+    default: {
+        getRootState: () => mockGetRootState() as unknown,
+    },
+}));
 
 const personalDetailsFakeData = {
     'johndoe@example.com': {
@@ -65,6 +77,31 @@ jest.mock('@libs/PersonalDetailsUtils', () => {
 const defaultQuery = `type:expense sortBy:date sortOrder:desc`;
 
 describe('SearchQueryUtils', () => {
+    beforeEach(() => {
+        mockGetRootState.mockReset();
+    });
+
+    describe('getCurrentSearchQueryJSON', () => {
+        test('reads nested Search params from an unmounted tab route', () => {
+            mockGetRootState.mockReturnValue({
+                routes: [
+                    {
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        params: {
+                            screen: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                            params: {
+                                screen: SCREENS.SEARCH.ROOT,
+                                params: {q: 'type:invoice'},
+                            },
+                        },
+                    },
+                ],
+            });
+
+            expect(getCurrentSearchQueryJSON()?.type).toBe(CONST.SEARCH.DATA_TYPES.INVOICE);
+        });
+    });
+
     describe('getDateRangeDisplayValueFromFormValue', () => {
         test('returns full range display when both boundaries exist', () => {
             const result = getDateRangeDisplayValueFromFormValue('2025-03-01,2025-03-10');

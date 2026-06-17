@@ -56,6 +56,7 @@ import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
 
 type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
+type SearchRootParams = SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
 
 // This map contains chars that match each operator
 const operatorToCharMap = {
@@ -1916,6 +1917,42 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
     return buildSearchQueryString(standardizedQuery);
 }
 
+function isSearchRootParams(params: unknown): params is SearchRootParams {
+    return (
+        !!params &&
+        typeof params === 'object' &&
+        'q' in params &&
+        typeof params.q === 'string' &&
+        (!('rawQuery' in params) || params.rawQuery === undefined || typeof params.rawQuery === 'string')
+    );
+}
+
+function getSearchRootParamsFromNestedNavigatorParams(params: unknown): SearchRootParams | undefined {
+    if (!params || typeof params !== 'object') {
+        return undefined;
+    }
+
+    const screen = 'screen' in params ? params.screen : undefined;
+    const nestedParams = 'params' in params ? params.params : undefined;
+    if (screen === SCREENS.SEARCH.ROOT) {
+        return isSearchRootParams(nestedParams) ? nestedParams : undefined;
+    }
+
+    if (screen === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+        return getSearchRootParamsFromNestedNavigatorParams(nestedParams);
+    }
+
+    return undefined;
+}
+
+function getSearchQueryJSONFromRouteParams(params: unknown) {
+    if (!isSearchRootParams(params)) {
+        return undefined;
+    }
+
+    return buildSearchQueryJSON(params.q, params.rawQuery);
+}
+
 function getCurrentSearchQueryJSON() {
     const rootState = navigationRef.getRootState();
     const lastTabNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
@@ -1926,20 +1963,21 @@ function getCurrentSearchQueryJSON() {
         lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
     }
 
+    const nestedSearchRootParams = getSearchRootParamsFromNestedNavigatorParams(lastSearchNavigator?.params) ?? getSearchRootParamsFromNestedNavigatorParams(lastTabNavigator?.params);
+
     // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
-    // neither .state nor the preserved state map will have an entry. Fall back to the default
-    // query that the navigator would use as its initialParams.
+    // neither .state nor the preserved state map will have an entry. Use nested route params when
+    // React Navigation provided them, otherwise fall back to the default initialParams query.
     if (!lastSearchNavigatorState) {
+        const nestedQueryJSON = getSearchQueryJSONFromRouteParams(nestedSearchRootParams);
+        if (nestedQueryJSON) {
+            return nestedQueryJSON;
+        }
         return buildSearchQueryJSON(buildSearchQueryString());
     }
 
     const lastSearchRoute = lastSearchNavigatorState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
-    if (!lastSearchRoute?.params) {
-        return;
-    }
-
-    const {q: searchParams, rawQuery} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-    const queryJSON = buildSearchQueryJSON(searchParams, rawQuery);
+    const queryJSON = getSearchQueryJSONFromRouteParams(lastSearchRoute?.params);
     if (!queryJSON) {
         return;
     }
