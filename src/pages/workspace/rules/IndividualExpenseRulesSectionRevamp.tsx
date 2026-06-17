@@ -38,7 +38,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Receipt']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
