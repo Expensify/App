@@ -17,13 +17,15 @@ import useSearchPageSetup from '@hooks/useSearchPageSetup';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
-import {search} from '@libs/actions/Search';
+import {search, seedMyExpensesSearch} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import {isDualRoleUser} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {hasFilterBarsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import {accountIDSelector, emailSelector} from '@src/selectors/Session';
 import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
@@ -43,11 +45,25 @@ function SearchPage({route}: SearchPageProps) {
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const [hasFilterBars = false] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: hasFilterBarsSelector});
+    const [hasSeededMyExpensesSearch] = useOnyx(ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
     useConfirmReadyToOpenApp();
     useSearchPageSetup(currentSearchQueryJSON);
+
+    useEffect(() => {
+        if (hasSeededMyExpensesSearch || currentUserAccountID === -1 || !currentUserEmail || allPolicies === undefined) {
+            return;
+        }
+
+        if (isDualRoleUser(allPolicies, currentUserEmail)) {
+            seedMyExpensesSearch(currentUserAccountID, translate('search.mySavedSearch'));
+        }
+    }, [hasSeededMyExpensesSearch, currentUserAccountID, currentUserEmail, allPolicies, translate]);
 
     // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
     // render below (`searchResults = lastNonEmptySearchResults` when sorting), so a useEffect would

@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useContext, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
@@ -14,15 +14,13 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {seedMyExpensesSearch, setSearchContext} from '@libs/actions/Search';
+import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {isDualRoleUser} from '@libs/PolicyUtils';
 import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {accountIDSelector, emailSelector} from '@src/selectors/Session';
 import todosReportCountsSelector from '@src/selectors/Todos';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SavedSearchList from './SavedSearchList';
@@ -104,24 +102,9 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
     const {isOffline} = useNetwork();
     const {singleExecution} = useSingleExecution();
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {translate} = useLocalize();
     const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash, sortBy, sortOrder, type});
     const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
-    const [hasSeededMyExpensesSearch] = useOnyx(ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-
-    useEffect(() => {
-        if (hasSeededMyExpensesSearch || currentUserAccountID === -1 || !currentUserEmail || allPolicies === undefined) {
-            return;
-        }
-
-        if (isDualRoleUser(allPolicies, currentUserEmail)) {
-            seedMyExpensesSearch(currentUserAccountID, translate('search.mySavedSearch'));
-        }
-    }, [hasSeededMyExpensesSearch, currentUserAccountID, currentUserEmail, allPolicies, translate]);
 
     const route = useRoute();
     const scrollViewRef = useRef<RNScrollView>(null);
