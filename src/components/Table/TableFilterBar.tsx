@@ -1,4 +1,4 @@
-import {PropsWithChildren} from 'react';
+import type {PropsWithChildren} from 'react';
 import {View} from 'react-native-web';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Table from '.';
@@ -10,15 +10,14 @@ type TableFilterBarProps = PropsWithChildren<{
 }>;
 
 export default function TableFilterBar({label, children}: TableFilterBarProps) {
-    const styles = useThemeStyles();
     const table = useTableContext();
+    const styles = useThemeStyles();
 
     const hasFiltersAvailable = Object.keys(table.filterConfig ?? {}).length > 0;
 
     return (
-        <View style={[styles.w100, styles.flexRow, styles.gap3, styles.justifyContentBetween]}>
+        <View style={[styles.w100, styles.flexRow, styles.gap3, styles.justifyContentBetween, styles.pb3, styles.ph5]}>
             <Table.SearchBar label={label} />
-
             <View style={[styles.flexRow, styles.gap1]}>{children}</View>
         </View>
     );

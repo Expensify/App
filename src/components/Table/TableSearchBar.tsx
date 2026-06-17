@@ -1,11 +1,7 @@
 import React, {useEffect} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import SearchBar from '@components/SearchBar';
 import TextInput from '@components/TextInput';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {useTableContext} from './TableContext';
 
@@ -15,17 +11,15 @@ import {useTableContext} from './TableContext';
 type TableSearchBarProps = {
     /** Label and accessibility label for the search input. */
     label: string;
-
-    /** Optional style for the search bar container. */
-    style?: StyleProp<ViewStyle>;
 };
 
-function TableSearchBar({label, style}: TableSearchBarProps) {
+function TableSearchBar({label}: TableSearchBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
+
     const {
         activeSearchString,
+        shouldUseNarrowTableLayout,
         tableMethods: {updateSearchString},
     } = useTableContext();
 
@@ -34,6 +28,9 @@ function TableSearchBar({label, style}: TableSearchBarProps) {
         // We only want the cleanup to run on unmount to reset the search state
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const textInputContainerStyles = [styles.border, styles.borderRadiusComponentNormal, styles.appBG, styles.p2];
+    const touchableInputWrapperStyle = [styles.mnw200, shouldUseNarrowTableLayout && styles.w100, shouldUseNarrowTableLayout ? styles.h8 : styles.h11];
 
     return (
         <TextInput
@@ -44,28 +41,11 @@ function TableSearchBar({label, style}: TableSearchBarProps) {
             placeholder={label}
             role={CONST.ROLE.SEARCHBOX}
             inputMode={CONST.INPUT_MODE.TEXT}
-            containerStyles={[styles.ph5, styles.pb5]}
             placeholderTextColor={theme.textSupporting}
             shouldShowClearButton={activeSearchString.length > 0}
-            onChangeText={(text) => updateSearchString(text)}
-            touchableInputWrapperStyle={[styles.h8, {width: 200}]}
-            textInputContainerStyles={{
-                borderRadius: variables.componentBorderRadiusMedium,
-                borderColor: theme.border,
-                backgroundColor: theme.appBG,
-                paddingHorizontal: 8,
-                paddingVertical: 7,
-            }}
-            inputStyle={[styles.textLabel, {color: theme.text}]}
-        />
-    );
-
-    return (
-        <SearchBar
-            label={label}
-            style={style}
-            inputValue={activeSearchString}
-            icon={activeSearchString.length === 0 ? expensifyIcons.MagnifyingGlass : undefined}
+            inputStyle={styles.textLabel}
+            textInputContainerStyles={textInputContainerStyles}
+            touchableInputWrapperStyle={touchableInputWrapperStyle}
             onChangeText={(text) => updateSearchString(text)}
         />
     );
