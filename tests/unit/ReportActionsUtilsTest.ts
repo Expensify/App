@@ -1567,21 +1567,18 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('SendMoney phantom type=create filtering', () => {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        const originalMessage = getOriginalMessage(mockIOUAction) as OriginalMessageIOU;
-
         // Modern SendMoney pay action: type=pay AND IOUDetails present. This is what makes
         // isSentMoneyReportAction() return true and triggers our filter branch.
         const sendMoneyPayAction = {
             ...mockIOUAction,
             reportActionID: 'expense-pay-1',
             originalMessage: {
-                ...originalMessage,
+                ...mockOriginalMessage,
                 type: CONST.IOU.TYPE.PAY,
                 IOUDetails: {amount: 100, comment: '', currency: 'USD'},
                 IOUTransactionID: 'txn-1',
                 paymentType: 'Elsewhere',
-            } as OriginalMessageIOU,
+            },
         };
 
         // Phantom IOU create action that OpenReport synthesizes for legacy SendMoney transactions.
@@ -1589,10 +1586,10 @@ describe('ReportActionsUtils', () => {
             ...mockIOUAction,
             reportActionID: 'phantom-create-1',
             originalMessage: {
-                ...originalMessage,
+                ...mockOriginalMessage,
                 type: CONST.IOU.TYPE.CREATE,
                 IOUTransactionID: 'txn-1',
-            } as OriginalMessageIOU,
+            },
         };
 
         // Plain mark-as-paid-elsewhere pay action: type=pay, NO IOUDetails. Does not trigger the
@@ -1601,11 +1598,11 @@ describe('ReportActionsUtils', () => {
             ...mockIOUAction,
             reportActionID: 'mark-paid-1',
             originalMessage: {
-                ...originalMessage,
+                ...mockOriginalMessage,
                 type: CONST.IOU.TYPE.PAY,
                 IOUDetails: undefined,
                 paymentType: 'Elsewhere',
-            } as OriginalMessageIOU,
+            },
         };
 
         // Legitimate IOU create action used to verify it survives when no SendMoney pay is present.
@@ -1613,10 +1610,10 @@ describe('ReportActionsUtils', () => {
             ...mockIOUAction,
             reportActionID: 'create-1',
             originalMessage: {
-                ...originalMessage,
+                ...mockOriginalMessage,
                 type: CONST.IOU.TYPE.CREATE,
                 IOUTransactionID: 'txn-1',
-            } as OriginalMessageIOU,
+            },
         };
 
         describe('getCombinedReportActions', () => {
