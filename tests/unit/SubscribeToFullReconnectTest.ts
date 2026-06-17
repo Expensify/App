@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {confirmReadyToOpenApp, openApp} from '@libs/actions/App';
 import clearOnyxAndSeedFullReconnect from '@libs/actions/clearOnyxAndSeedFullReconnect';
 import {writeWithNoDuplicatesConflictAction} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -53,6 +53,22 @@ async function applyServerResponse(redeliveredCutoff: string): Promise<void> {
     await Onyx.merge(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, redeliveredCutoff);
     await waitForBatchedUpdates();
     await Onyx.update(capturedOnyxData.at(0)?.successData ?? []);
+    await waitForBatchedUpdates();
+    await waitForBatchedUpdates();
+}
+
+function getOpenAppRequestIndex() {
+    return mockWriteCommand.mock.calls.findIndex(([command]) => command === WRITE_COMMANDS.OPEN_APP);
+}
+
+/**
+ * Same response shape as applyServerResponse, but for an arbitrary captured request (OpenApp as well as
+ * ReconnectApp): applies the re-delivered cutoff (onyxData) before that request's successData.
+ */
+async function applyCapturedResponse(callIndex: number, redeliveredCutoff: string): Promise<void> {
+    await Onyx.merge(ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, redeliveredCutoff);
+    await waitForBatchedUpdates();
+    await Onyx.update(capturedOnyxData.at(callIndex)?.successData ?? []);
     await waitForBatchedUpdates();
     await waitForBatchedUpdates();
 }
@@ -119,6 +135,38 @@ describe('subscribeToFullReconnect', () => {
         await waitForCondition(() => getReconnectRequests().length > 1, 'reconnect for the newer server cutoff');
 
         expect(getReconnectRequests()).toHaveLength(2);
+    });
+
+    it('records max(now, cutoff) in OpenApp successData when the cutoff is already known and the client clock is behind', async () => {
+        // The OpenApp leg shares getOnyxDataForOpenOrReconnect with ReconnectApp. With the cutoff already
+        // known at request-build time and the clock behind, the recorded time must be held to the cutoff.
+        await setServerCutoff(SERVER_CUTOFF);
+        jest.clearAllMocks();
+        capturedOnyxData = [];
+
+        openApp();
+        await waitForCondition(() => getOpenAppRequestIndex() > -1, 'OpenApp request');
+
+        const recorded = capturedOnyxData.at(getOpenAppRequestIndex())?.successData?.find((entry) => entry.key === ONYXKEYS.LAST_FULL_RECONNECT_TIME);
+        // Pre-fix this recorded DateUtils.getDBTime() (CLIENT_NOW), which is before the cutoff.
+        expect(recorded?.value).toBe(SERVER_CUTOFF);
+    });
+
+    it('does not start a reconnect loop when an OpenApp response re-delivers an already-known cutoff on a client clock behind the server', async () => {
+        // Reach the settled state first: one reconnect for the cutoff, then its response recorded the time.
+        await setServerCutoff(SERVER_CUTOFF);
+        await applyServerResponse(SERVER_CUTOFF);
+        jest.clearAllMocks();
+        capturedOnyxData = [];
+
+        // App reload: OpenApp fires with the cutoff already known, and its response re-delivers that cutoff.
+        openApp();
+        await waitForCondition(() => getOpenAppRequestIndex() > -1, 'OpenApp request');
+        await applyCapturedResponse(getOpenAppRequestIndex(), SERVER_CUTOFF);
+
+        // The OpenApp response recorded the cutoff, not the behind-clock now, so nothing reads as stale.
+        expect(getReconnectRequests()).toHaveLength(0);
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBe(SERVER_CUTOFF);
     });
 
     it('does not fire a redundant reconnect through clearOnyxAndSeedFullReconnect and records client-now when there is no cutoff', async () => {
