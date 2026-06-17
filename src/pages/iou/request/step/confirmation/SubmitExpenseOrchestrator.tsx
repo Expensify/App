@@ -10,7 +10,6 @@ import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -459,13 +458,13 @@ function SubmitExpenseOrchestrator({
                     // onGrant/onDeny fire before the permission modal finishes closing.
                     // On iOS, navigating immediately would break the modal close animation.
                     onGrant={() => {
-                        navigateAfterInteraction(() => dispatchSubmitHandler(true));
+                        Navigation.runAfterUpcomingTransition(() => dispatchSubmitHandler(true));
                     }}
                     onDeny={(wasUserInitiated) => {
                         if (wasUserInitiated) {
                             updateLastLocationPermissionPrompt();
                         }
-                        navigateAfterInteraction(() => dispatchSubmitHandler(false));
+                        Navigation.runAfterUpcomingTransition(() => dispatchSubmitHandler(false));
                     }}
                     onInitialGetLocationCompleted={() => {
                         setIsConfirming(false);

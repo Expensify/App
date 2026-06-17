@@ -3,8 +3,8 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 import fileDownload from '@libs/fileDownload';
+import Navigation from '@libs/Navigation/Navigation';
 import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
-import {navigateToConciergeChat} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -12,9 +12,6 @@ jest.mock('@libs/fileDownload');
 jest.mock('@userActions/Export', () => ({
     sendExportFileFromConcierge: jest.fn(),
     clearExportDownload: jest.fn(),
-}));
-jest.mock('@userActions/Report', () => ({
-    navigateToConciergeChat: jest.fn(),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -28,14 +25,18 @@ jest.mock('@hooks/useLocalize', () => ({
         translate: (key: string) => key,
     }),
 }));
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: () => ({accountID: 123, login: 'test@example.com'}),
+}));
 
 const mockFileDownload = fileDownload as jest.MockedFunction<typeof fileDownload>;
 const mockSendFromConcierge = sendExportFileFromConcierge as jest.MockedFunction<typeof sendExportFileFromConcierge>;
 const mockClearExportDownload = clearExportDownload as jest.MockedFunction<typeof clearExportDownload>;
-const mockNavigateToConcierge = navigateToConciergeChat as jest.MockedFunction<typeof navigateToConciergeChat>;
+const mockNavigate = Navigation.navigate as jest.MockedFunction<typeof Navigation.navigate>;
 
 const EXPORT_ID = 'test-export-123';
-const DOWNLOAD_URL = 'https://example.com/export.csv';
+const FILE_NAME = 'export_2026-06-09_02-41-38_6a277d629c569.csv';
 
 function renderModal(props: Partial<React.ComponentProps<typeof ExportDownloadStatusModal>> = {}) {
     return render(
@@ -103,17 +104,18 @@ describe('ExportDownloadStatusModal', () => {
         expect(screen.getByText('exportDownload.dismiss')).toBeTruthy();
     });
 
-    it('auto-downloads on ready state transition', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', downloadURL: DOWNLOAD_URL});
+    it('auto-downloads on ready state transition with a secure URL built from the fileName', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
 
         renderModal();
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), DOWNLOAD_URL);
+        const expectedURLPart = `secure?secureType=csvexport&filename=${encodeURIComponent(FILE_NAME)}&downloadName=${encodeURIComponent(FILE_NAME)}`;
+        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining(expectedURLPart), FILE_NAME, expect.anything(), expect.anything());
     });
 
     it('shows ready state with Download and Close buttons', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', downloadURL: DOWNLOAD_URL});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
 
         renderModal();
         await waitForBatchedUpdatesWithAct();
@@ -137,7 +139,7 @@ describe('ExportDownloadStatusModal', () => {
     });
 
     it('retains last state when Onyx key becomes null', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', downloadURL: DOWNLOAD_URL});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
 
         renderModal();
         await waitForBatchedUpdatesWithAct();
@@ -152,6 +154,8 @@ describe('ExportDownloadStatusModal', () => {
 
     it('"Go to Concierge" navigates and closes', async () => {
         const onClose = jest.fn();
+        const conciergeReportID = 'concierge-report-123';
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing', shouldSendFromConcierge: true});
 
         renderModal({onClose});
@@ -160,12 +164,12 @@ describe('ExportDownloadStatusModal', () => {
         fireEvent.press(screen.getByText('exportDownload.goToConcierge'));
 
         expect(onClose).toHaveBeenCalled();
-        expect(mockNavigateToConcierge).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining(conciergeReportID));
     });
 
     it('Close button calls clearExportDownload', async () => {
         const onClose = jest.fn();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', downloadURL: DOWNLOAD_URL});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: FILE_NAME});
 
         renderModal({onClose});
         await waitForBatchedUpdatesWithAct();
