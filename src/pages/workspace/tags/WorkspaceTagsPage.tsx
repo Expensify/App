@@ -231,6 +231,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     );
     const shouldShowGLCodeColumn = isControlPolicyWithWideLayout && !isMultiLevelTags;
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
     const showCannotDeleteOrDisableLastTagModal = useCallback(() => {
         showConfirmModal({
             title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
@@ -240,6 +241,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         });
     }, [showConfirmModal, translate]);
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
     const showCannotMakeAllTagsOptionalModal = useCallback(() => {
         showConfirmModal({
             title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),

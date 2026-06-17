@@ -74,10 +74,16 @@ export default function WorkspaceTagsTableRow({
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const tagCountSubtitle = item.tagCount !== undefined ? translate('workspace.tags.tagCount', {count: item.tagCount}) : '';
+
+    let enabledStatusLabel = null;
+    if (item.showEnabledSwitch) {
+        enabledStatusLabel = item.enabled ? translate('common.enabled') : translate('common.disabled');
+    }
+
     const accessibilityLabel = [
         item.name,
         tagCountSubtitle,
-        item.showEnabledSwitch ? (item.enabled ? translate('common.enabled') : translate('common.disabled')) : null,
+        enabledStatusLabel,
         item.showRequiredSwitch && item.required ? translate('common.required') : null,
         shouldShowGLCodeColumn && item.glCode ? `${translate('workspace.tags.glCode')}: ${item.glCode}` : null,
         shouldShowApproverColumn && item.approverDisplayName ? `${translate('common.approver')}: ${item.approverDisplayName}` : null,
@@ -88,6 +94,7 @@ export default function WorkspaceTagsTableRow({
     const switchValue = item.showRequiredSwitch ? !!item.required : item.enabled;
     const switchAccessibilityLabel = item.showRequiredSwitch ? translate('workspace.tags.requiresTag') : translate('workspace.tags.enableTag');
     const handleSwitchToggle = item.showRequiredSwitch ? item.onToggleRequired : item.onToggleEnabled;
+    const isSwitchControlDisabled = !!item.disabled || !!item.isSwitchDisabled;
 
     return (
         <Table.Row
@@ -167,7 +174,7 @@ export default function WorkspaceTagsTableRow({
                             <Switch
                                 isOn={switchValue}
                                 showLockIcon={item.isLocked}
-                                disabled={item.disabled || item.isSwitchDisabled}
+                                disabled={isSwitchControlDisabled}
                                 accessibilityLabel={`${switchAccessibilityLabel}: ${item.name}`}
                                 onToggle={handleSwitchToggle}
                             />
