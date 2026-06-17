@@ -50,6 +50,17 @@ function DistanceRequestStartPage({
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
 
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    // When every workspace the user belongs to has commuter exclusions configured, manual and odometer
+    // entry are disabled — the exclusion is computed off the mapped route, so the user must use the map tab.
+    const shouldHideManualAndOdometerTabs = useMemo(() => {
+        const policies = Object.values(allPolicies ?? {}).filter((p): p is NonNullable<typeof p> => !!p && !!p.id);
+        if (policies.length === 0) {
+            return false;
+        }
+        return policies.every((p) => !!p.commuterExclusions);
+    }, [allPolicies]);
+
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.trackDistance'),
@@ -139,16 +150,18 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>
-                            {() => (
-                                <TabScreenWithFocusTrapWrapper>
-                                    <IOURequestStepDistanceManual
-                                        route={route}
-                                        navigation={navigation}
-                                    />
-                                </TabScreenWithFocusTrapWrapper>
-                            )}
-                        </TopTab.Screen>
+                        {!shouldHideManualAndOdometerTabs && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceManual
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_GPS}>
                             {() => (
                                 <TabScreenWithFocusTrapWrapper>
@@ -159,16 +172,18 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
-                            {() => (
-                                <TabScreenWithFocusTrapWrapper>
-                                    <IOURequestStepDistanceOdometer
-                                        route={route}
-                                        navigation={navigation}
-                                    />
-                                </TabScreenWithFocusTrapWrapper>
-                            )}
-                        </TopTab.Screen>
+                        {!shouldHideManualAndOdometerTabs && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceOdometer
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
                     </OnyxTabNavigator>
                 </View>
             </ScreenWrapper>
