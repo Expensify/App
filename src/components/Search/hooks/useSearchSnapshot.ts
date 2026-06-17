@@ -18,6 +18,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {ReportAction} from '@src/types/onyx';
+import useOptimisticSearchTracking from './useOptimisticSearchTracking';
+import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
 /**
  * Public contract of the Search data layer (Slices S4+S5, callstack-internal/expensify-issues#2546/#2547).
@@ -88,6 +90,18 @@ function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshot
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
+    // Phase 1 needs the full (unfiltered) TRANSACTION + REPORT_ACTIONS collections to resolve the
+    // optimistic watch key, swap split-parent -> child, and match the optimistic IOU report action.
+    // These mirror the screen-level subscriptions in <Search>.
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+
+    // Phase 1 (snapshot augmentation): inject an optimistically-created transaction the server has not
+    // indexed yet so its row mounts immediately. Composed here rather than inlined; the standalone hook
+    // is deleted in S6 once legacy <Search> no longer renders any path through it.
+    const {searchDataWithOptimisticTransaction, trackingState} = useOptimisticSearchTracking({searchResults: snapshot, queryJSON, transactions, reportActions});
+    const optimisticTransactionID = trackingState.optimisticWatchKey?.toString().replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
+
     const validGroupBy = getValidGroupBy(groupBy);
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
@@ -95,15 +109,15 @@ function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshot
     const isLoading = !!snapshot?.search?.isLoading;
     const hasMore = !!snapshot?.search?.hasMoreResults;
 
-    const data = ((): SearchListItem[] => {
+    const sortedData = ((): SearchListItem[] => {
         // Group-by is not valid for chats or tasks; mirror the legacy `<Search>` guard.
-        if (!snapshot?.data || (validGroupBy && (isChat || isTask))) {
+        if (!searchDataWithOptimisticTransaction || (validGroupBy && (isChat || isTask))) {
             return EMPTY_DATA;
         }
 
         const [filteredData] = getSections({
             type,
-            data: snapshot.data,
+            data: searchDataWithOptimisticTransaction,
             currentAccountID: accountID,
             currentUserEmail: email ?? '',
             translate,
@@ -125,7 +139,7 @@ function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshot
             isAttendeesEnabledForMovingPolicy,
             convertToDisplayString,
             reportAttributesDerivedValue,
-            optimisticTransactionID: undefined,
+            optimisticTransactionID,
         });
 
         return getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
@@ -133,6 +147,10 @@ function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshot
             fallbackPolicyID: policyForMovingExpensesID,
         }) as SearchListItem[];
     })();
+
+    // Phase 2 (cached re-injection): keep the optimistic row visible across a snapshot-replacement gap
+    // for up to OPTIMISTIC_ROLLBACK_GRACE_MS until the new snapshot picks it up or the grace expires.
+    const {stableSortedData} = useStableOptimisticSortedData(sortedData, snapshot, trackingState);
 
     const columns = ((): SearchColumnType[] => {
         if (!snapshot?.data) {
@@ -154,7 +172,7 @@ function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshot
     const hasLoadedAllTransactions = !validGroupBy || !hasMore;
 
     return {
-        data,
+        data: stableSortedData,
         columns,
         isLoading,
         hasMore,
