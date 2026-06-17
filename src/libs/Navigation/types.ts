@@ -9,7 +9,7 @@ import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUti
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
 import type RECONCILIATION_ACCOUNT_SETTINGS_TYPE from '@pages/workspace/accounting/reconciliation/constants';
-import type {Country, EnablePaymentsPage, EnablePaymentsSubPage, IOUAction, IOURequestType, IOUType, OdometerImageType} from '@src/CONST';
+import type {Country, EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType} from '@src/CONST';
 import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
@@ -201,8 +201,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_SPREADSHEET]: {cardID?: string};
     [SCREENS.SETTINGS.WALLET.TRANSACTIONS_IMPORTED]: {cardID?: string};
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
-        page?: EnablePaymentsPage;
-        subPage?: EnablePaymentsSubPage;
+        page?: EnablePaymentsPageType;
+        subPage?: EnablePaymentsSubPageType;
         action?: 'edit';
     };
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {

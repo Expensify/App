@@ -11,7 +11,7 @@ import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/Wallet/utils
 import getSubstepValues from '@pages/EnablePayments/Wallet/utils/getSubstepValues';
 import {setAdditionalDetailsQuestions, updateCurrentStep, updatePersonalDetails} from '@userActions/Wallet';
 import CONST from '@src/CONST';
-import type {EnablePaymentsSubPage} from '@src/CONST';
+import type {EnablePaymentsSubPageType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
@@ -61,7 +61,7 @@ function PersonalInfoPage() {
 
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
 
-    const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps, EnablePaymentsSubPage>({
+    const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps, EnablePaymentsSubPageType>({
         pages: formPages,
         startFrom,
         onFinished: submit,

@@ -9,7 +9,7 @@ import Navigation from '@navigation/Navigation';
 import {acceptWalletTerms, clearPersonalBankAccount} from '@userActions/BankAccounts';
 import {resetWalletAdditionalDetailsDraft, updateCurrentStep} from '@userActions/Wallet';
 import CONST from '@src/CONST';
-import type {EnablePaymentsSubPage} from '@src/CONST';
+import type {EnablePaymentsSubPageType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import FeesStep from './substeps/FeesStep';
@@ -37,7 +37,7 @@ function FeesAndTerms() {
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
     };
 
-    const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps, EnablePaymentsSubPage>({
+    const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps, EnablePaymentsSubPageType>({
         pages: termsAndFeesPages,
         startFrom: 0,
         onFinished: submit,
