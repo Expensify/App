@@ -117,4 +117,11 @@ describe('ConciergeThinkingMessage avatar prop integration', () => {
 
         expect(mockCapturedAvatarProps.policyID).toBeUndefined();
     });
+
+    test('should not pass reportID/chatReportID to ReportActionAvatars (report context would override the agent avatar with the report-preview sender)', () => {
+        render(<ConciergeThinkingMessage report={mockAdminRoom} />);
+
+        expect(mockCapturedAvatarProps.reportID).toBeUndefined();
+        expect(mockCapturedAvatarProps.chatReportID).toBeUndefined();
+    });
 });
