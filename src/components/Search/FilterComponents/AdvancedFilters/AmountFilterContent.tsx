@@ -1,10 +1,10 @@
 import React, {Fragment, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
-import useFullscreenAdvancedFilters from '@components/Search/FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -20,10 +20,12 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 const BETWEEN_MODIFIER = 'Between';
 
-type AmountFilterComponentProps = {
+type AmountFilterContentProps = {
     filterKey: SearchAmountFilterKeys;
     value: SearchAmountValues;
+    largeButton?: boolean;
     autoFocus?: boolean;
+    style?: StyleProp<ViewStyle>;
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
@@ -145,11 +147,10 @@ function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue, au
     );
 }
 
-function AmountFilterComponent({filterKey, value, autoFocus, onChange}: AmountFilterComponentProps) {
+function AmountFilterContent({filterKey, value, autoFocus, largeButton, style, onChange}: AmountFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const fullscreen = useFullscreenAdvancedFilters();
 
     const getInitialSelectedAmountModifier = () => {
         const hasLessThan = !!value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
@@ -200,7 +201,7 @@ function AmountFilterComponent({filterKey, value, autoFocus, onChange}: AmountFi
     const label = translate(FILTER_VIEW_MAP[filterKey].labelKey);
 
     return (
-        <View style={[styles.flex1, styles.justifyContentBetween, !fullscreen && styles.pt2]}>
+        <View style={[styles.flex1, styles.justifyContentBetween, style]}>
             <ScrollView
                 keyboardShouldPersistTaps="handled"
                 // In landscape mode, when the virtual keyboard appears, the entire ScrollView shrinks and no longer receives input,
@@ -240,8 +241,7 @@ function AmountFilterComponent({filterKey, value, autoFocus, onChange}: AmountFi
             <Button
                 style={[styles.ph5, styles.pb5]}
                 success
-                medium={!fullscreen}
-                large={fullscreen}
+                large={largeButton}
                 text={translate('common.confirm')}
                 pressOnEnter
                 onPress={updateAmountFilter}
@@ -250,4 +250,5 @@ function AmountFilterComponent({filterKey, value, autoFocus, onChange}: AmountFi
     );
 }
 
-export default AmountFilterComponent;
+export default AmountFilterContent;
+export type {AmountFilterContentProps};

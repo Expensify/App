@@ -1697,6 +1697,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Você pode duplicar até ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} despesas por vez. Selecione menos despesas e tente novamente.`,
         deleted: 'Excluído',
+        categoryDisabledAlert: {
+            title: 'Categoria desativada',
+            prompt: 'Ative as categorias no workspace para editar os detalhes da despesa ou excluir a categoria desta despesa.',
+            confirmText: 'Excluir categoria',
+        },
+        tagDisabledAlert: {title: 'Tag desativada', prompt: 'Ative as tags no workspace para editar os detalhes da despesa ou excluir a tag desta despesa.', confirmText: 'Excluir tag'},
     },
     transactionMerge: {
         listPage: {
@@ -3021,11 +3027,6 @@ ${amount} para ${merchant} - ${date}`,
         welcome: 'Bem-vindo!',
         welcomeSignOffTitleManageTeam: 'Quando você concluir as tarefas acima, poderemos explorar mais funcionalidades, como fluxos de aprovação e regras!',
         welcomeSignOffTitle: 'É ótimo conhecer você!',
-        explanationModal: {
-            title: 'Bem-vindo ao Expensify',
-            description: 'Um só app para gerenciar seus gastos empresariais e pessoais na velocidade de um chat. Experimente e conte para a gente o que achou. Muito mais vindo por aí!',
-            secondaryDescription: 'Para voltar para o Expensify Classic, basta tocar na sua foto de perfil > Ir para Expensify Classic.',
-        },
         getStarted: 'Começar',
         whatsYourName: 'Qual é o seu nome?',
         peopleYouMayKnow: 'Veja se sua equipe está no Expensify',
@@ -4947,8 +4948,9 @@ ${amount} para ${merchant} - ${date}`,
             exportStatus: {
                 label: 'Status da fatura a pagar',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Concluir',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Concluir',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'Em andamento',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Aprovado',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
                 },
             },
@@ -6283,6 +6285,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             admins: 'Admins do workspace',
             approvers: 'Aprovadores',
             auditors: 'Auditores',
+            editors: 'Editores',
             emptyRoleFilter: {title: 'Nenhum membro corresponde a este filtro', subtitle: 'Convide um membro ou altere o filtro acima.'},
             configureHRSync: (providerName: string) => `Configurar a sincronização do ${providerName}.`,
             syncWithHR: (providerName: string) => `Sincronizar com ${providerName}`,
@@ -6819,11 +6822,9 @@ Se você quiser assumir a cobrança de toda a assinatura deles, peça para que a
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `Os seguintes relatórios já foram exportados para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:
+            }: ExportAgainModalDescriptionParams) => `Os seguintes relatórios já foram exportados para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Tem certeza de que quer exportá-los novamente?
 
-${reportName}
-
-Tem certeza de que deseja exportá-los novamente?`,
+${reportName}`,
             confirmText: 'Sim, exportar novamente',
             cancelText: 'Cancelar',
         },
@@ -9583,6 +9584,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         readyBody: "If it didn't automatically download, use the button below.",
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
+        csvFailedBody: 'Your export could not be completed. Please try again later.',
         close: 'Close',
     },
     domain: {
