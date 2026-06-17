@@ -969,7 +969,7 @@ const SCREENS = {
     },
 
     MIGRATED_USER_WELCOME_MODAL: {
-        ROOT: 'MigratedUserWelcomeModal_Root',
+        DYNAMIC_ROOT: 'Dynamic_MigratedUserWelcomeModal_Root',
     },
 
     TEST_DRIVE_MODAL: {

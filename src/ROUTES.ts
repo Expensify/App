@@ -131,6 +131,10 @@ const DYNAMIC_ROUTES = {
         path: 'currency',
         entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT],
     },
+    MIGRATED_USER_WELCOME: {
+        path: 'migrated-user-welcome',
+        entryScreens: ['*'],
+    },
     EXPENSE_LIMIT_TYPE_SELECTOR: {
         path: 'expense-limit-type',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER],
@@ -3360,11 +3364,6 @@ const ROUTES = {
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
     AUTO_SUBMIT_MODAL_ROOT: '/auto-submit',
     WORKSPACE_CONFIRMATION_SUCCESS: 'workspace/confirmation/success',
-    MIGRATED_USER_WELCOME_MODAL: {
-        route: 'onboarding/migrated-user-welcome',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam('onboarding/migrated-user-welcome', backTo, false),
-    },
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',

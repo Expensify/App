@@ -14,7 +14,7 @@ function MigratedUserWelcomeModalNavigator() {
             <View>
                 <Stack.Navigator screenOptions={{headerShown: false}}>
                     <Stack.Screen
-                        name={SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT}
+                        name={SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT}
                         component={MigratedUserWelcomeModal}
                     />
                 </Stack.Navigator>
