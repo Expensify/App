@@ -269,6 +269,17 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         turnOffMobileSelectionMode();
     }, [activeTab]);
 
+    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+
+    const handleBackButtonPress = useCallback(() => {
+        if (isMobileSelectionModeEnabled) {
+            clearTableSelection();
+            return;
+        }
+
+        Navigation.goBack();
+    }, [clearTableSelection, isMobileSelectionModeEnabled]);
+
     const deleteSelectedSpendRules = useCallback(() => {
         if (!defaultFundID || defaultFundID === CONST.DEFAULT_NUMBER_ID) {
             return;
@@ -474,10 +485,12 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
                 shouldUseScrollView={activeTab === RULES_TAB.GENERAL}
-                headerText={translate('workspace.common.rules')}
+                headerText={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
-                icon={illustrations.Flash}
+                icon={selectionModeHeader ? undefined : illustrations.Flash}
+                shouldUseHeadlineHeader={!selectionModeHeader}
+                onBackButtonPress={handleBackButtonPress}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
