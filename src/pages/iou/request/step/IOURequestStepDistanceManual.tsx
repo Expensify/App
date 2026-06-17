@@ -270,6 +270,13 @@ function IOURequestStepDistanceManual({
     };
 
     const submitAndNavigateToNextPage = () => {
+        // Workspaces with commuter exclusions configured require map-based distance, since the
+        // exclusion is computed off the mapped route. Block manual entry for these workspaces.
+        if (policy?.commuterExclusions) {
+            setFormError(translate('distance.error.manualOdometerNotAllowedWithExclusion'));
+            return;
+        }
+
         const value = numberFormRef.current?.getNumber() ?? '';
 
         if (!value.length || parseFloat(value) <= 0) {

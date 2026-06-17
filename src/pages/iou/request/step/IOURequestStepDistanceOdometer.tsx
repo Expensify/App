@@ -448,6 +448,13 @@ function IOURequestStepDistanceOdometer({
 
     // Handle form submission with validation
     const handleNext = () => {
+        // Workspaces with commuter exclusions configured require map-based distance entry, since the
+        // exclusion is computed off the mapped route. Block odometer entry for these workspaces.
+        if (policy?.commuterExclusions) {
+            setFormError(translate('distance.error.manualOdometerNotAllowedWithExclusion'));
+            return;
+        }
+
         // Validation: Start and end readings must not be empty
         if (!startReading || !endReading) {
             setFormError(translate('iou.error.invalidReadings'));
