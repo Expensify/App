@@ -228,6 +228,16 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 }
 
 /**
+ * Check if the policy has any errors within the rules.
+ */
+function hasPolicyRulesError(policy: OnyxEntry<Policy>): boolean {
+    const codingRules = Object.values(policy?.rules?.codingRules ?? {});
+    const agentRules = Object.values(policy?.rules?.agentRules ?? {});
+
+    return codingRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0) || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
+}
+
+/**
  * Checks if the policy had a sync error.
  */
 function shouldShowSyncError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean, connectionNames?: readonly ConnectionName[]): boolean {
@@ -321,7 +331,13 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
         for (const admin of getAdminEmployees(policy)) {
             const email = admin?.email;
             // Check if the email is for the active user or an existing user in the sharees array or admins list to avoid extra iterations
-            if (!email || email === currentUserLogin || adminMap.has(email) || shareesSet.has(email)) {
+            if (
+                !email ||
+                email === currentUserLogin ||
+                adminMap.has(email) ||
+                shareesSet.has(email) ||
+                (isExpensifyTeam(email) && shouldFilterExpensifyTeam(policy.owner, currentUserLogin))
+            ) {
                 continue;
             }
             const personalDetails = getPersonalDetailByEmail(email);
@@ -351,7 +367,7 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
  */
 function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
-    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin);
     if (!activePolicies) {
         return false;
     }
@@ -361,7 +377,7 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
         const admins = getAdminEmployees(policy);
         for (const admin of admins) {
             const email = admin?.email;
-            if (!email || email === currentUserLogin || alreadySharedSharees.has(email)) {
+            if (!email || email === currentUserLogin || alreadySharedSharees.has(email) || (isExpensifyTeam(email) && shouldFilterExpensifyTeam(policy.owner, currentUserLogin))) {
                 continue;
             }
 
@@ -552,6 +568,7 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePoli
 
 /**
  * Checks if a specific user is a member of the policy.
+ * Note that employeeList can be blank when the policy is not the user's default/active policy
  */
 function isPolicyMember(policy: OnyxEntry<Policy>, userLogin: string | undefined): boolean {
     return !!policy && !!userLogin && (!!policy.employeeList?.[userLogin] || policy.owner === userLogin);
@@ -715,6 +732,13 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     }
 
     return memberEmailsToExclude;
+}
+
+/**
+ * Get excluded users as a Record for use in search selector
+ */
+function getExcludedUsers(employeeList?: PolicyEmployeeList): Record<string, boolean> {
+    return Object.fromEntries(getIneligibleInvitees(employeeList).map((login) => [login, true]));
 }
 
 /**
@@ -1079,12 +1103,30 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/**
+ * Returns true only for paid plans (Collect/Control). Use this only for billing/paid-only concerns:
+ * subscriptions, payments and reimbursement, company cards, Expensify Card, Travel, Invoices, and
+ * "do I own a paid workspace" checks.
+ *
+ * For workspace feature gating (violations, report fields, workspace chat, report creation,
+ * expense-workspace usability) use `isGroupPolicy` instead, otherwise free group plans like Submit
+ * (submit2026) are wrongly excluded. The report-based counterparts are `ReportUtils.isPaidGroupPolicy`
+ * (paid-only) and `ReportUtils.isReportInGroupPolicy` (group).
+ */
 function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isPaidGroupPolicyByType(policyType: string | undefined): boolean {
+    return policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
+}
+
 function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.SUBMIT;
+}
+
+function isSubmitPolicyByType(policyType: string | undefined): boolean {
+    return policyType === CONST.POLICY.TYPE.SUBMIT;
 }
 
 /**
@@ -1110,14 +1152,22 @@ function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: stri
 }
 
 /**
- * Returns true for any group workspace: paid (Team/Corporate) or Submit.
+ * Returns true for any group workspace: paid (Collect/Control) or Submit.
  *
- * Note: not to be confused with `ReportUtils.isGroupPolicy(policyType: string)`,
- * which excludes Submit. Use this helper when Submit workspaces should be treated
- * like paid workspaces (e.g. access gating for shared workspace pages).
+ * Prefer this over `isPaidGroupPolicy` whenever the check is about workspace features rather than
+ * billing (violations, report fields, workspace chat, report creation, expense-workspace usability),
+ * so free group plans like Submit (submit2026) are not excluded. It is a strict superset of
+ * `isPaidGroupPolicy`, so switching a feature check to it never changes Collect/Control/Personal
+ * behavior. Use `isPaidGroupPolicy` only when the concern is genuinely billing/paid-only.
+ *
+ * For report-based call sites, use `ReportUtils.isReportInGroupPolicy(report)`, which delegates here.
  */
 function isGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return isPaidGroupPolicy(policy) || isSubmitPolicy(policy);
+}
+
+function isGroupPolicyByType(policyType: string | undefined): boolean {
+    return isPaidGroupPolicyByType(policyType) || isSubmitPolicyByType(policyType);
 }
 
 function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number | undefined): Policy[] {
@@ -2438,6 +2488,7 @@ export {
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
+    getExcludedUsers,
     getMemberAccountIDsForWorkspace,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
@@ -2464,6 +2515,7 @@ export {
     shouldShowEmployeeListError,
     hasIntegrationAutoSync,
     hasPolicyCategoriesError,
+    hasPolicyRulesError,
     shouldShowPolicyError,
     shouldShowTaxRateError,
     isExpensifyTeam,
@@ -2479,6 +2531,7 @@ export {
     canMemberRead,
     canMemberWrite,
     isGroupPolicy,
+    isGroupPolicyByType,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyUser,
@@ -2603,4 +2656,4 @@ export {
     isSubmitPolicy,
 };
 
-export type {MemberEmailsToAccountIDs, PolicyFeature};
+export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};
