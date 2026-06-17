@@ -40,12 +40,11 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
@@ -195,7 +194,7 @@ function SubmitDetailsPage({
     }, [defaultBillable]);
 
     useEffect(() => {
-        const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        const defaultReimbursable = (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
     }, [policy, isPolicyExpenseChat, isCreatingTrackExpense]);
 
@@ -264,6 +263,7 @@ function SubmitDetailsPage({
                 draftTransactionIDs,
                 isSelfTourViewed,
                 optimisticTransactionID,
+                currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -420,7 +420,7 @@ function SubmitDetailsPage({
                             setIsConfirming(false);
                             return;
                         }
-                        navigateAfterInteraction(() => performUpload(participant, true));
+                        performUpload(participant, true);
                     }}
                     onDeny={(wasUserInitiated) => {
                         setStartLocationPermissionFlow(false);
@@ -432,7 +432,7 @@ function SubmitDetailsPage({
                             setIsConfirming(false);
                             return;
                         }
-                        navigateAfterInteraction(() => performUpload(participant, false));
+                        performUpload(participant, false);
                     }}
                     onInitialGetLocationCompleted={() => setIsConfirming(false)}
                 />

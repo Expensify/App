@@ -19,6 +19,8 @@ const mfaCredentialIDsSelector = (data: OnyxEntry<Account>) => data?.multifactor
 
 const isFromInternalDomainSelector = (account: OnyxEntry<Account>) => account?.isFromInternalDomain;
 
+const canDowngradeSelector = (account: OnyxEntry<Account>) => !!account?.canDowngrade;
+
 export {
     isActingAsDelegateSelector,
     delegateEmailSelector,
@@ -29,4 +31,5 @@ export {
     accountGuideDetailsSelector,
     mfaCredentialIDsSelector,
     isFromInternalDomainSelector,
+    canDowngradeSelector,
 };

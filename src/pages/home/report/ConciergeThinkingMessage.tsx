@@ -8,6 +8,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
+import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -24,48 +25,57 @@ import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActio
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
 type ConciergeThinkingMessageProps = {
     /** The report for this thinking message */
     report: OnyxEntry<Report>;
-
-    /** The report action if available */
-    action?: OnyxEntry<ReportAction>;
 };
 
-function ConciergeThinkingMessage({report, action}: ConciergeThinkingMessageProps) {
-    const {isProcessing, reasoningHistory, statusLabel, personaAccountID} = useAgentZeroStatus();
+/**
+ * Renders one thinking bubble per agent the room is actively processing for (Concierge and/or
+ * custom agents). The candidate set comes from the per-agent processing-indicator NVP, so each
+ * bubble is attributed to the agent the server actually named — not a guessed persona.
+ */
+function ConciergeThinkingMessage({report}: ConciergeThinkingMessageProps) {
+    const {candidateAgentIDs} = useAgentZeroStatus();
     const shouldSuppress = useShouldSuppressConciergeIndicators(report?.reportID);
+    const reportID = report?.reportID;
 
-    if (!isProcessing || shouldSuppress) {
+    if (shouldSuppress || !reportID || candidateAgentIDs.length === 0) {
+        return null;
+    }
+
+    return (
+        <>
+            {candidateAgentIDs.map((agentAccountID) => (
+                <ConciergeThinkingBubble
+                    key={agentAccountID}
+                    reportID={reportID}
+                    agentAccountID={agentAccountID}
+                />
+            ))}
+        </>
+    );
+}
+
+function ConciergeThinkingBubble({reportID, agentAccountID}: {reportID: string; agentAccountID: number}) {
+    const {isProcessing, reasoningHistory, statusLabel} = useAgentZeroStatusIndicator(reportID, agentAccountID);
+
+    if (!isProcessing) {
         return null;
     }
 
     return (
         <ConciergeThinkingMessageContent
-            report={report}
-            action={action}
+            accountID={agentAccountID}
             reasoningHistory={reasoningHistory}
             statusLabel={statusLabel}
-            personaAccountID={personaAccountID}
         />
     );
 }
 
-function ConciergeThinkingMessageContent({
-    report,
-    action,
-    reasoningHistory,
-    statusLabel,
-    personaAccountID,
-}: {
-    report: OnyxEntry<Report>;
-    action?: OnyxEntry<ReportAction>;
-    reasoningHistory: ReasoningEntry[];
-    statusLabel: string;
-    personaAccountID: number;
-}) {
+function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLabel}: {accountID: number; reasoningHistory: ReasoningEntry[]; statusLabel: string}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -119,8 +129,7 @@ function ConciergeThinkingMessageContent({
     }));
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const accountID = action?.actorAccountID ?? personaAccountID;
-    const displayName = action?.person?.[0]?.text ?? getDisplayNameOrDefault(personalDetails?.[accountID]) ?? CONST.CONCIERGE_DISPLAY_NAME;
+    const displayName = getDisplayNameOrDefault(personalDetails?.[accountID]) ?? CONST.CONCIERGE_DISPLAY_NAME;
     const actorIcon = personalDetails?.[accountID]?.avatar ? {source: personalDetails[accountID].avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
 
     const handleToggle = () => {
@@ -156,9 +165,6 @@ function ConciergeThinkingMessageContent({
                             StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
                             isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
                         ]}
-                        reportID={report?.reportID}
-                        chatReportID={report?.chatReportID ?? report?.reportID}
-                        action={action}
                         accountIDs={[accountID]}
                     />
                 </OfflineWithFeedback>

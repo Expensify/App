@@ -34,9 +34,9 @@ function IouReportActionMessage({action, displayAsGroup, reportID, style, isHidd
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     let iouMessage: string | undefined;
-    const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(action) : null;
-    const iouReportID = originalMessage?.IOUReportID;
-    if (iouReportID) {
+    const isIOUAction = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU);
+    const originalMessageType = isIOUAction ? getOriginalMessage(action)?.type : undefined;
+    if (isIOUAction && originalMessageType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
         iouMessage = getIOUReportActionDisplayMessage(translate, action, transaction, report, bankAccountList);
     }
 

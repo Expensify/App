@@ -8,6 +8,7 @@ import {
     isMergeActionForSelectedTransactions,
 } from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
+import {getValidConnectedIntegration, isPreferredExporter} from '@src/libs/PolicyUtils';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +40,59 @@ const POLICY_ID = 'POLICY_ID';
 const OLD_POLICY_ID = 'OLD_POLICY_ID';
 const ORIGINAL_TRANSACTION_ID = 'ORIGINAL_TRANSACTION_ID';
 const SPLIT_TRANSACTION_ID = 'SPLIT_TRANSACTION_ID';
+type QBOConfig = NonNullable<Policy['connections']>[typeof CONST.POLICY.CONNECTIONS.NAME.QBO]['config'];
+
+const createQBOConfig = (autoSyncEnabled: boolean, exporter = EMPLOYEE_EMAIL): QBOConfig => ({
+    realmId: 'realm-id',
+    companyName: 'QBO Company',
+    autoSync: {
+        jobID: '',
+        enabled: autoSyncEnabled,
+    },
+    syncPeople: false,
+    syncItems: false,
+    markChecksToBePrinted: false,
+    reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+    nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+    nonReimbursableBillDefaultVendor: '',
+    autoCreateVendor: false,
+    hasChosenAutoSyncOption: true,
+    syncClasses: CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT,
+    syncCustomers: CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT,
+    syncLocations: CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT,
+    lastConfigurationTime: 0,
+    syncTax: false,
+    enableNewCategories: false,
+    exportDate: CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED,
+    export: {
+        exporter,
+    },
+    credentials: {
+        companyID: 'company-id',
+        companyName: 'QBO Company',
+        scope: '',
+    },
+});
+
+const createQBOConnections = (autoSyncEnabled: boolean, exporter = EMPLOYEE_EMAIL) =>
+    // The test only needs the QBO connection branch, while Policy['connections'] is typed as the full integration map.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    ({
+        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+            config: createQBOConfig(autoSyncEnabled, exporter),
+        },
+    }) as NonNullable<Policy['connections']>;
+
+const createQBOPolicy = (role: Policy['role'], autoSyncEnabled: boolean, exporter = EMPLOYEE_EMAIL): Policy => ({
+    id: POLICY_ID,
+    name: 'QBO Policy',
+    role,
+    type: CONST.POLICY.TYPE.TEAM,
+    owner: ADMIN_EMAIL,
+    outputCurrency: CONST.CURRENCY.USD,
+    isPolicyExpenseChatEnabled: true,
+    connections: createQBOConnections(autoSyncEnabled, exporter),
+});
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
@@ -65,6 +119,9 @@ describe('getSecondaryAction', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.mocked(getValidConnectedIntegration).mockReturnValue('netsuite');
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPaidGroupPolicy).mockReturnValue(true);
+        jest.mocked(isPreferredExporter).mockReturnValue(true);
         Onyx.clear();
     });
 
@@ -1740,6 +1797,171 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
 
+    it('includes RECEIVED_PAYMENT for submitter on Outstanding (Processing) report in Submit workspace', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            total: -100,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        const policy = {
+            type: CONST.POLICY.TYPE.SUBMIT,
+            role: CONST.POLICY.ROLE.EDITOR,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
+    });
+
+    it('does not include RECEIVED_PAYMENT when current user did not submit the report (Submit workspace)', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: MANAGER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            total: -100,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        const policy = {
+            type: CONST.POLICY.TYPE.SUBMIT,
+            role: CONST.POLICY.ROLE.EDITOR,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
+    });
+
+    it('does not include RECEIVED_PAYMENT for submitter on Submit workspace report waiting on bank account', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            total: -100,
+            nonReimbursableTotal: 0,
+            isWaitingOnBankAccount: true,
+        } as unknown as Report;
+        const policy = {
+            type: CONST.POLICY.TYPE.SUBMIT,
+            role: CONST.POLICY.ROLE.EDITOR,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
+    });
+
+    it('does not include RECEIVED_PAYMENT for submitter on Submit workspace report with held expenses', () => {
+        const heldTransaction = {
+            transactionID: '1',
+            comment: {hold: 'hold-id'},
+        } as unknown as Transaction;
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            total: -100,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        const policy = {
+            type: CONST.POLICY.TYPE.SUBMIT,
+            role: CONST.POLICY.ROLE.EDITOR,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [heldTransaction],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
+    });
+
+    it('does not include RECEIVED_PAYMENT for submitter on Outstanding report in non-Submit workspace', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            total: -100,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        const policy = {
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
+    });
+
     it('includes HOLD option ', () => {
         const report = {
             reportID: REPORT_ID,
@@ -2266,11 +2488,11 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: String(REPORT_ID),
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
@@ -2314,11 +2536,11 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: REPORT_ID,
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
@@ -2368,20 +2590,20 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: REPORT_ID,
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: REPORT_ID,
                 },
             },
             {
                 reportActionID: '2',
+                reportID: REPORT_ID,
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID_2,
-                    IOUReportID: REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
@@ -2611,11 +2833,11 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: String(REPORT_ID),
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
@@ -2773,11 +2995,11 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: REPORT_ID,
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
@@ -2859,20 +3081,20 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: REPORT_ID,
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: REPORT_ID,
                 },
             },
             {
                 reportActionID: '2',
+                reportID: REPORT_ID,
                 actorAccountID: EMPLOYEE_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID_2,
-                    IOUReportID: REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
@@ -2958,11 +3180,11 @@ describe('getSecondaryAction', () => {
         const reportActions = [
             {
                 reportActionID: '1',
+                reportID: REPORT_ID,
                 actorAccountID: APPROVER_ACCOUNT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUTransactionID: TRANSACTION_ID,
-                    IOUReportID: REPORT_ID,
                 },
             },
         ] as unknown as ReportAction[];
@@ -3275,6 +3497,20 @@ describe('getSecondaryExportReportActions', () => {
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
+    it('includes MARK_AS_EXPORTED option for expense report preferred exporter when auto-sync is enabled', () => {
+        const report: Report = {
+            reportID: `${REPORT_ID}`,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+        const policy = createQBOPolicy(CONST.POLICY.ROLE.USER, true);
+
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
     it('includes MARK_AS_EXPORTED option for expense report admin', () => {
         const report = {
             reportID: REPORT_ID,
@@ -3290,6 +3526,60 @@ describe('getSecondaryExportReportActions', () => {
 
         const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
+    it('includes MARK_AS_EXPORTED option for expense report admin when auto-sync is disabled and live export connection is invalid', () => {
+        jest.mocked(getValidConnectedIntegration).mockReturnValue(undefined);
+        jest.mocked(isPreferredExporter).mockReturnValue(false);
+
+        const report: Report = {
+            reportID: `${REPORT_ID}`,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+        const policy = createQBOPolicy(CONST.POLICY.ROLE.ADMIN, false);
+
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(false);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
+    it('includes MARK_AS_EXPORTED option for reimbursed expense report payer', () => {
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPaidGroupPolicy).mockReturnValue(false);
+        jest.mocked(isPreferredExporter).mockReturnValue(false);
+
+        const report: Report = {
+            reportID: `${REPORT_ID}`,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+        };
+        const policy = createQBOPolicy(CONST.POLICY.ROLE.USER, false);
+
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
+    it('does not include MARK_AS_EXPORTED option for expense report non-admin who is not preferred exporter or payer', () => {
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPaidGroupPolicy).mockReturnValue(false);
+        jest.mocked(isPreferredExporter).mockReturnValue(false);
+
+        const report: Report = {
+            reportID: `${REPORT_ID}`,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: MANAGER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+        const policy = createQBOPolicy(CONST.POLICY.ROLE.USER, false);
+
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, {}, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(false);
     });
 
     it('includes REMOVE HOLD option for admin if he is not the holder', () => {
@@ -3410,7 +3700,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             transactionThreadReport,
-
             isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
@@ -3426,7 +3715,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             transactionThreadReport,
-
             isProduction: false,
         });
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
@@ -3885,7 +4173,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             grandParentReport: selfDMReport,
-
             isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
@@ -3944,7 +4231,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             isChatReportArchived: false,
-
             isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
@@ -3974,7 +4260,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: {} as Transaction,
             policy,
             isChatReportArchived: false,
-
             isProduction: false,
         });
         expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
