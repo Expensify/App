@@ -380,4 +380,86 @@ describe('buildOnyxDataForMoneyRequest', () => {
             });
         });
     });
+
+    describe('chatReport.iouReportID update behavior', () => {
+        const OTHER_OPEN_REPORT_ID = '999';
+
+        function buildParamsWithCreateFlag(shouldCreateNewMoneyRequestReport: boolean, iouReportIDOverride?: string | null): BuildOnyxDataParams {
+            const optimisticParams = buildBaseOptimisticParams(IOU_REPORT_ID);
+
+            return {
+                isNewChatReport: false,
+                shouldCreateNewMoneyRequestReport,
+                shouldGenerateTransactionThreadReport: false,
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmailParam: CURRENT_USER_EMAIL,
+                hasViolations: false,
+                quickAction: undefined,
+                isSelfDMSplit: false,
+                optimisticParams: {
+                    ...optimisticParams,
+                    chat: {
+                        ...optimisticParams.chat,
+                        report: {
+                            ...optimisticParams.chat.report,
+                            ...(iouReportIDOverride !== undefined ? {iouReportID: iouReportIDOverride} : {}),
+                        } as Report,
+                    },
+                },
+            };
+        }
+
+        function getChatReportOptimisticEntry(optimisticData: ReturnType<typeof buildOnyxDataForMoneyRequest>['optimisticData']) {
+            return optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`);
+        }
+
+        it('sets iouReportID on chat report when shouldCreateNewMoneyRequestReport is true', () => {
+            const {optimisticData} = buildOnyxDataForMoneyRequest(buildParamsWithCreateFlag(true));
+            const chatReportEntry = getChatReportOptimisticEntry(optimisticData);
+
+            expect(chatReportEntry).toBeDefined();
+            expect((chatReportEntry?.value as Partial<Report>)?.iouReportID).toBe(IOU_REPORT_ID);
+        });
+
+        it('does not update iouReportID when shouldCreateNewMoneyRequestReport is false', () => {
+            const {optimisticData} = buildOnyxDataForMoneyRequest(buildParamsWithCreateFlag(false, null));
+            const chatReportEntry = getChatReportOptimisticEntry(optimisticData);
+
+            expect(chatReportEntry).toBeDefined();
+            expect((chatReportEntry?.value as Partial<Report>)?.iouReportID).toBeNull();
+        });
+
+        it('preserves existing iouReportID when adding expense to a different existing report', () => {
+            const {optimisticData} = buildOnyxDataForMoneyRequest(buildParamsWithCreateFlag(false, OTHER_OPEN_REPORT_ID));
+            const chatReportEntry = getChatReportOptimisticEntry(optimisticData);
+
+            expect(chatReportEntry).toBeDefined();
+            expect((chatReportEntry?.value as Partial<Report>)?.iouReportID).toBe(OTHER_OPEN_REPORT_ID);
+        });
+
+        it('does not update iouReportID when isASAPSubmitBetaEnabled and transaction is a scan request', () => {
+            const optimisticParams = buildBaseOptimisticParams(IOU_REPORT_ID);
+            const params: BuildOnyxDataParams = {
+                ...buildParamsWithCreateFlag(true),
+                isASAPSubmitBetaEnabled: true,
+                optimisticParams: {
+                    ...optimisticParams,
+                    transactionParams: {
+                        ...optimisticParams.transactionParams,
+                        transaction: {
+                            ...optimisticParams.transactionParams.transaction,
+                            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        },
+                    },
+                },
+            };
+
+            const {optimisticData} = buildOnyxDataForMoneyRequest(params);
+            const chatReportEntry = getChatReportOptimisticEntry(optimisticData);
+
+            expect(chatReportEntry).toBeDefined();
+            expect((chatReportEntry?.value as Partial<Report>)?.iouReportID).toBeUndefined();
+        });
+    });
 });
