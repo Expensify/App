@@ -819,12 +819,7 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
     // SendMoney reports never legitimately have a `type=create` IOU action — drop any that appear,
     // since they can only be phantoms synthesized by OpenReport's orphan-thread path.
     if (isSentMoneyReport) {
-        return reportActions.filter((action) => {
-            if (!isMoneyRequestAction(action)) {
-                return true;
-            }
-            return getOriginalMessage(action)?.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE;
-        });
+        return reportActions.filter((action) => !isIOUCreateAction(action));
     }
 
     // Nothing to combine when there's no transaction thread.
@@ -849,14 +844,16 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
 
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...filteredParentReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+        if (isIOUCreateAction(action)) {
+            return false;
+        }
         if (!isMoneyRequestAction(action)) {
             return true;
         }
-        const actionType = getOriginalMessage(action)?.type ?? '';
         if (isSelfDM) {
-            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE;
+            return true;
         }
-        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK;
+        return getOriginalMessage(action)?.type !== CONST.IOU.REPORT_ACTION_TYPE.TRACK;
     });
 
     return getSortedReportActions(filteredReportActions, true);
