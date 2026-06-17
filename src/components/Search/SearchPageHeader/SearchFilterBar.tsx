@@ -69,7 +69,7 @@ function CardDropdown({label, value, PopoverComponent, sentryLabel, onClosePress
 }
 
 function BankAccountDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
-    const bankAccountValue = useFilterBankAccountValue(value as string[]);
+    const bankAccountValue = useFilterBankAccountValue(value);
     return (
         <DropdownButton
             label={label}

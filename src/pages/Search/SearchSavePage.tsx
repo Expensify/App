@@ -64,7 +64,7 @@ function FilterReportValue({value}: FilterValueProps) {
 }
 
 function FilterBankAccountValue({value}: FilterValueProps) {
-    return useFilterBankAccountValue(value as string[]);
+    return useFilterBankAccountValue(value);
 }
 
 function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
