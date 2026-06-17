@@ -120,6 +120,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
                         textInputOptions={textInputOptions}
                         initiallyFocusedItemKey={currentPronounsKey}
                         confirmButtonOptions={confirmButtonOptions}
+                        addBottomSafeAreaPadding
                         shouldSingleExecuteRowSelect
                     />
                 </>
