@@ -118,7 +118,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(effectiveParentReportID)}`);
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     // Use original Onyx here because the useOnyx wrapper can read partial Search snapshot policy data instead of the full policy object.
     const [completePolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
@@ -166,7 +165,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             isOffline,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
-            lastSelectedDistanceRates,
         };
     };
 

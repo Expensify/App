@@ -5,12 +5,11 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
-import {getDistanceRateCustomUnitRate, hasDependentTags, isGroupPolicy, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {hasDependentTags, isGroupPolicy, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticModifiedExpenseReportAction,
@@ -27,13 +26,10 @@ import {
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {
-    calculateTaxAmount,
     getAmount,
     getClearedPendingFields,
-    getDefaultTaxCode,
-    getDistanceInMeters,
+    getDistanceRateTaxUpdates,
     getMerchant,
-    getTaxValue,
     getUpdatedTransaction,
     hasSubmissionBlockingViolationInReport,
     haveWaypointAddressesChanged,
@@ -50,7 +46,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type LastSelectedDistanceRates from '@src/types/onyx/LastSelectedDistanceRates';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -82,7 +77,6 @@ type UpdateMoneyRequestDateParams = {
     isOffline: boolean;
     hash?: number;
     delegateAccountID: number | undefined;
-    lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
 };
 
 type SearchSnapshotOnyxData = {
@@ -147,41 +141,6 @@ function getSearchSnapshotUpdates({
         optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: snapshotKey, value: {data: optimisticSnapshotData}}],
         successData: [{onyxMethod: Onyx.METHOD.MERGE, key: snapshotKey, value: {data: successSnapshotData}}],
         failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: snapshotKey, value: {data: failureSnapshotData}}],
-    };
-}
-
-type DistanceRateTaxUpdates = {
-    updatedTaxAmount?: number;
-    updatedTaxCode?: string;
-    updatedTaxValue?: string;
-};
-
-function getDistanceRateTaxUpdatesForTransaction({
-    policy,
-    transaction,
-    customUnitRateID,
-}: {
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-    customUnitRateID: string;
-}): DistanceRateTaxUpdates {
-    if (!isTaxTrackingEnabled(true, policy, true) || !transaction) {
-        return {};
-    }
-
-    const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
-    const taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID ?? defaultTaxCode;
-    const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, transaction.comment?.customUnit?.distanceUnit));
-    const taxValue = taxRateExternalID ? getTaxValue(policy, transaction, taxRateExternalID) : undefined;
-    const mileageRates = DistanceRequestUtils.getMileageRates(policy);
-    const rateCurrency = mileageRates[customUnitRateID]?.currency ?? transaction.currency;
-    const updatedTaxAmount = convertToBackendAmount(calculateTaxAmount(taxValue, taxableAmount, getCurrencyDecimals(rateCurrency)));
-
-    return {
-        updatedTaxAmount,
-        updatedTaxCode: taxRateExternalID,
-        updatedTaxValue: taxValue,
     };
 }
 
@@ -258,7 +217,7 @@ function updateMoneyRequestDate({
 
     if (newRateID && newRateID !== currentRateID && transaction && policy) {
         setLastSelectedDistanceRate(policy, newRateID);
-        const taxUpdates = getDistanceRateTaxUpdatesForTransaction({policy, transaction, customUnitRateID: newRateID});
+        const distanceRateTaxUpdates = isTaxTrackingEnabled(true, policy, true) && transaction ? getDistanceRateTaxUpdates(policy, transaction, newRateID) : undefined;
         updateMoneyRequestDistanceRate({
             transaction,
             transactionThreadReport,
@@ -277,7 +236,9 @@ function updateMoneyRequestDate({
             transactions,
             transactionViolations,
             isOffline,
-            ...taxUpdates,
+            updatedTaxAmount: distanceRateTaxUpdates?.taxAmount,
+            updatedTaxCode: distanceRateTaxUpdates?.taxCode,
+            updatedTaxValue: distanceRateTaxUpdates?.taxValue,
         });
         return;
     }

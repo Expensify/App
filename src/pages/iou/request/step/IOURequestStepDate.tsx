@@ -118,7 +118,6 @@ function IOURequestStepDate({
                 parentReportNextStep,
                 isOffline,
                 delegateAccountID,
-                lastSelectedDistanceRates,
             });
         } else {
             setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));

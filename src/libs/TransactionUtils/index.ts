@@ -2175,6 +2175,27 @@ function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transacti
 }
 
 /**
+ * Computes tax amount, code, and value when a workspace distance expense uses a given mileage rate.
+ */
+function getDistanceRateTaxUpdates(
+    policy: OnyxEntry<Policy>,
+    transaction: OnyxEntry<Transaction>,
+    customUnitRateID: string,
+    distanceUnit?: string,
+): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
+    const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
+    const taxCode = policyCustomUnitRate?.attributes?.taxRateExternalID ?? defaultTaxCode;
+    const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, distanceUnit ?? transaction?.comment?.customUnit?.distanceUnit));
+    const taxValue = taxCode ? getTaxValue(policy, transaction, taxCode) : undefined;
+    const mileageRates = DistanceRequestUtils.getMileageRates(policy);
+    const rateCurrency = mileageRates[customUnitRateID]?.currency ?? transaction?.currency ?? CONST.CURRENCY.USD;
+    const taxAmount = convertToBackendAmount(calculateTaxAmount(taxValue, taxableAmount, getCurrencyDecimals(rateCurrency)));
+
+    return {taxAmount, taxCode, taxValue};
+}
+
+/**
  * Returns the maximum allowed tax amount (in the smallest currency units) for a transaction,
  * i.e. the tax computed from the selected tax rate (or the policy default) and the expense amount.
  * Used to validate manually entered tax amounts so they can't exceed the calculated tax.
@@ -2939,6 +2960,7 @@ export {
     transformedTaxRates,
     getTaxValue,
     getCalculatedTaxAmount,
+    getDistanceRateTaxUpdates,
     getTaxName,
     getTaxRateTitle,
     hasTaxRateWithMatchingValue,

@@ -1925,7 +1925,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThread);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-            await Onyx.set(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policyID]: defaultRate});
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
@@ -1944,7 +1943,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
-                lastSelectedDistanceRates: {[policyID]: defaultRate},
             });
 
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2025-06-15'}), expect.anything());

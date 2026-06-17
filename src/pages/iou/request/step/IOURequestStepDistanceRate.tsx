@@ -26,22 +26,12 @@ import {
 } from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistanceRate} from '@libs/actions/IOU/UpdateMoneyRequest';
-import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDistanceRateCustomUnitRate, getGroupPaidPoliciesWithExpenseChatEnabled, isGroupPolicyByType, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {
-    calculateTaxAmount,
-    getCurrency,
-    getDefaultTaxCode,
-    getDistanceInMeters,
-    getRateID,
-    getTaxValue,
-    isDistanceRequest as isDistanceRequestTransactionUtils,
-    isExpenseUnreported,
-} from '@libs/TransactionUtils';
+import {getGroupPaidPoliciesWithExpenseChatEnabled, isGroupPolicyByType, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getCurrency, getDistanceInMeters, getDistanceRateTaxUpdates, getRateID, isDistanceRequest as isDistanceRequestTransactionUtils, isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -103,7 +93,7 @@ function IOURequestStepDistanceRate({
     const fallbackAvailablePolicy = isEditingSplit && !isP2PRate && !policyForTransaction && !policyByCustomUnitID && !policyByCustomUnitRateID ? availablePaidPolicies.at(0) : undefined;
     const policy = policyForTransaction ?? policyByCustomUnitID ?? policyByCustomUnitRateID ?? fallbackAvailablePolicy;
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
-    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const isPolicyExpenseChat = isGroupPolicyByType(reportPolicyType);
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(currentTransaction), policy, isDistanceRequest);
@@ -185,13 +175,10 @@ function IOURequestStepDistanceRate({
         let taxRateExternalID;
         let taxValue;
         if (shouldShowTax) {
-            const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, undefined, customUnitRateID) ?? '';
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
-            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(currentTransaction, currentUnit));
-            taxValue = taxRateExternalID ? getTaxValue(policy, currentTransaction, taxRateExternalID) : undefined;
-            taxAmount = convertToBackendAmount(calculateTaxAmount(taxValue, taxableAmount, getCurrencyDecimals(rates[customUnitRateID].currency)));
+            const distanceRateTaxUpdates = getDistanceRateTaxUpdates(policy, currentTransaction, customUnitRateID, currentUnit);
+            taxAmount = distanceRateTaxUpdates.taxAmount;
+            taxRateExternalID = distanceRateTaxUpdates.taxCode;
+            taxValue = distanceRateTaxUpdates.taxValue;
             if (!isEditing || !taxRateExternalID) {
                 setMoneyRequestTaxAmount(transactionID, taxAmount, shouldUseTransactionDraft(action));
                 setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null, shouldUseTransactionDraft(action));
