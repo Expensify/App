@@ -1,6 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
-import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
+import {hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,10 +58,11 @@ const createTodosReportsAndTransactions = ({
         const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
         const reportTransactions = transactionsByReportID[report.reportID] ?? [];
         const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
-        if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID)) {
+        const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
+        if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld) {
             reportsToSubmit.push(report);
         }
-        if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy)) {
+        if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !allExpensesHeld) {
             reportsToApprove.push(report);
         }
         if (
@@ -74,7 +75,8 @@ const createTodosReportsAndTransactions = ({
                 policy,
                 reportNameValuePairs: reportNameValuePair,
             }) &&
-            !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions)
+            !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions) &&
+            !allExpensesHeld
         ) {
             reportsToPay.push(report);
         }

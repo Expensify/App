@@ -181,6 +181,7 @@ function WorkspaceCompanyCardsTable({
 
               return {
                   cardName,
+                  keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
                   encryptedCardNumber,
                   customCardName: assignedCard?.cardID && customCardNames?.[assignedCard.cardID] ? customCardNames?.[assignedCard.cardID] : getDefaultCardName(cardholder?.displayName ?? ''),
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -293,6 +294,7 @@ function WorkspaceCompanyCardsTable({
             item={item}
             rowIndex={index}
             policyID={policyID ?? String(CONST.DEFAULT_NUMBER_ID)}
+            feedName={feedName}
             CardFeedIcon={cardFeedIcon}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
