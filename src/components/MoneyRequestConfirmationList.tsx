@@ -14,6 +14,7 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -254,8 +255,6 @@ function MoneyRequestConfirmationList({
     const previousTransactionCurrency = usePrevious(transaction?.currency);
     const customUnitRateID = getRateID(transaction);
 
-    const shouldShowRateAutoUpdatedTooltip = isDistanceRequest && !!transaction?.comment?.customUnit?.rateAutoUpdated;
-
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
     const prevSubRates = usePrevious(subRates);
 
@@ -270,6 +269,9 @@ function MoneyRequestConfirmationList({
             iouAmount,
             iouCurrencyCode,
         });
+
+    const shouldShowRateAutoUpdatedTooltip =
+        isDistanceRequest && !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);
 
     const shouldShowCategories = isTrackExpense
         ? !policy || shouldSelectPolicy || !!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {}))
