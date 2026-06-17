@@ -13,15 +13,21 @@ const mockRequestWorkspaceOwnerChange = jest.fn();
 const mockNavigate = jest.fn();
 const mockUseCurrentUserPersonalDetails = jest.fn();
 
-jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => mockUseCurrentUserPersonalDetails());
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => (): unknown => mockUseCurrentUserPersonalDetails());
 
 jest.mock('@libs/actions/Policy/Member', () => ({
-    clearWorkspaceOwnerChangeFlow: (...args: unknown[]) => mockClearWorkspaceOwnerChangeFlow(...args),
-    requestWorkspaceOwnerChange: (...args: unknown[]) => mockRequestWorkspaceOwnerChange(...args),
+    clearWorkspaceOwnerChangeFlow: (...args: unknown[]) => {
+        mockClearWorkspaceOwnerChangeFlow(...args);
+    },
+    requestWorkspaceOwnerChange: (...args: unknown[]) => {
+        mockRequestWorkspaceOwnerChange(...args);
+    },
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: (...args: unknown[]) => mockNavigate(...args),
+    navigate: (...args: unknown[]) => {
+        mockNavigate(...args);
+    },
     getActiveRoute: () => '',
 }));
 

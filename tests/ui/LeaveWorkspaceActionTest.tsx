@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -12,10 +12,12 @@ const mockLeaveWorkspace = jest.fn();
 const mockShowConfirmModal = jest.fn();
 const mockUseCurrentUserPersonalDetails = jest.fn();
 
-jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => mockUseCurrentUserPersonalDetails());
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => (): unknown => mockUseCurrentUserPersonalDetails());
 
 jest.mock('@libs/actions/Policy/Policy', () => ({
-    leaveWorkspace: (...args: unknown[]) => mockLeaveWorkspace(...args),
+    leaveWorkspace: (...args: unknown[]) => {
+        mockLeaveWorkspace(...args);
+    },
 }));
 
 jest.mock('@hooks/useConfirmModal', () =>
@@ -90,8 +92,7 @@ describe('LeaveWorkspaceAction', () => {
         });
         renderAction(onDismiss);
         await waitForBatchedUpdatesWithAct();
-        await act(async () => {});
-        expect(onDismiss).toHaveBeenCalled();
+        await waitFor(() => expect(onDismiss).toHaveBeenCalled());
     });
 
     it('shows a danger two-button modal when the user is not the reimbursement contact', async () => {
@@ -116,9 +117,10 @@ describe('LeaveWorkspaceAction', () => {
         });
         renderAction(onDismiss);
         await waitForBatchedUpdatesWithAct();
-        await act(async () => {});
-        expect(mockLeaveWorkspace).toHaveBeenCalled();
-        expect(onDismiss).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(mockLeaveWorkspace).toHaveBeenCalled();
+            expect(onDismiss).toHaveBeenCalled();
+        });
     });
 
     it('does not call leaveWorkspace but still calls onDismiss on cancel', async () => {
@@ -132,9 +134,8 @@ describe('LeaveWorkspaceAction', () => {
         });
         renderAction(onDismiss);
         await waitForBatchedUpdatesWithAct();
-        await act(async () => {});
+        await waitFor(() => expect(onDismiss).toHaveBeenCalled());
         expect(mockLeaveWorkspace).not.toHaveBeenCalled();
-        expect(onDismiss).toHaveBeenCalled();
     });
 
     it('shows the modal for a regular member when no special role data is present', async () => {
