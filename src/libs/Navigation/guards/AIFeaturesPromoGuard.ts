@@ -8,7 +8,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +23,6 @@ let dismissedProductTraining: OnyxEntry<DismissedProductTraining>;
 let isDismissedProductTrainingLoaded = false;
 
 let hasBeenAddedToNudgeMigration = false;
-let isHybridAppOnboardingCompleted: boolean | undefined;
 let isTryNewDotLoaded = false;
 
 let onboarding: OnyxEntry<Onboarding>;
@@ -167,7 +165,6 @@ Onyx.connectWithoutView({
     callback: (value) => {
         const result = value ? tryNewDotOnyxSelector(value) : undefined;
         hasBeenAddedToNudgeMigration = result?.hasBeenAddedToNudgeMigration ?? false;
-        isHybridAppOnboardingCompleted = result?.isHybridAppOnboardingCompleted;
         isTryNewDotLoaded = true;
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed(CONST.MIGRATED_USER_WELCOME_MODAL, dismissedProductTraining)) {
             observedActiveMigrationModalThisSession = true;
