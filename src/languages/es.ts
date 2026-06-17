@@ -9790,6 +9790,7 @@ ${amount} para ${merchant} - ${date}`,
         readyBody: 'Si no se descargó automáticamente, usa el botón de abajo.',
         downloadFile: 'Descargar archivo',
         failedTitle: 'Exportación fallida',
+        csvFailedBody: 'No se pudo completar la exportación. Inténtalo de nuevo más tarde.',
         close: 'Cerrar',
     },
     openAppFailureModal: {
