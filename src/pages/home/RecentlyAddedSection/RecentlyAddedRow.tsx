@@ -89,7 +89,6 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator}: RecentlyAdded
                     />
                 </View>
             </View>
-            {arrow}
         </>
     ) : (
         <>
