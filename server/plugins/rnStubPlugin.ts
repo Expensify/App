@@ -58,8 +58,8 @@ export default function createRnStubPlugin(stubRoot: string): BunPlugin {
                 path: resolve(stubRoot, 'react-native-nitro-fetch.ts'),
             }));
 
-            build.onResolve({filter: /^react-native-onyx$/}, () => ({
-                path: resolve(stubRoot, 'react-native-onyx.ts'),
+            build.onResolve({filter: /react-native-onyx\/dist\/storage\/platforms/}, () => ({
+                path: resolve(stubRoot, 'onyx-storage-platform.ts'),
             }));
 
             build.onResolve({filter: /^react-native-localize$/}, () => ({
