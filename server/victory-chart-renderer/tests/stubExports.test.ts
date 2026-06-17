@@ -1,7 +1,7 @@
 import {expect, test} from 'bun:test';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import * as telemetryActiveSpansStub from '../../stubs/telemetry-activeSpans';
+import * as telemetryActiveSpansStub from '@server/stubs/telemetry-activeSpans';
 
 const appRoot = join(import.meta.dir, '../../..');
 const activeSpansSourcePath = join(appRoot, 'src/libs/telemetry/activeSpans.ts');
@@ -23,8 +23,10 @@ test('telemetry-activeSpans stub exports match activeSpans public API', () => {
     const activeSpansSource = readFileSync(activeSpansSourcePath, 'utf8');
     const expectedExports = getNamedExportsFromSource(activeSpansSource);
 
+    const stub = telemetryActiveSpansStub as Record<string, unknown>;
+
     for (const exportName of expectedExports) {
-        expect(telemetryActiveSpansStub).toHaveProperty(exportName);
-        expect(typeof telemetryActiveSpansStub[exportName as keyof typeof telemetryActiveSpansStub]).toBe('function');
+        expect(Object.hasOwn(stub, exportName)).toBe(true);
+        expect(typeof stub[exportName]).toBe('function');
     }
 });
