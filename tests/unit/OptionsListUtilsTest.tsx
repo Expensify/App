@@ -5436,6 +5436,7 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     policy: undefined,
+                    personalDetails: undefined,
                     isReportArchived: false,
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
