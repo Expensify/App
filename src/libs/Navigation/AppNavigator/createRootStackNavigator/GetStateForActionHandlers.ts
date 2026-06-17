@@ -264,8 +264,8 @@ function getTabStateWithFocusedTarget(existingTabState: NavigationState, focused
     // assigns route keys and rebuilds history from scratch. Without this, the
     // state would inherit stale: false from the existing realized state, and the
     // router would trust the keyless partial routes as-is.
-    // history is also omitted because the sliced state's history references
-    // keys/tabs that no longer match the rebuilt routes.
+    // Preserve history so valid existing tab entries still work after the reveal;
+    // TabRouter filters entries whose route keys are no longer present.
     return {
         type: existingTabState.type,
         key: existingTabState.key,
@@ -273,6 +273,7 @@ function getTabStateWithFocusedTarget(existingTabState: NavigationState, focused
         routeNames: [...TAB_SCREENS],
         routes: updatedTabRoutes,
         index: completeTargetTabIndex,
+        history: existingTabState.history,
     };
 }
 

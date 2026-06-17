@@ -82,16 +82,16 @@ describe('getTabStateWithFocusedTarget', () => {
             expect((homeRoute?.state as {routes: Array<{name: string}>})?.routes?.at(0)?.name).toBe('HomeContent');
         });
 
-        it('strips history and marks state as stale so TabRouter rehydrates properly', () => {
+        it('preserves history and marks state as stale so TabRouter rehydrates properly', () => {
             const slicedState = {
                 ...makeTabState([{name: SCREENS.HOME}], 0),
-                history: [{type: 'route' as const, key: 'old-home-key'}],
+                history: [{type: 'route' as const, key: `${SCREENS.HOME}-key-0`}],
             };
 
             const result = getTabStateWithFocusedTarget(slicedState, {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR});
 
             expect(result).not.toBeUndefined();
-            expect(result).not.toHaveProperty('history');
+            expect(result?.history).toBe(slicedState.history);
             expect(result?.stale).toBe(true);
         });
 
@@ -126,10 +126,13 @@ describe('markFocusedTabRouteForRemount', () => {
         expect(result.stale).toBe(true);
     });
 
-    it('keeps reconstructed sliced tab state history-free', () => {
+    it('keeps reconstructed sliced tab state history for TabRouter to filter', () => {
         const slicedState = {
             ...makeTabState([{name: SCREENS.HOME}], 0),
-            history: [{type: 'route' as const, key: `${SCREENS.HOME}-key-0`}],
+            history: [
+                {type: 'route' as const, key: `${SCREENS.HOME}-key-0`},
+                {type: 'route' as const, key: 'stale-search-key'},
+            ],
         };
         const reconstructedState = getTabStateWithFocusedTarget(slicedState, {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR});
 
@@ -139,6 +142,6 @@ describe('markFocusedTabRouteForRemount', () => {
         }
         const result = markFocusedTabRouteForRemount(reconstructedState, slicedState);
 
-        expect(result).not.toHaveProperty('history');
+        expect(result.history).toBe(slicedState.history);
     });
 });
