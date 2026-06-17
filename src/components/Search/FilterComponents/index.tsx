@@ -26,13 +26,11 @@ import UserSelector from './UserSelector';
 import WorkspaceSelector from './WorkspaceSelector';
 
 type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
-type FilterComponentsProps = SearchFilterCommonProps & {
+type FilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[FilterKeys] | undefined> & {
     filterKey: FilterKeys;
-    value: SearchAdvancedFiltersForm[FilterKeys] | undefined;
     type?: SearchDataTypes;
     policyIDs: string[] | undefined;
     policyIDQuery: string[] | undefined;
-    onChange: (value: SearchAdvancedFiltersForm[FilterKeys] | undefined) => void;
 };
 
 type TextInputFilterComponentsProps = {
@@ -49,10 +47,8 @@ type TextInputFilterComponentsProps = {
 };
 
 type SingleSelectFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE;
-type SingleSelectFilterComponentsProps = SearchFilterCommonProps & {
+type SingleSelectFilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined> & {
     filterKey: SingleSelectFilterKeys;
-    value: SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined;
-    onChange: (value: SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined) => void;
 };
 
 type MultiSelectFilterKeys =
@@ -61,11 +57,9 @@ type MultiSelectFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS;
-type MultiSelectFilterComponentsProps = SearchFilterCommonProps & {
+type MultiSelectFilterComponentsProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined> & {
     filterKey: MultiSelectFilterKeys;
-    value: SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined;
     type: SearchDataTypes | undefined;
-    onChange: (values: SearchAdvancedFiltersForm[MultiSelectFilterKeys]) => void;
 };
 
 function TextInputFilterComponents({filterKey, value, autoFocus, onChange}: TextInputFilterComponentsProps) {
