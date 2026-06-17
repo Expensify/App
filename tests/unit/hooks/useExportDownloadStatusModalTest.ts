@@ -1,4 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
+import type {ReactElement} from 'react';
 import useExportDownloadStatusModal from '@hooks/useExportDownloadStatusModal';
 import {clearExportDownload} from '@libs/actions/Export';
 import CONST from '@src/CONST';
@@ -40,8 +41,8 @@ describe('useExportDownloadStatusModal', () => {
             result.current.trackExport('export-1');
         });
 
-        const modalProps = result.current.exportDownloadStatusModal?.props as ExportDownloadStatusModalProps | undefined;
-        expect(modalProps?.exportID).toBe('export-1');
+        const modal: ReactElement<ExportDownloadStatusModalProps> | null = result.current.exportDownloadStatusModal;
+        expect(modal?.props.exportID).toBe('export-1');
     });
 
     it('clears the download, runs cleanup and hides the modal on close', () => {
@@ -51,10 +52,10 @@ describe('useExportDownloadStatusModal', () => {
         act(() => {
             result.current.trackExport('export-1');
         });
-        const modalProps = result.current.exportDownloadStatusModal?.props as ExportDownloadStatusModalProps | undefined;
+        const modal: ReactElement<ExportDownloadStatusModalProps> | null = result.current.exportDownloadStatusModal;
 
         act(() => {
-            modalProps?.onClose();
+            modal?.props.onClose();
         });
 
         expect(mockClearExportDownload).toHaveBeenCalledWith('export-1', undefined);
@@ -70,10 +71,10 @@ describe('useExportDownloadStatusModal', () => {
         act(() => {
             result.current.trackExport('export-1');
         });
-        const modalProps = result.current.exportDownloadStatusModal?.props as ExportDownloadStatusModalProps | undefined;
+        const modal: ReactElement<ExportDownloadStatusModalProps> | null = result.current.exportDownloadStatusModal;
 
         act(() => {
-            modalProps?.onClose();
+            modal?.props.onClose();
         });
 
         expect(mockClearExportDownload).not.toHaveBeenCalled();

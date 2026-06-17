@@ -1,4 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
+import type {ReactElement} from 'react';
 import useExportActions from '@hooks/useExportActions';
 import {clearExportDownload} from '@libs/actions/Export';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
@@ -117,8 +118,8 @@ describe('useExportActions - template export status modal', () => {
             },
             true,
         );
-        const modalProps = result.current.exportDownloadStatusModal?.props as ExportDownloadStatusModalProps | undefined;
-        expect(modalProps?.exportID).toBe('mock-export-id');
+        const modal: ReactElement<ExportDownloadStatusModalProps> | null = result.current.exportDownloadStatusModal;
+        expect(modal?.props.exportID).toBe('mock-export-id');
     });
 
     it('does not queue the export and shows the offline modal when offline', () => {
@@ -140,11 +141,11 @@ describe('useExportActions - template export status modal', () => {
         act(() => {
             result.current.beginExportWithTemplate('Test Template', 'csv', ['1'], POLICY_ID);
         });
-        const modalProps = result.current.exportDownloadStatusModal?.props as ExportDownloadStatusModalProps | undefined;
-        expect(modalProps?.exportID).toBe('mock-export-id');
+        const modal: ReactElement<ExportDownloadStatusModalProps> | null = result.current.exportDownloadStatusModal;
+        expect(modal?.props.exportID).toBe('mock-export-id');
 
         act(() => {
-            modalProps?.onClose();
+            modal?.props.onClose();
         });
 
         expect(mockClearExportDownload).toHaveBeenCalledWith('mock-export-id', undefined);

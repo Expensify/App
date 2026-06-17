@@ -13,7 +13,7 @@ import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import addTrailingForwardSlash from '@libs/UrlUtils';
-import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
+import {sendExportFileFromConcierge} from '@userActions/Export';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -92,11 +92,6 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         }
     };
 
-    const handleClose = () => {
-        clearExportDownload(exportID, displayedExport ?? undefined);
-        onClose();
-    };
-
     const isNonDismissible = isPreparing;
 
     const renderContent = () => {
@@ -153,7 +148,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     />
                     <Button
                         text={translate('exportDownload.close')}
-                        onPress={handleClose}
+                        onPress={onClose}
                         style={[styles.w100, styles.mt3]}
                     />
                 </>
@@ -167,7 +162,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     {!!failedBody && <Text style={styles.mb5}>{failedBody}</Text>}
                     <Button
                         text={translate('exportDownload.close')}
-                        onPress={handleClose}
+                        onPress={onClose}
                         style={styles.w100}
                     />
                 </>
