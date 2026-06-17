@@ -40,7 +40,6 @@ let isWaitingForProtectedRoutes = false;
  */
 let observedActiveMigrationModalThisSession = false;
 let observedActiveOnboardingThisSession = false;
-let observedActiveExplanationModalThisSession = false;
 
 function containsNavigator(state: NavigationState | PartialState<NavigationState> | undefined, navigatorName: string): boolean {
     if (!state?.routes) {
@@ -62,9 +61,6 @@ function snapshotActiveModalsFromNavigationState() {
     }
     if (containsNavigator(rootState, NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR)) {
         observedActiveMigrationModalThisSession = true;
-    }
-    if (containsNavigator(rootState, NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR)) {
-        observedActiveExplanationModalThisSession = true;
     }
 }
 
@@ -90,8 +86,7 @@ function isEligibleToShowAIFeaturesPromoModal(): boolean {
         isOnboardingLoaded &&
         !isProductTrainingElementDismissed(CONST.AI_FEATURES_PROMO_MODAL, dismissedProductTraining) &&
         !observedActiveMigrationModalThisSession &&
-        !observedActiveOnboardingThisSession &&
-        !observedActiveExplanationModalThisSession
+        !observedActiveOnboardingThisSession
     );
 }
 
@@ -176,10 +171,6 @@ Onyx.connectWithoutView({
         isTryNewDotLoaded = true;
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed(CONST.MIGRATED_USER_WELCOME_MODAL, dismissedProductTraining)) {
             observedActiveMigrationModalThisSession = true;
-        }
-        // The HybridApp explanation modal shows when the user is transitioning from OldDot to NewDot.
-        if (CONFIG.IS_HYBRID_APP && isHybridAppOnboardingCompleted === false) {
-            observedActiveExplanationModalThisSession = true;
         }
         navigateToAIFeaturesPromoModalIfReady();
     },
