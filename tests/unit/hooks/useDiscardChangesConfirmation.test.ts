@@ -37,11 +37,7 @@ jest.mock('@libs/Log', () => ({
     default: {warn: jest.fn()},
 }));
 
-// Both run their callback immediately so modal scheduling and the confirm navigation are synchronous in tests
-jest.mock('@libs/Navigation/navigateAfterInteraction', () => ({
-    __esModule: true,
-    default: (callback: () => void) => callback(),
-}));
+// Runs its callback immediately so the confirm navigation is synchronous in tests
 jest.mock('@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue', () => ({
     __esModule: true,
     default: (callback: () => void) => callback(),

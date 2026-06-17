@@ -8,10 +8,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {openLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {FinancialForceConnectionConfig} from '@src/types/onyx/Policy';
-
-type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
-type FinancialForceReportExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.SUBMITTED;
+import type {FinancialForceConnectionConfig, FinancialForceFFAExportStatus, FinancialForceReportExportStatus} from '@src/types/onyx/Policy';
 
 function prepareOnyxDataForFinancialForceCodingUpdate<K extends keyof FinancialForceConnectionConfig['coding']>(
     policyID: string,

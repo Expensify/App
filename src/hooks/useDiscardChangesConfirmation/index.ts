@@ -7,7 +7,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type UseDiscardChangesConfirmationOptions from './types';
 
@@ -97,7 +96,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
             // A prevented RESET comes from a browser back; the popstate listener must restore the URL
             didPreventResetOnPopstate.current = true;
         }
-        navigateAfterInteraction(showDiscardModal);
+        showDiscardModal();
     });
 
     // `closeModal` changes every render, so the once-registered popstate listener reads it through a ref
