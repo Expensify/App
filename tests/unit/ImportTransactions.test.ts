@@ -109,11 +109,14 @@ describe('ImportTransactions', () => {
 
     describe('buildColumnLayout', () => {
         it('should build a basic layout with no column mappings', () => {
-            const spreadsheet = {
+            const spreadsheet: ImportedSpreadsheet = {
                 data: [],
                 columns: {},
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+                isImportingMultiLevelTags: false,
+                isImportingIndependentMultiLevelTags: false,
+                isGLAdjacent: false,
+            };
 
             const result = buildColumnLayout(spreadsheet, 'Test Card', 'USD', true, false);
 
@@ -149,7 +152,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should build layout with column mappings and extract header names', () => {
-            const spreadsheet = {
+            const spreadsheet: ImportedSpreadsheet = {
                 data: [
                     ['Date', '2024-01-01', '2024-01-02'],
                     ['Merchant', 'Store A', 'Store B'],
@@ -163,7 +166,10 @@ describe('ImportTransactions', () => {
                     3: 'category',
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+                isImportingMultiLevelTags: false,
+                isImportingIndependentMultiLevelTags: false,
+                isGLAdjacent: false,
+            };
 
             const result = buildColumnLayout(spreadsheet, 'My Card', 'EUR', false, true);
 
@@ -188,7 +194,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should handle missing headers when containsHeader is false', () => {
-            const spreadsheet = {
+            const spreadsheet: ImportedSpreadsheet = {
                 data: [
                     ['2024-01-01', '2024-01-02'],
                     ['Store A', 'Store B'],
@@ -200,7 +206,10 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: false,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+                isImportingMultiLevelTags: false,
+                isImportingIndependentMultiLevelTags: false,
+                isGLAdjacent: false,
+            };
 
             const result = buildColumnLayout(spreadsheet, 'Card', 'USD', true, false);
 
@@ -222,7 +231,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should handle out of bounds column indexes gracefully', () => {
-            const spreadsheet = {
+            const spreadsheet: ImportedSpreadsheet = {
                 data: [
                     ['Date', '2024-01-01'],
                     ['Merchant', 'Store A'],
@@ -233,7 +242,10 @@ describe('ImportTransactions', () => {
                     10: 'amount', // Out of bounds
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+                isImportingMultiLevelTags: false,
+                isImportingIndependentMultiLevelTags: false,
+                isGLAdjacent: false,
+            };
 
             const result = buildColumnLayout(spreadsheet, 'Card', 'USD', true, false);
 
