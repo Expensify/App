@@ -7,7 +7,7 @@ import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isControlPolicy, isPolicyApprover} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyApprover, isSubmitPolicy} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -50,7 +50,8 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
-    CARD_ADMINS: 'card_admins',
+    CARD_ADMINS: 'cardAdmins',
+    EDITORS: 'editors',
 } as const;
 
 export default function WorkspaceMembersTable({
@@ -211,6 +212,13 @@ export default function WorkspaceMembersTable({
         filterConfig.status.options.push({
             label: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
+        });
+    }
+
+    if (isSubmitPolicy(policy)) {
+        filterConfig.status.options.push({
+            label: translate('workspace.people.editors'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.EDITORS,
         });
     }
 
