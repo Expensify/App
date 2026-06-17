@@ -16,6 +16,7 @@ import getOperatingSystem from '@libs/getOperatingSystem';
 import {
     addLeadingZero,
     handleNegativeAmountFlipping,
+    parseCurrencyAmount,
     replaceAllDigits,
     replaceCommasWithPeriod,
     stripCommaFromAmount,
@@ -279,11 +280,13 @@ function NumberWithSymbolForm({
             // Remove spaces from the newNumber number because Safari on iOS adds spaces when pasting a copied number
             // More info: https://github.com/Expensify/App/issues/16974
             const newNumberWithoutSpaces = stripSpacesFromAmount(newNumber);
-            const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
 
-            // When allowNegativeInput is true, keep negative sign as-is (for split amounts)
-            // When allowFlippingAmount is true, strip the negative sign and call toggleNegative
-            const finalNumber = allowNegativeInput ? rawFinalNumber : handleNegativeAmountFlipping(rawFinalNumber, allowFlippingAmount, toggleNegative);
+            // Use parseCurrencyAmount to handle locale-specific separators correctly.
+            // When both . and , are present, the rightmost is the decimal separator.
+            // This fixes the bug where European format "13.000,00" was parsed as 13000 instead of 13.
+            const finalNumber = allowNegativeInput
+                ? parseCurrencyAmount(newNumberWithoutSpaces)
+                : handleNegativeAmountFlipping(parseCurrencyAmount(newNumberWithoutSpaces), allowFlippingAmount, toggleNegative);
 
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
@@ -318,10 +321,10 @@ function NumberWithSymbolForm({
         // Remove spaces from the new number because Safari on iOS adds spaces when pasting a copied number
         // More info: https://github.com/Expensify/App/issues/16974
         const newNumberWithoutSpaces = stripSpacesFromAmount(text);
-        // When allowNegativeInput is true, keep negative sign as-is
+        // Use parseCurrencyAmount to handle locale-specific separators correctly
         const replacedCommasNumber = allowNegativeInput
-            ? replaceCommasWithPeriod(newNumberWithoutSpaces)
-            : handleNegativeAmountFlipping(replaceCommasWithPeriod(newNumberWithoutSpaces), allowFlippingAmount, toggleNegative);
+            ? parseCurrencyAmount(newNumberWithoutSpaces)
+            : handleNegativeAmountFlipping(parseCurrencyAmount(newNumberWithoutSpaces), allowFlippingAmount, toggleNegative);
 
         const withLeadingZero = addLeadingZero(replacedCommasNumber, allowNegativeInput);
 

@@ -9,6 +9,47 @@ import {isExpenseUnreported} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
 /**
+ * Parse an amount string that may contain locale-specific separators (. and ,).
+ * When both . and , are present, the rightmost one is the decimal separator
+ * and the other is a thousands/group separator.
+ * Examples:
+ *   "13.000,00" → "13000.00" (European: dot=thousands, comma=decimal)
+ *   "13,000.00" → "13000.00" (US: comma=thousands, dot=decimal)
+ *   "13.000,00" → "13000.00"
+ *   "13,50" → "13.50" (comma as decimal)
+ *   "13.50" → "13.50" (dot as decimal)
+ */
+function parseCurrencyAmount(amount: string): string {
+    const cleaned = amount.replace(/\s+/g, '');
+    const dotIndex = cleaned.lastIndexOf('.');
+    const commaIndex = cleaned.lastIndexOf(',');
+
+    if (dotIndex === -1 && commaIndex === -1) {
+        // No separators at all
+        return cleaned;
+    }
+
+    if (commaIndex === -1) {
+        // Only dots present - treat as decimal separator
+        return cleaned.replace(/\./g, '.');
+    }
+
+    if (dotIndex === -1) {
+        // Only commas present - treat as decimal separator
+        return cleaned.replace(/,/g, '.');
+    }
+
+    // Both present: rightmost is the decimal separator
+    if (commaIndex > dotIndex) {
+        // Comma is decimal separator (European format): "13.000,00"
+        return cleaned.replace(/\./g, '').replace(/,/g, '.');
+    } else {
+        // Dot is decimal separator (US format): "13,000.00"
+        return cleaned.replace(/,/g, '');
+    }
+}
+
+/**
  * Strip comma from the amount
  */
 function stripCommaFromAmount(amount: string): string {
@@ -206,17 +247,4 @@ function isValidMerchant(merchant: string | undefined, transaction?: OnyxEntry<T
     return valueByteLength <= CONST.MERCHANT_NAME_MAX_BYTES;
 }
 
-export {
-    addLeadingZero,
-    replaceAllDigits,
-    stripCommaFromAmount,
-    stripDecimalsFromAmount,
-    stripSpacesFromAmount,
-    replaceCommasWithPeriod,
-    validateAmount,
-    validatePercentage,
-    handleNegativeAmountFlipping,
-    isValidMoneyRequestAmount,
-    isTaxAmountInvalid,
-    isValidMerchant,
-};
+export {\n    addLeadingZero,\n    replaceAllDigits,\n    stripCommaFromAmount,\n    stripDecimalsFromAmount,\n    stripSpacesFromAmount,\n    replaceCommasWithPeriod,\n    parseCurrencyAmount,\n    validateAmount,\n    validatePercentage,\n    handleNegativeAmountFlipping,\n    isValidMoneyRequestAmount,\n    isTaxAmountInvalid,\n    isValidMerchant,\n};
