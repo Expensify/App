@@ -37,7 +37,7 @@ test('resolveCanvasSize throws when overlays exist without chart dimensions', ()
 test('resolveCanvasSize throws when width has a non-numeric unit suffix', () => {
     const tnode = makeChartNode({width: '600px', height: '400'});
 
-    expect(() => resolveCanvasSize(tnode)).toThrow('width and height must be positive numbers');
+    expect(() => resolveCanvasSize(tnode)).toThrow('width and height must both be provided together');
 });
 
 test('resolveCanvasSize throws when width is zero', () => {
