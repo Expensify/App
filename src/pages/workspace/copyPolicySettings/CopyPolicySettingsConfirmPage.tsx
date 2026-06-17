@@ -30,21 +30,20 @@ function CopyPolicySettingsConfirmPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [copyPolicySettingsState] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [copyPolicySettingsState, copyPolicySettingsMetadata] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettingsState?.targetPolicyIDs ?? [];
     const parts = copyPolicySettingsState?.parts ?? [];
-    const hasLoadedCopyPolicySettings = copyPolicySettingsState !== undefined;
-    const hasLoadedPolicies = policies !== undefined;
+    const isDataLoaded = policiesMetadata.status === 'loaded' && copyPolicySettingsMetadata.status === 'loaded';
 
     const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter((policy) => policy !== undefined);
 
     useEffect(() => {
-        if (!sourcePolicyID || !hasLoadedCopyPolicySettings || !hasLoadedPolicies) {
+        if (!sourcePolicyID || !isDataLoaded) {
             return;
         }
 
@@ -56,7 +55,7 @@ function CopyPolicySettingsConfirmPage() {
         if (!parts.length && targetPolicyIDs.length) {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
         }
-    }, [hasLoadedCopyPolicySettings, hasLoadedPolicies, parts.length, sourcePolicyID, targetPolicyIDs.length]);
+    }, [isDataLoaded, parts.length, sourcePolicyID, targetPolicyIDs.length]);
 
     const translatedParts = parts
         .map((part) => {

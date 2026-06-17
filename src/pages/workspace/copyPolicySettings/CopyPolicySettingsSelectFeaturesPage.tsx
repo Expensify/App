@@ -248,8 +248,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
         if (!sourcePolicyID) {
             return;
         }
-        setCopyPolicySettingsData({parts: effectiveSelectedFeatures.slice()});
-        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
+        setCopyPolicySettingsData({parts: effectiveSelectedFeatures.slice()}).then(() => {
+            Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
+        });
     };
 
     const onConfirm = () => {

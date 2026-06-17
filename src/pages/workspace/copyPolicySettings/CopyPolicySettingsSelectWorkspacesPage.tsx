@@ -137,9 +137,9 @@ function CopyPolicySettingsSelectWorkspacesPage() {
             sourcePolicyID,
             targetPolicyIDs: resolvedSelectedTargetIDs,
             ...(shouldClearParts ? {parts: []} : {}),
+        }).then(() => {
+            Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
         });
-
-        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
     };
 
     const confirmButtonOptions: ConfirmButtonOptions<ListItem> = {

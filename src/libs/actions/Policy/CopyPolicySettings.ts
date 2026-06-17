@@ -64,8 +64,8 @@ const PARTS_TO_POLICY_FIELDS = {
 
 type PolicyFieldsForPart = (typeof PARTS_TO_POLICY_FIELDS)[Part][number];
 
-function setCopyPolicySettingsData(data: Partial<CopyPolicySettingsState>): void {
-    Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, data);
+function setCopyPolicySettingsData(data: Partial<CopyPolicySettingsState>): Promise<void> {
+    return Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, data);
 }
 
 function clearCopyPolicySettings(): void {
