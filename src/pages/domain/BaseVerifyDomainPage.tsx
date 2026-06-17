@@ -20,7 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDomainValidationCode, resetDomainValidationError, validateDomain} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -98,7 +98,13 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
         >
             <HeaderWithBackButton
                 title={translate('domain.verifyDomain.title')}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => {
+                    if (navigationRef.current?.canGoBack()) {
+                        Navigation.goBack();
+                    } else {
+                        Navigation.popToSidebar();
+                    }
+                }}
             />
             <View style={[styles.ph5, styles.flex1]}>
                 <ScrollView

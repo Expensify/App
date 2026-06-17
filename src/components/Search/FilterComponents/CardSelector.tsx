@@ -2,9 +2,10 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
-import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+import type {TextInputOptions} from '@components/SelectionList/types';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -23,12 +24,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ListFilterView from './ListFilterViewWrapper';
 
-type CardSelectorProps = {
-    value: string[] | undefined;
-    onChange: (cards: string[]) => void;
-};
+type CardSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
-function CardSelector({value = [], onChange}: CardSelectorProps) {
+function CardSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CardSelectorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -41,7 +39,6 @@ function CardSelector({value = [], onChange}: CardSelectorProps) {
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const personalDetails = usePersonalDetails();
 
     useEffect(() => {
@@ -72,36 +69,30 @@ function CardSelector({value = [], onChange}: CardSelectorProps) {
         !!item.cardName?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
         (item.isVirtual && translate('workspace.expensifyCard.virtual').toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()));
 
-    let sections: Array<Section<CardFilterItem>> = [];
-    let itemCount = 0;
-    let sectionHeaderCount = 0;
+    const selectedData = [...individualCardsSectionData, ...closedCardsSectionData].filter((item) => item.isSelected && searchFunction(item));
+    const unselectedIndividualCardsData = individualCardsSectionData.filter((item) => !item.isSelected && searchFunction(item));
+    const unselectedClosedCardsData = closedCardsSectionData.filter((item) => !item.isSelected && searchFunction(item));
 
-    if (searchAdvancedFiltersForm) {
-        const selectedData = [...individualCardsSectionData, ...closedCardsSectionData].filter((item) => item.isSelected && searchFunction(item));
-        const unselectedIndividualCardsData = individualCardsSectionData.filter((item) => !item.isSelected && searchFunction(item));
-        const unselectedClosedCardsData = closedCardsSectionData.filter((item) => !item.isSelected && searchFunction(item));
+    const itemCount = selectedData.length + unselectedIndividualCardsData.length + unselectedClosedCardsData.length;
+    const sectionHeaderCount = unselectedClosedCardsData.length > 0 ? 1 : 0;
 
-        itemCount = selectedData.length + unselectedIndividualCardsData.length + unselectedClosedCardsData.length;
-        sectionHeaderCount = unselectedClosedCardsData.length > 0 ? 1 : 0;
-
-        sections = [
-            {
-                title: undefined,
-                data: selectedData,
-                sectionIndex: 0,
-            },
-            {
-                title: undefined,
-                data: unselectedIndividualCardsData,
-                sectionIndex: 1,
-            },
-            {
-                title: translate('search.filters.card.closedCards'),
-                data: unselectedClosedCardsData,
-                sectionIndex: 2,
-            },
-        ];
-    }
+    const sections = [
+        {
+            title: undefined,
+            data: selectedData,
+            sectionIndex: 0,
+        },
+        {
+            title: undefined,
+            data: unselectedIndividualCardsData,
+            sectionIndex: 1,
+        },
+        {
+            title: translate('search.filters.card.closedCards'),
+            data: unselectedClosedCardsData,
+            sectionIndex: 2,
+        },
+    ];
 
     const updateNewCards = (item: CardFilterItem) => {
         if (!item.keyForList) {
@@ -117,14 +108,18 @@ function CardSelector({value = [], onChange}: CardSelectorProps) {
         }
     };
 
-    const textInputOptions = {
+    const textInputOptions: TextInputOptions = {
         value: searchTerm,
         label: translate('common.search'),
         onChangeText: setSearchTerm,
         headerMessage: debouncedSearchTerm.trim() && sections.every((section) => !section.data.length) ? translate('common.noResultsFound') : '',
+        style: {
+            containerStyle: selectionListTextInputStyle,
+        },
+        disableAutoFocus: !autoFocus,
     };
 
-    const isLoadingOnyxData = isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata);
+    const isLoadingOnyxData = isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata);
     const shouldShowLoadingState = isLoadingOnyxData || (!areCardsLoaded && !isOffline);
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SearchFiltersCardPage', isLoadingFromOnyx: isLoadingOnyxData};
 
@@ -154,6 +149,8 @@ function CardSelector({value = [], onChange}: CardSelectorProps) {
                     textInputOptions={textInputOptions}
                     shouldStopPropagation
                     canSelectMultiple
+                    style={selectionListStyle}
+                    footerContent={footer}
                 />
             )}
         </ListFilterView>
