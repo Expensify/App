@@ -31,7 +31,16 @@ function getPoliciesSelector(participants: ParticipantWithPolicyID[]): (allPolic
  * @returns Record mapping policyID to Policy
  */
 function useParticipantsPolicies(participants: ParticipantWithPolicyID[]): Record<string, Policy> {
-    const policiesSelector = useCallback((allPolicies: OnyxCollection<Policy>) => getPoliciesSelector(participants)(allPolicies), [participants]);
+    // Key the memoized selector on the participants' policy IDs (the only data it reads) rather than
+    // the array reference. A caller passing a fresh array with identical IDs (e.g. a `?? []` fallback)
+    // would otherwise recreate the selector every render, defeating useOnyx's selector memoization and
+    // causing it to re-subscribe each render — which never settles under the store-based engine.
+    const participantPolicyIDs = participants.map((participant) => participant.policyID).join(',');
+    const policiesSelector = useCallback(
+        (allPolicies: OnyxCollection<Policy>) => getPoliciesSelector(participants)(allPolicies),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [participantPolicyIDs],
+    );
     const [participantsPolicies = getEmptyObject<Record<string, Policy>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
 
     return participantsPolicies;
