@@ -25,6 +25,7 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNav,
         useIsFocused: jest.fn(),
+        useFocusEffect: jest.fn(),
         useRoute: jest.fn(),
         usePreventRemove: jest.fn(),
     };
@@ -34,8 +35,7 @@ jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator');
 const mockIsReportTopmostSplitNavigator = jest.mocked(isReportTopmostSplitNavigator);
 
 const navigationMock = {} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation'];
-const getRouteMock = (reportID: string, path?: string) =>
-    ({params: {reportID}, path}) as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route'];
+const getRouteMock = (reportID: string) => ({params: {reportID}}) as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route'];
 
 describe('DynamicReportDetailsPage', () => {
     beforeAll(() => {
@@ -142,7 +142,7 @@ describe('DynamicReportDetailsPage', () => {
         const roomReportID = '10';
         const policyRoom: Report = createRandomReport(Number(roomReportID), CONST.REPORT.CHAT_TYPE.POLICY_ROOM);
 
-        const renderDetailsPage = (routePath?: string) =>
+        const renderDetailsPage = () =>
             render(
                 <OnyxListItemProvider>
                     <LocaleContextProvider>
@@ -154,7 +154,7 @@ describe('DynamicReportDetailsPage', () => {
                             report={policyRoom}
                             reportMetadata={undefined}
                             reportLoadingState={undefined}
-                            route={getRouteMock(roomReportID, routePath)}
+                            route={getRouteMock(roomReportID)}
                         />
                     </LocaleContextProvider>
                 </OnyxListItemProvider>,
@@ -164,40 +164,7 @@ describe('DynamicReportDetailsPage', () => {
             jest.restoreAllMocks();
         });
 
-        it('keeps showing "Go to room" derived from the page route even when the room is the topmost report (revisit flow)', async () => {
-            // The page was opened from the Workspace rooms list (route.path base is the rooms list, not the room).
-            // Simulate the reviewer's revisit flow where the GLOBAL topmost report has since become the room itself:
-            // the option must stay derived from the page's own route, not the now-stale global navigation state.
-            mockIsReportTopmostSplitNavigator.mockReturnValue(true);
-            jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(roomReportID);
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${roomReportID}`, policyRoom);
-            });
-
-            renderDetailsPage(`workspaces/1/rooms/details?reportID=${roomReportID}`);
-            await waitForBatchedUpdatesWithAct();
-
-            expect(await screen.findByText(translateLocal('reportDetailsPage.goToRoom'))).toBeVisible();
-        });
-
-        it('does not show "Go to room" when the page route sits on top of its own room', async () => {
-            // route.path base is the room report itself, so "Go to room" is hidden regardless of the global nav state.
-            mockIsReportTopmostSplitNavigator.mockReturnValue(false);
-            jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(undefined);
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${roomReportID}`, policyRoom);
-            });
-
-            renderDetailsPage(`r/${roomReportID}/details`);
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.queryByText(translateLocal('reportDetailsPage.goToRoom'))).toBeNull();
-        });
-
-        it('shows "Go to room" for a path-less instance when the room is not the topmost report', async () => {
-            // A details RHP recreated by back navigation has no route.path, so the visibility falls back to the live
-            // topmost-report check. At the settled state of the reviewer's revisit flow the room is no longer the topmost
-            // report, so "Go to room" must be shown — this is the case the previous mount-time frozen check got wrong.
+        it('shows "Go to room" when the room is not the screen behind the Details page', async () => {
             mockIsReportTopmostSplitNavigator.mockReturnValue(false);
             jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(undefined);
             await act(async () => {
@@ -210,7 +177,7 @@ describe('DynamicReportDetailsPage', () => {
             expect(await screen.findByText(translateLocal('reportDetailsPage.goToRoom'))).toBeVisible();
         });
 
-        it('does not show "Go to room" for a path-less instance when the room is the topmost report', async () => {
+        it('does not show "Go to room" when the Details page is on top of its own room', async () => {
             mockIsReportTopmostSplitNavigator.mockReturnValue(true);
             jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(roomReportID);
             await act(async () => {

@@ -1,7 +1,7 @@
-import {StackActions} from '@react-navigation/native';
+import {StackActions, useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
@@ -43,13 +43,10 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
-import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -162,20 +159,6 @@ const CASES = {
 };
 
 type CaseID = ValueOf<typeof CASES>;
-
-function normalizeBasePath(path: string): string {
-    return path.replace(/^\/+/, '').replace(/\?.*$/, '').replace(/\/+$/, '');
-}
-
-/** Whether the Details page sits directly on top of its own room report, derived from the page's own route.path. */
-function isReportDetailsOnTopOfRoom(routePath: string, reportID: string | undefined): boolean {
-    const pathWithoutLeadingSlash = routePath.replace(/^\/+/, '');
-    const suffixMatch = findAllMatchingDynamicSuffixes(pathWithoutLeadingSlash).find((match) => match.pattern === DYNAMIC_ROUTES.REPORT_DETAILS.path);
-    const basePath = suffixMatch ? getPathWithoutDynamicSuffix(pathWithoutLeadingSlash, suffixMatch.actualSuffix, suffixMatch.pattern) : pathWithoutLeadingSlash;
-    const normalizedBasePath = normalizeBasePath(basePath);
-    const roomBasePath = normalizeBasePath(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    return normalizedBasePath === roomBasePath || normalizedBasePath.startsWith(`${roomBasePath}/`);
-}
 
 function DynamicReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: DynamicReportDetailsPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
@@ -399,10 +382,12 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserPersonalDetails?.accountID, !!reportNameValuePairs?.private_isArchived);
 
-    // Show "Go to room" only when the Details page is not on top of the room itself. Prefer the page's own route.path
-    // (stable across the RHP close and revisits); fall back to a live topmost-report check when the path is missing.
-    const liveIsRoomCurrentlyOpen = useRootNavigationState(() => isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === report?.reportID);
-    const isRoomCurrentlyOpen = route.path ? isReportDetailsOnTopOfRoom(route.path, report?.reportID) : liveIsRoomCurrentlyOpen;
+    // Snapshot on focus whether the room is the screen behind the Details page, so the row doesn't flip while the page
+    // is closing after it's tapped, yet still reflects the correct screen on later visits.
+    const [isRoomCurrentlyOpen, setIsRoomCurrentlyOpen] = useState(() => isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === report?.reportID);
+    useFocusEffect(() => {
+        setIsRoomCurrentlyOpen(isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === report?.reportID);
+    });
     const shouldShowGoToRoom = (isChatRoom || isPolicyExpenseChat) && !isRoomCurrentlyOpen;
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending && !shouldShowGoToRoom;
 
