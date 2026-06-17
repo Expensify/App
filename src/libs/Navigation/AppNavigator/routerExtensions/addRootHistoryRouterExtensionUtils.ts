@@ -54,13 +54,12 @@ function getTrailingStringSentinels(history: unknown[] | undefined): string[] {
     return typed.slice(cutoff).filter((entry): entry is string => typeof entry === 'string');
 }
 
-/** Removes the trailing run of modal back-guard sentinels (used to consume them on forward navigation). */
+/** Removes only the topmost modal back-guard sentinel (used to consume one guard on forward navigation). */
 function stripTrailingModalSentinels(history: CustomHistoryEntry[]): CustomHistoryEntry[] {
-    let end = history.length;
-    while (end > 0 && isModalHistorySentinel(history.at(end - 1))) {
-        end -= 1;
+    if (isModalHistorySentinel(history.at(-1))) {
+        return history.slice(0, -1);
     }
-    return end === history.length ? history : history.slice(0, end);
+    return history;
 }
 
 function isRightModalNavigatorRouteName(name: string | undefined): boolean {

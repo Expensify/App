@@ -100,9 +100,10 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
 
             // #90776: forward navigation out of a `shouldHandleNavigationBack` Modal. The previous state
             // had a trailing modal back-guard sentinel; rehydrate() re-appends it on top of the freshly
-            // pushed route, which would strand a phantom browser entry (Back needing two presses). Drop the
-            // trailing modal sentinel(s) so the new history length matches the previous one and useLinking
+            // pushed route, which would strand a phantom browser entry (Back needing two presses). Drop only
+            // the top modal sentinel so the new history length matches the previous one and useLinking
             // sees historyDelta === 0 → history.replace, letting the new screen consume the guard entry.
+            // Removing only the top sentinel preserves any outer modal guards when modals are nested.
             // The RN routes array still records a real push (done by the inner router), so in-app back is
             // unaffected. Either ordering works: if the Modal's own toggle(false) ran first, the trailing
             // entry is already a route and this is a no-op.
