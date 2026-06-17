@@ -79,20 +79,23 @@ export default function DomainGroupsTableRow({item, rowIndex, shouldUseNarrowTab
                                     text={item.name}
                                     style={styles.optionDisplayName}
                                 />
-                                <Text
-                                    numberOfLines={1}
-                                    style={styles.textLabelSupporting}
-                                >
-                                    {memberCountSubtitle}
-                                </Text>
+                                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                                    {item.isDefault && (
+                                        <Badge
+                                            text={translate('common.default')}
+                                            textStyles={styles.textStrong}
+                                            badgeStyles={[styles.alignSelfCenter, styles.ml0]}
+                                            isCondensed
+                                        />
+                                    )}
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.textLabelSupporting, styles.flex1]}
+                                    >
+                                        {memberCountSubtitle}
+                                    </Text>
+                                </View>
                             </View>
-                            {item.isDefault && (
-                                <Badge
-                                    text={translate('common.default')}
-                                    badgeStyles={styles.ml0}
-                                    isCondensed
-                                />
-                            )}
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                 {brickRoadIndicator}
                                 <Icon
@@ -108,22 +111,23 @@ export default function DomainGroupsTableRow({item, rowIndex, shouldUseNarrowTab
 
                     {!shouldUseNarrowTableLayout && (
                         <>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                                 <TextWithTooltip
                                     shouldShowTooltip
                                     text={item.name}
                                     style={[styles.optionDisplayName, styles.flexShrink1]}
                                 />
-                            </View>
-
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3]}>
-                                <Text numberOfLines={1}>{memberCountSubtitle}</Text>
                                 {item.isDefault && (
                                     <Badge
                                         text={translate('common.default')}
-                                        badgeStyles={styles.ml0}
+                                        textStyles={styles.textStrong}
+                                        badgeStyles={[styles.alignSelfCenter, styles.ml0]}
                                     />
                                 )}
+                            </View>
+
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <Text numberOfLines={1}>{memberCountSubtitle}</Text>
                             </View>
 
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}>
