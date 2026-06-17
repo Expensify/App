@@ -1,8 +1,7 @@
+import {hasAcceptedSoftPromptSelector} from '@selectors/DeviceBiometrics';
 import {useMachine} from '@xstate/react';
-import React, {useEffect} from 'react';
+import React from 'react';
 import type {ReactNode} from 'react';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
@@ -13,18 +12,16 @@ import trackMFAFlowStart from '@components/MultifactorAuthentication/observabili
 import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import getPlatform from '@libs/getPlatform';
 import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
-import type {DeviceBiometrics} from '@src/types/onyx';
 import MultifactorAuthenticationExternalAPIContext from './MultifactorAuthenticationExternalApiContext';
 import type {MultifactorAuthenticationExecuteScenarioArgs, MultifactorAuthenticationExternalAPI} from './MultifactorAuthenticationExternalApiContext';
 import MultifactorAuthenticationInternalApiContext from './MultifactorAuthenticationInternalApiContext';
 import type {MultifactorAuthenticationInternalApi} from './MultifactorAuthenticationInternalApiContext';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
-
-let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
 
 type MultifactorAuthenticationContextProviderProps = {
     children: ReactNode;
@@ -35,28 +32,17 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const {isOffline} = useNetwork();
     const platform = getPlatform();
     const biometrics = useBiometrics();
+    const [hasEverAcceptedSoftPrompt = false] = useOnyx(getDeviceBiometricsOnyxKey(accountID), {selector: hasAcceptedSoftPromptSelector});
 
     const [snapshot, send] = useMachine(MFAMachine);
     const state = snapshotToState(snapshot);
-
-    useEffect(() => {
-        // Non-reactive read of deviceBiometrics. Using Onyx.connectWithoutView instead of useOnyx
-        // to avoid excess re-renders during the fresh registration flow.
-        const connection = Onyx.connectWithoutView({
-            key: getDeviceBiometricsOnyxKey(accountID),
-            callback: (data) => {
-                deviceBiometricsState = data;
-            },
-        });
-        return () => Onyx.disconnect(connection);
-    }, [accountID]);
 
     const captureCredentialsState = async (): Promise<CredentialsState> => {
         const hasLocalCredentials = await biometrics.areLocalCredentialsKnownToServer();
         return {
             hasServerCredentials: biometrics.serverKnownCredentialIDs.length > 0,
             hasLocalCredentials,
-            hasEverAcceptedSoftPrompt: !!deviceBiometricsState?.hasAcceptedSoftPrompt,
+            hasEverAcceptedSoftPrompt,
         };
     };
 
