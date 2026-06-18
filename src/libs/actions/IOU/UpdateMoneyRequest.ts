@@ -239,50 +239,22 @@ function updateMoneyRequestDate({
         expenseDate: value,
     });
     const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
-
-    if (newRateID && newRateID !== currentRateID && transaction && effectivePolicy) {
-        setLastSelectedDistanceRate(effectivePolicy, newRateID);
-        const distanceRateTaxUpdates =
-            !isTrackExpense && isTaxTrackingEnabled(true, effectivePolicy, true) && transaction ? getDistanceRateTaxUpdates(effectivePolicy, transaction, newRateID) : undefined;
-        updateMoneyRequestDistanceRate({
-            transaction,
-            transactionThreadReport,
-            parentReport,
-            rateID: newRateID,
-            created: value,
-            policy: effectivePolicy,
-            policyTagList: policyTags,
-            policyCategories,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
-            parentReportNextStep,
-            delegateAccountID,
-            hash,
-            transactions,
-            transactionViolations,
-            isOffline,
-            updatedTaxAmount: distanceRateTaxUpdates?.taxAmount,
-            updatedTaxCode: distanceRateTaxUpdates?.taxCode,
-            updatedTaxValue: distanceRateTaxUpdates?.taxValue,
-        });
-        return;
-    }
+    const shouldRecalculateRate = !!(newRateID && newRateID !== currentRateID && transaction && effectivePolicy);
 
     const transactionChanges: TransactionChanges = {
         created: value,
     };
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
-    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
+    if (isTrackExpense) {
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, effectivePolicy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
             transactionThreadReport,
             iouReport: parentReport,
             transactionChanges,
-            policy,
+            policy: effectivePolicy,
             policyTagList: policyTags,
             // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
             reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
@@ -299,6 +271,33 @@ function updateMoneyRequestDate({
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, params, onyxData);
+
+    if (shouldRecalculateRate) {
+        setLastSelectedDistanceRate(effectivePolicy, newRateID);
+        const distanceRateTaxUpdates =
+            !isTrackExpense && isTaxTrackingEnabled(true, effectivePolicy, true) && transaction ? getDistanceRateTaxUpdates(effectivePolicy, transaction, newRateID) : undefined;
+        updateMoneyRequestDistanceRate({
+            transaction,
+            transactionThreadReport,
+            parentReport,
+            rateID: newRateID,
+            policy: effectivePolicy,
+            policyTagList: policyTags,
+            policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+            parentReportNextStep,
+            delegateAccountID,
+            hash,
+            transactions,
+            transactionViolations,
+            isOffline,
+            updatedTaxAmount: distanceRateTaxUpdates?.taxAmount,
+            updatedTaxCode: distanceRateTaxUpdates?.taxCode,
+            updatedTaxValue: distanceRateTaxUpdates?.taxValue,
+        });
+    }
 }
 
 /** Updates the billable field of an expense */

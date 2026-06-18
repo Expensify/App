@@ -1739,7 +1739,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
     });
 
     describe('updateMoneyRequestDate distance rate recalculation', () => {
-        it('calls UpdateMoneyRequestDistanceRate with created when a workspace distance expense date change selects a different rate', async () => {
+        it('calls UpdateMoneyRequestDate and UpdateMoneyRequestDistanceRate when a workspace distance expense date change selects a different rate', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify date and rate update paths.
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             const transactionID = 'distance_date_rate_switch';
             const transactionThreadReportID = 'thread_date_rate_switch';
@@ -1837,15 +1838,16 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 delegateAccountID: undefined,
             });
 
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2026-06-15'}), expect.anything());
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
                 expect.objectContaining({
                     transactionID,
                     customUnitRateID: rate2026,
-                    created: '2026-06-15',
                 }),
                 expect.anything(),
             );
+            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, expect.objectContaining({created: '2026-06-15'}), expect.anything());
 
             writeSpy.mockRestore();
         });
@@ -2047,8 +2049,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             writeSpy.mockRestore();
         });
 
-        it('calls UpdateMoneyRequestDistanceRate with created when a Self DM track distance expense date change selects a different rate', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify track distance rate update path.
+        it('calls UpdateMoneyRequestDate and UpdateMoneyRequestDistanceRate when a Self DM track distance expense date change selects a different rate', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify date and rate update paths.
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             const transactionID = 'distance_date_self_dm';
             const transactionThreadReportID = 'thread_date_self_dm';
@@ -2159,16 +2161,15 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 delegateAccountID: undefined,
             });
 
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2026-06-15'}), expect.anything());
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
                 expect.objectContaining({
                     transactionID,
                     customUnitRateID: rate2026,
-                    created: '2026-06-15',
                 }),
                 expect.anything(),
             );
-            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
 
             writeSpy.mockRestore();
         });
