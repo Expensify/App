@@ -418,6 +418,26 @@ describe('OnyxUpdateManager', () => {
         });
     });
 
+    it('should defer and later fetch a brand-new update that arrives while a fetch is already in flight', async () => {
+        // Fire a brand-new (higher) update mid-cycle, after the deferred queue is drained but while the fetch is still in flight, to simulate a concurrent Pusher update.
+        ApplyUpdates.mockValues.beforeApplyUpdates = async () => {
+            ApplyUpdates.mockValues.beforeApplyUpdates = undefined;
+            OnyxUpdateManager.handleMissingOnyxUpdates(update7);
+        };
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+
+        return OnyxUpdateManager.queryPromise.then(() => {
+            // The new update must not fire its own parallel GetMissingOnyxMessages, but must still be fetched in order and applied (client reaches 7).
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(3);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(3, 5, 6);
+            expect(lastUpdateIDAppliedToClient).toBe(7);
+        });
+    });
+
     it('should apply deferred updates after fetching pending updates', () => {
         App.mockValues.missingOnyxUpdatesToBeApplied = [update2, update3];
 
