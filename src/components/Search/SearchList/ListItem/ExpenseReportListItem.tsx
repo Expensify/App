@@ -290,7 +290,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     ]);
 
     const handleSelectionButtonPress = useCallback(
-        (_passedItem?: unknown, options?: Partial<Modifiers>) => {
+        (options?: Partial<Modifiers>) => {
             onSelectionButtonPress?.(item, undefined, options);
         },
         [onSelectionButtonPress, item],

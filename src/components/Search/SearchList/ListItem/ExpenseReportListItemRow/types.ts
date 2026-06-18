@@ -8,7 +8,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 type ExpenseReportListItemRowNarrowProps = {
     item: ExpenseReportListItemType;
     canSelectMultiple?: boolean;
-    onCheckboxPress?: (_unused?: unknown, options?: Partial<Modifiers>) => void;
+    onCheckboxPress?: (options?: Partial<Modifiers>) => void;
     isSelectAllChecked?: boolean;
     isIndeterminate?: boolean;
     isDisabledCheckbox?: boolean;

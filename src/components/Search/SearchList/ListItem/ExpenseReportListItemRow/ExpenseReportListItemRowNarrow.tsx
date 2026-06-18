@@ -38,7 +38,7 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
         >
             {!!canSelectMultiple && (
                 <Checkbox
-                    onPress={(event) => onCheckboxPress(undefined, getModifierKeysFromEvent(event))}
+                    onPress={(event) => onCheckboxPress(getModifierKeysFromEvent(event))}
                     isChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
                     containerStyle={styles.m0}
