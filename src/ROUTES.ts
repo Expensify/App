@@ -470,7 +470,7 @@ const DYNAMIC_ROUTES = {
     },
     CONTACT_METHOD_DETAILS: {
         path: ':contactMethod/details',
-        entryScreens: [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS],
+        entryScreens: [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS, SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD],
         getRoute: (contactMethod: string, shouldSkipInitialValidation?: boolean) => {
             const encodedMethod = encodeURIComponent(contactMethod);
 
@@ -480,6 +480,10 @@ const DYNAMIC_ROUTES = {
     },
     NEW_CONTACT_METHOD: {
         path: 'new-contact-method',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS, SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE],
+    },
+    NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
+        path: 'new/confirm-magic-code',
         entryScreens: [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS],
     },
     SETTINGS_CATEGORY_EDIT: {
@@ -1412,15 +1416,6 @@ const ROUTES = {
         route: 'settings/profile/contact-methods',
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),
-    },
-    SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
-        route: 'settings/profile/contact-methods/new/confirm-magic-code',
-        getRoute: (backTo?: string) => {
-            // TODO this backTo comes from drilling it through settings screens
-            // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
-
-            return getUrlWithBackToParam(`settings/profile/contact-methods/new/confirm-magic-code`, backTo);
-        },
     },
     SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM: {
         route: 'settings/profile/contact-methods/:contactMethod/set-default/confirm',

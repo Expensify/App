@@ -31,6 +31,10 @@ describe('isDynamicRouteScreen', () => {
         expect(isDynamicRouteScreen(SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD)).toBe(true);
     });
 
+    it('should return true for DYNAMIC_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE', () => {
+        expect(isDynamicRouteScreen(SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE)).toBe(true);
+    });
+
     it('should return false for a regular screen (HOME)', () => {
         expect(isDynamicRouteScreen(SCREENS.HOME)).toBe(false);
     });

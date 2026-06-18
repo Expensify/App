@@ -147,7 +147,7 @@ const SCREENS = {
             CONTACT_METHODS: 'Settings_ContactMethods',
             DYNAMIC_CONTACT_METHOD_DETAILS: 'Dynamic_ContactMethodDetails',
             DYNAMIC_NEW_CONTACT_METHOD: 'Dynamic_NewContactMethod',
-            NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: 'Settings_NewContactMethod_ConfirmMagicCode',
+            DYNAMIC_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: 'Dynamic_NewContactMethod_ConfirmMagicCode',
             CONTACT_METHOD_SET_DEFAULT_CONFIRM: 'Settings_ContactMethod_SetDefault_Confirm',
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
