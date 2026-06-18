@@ -81,7 +81,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
                                 <MenuItem
                                     title={option.menuItemTitle}
                                     description={option.description}
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID, navigateBackTo))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID)))}
                                     brickRoadIndicator={option.indicator}
                                     shouldShowBasicTitle
                                     shouldShowRightIcon

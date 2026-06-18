@@ -23,6 +23,10 @@ describe('isDynamicRouteScreen', () => {
         expect(isDynamicRouteScreen(SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY)).toBe(true);
     });
 
+    it('should return true for DYNAMIC_CONTACT_METHOD_DETAILS', () => {
+        expect(isDynamicRouteScreen(SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS)).toBe(true);
+    });
+
     it('should return false for a regular screen (HOME)', () => {
         expect(isDynamicRouteScreen(SCREENS.HOME)).toBe(false);
     });

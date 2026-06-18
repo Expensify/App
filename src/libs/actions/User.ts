@@ -49,7 +49,7 @@ import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {type Route} from '@src/ROUTES';
 import type {ExpenseRuleForm, MerchantRuleForm, SpendRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
@@ -299,7 +299,7 @@ function updateNewsletterSubscription(isSubscribed: boolean) {
  * @param contactMethod - the contact method being deleted
  * @param loginList
  */
-function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>, backTo?: string) {
+function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>, navigateBackTo?: Route) {
     const oldLoginData = loginList[contactMethod];
     const loginKey = getExpensifyLoginKey(contactMethod);
 
@@ -348,7 +348,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
     const parameters: DeleteContactMethodParams = {partnerUserID: contactMethod};
 
     API.write(WRITE_COMMANDS.DELETE_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    Navigation.goBack(navigateBackTo ?? ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
 /**

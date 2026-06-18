@@ -416,8 +416,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/StateSelectionPage').default),
     [SCREENS.SETTINGS.PROFILE.AVATAR]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Avatar/AvatarPage').default,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/ContactMethodsPage').default),
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: withAgentAccessDenied(
-        () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default,
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS]: withAgentAccessDenied(
+        () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage').default,
     ),
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/NewContactMethodPage').default),
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: withAgentAccessDenied(

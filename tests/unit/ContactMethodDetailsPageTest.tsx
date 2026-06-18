@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import * as UserActions from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
-import ContactMethodDetailsPage from '@pages/settings/Profile/Contacts/ContactMethodDetailsPage';
+import DynamicContactMethodDetailsPage from '@pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MockFetch} from '../utils/TestHelper';
 import {getGlobalFetchMock} from '../utils/TestHelper';
@@ -21,6 +21,8 @@ jest.mock('@react-navigation/native', () => {
         usePreventRemove: jest.fn(),
     };
 });
+
+jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/profile/contact-methods'));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
@@ -57,7 +59,6 @@ function HTMLProviderWrapper({children}: {children: React.ReactNode}) {
 const fakeEmail = 'fake@gmail.com';
 const mockRoute = {
     params: {
-        backTo: '',
         contactMethod: fakeEmail,
     },
 };
@@ -69,7 +70,7 @@ const mockLoginList = {
     },
 };
 
-describe('ContactMethodDetailsPage', () => {
+describe('DynamicContactMethodDetailsPage', () => {
     let mockFetch: MockFetch;
     beforeAll(() => {
         Onyx.init({
@@ -82,10 +83,10 @@ describe('ContactMethodDetailsPage', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    function ContactMethodDetailsPageRenderer() {
+    function DynamicContactMethodDetailsPageRenderer() {
         return (
             <HTMLProviderWrapper>
-                <ContactMethodDetailsPage
+                <DynamicContactMethodDetailsPage
                     // @ts-expect-error - Ignoring type errors for testing purposes
                     route={mockRoute}
                 />
@@ -99,7 +100,7 @@ describe('ContactMethodDetailsPage', () => {
         await waitForBatchedUpdates();
 
         // Given the page is rendered
-        render(<ContactMethodDetailsPageRenderer />);
+        render(<DynamicContactMethodDetailsPageRenderer />);
 
         // When a deleteContactMethod called
         UserActions.deleteContactMethod(fakeEmail, mockLoginList);
@@ -128,7 +129,7 @@ describe('ContactMethodDetailsPage', () => {
         await waitForBatchedUpdates();
 
         // Given the page is rendered
-        render(<ContactMethodDetailsPageRenderer />);
+        render(<DynamicContactMethodDetailsPageRenderer />);
         await waitForBatchedUpdatesWithAct();
 
         // Then resetContactMethodValidateCodeSentState should not be called
@@ -148,7 +149,7 @@ describe('ContactMethodDetailsPage', () => {
         });
         await waitForBatchedUpdates();
 
-        render(<ContactMethodDetailsPageRenderer />);
+        render(<DynamicContactMethodDetailsPageRenderer />);
         await waitForBatchedUpdatesWithAct();
 
         await act(async () => {
