@@ -1423,9 +1423,12 @@ Call this from your action once the optimistic data is written:
 Navigation.revealRouteBeforeDismissingModal(routeToNavigate, {disableRHPAnimation: true});
 ```
 
+> [!NOTE]
+> `disableRHPAnimation` is honored only on a small-width layout (`getIsSmallScreenWidth()`). On a wide layout (including native tablets) it is a no-op and the RHP animates normally.
+
 This dispatches `REPLACE_FULLSCREEN_UNDER_RHP` (mounts the destination beneath the RHP) and then `DISMISS_MODAL`. Two more things are needed on the destination side to make the reveal clean:
 
-**1. Keep a back-stack screen so swipe-back still works.** `handleReplaceFullscreenUnderRHP` seeds the target tab navigator with its list/sidebar screen beneath the new split (e.g. `[WORKSPACES_LIST, WORKSPACE_SPLIT_NAVIGATOR]`). Seed a **fresh** route (no reused key) so it mounts "born non-top" — reusing an already-focused screen's key makes react-native-screens detach/re-attach the top screen and flash it during the reveal.
+**1. Keep a back-stack screen so swipe-back still works.** `handleReplaceFullscreenUnderRHP` seeds the target tab navigator with its list/sidebar screen beneath the new split (e.g. `[WORKSPACES_LIST, WORKSPACE_SPLIT_NAVIGATOR]`). Seed a **fresh** route (no reused key) so it mounts "born non-top" — reusing an already-focused screen's key makes react-native-screens detach/re-attach the top screen and flash it during the reveal. This seeding is currently hardcoded for `WORKSPACE_NAVIGATOR` inside `handleReplaceFullscreenUnderRHP`, so adopting the recipe for a new entity also requires adding a branch there (not just wiring up `getRevealScreenOptions`).
 
 **2. Skip the destination's enter animation.** The handler flags the revealed leaf route with `noEnterAnimation`, and every navigator level that animates on the way in reads it via the shared helper:
 

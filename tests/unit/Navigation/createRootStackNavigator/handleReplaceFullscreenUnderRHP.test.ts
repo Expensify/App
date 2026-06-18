@@ -110,7 +110,8 @@ function getWorkspaceNavInnerRoutes(result: StackNavigationState<ParamListBase> 
     const workspaceNavState = workspaceNav?.state as NavigationState | undefined;
     const split = workspaceNavState?.routes?.find((r) => r.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
     const splitNoEnterAnimation = (split?.params as {noEnterAnimation?: boolean} | undefined)?.noEnterAnimation;
-    return {names: workspaceNavState?.routes?.map((r) => r.name), index: workspaceNavState?.index, splitNoEnterAnimation};
+    const list = workspaceNavState?.routes?.find((r) => r.name === SCREENS.WORKSPACES_LIST);
+    return {names: workspaceNavState?.routes?.map((r) => r.name), index: workspaceNavState?.index, splitNoEnterAnimation, listKey: list?.key, listParams: list?.params};
 }
 
 describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () => {
@@ -143,18 +144,37 @@ describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () =
         const existing = makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'})], 1);
         const result = handleReplaceFullscreenUnderRHP(existing, makeAction(), CONFIG_OPTIONS, stackRouter);
 
-        const {names, index} = getWorkspaceNavInnerRoutes(result);
+        const {names, index, listKey} = getWorkspaceNavInnerRoutes(result);
         expect(names).toEqual([SCREENS.WORKSPACES_LIST, NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]);
         expect(index).toBe(1);
+        // The seeded list must NOT reuse the existing list's key, otherwise react-native-screens flashes it
+        // on reveal (#90985). A keyless route is born-non-top and gets a fresh key on rehydration.
+        expect(listKey).toBeUndefined();
+    });
+
+    it('preserves the existing WORKSPACES_LIST params (e.g. backTo) on the freshly seeded sidebar', () => {
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const existing = makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST, {backTo: '/settings'}), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'})], 1);
+        const result = handleReplaceFullscreenUnderRHP(existing, makeAction(), CONFIG_OPTIONS, stackRouter);
+
+        const {names, listKey, listParams} = getWorkspaceNavInnerRoutes(result);
+        expect(names).toEqual([SCREENS.WORKSPACES_LIST, NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]);
+        // Params survive so the back target is preserved, but the key is dropped to keep the route born-non-top.
+        expect(listParams).toEqual({backTo: '/settings'});
+        expect(listKey).toBeUndefined();
     });
 
     it('does not duplicate WORKSPACES_LIST when the incoming parsed state already includes it (idempotent)', () => {
         mockStubbedParsedState = makeParsedState(INCOMING_WITH_LIST);
         const result = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(), CONFIG_OPTIONS, stackRouter);
 
-        const {names, index} = getWorkspaceNavInnerRoutes(result);
+        const {names, index, splitNoEnterAnimation} = getWorkspaceNavInnerRoutes(result);
         expect(names).toEqual([SCREENS.WORKSPACES_LIST, NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]);
         expect(index).toBe(1);
+        // noEnterAnimation is set even though no list is prepended on this path (the prepend branch is
+        // skipped because the incoming first route is already WORKSPACES_LIST), so the reveal still skips
+        // the split's enter animation (#90985).
+        expect(splitNoEnterAnimation).toBe(true);
     });
 
     it('returns null (no-op) when there is no modal on top of the stack', () => {

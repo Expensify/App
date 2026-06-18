@@ -47,7 +47,9 @@ function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavi
     // When this split is revealed under an RHP (workspace creation), the outer split's enter animation
     // is already suppressed (see WorkspaceNavigator). Suppress the sidebar's enter animation too,
     // otherwise WorkspaceInitialPage slides in over the blank split background after the RHP dismisses,
-    // flashing white (#90985). Only affects the initial reveal; the sidebar doesn't re-animate afterwards.
+    // flashing white (#90985). The noEnterAnimation flag stays on this route's params for its lifetime,
+    // which is safe: swipe-back pops the flagged route and re-entering a workspace mints a fresh route
+    // without the flag, so the sidebar animates normally afterwards.
     const sidebarScreenOptions = getRevealScreenOptions(route.params, splitNavigatorScreenOptions.sidebarScreen);
 
     return (

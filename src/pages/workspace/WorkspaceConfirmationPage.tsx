@@ -10,7 +10,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
-import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
@@ -44,7 +43,8 @@ function WorkspaceConfirmationPage() {
     useEffect(() => () => clearTimeout(creatingWorkspaceTimeoutRef.current), []);
 
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
-        const policyID = params.policyID || generatePolicyID();
+        // policyID is always supplied by WorkspaceConfirmationForm (stable per form instance).
+        const policyID = params.policyID;
         const isDifferentOwner = !!params.owner && params.owner !== (currentUserPersonalDetails.email ?? '');
         const shouldShowSuccessPage = isDifferentOwner && !params.makeMeAdmin;
         const workspaceRoute = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);

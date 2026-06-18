@@ -423,7 +423,10 @@ function handleReplaceFullscreenUnderRHP(
                 // its key, and when the user backed into the list it is the active/top native screen — the
                 // reveal then demotes that active list top->non-top, which makes react-native-screens
                 // detach/re-attach the split on top and flash WORKSPACES_LIST during the detach (#90985).
-                sidebarRoute = {name: SCREENS.WORKSPACES_LIST};
+                // Carry over the existing list's params (e.g. backTo) so the back target survives; only the
+                // key is dropped, which is what keeps the route born-non-top.
+                const existingListParams = existingFirstRoute?.name === SCREENS.WORKSPACES_LIST ? existingFirstRoute.params : undefined;
+                sidebarRoute = {name: SCREENS.WORKSPACES_LIST, ...(existingListParams ? {params: existingListParams} : {})};
             } else {
                 sidebarRoute = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
             }
@@ -432,6 +435,12 @@ function handleReplaceFullscreenUnderRHP(
                 mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
             }
             if (r.name === NAVIGATORS.WORKSPACE_NAVIGATOR && mergedNestedState?.routes) {
+                // The sidebar above is forced to WORKSPACES_LIST and only WORKSPACE_SPLIT_NAVIGATOR is flagged
+                // below, so revealing a domain split here would seed the wrong list and flash. No caller reveals
+                // a domain split through this path today; surface it if one is ever added.
+                if (mergedNestedState.routes.some((nestedRoute) => nestedRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR)) {
+                    Log.hmmm('[handleReplaceFullscreenUnderRHP] Revealing a domain split under WORKSPACE_NAVIGATOR is unsupported; expected WORKSPACE_SPLIT_NAVIGATOR.');
+                }
                 // Flag the revealed split so WorkspaceNavigator skips its enter animation. Otherwise the
                 // split slides in over the seeded WORKSPACES_LIST when the RHP dismisses and the list
                 // flashes for the slide duration (#90985). gestureEnabled stays on for iOS swipe-back (#93003).

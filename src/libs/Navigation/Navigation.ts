@@ -13,6 +13,7 @@ import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
 import {setupNavigationFocusReturn} from '@libs/NavigationFocusReturn';
@@ -1028,11 +1029,14 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         return;
     }
 
-    // When the caller opts in, disable the RHP slide-out so it dismisses instantly instead of sliding a
-    // (content-already-gone) white card off-screen over the not-yet-composited destination (#90985).
-    // Emitted now so the RHP's setOptions takes effect before the dismiss two frames later; restored
-    // after the dismiss so subsequent RHPs animate normally.
-    const shouldDisableRHPAnimation = !!options?.disableRHPAnimation && getIsNarrowLayout();
+    // When the caller opts in on a small-width layout, disable the RHP slide-out so it dismisses instantly
+    // instead of sliding a (content-already-gone) white card over the not-yet-composited destination (#90985).
+    // Gated on getIsSmallScreenWidth() (not getIsNarrowLayout(), which is always true on native) so a wide
+    // tablet keeps its slide-out, matching the Confirm spinner that is also shown only on small widths.
+    // Emitted now so the RHP's setOptions takes effect before the dismiss two frames later; restored once the
+    // dismiss transition settles. These DISABLE/RESTORE_RHP_ANIMATION events are shared with the pre-insert
+    // flow (preInsertFullscreenUnderRHP); the two flows never overlap, so the unscoped events can't cross-talk.
+    const shouldDisableRHPAnimation = !!options?.disableRHPAnimation && getIsSmallScreenWidth();
     if (shouldDisableRHPAnimation) {
         DeviceEventEmitter.emit(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION);
     }
