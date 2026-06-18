@@ -1,4 +1,4 @@
-# BugZero Checklist:
+# Contributor+ Checklist:
 
 - [ ] **[Contributor]** The offending PR and associated issue have been commented on, pointing out the bug it caused and why, so the author and reviewers can learn from the mistake.
 
