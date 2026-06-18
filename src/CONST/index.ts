@@ -8787,6 +8787,9 @@ const CONST = {
             BACKDROP: 'MfaOverlay-Backdrop',
         },
         DOMAIN: {
+            ADMINS: {
+                ROW: 'DomainAdmins-Row',
+            },
             GROUPS: {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
             },
