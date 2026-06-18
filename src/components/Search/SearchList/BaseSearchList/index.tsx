@@ -58,7 +58,7 @@ function BaseSearchList({
     onLayout,
     contentContainerStyle,
     flattenedItemsLength,
-    selectedTransactions,
+    isAttendeesEnabledForMovingPolicy,
     nonPersonalAndWorkspaceCards,
     stickyHeaderIndices,
     stickyHeaderConfig,
@@ -163,7 +163,10 @@ function BaseSearchList({
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    const extraData = useMemo(() => [focusedIndex, columns, selectedTransactions, nonPersonalAndWorkspaceCards], [focusedIndex, columns, selectedTransactions, nonPersonalAndWorkspaceCards]);
+    const extraData = useMemo(
+        () => [focusedIndex, columns, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
+        [focusedIndex, columns, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
+    );
 
     return (
         <AnimatedFlashListComponent
