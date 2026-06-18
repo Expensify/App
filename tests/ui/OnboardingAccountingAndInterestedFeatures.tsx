@@ -40,14 +40,13 @@ const navigate = jest.spyOn(Navigation, 'navigate');
 const goBack = jest.spyOn(Navigation, 'goBack');
 jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(undefined);
 
-function renderInterestedFeaturesPage(backTo = '') {
+function renderInterestedFeaturesPage() {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.INTERESTED_FEATURES}>
                     <Stack.Screen
                         name={SCREENS.ONBOARDING.INTERESTED_FEATURES}
-                        initialParams={{backTo}}
                     >
                         {(props) => (
                             <BaseOnboardingInterestedFeatures
@@ -62,14 +61,13 @@ function renderInterestedFeaturesPage(backTo = '') {
     );
 }
 
-function renderAccountingPage(backTo = '') {
+function renderAccountingPage() {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.ACCOUNTING}>
                     <Stack.Screen
                         name={SCREENS.ONBOARDING.ACCOUNTING}
-                        initialParams={{backTo}}
                     >
                         {(props) => (
                             <BaseOnboardingAccounting
@@ -114,14 +112,14 @@ describe('Onboarding interested features and accounting pages', () => {
         jest.clearAllMocks();
     });
 
-    it('navigates to accounting with backTo when accounting remains enabled', async () => {
-        renderInterestedFeaturesPage('/home');
+    it('navigates to accounting when accounting remains enabled', async () => {
+        renderInterestedFeaturesPage();
 
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute('/home'));
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
         });
         expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
     });
@@ -166,12 +164,12 @@ describe('Onboarding interested features and accounting pages', () => {
         });
     });
 
-    it('preserves backTo when returning from accounting', async () => {
-        renderAccountingPage('/home');
+    it('returns to interested features from accounting', async () => {
+        renderAccountingPage();
 
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.back')));
 
-        expect(goBack).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(undefined, '/home'));
+        expect(goBack).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
     });
 });

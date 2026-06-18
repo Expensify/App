@@ -3316,8 +3316,7 @@ const ROUTES = {
     ONBOARDING_INTERESTED_FEATURES: {
         route: 'onboarding/interested-features',
 
-        getRoute: (userReportedIntegration?: string, backTo?: string) =>
-            getUrlWithBackToParam(userReportedIntegration ? `onboarding/interested-features?userReportedIntegration=${userReportedIntegration}` : `onboarding/interested-features`, backTo),
+        getRoute: () => 'onboarding/interested-features' as const,
     },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',

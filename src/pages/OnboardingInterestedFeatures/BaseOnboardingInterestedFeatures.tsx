@@ -28,7 +28,7 @@ import {
 import {ONBOARDING_FEATURES} from '@libs/actions/Welcome/OnboardingFeatures';
 import type {OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFeatures';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +36,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
 
-function BaseOnboardingInterestedFeatures({shouldUseNativeStyles, route}: BaseOnboardingInterestedFeaturesProps) {
+function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard', 'Luggage', 'Clock']);
@@ -49,7 +49,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles, route}: BaseOn
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
 
-    const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
+    const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();
     const {completeOnboardingFlow, isLoading} = useCompleteOnboarding();
     const isVsb = onboarding?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -115,12 +115,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles, route}: BaseOn
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
-        if (!paidGroupPolicy || onboardingPolicyID) {
+        if (!groupPolicy || onboardingPolicyID) {
             return;
         }
-        setOnboardingAdminsChatReportID(paidGroupPolicy.chatReportIDAdmins?.toString());
-        setOnboardingPolicyID(paidGroupPolicy.id);
-    }, [paidGroupPolicy, onboardingPolicyID]);
+        setOnboardingAdminsChatReportID(groupPolicy.chatReportIDAdmins?.toString());
+        setOnboardingPolicyID(groupPolicy.id);
+    }, [groupPolicy, onboardingPolicyID]);
 
     const handleContinue = useCallback(async () => {
         const featuresMap: OnboardingFeatureMapItem[] = features.map((feature) => ({
@@ -135,13 +135,13 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles, route}: BaseOn
 
         if (isAccountingEnabled) {
             setOnboardingUserReportedIntegration(null);
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
             return;
         }
 
         setOnboardingUserReportedIntegration(null);
         await completeOnboardingFlow({featuresMap});
-    }, [completeOnboardingFlow, features, isAccountingEnabled, route.params?.backTo, selectedFeatures]);
+    }, [completeOnboardingFlow, features, isAccountingEnabled, selectedFeatures]);
 
     // Create items for enabled features
     const enabledFeatures: Feature[] = features
@@ -246,7 +246,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles, route}: BaseOn
                 shouldShowBackButton={!isVsb}
                 stepCounter={onboardingStep?.stepCounter}
                 progressBarPercentage={onboardingStep?.progressBarPercentage}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo))}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute())}
                 shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
