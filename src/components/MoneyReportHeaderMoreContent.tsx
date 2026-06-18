@@ -45,7 +45,9 @@ function MoneyReportHeaderMoreContent({reportID}: MoneyReportHeaderMoreContentPr
     const policyType = policy?.type;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
-    const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
+    // Submit workspaces (submit2026) aren't paid policies, but they still surface next steps
+    // (e.g. "Waiting for … to approve") since they run an advanced approval workflow internally.
+    const shouldShowNextStep = (isFromPaidPolicy || policyType === CONST.POLICY.TYPE.SUBMIT) && !isInvoiceReport && !shouldShowStatusBar;
 
     const shouldShowMoreContent = shouldShowNextStep || !!statusBarType || isReportInSearch;
 
