@@ -8,6 +8,26 @@ const {createSentryMetroSerializer} = require('@sentry/react-native/dist/js/tool
 
 const path = require('path');
 
+const {wrapTransformResultMaps} = require('@expo/metro-config/build/serializer/packedMap');
+const Bundler = require('metro/private/Bundler').default;
+
+// Expo SDK 56's transformer emits packed per-module source maps stock metro-source-map can't
+// read ("Unexpected module with full source map found"); unpack them here as Expo's CLI does.
+function patchMetroForExpoPackedSourceMaps() {
+    // Rock never exposes a Bundler instance, so we patch the shared prototype; the flag stops
+    // repeated config evaluation from stacking wrappers.
+    if (Bundler.prototype.__expoPackedSourceMapsPatched) {
+        return;
+    }
+    const originalTransformFile = Bundler.prototype.transformFile;
+    Bundler.prototype.transformFile = async function transformFile(...args) {
+        return wrapTransformResultMaps(await originalTransformFile.apply(this, args));
+    };
+    Bundler.prototype.__expoPackedSourceMapsPatched = true;
+}
+
+patchMetroForExpoPackedSourceMaps();
+
 // Prefer explicit ENVFILE (Fastlane/GHA set this), else fall back to local .env
 const envPath = process.env.ENVFILE ? (path.isAbsolute(process.env.ENVFILE) ? process.env.ENVFILE : path.join(__dirname, process.env.ENVFILE)) : path.join(__dirname, '.env');
 require('dotenv').config({path: envPath});
