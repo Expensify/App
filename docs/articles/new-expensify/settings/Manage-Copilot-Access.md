@@ -83,8 +83,6 @@ After you remove a Copilot:
 
 **Important:** If a Copilot performs billable activity in your account, both you and the Copilot count as active members for billing purposes.
 
-To learn what actions are considered billable activity and how active members are defined, see [Understand active members and billable activity](/path-to-billing-article).
-
 # FAQ
 
 ## Can I add someone who doesn't have an Expensify account?
