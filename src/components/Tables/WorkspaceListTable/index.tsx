@@ -40,7 +40,6 @@ type WorkspaceRowData = TableData & {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     action: (event?: ModifiedMouseEvent) => void;
     dismissError: () => void;
-    resetLoadingSpinnerIconIndex?: () => void;
 };
 
 type WorkspaceListTableProps = {

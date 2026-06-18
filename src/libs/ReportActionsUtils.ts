@@ -464,6 +464,14 @@ function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName
     return translate('personalCard.conciergeBrokenConnection', {cardName: personalCardName, connectionLink});
 }
 
+function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, originalMessage: OriginalMessageIOU | undefined, payer?: string): string {
+    if (originalMessage?.isSubmitterMarkedPaymentReceived) {
+        return translate('iou.receivedPaymentReportAction', payer);
+    }
+
+    return translate('iou.paidElsewhere', {payer, comment: originalMessage?.comment?.trim()});
+}
+
 function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageMarkedReimbursed | undefined;
     return translate('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
@@ -962,6 +970,9 @@ function getReportActionActorAccountID(
     iouReport: OnyxEntry<Report>,
     report: OnyxEntry<Report>,
     delegatePersonalDetails?: PersonalDetails | undefined | null,
+    // When true (e.g. in search results) the actual author is returned instead of the Concierge
+    // display override used in inbox timelines for automated actions.
+    shouldUseRealActor = false,
 ): number | undefined {
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW: {
@@ -977,7 +988,7 @@ function getReportActionActorAccountID(
 
         case CONST.REPORT.ACTIONS.TYPE.CREATED: {
             const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
-            if (isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
+            if (!shouldUseRealActor && isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
                 return CONST.ACCOUNT_ID.CONCIERGE;
             }
             return reportAction?.actorAccountID;
@@ -1002,7 +1013,7 @@ function getReportActionActorAccountID(
             // - Harvesting (delayed submissions)
             // - Automatic approvals/forwards via workspace rules
             // - Automatic payments via workspace rules
-            if (wasSubmittedViaHarvesting || (wasAutomatic && actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) || (wasAutomatic && isPayment)) {
+            if (!shouldUseRealActor && (wasSubmittedViaHarvesting || (wasAutomatic && actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) || (wasAutomatic && isPayment))) {
                 return CONST.ACCOUNT_ID.CONCIERGE;
             }
 
@@ -4672,6 +4683,7 @@ export {
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    getElsewherePaymentReportActionMessage,
     getMarkedReimbursedMessage,
     getReimbursedMessage,
     getMemberChangeMessageFragment,
