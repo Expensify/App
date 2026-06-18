@@ -7128,7 +7128,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             },
             controlPolicyRoles: {
                 title: 'Contrôler les rôles de politique',
-                description: 'Utilisez des rôles spécialisés comme Auditeur et Administrateur de cartes pour donner aux membres accès uniquement à ce dont ils ont besoin.',
+                description: 'Accordez aux membres un accès spécifique en attribuant des rôles comme Auditeur ou Administrateur de carte.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les rôles spécialisés dans l’espace de travail sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },

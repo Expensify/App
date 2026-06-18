@@ -6878,7 +6878,7 @@ ${reportName}`,
             },
             controlPolicyRoles: {
                 title: '控制策略角色',
-                description: '使用审计员、卡片管理员等专门角色，只授予成员完成工作所需的访问权限。',
+                description: '通过分配审计员或卡片管理员等角色，授予成员特定访问权限。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>专用工作区角色仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
