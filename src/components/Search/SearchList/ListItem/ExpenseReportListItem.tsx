@@ -399,10 +399,13 @@ function ExpenseReportListItem<TItem extends ListItem>({
         translate,
     ]);
 
+    // A group (not a button) when the row nests controls, so the checkbox/action button stay reachable by screen readers.
     return (
         <BaseListItem
             item={item}
-            accessibilityLabel={getExpenseReportRowAccessibilityLabel(liveReportItem, translate('iou.receiptStatusTitle'))}
+            accessibilityRole={canSelectMultiple ? CONST.ROLE.GROUP : undefined}
+            accessibilityLabel={getExpenseReportRowAccessibilityLabel(liveReportItem, translate)}
+            shouldUseOptionRole={false}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
             isFocused={isFocused}

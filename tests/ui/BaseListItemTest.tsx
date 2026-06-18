@@ -63,4 +63,48 @@ describe('BaseListItem', () => {
         );
         expect(screen.getByLabelText('Item text')).toBeTruthy();
     });
+
+    it('should keep the button role for a navigational row when shouldUseOptionRole is false', () => {
+        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        render(
+            <BaseListItem
+                item={{keyForList: '1', text: 'Item text'}}
+                keyForList="1"
+                shouldUseOptionRole={false}
+                onSelectRow={() => {}}
+                showTooltip={false}
+                isFocused={false}
+            />,
+        );
+        expect(screen.getByRole(CONST.ROLE.BUTTON)).toBeTruthy();
+    });
+
+    it('should resolve a single-select row to the option role by default', () => {
+        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        render(
+            <BaseListItem
+                item={{keyForList: '1', text: 'Item text'}}
+                keyForList="1"
+                onSelectRow={() => {}}
+                showTooltip={false}
+                isFocused={false}
+            />,
+        );
+        expect(screen.queryByRole(CONST.ROLE.BUTTON)).toBeNull();
+    });
+
+    it('should be presentational (not a button) when accessible is false, so nested controls stay reachable', () => {
+        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        render(
+            <BaseListItem
+                item={{keyForList: '1', text: 'Item text'}}
+                keyForList="1"
+                accessible={false}
+                onSelectRow={() => {}}
+                showTooltip={false}
+                isFocused={false}
+            />,
+        );
+        expect(screen.queryByRole(CONST.ROLE.BUTTON)).toBeNull();
+    });
 });

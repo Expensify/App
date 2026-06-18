@@ -35,10 +35,12 @@ function getAccessibilityProps<TItem extends ListItem>({
     item,
     isFocused,
     canSelectMultiple,
-}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
+    shouldUseOptionRole,
+}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple' | 'shouldUseOptionRole'>) {
     // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
-    // For multi-select (checkbox/radio), keep existing role and state.
-    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
+    // For multi-select (checkbox/radio), keep existing role and state. Navigational lists (shouldUseOptionRole === false)
+    // opt out so the row keeps its button role instead of becoming an option with no listbox container.
+    const isSelectableOption = shouldUseOptionRole !== false && !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
     const effectiveRole = getItemRole(role, isSelectableOption);
 
     const isCheckableRole = effectiveRole === CONST.ROLE.CHECKBOX || effectiveRole === CONST.ROLE.RADIO;
@@ -101,6 +103,7 @@ function BaseListItem<TItem extends ListItem>({
     accessible,
     accessibilityLabel,
     accessibilityRole = getButtonRole(true),
+    shouldUseOptionRole,
     forwardedFSClass,
     testID,
 }: BaseListItemProps<TItem>) {
@@ -165,6 +168,7 @@ function BaseListItem<TItem extends ListItem>({
         item,
         isFocused,
         canSelectMultiple,
+        shouldUseOptionRole,
     });
 
     return (
