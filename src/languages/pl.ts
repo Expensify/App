@@ -6705,7 +6705,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             workspaceNeeds: 'Miejsce pracy musi mieć włączoną co najmniej jedną stawkę za dystans.',
             distance: 'Dystans',
             centrallyManage: 'Centralnie zarządzaj stawkami, śledź w milach lub kilometrach i ustaw domyślną kategorię.',
-            emptyRates: {title: 'Brak stawek za dystans', subtitle: 'Dodaj stawkę, żeby rozliczać kilometry według własnych stawek.'},
+            emptyRates: {title: 'Brak stawek za dystans', subtitle: 'Dodaj stawkę do zwrotu kosztów przejechanych kilometrów według niestandardowych stawek.'},
             rate: 'Oceń',
             addRate: 'Dodaj stawkę',
             findRate: 'Znajdź kurs',
