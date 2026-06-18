@@ -435,7 +435,7 @@ describe('useAutocompleteSuggestions', () => {
     /* eslint-enable @typescript-eslint/naming-convention */
 
     describe('withdrawal-status autocomplete', () => {
-        it('returns all three settlement statuses when value is empty', () => {
+        it('returns all settlement statuses when value is empty', () => {
             parseForAutocomplete.mockReturnValue({
                 autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS, value: ''},
                 ranges: [],
@@ -444,7 +444,7 @@ describe('useAutocompleteSuggestions', () => {
             const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'withdrawal-status:'}));
 
             const values = result.current.map((item) => item.text).sort();
-            expect(values).toEqual(['cleared', 'failed', 'pending']);
+            expect(values).toEqual(['cleared', 'failed', 'never', 'pending']);
             expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_STATUS);
         });
 
@@ -469,7 +469,7 @@ describe('useAutocompleteSuggestions', () => {
             const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'withdrawal-status:pending,'}));
 
             const values = result.current.map((item) => item.text).sort();
-            expect(values).toEqual(['cleared', 'failed']);
+            expect(values).toEqual(['cleared', 'failed', 'never']);
         });
     });
 });

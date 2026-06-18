@@ -6571,6 +6571,7 @@ const CONST = {
             PENDING: 'pending',
             CLEARED: 'cleared',
             FAILED: 'failed',
+            NEVER: 'never',
         },
         IS_VALUES: {
             READ: 'read',
