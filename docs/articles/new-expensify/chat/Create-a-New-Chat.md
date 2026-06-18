@@ -2,7 +2,7 @@
 title: Create a New Chat
 description: Start a new private, group, or room chat
 redirect_from: articles/other/Everything-About-Chat/
-keywords: [Expensify chat, private chat, group chat, chat rooms, start chat, New Expensify]
+keywords: [Expensify chat, private chat, group chat, chat rooms, start chat, workspace rooms, rooms directory, New Expensify]
 ---
 
 Expensify Chat is an instant messaging system that helps you converse with people both inside and outside of your workspace about payments, company updates, and more. Expensify Chats are held in private chats, groups, and rooms.
@@ -54,6 +54,42 @@ Expensify Chat is an instant messaging system that helps you converse with peopl
 🔒 **Note:** Anyone, including non-workspace members, can be invited to a private or restricted room.
 
 8. Click or tap **Create Room**.
+
+---
+
+## How to find rooms in a workspace
+
+The **Rooms** directory lists the rooms you can access in a workspace, so you can quickly find a room—like your workspace's expense chat—without having to pin it.
+
+1. Click the **Workspaces** tab in the navigation tabs (on the left on web, on the bottom on mobile).
+2. Select the workspace.
+3. Click **Rooms** (listed under **Members**).
+
+Each row shows the room's icon, name, who created it, and the number of members. Rooms are listed in alphabetical order, and a search bar appears once there are enough rooms to scroll through.
+
+- **Workspace admins** – Clicking a room opens its details, where you can edit settings and manage members.
+- **Workspace members** – Clicking a room takes you into the room. Opening a room from the directory does not automatically join you to it.
+
+You only see the rooms your permissions allow, so the directory can look different for admins and members.
+
+<!-- SCREENSHOT:
+Suggestion: The Rooms directory under a workspace, showing several rooms listed alphabetically with icon, name, created by, and member count columns.
+Location: After the navigation steps in "How to find rooms in a workspace".
+Purpose: Show users where the Rooms entry appears and what each row contains.
+-->
+
+---
+
+## How to create a room from a workspace
+
+1. Click the **Workspaces** tab in the navigation tabs (on the left on web, on the bottom on mobile).
+2. Select the workspace.
+3. Click **Rooms**.
+4. Click **Create**.
+5. Enter a unique name for the room, set **Who Can Post**, and choose the room's **Visibility**.
+6. Click or tap **Create Room**.
+
+After the room is created, you're returned to the **Rooms** directory with the new room highlighted.
 
 ---
 
