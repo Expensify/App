@@ -996,6 +996,8 @@ jobs:
           && needs.prep.outputs.DEPLOY_ENV == 'production'
           && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     timeout-minutes: 10
+    outputs:
+      SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
@@ -1024,6 +1026,7 @@ jobs:
           [ -s Expensify-release.aab ] || { echo "::error::Failed to obtain Expensify-release.aab from $TAG"; exit 1; }
 
       - name: Upload Android build to Sentry for size analysis
+        id: sentry-upload
         if: ${{ hashFiles('Expensify-release.aab') != '' }}
         continue-on-error: true
         timeout-minutes: 5
@@ -1036,6 +1039,7 @@ jobs:
           SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
           if [ -n "$SENTRY_URL" ]; then
             echo "::notice::Android Sentry size analysis: $SENTRY_URL"
+            echo "SENTRY_URL=$SENTRY_URL" >> "$GITHUB_OUTPUT"
           fi
 
   iosUploadSentry:
@@ -1047,6 +1051,8 @@ jobs:
           && needs.prep.outputs.DEPLOY_ENV == 'production'
           && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     timeout-minutes: 10
+    outputs:
+      SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
@@ -1075,6 +1081,7 @@ jobs:
           [ -s Expensify.ipa ] || { echo "::error::Failed to obtain Expensify.ipa from $TAG"; exit 1; }
 
       - name: Upload iOS build to Sentry for size analysis
+        id: sentry-upload
         if: ${{ hashFiles('Expensify.ipa') != '' }}
         continue-on-error: true
         timeout-minutes: 5
@@ -1087,6 +1094,7 @@ jobs:
           SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
           if [ -n "$SENTRY_URL" ]; then
             echo "::notice::iOS Sentry size analysis: $SENTRY_URL"
+            echo "SENTRY_URL=$SENTRY_URL" >> "$GITHUB_OUTPUT"
           fi
 
   # Why is this necessary for CP-to-prod? Consider this scenario:
@@ -1158,7 +1166,7 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, checkDeploymentSuccess, createRelease, androidBuild, iosBuild]
+    needs: [prep, checkDeploymentSuccess, createRelease, androidBuild, iosBuild, androidUploadSentry, iosUploadSentry]
     secrets: inherit
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
@@ -1166,3 +1174,5 @@ jobs:
       android: ${{ needs.checkDeploymentSuccess.outputs.ANDROID_RESULT }}
       ios: ${{ needs.checkDeploymentSuccess.outputs.IOS_RESULT }}
       web: ${{ needs.checkDeploymentSuccess.outputs.WEB_RESULT }}
+      android_sentry_url: ${{ needs.androidUploadSentry.outputs.SENTRY_URL }}
+      ios_sentry_url: ${{ needs.iosUploadSentry.outputs.SENTRY_URL }}
