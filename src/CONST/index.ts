@@ -1031,6 +1031,7 @@ const CONST = {
         CERTINIA: 'financialForceNewDot',
         MERGE_HR: 'mergeHRConnections',
         VENDOR_MATCHING: 'vendorMatching',
+        RILLET: 'rillet',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -4132,6 +4133,7 @@ const CONST = {
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
                 financialforce: 'Certinia',
+                rillet: 'Rillet',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',

@@ -103,13 +103,23 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'ExpensifyCard', 'Gear', 'Key', 'NewWindow', 'Pencil', 'QuestionMark', 'Send', 'Sync', 'Trashcan']);
-    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare']);
+    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting']);
 
     const canUseCertiniaIntegration = isBetaEnabled(CONST.BETAS.CERTINIA) || !!policy?.connections?.financialforce;
+    const canUseRilletIntegration = isBetaEnabled(CONST.BETAS.RILLET) || !!policy?.connections?.rillet;
     const accountingIntegrations = useMemo(
-        () => CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => name !== CONST.POLICY.CONNECTIONS.NAME.CERTINIA || canUseCertiniaIntegration),
-        [canUseCertiniaIntegration],
+        () =>
+            CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
+                if (name === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
+                    return canUseCertiniaIntegration;
+                }
+                if (name === CONST.POLICY.CONNECTIONS.NAME.RILLET) {
+                    return canUseRilletIntegration;
+                }
+                return true;
+            }),
+        [canUseCertiniaIntegration, canUseRilletIntegration],
     );
     const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;

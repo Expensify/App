@@ -51,7 +51,7 @@ function getAccountingIntegrationData(
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
-    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare', IconAsset>,
+    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare', IconAsset>,
 ): AccountingIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -365,6 +365,31 @@ function getAccountingIntegrationData(
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForCertinia(),
                 },
             } as AccountingIntegration;
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
+            return {
+                title: translate('workspace.accounting.rillet'),
+                icon: expensifyIcons?.RilletSquare,
+                setupConnectionFlow: (
+                    <ConnectToSageIntacctFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                onImportPagePress: () => null,
+                subscribedImportSettings: [],
+                onExportPagePress: () => null,
+                subscribedExportSettings: [],
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.RILLET)),
+                onAdvancedPagePress: () => null,
+                subscribedAdvancedSettings: [],
+                workspaceUpgradeNavigationDetails: {
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias,
+                    backToAfterWorkspaceUpgradeRoute: 's77rt',
+                },
+                pendingFields: policy?.connections?.rillet?.config?.pendingFields,
+                errorFields: policy?.connections?.rillet?.config?.errorFields,
+            };
         }
         default:
             return undefined;

@@ -42,6 +42,7 @@ function SearchFiltersExportedToPage() {
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'RilletSquare',
         'GustoSquare',
         'Table',
         'TablePencil',

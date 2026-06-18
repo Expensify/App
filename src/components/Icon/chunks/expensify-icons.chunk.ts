@@ -131,6 +131,7 @@ import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
+import RilletSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
@@ -458,6 +459,7 @@ const Expensicons = {
     ReportCopy,
     ReplaceReceipt,
     ReceiptMultiple,
+    RilletSquare,
     Rotate,
     RotateLeft,
     Scan,
