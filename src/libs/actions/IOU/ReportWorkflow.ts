@@ -73,6 +73,26 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllReportNameValuePairs, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
+import type {AdditionalPayOnyxData} from './PayMoneyRequest';
+
+function mergeAdditionalApproveOnyxData<
+    T extends {
+        optimisticData?: readonly unknown[];
+        successData?: readonly unknown[];
+        failureData?: readonly unknown[];
+    },
+>(onyxData: T, additionalOnyxData?: AdditionalPayOnyxData): T {
+    if (!additionalOnyxData) {
+        return onyxData;
+    }
+
+    return {
+        ...onyxData,
+        optimisticData: [...(onyxData.optimisticData ?? []), ...(additionalOnyxData.optimisticData ?? [])],
+        successData: [...(onyxData.successData ?? []), ...(additionalOnyxData.successData ?? [])],
+        failureData: [...(onyxData.failureData ?? []), ...(additionalOnyxData.failureData ?? [])],
+    };
+}
 
 type ApproveMoneyRequestFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
@@ -90,6 +110,8 @@ type ApproveMoneyRequestFunctionParams = {
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    additionalOnyxData?: AdditionalPayOnyxData;
+    shouldPlaySuccessSound?: boolean;
 };
 
 type SubmitReportFunctionParams = {
@@ -399,6 +421,8 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         ownerBillingGracePeriodEnd,
         delegateEmail,
         expenseReportPolicy,
+        additionalOnyxData,
+        shouldPlaySuccessSound = true,
     } = params;
     if (!expenseReport) {
         return;
@@ -753,8 +777,10 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     };
 
     onApproved?.();
-    playSound(SOUNDS.SUCCESS);
-    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
+    if (shouldPlaySuccessSound) {
+        playSound(SOUNDS.SUCCESS);
+    }
+    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, mergeAdditionalApproveOnyxData({optimisticData, successData, failureData}, additionalOnyxData));
     return optimisticHoldReportID;
 }
 

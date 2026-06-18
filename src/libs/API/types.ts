@@ -400,7 +400,6 @@ const WRITE_COMMANDS = {
     UPDATE_ZENEFITS_FINAL_APPROVER: 'UpdateZenefitsFinalApprover',
     DOWNGRADE_TO_TEAM: 'Policy_DowngradeToTeam',
     REJECT_MONEY_REQUEST_IN_BULK: 'RejectMoneyRequestInBulk',
-    APPROVE_MONEY_REQUEST_ON_SEARCH: 'ApproveMoneyRequestOnSearch',
     REQUEST_REFUND: 'User_RefundPurchase',
     OPEN_SIDE_PANEL: 'OpenSidePanel',
     CLOSE_SIDE_PANEL: 'CloseSidePanel',
@@ -1065,7 +1064,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS]: Parameters.UploadUserKYBDocsParams;
 
     [WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK]: Parameters.RejectMoneyRequestInBulkParams;
-    [WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH]: Parameters.ApproveMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY]: Parameters.BankAccountCreateCorpayParams;
 
     [WRITE_COMMANDS.REQUEST_REFUND]: null;

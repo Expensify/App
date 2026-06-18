@@ -33,6 +33,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
+import Permissions from '@libs/Permissions';
 import {getSubmitReportManagerAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
@@ -43,6 +44,7 @@ import {
     getReportOrDraftReport,
     getReportTransactions,
     hasHeldExpenses,
+    hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
@@ -78,10 +80,12 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
+import {getAllTransactionViolations} from './IOU';
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
+import {approveMoneyRequest} from './IOU/ReportWorkflow';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
@@ -294,7 +298,22 @@ function handleActionButtonPress({
                 onHoldMenuOpen?.(item as TransactionReportGroupListItemType, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                 return;
             }
-            approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
+            getApproveActionCallback({
+                hash,
+                item,
+                snapshotReport,
+                snapshotPolicy,
+                policy,
+                currentSearchKey,
+                currentUserAccountID,
+                currentUserLogin,
+                betas,
+                userBillingGracePeriodEnds,
+                ownerBillingGracePeriodEnd,
+                amountOwed,
+                activePolicy,
+                iouReportCurrentNextStepDeprecated,
+            });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
@@ -421,6 +440,53 @@ function getSearchPayOnyxData(hash: number, reportID: string, currentSearchKey?:
     return {optimisticData, successData, failureData};
 }
 
+function getSearchApproveOnyxData(hash: number, reportID: string, currentSearchKey?: SearchKey): AdditionalPayOnyxData {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
+            value: {isActionLoading: true},
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
+            value: {isActionLoading: false},
+        },
+    ];
+
+    // If we are on the 'Approve', `Unapproved cash` or the `Unapproved company cards` suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
+    const approveActionSuggestedSearches: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
+    if (approveActionSuggestedSearches.includes(currentSearchKey)) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
+                },
+            },
+        });
+    }
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
+            value: {isActionLoading: false},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
 type GetPayActionCallbackParams = {
     hash: number;
     item: TransactionListItemType | TransactionReportGroupListItemType;
@@ -515,6 +581,66 @@ function getPayActionCallback({
         ownerBillingGracePeriodEnd,
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
+    });
+}
+
+type GetApproveActionCallbackParams = {
+    hash: number;
+    item: TransactionListItemType | TransactionReportGroupListItemType;
+    snapshotReport: Report;
+    snapshotPolicy: Policy;
+    policy: OnyxEntry<Policy>;
+    currentSearchKey: SearchKey | undefined;
+    currentUserAccountID: number;
+    currentUserLogin?: string;
+    betas?: OnyxEntry<Beta[]>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
+    ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    amountOwed: OnyxEntry<number>;
+    activePolicy?: OnyxEntry<Policy>;
+    iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
+};
+
+function getApproveActionCallback({
+    hash,
+    item,
+    snapshotReport,
+    snapshotPolicy,
+    policy,
+    currentSearchKey,
+    currentUserAccountID,
+    currentUserLogin,
+    betas,
+    userBillingGracePeriodEnds,
+    ownerBillingGracePeriodEnd,
+    amountOwed,
+    activePolicy,
+    iouReportCurrentNextStepDeprecated,
+}: GetApproveActionCallbackParams) {
+    if (!item.reportID) {
+        return;
+    }
+
+    const reportPolicy = snapshotPolicy ?? policy;
+    const hasViolations = hasViolationsReportUtils(item.reportID, getAllTransactionViolations(), currentUserAccountID, currentUserLogin ?? '');
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
+
+    approveMoneyRequest({
+        expenseReport: snapshotReport,
+        expenseReportPolicy: reportPolicy,
+        policy: activePolicy,
+        currentUserAccountIDParam: currentUserAccountID,
+        currentUserEmailParam: currentUserLogin ?? '',
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        expenseReportCurrentNextStepDeprecated: iouReportCurrentNextStepDeprecated,
+        betas,
+        userBillingGracePeriodEnds,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        delegateEmail: undefined,
+        full: true,
+        additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
     });
 }
 
@@ -893,69 +1019,6 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
     // The SubmitReport command is not 1:1:1 yet, which means creating a separate SubmitMoneyRequestOnSearch command is not feasible until https://github.com/Expensify/Expensify/issues/451223 is done.
     // In the meantime, we'll call SubmitReport which works for a single expense only, so not bulk actions are possible.
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
-}
-
-function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], currentSearchKey?: SearchKey) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {isActionLoading: true}])),
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE}])),
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {isActionLoading: false}])),
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingExpenseAction: null}])),
-        },
-    ];
-
-    // If we are on the 'Approve', `Unapproved cash` or the `Unapproved company cards` suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
-    const approveActionSuggestedSearches: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
-    if (approveActionSuggestedSearches.includes(currentSearchKey)) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                data: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null])),
-            },
-        });
-    }
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {isActionLoading: false}])),
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingExpenseAction: null}])),
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: ONYXKEYS.COLLECTION.REPORT,
-            value: Object.fromEntries(
-                reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}]),
-            ),
-        },
-    ];
-
-    playSound(SOUNDS.SUCCESS);
-    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, successData});
 }
 
 function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connectionName: ConnectionName, currentSearchKey?: SearchKey) {
@@ -1671,7 +1734,7 @@ export {
     setSearchContext,
     deleteSavedSearch,
     getSearchPayOnyxData,
-    approveMoneyRequestOnSearch,
+    getSearchApproveOnyxData,
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
     openSearchPage as openSearch,

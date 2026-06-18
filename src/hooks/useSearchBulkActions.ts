@@ -15,10 +15,10 @@ import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKe
 import {clearExportDownload} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
-    approveMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     exportToIntegrationOnSearch,
     getExportTemplates,
@@ -29,6 +29,7 @@ import {
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportType,
+    getSearchApproveOnyxData,
     getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
@@ -49,6 +50,7 @@ import {
     getIntegrationIcon,
     getPolicyExpenseChat,
     getReportOrDraftReport,
+    hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
@@ -82,6 +84,7 @@ import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {delegateEmailSelector} from '@src/selectors/Account';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {BillingGraceEndPeriod, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -359,6 +362,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -761,13 +765,48 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const reportIDList = !selectedReports.length
             ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
             : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
-        approveMoneyRequestOnSearch(
-            hash,
-            reportIDList.filter((reportID) => reportID !== undefined),
-        );
-        InteractionManager.runAfterInteractions(() => {
-            clearSelectedTransactions();
-        });
+        const uniqueReportIDs = [...new Set(reportIDList.filter((reportID): reportID is string => reportID !== undefined))];
+        const searchData = searchResults?.data;
+        const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
+        let approvedReportCount = 0;
+        for (const reportID of uniqueReportIDs) {
+            const expenseReport = getReportFromSearchSnapshot(reportID, searchData, allReports);
+            if (!expenseReport) {
+                continue;
+            }
+
+            const reportPolicy = getPolicyFromSearchSnapshot(expenseReport.policyID, searchData, policies);
+            const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`];
+            const hasViolations = hasViolationsReportUtils(reportID, allTransactionViolations, accountID, email ?? '');
+
+            approveMoneyRequest({
+                expenseReport,
+                expenseReportPolicy: reportPolicy,
+                policy: activePolicy,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                betas,
+                userBillingGracePeriodEnds,
+                amountOwed,
+                ownerBillingGracePeriodEnd,
+                delegateEmail,
+                full: true,
+                additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
+                shouldPlaySuccessSound: false,
+            });
+            approvedReportCount += 1;
+        }
+
+        if (approvedReportCount > 0) {
+            playSound(SOUNDS.SUCCESS);
+            InteractionManager.runAfterInteractions(() => {
+                clearSelectedTransactions();
+            });
+        }
     }, [
         isOffline,
         isDelegateAccessRestricted,
@@ -781,6 +820,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         amountOwed,
         policies,
         accountID,
+        email,
+        searchResults?.data,
+        allReports,
+        allNextSteps,
+        allTransactionViolations,
+        isBetaEnabled,
+        activePolicy,
+        betas,
+        delegateEmail,
+        currentSearchKey,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
