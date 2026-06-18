@@ -474,7 +474,6 @@ describe('AmountSubmission', () => {
     });
 
     describe('submitAmount reads collection state from module caches', () => {
-
         beforeEach(() => {
             mockSendMoneyElsewhere.mockClear();
             mockSendMoneyWithWallet.mockClear();
