@@ -4,7 +4,6 @@ import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@c
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -18,7 +17,6 @@ type DomainGroupsTableProps = {
 };
 
 export default function DomainGroupsTable({groups}: DomainGroupsTableProps) {
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -41,9 +39,6 @@ export default function DomainGroupsTable({groups}: DomainGroupsTableProps) {
             label: '',
             sortable: false,
             width: variables.domainTableActionColumnWidth,
-            styling: {
-                containerStyles: [styles.justifyContentEnd, styles.pr3],
-            },
         },
     ];
 

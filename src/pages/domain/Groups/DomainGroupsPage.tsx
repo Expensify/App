@@ -10,6 +10,7 @@ import DomainGroupsTable from '@components/Tables/DomainGroupsTable';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -39,6 +40,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Members']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isOffline} = useNetwork();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const [groups = getEmptyArray<DomainSecurityGroupWithID>()] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
@@ -46,36 +48,38 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const [pendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
-    const groupRows: DomainGroupRowData[] = groups.map((group) => {
-        const isDefault = group.id === defaultGroupID;
-        const groupKey: `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}` = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${group.id}`;
-        const groupErrors = domainErrors?.[groupKey];
-        const groupPendingActions = pendingActions?.[groupKey];
-        const groupErrorMessage = getLatestError(groupErrors?.errors);
-        const isFailedCreate = groupPendingActions?.createGroup === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyValueObject(groupErrorMessage);
-        const isPendingDelete = isSecurityGroupPendingDeleteSelector(group.id)(pendingActions);
-        const hasDetailsErrors = hasDomainGroupDetailsErrors(groupErrors) && !isPendingDelete;
+    const groupRows: DomainGroupRowData[] = groups
+        .filter((group) => isOffline || !isSecurityGroupPendingDeleteSelector(group.id)(pendingActions))
+        .map((group) => {
+            const isDefault = group.id === defaultGroupID;
+            const groupKey: `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}` = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${group.id}`;
+            const groupErrors = domainErrors?.[groupKey];
+            const groupPendingActions = pendingActions?.[groupKey];
+            const groupErrorMessage = getLatestError(groupErrors?.errors);
+            const isFailedCreate = groupPendingActions?.createGroup === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyValueObject(groupErrorMessage);
+            const isPendingDelete = isSecurityGroupPendingDeleteSelector(group.id)(pendingActions);
+            const hasDetailsErrors = hasDomainGroupDetailsErrors(groupErrors) && !isPendingDelete;
 
-        return {
-            keyForList: group.id,
-            groupID: group.id,
-            name: group.details.name ?? '',
-            memberCount: Object.keys(group.details.shared).length,
-            isDefault,
-            errors: groupErrorMessage,
-            brickRoadIndicator: hasDetailsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            pendingAction: groupPendingActions?.deleteGroup ?? groupPendingActions?.createGroup ?? Object.values(groupPendingActions ?? {}).find(Boolean),
-            disabled: isPendingDelete || isFailedCreate,
-            action: () => Navigation.navigate(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, group.id)),
-            dismissError: () => {
-                if (groupPendingActions?.createGroup) {
-                    clearGroupCreateError(domainAccountID, group.id);
-                    return;
-                }
-                clearGroupDeleteError(domainAccountID, group.id);
-            },
-        };
-    });
+            return {
+                keyForList: group.id,
+                groupID: group.id,
+                name: group.details.name ?? '',
+                memberCount: Object.keys(group.details.shared).length,
+                isDefault,
+                errors: groupErrorMessage,
+                brickRoadIndicator: hasDetailsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                pendingAction: groupPendingActions?.deleteGroup ?? groupPendingActions?.createGroup ?? Object.values(groupPendingActions ?? {}).find(Boolean),
+                disabled: isPendingDelete || isFailedCreate,
+                action: () => Navigation.navigate(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, group.id)),
+                dismissError: () => {
+                    if (groupPendingActions?.createGroup) {
+                        clearGroupCreateError(domainAccountID, group.id);
+                        return;
+                    }
+                    clearGroupDeleteError(domainAccountID, group.id);
+                },
+            };
+        });
 
     const createGroupHeaderButton = (
         <Button
