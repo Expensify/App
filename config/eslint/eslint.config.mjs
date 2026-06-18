@@ -271,7 +271,7 @@ const config = defineConfig([
         settings: {
             // `plugin:@dword-design/import-alias/recommended` overrides `import/resolver`
             // with JS-only extensions. Restore TS resolution so `import/extensions` can resolve
-            // extensionless relative imports like `../src/foo` to `foo.ts`.
+            // relative imports without file extensions like `../src/foo` to `foo.ts`.
             'import/resolver': {
                 node: {
                     extensions: ['.mjs', '.js', '.jsx', '.json', '.ts', '.tsx', '.d.ts', '.cts', '.mts'],
