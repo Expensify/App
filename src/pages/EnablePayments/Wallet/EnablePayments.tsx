@@ -109,7 +109,7 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
     }
 
     useEffect(() => {
-        if (userWallet?.isLoading || (!hasFreshData && !isOffline)) {
+        if (shouldWaitForWalletData) {
             return;
         }
 
@@ -119,7 +119,7 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
 
         // This is a URL correction, so replace the current route instead of pushing a duplicate instance of this screen.
         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({page: canonicalPage}), {forceReplace: true});
-    }, [canonicalPage, hasFreshData, isOffline, urlPage, userWallet?.isLoading]);
+    }, [canonicalPage, shouldWaitForWalletData, urlPage]);
 
     if (shouldWaitForWalletData) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
