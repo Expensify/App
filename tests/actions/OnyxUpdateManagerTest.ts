@@ -9,7 +9,7 @@ import type {OnyxUpdateManagerUtilsMock} from '@libs/actions/OnyxUpdateManager/u
 import type {ApplyUpdatesMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
 import * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
 import {isPaused as isSequentialQueuePaused, isRunning as isSequentialQueueRunning} from '@libs/Network/SequentialQueue';
-import type {AppActionsMock} from '@userActions/__mocks__/App';
+import type * as AppMockImport from '@userActions/__mocks__/App';
 import * as AppImport from '@userActions/App';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -19,8 +19,16 @@ import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
 
 jest.mock('@userActions/OnyxUpdates');
 // OnyxUpdateManager imports App through mixed aliases, so both aliases need to share the same mock instance.
-jest.mock('@userActions/App', () => jest.requireActual('@userActions/__mocks__/App'));
-jest.mock('@libs/actions/App', () => jest.requireActual('@userActions/__mocks__/App'));
+jest.mock('@userActions/App', () => {
+    // Store the typed mock in a local variable to avoid returning an unsafe `any` from the mock factory.
+    const mockApp = jest.requireActual<typeof AppMockImport>('@userActions/__mocks__/App');
+    return mockApp;
+});
+jest.mock('@libs/actions/App', () => {
+    // Store the typed mock in a local variable to avoid returning an unsafe `any` from the mock factory.
+    const mockApp = jest.requireActual<typeof AppMockImport>('@userActions/__mocks__/App');
+    return mockApp;
+});
 jest.mock('@userActions/OnyxUpdateManager/utils');
 jest.mock('@userActions/OnyxUpdateManager/utils/applyUpdates', () => {
     const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@userActions/OnyxUpdateManager/utils/applyUpdates');
@@ -44,7 +52,7 @@ const TEST_USER_ACCOUNT_ID = 1;
 const REPORT_ID = 'testReport1';
 const ONYX_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const;
 
-const App = AppImport as AppActionsMock<typeof ONYX_KEY>;
+const App = AppImport as AppMockImport.AppActionsMock<typeof ONYX_KEY>;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
 const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
 

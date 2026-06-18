@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import type {AppActionsMock} from '@userActions/__mocks__/App';
-import type {OnyxUpdatesMock} from '@userActions/__mocks__/OnyxUpdates';
+import type * as AppMockImport from '@userActions/__mocks__/App';
+import type * as OnyxUpdatesMockImport from '@userActions/__mocks__/OnyxUpdates';
 import * as AppImport from '@userActions/App';
 import * as OnyxUpdateManager from '@userActions/OnyxUpdateManager';
 import * as OnyxUpdateManagerUtilsImport from '@userActions/OnyxUpdateManager/utils';
@@ -13,10 +13,26 @@ import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
 
 // OnyxUpdateManager imports these actions through mixed aliases, so both aliases need to share the same mock instances.
-jest.mock('@userActions/OnyxUpdates', () => jest.requireActual('@userActions/__mocks__/OnyxUpdates'));
-jest.mock('@libs/actions/OnyxUpdates', () => jest.requireActual('@userActions/__mocks__/OnyxUpdates'));
-jest.mock('@userActions/App', () => jest.requireActual('@userActions/__mocks__/App'));
-jest.mock('@libs/actions/App', () => jest.requireActual('@userActions/__mocks__/App'));
+jest.mock('@userActions/OnyxUpdates', () => {
+    // Store the typed mock in a local variable to avoid returning an unsafe `any` from the mock factory.
+    const mockOnyxUpdates = jest.requireActual<typeof OnyxUpdatesMockImport>('@userActions/__mocks__/OnyxUpdates');
+    return mockOnyxUpdates;
+});
+jest.mock('@libs/actions/OnyxUpdates', () => {
+    // Store the typed mock in a local variable to avoid returning an unsafe `any` from the mock factory.
+    const mockOnyxUpdates = jest.requireActual<typeof OnyxUpdatesMockImport>('@userActions/__mocks__/OnyxUpdates');
+    return mockOnyxUpdates;
+});
+jest.mock('@userActions/App', () => {
+    // Store the typed mock in a local variable to avoid returning an unsafe `any` from the mock factory.
+    const mockApp = jest.requireActual<typeof AppMockImport>('@userActions/__mocks__/App');
+    return mockApp;
+});
+jest.mock('@libs/actions/App', () => {
+    // Store the typed mock in a local variable to avoid returning an unsafe `any` from the mock factory.
+    const mockApp = jest.requireActual<typeof AppMockImport>('@userActions/__mocks__/App');
+    return mockApp;
+});
 jest.mock('@userActions/OnyxUpdateManager/utils');
 jest.mock('@userActions/OnyxUpdateManager/utils/applyUpdates');
 
@@ -31,8 +47,8 @@ jest.mock('@src/libs/SearchUIUtils', () => ({
 }));
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const OnyxUpdates = OnyxUpdatesImport as OnyxUpdatesMock<any>;
-const App = AppImport as AppActionsMock;
+const OnyxUpdates = OnyxUpdatesImport as OnyxUpdatesMockImport.OnyxUpdatesMock<any>;
+const App = AppImport as AppMockImport.AppActionsMock;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
 const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
 
