@@ -1393,7 +1393,7 @@ type FinancialForceExportDestination = ValueOf<typeof CONST.CERTINIA_EXPORT_DEST
 type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.COMPLETE | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
 
 /** Certinia export statuses that apply to PSA reports */
-type FinancialForceReportExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.SUBMITTED;
+type FinancialForceReportExportStatus = ValueOf<typeof CONST.CERTINIA_REPORT_EXPORT_STATUS>;
 
 /** Certinia PSA parent tag mapping mode */
 type FinancialForceParentTagMappingMode = ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>;
@@ -1470,7 +1470,7 @@ type FinancialForceExportConfig = {
     nonReimbursable?: FinancialForceExportDestination;
 
     /** Payable invoice / expense report export status. */
-    exportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
+    exportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | FinancialForceReportExportStatus;
 
     /** Date basis for export */
     exportDate?: ValueOf<typeof CONST.CERTINIA_EXPORT_DATE>;
@@ -1483,9 +1483,6 @@ type FinancialForceExportConfig = {
 
     /** PSA / SRP: company ID for export */
     companyID?: string;
-
-    /** PSA: report-level export status. */
-    reportExportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
 };
 
 /** Certinia auto-sync */
