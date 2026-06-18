@@ -133,7 +133,7 @@ function IOURequestEditReportCommon({
         isOwner &&
         !isReportIOU &&
         !isCardTransaction &&
-        // The submitter cannot unreport an expense once the report has been forwarded past first-level approval; the backend rejects it. See https://github.com/Expensify/App/issues/93999
+        // The submitter cannot remove an expense from a report once the report has been forwarded past first-level approval; the backend rejects it. See https://github.com/Expensify/App/issues/93999
         !isReportSubmittedAndForwardedFromOwner(selectedReport);
 
     const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing);

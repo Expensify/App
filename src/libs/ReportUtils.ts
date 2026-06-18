@@ -2967,7 +2967,7 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
 }
 
 /**
- * Determines whether destructive transaction affordances (delete / unreport) should be hidden from a report's
+ * Determines whether destructive transaction actions (delete / remove from report) should be hidden from a report's
  * submitter because the report has already been forwarded past its first level of approval.
  *
  * Returns true when ALL of the following hold:
