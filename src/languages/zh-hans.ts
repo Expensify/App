@@ -3082,9 +3082,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: '提交报销',
+                title: '创建报销',
                 description: dedent(`
-                    通过输入金额或扫描收据来*提交一笔报销*。
+                    通过输入金额或扫描收据来*创建一笔报销*。
 
                     1. 点击 *+* 按钮。
                     2. 选择 *创建报销*。
@@ -3096,9 +3096,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: '提交报销',
+                title: '创建报销',
                 description: dedent(`
-                    通过输入金额或扫描收据来*提交报销*。
+                    通过输入金额或扫描收据来*创建报销*。
 
                     1. 点击 *+* 按钮。
                     2. 选择*创建报销*。

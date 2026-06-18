@@ -3052,9 +3052,9 @@ ${amount} para ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Envía un gasto',
+                title: 'Crea un gasto',
                 description: dedent(`
-                    *Envía un gasto* introduciendo un importe o escaneando un recibo.
+                    *Crea un gasto* introduciendo un importe o escaneando un recibo.
 
                     1. Haz clic en el botón *+*.
                     2. Elige *Crear gasto*.
@@ -3066,9 +3066,9 @@ ${amount} para ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Envía un gasto',
+                title: 'Crea un gasto',
                 description: dedent(`
-                    *Envía un gasto* introduciendo un importe o escaneando un recibo.
+                    *Crea un gasto* introduciendo un importe o escaneando un recibo.
 
                     1. Haz clic en el botón *+*.
                     2. Elige *Crear gasto*.

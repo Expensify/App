@@ -3164,9 +3164,9 @@ ${amount} dla ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Wyślij wydatek',
+                title: 'Utwórz wydatek',
                 description: dedent(`
-                    *Zgłoś wydatek*, wprowadzając kwotę lub skanując paragon.
+                    *Utwórz wydatek*, wprowadzając kwotę lub skanując paragon.
 
                     1. Kliknij przycisk *+*.
                     2. Wybierz *Utwórz wydatek*.
@@ -3178,9 +3178,9 @@ ${amount} dla ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Wyślij wydatek',
+                title: 'Utwórz wydatek',
                 description: dedent(`
-                    *Zgłoś wydatek*, wpisując kwotę lub skanując paragon.
+                    *Utwórz wydatek*, wpisując kwotę lub skanując paragon.
 
                     1. Kliknij przycisk *+*.
                     2. Wybierz *Utwórz wydatek*.
