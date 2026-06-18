@@ -59,7 +59,17 @@ const STATEMENT_SCOPE_FILTER_KEYS = new Set<string>([
 ]);
 
 function hasOnlyStatementScopeFilters(queryJSON: SearchQueryJSON | undefined): boolean {
-    return queryJSON?.flatFilters?.every((filter) => STATEMENT_SCOPE_FILTER_KEYS.has(filter.key)) ?? true;
+    if (!queryJSON) {
+        return true;
+    }
+
+    // Expense status (e.g. unreported, drafts) lives on `status`, not in flatFilters. Anything other than the
+    // single "all" status narrows which expenses are shown, so the rows would no longer be the whole settlement.
+    if (queryJSON.status !== CONST.SEARCH.STATUS.EXPENSE.ALL) {
+        return false;
+    }
+
+    return queryJSON.flatFilters?.every((filter) => STATEMENT_SCOPE_FILTER_KEYS.has(filter.key)) ?? true;
 }
 
 // A group key in SearchResultDataType maps to a union of group shapes (members, cards, withdrawals, etc.).

@@ -145,6 +145,16 @@ describe('ExpensifyCardStatementUtils', () => {
         expect(getExpensifyCardStatementSelection(narrowedQueryJSON, selectedTransactions, searchData)).toBeUndefined();
     });
 
+    it('hides the export when a non-all expense status narrows the rows', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+        // status:unreported narrows which expenses are shown, so the PDF would not match the on-screen rows.
+        const narrowedStatusQueryJSON: SearchQueryJSON = {...expensifyCardStatementQueryJSON, status: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED};
+
+        expect(getExpensifyCardStatementSelection(narrowedStatusQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
     it('keeps the export when only statement-scope filters are active', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const selectedTransactions = makeSettlementSelection(groupKey, 2);
