@@ -8,6 +8,7 @@ import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillPara
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
@@ -2103,14 +2104,18 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         // system message render instantly. The server's createDistanceRequest response will
         // confirm or correct these values via the success-data replay. For any other method
         // (R2 homeAndOffice, future types) we leave optimistic behavior unchanged.
-        const exclusionConfig = policy?.commuterExclusions;
-        const fixedExclusionDistance = exclusionConfig?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? Math.max(0, exclusionConfig.fixedDistance ?? 0) : 0;
-        const quantity = transaction.comment?.customUnit?.quantity ?? 0;
         const distanceUnit = transaction.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
         const distanceRate = transaction.comment?.customUnit?.defaultP2PRate ?? 0;
-        if (fixedExclusionDistance > 0 && quantity > 0 && chatReport?.reportID && currentUserAccountID) {
-            const commuterExclusion = Math.min(fixedExclusionDistance, quantity);
-            const reimbursableDistance = Math.max(0, quantity - commuterExclusion);
+
+        // Route-based requests don't have a `quantity` until the route resolves, so fall back to converting the
+        // route distance (in meters) into display units to preview the exclusion immediately on creation.
+        let quantityInUnit = transaction.comment?.customUnit?.quantity ?? 0;
+        if (quantityInUnit <= 0 && distance && distance > 0) {
+            quantityInUnit = DistanceRequestUtils.convertDistanceUnit(distance, distanceUnit);
+        }
+        const commuterExclusionBreakdown = DistanceRequestUtils.getCommuterExclusionBreakdown(transaction, policy, quantityInUnit);
+        if (commuterExclusionBreakdown && chatReport?.reportID && currentUserAccountID) {
+            const {commuterExclusion, reimbursableDistance} = commuterExclusionBreakdown;
             const modifiedRequestAmount = Math.round(reimbursableDistance * distanceRate);
             const modifiedRequestMerchant = `${reimbursableDistance.toFixed(2)} ${distanceUnit} @ ${distanceRate} / ${distanceUnit}`;
 
