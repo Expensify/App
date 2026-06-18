@@ -214,6 +214,16 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL,
 ]);
 
+/** All states the MFA state machine can be in. */
+const MFA_STATE = {
+    CLOSED: 'closed',
+    OPEN: 'open',
+    CLOSING: 'closing',
+    PREPARING: 'preparing',
+    OUTCOME: 'outcome',
+    SUCCESS: 'success',
+} as const;
+
 const SHARED_VALUES = {
     /**
      * Scenario name mappings.
@@ -296,6 +306,9 @@ const SHARED_VALUES = {
         /** Show the outcome screen - continue with normal flow */
         SHOW_OUTCOME_SCREEN: 'SHOW_OUTCOME_SCREEN',
     },
+
+    /** All states the MFA state machine can be in. See {@link MFA_STATE}. */
+    MFA_STATE,
 } as const;
 
 export type {ReasonValue};

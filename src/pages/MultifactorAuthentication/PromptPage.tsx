@@ -5,7 +5,8 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
-import {useMultifactorAuthentication, useMultifactorAuthenticationActions, usePromptContent} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthenticationActions, usePromptContent} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -22,7 +23,7 @@ type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<Multifa
 function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {requestCancel} = useMultifactorAuthentication();
+    const {requestCancel} = useMultifactorAuthenticationInternal();
     const {dispatch} = useMultifactorAuthenticationActions();
     const {accountID} = useCurrentUserPersonalDetails();
 
