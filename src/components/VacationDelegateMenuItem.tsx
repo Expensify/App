@@ -4,6 +4,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
@@ -42,13 +43,15 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
     const hasVacationDelegate = !!vacationDelegate?.delegate;
     const vacationDelegatePersonalDetails = personalDetailsByLogin[vacationDelegate?.delegate?.toLowerCase() ?? ''];
 
-    // Render phone-number delegates as the raw E.164 string (e.g. "+9779806050938") rather than
-    // running them through `formatPhoneNumber`, which would otherwise reformat the number to either
-    // the national (e.g. "980-6050938") or international-with-spaces (e.g. "+977 980 605 0938") form
-    // depending on the user's country, and diverge from the recent/selected row in
-    // BaseVacationDelegateSelectionComponent and the confirmation modal.
+    // Render phone-number delegates as the raw E.164 string (e.g. "+9779806050938") for the title,
+    // and the *national* phone form (e.g. "980-6050938") for the description — matching the rows in
+    // BaseVacationDelegateSelectionComponent. Using `formatPhoneNumber` here would otherwise return
+    // the international-with-country-code form ("+977 980-6050938") whenever the user's IP country
+    // differs from the phone's country code, causing the description to disagree across screens.
     const delegateLogin = Str.removeSMSDomain(vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '');
     const delegateDisplayName = Str.removeSMSDomain(vacationDelegatePersonalDetails?.displayName ?? delegateLogin);
+    const parsedDelegatePhone = parsePhoneNumber(delegateLogin);
+    const delegateDescription = parsedDelegatePhone.valid && parsedDelegatePhone.number?.national ? parsedDelegatePhone.number.national : delegateLogin;
 
     return hasVacationDelegate ? (
         <>
@@ -61,7 +64,7 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
             >
                 <MenuItem
                     title={delegateDisplayName}
-                    description={delegateLogin}
+                    description={delegateDescription}
                     avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                     icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}

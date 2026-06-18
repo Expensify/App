@@ -46,6 +46,21 @@ jest.mock('@libs/LocalePhoneNumber', () => ({
     }),
 }));
 
+// `parsePhoneNumber` runs through awesome-phonenumber and would actually transform a number like
+// `+919789942470` into the Indian national format (e.g. `97899 42470`). For unit-test purposes we
+// just need a deterministic stub: treat anything starting with `+` followed by digits as a valid
+// phone whose national form is the raw E.164 string. That keeps the data-flow assertions stable
+// while still exercising the same code path (valid? -> national; invalid -> fallback).
+jest.mock('@libs/PhoneNumber', () => ({
+    parsePhoneNumber: jest.fn((value: string) => {
+        const isPhone = /^\+\d+$/.test(value);
+        return {
+            valid: isPhone,
+            number: isPhone ? {national: value} : undefined,
+        };
+    }),
+}));
+
 jest.mock('@components/OfflineWithFeedback', () => {
     function MockOfflineWithFeedback({children}: {children: React.ReactNode}) {
         return children;
