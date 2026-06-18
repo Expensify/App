@@ -82,10 +82,16 @@ type BunTestMatchers = {
 };
 
 declare module 'bun:test' {
-    function test(label: string, fn: () => void | Promise<void>): void;
-    function test(label: string, options: {timeout?: number}, fn: () => void | Promise<void>): void;
+    type BunTestFn = {
+        (label: string, fn: () => void | Promise<void>): void;
+        (label: string, options: {timeout?: number; retry?: number}, fn: () => void | Promise<void>): void;
+        concurrent: BunTestFn;
+        serial: BunTestFn;
+    };
+
+    const test: BunTestFn;
     function describe(label: string, fn: () => void): void;
-    function beforeAll(fn: () => void | Promise<void>): void;
+    function beforeAll(fn: () => void | Promise<void>, timeout?: number): void;
     function beforeEach(fn: () => void | Promise<void>): void;
     function afterAll(fn: () => void | Promise<void>): void;
     function afterEach(fn: () => void | Promise<void>): void;
