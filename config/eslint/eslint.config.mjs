@@ -492,6 +492,7 @@ const config = defineConfig([
             // files — they defensively handle nullish/non-array inputs that
             // TypeScript would otherwise catch at compile time.
             'lodash/import-scope': 'off',
+            'no-use-before-define': 'off',
         },
     },
 
@@ -539,7 +540,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*', 'scripts/**/*', 'server/**/*'],
+        files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*'],
         languageOptions: {
             globals: {
                 ...globals.node,
@@ -582,6 +583,7 @@ const config = defineConfig([
         files: ['tests/**/*'],
         rules: {
             'import/extensions': 'off',
+            'no-import-assign': 'off',
 
             // This helps disable the `prefer-alias` rule for tests
             '@dword-design/import-alias/prefer-alias': ['off'],
