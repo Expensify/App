@@ -338,7 +338,8 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: s
     });
 
     const shouldDisplayCategoryFilter = shouldDisplayFilter(hasNonPersonalPolicyCategories ? 1 : 0, policyDerived?.areCategoriesEnabled ?? false, selectedPolicyCategories?.length > 0);
-    const shouldDisplayTagFilter = shouldDisplayFilter(hasTags ? 1 : 0, policyDerived?.areTagsEnabled ?? false, !!selectedPolicyTagLists);
+    const hasSelectedPolicyTags = selectedPolicyTagLists.some((policyTagList) => Object.values(policyTagList ?? {}).some((tagList) => Object.keys(tagList.tags ?? {}).length > 0));
+    const shouldDisplayTagFilter = shouldDisplayFilter(hasTags ? 1 : 0, policyDerived?.areTagsEnabled ?? false, hasSelectedPolicyTags);
     const shouldDisplayTaxFilter = shouldDisplayFilter(policyDerived?.hasAnyTaxRates ? 1 : 0, policyDerived?.areTaxEnabled ?? false);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
 
