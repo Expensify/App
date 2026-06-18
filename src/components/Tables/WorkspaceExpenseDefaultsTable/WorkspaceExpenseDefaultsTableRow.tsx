@@ -4,8 +4,10 @@ import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import type {TableData} from '@components/Table';
+import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,28 +39,40 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Pencil']);
+    const {processedData, tableMethods, selectionEnabled, isMobileSelectionEnabled} = useTableContext<ExpenseDefaultTableItem>();
 
-    const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const tableRowItem = processedData.at(rowIndex) ?? item;
+    const isDeleting = tableRowItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'WorkspaceExpenseDefaultsTableItem',
         isDeleting,
     };
 
-    const accessibilityLabel = `${item.typeLabel}. ${item.conditionText}. ${item.ruleDescription}`;
-    const badgeColors = item.isRename ? theme.reportStatusBadge.approved : theme.reportStatusBadge.draft;
+    const accessibilityLabel = `${tableRowItem.typeLabel}. ${tableRowItem.conditionText}. ${tableRowItem.ruleDescription}`;
+    const badgeColors = tableRowItem.isRename ? theme.reportStatusBadge.approved : theme.reportStatusBadge.draft;
+
+    const handleLongPress = () => {
+        if (isDeleting || tableRowItem.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout) {
+            return;
+        }
+
+        tableMethods.setMobileSelectionModalRowKey(tableRowItem.keyForList);
+    };
 
     return (
         <Table.Row
             interactive
             rowIndex={rowIndex}
-            disabled={item.disabled}
+            disabled={isDeleting}
             accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={reasonAttributes}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
-            offlineWithFeedback={{pendingAction: item.pendingAction, shouldHideOnDelete: false, errors: item.errors, onClose: item.onCloseError}}
-            onPress={item.action}
+            offlineWithFeedback={{pendingAction: tableRowItem.pendingAction, shouldHideOnDelete: false, errors: tableRowItem.errors, onClose: tableRowItem.onCloseError}}
+            onPress={tableRowItem.action}
+            onLongPress={handleLongPress}
         >
             {({hovered}) => (
                 <>
@@ -66,7 +80,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                 <Badge
-                                    text={item.typeLabel}
+                                    text={tableRowItem.typeLabel}
                                     icon={Expensicons.Pencil}
                                     iconFill={badgeColors.textColor}
                                     badgeStyles={[
@@ -80,13 +94,13 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                                     isCondensed
                                 />
                                 <TextWithTooltip
-                                    text={item.conditionText}
+                                    text={tableRowItem.conditionText}
                                     numberOfLines={1}
                                     style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
                                 />
                             </View>
                             <TextWithTooltip
-                                text={item.ruleDescription}
+                                text={tableRowItem.ruleDescription}
                                 numberOfLines={1}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
                             />
@@ -96,7 +110,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.justifyContentCenter]}>
                             <Badge
-                                text={item.typeLabel}
+                                text={tableRowItem.typeLabel}
                                 icon={Expensicons.Pencil}
                                 iconFill={badgeColors.textColor}
                                 badgeStyles={[
@@ -116,7 +130,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
                                 numberOfLines={1}
-                                text={item.conditionText}
+                                text={tableRowItem.conditionText}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
@@ -126,7 +140,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
                                 numberOfLines={1}
-                                text={item.ruleDescription}
+                                text={tableRowItem.ruleDescription}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
@@ -135,7 +149,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                     <Icon
                         src={Expensicons.ArrowRight}
                         fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || tableRowItem.disabled) && styles.opacitySemiTransparent]}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />

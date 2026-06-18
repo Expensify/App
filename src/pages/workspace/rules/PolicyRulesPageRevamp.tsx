@@ -269,6 +269,22 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         turnOffMobileSelectionMode();
     }, [activeTab]);
 
+    const handleSpendRuleSelectionChange = useCallback(
+        (selectedRowKeys: string[]) => {
+            const selectableKeys = new Set(spendRulesTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+            setSelectedSpendRuleKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
+        },
+        [spendRulesTableData],
+    );
+
+    const handleExpenseDefaultSelectionChange = useCallback(
+        (selectedRowKeys: string[]) => {
+            const selectableKeys = new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+            setSelectedExpenseDefaultKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
+        },
+        [expenseDefaultsTableData],
+    );
+
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
     const handleBackButtonPress = useCallback(() => {
@@ -433,7 +449,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             rulesData={expenseDefaultsTableData}
             selectionEnabled={canWriteRules}
             selectedKeys={selectedExpenseDefaultKeys}
-            onRowSelectionChange={setSelectedExpenseDefaultKeys}
+            onRowSelectionChange={handleExpenseDefaultSelectionChange}
         />
     );
 
@@ -442,7 +458,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             rulesData={areCardsEnabled ? spendRulesTableData : []}
             selectionEnabled={canWriteRules}
             selectedKeys={selectedSpendRuleKeys}
-            onRowSelectionChange={setSelectedSpendRuleKeys}
+            onRowSelectionChange={handleSpendRuleSelectionChange}
             emptyStateContent={areCardsEnabled ? undefined : cardRulesEmptyState}
         />
     );
