@@ -61,7 +61,7 @@ type SearchRootParams = SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH
 type NavigationRouteLike = {
     key?: string;
     name?: string;
-    params?: unknown;
+    params?: Record<string, unknown>;
     state?: unknown;
 };
 
