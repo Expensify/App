@@ -1340,6 +1340,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Oznacz ${formattedAmount} jako zapłaconą` : `Oznacz jako zapłacone`),
         confirmPaymentReceivedModalTitle: 'Potwierdź otrzymanie płatności',
         receivedPayment: 'Otrzymana płatność',
+        receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}otrzymana płatność`,
         receivedPaymentConfirmation: 'Kontynuuj tylko, jeśli płatność została już otrzymana poza Expensify.',
         confirmReceivedPayment: 'Tak, otrzymałem(-am) płatność.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z konta osobistego ${last4Digits}` : `Zapłacono z konta osobistego`),
@@ -1700,6 +1701,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Możesz jednocześnie zduplikować maksymalnie ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} wydatków. Wybierz mniej wydatków i spróbuj ponownie.`,
         deleted: 'Usunięto',
+        categoryDisabledAlert: {
+            title: 'Kategoria wyłączona',
+            prompt: 'Włącz kategorie w przestrzeni roboczej, żeby edytować szczegóły wydatku lub usunąć kategorię z tego wydatku.',
+            confirmText: 'Usuń kategorię',
+        },
+        tagDisabledAlert: {
+            title: 'Tag wyłączony',
+            prompt: 'Włącz tagi w przestrzeni roboczej, aby edytować szczegóły wydatku lub usunąć ten tag z tego wydatku.',
+            confirmText: 'Usuń znacznik',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3021,11 +3032,6 @@ ${amount} dla ${merchant} - ${date}`,
         welcome: 'Witamy!',
         welcomeSignOffTitleManageTeam: 'Gdy ukończysz powyższe zadania, będziemy mogli poznać więcej funkcji, takich jak przepływy akceptacji i reguły!',
         welcomeSignOffTitle: 'Miło cię poznać!',
-        explanationModal: {
-            title: 'Witamy w Expensify',
-            description: 'Jedna aplikacja do obsługi firmowych i prywatnych wydatków w tempie czatu. Wypróbuj ją i daj nam znać, co o niej myślisz. To dopiero początek!',
-            secondaryDescription: 'Aby wrócić do Expensify Classic, po prostu stuknij swoje zdjęcie profilowe > Przejdź do Expensify Classic.',
-        },
         getStarted: 'Rozpocznij',
         whatsYourName: 'Jak masz na imię?',
         peopleYouMayKnow: 'Sprawdź, czy twój zespół jest w Expensify',
@@ -4937,6 +4943,8 @@ ${amount} dla ${merchant} - ${date}`,
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: 'Firma',
             autoSyncDescription: 'Expensify będzie automatycznie synchronizować się z Certinia każdego dnia.',
             syncReimbursedReportsDescription:
                 'Gdy ta opcja jest włączona, za każdym razem gdy Należna faktura zostanie opłacona w FFA, powiązany raport Expensify zostanie automatycznie oznaczony jako zwrócony.',
@@ -4949,6 +4957,13 @@ ${amount} dla ${merchant} - ${date}`,
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'W toku',
                     [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Zatwierdzone',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Wysłano',
+                },
+            },
+            reportExportStatus: {
+                label: 'Status raportu wydatków',
+                values: {
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: 'Zatwierdzono',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: 'Wysłano',
                 },
             },
             exportDate: {
@@ -4964,8 +4979,13 @@ ${amount} dla ${merchant} - ${date}`,
                 helperText: 'Wydatki oznaczone jako podlegające zwrotowi zostaną wyeksportowane jako faktury do zapłaty wystawione na pracownika.',
             },
             exportNonReimbursable: {label: 'Eksportuj niewliczane do zwrotu wydatki jako'},
+            expenseReports: 'Raporty wydatków',
+            exportReimbursableExpenseReports: {helperText: 'Wydatki oznaczone jako podlegające zwrotowi zostaną wyeksportowane jako raporty wydatków wystawione na pracownika.'},
+            exportNonReimbursableExpenseReports: {helperText: 'Wydatki oznaczone jako niepodlegające zwrotowi zostaną wyeksportowane jako raporty wydatków wystawione na pracownika.'},
             noVendorsFound: 'Nie znaleziono dostawców',
             noVendorsFoundDescription: 'Po dodaniu dostawców w Certinia zsynchronizuj ponownie to połączenie.',
+            noCompaniesFound: 'Nie znaleziono firm',
+            noCompaniesFoundDescription: 'Po dodaniu firm w Certinia zsynchronizuj ponownie to połączenie.',
             prerequisites: {
                 title: 'Zanim się połączysz',
                 installBundle: 'Dla połączeń FFA',
@@ -6185,6 +6205,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 description: 'Wybierz ustawienia, które chcesz nadpisać w swoich istniejących przestrzeniach roboczych.',
                 accountingMismatch: ({part}: {part: string}) =>
                     `Możesz skopiować ${part} tylko wtedy, gdy wszystkie przestrzenie robocze używają tego samego systemu księgowego i połączenia z firmą.`,
+                travelAddressMismatch: 'Podróże możesz skopiować tylko wtedy, gdy każda wybrana przestrzeń robocza ma adres firmy.',
             },
             confirmSettings: {
                 title: 'Upewnijmy się, że wszystko wygląda poprawnie.',
@@ -6280,10 +6301,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 `Jeśli usuniesz ${memberName} z tej przestrzeni roboczej, zastąpimy tę osobę jako kontakt techniczny użytkownikiem ${workspaceOwner}, właścicielem przestrzeni roboczej.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} ma nierozliczony raport w trakcie przetwarzania, który wymaga działania. Poproś tę osobę o wykonanie wymaganej czynności przed jej usunięciem z przestrzeni roboczej.`,
-            allMembers: 'Wszyscy członkowie',
+            members: 'Członkowie',
             admins: 'Administratorzy przestrzeni roboczej',
             approvers: 'Osoby zatwierdzające',
             auditors: 'Audytorzy',
+            editors: 'Edytorzy',
             emptyRoleFilter: {title: 'Żadni członkowie nie pasują do tego filtra', subtitle: 'Zaproś członka lub zmień filtr powyżej.'},
             configureHRSync: (providerName: string) => `Skonfiguruj synchronizację ${providerName}.`,
             syncWithHR: (providerName: string) => `Synchronizuj z ${providerName}`,
@@ -7041,7 +7063,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             },
             controlPolicyRoles: {
                 title: 'Role zasad kontroli',
-                description: 'Użyj wyspecjalizowanych ról, takich jak Audytor i Administrator kart, żeby dać członkom dostęp tylko do tego, czego potrzebują.',
+                description: 'Przyznaj członkom określony dostęp, przypisując role takie jak Audytor lub Administrator karty.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Specjalistyczne role w przestrzeni roboczej są dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
@@ -7357,15 +7379,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Zablokowane' : 'Dozwolone'} ${shownCount > 1 ? 'kategorie' : 'kategoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} więcej` : ''}`,
             },
             agentRules: {
-                title: 'Zasady Agenta',
-                subtitle: 'Opisz elastyczne reguły, które działają wtedy, gdy ich potrzebujesz.',
-                addRule: 'Dodaj regułę Agenta',
-                findRule: 'Znajdź regułę Agenta',
+                title: 'Zasady agenta',
+                subtitle: 'Ustaw zasady dotyczące tego, jak agenci AI obsługują wydatki w tym obszarze roboczym.',
+                addRule: 'Dodaj regułę agenta',
+                findRule: 'Znajdź regułę agenta',
                 addRuleTitle: 'Dodaj regułę',
                 editRuleTitle: 'Edytuj regułę',
                 deleteRule: 'Usuń regułę',
                 deleteRuleConfirmation: 'Na pewno chcesz usunąć tę regułę?',
-                describeRuleTitle: 'Opisz swoją regułę, a Concierge ją utworzy',
+                describeRuleTitle: 'Opisz zasadę, której ma przestrzegać twój agent AI',
                 disclaimer: 'Agenci AI mogą popełniać błędy.',
                 agentCreatedTitle: 'RuleBot został dodany do Twojego obszaru roboczego!',
                 agentCreatedDescription: (agentsRoute: string) =>
@@ -9791,5 +9813,21 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         negativeButton: 'Niekoniecznie',
     },
     monthPickerPage: {month: 'Miesiąc', selectMonth: 'Wybierz miesiąc'},
+    aiFeaturesPromoModal: {
+        subtitle: 'Nowość w Concierge AI',
+        confirmText: 'Jedziemy!',
+        spendAnalysis: {
+            title: 'Interaktywna analiza wydatków',
+            description: `<muted-text>Concierge przedstawia miesięczne informacje o wydatkach i pozwala zagłębić się w szczegóły stojące za każdą liczbą. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Dowiedz się więcej</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Poznaj swojego nowego asystenta wydatków',
+            description: `<muted-text>Rozmawiaj z Concierge, aby tworzyć i aktualizować wydatki bezpośrednio w aplikacji, e-mailem lub SMS-em. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Dowiedz się więcej</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Zbuduj własne agentów',
+            description: `<muted-text>Twórz niestandardowych agentów do przeglądania, zatwierdzania i kierowania wydatków na podstawie ustalonych przez siebie zasad. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Dowiedz się więcej</a>.</muted-text>`,
+        },
+    },
 };
 export default translations;

@@ -431,7 +431,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             ...new Set(
                 Object.values(selectedTransactions)
                     .map((transaction) => transaction.reportID)
-                    .filter((reportID) => reportID !== undefined),
+                    .filter((reportID): reportID is string => reportID !== undefined && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && reportID !== CONST.REPORT.TRASH_REPORT_ID),
             ),
         ],
         [selectedTransactions],
@@ -568,7 +568,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return false;
                     }
                     const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
-                    return (fullReport?.transactionCount ?? 0) === 0;
+                    return !!fullReport && (fullReport.transactionCount ?? 0) === 0;
                 }) ?? [];
             const hasOnlyEmptyReports = selectedReports.length > 0 && emptyReports.length === selectedReports.length;
 
@@ -2099,7 +2099,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (activeExportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !activeExportDownload?.shouldSendFromConcierge) {
             return;
         }
-        if (activeExportID) {
+        // For the Concierge path the worker deletes the NVP after sending, so clearing it here would wipe
+        // shouldSendFromConcierge before the worker reads it and the file would never reach Concierge.
+        if (activeExportID && !activeExportDownload?.shouldSendFromConcierge) {
             clearExportDownload(activeExportID, activeExportDownload);
         }
         setActiveExportID(undefined);
