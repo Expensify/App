@@ -21,6 +21,7 @@ import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -89,6 +90,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const {isOffline} = useNetwork();
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
 
     const [lastSelectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RULES_TAB_TYPE}`);
@@ -179,7 +181,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         };
 
         return Object.entries(codingRules)
-            .filter(([, rule]) => !!rule)
+            .filter(([, rule]) => !!rule && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
             .map(([ruleID, rule]: [string, CodingRule]) => {
                 const merchantName = rule.filters?.right ?? '';
                 const hasOnlyMerchantRename =
@@ -236,7 +238,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 }
                 return 0;
             });
-    }, [policy?.rules?.codingRules, policyID, translate]);
+    }, [isOffline, policy?.rules?.codingRules, policyID, translate]);
 
     const fetchRules = useCallback(() => {
         openPolicyRulesPage(policyID);
