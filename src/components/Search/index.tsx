@@ -136,6 +136,7 @@ function Search({
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
+    const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -516,6 +517,22 @@ function Search({
     }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
+
+    useEffect(() => {
+        const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && isEmptyObject(searchResults?.data);
+        if (!comingBackOnlineWithNoResults || hasErrors || !isFocused || searchResults?.search?.isLoading) {
+            return;
+        }
+
+        handleSearch({
+            queryJSON,
+            searchKey: currentSearchKey,
+            offset,
+            shouldCalculateTotals,
+            prevReportsLength: filteredDataLength,
+            isLoading: false,
+        });
+    }, [currentSearchKey, filteredDataLength, handleSearch, hasErrors, isFocused, isOffline, offset, prevIsOffline, queryJSON, searchResults?.data, searchResults?.search?.isLoading, shouldCalculateTotals]);
 
     useEffect(() => {
         if (offset === 0 || offset === searchResults?.search?.offset || !isFocused || isOffline || searchResults?.search?.isLoading) {
