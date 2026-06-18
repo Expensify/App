@@ -1,46 +1,19 @@
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import getPlatform from '@libs/getPlatform';
+import getFocusedRoutePath, {getFocusedRouteAtCurrentLevel} from '@libs/Navigation/helpers/getFocusedRoutePath';
+import type {FocusedRoutePathRoute, FocusedRoutePathState} from '@libs/Navigation/helpers/getFocusedRoutePath';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {GuardResult, NavigationGuard} from './types';
 
-type StateLikeRoute = {
-    key?: string;
-    name?: string;
-    state?: StateLike;
-};
-
-type StateLike = {
-    index?: number;
-    routes?: StateLikeRoute[];
-};
-
 const MONEY_REQUEST_SCREEN_NAMES = new Set<string>(Object.values(SCREENS.MONEY_REQUEST));
 
 let activeInvalidMoneyRequestRouteKey: string | undefined;
 let isDismissInvalidMoneyRequestModalScheduled = false;
 
-function getFocusedRouteAtCurrentLevel(state?: StateLike): StateLikeRoute | undefined {
-    if (!state?.routes?.length) {
-        return;
-    }
-
-    const focusedIndex = typeof state.index === 'number' && state.routes.at(state.index) ? state.index : state.routes.length - 1;
-    return state.routes.at(focusedIndex);
-}
-
-function getFocusedRoutePath(state?: StateLike): StateLikeRoute[] {
-    const focusedRoute = getFocusedRouteAtCurrentLevel(state);
-    if (!focusedRoute) {
-        return [];
-    }
-
-    return [focusedRoute, ...getFocusedRoutePath(focusedRoute.state)];
-}
-
-function getFocusedMoneyRequestRightModalRoute(state?: StateLike): StateLikeRoute | undefined {
+function getFocusedMoneyRequestRightModalRoute(state?: FocusedRoutePathState): FocusedRoutePathRoute | undefined {
     const focusedRootRoute = getFocusedRouteAtCurrentLevel(state);
     if (focusedRootRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         return;
@@ -54,20 +27,20 @@ function getFocusedMoneyRequestRightModalRoute(state?: StateLike): StateLikeRout
     return focusedRightModalRoute;
 }
 
-function isMoneyRequestRightModalNavigatorState(state?: StateLike): boolean {
+function isMoneyRequestRightModalNavigatorState(state?: FocusedRoutePathState): boolean {
     return !!getFocusedMoneyRequestRightModalRoute(state);
 }
 
-function getFocusedMoneyRequestScreenRoutes(state?: StateLike): StateLikeRoute[] {
+function getFocusedMoneyRequestScreenRoutes(state?: FocusedRoutePathState): FocusedRoutePathRoute[] {
     const focusedRightModalRoute = getFocusedMoneyRequestRightModalRoute(state);
     if (!focusedRightModalRoute) {
         return [];
     }
 
-    return getFocusedRoutePath(focusedRightModalRoute.state).filter((route) => !!route.name && MONEY_REQUEST_SCREEN_NAMES.has(route.name));
+    return getFocusedRoutePath(focusedRightModalRoute.state).filter((route) => MONEY_REQUEST_SCREEN_NAMES.has(route.name));
 }
 
-function isActiveInvalidMoneyRequestRouteFocused(state: StateLike): boolean {
+function isActiveInvalidMoneyRequestRouteFocused(state: FocusedRoutePathState): boolean {
     return getFocusedMoneyRequestScreenRoutes(state).some((route) => route.key === activeInvalidMoneyRequestRouteKey);
 }
 
@@ -98,7 +71,7 @@ function clearActiveInvalidMoneyRequestRoute(routeKey: string) {
 }
 
 function shouldDismissInvalidMoneyRequestModalOnBrowserReset(state: NavigationState, action: NavigationAction): boolean {
-    const actionPayload = (action as {payload?: StateLike}).payload;
+    const actionPayload = (action as {payload?: FocusedRoutePathState}).payload;
 
     if (getPlatform() !== CONST.PLATFORM.WEB || action.type !== CONST.NAVIGATION.ACTION_TYPE.RESET || !activeInvalidMoneyRequestRouteKey) {
         return false;
