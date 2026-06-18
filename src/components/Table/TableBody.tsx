@@ -53,6 +53,7 @@ type TableBodyProps = ViewProps & {
 function TableBody<DataType extends TableData>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isListLoaded, setIsListLoaded] = React.useState(false);
     const {
         processedData: filteredAndSortedData,
         activeSearchString,
@@ -71,6 +72,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         contentContainerStyle: listContentContainerStyle,
         getItemType,
         keyExtractor,
+        onLoad,
         renderItem,
         stickyHeaderIndices,
         ...restListProps
@@ -126,6 +128,10 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
         return getItemType?.(item, getDataIndex(index), extraData);
     };
+    const handleLoad: NonNullable<typeof onLoad> = (info) => {
+        setIsListLoaded(true);
+        onLoad?.(info);
+    };
 
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
@@ -151,7 +157,8 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 maintainVisibleContentPosition={{disabled: true}}
                 ListHeaderComponent={headerComponent ?? ListHeaderComponent}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
-                stickyHeaderIndices={shouldRenderStickyHeader ? [0] : stickyHeaderIndices}
+                onLoad={handleLoad}
+                stickyHeaderIndices={shouldRenderStickyHeader && isListLoaded ? [0] : stickyHeaderIndices}
                 contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flexGrow1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
                 keyboardShouldPersistTaps="handled"
                 renderItem={renderListItem}
