@@ -41,7 +41,7 @@ describe('FeatureTrainingModal', () => {
                 <ComposeProviders components={[OnyxListItemProvider, PlaybackContextProvider, FullScreenContextProvider, VolumeContextProvider, VideoPopoverMenuContextProvider]}>
                     <FeatureTrainingModal
                         confirmText={CONFIRM_TEXT}
-                        videoURL={CONST.WELCOME_VIDEO_URL}
+                        videoURL={CONST.FEATURE_TRAINING['track-expenses'].VIDEO_URL}
                     />
                 </ComposeProviders>,
             );

@@ -2718,6 +2718,17 @@ function getValidOptions(
 
         hasMore = hasMore || groupedPersonalDetails.hasMore;
 
+        const selectedAccountIDs = new Set<number>();
+        const selectedLogins = new Set<string>();
+        for (const selectedOption of selectedOptions) {
+            if (selectedOption.accountID) {
+                selectedAccountIDs.add(selectedOption.accountID);
+            }
+            if (selectedOption.login) {
+                selectedLogins.add(selectedOption.login);
+            }
+        }
+
         for (let i = 0; i < personalDetailsOptions.length; i++) {
             const personalDetail = personalDetailsOptions.at(i);
             if (!personalDetail) {
@@ -2730,6 +2741,8 @@ function getValidOptions(
             if (personalDetail.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
                 personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
             }
+            personalDetail.isSelected =
+                (!!personalDetail.accountID && selectedAccountIDs.has(personalDetail.accountID)) || (!!personalDetail.login && selectedLogins.has(personalDetail.login));
         }
     }
 
@@ -3355,21 +3368,6 @@ function filterAndOrderOptions(
     };
 }
 
-/**
- * Filter out selected options from personal details and recent reports
- * @param options - The options to filter
- * @param selectedOptions - The selected options to filter out.
- * @returns The filtered options
- */
-function filterSelectedOptions(options: Options, selectedOptions: Set<number | undefined>): Options {
-    const filteredOptions = {
-        ...options,
-        personalDetails: options.personalDetails.filter(({accountID}) => !selectedOptions.has(accountID)),
-        recentReports: options.recentReports.filter(({accountID}) => !selectedOptions.has(accountID)),
-    };
-    return filteredOptions;
-}
-
 function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey, localeCompare: LocaleContextProps['localeCompare']): T[] {
     return items.sort((a, b) => localeCompare(a[key]?.toLowerCase() ?? '', b[key]?.toLowerCase() ?? ''));
 }
@@ -3444,7 +3442,6 @@ export {
     createOption,
     filterAndOrderOptions,
     filterReports,
-    filterSelectedOptions,
     filterSelfDMChat,
     filterWorkspaceChats,
     formatMemberForList,
