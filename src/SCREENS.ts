@@ -965,12 +965,12 @@ const SCREENS = {
         SELECTION: 'Currency_Selection',
     },
 
-    EXPLANATION_MODAL: {
-        ROOT: 'Explanation_Modal_Root',
-    },
-
     MIGRATED_USER_WELCOME_MODAL: {
         ROOT: 'MigratedUserWelcomeModal_Root',
+    },
+
+    AI_FEATURES_PROMO_MODAL: {
+        ROOT: 'AIFeaturesPromoModal_Root',
     },
 
     TEST_DRIVE_MODAL: {

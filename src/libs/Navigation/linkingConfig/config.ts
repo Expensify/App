@@ -44,19 +44,19 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path,
             },
         },
-        [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: {
+        [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: {
             screens: {
-                [SCREENS.EXPLANATION_MODAL.ROOT]: {
-                    path: ROUTES.EXPLANATION_MODAL_ROOT,
+                [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: {
+                    path: ROUTES.MIGRATED_USER_WELCOME_MODAL.route,
                     exact: true,
                 },
             },
         },
 
-        [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: {
+        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: {
             screens: {
-                [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: {
-                    path: ROUTES.MIGRATED_USER_WELCOME_MODAL.route,
+                [SCREENS.AI_FEATURES_PROMO_MODAL.ROOT]: {
+                    path: ROUTES.AI_FEATURES_PROMO_MODAL,
                     exact: true,
                 },
             },
