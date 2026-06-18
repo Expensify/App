@@ -42,8 +42,6 @@ type SingleAdvancedFiltersContentProps = Pick<SearchAdvancedFiltersContentProps,
 };
 
 function SingleAdvancedFiltersContent({baseFilterKey, values, policyIDQuery, ready, components, onChange}: SingleAdvancedFiltersContentProps) {
-    const {isNegated, value} = getFilterNegatableValue(baseFilterKey, values);
-
     if (
         baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
         baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
@@ -52,18 +50,20 @@ function SingleAdvancedFiltersContent({baseFilterKey, values, policyIDQuery, rea
         baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
         baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
     ) {
+        const {isNegated, value} = getFilterNegatableValue(baseFilterKey, values);
         const TextFilter = components.Text;
         return (
             <TextFilter
                 key={baseFilterKey}
                 baseFilterKey={baseFilterKey}
-                value={values?.[baseFilterKey]}
+                value={value}
                 isNegated={isNegated}
                 onChange={(newValue, negated) => onChange(getFilterFormValues(baseFilterKey, newValue, negated))}
             />
         );
     }
 
+    const {isNegated, value} = getFilterNegatableValue(baseFilterKey, values);
     const CommonFilter = components.Common;
     return (
         <CommonFilter

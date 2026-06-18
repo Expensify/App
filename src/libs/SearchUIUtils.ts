@@ -5366,8 +5366,14 @@ function getDisplayValue(
     return Array.isArray(formValue) ? formValue.join(', ') : formValue;
 }
 
-function getFilterNegatableValue(baseFilterKey: FilterComponentsProps['baseFilterKey'], values: Partial<SearchAdvancedFiltersForm> | undefined) {
-    const negatedFilterKey = `${baseFilterKey}${CONST.SEARCH.NOT_MODIFIER}` as SearchAdvancedFiltersKey;
+function getFilterNegatableValue<K extends FilterComponentsProps['baseFilterKey']>(
+    baseFilterKey: K,
+    values: Partial<SearchAdvancedFiltersForm> | undefined,
+): {
+    isNegated: boolean;
+    value: SearchAdvancedFiltersForm[K] | undefined;
+} {
+    const negatedFilterKey = `${baseFilterKey}${CONST.SEARCH.NOT_MODIFIER}` as K;
     const negatedValue = values?.[negatedFilterKey];
     const value = negatedValue ?? values?.[baseFilterKey];
     return {isNegated: !!negatedValue, value};
