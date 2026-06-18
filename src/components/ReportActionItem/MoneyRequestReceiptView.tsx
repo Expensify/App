@@ -514,10 +514,10 @@ function MoneyRequestReceiptView({
 
     const showBorderlessLoading = isLoading && fillSpace;
 
-    // "Add additional receipt" stays hidden for map distance receipts: the map image is auto-generated, so there is nothing for the user to supplement.
-    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !isMapDistanceRequest && !mergeTransactionID;
-    // "Expand" is a read-only action that works for any receipt (the transaction receipt route already renders the map), so it is not gated on !isMapDistanceRequest.
-    const canShowExpandButton = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
+    // Map distance receipts (auto-generated map image) show both hover actions — "Add additional receipt" and "Expand" — just like
+    // regular receipts, so we don't exclude isMapDistanceRequest here. "Add additional receipt" attaches a second receipt without
+    // replacing the map, so it remains a valid action.
+    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
@@ -667,48 +667,46 @@ function MoneyRequestReceiptView({
                                     </>
                                 </ReceiptHoverZoom>
                             </View>
-                            {canShowExpandButton && (
+                            {canShowReceiptActions && (
                                 <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isPickerOpen && deviceHasHoverSupport && styles.opacity0]}>
-                                    {canShowReceiptActions && (
-                                        <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
-                                            {({openPicker}) => (
-                                                <Tooltip text={translate('receipt.addAdditionalReceipt')}>
-                                                    <PressableWithoutFeedback
-                                                        ref={addButtonRef}
-                                                        onPress={() => {
-                                                            setIsPickerOpen(true);
-                                                            resetButtonHoverState(addButtonRef);
-                                                            const onPickerClosed = () => {
-                                                                setIsPickerOpen(false);
-                                                                if (isElementHovered(receiptContainerRef)) {
-                                                                    hoverBind.onMouseEnter();
-                                                                }
-                                                            };
-                                                            openPicker({
-                                                                onPicked: (files) => {
-                                                                    onPickerClosed();
-                                                                    validateFiles(files, undefined, {isValidatingReceipts: false});
-                                                                },
-                                                                onCanceled: onPickerClosed,
-                                                            });
-                                                        }}
-                                                        style={styles.receiptActionButton}
-                                                        hoverStyle={styles.buttonDefaultHovered}
-                                                        accessibilityLabel={translate('receipt.addAdditionalReceipt')}
-                                                        role={CONST.ROLE.BUTTON}
-                                                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
-                                                    >
-                                                        <Icon
-                                                            src={lazyIcons.ReceiptPlus}
-                                                            height={variables.iconSizeSmall}
-                                                            width={variables.iconSizeSmall}
-                                                            fill={theme.icon}
-                                                        />
-                                                    </PressableWithoutFeedback>
-                                                </Tooltip>
-                                            )}
-                                        </AttachmentPicker>
-                                    )}
+                                    <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
+                                        {({openPicker}) => (
+                                            <Tooltip text={translate('receipt.addAdditionalReceipt')}>
+                                                <PressableWithoutFeedback
+                                                    ref={addButtonRef}
+                                                    onPress={() => {
+                                                        setIsPickerOpen(true);
+                                                        resetButtonHoverState(addButtonRef);
+                                                        const onPickerClosed = () => {
+                                                            setIsPickerOpen(false);
+                                                            if (isElementHovered(receiptContainerRef)) {
+                                                                hoverBind.onMouseEnter();
+                                                            }
+                                                        };
+                                                        openPicker({
+                                                            onPicked: (files) => {
+                                                                onPickerClosed();
+                                                                validateFiles(files, undefined, {isValidatingReceipts: false});
+                                                            },
+                                                            onCanceled: onPickerClosed,
+                                                        });
+                                                    }}
+                                                    style={styles.receiptActionButton}
+                                                    hoverStyle={styles.buttonDefaultHovered}
+                                                    accessibilityLabel={translate('receipt.addAdditionalReceipt')}
+                                                    role={CONST.ROLE.BUTTON}
+                                                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
+                                                >
+                                                    <Icon
+                                                        src={lazyIcons.ReceiptPlus}
+                                                        height={variables.iconSizeSmall}
+                                                        width={variables.iconSizeSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                </PressableWithoutFeedback>
+                                            </Tooltip>
+                                        )}
+                                    </AttachmentPicker>
                                     <Tooltip text={translate('reportActionCompose.expand')}>
                                         <PressableWithoutFocus
                                             onPress={() =>
