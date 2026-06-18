@@ -1,6 +1,6 @@
-import {useSearchQueryContext} from '@components/Search/SearchContext';
-import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -13,26 +13,45 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import {selectFilteredReportActions} from '@libs/ReportUtils';
 import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
+import {getColumnsToShow, getSections, getSortedSections, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {ReportAction} from '@src/types/onyx';
+import type SearchResults from '@src/types/onyx/SearchResults';
 import useOptimisticSearchTracking from './useOptimisticSearchTracking';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
+type OptimisticTrackingReturn = ReturnType<typeof useOptimisticSearchTracking>;
+
 /**
- * Public contract of the Search data layer (Slices S4+S5, callstack-internal/expensify-issues#2546/#2547).
+ * Public contract of the Search data layer (Slice S4, callstack-internal/expensify-issues#2546).
  *
- * Returns row identities plus list-level meta. Never a React component, a render function, or
- * per-row pre-joined display data. Flat-expense rows self-hydrate their display from their own live
- * Onyx subscriptions (verified in `TransactionListItem`), so the live inputs `getSections` still
- * receives are kept only for the sort/group comparators and list-level projection, not for display.
+ * S4 is a HYDRATED FACADE, not the PRD's identities-only layer: `data` is the fully sorted+joined row
+ * items that `SearchList` and the legacy rows still read pre-joined display fields off. Returning
+ * identities-only is deferred to S5/S6 (#2547/#2548), where the rows source their own display from
+ * narrow Onyx subscriptions and the shell stops reading joined fields off the item. Until then the
+ * hook owns the whole projection (sort/group/paginate + the two-phase optimistic resilience) so the
+ * screen does it exactly once.
+ *
+ * `searchResults` and `newSearchResultKeys` are transitional inputs: the snapshot subscription moves
+ * inside the hook in S6 (when `<Search>` becomes the router), and the highlight keys move in with the
+ * S5 highlight primitive. They are threaded for now so this stays a behavior-preserving S4 change.
  */
 type SearchSnapshotResult = {
-    /** Sorted row items for the current query. Rows read identities + ids off these and self-hydrate display. */
+    /** Sorted + optimistic-stabilized row items for the current query (hydrated for now). */
     data: SearchListItem[];
+    /** Sorted row items BEFORE optimistic stabilization. The chart view consumes this, not `data`. */
+    chartData: SearchListItem[];
+    /** Group-enriched sections before sort. Consumed for selection counts and bulk-action wiring. */
+    filteredData: SearchData;
+    /** Length of the stage-1 sections (used as `prevReportsLength` when firing the next search). */
+    filteredDataLength: number;
+    /** Total result count reported by `getSections` (drives the pagination guard). */
+    allDataLength: number;
+    /** Whether any visible transaction is deleted (widens the action column). */
+    hasDeletedTransaction: boolean;
     /** Columns to render, derived from the snapshot. */
     columns: SearchColumnType[];
     /** Whether the snapshot is still loading from the server. */
@@ -41,6 +60,19 @@ type SearchSnapshotResult = {
     hasMore: boolean;
     /** Whether every transaction (including grouped sub-snapshots) has been loaded. */
     hasLoadedAllTransactions: boolean;
+    /** True while the cached optimistic row is being re-injected across a snapshot-replacement gap. */
+    hasCachedOptimisticItem: boolean;
+} & Pick<
+    OptimisticTrackingReturn,
+    'showPendingExpensePlaceholder' | 'shouldDeferHeavySearchWork' | 'setShouldDeferHeavySearchWork' | 'hasPendingWriteOnMountRef' | 'skipDeferralOnFocusRef' | 'rearmTracking'
+>;
+
+type UseSearchSnapshotParams = {
+    queryJSON: Readonly<SearchQueryJSON>;
+    /** The current search snapshot. Passed in from the ancestor until the hook owns the subscription (S6). */
+    searchResults: SearchResults | undefined;
+    /** Keys flagged for the post-create highlight animation. Passed in until the highlight primitive lands (S5). */
+    newSearchResultKeys: Set<string> | null | undefined;
 };
 
 const EMPTY_DATA: SearchListItem[] = [];
@@ -53,25 +85,21 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
 /**
  * Single data layer for the Search screen.
  *
- * Owns the narrow snapshot subscription plus the live inputs `getSections` needs for sort/group
- * correctness (S3 judged these load-bearing), runs the sort/group/paginate projection, enriches
+ * Owns the live inputs `getSections` needs for sort/group correctness (S3 judged these load-bearing),
+ * runs the deferral-gated sort/group/paginate projection, stamps the post-create highlight, enriches
  * grouped views with their per-group sub-snapshots, and absorbs the two-phase optimistic-row
- * resilience. Returns sorted items + list-level meta.
- *
- * The `useSearchSnapshot(hash)` overload for self-hydrating group rows is intentionally deferred to
- * S6 (#2548), where those group-row consumers ship. Adding it now would be unexercised.
+ * resilience. Returns the hydrated rows plus the list-level meta and the transitional carriers
+ * `<Search>` still needs while it owns the view/interaction layer.
  */
-function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshotResult {
+function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys}: UseSearchSnapshotParams): SearchSnapshotResult {
     const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
-
-    // `hash` is a required number, so the interpolated key can never collapse to a bare collection key (C-1).
-    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     const {isOffline} = useNetwork();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {convertToDisplayString} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
+    const {shouldUseLiveData} = useSearchResultsContext();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const archivedReportsIDSet = useArchivedReportsIDSet();
     const reportAttributesDerivedValue = useReportAttributes();
@@ -98,7 +126,21 @@ function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshot
 
     // Phase 1 (snapshot augmentation): inject an optimistically-created transaction the server has not
     // indexed yet so its row mounts immediately. Composed here; the standalone hook is deleted in S6.
-    const {searchDataWithOptimisticTransaction, trackingState} = useOptimisticSearchTracking({searchResults: snapshot, queryJSON, transactions, reportActions});
+    const {
+        showPendingExpensePlaceholder,
+        shouldDeferHeavySearchWork,
+        setShouldDeferHeavySearchWork,
+        searchDataWithOptimisticTransaction,
+        hasPendingWriteOnMountRef,
+        skipDeferralOnFocusRef,
+        rearmTracking,
+        trackingState,
+    } = useOptimisticSearchTracking({
+        searchResults,
+        queryJSON,
+        transactions,
+        reportActions,
+    });
     const optimisticTransactionID = trackingState.optimisticWatchKey?.toString().replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
 
     const validGroupBy = getValidGroupBy(groupBy);
@@ -106,17 +148,36 @@ function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshot
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    const isLoading = !!snapshot?.search?.isLoading;
-    const hasMore = !!snapshot?.search?.hasMoreResults;
+    const isLoading = !!searchResults?.search?.isLoading;
+    const hasMore = !!searchResults?.search?.hasMoreResults;
+
+    // There's a race condition in Onyx which makes it return data from the previous Search, so in
+    // addition to checking that the data is loaded we also check that the snapshot matches the query.
+    const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
+    const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
+
+    // Mirror the legacy `<Search>` gate: skip the heavy projection while deferring, before data is
+    // loaded, or for the invalid group-by-on-chat/task combo. Drives every stage below.
+    const shouldComputeSections =
+        !shouldDeferHeavySearchWork && searchResults !== undefined && isDataLoaded && !!searchDataWithOptimisticTransaction && !(validGroupBy && (isChat || isTask));
 
     // Stage 1: base sections from the (optimistically augmented) snapshot.
-    const baseFilteredData = ((): SearchListItem[] => {
-        // Group-by is not valid for chats or tasks; mirror the legacy `<Search>` guard.
-        if (!searchDataWithOptimisticTransaction || (validGroupBy && (isChat || isTask))) {
-            return EMPTY_DATA;
+    const {baseFilteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = ((): {
+        baseFilteredData: SearchListItem[];
+        filteredDataLength: number;
+        allDataLength: number;
+        hasDeletedTransaction: boolean;
+    } => {
+        if (!shouldComputeSections || !searchDataWithOptimisticTransaction) {
+            return {
+                baseFilteredData: EMPTY_DATA,
+                filteredDataLength: 0,
+                allDataLength: 0,
+                hasDeletedTransaction: false,
+            };
         }
 
-        const [filtered] = getSections({
+        const [filtered, allLength, hasDeletedTransactionFromSections] = getSections({
             type,
             data: searchDataWithOptimisticTransaction,
             currentAccountID: accountID,
@@ -142,7 +203,12 @@ function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshot
             reportAttributesDerivedValue,
             optimisticTransactionID,
         });
-        return filtered as SearchListItem[];
+        return {
+            baseFilteredData: filtered as SearchListItem[],
+            filteredDataLength: filtered.length,
+            allDataLength: allLength,
+            hasDeletedTransaction: hasDeletedTransactionFromSections,
+        };
     })();
 
     // Stage 2: for grouped views, fetch each group's sub-snapshot and enrich it with its transactions.
@@ -154,9 +220,10 @@ function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshot
         : EMPTY_HASHES;
     const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
 
-    const filteredData = ((): SearchListItem[] => {
+    const filteredData = ((): SearchData => {
         if (!validGroupBy || isExpenseReportType) {
-            return baseFilteredData;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- snapshot rows are a SearchData subset
+            return baseFilteredData as SearchData;
         }
         return groupItems.map((item) => {
             const subSnapshot = groupByTransactionSnapshots[hashToString(item.transactionsQueryJSON?.hash) ?? ''];
@@ -176,36 +243,65 @@ function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshot
                 conciergeReportID,
                 convertToDisplayString,
             });
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
-            return {...item, transactions: groupTransactions as TransactionListItemType[]};
+            return {
+                ...item,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
+                transactions: groupTransactions as TransactionListItemType[],
+            };
         });
     })();
 
-    // Stage 3: sort the (enriched) data. getSortedSections accepts the full section union; our
-    // SearchListItem[] is a compatible subset of that input.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- compatible section data
-    const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
-    const sortedData =
-        !searchDataWithOptimisticTransaction || (validGroupBy && (isChat || isTask))
-            ? EMPTY_DATA
-            : (getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
-                  policyCategories,
-                  fallbackPolicyID: policyForMovingExpensesID,
-              }) as SearchListItem[]);
+    // Stage 3: sort the (enriched) data, then stamp the post-create highlight on each row. getSortedSections
+    // accepts the full section union; our SearchListItem[] is a compatible subset of that input.
+    const chartData = ((): SearchListItem[] => {
+        if (!shouldComputeSections) {
+            return EMPTY_DATA;
+        }
+        const sortInput = filteredData as Parameters<typeof getSortedSections>[2];
+        return getSortedSections(type, status, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
+            policyCategories,
+            fallbackPolicyID: policyForMovingExpensesID,
+        }).map((item) => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- chat variant rows are report actions
+            const reportActionID = (item as ReportActionListItemType).reportActionID;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- non-chat variant rows carry a transactionID
+            const transactionID = (item as TransactionListItemType).transactionID;
+            const baseKey = isChat ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionID}` : `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+
+            const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group rows expose nested transactions
+            const groupTransactionsForHighlight = (item as TransactionGroupListItemType)?.transactions;
+            const isAnyTransactionMatch =
+                !isChat &&
+                groupTransactionsForHighlight?.some((transaction) => {
+                    const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+                    return !!newSearchResultKeys?.has(transactionKey);
+                });
+
+            const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
+
+            if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
+                return item;
+            }
+
+            return {...item, shouldAnimateInHighlight, hash};
+        });
+    })();
 
     // Phase 2 (cached re-injection): keep the optimistic row visible across a snapshot-replacement gap
     // for up to OPTIMISTIC_ROLLBACK_GRACE_MS until the new snapshot picks it up or the grace expires.
-    const {stableSortedData} = useStableOptimisticSortedData(sortedData, snapshot, trackingState);
+    const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
     const columns = ((): SearchColumnType[] => {
-        if (!snapshot?.data) {
+        if (!searchResults?.data) {
             return EMPTY_COLUMNS;
         }
         return getColumnsToShow({
             currentAccountID: accountID,
-            data: snapshot.data,
+            data: searchResults.data,
             visibleColumns,
-            type: snapshot?.search?.type ?? type,
+            type: searchDataType,
             groupBy: validGroupBy,
             shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
             policyCategories,
@@ -225,10 +321,22 @@ function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshot
 
     return {
         data: stableSortedData,
+        chartData,
+        filteredData,
+        filteredDataLength,
+        allDataLength,
+        hasDeletedTransaction,
         columns,
         isLoading,
         hasMore,
         hasLoadedAllTransactions,
+        hasCachedOptimisticItem,
+        showPendingExpensePlaceholder,
+        shouldDeferHeavySearchWork,
+        setShouldDeferHeavySearchWork,
+        hasPendingWriteOnMountRef,
+        skipDeferralOnFocusRef,
+        rearmTracking,
     };
 }
 

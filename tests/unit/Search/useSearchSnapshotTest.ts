@@ -3,39 +3,82 @@ import useSearchSnapshot from '@components/Search/hooks/useSearchSnapshot';
 import type {SearchQueryJSON} from '@components/Search/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SearchResults from '@src/types/onyx/SearchResults';
 
 const onyxData: Record<string, unknown> = {};
 
-// Selectors are mocked to identity below, so the mock can ignore them and return the raw value.
+// Aux Onyx reads (cards, bank accounts, etc.) are irrelevant here because getSections is mocked.
 const mockUseOnyx = jest.fn((key: string) => [onyxData[key]]);
-
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: (key: string) => mockUseOnyx(key),
 }));
 
-jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: () => ({isOffline: false})}));
+jest.mock('@hooks/useNetwork', () => ({
+    __esModule: true,
+    default: () => ({isOffline: false}),
+}));
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
-    default: () => ({localeCompare: (a: string, b: string) => a.localeCompare(b), formatPhoneNumber: (phone: string) => phone, translate: (key: string) => key}),
+    default: () => ({
+        localeCompare: (a: string, b: string) => a.localeCompare(b),
+        formatPhoneNumber: (phone: string) => phone,
+        translate: (key: string) => key,
+    }),
 }));
-jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({__esModule: true, default: () => ({accountID: 1, email: 'test@test.com'})}));
-jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: () => ({convertToDisplayString: () => ''})}));
-jest.mock('@hooks/useActionLoadingReportIDs', () => ({__esModule: true, default: () => new Set()}));
-jest.mock('@hooks/useArchivedReportsIDSet', () => ({__esModule: true, default: () => new Set()}));
-jest.mock('@hooks/useReportAttributes', () => ({__esModule: true, default: () => undefined}));
-jest.mock('@hooks/usePolicyForMovingExpenses', () => ({__esModule: true, default: () => ({policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined})}));
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: () => ({accountID: 1, email: 'test@test.com'}),
+}));
+jest.mock('@hooks/useCurrencyList', () => ({
+    useCurrencyListActions: () => ({convertToDisplayString: () => ''}),
+}));
+jest.mock('@hooks/useActionLoadingReportIDs', () => ({
+    __esModule: true,
+    default: () => new Set(),
+}));
+jest.mock('@hooks/useArchivedReportsIDSet', () => ({
+    __esModule: true,
+    default: () => new Set(),
+}));
+jest.mock('@hooks/useReportAttributes', () => ({
+    __esModule: true,
+    default: () => undefined,
+}));
+jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
+    __esModule: true,
+    default: () => ({
+        policyForMovingExpensesID: undefined,
+        policyForMovingExpenses: undefined,
+    }),
+}));
+jest.mock('@hooks/useMultipleSnapshots', () => ({
+    __esModule: true,
+    default: () => ({}),
+}));
 
-jest.mock('@components/Search/SearchContext', () => ({useSearchQueryContext: () => ({currentSearchKey: undefined})}));
-jest.mock('@libs/TransactionUtils', () => ({shouldShowAttendees: () => false}));
-jest.mock('@libs/SearchQueryUtils', () => ({isDefaultExpensesQuery: () => false}));
-jest.mock('@libs/ReportUtils', () => ({selectFilteredReportActions: (value: unknown) => value}));
-jest.mock('@src/selectors/AdvancedSearchFiltersForm', () => ({columnsSelector: (value: unknown) => value}));
+jest.mock('@components/Search/SearchContext', () => ({
+    useSearchQueryContext: () => ({currentSearchKey: undefined}),
+    useSearchResultsContext: () => ({shouldUseLiveData: false}),
+}));
+jest.mock('@libs/TransactionUtils', () => ({
+    shouldShowAttendees: () => false,
+}));
+jest.mock('@libs/SearchQueryUtils', () => ({
+    isDefaultExpensesQuery: () => false,
+}));
+jest.mock('@libs/ReportUtils', () => ({
+    selectFilteredReportActions: (value: unknown) => value,
+}));
+jest.mock('@src/selectors/AdvancedSearchFiltersForm', () => ({
+    columnsSelector: (value: unknown) => value,
+}));
 
 const mockGetSections = jest.fn();
 const mockGetSortedSections = jest.fn();
 const mockGetColumnsToShow = jest.fn();
 const mockGetValidGroupBy = jest.fn();
+const mockIsSearchDataLoaded = jest.fn();
 jest.mock('@libs/SearchUIUtils', () => ({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     getSections: (...args: unknown[]) => mockGetSections(...args),
@@ -45,10 +88,12 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getColumnsToShow: (...args: unknown[]) => mockGetColumnsToShow(...args),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     getValidGroupBy: (...args: unknown[]) => mockGetValidGroupBy(...args),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    isSearchDataLoaded: (...args: unknown[]) => mockIsSearchDataLoaded(...args),
 }));
 
 // Phase 1/2 are composed in; mock them so this suite exercises the hook's WIRING (correct inputs in,
-// phase outputs returned). The phases' own logic is covered by their hooks + getSections tests.
+// phase outputs returned). The phases' own logic is covered by their own hooks + getSections tests.
 const mockUseOptimisticSearchTracking = jest.fn();
 const mockUseStableOptimisticSortedData = jest.fn();
 jest.mock('@components/Search/hooks/useOptimisticSearchTracking', () => ({
@@ -63,7 +108,6 @@ jest.mock('@components/Search/hooks/useStableOptimisticSortedData', () => ({
 }));
 
 const HASH = 123;
-const SNAPSHOT_KEY = `${ONYXKEYS.COLLECTION.SNAPSHOT}${HASH}`;
 
 function makeQueryJSON(overrides: Partial<SearchQueryJSON> = {}): SearchQueryJSON {
     const base = {
@@ -78,6 +122,33 @@ function makeQueryJSON(overrides: Partial<SearchQueryJSON> = {}): SearchQueryJSO
     return base as SearchQueryJSON;
 }
 
+function makeSearchResults(overrides: Partial<SearchResults['search']> = {}): SearchResults {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return {
+        data: {transactions: {}},
+        search: {
+            isLoading: false,
+            hasMoreResults: false,
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            ...overrides,
+        },
+    } as unknown as SearchResults;
+}
+
+// Default optimistic Phase 1 return: no pending write, snapshot data passed through unchanged.
+function trackingReturn(searchDataWithOptimisticTransaction: unknown, optimisticWatchKey?: string, shouldDeferHeavySearchWork = false) {
+    return {
+        searchDataWithOptimisticTransaction,
+        trackingState: {optimisticWatchKey},
+        showPendingExpensePlaceholder: false,
+        shouldDeferHeavySearchWork,
+        setShouldDeferHeavySearchWork: jest.fn(),
+        hasPendingWriteOnMountRef: {current: {hasPendingWriteOnMount: false}},
+        skipDeferralOnFocusRef: {current: false},
+        rearmTracking: jest.fn(),
+    };
+}
+
 describe('useSearchSnapshot', () => {
     beforeEach(() => {
         for (const key of Object.keys(onyxData)) {
@@ -88,56 +159,128 @@ describe('useSearchSnapshot', () => {
         mockGetSortedSections.mockReset().mockReturnValue([]);
         mockGetColumnsToShow.mockReset().mockReturnValue([]);
         mockGetValidGroupBy.mockReset().mockImplementation((groupBy: unknown) => groupBy);
-        // Default: no optimistic write pending, snapshot data passed through unchanged.
-        mockUseOptimisticSearchTracking.mockReset().mockReturnValue({searchDataWithOptimisticTransaction: undefined, trackingState: {optimisticWatchKey: undefined}});
-        // Default Phase 2: passthrough of the sorted data.
-        mockUseStableOptimisticSortedData.mockReset().mockImplementation((sortedData: unknown) => ({stableSortedData: sortedData, hasCachedOptimisticItem: false}));
+        mockIsSearchDataLoaded.mockReset().mockReturnValue(true);
+        mockUseOptimisticSearchTracking.mockReset().mockReturnValue(trackingReturn(undefined));
+        mockUseStableOptimisticSortedData.mockReset().mockImplementation((sortedData: unknown) => ({
+            stableSortedData: sortedData,
+            hasCachedOptimisticItem: false,
+        }));
     });
 
     it('projects sorted data + columns + meta from the snapshot', () => {
-        const snapshotData = {transactions: {}};
-        onyxData[SNAPSHOT_KEY] = {data: snapshotData, search: {isLoading: false, hasMoreResults: false, type: CONST.SEARCH.DATA_TYPES.EXPENSE}};
-        mockUseOptimisticSearchTracking.mockReturnValue({searchDataWithOptimisticTransaction: snapshotData, trackingState: {optimisticWatchKey: undefined}});
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
         const sorted = [{transactionID: '1', keyForList: '1'}];
         mockGetSections.mockReturnValue([[{transactionID: '1'}], 1, false]);
         mockGetSortedSections.mockReturnValue(sorted);
         mockGetColumnsToShow.mockReturnValue(['merchant']);
 
-        const {result} = renderHook(() => useSearchSnapshot(makeQueryJSON()));
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+            }),
+        );
 
-        expect(mockGetSections).toHaveBeenCalledWith(expect.objectContaining({data: snapshotData}));
+        expect(mockGetSections).toHaveBeenCalledWith(expect.objectContaining({data: searchResults.data}));
         expect(mockGetSortedSections).toHaveBeenCalled();
-        expect(result.current.data).toBe(sorted);
+        expect(result.current.chartData).toHaveLength(1);
+        expect(result.current.chartData.at(0)?.keyForList).toBe('1');
+        // data is the Phase-2 passthrough of the (highlight-stamped) chartData in this mock setup.
+        expect(result.current.data).toBe(result.current.chartData);
         expect(result.current.columns).toEqual(['merchant']);
         expect(result.current.isLoading).toBe(false);
         expect(result.current.hasMore).toBe(false);
         expect(result.current.hasLoadedAllTransactions).toBe(true);
+        expect(result.current.allDataLength).toBe(1);
+        expect(result.current.hasDeletedTransaction).toBe(false);
     });
 
-    it('returns empty data and skips getSections when the snapshot has no data', () => {
+    it('returns empty data and skips getSections when there is no augmented snapshot', () => {
         // searchDataWithOptimisticTransaction undefined (no snapshot / deep-link before search ran).
-        const {result} = renderHook(() => useSearchSnapshot(makeQueryJSON()));
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults: undefined,
+                newSearchResultKeys: undefined,
+            }),
+        );
+
+        expect(mockGetSections).not.toHaveBeenCalled();
+        expect(result.current.data).toEqual([]);
+        expect(result.current.filteredDataLength).toBe(0);
+    });
+
+    it('skips getSections while heavy work is deferred (defer gating)', () => {
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data, undefined, true));
+
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+            }),
+        );
+
+        expect(mockGetSections).not.toHaveBeenCalled();
+        expect(result.current.data).toEqual([]);
+        expect(result.current.shouldDeferHeavySearchWork).toBe(true);
+    });
+
+    it('skips getSections until the snapshot is data-loaded (race guard)', () => {
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        mockIsSearchDataLoaded.mockReturnValue(false);
+
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+            }),
+        );
 
         expect(mockGetSections).not.toHaveBeenCalled();
         expect(result.current.data).toEqual([]);
     });
 
-    it('skips getSections when group-by is combined with a chat search (invalid combo)', () => {
-        const snapshotData = {transactions: {}};
-        onyxData[SNAPSHOT_KEY] = {data: snapshotData, search: {isLoading: false}};
-        mockUseOptimisticSearchTracking.mockReturnValue({searchDataWithOptimisticTransaction: snapshotData, trackingState: {optimisticWatchKey: undefined}});
+    it('skips getSections for the invalid group-by-on-chat combo', () => {
+        const searchResults = makeSearchResults({
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+        });
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
 
-        const {result} = renderHook(() => useSearchSnapshot(makeQueryJSON({type: CONST.SEARCH.DATA_TYPES.CHAT, groupBy: CONST.SEARCH.GROUP_BY.FROM})));
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON({
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                }),
+                searchResults,
+                newSearchResultKeys: undefined,
+            }),
+        );
 
         expect(mockGetSections).not.toHaveBeenCalled();
         expect(result.current.data).toEqual([]);
     });
 
     it('derives meta from the snapshot search block', () => {
-        onyxData[SNAPSHOT_KEY] = {data: {transactions: {}}, search: {isLoading: true, hasMoreResults: true, type: CONST.SEARCH.DATA_TYPES.EXPENSE}};
-        mockUseOptimisticSearchTracking.mockReturnValue({searchDataWithOptimisticTransaction: {transactions: {}}, trackingState: {optimisticWatchKey: undefined}});
+        const searchResults = makeSearchResults({
+            isLoading: true,
+            hasMoreResults: true,
+        });
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
 
-        const {result} = renderHook(() => useSearchSnapshot(makeQueryJSON()));
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+            }),
+        );
 
         expect(result.current.isLoading).toBe(true);
         expect(result.current.hasMore).toBe(true);
@@ -146,30 +289,70 @@ describe('useSearchSnapshot', () => {
     });
 
     it('feeds the optimistic-augmented data and watch key into getSections (Phase 1 wiring)', () => {
-        const augmented = {transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}999`]: {transactionID: '999'}}};
-        onyxData[SNAPSHOT_KEY] = {data: {transactions: {}}, search: {isLoading: false}};
-        mockUseOptimisticSearchTracking.mockReturnValue({searchDataWithOptimisticTransaction: augmented, trackingState: {optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}999`}});
+        const augmented = {
+            transactions: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}999`]: {transactionID: '999'},
+            },
+        };
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(augmented, `${ONYXKEYS.COLLECTION.TRANSACTION}999`));
 
-        renderHook(() => useSearchSnapshot(makeQueryJSON()));
+        renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+            }),
+        );
 
-        expect(mockGetSections).toHaveBeenCalledWith(expect.objectContaining({data: augmented, optimisticTransactionID: '999'}));
+        expect(mockGetSections).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: augmented,
+                optimisticTransactionID: '999',
+            }),
+        );
     });
 
     it('returns the Phase 2 stabilized data, not the raw sorted data (Phase 2 wiring)', () => {
-        const snapshotData = {transactions: {}};
-        onyxData[SNAPSHOT_KEY] = {data: snapshotData, search: {isLoading: false}};
-        mockUseOptimisticSearchTracking.mockReturnValue({searchDataWithOptimisticTransaction: snapshotData, trackingState: {optimisticWatchKey: undefined}});
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
         mockGetSortedSections.mockReturnValue([{keyForList: 'sorted'}]);
         const stabilized = [{keyForList: 'sorted'}, {keyForList: 'optimistic-extra'}];
-        mockUseStableOptimisticSortedData.mockReturnValue({stableSortedData: stabilized, hasCachedOptimisticItem: true});
+        mockUseStableOptimisticSortedData.mockReturnValue({
+            stableSortedData: stabilized,
+            hasCachedOptimisticItem: true,
+        });
 
-        const {result} = renderHook(() => useSearchSnapshot(makeQueryJSON()));
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+            }),
+        );
 
         expect(result.current.data).toBe(stabilized);
+        expect(result.current.hasCachedOptimisticItem).toBe(true);
+    });
+
+    it('stamps the post-create highlight on matching rows (newSearchResultKeys)', () => {
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        mockGetSortedSections.mockReturnValue([{transactionID: '7', keyForList: '7'}]);
+
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: new Set([`${ONYXKEYS.COLLECTION.TRANSACTION}7`]),
+            }),
+        );
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect((result.current.chartData.at(0) as {shouldAnimateInHighlight?: boolean})?.shouldAnimateInHighlight).toBe(true);
     });
 
     it('passes the query type through to getSortedSections for each variant shape', () => {
-        const snapshotData = {transactions: {}};
         const variants = [
             CONST.SEARCH.DATA_TYPES.CHAT,
             CONST.SEARCH.DATA_TYPES.TASK,
@@ -178,11 +361,17 @@ describe('useSearchSnapshot', () => {
             CONST.SEARCH.DATA_TYPES.INVOICE,
         ];
         for (const type of variants) {
-            onyxData[SNAPSHOT_KEY] = {data: snapshotData, search: {isLoading: false, type}};
-            mockUseOptimisticSearchTracking.mockReturnValue({searchDataWithOptimisticTransaction: snapshotData, trackingState: {optimisticWatchKey: undefined}});
+            const searchResults = makeSearchResults({type});
+            mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
             mockGetSortedSections.mockClear();
 
-            renderHook(() => useSearchSnapshot(makeQueryJSON({type})));
+            renderHook(() =>
+                useSearchSnapshot({
+                    queryJSON: makeQueryJSON({type}),
+                    searchResults,
+                    newSearchResultKeys: undefined,
+                }),
+            );
 
             expect(mockGetSortedSections).toHaveBeenCalled();
             // First positional arg to getSortedSections is the search data type for the variant.
