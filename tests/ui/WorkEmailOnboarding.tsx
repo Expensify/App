@@ -442,7 +442,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -858,7 +858,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 

@@ -45,9 +45,7 @@ function renderInterestedFeaturesPage() {
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.INTERESTED_FEATURES}>
-                    <Stack.Screen
-                        name={SCREENS.ONBOARDING.INTERESTED_FEATURES}
-                    >
+                    <Stack.Screen name={SCREENS.ONBOARDING.INTERESTED_FEATURES}>
                         {(props) => (
                             <BaseOnboardingInterestedFeatures
                                 {...props}
@@ -66,9 +64,7 @@ function renderAccountingPage() {
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.ACCOUNTING}>
-                    <Stack.Screen
-                        name={SCREENS.ONBOARDING.ACCOUNTING}
-                    >
+                    <Stack.Screen name={SCREENS.ONBOARDING.ACCOUNTING}>
                         {(props) => (
                             <BaseOnboardingAccounting
                                 {...props}
