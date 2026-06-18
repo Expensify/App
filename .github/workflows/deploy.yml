@@ -881,7 +881,7 @@ jobs:
 
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
     needs: [prep, checkDeploymentSuccess, victoryChartRendererBuild]
     permissions:
       contents: write
@@ -889,6 +889,9 @@ jobs:
       # v7
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+
+      - name: Verify victory-chart-renderer artifact is present
+        run: test -f ./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64
 
       - name: Get last production release
         id: get_last_prod_version
@@ -973,7 +976,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Upload victory-chart-renderer to GitHub Release
-        if: ${{ needs.victoryChartRendererBuild.result == 'success' }}
         run: |
           gh release upload "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" --clobber \
             "./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64#victory-chart-renderer-linux-x64"
@@ -1006,7 +1008,7 @@ jobs:
   #   2. CP that version bump to staging
   cherryPickExtraVersionBump:
     needs: [prep, checkDeploymentSuccess]
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && needs.prep.outputs.DEPLOY_ENV == 'production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) && needs.prep.outputs.DEPLOY_ENV == 'production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     uses: ./.github/workflows/cherryPick.yml
     secrets: inherit
     with:
