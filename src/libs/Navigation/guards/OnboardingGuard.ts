@@ -169,7 +169,7 @@ const OnboardingGuard: NavigationGuard = {
         const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
-        const needsExplanationModal = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
+        const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
@@ -192,7 +192,7 @@ const OnboardingGuard: NavigationGuard = {
             isMigratedUser ||
             isInvitedOrGroupMember ||
             isSingleEntry ||
-            needsExplanationModal ||
+            isFirstTimeHybridAppTransition ||
             isNavigatingWithReplace;
 
         if (shouldSkipOnboarding) {
@@ -218,7 +218,7 @@ const OnboardingGuard: NavigationGuard = {
             isOnboardingCompleted,
             isMigratedUser,
             isSingleEntry,
-            needsExplanationModal,
+            isFirstTimeHybridAppTransition,
             isInvitedOrGroupMember,
             isNavigatingWithReplace,
         });
