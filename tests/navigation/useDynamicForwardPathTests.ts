@@ -4,14 +4,18 @@ import type {DynamicRouteSuffix} from '@src/ROUTES';
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/getPathFromState', () => jest.fn());
-jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes', () => ({
+    __esModule: true,
+    default: jest.fn(),
+    findMatchingDynamicSuffix: jest.fn(),
+}));
 jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard', () => jest.fn());
 
 const useRootNavigationStateMock = jest.requireMock<jest.Mock>('@hooks/useRootNavigationState');
 const getPathFromStateMock: jest.Mock = jest.requireMock('@libs/Navigation/helpers/getPathFromState');
-const findMatchingDynamicSuffixMock: jest.Mock = jest.requireMock('@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix');
+const findAllMatchingDynamicSuffixesMock: jest.Mock = jest.requireMock<{default: jest.Mock}>('@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes').default;
 const getPathWithoutDynamicSuffixMock: jest.Mock = jest.requireMock('@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix');
 const getStateFromPathMock: jest.Mock = jest.requireMock('@libs/Navigation/helpers/getStateFromPath');
 const findFocusedRouteWithOnyxTabGuardMock: jest.Mock = jest.requireMock('@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard');
@@ -36,7 +40,7 @@ describe('useDynamicForwardPath', () => {
 
     it('returns undefined when the matched suffix does not equal the expected dynamicRouteSuffix', () => {
         getPathFromStateMock.mockReturnValue('settings/wallet/two-factor-auth/success');
-        findMatchingDynamicSuffixMock.mockReturnValue({pattern: SUCCESS_SUFFIX, actualSuffix: 'two-factor-auth/success'});
+        findAllMatchingDynamicSuffixesMock.mockReturnValue([{pattern: SUCCESS_SUFFIX, actualSuffix: 'two-factor-auth/success'}]);
 
         const {result} = renderHook(() => useDynamicForwardPath(VERIFY_ACCOUNT_SUFFIX));
 
@@ -45,7 +49,7 @@ describe('useDynamicForwardPath', () => {
 
     it('returns undefined when no suffix match is found in the path', () => {
         getPathFromStateMock.mockReturnValue('settings/wallet');
-        findMatchingDynamicSuffixMock.mockReturnValue(null);
+        findAllMatchingDynamicSuffixesMock.mockReturnValue([]);
 
         const {result} = renderHook(() => useDynamicForwardPath(VERIFY_ACCOUNT_SUFFIX));
 
@@ -54,7 +58,7 @@ describe('useDynamicForwardPath', () => {
 
     it('returns the forward route when suffix, base state, and screen mapping all resolve', () => {
         getPathFromStateMock.mockReturnValue('settings/wallet/verify-account');
-        findMatchingDynamicSuffixMock.mockReturnValue({pattern: VERIFY_ACCOUNT_SUFFIX, actualSuffix: 'verify-account'});
+        findAllMatchingDynamicSuffixesMock.mockReturnValue([{pattern: VERIFY_ACCOUNT_SUFFIX, actualSuffix: 'verify-account'}]);
         getPathWithoutDynamicSuffixMock.mockReturnValue('settings/wallet');
         getStateFromPathMock.mockReturnValue({routes: [{name: WALLET_SCREEN}]});
         findFocusedRouteWithOnyxTabGuardMock.mockReturnValue({name: WALLET_SCREEN});
@@ -66,7 +70,7 @@ describe('useDynamicForwardPath', () => {
 
     it('returns undefined when the focused screen has no mapping in FORWARD_TO_MAPPINGS', () => {
         getPathFromStateMock.mockReturnValue('settings/profile/verify-account');
-        findMatchingDynamicSuffixMock.mockReturnValue({pattern: VERIFY_ACCOUNT_SUFFIX, actualSuffix: 'verify-account'});
+        findAllMatchingDynamicSuffixesMock.mockReturnValue([{pattern: VERIFY_ACCOUNT_SUFFIX, actualSuffix: 'verify-account'}]);
         getPathWithoutDynamicSuffixMock.mockReturnValue('settings/profile');
         getStateFromPathMock.mockReturnValue({routes: [{name: 'Settings_Profile'}]});
         findFocusedRouteWithOnyxTabGuardMock.mockReturnValue({name: 'Settings_Profile'});
@@ -78,7 +82,7 @@ describe('useDynamicForwardPath', () => {
 
     it('returns undefined when getStateFromPath returns null for the base path', () => {
         getPathFromStateMock.mockReturnValue('settings/wallet/verify-account');
-        findMatchingDynamicSuffixMock.mockReturnValue({pattern: VERIFY_ACCOUNT_SUFFIX, actualSuffix: 'verify-account'});
+        findAllMatchingDynamicSuffixesMock.mockReturnValue([{pattern: VERIFY_ACCOUNT_SUFFIX, actualSuffix: 'verify-account'}]);
         getPathWithoutDynamicSuffixMock.mockReturnValue('settings/wallet');
         getStateFromPathMock.mockReturnValue(null);
 
@@ -89,7 +93,7 @@ describe('useDynamicForwardPath', () => {
 
     it('returns undefined when no focused route is found in the base state', () => {
         getPathFromStateMock.mockReturnValue('settings/wallet/verify-account');
-        findMatchingDynamicSuffixMock.mockReturnValue({pattern: VERIFY_ACCOUNT_SUFFIX, actualSuffix: 'verify-account'});
+        findAllMatchingDynamicSuffixesMock.mockReturnValue([{pattern: VERIFY_ACCOUNT_SUFFIX, actualSuffix: 'verify-account'}]);
         getPathWithoutDynamicSuffixMock.mockReturnValue('settings/wallet');
         getStateFromPathMock.mockReturnValue({routes: [{name: WALLET_SCREEN}]});
         findFocusedRouteWithOnyxTabGuardMock.mockReturnValue(null);

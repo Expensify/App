@@ -3,9 +3,10 @@ import React, {useContext, useEffect, useEffectEvent, useLayoutEffect, useRef, u
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -77,6 +78,8 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
         return () => onUnmount();
     }, []);
 
+    const isSavedSearchesSection = section.translationPath === 'search.savedSearchesMenuItemTitle';
+
     return (
         <SearchTypeMenuAccordion
             isExpanded={isExpanded}
@@ -89,12 +92,13 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
             title={translate(section.translationPath)}
             badgeText={getSectionBadgeText(section.translationPath, reportCounts)}
         >
-            {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
+            {isSavedSearchesSection && (
                 <SavedSearchList
                     hash={hash}
                     areAllSectionsExpanded={areAllSectionsExpanded}
                 />
-            ) : (
+            )}
+            {!isSavedSearchesSection &&
                 section.menuItems.map((item, itemIndex) => {
                     const flattenedIndex = sectionStartIndex + itemIndex;
                     const focused = activeItemIndex === flattenedIndex;
@@ -110,8 +114,7 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
                             onPress={() => onItemPress(item.searchQuery)}
                         />
                     );
-                })
-            )}
+                })}
         </SearchTypeMenuAccordion>
     );
 }
@@ -122,8 +125,9 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {singleExecution} = useSingleExecution();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash, sortBy, sortOrder, type});
+    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
 
@@ -190,7 +194,10 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                 )}
 
                 {areSuggestedSearchesLoading ? (
-                    <SuggestedSearchSkeleton sectionCount={nonExpenseReportsSections.length || 2} />
+                    <SuggestedSearchSkeleton
+                        sectionCount={nonExpenseReportsSections.length || 2}
+                        shouldHideLabels={isVisuallyCollapsed}
+                    />
                 ) : (
                     nonExpenseReportsSections.map((section, index) => (
                         <Section

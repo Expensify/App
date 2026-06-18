@@ -4,15 +4,17 @@ import Button from '@components/Button';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
+import useChatWithAgent from '@hooks/useChatWithAgent';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -38,6 +40,8 @@ function AgentsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['TvScreenRobot', 'AiBot']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const chatWithAgent = useChatWithAgent();
+    const switchToDelegator = useSwitchToDelegator();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     useDocumentTitle(translate('agentsPage.title'));
@@ -95,6 +99,8 @@ function AgentsPage() {
             errors={shouldShowErrors(item.pendingAction) ? item.errors : null}
             onErrorClose={() => handleErrorClose(item.pendingAction, item.accountID)}
             brickRoadIndicator={item.hasUpdateErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : null}
+            onChatPress={chatWithAgent}
+            onCopilotPress={switchToDelegator}
         />
     );
 
@@ -107,7 +113,7 @@ function AgentsPage() {
             success
             icon={icons.Plus}
             text={translate('agentsPage.newAgent')}
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD)}
+            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute())}
         />
     );
 
@@ -138,7 +144,9 @@ function AgentsPage() {
             {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
             {hasAgents ? (
                 <>
-                    <Text style={[styles.textSupporting, styles.ph5, styles.pb3, styles.pt3]}>{translate('agentsPage.subtitle')}</Text>
+                    <View style={[styles.renderHTML, styles.ph5, styles.pb3, styles.pt3]}>
+                        <RenderHTML html={translate('agentsPage.subtitle')} />
+                    </View>
                     <FlatList
                         data={agentItems}
                         renderItem={renderItem}
@@ -150,8 +158,11 @@ function AgentsPage() {
                     <GenericEmptyStateComponent
                         headerMedia={illustrations.TvScreenRobot}
                         title={translate('agentsPage.emptyAgents.title')}
-                        subtitle={translate('agentsPage.emptyAgents.subtitle')}
-                        subtitleStyles={styles.agentsPageEmptyStateSubtitle}
+                        subtitleText={
+                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, !shouldUseNarrowLayout && styles.agentsPageEmptyStateSubtitle]}>
+                                <RenderHTML html={translate('agentsPage.emptyAgents.subtitle')} />
+                            </View>
+                        }
                         headerStyles={styles.emptyStateCardIllustrationContainer}
                         headerContentStyles={styles.agentsPageEmptyStateIllustration}
                     />

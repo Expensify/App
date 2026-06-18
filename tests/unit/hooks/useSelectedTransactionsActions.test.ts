@@ -71,12 +71,13 @@ const mockSelectedTransactions: SelectedTransactions = {};
 const mockCurrentSearchHash = 12345;
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({
+    useSearchQueryContext: () => ({currentSearchHash: mockCurrentSearchHash}),
+    useSearchResultsContext: () => ({currentSearchResults: undefined}),
+    useSearchSelectionContext: () => ({
         selectedTransactionIDs: mockSelectedTransactionIDs,
-        currentSearchHash: mockCurrentSearchHash,
         selectedTransactions: mockSelectedTransactions,
     }),
-    useSearchActionsContext: () => ({
+    useSearchSelectionActions: () => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
     }),
 }));
@@ -357,8 +358,8 @@ describe('useSelectedTransactionsActions', () => {
                 reportActionID: 'action1',
                 actorAccountID: 1,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -437,8 +438,8 @@ describe('useSelectedTransactionsActions', () => {
                 reportActionID: 'action1',
                 actorAccountID: 1,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -550,8 +551,8 @@ describe('useSelectedTransactionsActions', () => {
                 ...createRandomReportAction(1),
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -598,8 +599,8 @@ describe('useSelectedTransactionsActions', () => {
                 ...createRandomReportAction(1),
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -647,8 +648,8 @@ describe('useSelectedTransactionsActions', () => {
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: 'child123',
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -687,7 +688,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID);
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -701,8 +702,8 @@ describe('useSelectedTransactionsActions', () => {
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: 'child123',
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -741,7 +742,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID);
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -754,8 +755,8 @@ describe('useSelectedTransactionsActions', () => {
                 ...createRandomReportAction(1),
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -802,8 +803,8 @@ describe('useSelectedTransactionsActions', () => {
                 ...createRandomReportAction(1),
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },

@@ -112,7 +112,7 @@ describe('actions/App', () => {
             command: 'AddComment',
             successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
             failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
-            requestID: 123,
+            requestIndex: 123,
         };
 
         jest.spyOn(Navigation, 'clearPreloadedRoutes').mockImplementation(() => {});
@@ -134,7 +134,7 @@ describe('actions/App', () => {
                 expect.arrayContaining([
                     expect.objectContaining({
                         command: 'AddComment',
-                        requestID: 123,
+                        requestIndex: 123,
                         isRollback: true,
                     }),
                 ]),

@@ -18,6 +18,7 @@ import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalMo
 import type {MoneyReportHeaderEducationalModalsHandle, RejectModalAction} from './MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderModalsContext from './MoneyReportHeaderModalsContext';
 import type {HoldMenuParams} from './MoneyReportHeaderModalsContext';
+import {MoneyReportTransactionThreadProvider} from './MoneyReportTransactionThreadContext';
 import ReportPDFDownloadModal from './ReportPDFDownloadModal';
 
 type MoneyReportHeaderModalsProps = {
@@ -109,18 +110,20 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
 
     return (
         <MoneyReportHeaderModalsContext.Provider value={contextValue}>
-            {children}
+            <MoneyReportTransactionThreadProvider reportID={moneyRequestReport?.reportID}>
+                {children}
 
-            <MoneyReportHeaderEducationalModals
-                ref={educationalModalsRef}
-                reportID={moneyRequestReport?.reportID}
-            />
+                <MoneyReportHeaderEducationalModals
+                    ref={educationalModalsRef}
+                    reportID={moneyRequestReport?.reportID}
+                />
 
-            <ReportPDFDownloadModal
-                reportID={moneyRequestReport?.reportID}
-                isVisible={isPDFModalVisible}
-                onClose={() => setIsPDFModalVisible(false)}
-            />
+                <ReportPDFDownloadModal
+                    reportID={moneyRequestReport?.reportID}
+                    isVisible={isPDFModalVisible}
+                    onClose={() => setIsPDFModalVisible(false)}
+                />
+            </MoneyReportTransactionThreadProvider>
         </MoneyReportHeaderModalsContext.Provider>
     );
 }

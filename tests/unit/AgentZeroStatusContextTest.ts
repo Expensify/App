@@ -6,7 +6,7 @@ import Onyx from 'react-native-onyx';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
-import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
+import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import {setForceOffline} from '@libs/NetworkState';
 import {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import CONST from '@src/CONST';
@@ -45,9 +45,9 @@ const mockUnsubscribeFromReportReasoningChannel = unsubscribeFromReportReasoning
 
 const reportID = '123';
 
-/** Simulates a reasoning event via ConciergeReasoningStore (the real store, since it's not mocked) */
+/** Simulates a reasoning event for Concierge via AgentZeroReasoningStore (the real store, since it's not mocked) */
 function simulateReasoning(data: {reasoning: string; agentZeroRequestID: string; loopCount: number}) {
-    ConciergeReasoningStore.addReasoning(reportID, data);
+    AgentZeroReasoningStore.addReasoning(reportID, CONST.ACCOUNT_ID.CONCIERGE, data);
 }
 
 function wrapper({children}: {children: React.ReactNode}) {
@@ -61,18 +61,18 @@ describe('AgentZeroStatusContext', () => {
         jest.clearAllMocks();
         await Onyx.clear();
 
-        // Clear ConciergeReasoningStore between tests
-        ConciergeReasoningStore.clearReasoning(reportID);
+        // Clear AgentZeroReasoningStore between tests
+        AgentZeroReasoningStore.clearReportReasoning(reportID);
 
         // Clear AgentZeroOptimisticStore between tests so a leftover entry from a prior
         // test doesn't hydrate the next hook mount with unexpected optimistic state.
-        AgentZeroOptimisticStore.clear(reportID);
+        AgentZeroOptimisticStore.clear(reportID, CONST.ACCOUNT_ID.CONCIERGE);
 
-        // Make clearAgentZeroProcessingIndicator actually clear the Onyx NVP
+        // Make clearAgentZeroProcessingIndicator actually clear the Onyx NVP slot for the agent
         // so safety timeout and reconnect tests can verify the full clearing flow
-        mockClearAgentZeroProcessingIndicator.mockImplementation((rID: string) => {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${rID}`, {agentZeroProcessingRequestIndicator: null});
-            ConciergeReasoningStore.clearReasoning(rID);
+        mockClearAgentZeroProcessingIndicator.mockImplementation((rID: string, agentAccountID: number) => {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${rID}`, {agentZeroProcessingRequestIndicator: {[agentAccountID]: null}});
+            AgentZeroReasoningStore.clearReasoning(rID, agentAccountID);
         });
 
         // Mark this report as Concierge by default
@@ -92,7 +92,7 @@ describe('AgentZeroStatusContext', () => {
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
 
             // When we render the hook
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
 
             // Then it should return default state with no processing indicator
             await waitForBatchedUpdates();
@@ -114,7 +114,7 @@ describe('AgentZeroStatusContext', () => {
             });
 
             // When we render the hook
-            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
 
             // Then it should show processing state with the server label
             await waitForBatchedUpdates();
@@ -130,7 +130,7 @@ describe('AgentZeroStatusContext', () => {
                 agentZeroProcessingRequestIndicator: serverLabel,
             });
 
-            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
             await waitForBatchedUpdates();
 
             // When the server label is cleared (processing complete)
@@ -145,10 +145,40 @@ describe('AgentZeroStatusContext', () => {
         });
     });
 
+    describe('candidateAgentIDs (which bubbles render)', () => {
+        const CUSTOM_AGENT = 555;
+
+        it('includes Concierge for a Concierge chat', async () => {
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            await waitForBatchedUpdates();
+            expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
+        it('includes every agent the server is actively processing for', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: {[CUSTOM_AGENT]: 'Thinking...'},
+            });
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            await waitForBatchedUpdates();
+            expect(result.current.candidateAgentIDs).toContain(CUSTOM_AGENT);
+        });
+
+        it('never includes the current user, even when the server names their accountID', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: CUSTOM_AGENT});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: {[CUSTOM_AGENT]: 'Thinking...'},
+            });
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            await waitForBatchedUpdates();
+            expect(result.current.candidateAgentIDs).not.toContain(CUSTOM_AGENT);
+            expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+    });
+
     describe('kickoffWaitingIndicator', () => {
         it('should trigger optimistic waiting state when called in Concierge chat without server label', async () => {
             // Given a Concierge chat with no server label (user about to send a message)
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             // When the user triggers the waiting indicator (e.g., sending a message)
@@ -170,7 +200,7 @@ describe('AgentZeroStatusContext', () => {
                 agentZeroProcessingRequestIndicator: serverLabel,
             });
 
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             const initialLabel = result.current.statusLabel;
@@ -190,7 +220,7 @@ describe('AgentZeroStatusContext', () => {
             // Given a regular chat (not Concierge)
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
 
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             // When kickoff is called
@@ -207,7 +237,7 @@ describe('AgentZeroStatusContext', () => {
         it('should clear optimistic waiting state after 2-minute timeout when server never responds', async () => {
             jest.useFakeTimers();
 
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             act(() => {
@@ -229,7 +259,7 @@ describe('AgentZeroStatusContext', () => {
         it('should not clear optimistic state before the 2-minute timeout', async () => {
             jest.useFakeTimers();
 
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             act(() => {
@@ -253,7 +283,7 @@ describe('AgentZeroStatusContext', () => {
             // remains visible in the window following a server-label arrival.
             jest.useFakeTimers();
 
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             act(() => {
@@ -282,7 +312,7 @@ describe('AgentZeroStatusContext', () => {
 
         it('should clear optimistic waiting state when server label arrives', async () => {
             // Given a Concierge chat with optimistic waiting state
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             act(() => {
@@ -309,7 +339,7 @@ describe('AgentZeroStatusContext', () => {
     describe('reasoning via Pusher', () => {
         it('should update reasoning history when Pusher event arrives', async () => {
             // Given a Concierge chat
-            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
             await waitForBatchedUpdates();
 
             // When reasoning data arrives via Pusher
@@ -325,7 +355,7 @@ describe('AgentZeroStatusContext', () => {
 
         it('should deduplicate reasoning entries with same loopCount and text', async () => {
             // Given a Concierge chat with existing reasoning
-            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
             await waitForBatchedUpdates();
 
             act(() => {
@@ -345,7 +375,7 @@ describe('AgentZeroStatusContext', () => {
 
         it('should reset entries when agentZeroRequestID changes', async () => {
             // Given a Concierge chat with reasoning from a previous request
-            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
             await waitForBatchedUpdates();
 
             act(() => {
@@ -368,7 +398,7 @@ describe('AgentZeroStatusContext', () => {
 
         it('should ignore empty reasoning strings', async () => {
             // Given a Concierge chat
-            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
             await waitForBatchedUpdates();
 
             // When empty reasoning arrives
@@ -384,7 +414,7 @@ describe('AgentZeroStatusContext', () => {
 
     describe('Pusher lifecycle', () => {
         it('should subscribe to reasoning events for Concierge chat on mount', async () => {
-            renderHook(() => useAgentZeroStatus(), {wrapper});
+            renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
             await waitForBatchedUpdates();
 
             expect(mockSubscribeToReportReasoningEvents).toHaveBeenCalledWith(reportID);
@@ -393,14 +423,14 @@ describe('AgentZeroStatusContext', () => {
         it('should not subscribe to reasoning events for non-Concierge chat', async () => {
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
 
-            renderHook(() => useAgentZeroStatus(), {wrapper});
+            renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
             await waitForBatchedUpdates();
 
             expect(mockSubscribeToReportReasoningEvents).not.toHaveBeenCalled();
         });
 
         it('should unsubscribe from reasoning events on unmount', async () => {
-            const {unmount} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {unmount} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
             await waitForBatchedUpdates();
 
             unmount();
@@ -452,7 +482,7 @@ describe('AgentZeroStatusContext', () => {
             // transitions; only authoritative signals (reply detection, 120s safety timeout,
             // or reconnect) clear the optimistic entry.
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID));
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             // User sends message -> optimistic waiting state
@@ -492,7 +522,7 @@ describe('AgentZeroStatusContext', () => {
             // a corresponding Concierge reply (flicker between processing phases), display
             // falls back to the optimistic "Thinking..." label rather than blanking out.
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID));
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             // User sends message -> optimistic waiting state
@@ -534,7 +564,7 @@ describe('AgentZeroStatusContext', () => {
                 agentZeroProcessingRequestIndicator: serverLabel,
             });
 
-            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
             await waitForBatchedUpdates();
 
             // Simulate reasoning history arriving
@@ -568,7 +598,7 @@ describe('AgentZeroStatusContext', () => {
             // so both signals go to zero together and the indicator clears. The server
             // CLEAR alone (without a new action) keeps the optimistic floor alive — see
             // the flicker test in the "batched Onyx updates" suite.
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             // User sends message → optimistic waiting state
@@ -660,7 +690,7 @@ describe('AgentZeroStatusContext', () => {
                 agentZeroProcessingRequestIndicator: serverLabel,
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID));
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             // Verify processing is active and the safety timer was armed
@@ -684,7 +714,7 @@ describe('AgentZeroStatusContext', () => {
         it('should auto-clear optimistic indicator after safety timeout', async () => {
             // Given a Concierge chat where the user triggered optimistic waiting
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID));
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             // User sends message -> optimistic waiting state
@@ -717,7 +747,7 @@ describe('AgentZeroStatusContext', () => {
                 agentZeroProcessingRequestIndicator: serverLabel,
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID));
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
             expect(safetyCallback).not.toBeNull();
@@ -741,7 +771,7 @@ describe('AgentZeroStatusContext', () => {
                 agentZeroProcessingRequestIndicator: serverLabel1,
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID));
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
             expect(safetyCallback).not.toBeNull();
@@ -770,7 +800,7 @@ describe('AgentZeroStatusContext', () => {
                 agentZeroProcessingRequestIndicator: serverLabel,
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID));
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
 
@@ -801,7 +831,7 @@ describe('AgentZeroStatusContext', () => {
             // safety timer fires. The stale NVP is still cleared locally (defensive, in
             // case the server SET+CLEARED during offline).
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID));
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             // User sends a message while online → optimistic state (no serverLabel yet)
@@ -819,7 +849,7 @@ describe('AgentZeroStatusContext', () => {
 
             // Stale NVP is cleared defensively
             await waitFor(() => {
-                expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID);
+                expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID, CONST.ACCOUNT_ID.CONCIERGE);
             });
 
             // Indicator stays visible so the safety timer keeps running until reply or timeout
@@ -833,7 +863,7 @@ describe('AgentZeroStatusContext', () => {
             // or the one-shot onReconnect getNewerActions) the detection effect clears
             // everything.
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID));
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             act(() => {
@@ -888,7 +918,7 @@ describe('AgentZeroStatusContext', () => {
                 [priorConciergeActionID]: buildConciergeAction(priorConciergeActionID, '2024-01-01 00:00:00.000', 'Previous Concierge reply'),
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID));
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             // When the user sends a new message → optimistic state activates
@@ -912,7 +942,7 @@ describe('AgentZeroStatusContext', () => {
                 [priorConciergeActionID]: buildConciergeAction(priorConciergeActionID, '2024-01-01 00:00:00.000', 'Previous Concierge reply'),
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID));
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             act(() => {
@@ -929,7 +959,7 @@ describe('AgentZeroStatusContext', () => {
 
             // Then the indicator clears
             await waitFor(() => {
-                expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID);
+                expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID, CONST.ACCOUNT_ID.CONCIERGE);
             });
         });
 
@@ -945,7 +975,7 @@ describe('AgentZeroStatusContext', () => {
                 [priorConciergeActionID]: buildConciergeAction(priorConciergeActionID, '2024-01-01 00:00:00.000', 'Previous Concierge reply'),
             });
 
-            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID));
+            const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             act(() => {
@@ -980,7 +1010,7 @@ describe('AgentZeroStatusContext', () => {
             // to disappear. The optimistic counter used to live in React state scoped to the
             // mounted provider; it now lives in AgentZeroOptimisticStore so it survives a
             // ReportScreen unmount/remount.
-            const {result: firstResult, unmount} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            const {result: firstResult, unmount} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             act(() => {
@@ -995,7 +1025,7 @@ describe('AgentZeroStatusContext', () => {
             await waitForBatchedUpdates();
 
             // User returns to Concierge — ReportScreen remounts
-            const {result: secondResult} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result: secondResult} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
             await waitForBatchedUpdates();
 
             // The indicator should still be showing on remount
@@ -1015,17 +1045,17 @@ describe('AgentZeroStatusContext', () => {
             const nowSpy = jest.spyOn(Date, 'now');
             try {
                 nowSpy.mockReturnValue(10_000);
-                AgentZeroOptimisticStore.increment(reportID, 'baseline-action');
-                const afterFirst = AgentZeroOptimisticStore.getEntry(reportID);
+                AgentZeroOptimisticStore.increment(reportID, CONST.ACCOUNT_ID.CONCIERGE, 'baseline-action');
+                const afterFirst = AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE);
                 expect(afterFirst?.count).toBe(1);
                 expect(afterFirst?.startedAt).toBe(10_000);
                 expect(afterFirst?.baselineActionID).toBe('baseline-action');
 
                 // 60s later, still within the first window → second kickoff.
                 nowSpy.mockReturnValue(70_000);
-                AgentZeroOptimisticStore.increment(reportID, 'new-baseline-ignored');
+                AgentZeroOptimisticStore.increment(reportID, CONST.ACCOUNT_ID.CONCIERGE, 'new-baseline-ignored');
 
-                const afterSecond = AgentZeroOptimisticStore.getEntry(reportID);
+                const afterSecond = AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE);
                 expect(afterSecond?.count).toBe(2);
                 // startedAt must bump — otherwise an unmount/remount past MAX_AGE_MS from the
                 // first kickoff would expire the entry even though the in-memory safety timer
@@ -1038,7 +1068,7 @@ describe('AgentZeroStatusContext', () => {
                 // 90s after the second kickoff (150s from the first): entry is still fresh
                 // because isFresh measures from startedAt, which was bumped.
                 nowSpy.mockReturnValue(160_000);
-                expect(AgentZeroOptimisticStore.getEntry(reportID)?.count).toBe(2);
+                expect(AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE)?.count).toBe(2);
             } finally {
                 nowSpy.mockRestore();
             }
@@ -1063,7 +1093,7 @@ describe('AgentZeroStatusContext', () => {
                 [priorActionID]: buildAction(priorActionID, '2024-01-01 00:00:00.000', CONST.ACCOUNT_ID.CONCIERGE),
             });
 
-            const {result: firstResult, unmount} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            const {result: firstResult, unmount} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             act(() => {
@@ -1080,13 +1110,13 @@ describe('AgentZeroStatusContext', () => {
             });
 
             // User returns to Concierge
-            const {result: secondResult} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result: secondResult} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
             await waitForBatchedUpdates();
 
             // The reply-detection effect should see the new action ID != stored baseline,
             // clear the NVP and optimistic entry, and hide the indicator
             await waitFor(() => {
-                expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID);
+                expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID, CONST.ACCOUNT_ID.CONCIERGE);
             });
             expect(secondResult.current.isProcessing).toBe(false);
         });

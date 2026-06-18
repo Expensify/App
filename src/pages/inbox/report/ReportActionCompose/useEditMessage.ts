@@ -73,7 +73,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
         }
 
         // Do nothing if draft exceed the character limit
-        if (!debouncedCommentMaxLengthValidation.flush()) {
+        if (debouncedCommentMaxLengthValidation.flush() === false) {
             return;
         }
 

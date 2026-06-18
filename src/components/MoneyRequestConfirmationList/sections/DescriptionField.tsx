@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -32,7 +33,6 @@ type DescriptionFieldProps = {
     reportID: string;
     reportActionID: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
-    isEditingSplitBill: boolean;
     onSubmitForm?: () => void;
 };
 
@@ -47,15 +47,15 @@ function DescriptionField({
     reportID,
     reportActionID,
     policy,
-    isEditingSplitBill,
     onSubmitForm,
 }: DescriptionFieldProps) {
+    const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
-    const descriptionState = useTransactionSelector(transactionID, descriptionStateSelector, isEditingSplitBill);
+    const descriptionState = useTransactionSelector(transactionID, descriptionStateSelector);
 
     // `getDescription` returns raw `transaction.comment.comment`, which can be HTML for saved transactions.
     // We normalize to markdown so both the read-only and editable inputs receive a consistent format.

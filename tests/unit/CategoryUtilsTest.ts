@@ -1,5 +1,13 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import {formatRequireItemizedReceiptsOverText, getAvailableNonPersonalPolicyCategories, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
+import {
+    formatRequireItemizedReceiptsOverText,
+    getAvailableNonPersonalPolicyCategories,
+    getCategoryGLCode,
+    getDecodedLeafCategoryName,
+    isCategoryDescriptionRequired,
+    isCategoryMissing,
+    processCategoryNameSegments,
+} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -206,5 +214,95 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
         expect(Object.keys(result)).toEqual([keyOther]);
         expect(result[keyOther]?.TestCategory2).toBeDefined();
         expect(result[keyOther]?.TestCategory3).toBeDefined();
+    });
+
+    describe('processCategoryNameSegments and getDecodedLeafCategoryName', () => {
+        describe('processCategoryNameSegments', () => {
+            it('returns a single segment for colon‑only names', () => {
+                expect(processCategoryNameSegments(':')).toEqual([':']);
+                expect(processCategoryNameSegments('::')).toEqual(['::']);
+            });
+
+            it('handles normal hierarchical categories unchanged (preserves leading spaces)', () => {
+                expect(processCategoryNameSegments('Food: Meat')).toEqual(['Food', ' Meat']);
+                expect(processCategoryNameSegments('A: B:')).toEqual(['A', ' B:']);
+                expect(processCategoryNameSegments('Parent:Child')).toEqual(['Parent', 'Child']);
+            });
+        });
+
+        describe('getDecodedLeafCategoryName', () => {
+            it('returns the leaf name for colon‑only categories', () => {
+                expect(getDecodedLeafCategoryName(':')).toEqual(':');
+                expect(getDecodedLeafCategoryName('::')).toEqual('::');
+            });
+
+            it('returns the leaf for normal hierarchies (trimmed)', () => {
+                expect(getDecodedLeafCategoryName('Food: Meat')).toEqual('Meat');
+                expect(getDecodedLeafCategoryName('A: B:')).toEqual('B:');
+            });
+        });
+    });
+});
+
+describe('getCategoryGLCode', () => {
+    it('returns empty string when policyCategories is undefined', () => {
+        expect(getCategoryGLCode(undefined, 'Meals')).toBe('');
+    });
+
+    it('returns empty string when category is undefined or empty', () => {
+        expect(getCategoryGLCode({} as PolicyCategories, undefined)).toBe('');
+        expect(getCategoryGLCode({} as PolicyCategories, '')).toBe('');
+    });
+
+    it('returns empty string when category is missing from policyCategories', () => {
+        expect(getCategoryGLCode({} as PolicyCategories, 'Meals')).toBe('');
+    });
+
+    it('returns empty string when category has no GL Code', () => {
+        const categories: PolicyCategories = {
+            Meals: {
+                enabled: true,
+                name: 'Meals',
+                pendingAction: null,
+            },
+        };
+        expect(getCategoryGLCode(categories, 'Meals')).toBe('');
+    });
+
+    it('returns GL Code when it is a string', () => {
+        const categories: PolicyCategories = {
+            Meals: {
+                enabled: true,
+                name: 'Meals',
+                pendingAction: null,
+                'GL Code': '1200', // eslint-disable-line @typescript-eslint/naming-convention
+            },
+        };
+        expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
+    });
+
+    it('returns GL Code when it is a number', () => {
+        const categories: PolicyCategories = {
+            Meals: {
+                enabled: true,
+                name: 'Meals',
+                pendingAction: null,
+                // @ts-expect-error - Defensively handles malformed Onyx data that violates the string type.
+                'GL Code': 1200, // eslint-disable-line @typescript-eslint/naming-convention
+            },
+        };
+        expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
+    });
+
+    it('strips double quotes from GL Code', () => {
+        const categories: PolicyCategories = {
+            Meals: {
+                enabled: true,
+                name: 'Meals',
+                pendingAction: null,
+                'GL Code': '"1200"', // eslint-disable-line @typescript-eslint/naming-convention
+            },
+        };
+        expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
     });
 });

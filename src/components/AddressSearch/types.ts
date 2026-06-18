@@ -80,6 +80,9 @@ type AddressSearchProps = ForwardedFSClassProps & {
     /** Auto complete attribute for the input field */
     autoComplete?: TextInputProps['autoComplete'];
 
+    /** Whether the input should request focus on mount */
+    autoFocus?: boolean;
+
     /** Maximum number of characters allowed in search input */
     maxInputLength?: number;
 

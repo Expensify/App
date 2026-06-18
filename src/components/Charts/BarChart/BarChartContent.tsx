@@ -6,12 +6,13 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
-import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, GLYPH_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {
+    ChartFontsProvider,
     useChartFontManager,
     useChartInteractions,
     useChartLabelFormats,
@@ -21,15 +22,13 @@ import {
     useLabelHitTesting,
     useYAxisLabelWidth,
 } from '@components/Charts/hooks';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor} from '@components/Charts/utils';
+import {calculateMinDomainPadding} from '@components/Charts/utils';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import type {CartesianChartProps, ChartDataPoint} from '..';
-
-/** Inner padding between bars (0.3 = 30% of bar width) */
-const BAR_INNER_PADDING = 0.3;
 
 /** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop)
  * We need bottom: 1 for proper display of the bottom label
@@ -44,7 +43,7 @@ type BarChartProps = CartesianChartProps & {
     useSingleColor?: boolean;
 };
 
-function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
+function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontMgr = useChartFontManager();
@@ -52,7 +51,7 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
     const [barAreaWidth, setBarAreaWidth] = useState(0);
     const [boundsLeft, setBoundsLeft] = useState(0);
     const [boundsRight, setBoundsRight] = useState(0);
-    const defaultBarColor = DEFAULT_CHART_COLOR;
+    const defaultBarColor = VictoryTheme.colors.default;
 
     const chartData = data.map((point, index) => ({
         x: index,
@@ -172,7 +171,7 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
     const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
         const dataIndex = point.xValue as number;
         const dataPoint = data.at(dataIndex);
-        const barColor = useSingleColor ? defaultBarColor : getChartColor(dataIndex);
+        const barColor = useSingleColor ? defaultBarColor : VictoryTheme.colors.getColor(dataIndex);
 
         return (
             <Bar
@@ -226,17 +225,17 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
         );
     };
 
-    const labelSpace = AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0);
+    const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const yAxisLabelWidth = useYAxisLabelWidth(
         Math.max(...data.map((p) => p.total), 0),
         Math.min(...data.map((p) => p.total), 0),
-        Y_AXIS_TICK_COUNT,
+        VictoryTheme.axis.tickCount,
         formatValue,
         fontMgr,
         variables.iconSizeExtraSmall,
     );
-    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
+    const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
 
     if (isLoading || !fontMgr) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'BarChartContent', isLoading, isFontLoading: !fontMgr};
@@ -271,14 +270,14 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
                         renderOutside={renderOutside}
                         xAxis={{
                             tickCount: data.length,
-                            lineWidth: X_AXIS_LINE_WIDTH,
+                            lineWidth: VictoryTheme.axis.xLineWidth,
                         }}
                         yAxis={[
                             {
-                                tickCount: Y_AXIS_TICK_COUNT,
-                                lineWidth: Y_AXIS_LINE_WIDTH,
+                                tickCount: VictoryTheme.axis.tickCount,
+                                lineWidth: VictoryTheme.axis.yLineWidth,
                                 lineColor: theme.border,
-                                labelOffset: AXIS_LABEL_GAP,
+                                labelOffset: VictoryTheme.axis.labelGap,
                                 domain: yAxisDomain,
                             },
                         ]}
@@ -301,6 +300,13 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
     );
 }
 
+function BarChartContent(props: BarChartProps) {
+    return (
+        <ChartFontsProvider>
+            <BarChartContentBody {...props} />
+        </ChartFontsProvider>
+    );
+}
+
 export default BarChartContent;
 export type {BarChartProps};
-export {BAR_INNER_PADDING};

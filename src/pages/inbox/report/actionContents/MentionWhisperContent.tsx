@@ -16,23 +16,34 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 type MentionWhisperContentProps = {
+    /** All the data of the action item */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>;
-    report: OnyxEntry<Report>;
-    originalReport: OnyxEntry<Report>;
+
+    /** ID of the original report from which the given reportAction is first created */
     originalReportID: string | undefined;
+
+    /** Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped). */
+    actionOwnerReportStable: OnyxEntry<Report>;
+
+    /** Parent report from which the given reportAction is first created */
+    parentReport?: OnyxEntry<Report>;
+
+    /** Policy ID for the current report */
+    policyID: string | undefined;
 };
 
-function MentionWhisperContent({action, report, originalReport, originalReportID}: MentionWhisperContentProps) {
+function MentionWhisperContent({action, actionOwnerReportStable, parentReport, originalReportID, policyID}: MentionWhisperContentProps) {
     const {translate} = useLocalize();
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
-    const reportActionReport = originalReport ?? report;
-    const reportPolicyID = report?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const isReportInPolicy = !!reportPolicyID && reportPolicyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== reportPolicyID;
+    // Subscribe to the full report here — the resolve action needs heartbeat fields for its failure-revert payload.
+    const [actionOwnerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportStable?.reportID}`);
+
+    const isReportInPolicy = !!policyID && policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== policyID;
     const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login));
 
     const buttons: ActionableItem[] = [];
@@ -42,11 +53,11 @@ function MentionWhisperContent({action, report, originalReport, originalReportID
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
             onPress: () =>
                 resolveActionableMentionWhisper(
-                    reportActionReport,
+                    actionOwnerReport,
                     action,
                     CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
                     isOriginalReportArchived,
-                    originalReport ? report : undefined,
+                    parentReport,
                 ),
         });
     }
@@ -54,26 +65,12 @@ function MentionWhisperContent({action, report, originalReport, originalReportID
         {
             text: 'actionableMentionWhisperOptions.inviteToChat',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-            onPress: () =>
-                resolveActionableMentionWhisper(
-                    reportActionReport,
-                    action,
-                    CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
-                    isOriginalReportArchived,
-                    originalReport ? report : undefined,
-                ),
+            onPress: () => resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived, parentReport),
         },
         {
             text: 'actionableMentionWhisperOptions.nothing',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-            onPress: () =>
-                resolveActionableMentionWhisper(
-                    reportActionReport,
-                    action,
-                    CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
-                    isOriginalReportArchived,
-                    originalReport ? report : undefined,
-                ),
+            onPress: () => resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived, parentReport),
         },
     );
 
@@ -90,7 +87,5 @@ function MentionWhisperContent({action, report, originalReport, originalReportID
         </ReportActionItemBasicMessage>
     );
 }
-
-MentionWhisperContent.displayName = 'MentionWhisperContent';
 
 export default MentionWhisperContent;

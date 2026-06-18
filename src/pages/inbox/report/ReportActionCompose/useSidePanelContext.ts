@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
@@ -12,7 +12,8 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
     const isInSidePanel = useIsInSidePanel();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {currentReportID, currentRHPReportID} = useCurrentReportIDState();
-    const {currentSearchQueryJSON, selectedTransactionIDs, selectedTransactions, selectedReports} = useSearchStateContext();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {selectedTransactionIDs, selectedTransactions, selectedReports} = useSearchSelectionContext();
 
     return useMemo(() => {
         if (conciergeReportID !== reportID || !isInSidePanel) {

@@ -72,6 +72,12 @@ type RejectMoneyRequestData = {
     urlToNavigateBack: Route | undefined;
 };
 
+type RejectMoneyRequestOptions = {
+    sharedRejectedToReportID?: string;
+    existingRejectedReport?: OnyxEntry<OnyxTypes.Report>;
+    setExistingRejectedReport?: (report: OnyxEntry<OnyxTypes.Report>) => void;
+};
+
 function dismissRejectUseExplanation() {
     const parameters: SetNameValuePairParams = {
         name: ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION,
@@ -108,11 +114,15 @@ function prepareRejectMoneyRequestData(
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
-    options?: {sharedRejectedToReportID?: string},
+    options?: RejectMoneyRequestOptions,
     shouldUseBulkAction?: boolean,
+    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number | undefined,
 ): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -348,17 +358,24 @@ function prepareRejectMoneyRequestData(
         // 1. Update report total
         // 2. Remove expense from report
         // 3. Add to existing draft report or create new one
-        const existingOpenReport = Object.values(allReports ?? {}).find(
-            (r) =>
-                r?.reportID !== reportID &&
-                r?.chatReportID === report.chatReportID &&
-                r?.type === CONST.REPORT.TYPE.EXPENSE &&
-                isOpenReport(r) &&
-                r?.ownerAccountID === report.ownerAccountID,
-        );
+        const existingOpenReport =
+            options?.existingRejectedReport ??
+            Object.values(allReports ?? {}).find(
+                (r) =>
+                    r?.reportID !== reportID &&
+                    r?.chatReportID === report.chatReportID &&
+                    r?.type === CONST.REPORT.TYPE.EXPENSE &&
+                    isOpenReport(r) &&
+                    r?.ownerAccountID === report.ownerAccountID,
+            );
 
         if (existingOpenReport) {
-            movedToReport = existingOpenReport;
+            const originalRejectedReportTotal = existingOpenReport?.total ?? 0;
+            movedToReport = {
+                ...existingOpenReport,
+                total: originalRejectedReportTotal - transactionAmount,
+            };
+            options?.setExistingRejectedReport?.(movedToReport);
             rejectedToReportID = existingOpenReport.reportID;
 
             const [, , iouAction] = buildOptimisticMoneyRequestEntities({
@@ -373,6 +390,7 @@ function prepareRejectMoneyRequestData(
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
                 currentUserAccountID: currentUserAccountIDParam,
+                delegateAccountIDParam: delegateAccountID,
             });
             createdIOUReportActionID = iouAction.reportActionID;
 
@@ -420,7 +438,7 @@ function prepareRejectMoneyRequestData(
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
                     value: {
-                        total: movedToReport?.total ?? 0,
+                        total: originalRejectedReportTotal,
                         pendingFields: {total: null},
                     },
                 },
@@ -465,14 +483,16 @@ function prepareRejectMoneyRequestData(
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
                 currentUserAccountID: currentUserAccountIDParam,
+                delegateAccountIDParam: delegateAccountID,
             });
 
-            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined);
+            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined, undefined, delegateAccountID);
             movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
             createdIOUReportActionID = iouAction.reportActionID;
             expenseMovedReportActionID = movedTransactionAction.reportActionID;
             expenseCreatedReportActionID = createdActionForExpenseReport.reportActionID;
             newExpenseReport.parentReportActionID = reportPreviewAction.reportActionID;
+            options?.setExistingRejectedReport?.(newExpenseReport);
             optimisticData.push(
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -886,7 +906,7 @@ function rejectMoneyRequest(
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
-    options?: {sharedRejectedToReportID?: string},
+    options?: RejectMoneyRequestOptions,
 ): Route | undefined {
     const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, options);
     if (!data) {
@@ -904,6 +924,8 @@ function markRejectViolationAsResolved(transactionID: string, isOffline: boolean
         return;
     }
 
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
 
     const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];

@@ -27,7 +27,6 @@ type TagFieldsProps = {
 
     /** The global tag index used for navigation and display */
     tagIndex: number;
-    isEditingSplitBill: boolean;
 };
 
 function TagFields({
@@ -43,14 +42,13 @@ function TagFields({
     reportActionID,
     formError,
     tagIndex,
-    isEditingSplitBill,
 }: TagFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
 
     const tagDisplaySelector = createTagDisplaySelector(tagIndex);
-    const tagDisplay = useTransactionSelector(transactionID, tagDisplaySelector, isEditingSplitBill);
+    const tagDisplay = useTransactionSelector(transactionID, tagDisplaySelector);
 
     const displayedTag = tagDisplay ?? '';
 

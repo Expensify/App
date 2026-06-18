@@ -3,11 +3,12 @@
  * derivation, Onyx subscriptions, and edit handlers live in one place rather
  * than being duplicated across every surface that renders a transaction.
  */
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {useCallback, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
 import {
     editTransactionAmountInline,
@@ -24,6 +25,7 @@ import {isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
@@ -116,16 +118,19 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(effectiveParentReportID)}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     // Use original Onyx here because the useOnyx wrapper can read partial Search snapshot policy data instead of the full policy object.
     const [completePolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
 
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(originalTransactionID)}`);
 
-    const {hasSelectedTransactions} = useSearchStateContext();
+    const {hasSelectedTransactions} = useSearchSelectionContext();
 
     const isPerDiem = isPerDiemRequest(transaction);
     const {shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiem);
+
+    const {isOffline} = useNetwork();
 
     const permissions = getTransactionEditPermissions({
         transaction,
@@ -157,6 +162,9 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
             parentReportNextStep,
+            isOffline,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
         };
     };
 

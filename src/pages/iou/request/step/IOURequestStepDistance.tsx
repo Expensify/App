@@ -166,6 +166,7 @@ function IOURequestStepDistance({
         transaction: currentTransaction,
         policy,
         useTransactionDistanceUnit: false,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     });
     const distanceUnit = mileageRate.unit;
     const distanceRate = mileageRate.rate ?? 0;
@@ -348,6 +349,7 @@ function IOURequestStepDistance({
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,
+        action,
         report,
         policy,
         transaction,
@@ -358,6 +360,7 @@ function IOURequestStepDistance({
         waypoints,
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
+        currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backTo,
         backToReport,
         shouldSkipConfirmation,

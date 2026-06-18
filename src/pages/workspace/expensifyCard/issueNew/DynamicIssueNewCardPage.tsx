@@ -23,7 +23,7 @@ import CardTypeStep from './CardTypeStep';
 import ConfirmationStep from './ConfirmationStep';
 import InviteNewMemberStep from './InviteNewMemberStep';
 import LimitTypeStep from './LimitTypeStep';
-import SetExpiryOptionsStep from './SetExpiryOptionsStep';
+import SetSpendRulesStep from './spendRules/SetSpendRulesStep';
 
 type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW>;
 
@@ -37,7 +37,7 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
         [CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER]: 0,
         [CONST.EXPENSIFY_CARD.STEP.CARD_TYPE]: 1,
         [CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE]: 2,
-        [CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS]: 3,
+        [CONST.EXPENSIFY_CARD.STEP.SPEND_RULES]: 3,
         [CONST.EXPENSIFY_CARD.STEP.CARD_NAME]: 4,
         [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: 5,
     };
@@ -47,7 +47,7 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
 }
 
 function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
-    const policyID = policy?.id;
+    const policyID = route.params.policyID;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const {currentStep} = issueNewCard ?? {};
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path);
@@ -100,10 +100,10 @@ function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                         startStepIndex={startStepIndex}
                     />
                 );
-            case CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS:
+            case CONST.EXPENSIFY_CARD.STEP.SPEND_RULES:
                 return (
-                    <SetExpiryOptionsStep
-                        policy={policy}
+                    <SetSpendRulesStep
+                        policyID={policyID}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
                     />
@@ -147,9 +147,10 @@ function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             {getCurrentStep()}
         </AccessOrNotFoundWrapper>

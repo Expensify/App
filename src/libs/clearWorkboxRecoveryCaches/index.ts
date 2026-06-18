@@ -4,8 +4,8 @@ import Log from '@libs/Log';
 /**
  * Clears all Cache Storage entries for this origin and unregisters every
  * service worker. Used when the user runs Troubleshoot > Clear cache and
- * restart so Workbox precache/runtime caches do not survive that recovery
- * path (stale app shell / chunks would otherwise keep serving from SW).
+ * restart, and during ChunkLoadError recovery, so stale cached assets do
+ * not survive those recovery paths and keep re-serving broken chunks.
  */
 async function clearWorkboxRecoveryCaches(): Promise<void> {
     // Normally platform-specific behaviour is achieved with .native.ts / .ts file pairs.

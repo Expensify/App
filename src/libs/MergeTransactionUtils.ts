@@ -47,6 +47,7 @@ const DERIVED_MERGE_FIELDS = [...MERGE_FIELDS, 'taxCode', 'taxAmount'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
+    transactionDetails: TransactionDetails;
     displayValue: string;
     isSelected: boolean;
 };
@@ -294,7 +295,7 @@ function getMergeableDataAndConflictFields(
                 .filter((login): login is string => !!login)
                 .sort(localeCompare);
 
-            if (isTargetValueEmpty || isSourceValueEmpty || deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
+            if (deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
                 mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
             } else {
                 conflictFields.push(field);
@@ -396,6 +397,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         taxAmount: mergeTransaction.taxAmount,
         taxCode: mergeTransaction.taxCode,
         taxName: mergeTransaction.taxName,
+        ...(mergeTransaction.iouRequestType && {iouRequestType: mergeTransaction.iouRequestType}),
     };
 }
 
@@ -502,13 +504,14 @@ function selectTargetAndSourceTransactionsForMerge(
 function getDisplayValue(
     field: MergeFieldKey,
     transaction: Transaction,
+    transactionDetails: TransactionDetails | undefined,
     policy: Policy | undefined,
     translate: LocaleContextProps['translate'],
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     localeCompare: LocaleContextProps['localeCompare'],
     reports?: Array<OnyxEntry<Report>>,
 ): string {
-    const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
+    const fieldValue = getMergeFieldValue(transactionDetails, transaction, field);
 
     if (isEmptyMergeValue(fieldValue) || fieldValue === undefined) {
         return '';
@@ -559,19 +562,37 @@ function getDisplayValue(
  * @param translate - The translation function
  * @returns Array of merge field data for UI rendering
  */
-function buildMergeFieldsData(
-    conflictFields: MergeFieldKey[],
-    targetTransaction: Transaction | undefined,
-    sourceTransaction: Transaction | undefined,
-    mergeTransaction: MergeTransaction | null | undefined,
-    targetTransactionPolicy: Policy | undefined,
-    sourceTransactionPolicy: Policy | undefined,
-    translate: LocaleContextProps['translate'],
-    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    localeCompare: LocaleContextProps['localeCompare'],
-    reports: Array<OnyxEntry<Report>> = [],
-): MergeFieldData[] {
-    if (!targetTransaction || !sourceTransaction) {
+function buildMergeFieldsData({
+    conflictFields,
+    targetTransaction,
+    sourceTransaction,
+    targetReportOwnerAsAttendee,
+    sourceReportOwnerAsAttendee,
+    mergeTransaction,
+    targetTransactionPolicy,
+    sourceTransactionPolicy,
+    translate,
+    convertToDisplayString,
+    localeCompare,
+    reports,
+}: {
+    conflictFields: MergeFieldKey[];
+    targetTransaction: Transaction | undefined;
+    sourceTransaction: Transaction | undefined;
+    targetReportOwnerAsAttendee: Attendee | undefined;
+    sourceReportOwnerAsAttendee: Attendee | undefined;
+    mergeTransaction: MergeTransaction | null | undefined;
+    targetTransactionPolicy: Policy | undefined;
+    sourceTransactionPolicy: Policy | undefined;
+    translate: LocaleContextProps['translate'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    localeCompare: LocaleContextProps['localeCompare'];
+    reports: Array<OnyxEntry<Report>>;
+}): MergeFieldData[] {
+    const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, undefined, undefined, targetReportOwnerAsAttendee);
+    const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, undefined, undefined, sourceReportOwnerAsAttendee);
+
+    if (!targetTransaction || !sourceTransaction || !targetTransactionDetails || !sourceTransactionDetails) {
         return [];
     }
 
@@ -583,12 +604,14 @@ function buildMergeFieldsData(
         const options: MergeFieldOption[] = [
             {
                 transaction: targetTransaction,
-                displayValue: getDisplayValue(field, targetTransaction, targetTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
+                transactionDetails: targetTransactionDetails,
+                displayValue: getDisplayValue(field, targetTransaction, targetTransactionDetails, targetTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
                 isSelected: selectedTransactionId === targetTransaction.transactionID,
             },
             {
                 transaction: sourceTransaction,
-                displayValue: getDisplayValue(field, sourceTransaction, sourceTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
+                transactionDetails: sourceTransactionDetails,
+                displayValue: getDisplayValue(field, sourceTransaction, sourceTransactionDetails, sourceTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
                 isSelected: selectedTransactionId === sourceTransaction.transactionID,
             },
         ];

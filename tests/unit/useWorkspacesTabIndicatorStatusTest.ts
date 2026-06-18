@@ -14,7 +14,7 @@ const otherUserID = 'employee@example.com';
 
 const WORKSPACE = {
     policyID: '1',
-    workspaceAccountID: 12345,
+    policyAccountID: 12345,
     policyName: 'Test Workspace',
 };
 
@@ -61,7 +61,7 @@ const getMockForTestCase = ({name}: IndicatorTestCase) =>
             name: WORKSPACE.policyName,
             owner: userID,
             role: 'admin',
-            workspaceAccountID: WORKSPACE.workspaceAccountID,
+            policyAccountID: WORKSPACE.policyAccountID,
             // Policy errors
             errors: name === TEST_CASES.hasPolicyErrors.name ? {policyError: 'Something went wrong'} : undefined,
             errorFields: undefined,
@@ -171,7 +171,7 @@ describe('useWorkspacesTabIndicatorStatus', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        workspaceAccountID: WORKSPACE.workspaceAccountID,
+                        policyAccountID: WORKSPACE.policyAccountID,
                     },
                     [`${ONYXKEYS.CARD_LIST}`]: {},
                 } as unknown as OnyxMultiSetInput);
@@ -213,7 +213,7 @@ describe('useWorkspacesTabIndicatorStatus', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'user', // Non-admin role
-                        workspaceAccountID: WORKSPACE.workspaceAccountID,
+                        policyAccountID: WORKSPACE.policyAccountID,
                         // Policy errors should NOT show for non-admin
                         errors: {policyError: 'Something went wrong'},
                     },
@@ -235,7 +235,7 @@ describe('useWorkspacesTabIndicatorStatus', () => {
     describe('multiple policies with errors', () => {
         const SECOND_WORKSPACE = {
             policyID: '2',
-            workspaceAccountID: 67890,
+            policyAccountID: 67890,
             policyName: 'Second Workspace',
         };
 
@@ -250,7 +250,7 @@ describe('useWorkspacesTabIndicatorStatus', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        workspaceAccountID: WORKSPACE.workspaceAccountID,
+                        policyAccountID: WORKSPACE.policyAccountID,
                         // No errors on first policy
                     },
                     [`${ONYXKEYS.COLLECTION.POLICY}${SECOND_WORKSPACE.policyID}` as const]: {
@@ -258,7 +258,7 @@ describe('useWorkspacesTabIndicatorStatus', () => {
                         name: SECOND_WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        workspaceAccountID: SECOND_WORKSPACE.workspaceAccountID,
+                        policyAccountID: SECOND_WORKSPACE.policyAccountID,
                         // Errors on second policy
                         errors: {policyError: 'Something went wrong'},
                     },
@@ -316,7 +316,7 @@ describe('useWorkspacesTabIndicatorStatus', () => {
                         name: WORKSPACE.policyName,
                         owner: userID,
                         role: 'admin',
-                        workspaceAccountID: WORKSPACE.workspaceAccountID,
+                        policyAccountID: WORKSPACE.policyAccountID,
                         // Multiple errors at once
                         errors: {policyError: 'Policy error'},
                         customUnits: {errors: {customUnitError: 'Custom unit error'}},

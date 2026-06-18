@@ -15,7 +15,7 @@ const otherUserID = 'otheruser@expensify.com';
 
 const brokenCardFeed = {
     feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-    workspaceAccountID: 12345,
+    policyAccountID: 12345,
 };
 
 const cardFeedErrorTestCases = {
@@ -151,7 +151,7 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
             name: 'Workspace 1',
             owner: isAdmin ? userID : otherUserID,
             role: isAdmin ? 'admin' : 'user',
-            workspaceAccountID: brokenCardFeed.workspaceAccountID,
+            policyAccountID: brokenCardFeed.policyAccountID,
             customUnits:
                 status === CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR
                     ? {
@@ -242,8 +242,9 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                       }
                     : undefined,
         },
-        [ONYXKEYS.LOGIN_LIST]: {
-            [userID]: {
+        [ONYXKEYS.LOGINS]: {
+            [`1_${userID}`]: {
+                partnerID: 1,
                 partnerName: 'John Doe',
                 partnerUserID: userID,
                 validatedDate: status !== CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO ? new Date().toISOString() : undefined,
@@ -274,13 +275,13 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
             card1: {
                 bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
                 lastScrapeResult: name === cardFeedErrorTestCases.admin.name || name === cardFeedErrorTestCases.employee.name ? 403 : 200,
-                fundID: String(brokenCardFeed.workspaceAccountID),
+                fundID: String(brokenCardFeed.policyAccountID),
             },
             card2: {
                 cardID: 123456,
                 bank: CONST.EXPENSIFY_CARD.BANK,
                 accountID: 123,
-                fundID: String(brokenCardFeed.workspaceAccountID),
+                fundID: String(brokenCardFeed.policyAccountID),
                 state: status === CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO ? CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED : CONST.EXPENSIFY_CARD.STATE.OPEN,
             },
         },

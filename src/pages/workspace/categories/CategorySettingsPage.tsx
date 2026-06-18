@@ -19,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatRequiredFieldsTitle} from '@libs/AttendeeUtils';
 import {
@@ -59,6 +60,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const {showConfirmModal} = useConfirmModal();
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
+    const {canWrite: canWriteCategories, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const {environmentURL} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -248,6 +250,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.CATEGORIES}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -281,7 +284,9 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     isOn={policyCategory.enabled}
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
                                     onToggle={updateWorkspaceCategoryEnabled}
-                                    showLockIcon={shouldPreventDisableOrDelete}
+                                    disabled={!canWriteCategories}
+                                    disabledAction={withReadOnlyFallback()}
+                                    showLockIcon={!canWriteCategories || shouldPreventDisableOrDelete}
                                 />
                             </View>
                         </View>
@@ -291,7 +296,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                             title={decodedCategoryName}
                             description={translate('common.name')}
                             onPress={navigateToEditCategory}
-                            shouldShowRightIcon
+                            interactive={canWriteCategories}
+                            shouldShowRightIcon={canWriteCategories}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['GL Code']}>
@@ -317,7 +323,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                         : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
                                 );
                             }}
-                            shouldShowRightIcon
+                            interactive={canWriteCategories}
+                            shouldShowRightIcon={canWriteCategories}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['Payroll Code']}>
@@ -341,10 +348,11 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                         : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
                                 );
                             }}
-                            shouldShowRightIcon
+                            interactive={canWriteCategories}
+                            shouldShowRightIcon={canWriteCategories}
                         />
                     </OfflineWithFeedback>
-                    {!isThereAnyAccountingConnection && (
+                    {canWriteCategories && !isThereAnyAccountingConnection && (
                         <MenuItem
                             icon={expensifyIcons.Trashcan}
                             title={translate('workspace.categories.deleteCategory')}
@@ -378,7 +386,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path));
                                 }}
-                                shouldShowRightIcon
+                                interactive={canWriteCategories}
+                                shouldShowRightIcon={canWriteCategories}
                                 disabled={approverDisabled}
                                 helperText={
                                     approverDisabled
@@ -394,7 +403,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     onPress={() => {
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path));
                                     }}
-                                    shouldShowRightIcon
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
                                 />
                             )}
 
@@ -405,7 +415,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     onPress={() => {
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path));
                                     }}
-                                    shouldShowRightIcon
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
                                 />
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoReceipt}>
@@ -415,7 +426,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     onPress={() => {
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path));
                                     }}
-                                    shouldShowRightIcon
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
                                 />
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoItemizedReceipt}>
@@ -425,7 +437,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     onPress={() => {
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path));
                                     }}
-                                    shouldShowRightIcon
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
                                 />
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={requireFieldsPendingAction}>
@@ -435,7 +448,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     onPress={() => {
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.path));
                                     }}
-                                    shouldShowRightIcon
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
                                 />
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
@@ -445,7 +459,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     onPress={() => {
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path));
                                     }}
-                                    shouldShowRightIcon
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
                                     shouldRenderAsHTML
                                 />
                             </OfflineWithFeedback>
