@@ -17,13 +17,12 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
-import {getFormattedCreated, getRateID, hasReceipt, isDistanceRequest} from '@libs/TransactionUtils';
-import {setCustomUnitRateID, setMoneyRequestCreated, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, setMoneyRequestTaxValue} from '@userActions/IOU/MoneyRequest';
+import {getFormattedCreated, hasReceipt} from '@libs/TransactionUtils';
+import {setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import {updateMoneyRequestDate} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
@@ -123,42 +122,18 @@ function IOURequestStepDate({
         } else {
             setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
 
-            const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report);
-            if (isDistanceRequest(transaction) && (isPolicyExpenseChat || isTrackExpense)) {
-                const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
-                const mileageRates = DistanceRequestUtils.getMileageRates(effectivePolicy);
-                const currentRateID = getRateID(transaction);
-                const currentRate = mileageRates[currentRateID];
-                const isCurrentRateEligible = currentRate && DistanceRequestUtils.isRateEligibleForDate(currentRate, newCreated);
-                const wasManuallySelected = transaction?.comment?.customUnit?.isRateManuallySelected;
-
-                let newRateID: string | undefined;
-                if (!isCurrentRateEligible) {
-                    const bestRate = DistanceRequestUtils.getBestEligibleRate(mileageRates, newCreated);
-                    newRateID =
-                        bestRate?.customUnitRateID ??
-                        DistanceRequestUtils.getCustomUnitRateID({
-                            reportID,
-                            isPolicyExpenseChat,
-                            policy: effectivePolicy,
-                            lastSelectedDistanceRates,
-                            isTrackDistanceExpense: isTrackExpense,
-                            expenseDate: newCreated,
-                        });
-                } else if (!wasManuallySelected) {
-                    const bestRate = DistanceRequestUtils.getBestEligibleRate(mileageRates, newCreated);
-                    if (bestRate && currentRate && DistanceRequestUtils.getRateSpecificityScore(bestRate) > DistanceRequestUtils.getRateSpecificityScore(currentRate)) {
-                        newRateID = bestRate.customUnitRateID;
-                    }
-                }
-
-                if (newRateID && newRateID !== currentRateID) {
-                    setCustomUnitRateID(transactionID, newRateID, transaction, effectivePolicy);
-                    setMoneyRequestTaxRate(transactionID, null, isTransactionDraft);
-                    setMoneyRequestTaxAmount(transactionID, null, isTransactionDraft);
-                    setMoneyRequestTaxValue(transactionID, null, isTransactionDraft);
-                }
-            }
+            updateDistanceRateOnExpenseDateChange({
+                transactionID,
+                transaction,
+                newCreated,
+                reportID,
+                isPolicyExpenseChat: isPolicyExpenseChatReportUtil(report),
+                isTrackExpense,
+                policy,
+                policyForTrackExpense,
+                lastSelectedDistanceRates,
+                isDraft: isTransactionDraft,
+            });
         }
 
         navigateBack();

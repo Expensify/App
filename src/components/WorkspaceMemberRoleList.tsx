@@ -40,17 +40,24 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
     const workspaceRoles: ListItemType[] = [
         {
             value: CONST.POLICY.ROLE.ADMIN,
-            text: translate('common.admin'),
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.ADMIN),
             alternateText: translate('workspace.common.adminAlternateText'),
             isSelected: role === CONST.POLICY.ROLE.ADMIN,
             keyForList: CONST.POLICY.ROLE.ADMIN,
         },
         {
             value: CONST.POLICY.ROLE.AUDITOR,
-            text: translate('common.auditor'),
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.AUDITOR),
             alternateText: translate('workspace.common.auditorAlternateText'),
             isSelected: role === CONST.POLICY.ROLE.AUDITOR,
             keyForList: CONST.POLICY.ROLE.AUDITOR,
+        },
+        {
+            value: CONST.POLICY.ROLE.CARD_ADMIN,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.CARD_ADMIN),
+            alternateText: translate('workspace.common.cardAdminAlternateText'),
+            isSelected: role === CONST.POLICY.ROLE.CARD_ADMIN,
+            keyForList: CONST.POLICY.ROLE.CARD_ADMIN,
         },
         {
             value: CONST.POLICY.ROLE.USER,
@@ -64,12 +71,15 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
     const isPolicyControl = isControlPolicy(policy);
     // Only strict admins can assign the ADMIN role. Editors (e.g. Submit workspace owners) can
     // invite/manage members but must not be able to escalate anyone to admin.
-    const canAssignAdminRole = isPolicyAdmin(policy, currentUserEmail);
+    const canAssignElevatedRoles = isPolicyAdmin(policy, currentUserEmail);
     const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => {
-        if (item.value === CONST.POLICY.ROLE.AUDITOR && !isPolicyControl) {
+        if (item.value === CONST.POLICY.ROLE.AUDITOR && (!isPolicyControl || !canAssignElevatedRoles)) {
             return false;
         }
-        if (item.value === CONST.POLICY.ROLE.ADMIN && !canAssignAdminRole) {
+        if (item.value === CONST.POLICY.ROLE.CARD_ADMIN && (!isPolicyControl || !canAssignElevatedRoles)) {
+            return false;
+        }
+        if (item.value === CONST.POLICY.ROLE.ADMIN && !canAssignElevatedRoles) {
             return false;
         }
         return true;

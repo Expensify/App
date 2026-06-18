@@ -31,7 +31,7 @@ import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, g
 import type {Option} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
-import {getActiveAdminWorkspaces, isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, isGroupPolicy as isGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -158,7 +158,7 @@ function ParticipantSearchResults({
 
     const {isDismissed: isDismissedReferralBanner} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE});
 
-    const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);
+    const isGroupPolicy = isGroupPolicyUtil(policy);
     const activeAdminWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin);
 
     const getValidOptionsConfig = {
@@ -175,7 +175,7 @@ function ParticipantSearchResults({
         isPerDiemRequest,
         isTimeRequest,
         showRBR: false,
-        preferPolicyExpenseChat: isPaidGroupPolicy,
+        preferPolicyExpenseChat: isGroupPolicy,
         preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,

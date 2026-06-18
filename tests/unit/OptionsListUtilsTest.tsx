@@ -1454,6 +1454,36 @@ describe('OptionsListUtils', () => {
             expect(results.personalDetails.length).toBeGreaterThan(0);
         });
 
+        it('should mark a personal detail as selected in place when it matches a selected option and includeSelectedOptions is true', () => {
+            // Given a selected option matching Spider-Man (accountID 3) by accountID and login
+            const selectedOptions = [{accountID: 3, login: 'peterparker@expensify.com'}];
+
+            // When we call getValidOptions with that selected option and includeSelectedOptions enabled
+            const {options: results} = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    selectedOptions,
+                    includeSelectedOptions: true,
+                    sortedActions: undefined,
+                },
+            );
+
+            // Then the matching personal detail should be kept in the list and marked as selected
+            const selectedDetail = results.personalDetails.find((option) => option.login === 'peterparker@expensify.com');
+            expect(selectedDetail).toBeDefined();
+            expect(selectedDetail?.isSelected).toBe(true);
+
+            // And other personal details should not be marked as selected
+            const otherDetail = results.personalDetails.find((option) => option.login === 'reedrichards@expensify.com');
+            expect(otherDetail?.isSelected).not.toBe(true);
+        });
+
         it('should return hasMore true when there are more options than maxElements', () => {
             const {hasMore} = getValidOptions(
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
@@ -3925,7 +3955,6 @@ describe('OptionsListUtils', () => {
                     },
                 ],
                 originalMessage: {
-                    IOUReportID: '456',
                     IOUTransactionID: '123456',
                     amount: 3400,
                     comment: '',
@@ -3934,6 +3963,7 @@ describe('OptionsListUtils', () => {
                 },
                 actionName: 'IOU',
                 reportActionID: '789',
+                reportID: '456',
             } as unknown as ReportAction;
 
             const transaction = {
@@ -4617,6 +4647,34 @@ describe('OptionsListUtils', () => {
             });
         });
         describe('FORWARDED action', () => {
+            it('should return forwarded message with memo', async () => {
+                const report: Report = createRandomReport(0, undefined);
+                const memo = 'Testing approval memo';
+                const forwardedAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        automaticAction: false,
+                        message: memo,
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [forwardedAction.reportActionID]: forwardedAction,
+                });
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    policy: undefined,
+                    isReportArchived: false,
+
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                });
+                expect(lastMessage).toBe(translateLocal('iou.forwarded', memo));
+            });
+
             it('should return automatic forwarded message if forwarded automatically', async () => {
                 const report: Report = createRandomReport(0, undefined);
                 const forwardedAction: ReportAction = {
@@ -5315,6 +5373,38 @@ describe('OptionsListUtils', () => {
                 );
             });
         });
+        describe('UPDATE_CATEGORY_TAX_RATE action', () => {
+            it('should surface the rendered category default tax rate change in the last-message preview', async () => {
+                const report: Report = createRandomReport(0, undefined);
+                const changelogAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        categoryName: 'Office Supplies',
+                        oldTaxName: 'Tax Exempt',
+                        oldTaxPercentage: '0%',
+                        newTaxName: 'Tax Rate 1',
+                        newTaxPercentage: '5%',
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [changelogAction.reportActionID]: changelogAction,
+                });
+
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    policy: undefined,
+                    isReportArchived: false,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                });
+
+                expect(lastMessage).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
+            });
+        });
+
         describe('UPDATE_MCC_GROUP_CATEGORY action', () => {
             it('should surface the friendly MCC group label in the last-message preview', async () => {
                 const report: Report = createRandomReport(0, undefined);
@@ -7736,6 +7826,41 @@ describe('OptionsListUtils', () => {
             const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
 
             expect(result.find((r) => r.login === 'Login Only User')).toBeDefined();
+        });
+    });
+
+    describe('getValidOptions() with recentAttendees', () => {
+        const recentAttendees = Array.from({length: 8}, (_, index) => ({
+            login: `john${index}@example.com`,
+            text: `John ${index}`,
+            accountID: 1000 + index,
+        }));
+
+        it('caps recent attendees to maxRecentReportElements when there is no search term', () => {
+            // When we call getValidOptions with more recent attendees than the display cap and no search term
+            const {options: results} = getValidOptions({reports: [], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+                includeRecentReports: false,
+                recentAttendees,
+                maxRecentReportElements: 5,
+                sortedActions: undefined,
+            });
+
+            // Then only the first 5 recent attendees are shown
+            expect(results.recentReports.length).toBe(5);
+        });
+
+        it('shows all matching recent attendees beyond the cap when there is a search term', () => {
+            // When we call getValidOptions with a search term that matches all recent attendees
+            const {options: results} = getValidOptions({reports: [], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+                includeRecentReports: false,
+                recentAttendees,
+                maxRecentReportElements: 5,
+                searchString: 'john',
+                sortedActions: undefined,
+            });
+
+            // Then all matching recent attendees are shown, not just the first 5
+            expect(results.recentReports.length).toBe(8);
         });
     });
 

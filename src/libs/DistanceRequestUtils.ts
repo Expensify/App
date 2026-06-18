@@ -1,3 +1,4 @@
+import {format, parseISO} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
@@ -368,25 +369,6 @@ function getBoundednessScore(rate: MileageRate): number {
     return 0;
 }
 
-/**
- * Returns a specificity score that combines boundedness and range narrowness
- * into a single comparable number. Higher = more specific.
- * - Unbounded: 0
- * - Partially bounded: 1
- * - Fully bounded: 2 + (1 / rangeMs), so narrower ranges score higher
- */
-function getRateSpecificityScore(rate: MileageRate): number {
-    const score = getBoundednessScore(rate);
-    if (score < 2) {
-        return score;
-    }
-    const rangeMs = getFullyBoundedDateRangeMs(rate);
-    if (!rangeMs || rangeMs <= 0) {
-        return Number.MAX_SAFE_INTEGER;
-    }
-    return 2 + 1 / rangeMs;
-}
-
 function getFullyBoundedDateRangeMs(rate: MileageRate): number | undefined {
     if (!rate.startDate || !rate.endDate) {
         return undefined;
@@ -654,6 +636,29 @@ function prepareTextForDisplay(text: string): string {
     return text.replaceAll(/[^0-9., ]/g, '').replace(/^0+(?=\d)/, '');
 }
 
+function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['translate']): string {
+    const dateFormat = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT;
+
+    try {
+        if (rate.startDate && rate.endDate) {
+            return translate('iou.rateValidDateRange', {
+                startDate: format(parseISO(rate.startDate), dateFormat),
+                endDate: format(parseISO(rate.endDate), dateFormat),
+            });
+        }
+        if (rate.startDate) {
+            return translate('iou.rateValidFrom', {startDate: format(parseISO(rate.startDate), dateFormat)});
+        }
+        if (rate.endDate) {
+            return translate('iou.rateValidUntil', {endDate: format(parseISO(rate.endDate), dateFormat)});
+        }
+    } catch {
+        return '';
+    }
+
+    return '';
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -678,7 +683,7 @@ export default {
     prepareTextForDisplay,
     isRateEligibleForDate,
     getBestEligibleRate,
-    getRateSpecificityScore,
+    getRateDateLabel,
 };
 
 export type {MileageRate};

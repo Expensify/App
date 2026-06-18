@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo} from 'react';
 import type {ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -12,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionUtil, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
@@ -121,6 +122,7 @@ function OptionRowLHNData({
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
 
@@ -159,6 +161,7 @@ function OptionRowLHNData({
         reportAttributesDerived,
         policyTags,
         currentUserLogin: login ?? '',
+        isTrackIntentUser,
     });
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.
@@ -190,6 +193,13 @@ function OptionRowLHNData({
         return isReportFocused ? null : <View style={placeholderRowStyle} />;
     }
 
+    const shouldUseMarkAsDone =
+        shouldShowMarkAsDone({
+            report: fullReport,
+            isTrackIntentUser,
+            policy,
+        }) && finalOptionItem?.actionBadge === CONST.REPORT.ACTION_BADGE.SUBMIT;
+
     return (
         <OptionRowLHN
             {...propsToForward}
@@ -197,6 +207,7 @@ function OptionRowLHNData({
             isOptionFocused={isReportFocused}
             optionItem={finalOptionItem}
             hasDraftComment={hasDraftComment}
+            isMarkAsDone={shouldUseMarkAsDone}
         />
     );
 }
