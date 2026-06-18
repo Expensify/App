@@ -1,5 +1,4 @@
 import {assign, setup} from 'xstate';
-import {DEFAULT_STATE} from '@components/MultifactorAuthentication/Context/state';
 import {navigate as mfaNavigate, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -8,11 +7,11 @@ import type {MfaContext, MfaEvent} from './types';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 const DEFAULT_CONTEXT: MfaContext = {
-    error: DEFAULT_STATE.error,
-    scenarioName: DEFAULT_STATE.scenarioName,
-    scenario: DEFAULT_STATE.scenario,
-    payload: DEFAULT_STATE.payload,
-    isCancelConfirmVisible: DEFAULT_STATE.isCancelConfirmVisible,
+    error: undefined,
+    scenarioName: undefined,
+    scenario: undefined,
+    payload: undefined,
+    isCancelConfirmVisible: false,
 };
 
 /**

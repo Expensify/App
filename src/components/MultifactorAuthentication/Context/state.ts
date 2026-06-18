@@ -1,24 +1,14 @@
-import type {MultifactorAuthenticationScenarioConfigFor} from '@components/MultifactorAuthentication/config';
-import type {
-    MultifactorAuthenticationScenario,
-    MultifactorAuthenticationScenarioAdditionalParams,
-    MultifactorAuthenticationScenarioResponse,
-} from '@components/MultifactorAuthentication/config/types';
+import type {MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {AuthTypeInfo} from '@libs/MultifactorAuthentication/shared/types';
 
 /**
- * The full MFA state shape. During the reducer-to-machine migration it is the single definition both
- * layers build on, so the field set is not forked: the reducer (`stateReducer`) uses it directly and
- * owns the fields not yet moved to the machine, while the machine derives its context (`MfaContext`)
- * as a `Pick` of it, without importing the reducer. Consumers read the machine side through the
- * narrower `MfaState` (that `Pick` plus `modalState`) via `snapshotToState`, not this full shape.
+ * The reducer's MFA state shape: the fields not yet migrated to the state machine. Migrated fields
+ * live in the machine context (`MfaContext`); the machine side is exposed to consumers as `MfaState`
+ * via `snapshotToState`.
  */
 type MultifactorAuthenticationState = {
-    /** Current error state - stops the flow and navigates to failure outcome */
-    error: MFAError | undefined;
-
     /** Continuable error - displayed on current screen without stopping the flow */
     continuableError: MFAError | undefined;
 
@@ -34,15 +24,6 @@ type MultifactorAuthenticationState = {
     /** Whether user approved the soft prompt for biometric setup */
     softPromptApproved: boolean;
 
-    /** Scenario name identifier (e.g. 'AUTHORIZE-TRANSACTION') */
-    scenarioName: MultifactorAuthenticationScenario | undefined;
-
-    /** Current scenario configuration being executed */
-    scenario: MultifactorAuthenticationScenarioConfigFor<MultifactorAuthenticationScenario> | undefined;
-
-    /** Additional parameters for the current scenario */
-    payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
-
     /** Whether registration step has been completed */
     isRegistrationComplete: boolean;
 
@@ -57,27 +38,19 @@ type MultifactorAuthenticationState = {
 
     /** Response from the scenario API call, stored for callback invocation at outcome navigation */
     scenarioResponse: MultifactorAuthenticationScenarioResponse | undefined;
-
-    /** Whether the cancel-confirmation modal triggered by a back press is currently visible */
-    isCancelConfirmVisible: boolean;
 };
 
 const DEFAULT_STATE: MultifactorAuthenticationState = {
-    error: undefined,
     continuableError: undefined,
     validateCode: undefined,
     registrationChallenge: undefined,
     authorizationChallenge: undefined,
     softPromptApproved: false,
-    scenarioName: undefined,
-    scenario: undefined,
-    payload: undefined,
     isRegistrationComplete: false,
     isAuthorizationComplete: false,
     isFlowComplete: false,
     authenticationMethod: undefined,
     scenarioResponse: undefined,
-    isCancelConfirmVisible: false,
 };
 
 export type {MultifactorAuthenticationState};

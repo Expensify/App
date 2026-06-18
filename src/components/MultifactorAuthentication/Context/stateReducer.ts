@@ -3,29 +3,17 @@ import {DEFAULT_STATE} from './state';
 import type {Action, MultifactorAuthenticationState} from './types';
 
 /**
- * Reducer function that manages the multifactor authentication state machine.
- * Handles all state transitions based on dispatched actions, including:
- * - Error handling (fatal errors and continuable errors like invalid codes)
- * - Challenge management (registration and authorization)
- * - Flow progression tracking
- * - Scenario and payload management
- *
- * @param state - The current state
- * @param action - The action to process with type-specific payload
- * @returns The new state after applying the action
+ * Reducer for the MFA fields the state machine has not taken over yet.
  */
 function stateReducer(state: MultifactorAuthenticationState, action: Action): MultifactorAuthenticationState {
     switch (action.type) {
         case 'SET_ERROR': {
-            if (action.payload === undefined) {
-                return {...state, error: undefined, continuableError: undefined};
+            // Only a continuable error (an invalid validate code) belongs to the reducer; a fatal error
+            // stops the flow and is owned by the machine, so anything else just clears the continuable one.
+            if (action.payload?.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE) {
+                return {...state, continuableError: action.payload};
             }
-            // Invalid validate code is a continuable error - it doesn't fail the entire MFA flow,
-            // instead it's displayed on the current screen and the user can retry
-            if (action.payload.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE) {
-                return {...state, continuableError: action.payload, error: undefined};
-            }
-            return {...state, error: action.payload, continuableError: undefined};
+            return {...state, continuableError: undefined};
         }
         case 'CLEAR_CONTINUABLE_ERROR':
             return {...state, continuableError: undefined};
@@ -37,38 +25,18 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             return {...state, authorizationChallenge: action.payload};
         case 'SET_SOFT_PROMPT_APPROVED':
             return {...state, softPromptApproved: action.payload};
-        case 'SET_PAYLOAD':
-            return {...state, payload: action.payload};
         case 'SET_REGISTRATION_COMPLETE':
             return {...state, isRegistrationComplete: action.payload};
         case 'SET_AUTHORIZATION_COMPLETE':
             return {...state, isAuthorizationComplete: action.payload};
         case 'SET_FLOW_COMPLETE':
-            // Clear cancel-confirm so it doesn't linger over the outcome screen.
-            return {...state, isFlowComplete: action.payload, isCancelConfirmVisible: action.payload ? false : state.isCancelConfirmVisible};
+            return {...state, isFlowComplete: action.payload};
         case 'SET_AUTHENTICATION_METHOD':
             return {...state, authenticationMethod: action.payload};
         case 'SET_SCENARIO_RESPONSE':
             return {...state, scenarioResponse: action.payload};
-        case 'SET_CANCEL_CONFIRM_VISIBLE':
-            return {...state, isCancelConfirmVisible: action.payload};
-        case 'CLOSE_MODAL':
-            // Also clear isCancelConfirmVisible. CLOSE_MODAL can close the navigator without the
-            // flow ever completing (e.g. cancel() short-circuits to CLOSE_MODAL when offline), so
-            // SET_FLOW_COMPLETE's clear path doesn't run and the cancel-confirm dialog would
-            // otherwise linger over the closing navigator.
-            return {...state, isCancelConfirmVisible: false};
         case 'RESET':
             return DEFAULT_STATE;
-        case 'REREGISTER':
-            // Re-registration restarts the flow in-place, keeping the current scenario so the
-            // navigator does not unmount mid-flow.
-            return {
-                ...DEFAULT_STATE,
-                scenarioName: state.scenarioName,
-                scenario: state.scenario,
-                payload: state.payload,
-            };
         default:
             return state;
     }
