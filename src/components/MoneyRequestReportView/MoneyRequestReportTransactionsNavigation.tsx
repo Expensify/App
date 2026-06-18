@@ -6,10 +6,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setOptimisticTransactionThread} from '@libs/actions/Report';
+import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -19,6 +20,7 @@ import navigationRef from '@navigation/navigationRef';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -50,6 +52,13 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [snapshotHash] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH);
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
     const {markReportIDAsExpense} = useWideRHPActions();
+    // Values required to create a transaction thread on the fly when paging onto a multi-transaction
+    // (batched) parent report that has no existing thread yet (see onNext/onPrevious fallbacks).
+    const {accountID, email} = useCurrentUserPersonalDetails();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
 
     const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
 
@@ -182,15 +191,26 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const nextThreadReportID = nextParentReportAction?.childReportID;
         const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, backTo};
 
-        // No existing transaction thread for this IOU action. Do NOT create one optimistically here:
-        // the carousel uses Navigation.setParams (mutating the modal's params + remounting via key),
-        // which races with the in-flight OpenReport call. The server doesn't recognize the synthetic
-        // optimistic reportID, the local report is wiped, and ReportNavigateAwayHandler bounces the
-        // user to ROUTES.REPORT_WITH_ID (Inbox/parent). Instead, fall back to navigating to the next
-        // transaction's parent report. We pass anchorTransactionID so MoneyReportHeader can keep the
-        // transaction carousel anchored on the user's intended next transaction.
+        // No existing transaction thread for this IOU action. We reach here only after the
+        // one-transaction-report branch above, so the parent is a MULTI-transaction (batched) report.
+        // Navigating to that parent reportID would render the whole report (several expenses) instead of a
+        // single expense. Create the transaction thread (the same way Search/index.tsx#onSelectRow does on
+        // first open) so we land on a single-expense view, then navigate to the new thread report.
+        // createTransactionThreadReport issues a real OpenReport with a server-recognized generated reportID,
+        // so it doesn't hit the optimistic-reportID race that setOptimisticTransactionThread + setParams does.
         if (!nextThreadReportID && nextTransaction?.reportID && nextTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
-            const targetReportID = nextTransaction.reportID;
+            const optimisticThread = createTransactionThreadReport({
+                introSelected,
+                currentUserLogin: email ?? '',
+                currentUserAccountID: accountID,
+                betas,
+                iouReport: nextTransactionParentReport,
+                iouReportAction: nextParentReportAction,
+                transaction: nextTransaction,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+            });
+            const targetReportID = optimisticThread?.reportID ?? nextTransaction.reportID;
             markReportIDAsExpense(targetReportID);
             requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, anchorTransactionID: nextTransactionID, backTo}));
             return;
@@ -227,9 +247,21 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const prevThreadReportID = prevParentReportAction?.childReportID;
         const navigationParams = {reportID: prevThreadReportID, reportActionID: undefined, backTo};
 
-        // See onNext for the rationale behind this fallback (and the unreported skip).
+        // See onNext for the rationale: the parent here is a MULTI-transaction (batched) report, so create the
+        // transaction thread to land on a single-expense view instead of navigating to the whole parent report.
         if (!prevThreadReportID && prevTransaction?.reportID && prevTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
-            const targetReportID = prevTransaction.reportID;
+            const optimisticThread = createTransactionThreadReport({
+                introSelected,
+                currentUserLogin: email ?? '',
+                currentUserAccountID: accountID,
+                betas,
+                iouReport: prevTransactionParentReport,
+                iouReportAction: prevParentReportAction,
+                transaction: prevTransaction,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+            });
+            const targetReportID = optimisticThread?.reportID ?? prevTransaction.reportID;
             markReportIDAsExpense(targetReportID);
             requestAnimationFrame(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, anchorTransactionID: prevTransactionID, backTo}));
             return;
