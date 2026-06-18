@@ -18,7 +18,7 @@ import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isSubmitPolicy, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
