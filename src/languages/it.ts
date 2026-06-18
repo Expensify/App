@@ -6324,7 +6324,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 `Se rimuovi ${memberName} da questo spazio di lavoro, lo sostituiremo come referente tecnico con ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} ha un rapporto in sospeso su cui deve intervenire. Chiedi loro di completare l’azione richiesta prima di rimuoverlə dallo spazio di lavoro.`,
-            members: 'Membri',
+            allMembers: 'Tutti i membri',
             admins: 'Amministratori dello spazio di lavoro',
             approvers: 'Approvatori',
             auditors: 'Revisori',
