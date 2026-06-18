@@ -90,6 +90,7 @@ function IOURequestStepUpgrade({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     // Build transactions map from selectedTransactions (search results) instead of Onyx TRANSACTION collection
     // This ensures that transactions selected from search are properly included in the map passed to changeTransactionsReport
@@ -154,6 +155,7 @@ function IOURequestStepUpgrade({
                 policyTagList,
                 allTransactionViolation: transactionViolations,
                 isTrackIntentUser,
+                allReports,
             });
 
             clearSelectedTransactions();
@@ -252,6 +254,7 @@ function IOURequestStepUpgrade({
         createReportForCurrentUser,
         transactionViolations,
         isTrackIntentUser,
+        allReports,
     ]);
 
     const participant = transaction?.participants?.[0];

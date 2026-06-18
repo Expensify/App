@@ -6383,7 +6383,7 @@ const translations = {
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
             configureHRSync: (providerName: string) => `Configure ${providerName} sync.`,
             syncWithHR: (providerName: string) => `Sync with ${providerName}`,
-            allMembers: 'All members',
+            members: 'Members',
             admins: 'Workspace Admins',
             cardAdmins: 'Card Admins',
             approvers: 'Approvers',
@@ -7151,7 +7151,7 @@ const translations = {
             },
             controlPolicyRoles: {
                 title: 'Control policy roles',
-                description: 'Use specialized roles like Auditor and Card Admin to grant members access only to what they need.',
+                description: 'Grant members specific access by assigning roles like Auditor or Card Admin.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Specialized workspace roles are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
@@ -9855,7 +9855,7 @@ const translations = {
                 title: 'No members in this group',
                 subtitle: 'Add a member or try changing the filter above.',
             },
-            allMembers: 'All members',
+            allMembers: 'Members',
             email: 'Email address',
             closeAccountPrompt: 'Are you sure? This action is permanent.',
             forceCloseAccount: () => ({

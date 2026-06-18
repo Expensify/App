@@ -282,6 +282,7 @@ describe('actions/Transaction', () => {
                 allTransactions,
                 policyTagList,
                 isTrackIntentUser: false,
+                allReports: undefined,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;

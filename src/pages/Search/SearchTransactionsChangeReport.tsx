@@ -168,6 +168,7 @@ function SearchTransactionsChangeReport() {
                 policyTagList,
                 allTransactionViolation: transactionViolations,
                 isTrackIntentUser,
+                allReports,
             });
             clearSelectedTransactions();
         });
@@ -246,6 +247,7 @@ function SearchTransactionsChangeReport() {
             policyTagList,
             allTransactionViolation: transactionViolations,
             isTrackIntentUser,
+            allReports,
         });
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
@@ -269,6 +271,7 @@ function SearchTransactionsChangeReport() {
             policyTagList,
             allTransactionViolation: transactionViolations,
             isTrackIntentUser,
+            allReports,
         });
         clearSelectedTransactions();
         Navigation.goBack();

@@ -6134,7 +6134,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `如果您将 ${memberName} 从此工作区中移除，我们会将其技术联系人替换为工作区所有者 ${workspaceOwner}。`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) => `${memberName} 还有一份待处理报告需要处理。请在将其从工作区中移除之前，先让 TA 完成所需操作。`,
-            allMembers: '所有成员',
+            members: '成员',
             admins: '工作区管理员',
             approvers: '审批人',
             auditors: '审计员',
@@ -6878,7 +6878,7 @@ ${reportName}`,
             },
             controlPolicyRoles: {
                 title: '控制策略角色',
-                description: '使用审计员、卡片管理员等专门角色，只授予成员完成工作所需的访问权限。',
+                description: '通过分配审计员或卡片管理员等角色，授予成员特定访问权限。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>专用工作区角色仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },

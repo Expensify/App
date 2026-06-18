@@ -205,6 +205,7 @@ function useReportSelectionActions({
                         policyTagList,
                         allTransactionViolation: transactionViolations,
                         isTrackIntentUser,
+                        allReports,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -229,6 +230,7 @@ function useReportSelectionActions({
                 policyTagList,
                 allTransactionViolation: transactionViolations,
                 isTrackIntentUser,
+                allReports,
             });
             removeTransaction(transaction.transactionID);
         });

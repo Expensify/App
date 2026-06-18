@@ -54,6 +54,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
               }, {});
     const [selectedTransactions = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: getSelectedTransactions});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -100,6 +101,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         policyTagList,
                         allTransactionViolation: transactionViolations,
                         isTrackIntentUser,
+                        allReports,
                     });
                 }
             },
