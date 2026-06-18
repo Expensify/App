@@ -171,7 +171,11 @@ function getRecalculatedDistanceRateIDForExpenseDate({
         return undefined;
     }
 
-    const effectivePolicy = isTrackExpense ? (policyForTrackExpense ?? policy) : policy;
+    if (isTrackExpense && !policyForTrackExpense) {
+        return undefined;
+    }
+
+    const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
 
     if (!effectivePolicy || (!isTrackExpense && !isGroupPolicy(effectivePolicy))) {
         return undefined;
@@ -229,7 +233,7 @@ function updateMoneyRequestDate({
 }: UpdateMoneyRequestDateParams) {
     const transaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
-    const effectivePolicy = isTrackExpense ? (policyForTrackExpense ?? policy) : policy;
+    const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
     const newRateID = getRecalculatedDistanceRateIDForExpenseDate({
         transaction,
         transactionThreadReport,
@@ -274,15 +278,27 @@ function updateMoneyRequestDate({
 
     if (shouldRecalculateRate) {
         setLastSelectedDistanceRate(effectivePolicy, newRateID);
+        const transactionForTax =
+            transaction && effectivePolicy
+                ? getUpdatedTransaction({
+                      transaction,
+                      transactionChanges: {created: value},
+                      isFromExpenseReport: isExpenseReport(parentReport),
+                      policy: effectivePolicy,
+                  })
+                : transaction;
         const distanceRateTaxUpdates =
-            !isTrackExpense && isTaxTrackingEnabled(true, effectivePolicy, true) && transaction ? getDistanceRateTaxUpdates(effectivePolicy, transaction, newRateID) : undefined;
+            !isTrackExpense && isTaxTrackingEnabled(true, effectivePolicy, true) && transactionForTax ? getDistanceRateTaxUpdates(effectivePolicy, transactionForTax, newRateID) : undefined;
+
+        const currentTransaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? transaction;
         updateMoneyRequestDistanceRate({
-            transaction,
+            transaction: currentTransaction,
             transactionThreadReport,
             parentReport,
             rateID: newRateID,
             created: value,
             shouldSendCreatedToAPI: false,
+            shouldBuildOptimisticModifiedExpenseReportAction: false,
             policy: effectivePolicy,
             policyTagList: policyTags,
             policyCategories,
@@ -1158,6 +1174,7 @@ function updateMoneyRequestDistanceRate({
     transactions,
     transactionViolations,
     isOffline,
+    shouldBuildOptimisticModifiedExpenseReportAction = true,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1180,6 +1197,7 @@ function updateMoneyRequestDistanceRate({
     transactions?: OnyxCollection<OnyxTypes.Transaction>;
     transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
     isOffline?: boolean;
+    shouldBuildOptimisticModifiedExpenseReportAction?: boolean;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -1205,7 +1223,15 @@ function updateMoneyRequestDistanceRate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
+        data = getUpdateTrackExpenseParams(
+            transaction?.transactionID,
+            transactionThreadReport?.reportID,
+            transactionChanges,
+            policy,
+            delegateAccountID,
+            hash,
+            shouldBuildOptimisticModifiedExpenseReportAction,
+        );
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
@@ -1224,6 +1250,7 @@ function updateMoneyRequestDistanceRate({
             isOffline,
             hash,
             delegateAccountID,
+            shouldBuildOptimisticModifiedExpenseReportAction,
         });
         if (created && transaction?.transactionID && transactions && transactionViolations) {
             removeTransactionFromDuplicateTransactionViolation(data.onyxData, transaction.transactionID, transactions, transactionViolations);
