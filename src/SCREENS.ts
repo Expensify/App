@@ -146,7 +146,7 @@ const SCREENS = {
             DISPLAY_NAME: 'Settings_Display_Name',
             CONTACT_METHODS: 'Settings_ContactMethods',
             DYNAMIC_CONTACT_METHOD_DETAILS: 'Dynamic_ContactMethodDetails',
-            NEW_CONTACT_METHOD: 'Settings_NewContactMethod',
+            DYNAMIC_NEW_CONTACT_METHOD: 'Dynamic_NewContactMethod',
             NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: 'Settings_NewContactMethod_ConfirmMagicCode',
             CONTACT_METHOD_SET_DEFAULT_CONFIRM: 'Settings_ContactMethod_SetDefault_Confirm',
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',

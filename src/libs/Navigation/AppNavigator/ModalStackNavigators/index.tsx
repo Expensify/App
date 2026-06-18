@@ -419,7 +419,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS]: withAgentAccessDenied(
         () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage').default,
     ),
-    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/NewContactMethodPage').default),
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD]: withAgentAccessDenied(
+        () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/DynamicNewContactMethodPage').default,
+    ),
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: withAgentAccessDenied(
         () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/NewContactMethodConfirmMagicCodePage').default,
     ),

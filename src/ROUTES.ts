@@ -478,6 +478,10 @@ const DYNAMIC_ROUTES = {
         },
         queryParams: ['shouldSkipInitialValidation'],
     },
+    NEW_CONTACT_METHOD: {
+        path: 'new-contact-method',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS],
+    },
     SETTINGS_CATEGORY_EDIT: {
         path: 'category-edit',
         entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
@@ -1408,11 +1412,6 @@ const ROUTES = {
         route: 'settings/profile/contact-methods',
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),
-    },
-    SETTINGS_NEW_CONTACT_METHOD: {
-        route: 'settings/profile/contact-methods/new',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
     },
     SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
         route: 'settings/profile/contact-methods/new/confirm-magic-code',
