@@ -23,7 +23,6 @@ import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
-    buildOptimisticCommuterExclusionReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReport,
@@ -2114,9 +2113,11 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             quantityInUnit = DistanceRequestUtils.convertDistanceUnit(distance, distanceUnit);
         }
         const commuterExclusionBreakdown = DistanceRequestUtils.getCommuterExclusionBreakdown(transaction, policy, quantityInUnit);
-        if (commuterExclusionBreakdown && chatReport?.reportID && currentUserAccountID) {
+        if (commuterExclusionBreakdown) {
             const {commuterExclusion, reimbursableDistance} = commuterExclusionBreakdown;
-            const modifiedRequestAmount = Math.round(reimbursableDistance * distanceRate);
+            // Use the canonical distance-amount calc so the optimistic amount rounds the same way the server does.
+            const reimbursableDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(reimbursableDistance, distanceUnit);
+            const modifiedRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(reimbursableDistanceInMeters, distanceUnit, distanceRate);
             const modifiedRequestMerchant = `${reimbursableDistance.toFixed(2)} ${distanceUnit} @ ${distanceRate} / ${distanceUnit}`;
 
             onyxData?.optimisticData?.push({
@@ -2135,16 +2136,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 },
             });
 
-            const optimisticCommuterExclusionAction = buildOptimisticCommuterExclusionReportAction(commuterExclusion.toFixed(2), distanceUnit, currentUserAccountID);
-            onyxData?.optimisticData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-                value: {
-                    [optimisticCommuterExclusionAction.reportActionID]: optimisticCommuterExclusionAction,
-                },
-            });
-
-            // Failure: revert the optimistic transaction merge and remove the optimistic system action.
+            // Failure: revert the optimistic transaction merge. The commuter-exclusion system message is
+            // created and reconciled by the server (Auth's CreateDistanceRequest), so it isn't seeded here.
             onyxData?.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -2158,13 +2151,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                             commuterExclusionMethod: null,
                         },
                     },
-                },
-            });
-            onyxData?.failureData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-                value: {
-                    [optimisticCommuterExclusionAction.reportActionID]: null,
                 },
             });
         }

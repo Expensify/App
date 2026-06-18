@@ -4210,40 +4210,6 @@ function buildOptimisticChangeFieldAction(reportField: PolicyReportField, previo
 }
 
 /**
- * Builds an optimistic COMMUTER_EXCLUSION report action posted to the workspace chat
- * when a distance expense has the workspace's commuter exclusion applied.
- *
- * `distance` is the deducted distance formatted to two decimals; `unit` is "mi" or "km".
- */
-function buildOptimisticCommuterExclusionReportAction(distance: string, unit: string, currentUserAccountID: number): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION> {
-    return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION,
-        actorAccountID: currentUserAccountID,
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: `${distance} ${unit} was removed for the daily commute.`,
-            },
-        ],
-        originalMessage: {
-            distance,
-            unit,
-        },
-        person: [
-            {
-                style: 'strong',
-                text: getCurrentUserDisplayNameOrEmail(),
-                type: 'TEXT',
-            },
-        ],
-        reportActionID: rand64(),
-        shouldShow: true,
-        created: DateUtils.getDBTime(),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-    };
-}
-
-/**
  * Builds an optimistic REIMBURSEMENT_DEQUEUED report action with a randomly generated reportActionID.
  *
  */
@@ -13222,7 +13188,6 @@ export {
     buildOptimisticCreatedReportForUnapprovedAction,
     buildOptimisticUnapprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
-    buildOptimisticCommuterExclusionReportAction,
     buildOptimisticChangedTaskAssigneeReportAction,
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
