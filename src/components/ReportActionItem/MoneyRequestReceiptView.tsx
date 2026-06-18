@@ -171,6 +171,7 @@ function MoneyRequestReceiptView({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const [rawTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${moneyRequestReport?.policyID}`);
 
     const displayedTransaction = updatedTransaction ?? transaction;
@@ -268,7 +269,7 @@ function MoneyRequestReceiptView({
         receiptURIs = getThumbnailAndImageURIs(displayedTransaction);
     }
     const isEReceiptTransaction = !!displayedTransaction && !hasReceiptSource(displayedTransaction) && hasEReceipt(displayedTransaction);
-    const canZoomReceipt = hasReceipt && !isLoading && !isTransactionScanning && !isEReceiptTransaction && !!receiptURIs?.image;
+    const canZoomReceipt = hasReceipt && !isLoading && !isEReceiptTransaction && !!receiptURIs?.image;
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => {
@@ -540,6 +541,7 @@ function MoneyRequestReceiptView({
             transactionPolicy: policy,
             transactionPolicyCategories: policyCategories,
             transactionPolicyTagList: policyTagList,
+            transactionViolations: rawTransactionViolations,
         });
     };
 
@@ -643,6 +645,7 @@ function MoneyRequestReceiptView({
                                         <ReportActionItemImage
                                             shouldUseThumbnailImage={!fillSpace}
                                             shouldUseFullHeight={fillSpace}
+                                            canZoomReceipt={canZoomReceipt}
                                             thumbnail={receiptURIs?.thumbnail}
                                             fileExtension={receiptURIs?.fileExtension}
                                             isThumbnail={receiptURIs?.isThumbnail}
