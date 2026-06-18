@@ -747,7 +747,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ failure() }}
-    needs: [androidBuild, androidUploadGooglePlay, androidUploadBrowserStack, androidUploadApplause, androidSubmit, iosBuild, iosUploadTestflight, iosUploadBrowserStack, iosUploadApplause, iosSubmit, webBuild, webDeploy]
+    needs: [androidBuild, androidUploadGooglePlay, androidUploadBrowserStack, androidUploadApplause, androidSubmit, iosBuild, iosUploadTestflight, iosUploadBrowserStack, iosUploadApplause, iosSubmit, webBuild, webDeploy, victoryChartRendererBuild]
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
@@ -1018,8 +1018,8 @@ jobs:
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, androidUploadGooglePlay, androidSubmit, iosUploadTestflight, iosSubmit, webDeploy, checkDeploymentSuccess, createRelease]
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) && needs.victoryChartRendererBuild.result == 'success' && needs.createRelease.result == 'success' }}
+    needs: [prep, androidUploadGooglePlay, androidSubmit, iosUploadTestflight, iosSubmit, webDeploy, checkDeploymentSuccess, victoryChartRendererBuild, createRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
@@ -1066,7 +1066,7 @@ jobs:
 
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
     needs: [prep, checkDeploymentSuccess, createRelease, androidBuild, iosBuild]
     secrets: inherit
     with:
