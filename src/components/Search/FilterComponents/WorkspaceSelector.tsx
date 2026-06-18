@@ -23,10 +23,8 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ListFilterView from './ListFilterViewWrapper';
 import type {MultiSelectItem} from './MultiSelect';
 
-type WorkspaceSelectorProps = SearchFilterCommonProps & {
+type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
     policyIDQuery: string[] | undefined;
-    value: string[] | undefined;
-    onChange: (item: string[]) => void;
 };
 
 function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: WorkspaceSelectorProps) {

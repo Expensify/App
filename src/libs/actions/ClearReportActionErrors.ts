@@ -8,7 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
-import {deleteReport} from './Report';
+import deleteReport from './Report/DeleteReport';
 
 type IgnoreDirection = 'parent' | 'child';
 
