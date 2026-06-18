@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import type {AppActionsMock} from '@userActions/__mocks__/App';
 import type {OnyxUpdatesMock} from '@userActions/__mocks__/OnyxUpdates';
 import * as AppImport from '@userActions/App';
@@ -11,6 +12,7 @@ import * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@userActions/OnyxUpdates');
 jest.mock('@userActions/App');
@@ -66,6 +68,10 @@ describe('OnyxUpdateManager', () => {
         ApplyUpdates.mockValues.beforeApplyUpdates = undefined;
         App.mockValues.missingOnyxUpdatesToBeApplied = undefined;
         OnyxUpdateManager.resetDeferralLogicVariables();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('should fetch missing Onyx updates once, defer updates and apply after missing updates', () => {
@@ -415,6 +421,24 @@ describe('OnyxUpdateManager', () => {
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
             expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
             expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
+        });
+    });
+
+    it('should resume the SequentialQueue exactly once when a duplicate arrives while a fetch is already in flight', async () => {
+        const unpauseSpy = jest.spyOn(SequentialQueue, 'unpause');
+
+        // Fire a duplicate mid-cycle, after the deferred queue is drained but while the fetch is still in flight, to simulate a concurrent Pusher update.
+        ApplyUpdates.mockValues.beforeApplyUpdates = async () => {
+            ApplyUpdates.mockValues.beforeApplyUpdates = undefined;
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        };
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+
+        // queryPromise resolves on the first finalize, so drain microtasks first: a leaked second fetch would attach a second finalize and resume the queue again.
+        return OnyxUpdateManager.queryPromise.then(waitForBatchedUpdates).then(() => {
+            expect(unpauseSpy).toHaveBeenCalledTimes(1);
         });
     });
 
