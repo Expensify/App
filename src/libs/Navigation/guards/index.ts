@@ -4,7 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
-import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged} from './MigratedUserWelcomeModalGuard';
+import AIFeaturesPromoGuard, {onSessionOrLoadingAppChanged as onAIFeaturesPromoSessionOrLoadingAppChanged} from './AIFeaturesPromoGuard';
+import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged as onMigratedUserWelcomeModalSessionOrLoadingAppChanged} from './MigratedUserWelcomeModalGuard';
 import OnboardingGuard from './OnboardingGuard';
 import type {GuardContext, GuardResult, NavigationGuard} from './types';
 
@@ -19,7 +20,8 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         session = value;
-        onSessionOrLoadingAppChanged(session, isLoadingApp);
+        onMigratedUserWelcomeModalSessionOrLoadingAppChanged(session, isLoadingApp);
+        onAIFeaturesPromoSessionOrLoadingAppChanged(session, isLoadingApp);
     },
 });
 
@@ -27,7 +29,8 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.IS_LOADING_APP,
     callback: (value) => {
         isLoadingApp = value ?? true;
-        onSessionOrLoadingAppChanged(session, isLoadingApp);
+        onMigratedUserWelcomeModalSessionOrLoadingAppChanged(session, isLoadingApp);
+        onAIFeaturesPromoSessionOrLoadingAppChanged(session, isLoadingApp);
     },
 });
 
@@ -103,5 +106,6 @@ function clearGuards(): void {
 
 registerGuard(OnboardingGuard);
 registerGuard(MigratedUserWelcomeModalGuard);
+registerGuard(AIFeaturesPromoGuard);
 
 export {registerGuard, createGuardContext, evaluateGuards, getRegisteredGuards, clearGuards};

@@ -6359,7 +6359,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 `Si vous supprimez ${memberName} de cet espace de travail, nous le remplacerons en tant que contact technique par ${workspaceOwner}, le responsable de l’espace de travail.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} a une note de frais en cours de traitement sur laquelle il doit agir. Veuillez lui demander d’effectuer l’action requise avant de le retirer de l’espace de travail.`,
-            allMembers: 'Tous les membres',
+            members: 'Membres',
             admins: 'Administrateurs de l’espace de travail',
             approvers: 'Approbateurs',
             auditors: 'Auditeurs',
@@ -7128,7 +7128,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             },
             controlPolicyRoles: {
                 title: 'Contrôler les rôles de politique',
-                description: 'Utilisez des rôles spécialisés comme Auditeur et Administrateur de cartes pour donner aux membres accès uniquement à ce dont ils ont besoin.',
+                description: 'Accordez aux membres un accès spécifique en attribuant des rôles comme Auditeur ou Administrateur de carte.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les rôles spécialisés dans l’espace de travail sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
@@ -9907,5 +9907,21 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         negativeButton: 'Pas vraiment',
     },
     monthPickerPage: {month: 'Mois', selectMonth: 'Veuillez sélectionner un mois'},
+    aiFeaturesPromoModal: {
+        subtitle: 'Nouveau dans Concierge IA',
+        confirmText: 'Allons-y !',
+        spendAnalysis: {
+            title: 'Analyse interactive des dépenses',
+            description: `<muted-text>Concierge met en avant des analyses mensuelles des dépenses et vous permet d’examiner en détail chaque chiffre. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">En savoir plus</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Découvrez votre nouvel assistant de dépenses',
+            description: `<muted-text>Discutez avec Concierge pour créer et mettre à jour des dépenses, directement dans l’application ou par e-mail ou SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">En savoir plus</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Créez vos propres agents',
+            description: `<muted-text>Créez des agents personnalisés pour examiner, approuver et acheminer les dépenses selon les règles que vous définissez. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">En savoir plus</a>.</muted-text>`,
+        },
+    },
 };
 export default translations;
