@@ -2842,8 +2842,12 @@ function isPayer(
     const reimbursementChoice = policy?.reimbursementChoice;
 
     if (isPaidGroupPolicy(iouReport)) {
+        if (onlyShowPayElsewhere) {
+            return isAdmin;
+        }
+
         const isAutoReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-        const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere;
+        const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
         // Reimbursement is disabled for this workspace.
         if (!isAutoReimbursement && !isManualReimbursement) {

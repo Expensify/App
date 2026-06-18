@@ -8532,6 +8532,36 @@ describe('ReportUtils', () => {
 
             expect(isPayer(adminAccountID, adminEmail, approvedReport, undefined, manualPolicyNoReimburser, false)).toBe(true);
         });
+
+        it('should return true for any admin when onlyShowPayElsewhere is true even if reimbursement is disabled and a reimburser is set', () => {
+            const adminEmail = 'admin@pay-elsewhere.com';
+            const adminAccountID = 703;
+            const reimburserEmail = 'reimburser@pay-elsewhere.com';
+
+            const policyWithReimbursementDisabled: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                employeeList: {
+                    [adminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    [reimburserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            expect(isPayer(adminAccountID, adminEmail, approvedReport, undefined, policyWithReimbursementDisabled, true)).toBe(true);
+        });
     });
     describe('buildReportNameFromParticipantNames', () => {
         beforeAll(async () => {
