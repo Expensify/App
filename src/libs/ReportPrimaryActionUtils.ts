@@ -469,6 +469,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return '';
     }
 
+    const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
     const isPayActionWithAllExpensesHeld =
         isPrimaryPayAction({
             report,
@@ -481,7 +482,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
-        }) && hasOnlyHeldExpenses(reportTransactions);
+        }) && allExpensesHeld;
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID);
 
     if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
@@ -492,7 +493,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy)) {
+    if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !allExpensesHeld) {
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
@@ -504,7 +505,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
-    if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID)) {
+    if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID) && !allExpensesHeld) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
@@ -520,7 +521,8 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
-        })
+        }) &&
+        !allExpensesHeld
     ) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
