@@ -1544,7 +1544,7 @@ function submitReport({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
             value: {
-                pendingExpenseAction: null,
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT_FAILED,
             },
         });
     }
@@ -1805,6 +1805,13 @@ function addReportApprover(
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
 }
 
+function clearPendingExpenseAction(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingExpenseAction: null});
+}
+
 export {
     addReportApprover,
     approveMoneyRequest,
@@ -1814,6 +1821,7 @@ export {
     canIOUBePaid,
     canSubmitReport,
     canUnapproveIOU,
+    clearPendingExpenseAction,
     getBadgeFromIOUReport,
     getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,
