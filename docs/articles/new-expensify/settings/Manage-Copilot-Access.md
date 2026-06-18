@@ -10,15 +10,15 @@ internalScope: Audience is members who want to grant a Copilot delegated account
 
 Copilot access lets you grant another member access to your Expensify account without sharing your login credentials. You can control their level of access and remove it at any time. This is helpful when you work with an executive assistant, accountant, bookkeeper, or colleague who needs to manage expenses and reports on your behalf.
 
-If you've been granted Copilot access and need help switching accounts or working on someone else's behalf, [learn how to act as a Copilot](/articles/new-expensify/settings/Act-as-a-Copolot).
+If you've been granted Copilot access and need help switching accounts or working on someone else's behalf, [learn how to act as a Copilot](/articles/new-expensify/settings/Act-as-a-Copilot) in Expensify.
 
-If you just need someone to handle approvals while you're away, learn how to [learn how to assign a vacation delegate](/articles/new-expensify/settings/Delegate-when-out-of-office).
+If you just need someone to handle approvals while you're away, [learn how to assign a vacation delegate](/articles/new-expensify/settings/Delegate-when-out-of-office).
 
-## Who can use Copilot access
+## Who can add a Copilot
 
 Any Expensify member can grant Copilot access to another member.
 
-You can also invite someone who does not yet have an Expensify account. They'll receive an invitation to create an account before accessing yours.
+You can invite someone who doesn't yet have an Expensify account. They'll receive an invitation to create one before accessing yours.
 
 ## What a Copilot can and cannot do
 
@@ -36,34 +36,30 @@ A Copilot cannot:
 
 ## How to add a Copilot
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile).
-2. Select **Account** > **Copilot**.
-3. In the **Copilot: Delegated Access** section, click **Add a copilot**.
-4. Search for the member by name or email address.
-5. Choose an access level:
-
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
+2. In the **Copilot: Delegated Access** section, click **Add a copilot**.
+3. Search for the member by name or email address.
+4. Choose an access level:
    * **Full Access** — Grants access to all available actions.
    * **Limited Access** — Allows a Copilot to manage expenses and reports, but prevents approval and payment-related actions, including approvals, payments, rejections, holds, retractions, and reopens.
-6. Click **Add a copilot**.
+5. Click **Add a copilot**.
 
 ## How to change a Copilot's access level
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile).
-2. Select **Account** > **Copilot**.
-3. In the **Copilot: Delegated Access** section, locate the Copilot.
-4. Select the three dots **(⋮)**.
-5. Select **Change Access Level**.
-6. Choose **Full Access** or **Limited Access**.
-7. Confirm your selection.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
+2. In the **Copilot: Delegated Access** section, locate the Copilot.
+3. Select the three dots **(⋮)**.
+4. Select **Change Access Level**.
+5. Choose **Full Access** or **Limited Access**.
+6. Confirm your selection.
 
 ## How to remove a Copilot
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile).
-2. Select **Account** > **Copilot**.
-3. In the **Copilot: Delegated Access** section, locate the Copilot.
-4. Select the three dots **(⋮)**.
-5. Select **Remove Copilot**.
-6. Confirm the removal.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
+2. In the **Copilot: Delegated Access** section, locate the Copilot.
+3. Select the three dots **(⋮)**.
+4. Select **Remove Copilot**.
+5. Confirm the removal.
 
 ## What happens after you manage Copilot access
 
@@ -80,8 +76,6 @@ After you update a Copilot's access level:
 After you remove a Copilot:
 
  - They can no longer access your account.
-
-**Important:** If a Copilot performs billable activity in your account, both you and the Copilot count as active members for billing purposes.
 
 # FAQ
 
