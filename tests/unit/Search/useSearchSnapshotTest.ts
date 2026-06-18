@@ -160,12 +160,12 @@ describe('useSearchSnapshot', () => {
         onyxData[SNAPSHOT_KEY] = {data: snapshotData, search: {isLoading: false}};
         mockUseOptimisticSearchTracking.mockReturnValue({searchDataWithOptimisticTransaction: snapshotData, trackingState: {optimisticWatchKey: undefined}});
         mockGetSortedSections.mockReturnValue([{keyForList: 'sorted'}]);
-        const reinjected = [{keyForList: 'sorted'}, {keyForList: 'reinjected-optimistic'}];
-        mockUseStableOptimisticSortedData.mockReturnValue({stableSortedData: reinjected, hasCachedOptimisticItem: true});
+        const stabilized = [{keyForList: 'sorted'}, {keyForList: 'optimistic-extra'}];
+        mockUseStableOptimisticSortedData.mockReturnValue({stableSortedData: stabilized, hasCachedOptimisticItem: true});
 
         const {result} = renderHook(() => useSearchSnapshot(makeQueryJSON()));
 
-        expect(result.current.data).toBe(reinjected);
+        expect(result.current.data).toBe(stabilized);
     });
 
     it('passes the query type through to getSortedSections for each variant shape', () => {
