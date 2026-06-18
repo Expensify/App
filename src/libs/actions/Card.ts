@@ -1563,7 +1563,23 @@ function openCardDetailsPage(cardID: number) {
         cardID,
     };
 
-    API.read(READ_COMMANDS.OPEN_CARD_DETAILS_PAGE, parameters);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_CARD_DETAILS>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_LOADING_CARD_DETAILS,
+            value: true,
+        },
+    ];
+
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_CARD_DETAILS>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_LOADING_CARD_DETAILS,
+            value: false,
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_CARD_DETAILS_PAGE, parameters, {optimisticData, finallyData});
 }
 
 type ContinuousReconciliationUpdate = OnyxUpdate<
