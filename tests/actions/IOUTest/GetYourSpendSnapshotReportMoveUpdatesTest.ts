@@ -298,6 +298,24 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         ]);
     });
 
+    it('does not patch with convertedAmount when the policy output currency differs from the snapshot currency', async () => {
+        // Snapshot is in USD, but the report's policy outputs EUR, so the EUR-denominated convertedAmount
+        // cannot be safely added to the USD total. The patch is skipped and reconciled on the next online refresh.
+        await seedAwaitingApprovalSnapshot(10000, CONST.CURRENCY.USD);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...paidPolicy, outputCurrency: CONST.CURRENCY.EUR});
+        await waitForBatchedUpdates();
+
+        const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
+            iouReport: buildExpenseReport({...SUBMITTED_STATUS, currency: CONST.CURRENCY.GBP}),
+            reportTransactions: [buildTransaction({currency: CONST.CURRENCY.GBP, amount: -10000, convertedAmount: -5000})],
+            fromStatus: OPEN_STATUS,
+            toStatus: SUBMITTED_STATUS,
+            currentUserAccountID: ACCOUNT_ID,
+        });
+
+        expect(optimisticData).toHaveLength(0);
+    });
+
     it('adds the report total to a previously empty awaiting approval bucket (count 0 -> visible)', async () => {
         const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(ACCOUNT_ID, [POLICY_ID]));
         const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);

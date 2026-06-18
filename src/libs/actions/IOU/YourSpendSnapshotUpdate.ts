@@ -218,7 +218,10 @@ function getReimbursableTransactionAmountInCurrency(transaction: Transaction, io
     if (transactionCurrency === targetCurrency) {
         return Math.abs(getAmount(transaction, isExpenseReportLocal));
     }
-    if (transaction.convertedAmount != null) {
+    // `convertedAmount` is denominated in the report's policy output currency, not necessarily the snapshot
+    // currency. Only trust it when those match; otherwise we'd add a value in the wrong currency to the total.
+    const policyOutputCurrency = iouReport?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`]?.outputCurrency : undefined;
+    if (transaction.convertedAmount != null && policyOutputCurrency === targetCurrency) {
         return Math.abs(getConvertedAmount(transaction, isExpenseReportLocal));
     }
 
