@@ -98,11 +98,13 @@ describe('InvalidMoneyRequestModalGuard', () => {
         mockDismissModal.mockClear();
         jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.WEB);
         clearActiveInvalidMoneyRequestRoute('confirmation-key');
+        clearActiveInvalidMoneyRequestRoute('create-key');
         clearActiveInvalidMoneyRequestRoute('start-key');
     });
 
     afterEach(() => {
         clearActiveInvalidMoneyRequestRoute('confirmation-key');
+        clearActiveInvalidMoneyRequestRoute('create-key');
         clearActiveInvalidMoneyRequestRoute('start-key');
         jest.runOnlyPendingTimers();
         jest.useRealTimers();
@@ -117,6 +119,25 @@ describe('InvalidMoneyRequestModalGuard', () => {
         };
 
         setActiveInvalidMoneyRequestRoute('confirmation-key');
+
+        const result = InvalidMoneyRequestModalGuard.evaluate(currentState, resetAction, defaultContext);
+
+        expect(result.type).toBe('BLOCK');
+        expect(mockDismissModal).not.toHaveBeenCalled();
+
+        jest.runOnlyPendingTimers();
+        expect(mockDismissModal).toHaveBeenCalledTimes(1);
+    });
+
+    it('blocks browser reset when the active invalid money request route is focused through a child tab route', () => {
+        const currentState = buildMoneyRequestStateWithNestedFocusedRoute(SCREENS.MONEY_REQUEST.CREATE, 'create-key', MANUAL_MONEY_REQUEST_TAB_NAME, 'manual-key');
+        const targetState = buildMoneyRequestState(SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, 'confirmation-key');
+        const resetAction: NavigationAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.RESET,
+            payload: targetState,
+        };
+
+        setActiveInvalidMoneyRequestRoute('create-key');
 
         const result = InvalidMoneyRequestModalGuard.evaluate(currentState, resetAction, defaultContext);
 

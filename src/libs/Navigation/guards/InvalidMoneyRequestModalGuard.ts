@@ -31,13 +31,13 @@ function getFocusedRouteAtCurrentLevel(state?: StateLike): StateLikeRoute | unde
     return state.routes.at(focusedIndex);
 }
 
-function getFocusedRoute(state?: StateLike): StateLikeRoute | undefined {
+function getFocusedRoutePath(state?: StateLike): StateLikeRoute[] {
     const focusedRoute = getFocusedRouteAtCurrentLevel(state);
-    if (!focusedRoute?.state) {
-        return focusedRoute;
+    if (!focusedRoute) {
+        return [];
     }
 
-    return getFocusedRoute(focusedRoute.state) ?? focusedRoute;
+    return [focusedRoute, ...getFocusedRoutePath(focusedRoute.state)];
 }
 
 function getFocusedMoneyRequestRightModalRoute(state?: StateLike): StateLikeRoute | undefined {
@@ -58,14 +58,17 @@ function isMoneyRequestRightModalNavigatorState(state?: StateLike): boolean {
     return !!getFocusedMoneyRequestRightModalRoute(state);
 }
 
-function isMoneyRequestRightModalState(state?: StateLike): boolean {
+function getFocusedMoneyRequestScreenRoutes(state?: StateLike): StateLikeRoute[] {
     const focusedRightModalRoute = getFocusedMoneyRequestRightModalRoute(state);
     if (!focusedRightModalRoute) {
-        return false;
+        return [];
     }
 
-    const focusedRoute = getFocusedRoute(focusedRightModalRoute.state);
-    return !!focusedRoute?.name && MONEY_REQUEST_SCREEN_NAMES.has(focusedRoute.name);
+    return getFocusedRoutePath(focusedRightModalRoute.state).filter((route) => !!route.name && MONEY_REQUEST_SCREEN_NAMES.has(route.name));
+}
+
+function isActiveInvalidMoneyRequestRouteFocused(state: StateLike): boolean {
+    return getFocusedMoneyRequestScreenRoutes(state).some((route) => route.key === activeInvalidMoneyRequestRouteKey);
 }
 
 function scheduleDismissInvalidMoneyRequestModal() {
@@ -101,8 +104,7 @@ function shouldDismissInvalidMoneyRequestModalOnBrowserReset(state: NavigationSt
         return false;
     }
 
-    const focusedRoute = getFocusedRoute(state);
-    if (focusedRoute?.key !== activeInvalidMoneyRequestRouteKey || !isMoneyRequestRightModalState(state)) {
+    if (!isActiveInvalidMoneyRequestRouteFocused(state)) {
         return false;
     }
 
