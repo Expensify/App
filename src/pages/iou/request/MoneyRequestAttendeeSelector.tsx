@@ -41,7 +41,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 
 type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */

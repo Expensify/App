@@ -7,7 +7,7 @@ import AttachmentStateContextProvider from '@pages/media/AttachmentModalScreen/A
 import type {AttachmentModalOnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 import type AttachmentModalContainerProps from './types';
 
 function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, navigation, onShow, onClose, ExtraContent}: AttachmentModalContainerProps<Screen>) {

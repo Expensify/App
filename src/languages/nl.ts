@@ -9,12 +9,11 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-import {CONST as COMMON_CONST} from 'expensify-common';
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {ValueOf} from 'type-fest';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
-import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -713,17 +712,17 @@ const translations: TranslationDeepObject<typeof en> = {
         revealCardDetail: {couldNotReveal: 'We konden je kaartgegevens niet weergeven. Probeer het opnieuw.'},
     },
     validateCodeModal: {
-        successfulSignInTitle: dedent(`
+        successfulSignInTitle: Str.dedent(`
             Abracadabra,
             je bent ingelogd!
         `),
         successfulSignInDescription: 'Ga terug naar je oorspronkelijke tabblad om verder te gaan.',
         title: 'Hier is je magische code',
-        description: dedent(`
+        description: Str.dedent(`
             Voer de code in op het apparaat
             waar deze oorspronkelijk is aangevraagd
         `),
-        doNotShare: dedent(`
+        doNotShare: Str.dedent(`
             Deel je code met niemand.
             Expensify zal er nooit om vragen!
         `),
@@ -732,10 +731,10 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeTitle: 'Magic code verlopen',
         expiredCodeDescription: 'Ga terug naar het oorspronkelijke apparaat en vraag een nieuwe code aan',
         successfulNewCodeRequest: 'Code aangevraagd. Controleer je apparaat.',
-        tfaRequiredTitle: dedent(`
+        tfaRequiredTitle: Str.dedent(`
             Twee-factor-authenticatie vereist
         `),
-        tfaRequiredDescription: dedent(`
+        tfaRequiredDescription: Str.dedent(`
             Voer de tweestapsverificatiecode in
             op de plek waar je probeert in te loggen.
         `),
@@ -2305,7 +2304,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noAuthenticatorApp: 'Je hebt geen authenticator-app meer nodig om in te loggen bij Expensify.',
         stepCodes: 'Herstelcodes',
         keepCodesSafe: 'Bewaar deze codes goed!',
-        codesLoseAccess: dedent(`
+        codesLoseAccess: Str.dedent(`
             Als je de toegang tot je authenticator-app kwijtraakt en deze codes niet hebt, word je uit je account afgesloten.<br><br>
             <strong>Let op</strong>: Het inschakelen van 2FA logt je uit in alle andere sessies.
         `),
@@ -3127,7 +3126,7 @@ ${amount} voor ${merchant} - ${date}`,
             addExpenseApprovalsTask: {
                 title: 'Goedkeuringen voor uitgaven toevoegen',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Voeg onkostengoedkeuringen toe* om de uitgaven van je team te beoordelen en onder controle te houden.
 
                         Zo doe je dat:
@@ -3149,7 +3148,7 @@ ${amount} voor ${merchant} - ${date}`,
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Maak een [werkruimte](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Maak een werkruimte* om uitgaven bij te houden, bonnetjes te scannen, chatten en meer.
 
                         1. Klik op *Werkruimtes* > *Nieuwe werkruimte*.
@@ -3159,7 +3158,7 @@ ${amount} voor ${merchant} - ${date}`,
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `[categorieën instellen](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Stel categorieën in* zodat je team uitgaven kan coderen voor eenvoudige rapportage.
 
                         1. Klik op *Workspaces*.
@@ -3173,7 +3172,7 @@ ${amount} voor ${merchant} - ${date}`,
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Dien een uitgave in',
-                description: dedent(`
+                description: Str.dedent(`
                     *Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.
 
                     1. Klik op de knop *+*.
@@ -3187,7 +3186,7 @@ ${amount} voor ${merchant} - ${date}`,
             },
             adminSubmitExpenseTask: {
                 title: 'Dien een uitgave in',
-                description: dedent(`
+                description: Str.dedent(`
                     *Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.
 
                     1. Klik op de knop *+*.
@@ -3201,7 +3200,7 @@ ${amount} voor ${merchant} - ${date}`,
             },
             trackExpenseTask: {
                 title: 'Een uitgave bijhouden',
-                description: dedent(`
+                description: Str.dedent(`
                     *Volg een uitgave* in elke valuta, of je nu een bon hebt of niet.
 
                     1. Klik op de knop *+*.
@@ -3217,7 +3216,7 @@ ${amount} voor ${merchant} - ${date}`,
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `Verbind${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'naar'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'jouw' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Verbind ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'jouw' : 'naar'} ${integrationName} voor automatische kosten­codering en synchronisatie, zodat de maandafsluiting een fluitje van een cent wordt.
 
                         1. Klik op *Workspaces*.
@@ -3232,7 +3231,7 @@ ${amount} voor ${merchant} - ${date}`,
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Verbind [je zakelijke kaarten](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Koppel de kaarten die je al hebt voor automatische transactie-import, bonkoppeling en reconciliatie.
 
                         1. Klik op *Workspaces*.
@@ -3245,7 +3244,7 @@ ${amount} voor ${merchant} - ${date}`,
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Nodig [je team uit](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Nodig je team uit* voor Expensify zodat ze vandaag nog kunnen beginnen met het bijhouden van uitgaven.
 
                         1. Klik op *Workspaces*.
@@ -3260,7 +3259,7 @@ ${amount} voor ${merchant} - ${date}`,
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Stel [categorieën](${workspaceCategoriesLink}) en [labels](${workspaceTagsLink}) in`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Stel categorieën en labels in* zodat je team uitgaven kan coderen voor eenvoudige rapportage.
 
                         Importeer ze automatisch door [je boekhoudsoftware te verbinden](${workspaceAccountingLink}), of stel ze handmatig in via je [werkruimte-instellingen](${workspaceCategoriesLink}).`),
@@ -3268,7 +3267,7 @@ ${amount} voor ${merchant} - ${date}`,
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `[Tags](${workspaceTagsLink}) instellen`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Gebruik labels om extra details aan uitgaven toe te voegen, zoals projecten, klanten, locaties en afdelingen. Als je meerdere niveaus van labels nodig hebt, kun je upgraden naar het Control-abonnement.
 
                         1. Klik op *Workspaces*.
@@ -3285,7 +3284,7 @@ ${amount} voor ${merchant} - ${date}`,
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Nodig je [boekhouder](${workspaceMembersLink}) uit`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Nodig je accountant uit* om samen te werken in je workspace en je zakelijke uitgaven te beheren.
 
                         1. Klik op *Workspaces*.
@@ -3298,7 +3297,7 @@ ${amount} voor ${merchant} - ${date}`,
             },
             startChatTask: {
                 title: 'Begin een chat',
-                description: dedent(`
+                description: Str.dedent(`
                     *Start een chat* met iedereen via hun e-mailadres of telefoonnummer.
 
                     1. Klik op de knop *+*.
@@ -3312,7 +3311,7 @@ ${amount} voor ${merchant} - ${date}`,
             },
             splitExpenseTask: {
                 title: 'Een uitgave splitsen',
-                description: dedent(`
+                description: Str.dedent(`
                     *Kosten splitsen* met één of meer personen.
 
                     1. Klik op de knop *+*.
@@ -3327,7 +3326,7 @@ ${amount} voor ${merchant} - ${date}`,
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Controleer je [werkruimte-instellingen](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Zo kun je je werkruimte-instellingen bekijken en bijwerken:
                         1. Klik op Werkruimtes.
                         2. Selecteer je werkruimte.
@@ -3336,7 +3335,7 @@ ${amount} voor ${merchant} - ${date}`,
             },
             createReportTask: {
                 title: 'Maak je eerste rapport',
-                description: dedent(`
+                description: Str.dedent(`
                     Zo maak je een rapport:
 
                     1. Klik op de knop *+*.
@@ -3360,11 +3359,11 @@ ${amount} voor ${merchant} - ${date}`,
             onboardingPersonalSpendMessage: 'Zo volg je je uitgaven in een paar klikken.',
             onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
                 isOnboardingFlow
-                    ? dedent(`
+                    ? Str.dedent(`
                         # Je gratis proefperiode is gestart! Laten we je account instellen.
                         👋 Hoi, ik ben je Expensify accountmanager. Ik heb al een workspace aangemaakt om de bonnen en uitgaven van je team te beheren. Volg de resterende configuratiestappen hieronder om het meeste uit je 30 dagen gratis proefperiode te halen!
                     `)
-                    : dedent(`
+                    : Str.dedent(`
                         # Je gratis proefperiode is begonnen! Laten we je account instellen.
                         👋 Hoi, ik ben je Expensify accountmanager. Nu je een workspace hebt aangemaakt, haal alles uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
                     `),
@@ -4102,7 +4101,7 @@ ${amount} voor ${merchant} - ${date}`,
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: 'Codice Fiscale voor ondertekenaars, bevoegde gebruikers en uiteindelijk belanghebbenden.',
         PDSandFSG: 'PDS- en FSG-informatiedocumenten',
-        PDSandFSGDescription: dedent(`
+        PDSandFSGDescription: Str.dedent(`
             Onze samenwerking met Corpay maakt gebruik van een API-koppeling om te profiteren van hun uitgebreide netwerk van internationale bankpartners, waarmee Wereldwijde Vergoedingen in Expensify mogelijk worden gemaakt. Conform de Australische regelgeving verstrekken wij je hierbij de Financial Services Guide (FSG) en de Product Disclosure Statement (PDS) van Corpay.
 
             Lees de FSG- en PDS-documenten zorgvuldig door, aangezien zij volledige details en belangrijke informatie bevatten over de producten en diensten die Corpay aanbiedt. Bewaar deze documenten voor toekomstig gebruik.
@@ -4159,7 +4158,7 @@ ${amount} voor ${merchant} - ${date}`,
         subheader: 'Verificatie',
         verificationFailed: 'De verificatie is mislukt, daarom hebben we extra documenten nodig om jou en je bedrijf te verifiëren',
         taxIDVerification: 'Belastingnummerverificatie',
-        taxIDVerificationDescription: dedent(`
+        taxIDVerificationDescription: Str.dedent(`
             Upload een van de volgende bestanden:
             • IRS TIN/EIN-toewijzingsbrief
             • IRS TIN/EIN-aanvraagbevestiging (bevat meestal "Congratulations! The EIN has been successfully assigned")
@@ -4168,7 +4167,7 @@ ${amount} voor ${merchant} - ${date}`,
         nameChangeDocument: 'Document naamswijziging',
         nameChangeDocumentDescription: 'Als de naam van je bedrijf is gewijzigd sinds de TIN/EIN-aanvraag, hebben we dit document nodig om het opgegeven belastingnummer te verifiëren',
         companyAddressVerification: 'Verificatie van bedrijfsadres',
-        companyAddressVerificationDescription: dedent(`
+        companyAddressVerificationDescription: Str.dedent(`
             Upload een van de volgende bestanden:
             • Recente energierekening met bedrijfsnaam en adres
             • Bankafschrift met bedrijfsnaam en adres
@@ -4177,7 +4176,7 @@ ${amount} voor ${merchant} - ${date}`,
             • TIN-toewijzingsdocument met bedrijfsnaam en adres
         `),
         userAddressVerification: 'Adresverificatie',
-        userAddressVerificationDescription: dedent(`
+        userAddressVerificationDescription: Str.dedent(`
             Upload een van de volgende bestanden:
             • Kiezersregistratiekaart
             • Rijbewijs
@@ -5083,12 +5082,12 @@ ${amount} voor ${merchant} - ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Leveranciersfacturen',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             Uitgaven uit eigen zak worden geëxporteerd als rekeningen die betaalbaar zijn aan de hieronder opgegeven NetSuite-leverancier.
 
                             Als je een specifieke leverancier voor elke kaart wilt instellen, ga dan naar *Instellingen > Domeinen > Bedrijfskaarten*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             Uitgaven op bedrijfskaarten worden geëxporteerd als facturen die betaalbaar zijn aan de hieronder opgegeven NetSuite-leverancier.
 
                             Als je voor elke kaart een specifieke leverancier wilt instellen, ga dan naar *Instellingen > Domeinen > Bedrijfskaarten*.
@@ -5096,12 +5095,12 @@ ${amount} voor ${merchant} - ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: 'Boekingen',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             Uitgaven uit eigen zak worden als journaalposten geëxporteerd naar de hieronder opgegeven NetSuite‑rekening.
 
                             Als je voor elke kaart een specifieke leverancier wilt instellen, ga dan naar *Instellingen > Domeinen > Bedrijfskaarten*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             Bedrijfspaskosten worden geëxporteerd als journaalposten naar de NetSuite-rekening die hieronder is opgegeven.
 
                             Als je voor elke kaart een specifieke leverancier wilt instellen, ga dan naar *Instellingen > Domeinen > Bedrijfspassen*.
@@ -9434,7 +9433,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `Voer de magische code in die naar ${contactMethod} is gestuurd om een copiloot toe te voegen. Deze zou binnen een of twee minuten moeten aankomen.`,
         enterMagicCodeUpdate: (contactMethod: string) => `Voer de magische code in die naar ${contactMethod} is gestuurd om je copiloot bij te werken.`,
         notAllowed: 'Niet zo snel...',
-        noAccessMessage: dedent(`
+        noAccessMessage: Str.dedent(`
             Als copiloot heb je geen toegang tot
             deze pagina. Sorry!
         `),

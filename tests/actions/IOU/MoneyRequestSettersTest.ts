@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, Policy, Report} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 import currencyList from '../../unit/currencyList.json';
 import createPersonalDetails from '../../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';

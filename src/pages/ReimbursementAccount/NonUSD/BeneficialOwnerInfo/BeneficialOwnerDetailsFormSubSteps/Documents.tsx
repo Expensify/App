@@ -17,7 +17,7 @@ import {clearErrorFields, clearErrors, setDraftValues, setErrorFields} from '@us
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 
 type DocumentsProps = SubPageProps & {ownerBeingModifiedID: string};
 

@@ -8,7 +8,7 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getFieldRequiredErrors, isValidSSNLastFour} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 
 type Last4SSNProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 

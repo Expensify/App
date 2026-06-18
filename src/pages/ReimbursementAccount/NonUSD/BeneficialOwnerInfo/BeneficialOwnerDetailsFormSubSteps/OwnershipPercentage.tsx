@@ -8,7 +8,7 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getFieldRequiredErrors, isValidOwnershipPercentage} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 
 type OwnershipPercentageProps = SubPageProps & {
     isUserEnteringHisOwnData: boolean;

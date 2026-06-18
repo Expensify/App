@@ -7,7 +7,7 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 
 type NameProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 

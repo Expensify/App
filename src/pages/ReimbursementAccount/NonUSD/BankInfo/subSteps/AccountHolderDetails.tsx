@@ -20,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {CorpayFormField} from '@src/types/onyx';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {COUNTRY, ACCOUNT_HOLDER_NAME} = INPUT_IDS.ADDITIONAL_DATA;

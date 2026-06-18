@@ -8,7 +8,7 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getFieldRequiredErrors, isValidSSNLastFour} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 
 const SSN_LAST_4 = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.SSN_LAST_4;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;

@@ -8,7 +8,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 import {getDecodedLeafCategoryName} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import Parser from './Parser';

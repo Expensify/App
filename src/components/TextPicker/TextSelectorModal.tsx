@@ -17,7 +17,7 @@ import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 import type {TextSelectorModalProps} from './types';
 
 function TextSelectorModal({

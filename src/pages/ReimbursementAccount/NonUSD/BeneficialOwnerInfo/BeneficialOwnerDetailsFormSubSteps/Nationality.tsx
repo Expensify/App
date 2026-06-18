@@ -12,7 +12,7 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 
 type NationalityProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 

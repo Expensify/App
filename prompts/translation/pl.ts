@@ -1,4 +1,4 @@
-import dedent from '@libs/StringUtils/dedent';
+import {Str} from 'expensify-common';
 import Glossary from './Glossary';
 
 const polishGlossary = new Glossary([
@@ -6,7 +6,7 @@ const polishGlossary = new Glossary([
     {sourceTerm: 'Expensify Card', targetTerm: 'Karta Expensify', usage: 'Branded Expensify payment card'},
 ]);
 
-export default dedent(`
+export default Str.dedent(`
     When translating to Polish, follow these rules:
 
     - Use informal tone for user-facing text to match the existing tone of the app.

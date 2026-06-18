@@ -8,7 +8,7 @@ import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAcco
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 
 type ConfirmationProps = SubPageProps & {ownerBeingModifiedID: string};
 

@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {CorpayFormField} from '@src/types/onyx';
-import SafeString from '@src/utils/SafeString';
+import {SafeString} from 'expensify-common';
 
 function getInputComponent(field: CorpayFormField) {
     if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {

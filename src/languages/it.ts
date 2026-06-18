@@ -9,12 +9,11 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-import {CONST as COMMON_CONST} from 'expensify-common';
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {ValueOf} from 'type-fest';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
-import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -715,17 +714,17 @@ const translations: TranslationDeepObject<typeof en> = {
         revealCardDetail: {couldNotReveal: 'Non siamo riusciti a mostrare i dettagli della tua carta. Riprova.'},
     },
     validateCodeModal: {
-        successfulSignInTitle: dedent(`
+        successfulSignInTitle: Str.dedent(`
             Abracadabra,
             hai effettuato l'accesso!
         `),
         successfulSignInDescription: 'Torna alla scheda originale per continuare.',
         title: 'Ecco il tuo codice magico',
-        description: dedent(`
+        description: Str.dedent(`
             Inserisci il codice dal dispositivo
             in cui è stato originariamente richiesto
         `),
-        doNotShare: dedent(`
+        doNotShare: Str.dedent(`
             Non condividere il tuo codice con nessuno.
             Expensify non te lo chiederà mai!
         `),
@@ -734,11 +733,11 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeTitle: 'Codice magico scaduto',
         expiredCodeDescription: 'Torna al dispositivo originale e richiedi un nuovo codice',
         successfulNewCodeRequest: 'Codice richiesto. Controlla il tuo dispositivo.',
-        tfaRequiredTitle: dedent(`
+        tfaRequiredTitle: Str.dedent(`
             Autenticazione a due fattori
             obbligatoria
         `),
-        tfaRequiredDescription: dedent(`
+        tfaRequiredDescription: Str.dedent(`
             Inserisci il codice di autenticazione a due fattori nel dispositivo da cui stai tentando di accedere.
         `),
         requestOneHere: 'richiedine una qui.',
@@ -2309,7 +2308,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noAuthenticatorApp: 'Non sarà più necessaria un’app di autenticazione per accedere a Expensify.',
         stepCodes: 'Codici di recupero',
         keepCodesSafe: 'Conserva questi codici al sicuro!',
-        codesLoseAccess: dedent(`
+        codesLoseAccess: Str.dedent(`
             Se perdi l’accesso alla tua app di autenticazione e non hai questi codici, verrà bloccato l’accesso al tuo account.<br><br>
             <strong>Nota</strong>: l’abilitazione della 2FA ti disconnette da tutte le altre sessioni.
         `),
@@ -3130,7 +3129,7 @@ ${amount} per ${merchant} - ${date}`,
             addExpenseApprovalsTask: {
                 title: 'Aggiungi approvazioni spese',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Aggiungi le approvazioni delle spese* per controllare le spese del tuo team e tenerle sotto controllo.
 
                         Ecco come fare:
@@ -3152,7 +3151,7 @@ ${amount} per ${merchant} - ${date}`,
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Crea uno [spazio di lavoro](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Crea uno spazio di lavoro* per monitorare le spese, scannerizzare le ricevute, chattare e altro ancora.
 
                         1. Fai clic su *Spazi di lavoro* > *Nuovo spazio di lavoro*.
@@ -3162,7 +3161,7 @@ ${amount} per ${merchant} - ${date}`,
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `Configura le [categorie](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Configura le categorie* in modo che il tuo team possa codificare le spese per creare report facilmente.
 
                         1. Fai clic su *Spazi di lavoro*.
@@ -3176,7 +3175,7 @@ ${amount} per ${merchant} - ${date}`,
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Invia una spesa',
-                description: dedent(`
+                description: Str.dedent(`
                     *Invia una spesa* inserendo un importo o scansionando una ricevuta.
 
                     1. Fai clic sul pulsante *+*.
@@ -3190,7 +3189,7 @@ ${amount} per ${merchant} - ${date}`,
             },
             adminSubmitExpenseTask: {
                 title: 'Invia una spesa',
-                description: dedent(`
+                description: Str.dedent(`
                     *Invia una spesa* inserendo un importo o scansionando una ricevuta.
 
                     1. Fai clic sul pulsante *+*.
@@ -3204,7 +3203,7 @@ ${amount} per ${merchant} - ${date}`,
             },
             trackExpenseTask: {
                 title: 'Traccia una spesa',
-                description: dedent(`
+                description: Str.dedent(`
                     *Registra una spesa* in qualsiasi valuta, che tu abbia una ricevuta o meno.
 
                     1. Fai clic sul pulsante *+*.
@@ -3220,7 +3219,7 @@ ${amount} per ${merchant} - ${date}`,
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `Collega${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'a'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'il tuo' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Collega ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'il tuo' : 'a'} ${integrationName} per la codifica automatica delle spese e la sincronizzazione che rendono la chiusura di fine mese semplicissima.
 
                         1. Fai clic su *Spazi di lavoro*.
@@ -3235,7 +3234,7 @@ ${amount} per ${merchant} - ${date}`,
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Collega [le tue carte aziendali](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Collega le carte che hai già per importare automaticamente le transazioni, abbinare le ricevute e riconciliare i movimenti.
 
                         1. Fai clic su *Spazi di lavoro*.
@@ -3248,7 +3247,7 @@ ${amount} per ${merchant} - ${date}`,
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Invita [il tuo team](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Invita il tuo team* su Expensify così potrà iniziare a tracciare le spese oggi stesso.
 
                         1. Fai clic su *Workspaces*.
@@ -3263,7 +3262,7 @@ ${amount} per ${merchant} - ${date}`,
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Configura [categorie](${workspaceCategoriesLink}) e [tag](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Configura categorie e tag* così il tuo team può codificare le spese per una reportistica semplice.
 
                         Importale automaticamente [collegando il tuo software di contabilità](${workspaceAccountingLink}) oppure configurale manualmente nelle [impostazioni dello spazio di lavoro](${workspaceCategoriesLink}).`),
@@ -3271,7 +3270,7 @@ ${amount} per ${merchant} - ${date}`,
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `Configura i [tag](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Usa i tag per aggiungere dettagli extra alle spese, come progetti, clienti, sedi e reparti. Se ti servono più livelli di tag, puoi passare al piano Control.
 
                         1. Fai clic su *Spazi di lavoro*.
@@ -3288,7 +3287,7 @@ ${amount} per ${merchant} - ${date}`,
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Invita il tuo [commercialista](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         *Invita il tuo commercialista* a collaborare nel tuo workspace e a gestire le spese della tua azienda.
 
                         1. Fai clic su *Workspaces*.
@@ -3301,7 +3300,7 @@ ${amount} per ${merchant} - ${date}`,
             },
             startChatTask: {
                 title: 'Avvia una chat',
-                description: dedent(`
+                description: Str.dedent(`
                     *Avvia una chat* con chiunque utilizzando la sua email o il suo numero di telefono.
 
                     1. Fai clic sul pulsante *+*.
@@ -3315,7 +3314,7 @@ ${amount} per ${merchant} - ${date}`,
             },
             splitExpenseTask: {
                 title: 'Dividi una spesa',
-                description: dedent(`
+                description: Str.dedent(`
                     *Dividi le spese* con una o più persone.
 
                     1. Fai clic sul pulsante *+*.
@@ -3330,7 +3329,7 @@ ${amount} per ${merchant} - ${date}`,
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Controlla le impostazioni del tuo [spazio di lavoro](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    dedent(`
+                    Str.dedent(`
                         Ecco come rivedere e aggiornare le impostazioni del tuo spazio di lavoro:
                         1. Fai clic su Spazi di lavoro.
                         2. Seleziona il tuo spazio di lavoro.
@@ -3339,7 +3338,7 @@ ${amount} per ${merchant} - ${date}`,
             },
             createReportTask: {
                 title: 'Crea il tuo primo report',
-                description: dedent(`
+                description: Str.dedent(`
                     Ecco come creare un report:
 
                     1. Fai clic sul pulsante *+*.
@@ -3363,11 +3362,11 @@ ${amount} per ${merchant} - ${date}`,
             onboardingPersonalSpendMessage: 'Ecco come tenere traccia delle tue spese in pochi clic.',
             onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
                 isOnboardingFlow
-                    ? dedent(`
+                    ? Str.dedent(`
                         # La tua prova gratuita è iniziata! Configuriamo il tuo account.
                         👋 Ciao, sono il tuo account executive di Expensify. Ho già creato uno spazio di lavoro per aiutarti a gestire le ricevute e le spese del tuo team. Per sfruttare al meglio i tuoi 30 giorni di prova gratuita, segui semplicemente i passaggi di configurazione qui sotto!
                     `)
-                    : dedent(`
+                    : Str.dedent(`
                         # La tua prova gratuita è iniziata! Configuriamo il tuo account.
                         👋 Ciao, sono il tuo account executive di Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo i tuoi 30 giorni di prova gratuita seguendo i passaggi qui sotto!
                     `),
@@ -4106,7 +4105,7 @@ ${amount} per ${merchant} - ${date}`,
         codiceFiscale: 'Codice fiscale',
         codiceFiscaleDescription: 'Codice fiscale per firmatari, utenti autorizzati e titolari effettivi.',
         PDSandFSG: 'Documentazione di informativa PDS + FSG',
-        PDSandFSGDescription: dedent(`
+        PDSandFSGDescription: Str.dedent(`
             La nostra partnership con Corpay utilizza una connessione API per sfruttare la loro vasta rete di partner bancari internazionali e alimentare i Rimborsi globali in Expensify. In conformità alla normativa australiana, ti forniamo la Financial Services Guide (FSG) e il Product Disclosure Statement (PDS) di Corpay.
 
             Leggi attentamente i documenti FSG e PDS, poiché contengono tutti i dettagli e informazioni importanti sui prodotti e servizi offerti da Corpay. Conserva questi documenti per riferimenti futuri.
@@ -4163,7 +4162,7 @@ ${amount} per ${merchant} - ${date}`,
         subheader: 'Verifica',
         verificationFailed: 'La verifica non è riuscita, quindi avremo bisogno di documenti aggiuntivi per verificare te e la tua azienda',
         taxIDVerification: 'Verifica dell’ID fiscale',
-        taxIDVerificationDescription: dedent(`
+        taxIDVerificationDescription: Str.dedent(`
             Carica uno dei seguenti file:
             • Lettera di assegnazione TIN/EIN dell’IRS
             • Conferma della richiesta TIN/EIN dell’IRS (di solito indica "Congratulations! The EIN has been successfully assigned")
@@ -4173,7 +4172,7 @@ ${amount} per ${merchant} - ${date}`,
         nameChangeDocumentDescription:
             'Se il nome della tua azienda è cambiato dopo la richiesta del TIN/EIN, abbiamo bisogno di questo documento per verificare il numero di ID fiscale fornito',
         companyAddressVerification: 'Verifica dell’indirizzo aziendale',
-        companyAddressVerificationDescription: dedent(`
+        companyAddressVerificationDescription: Str.dedent(`
             Carica uno dei seguenti file:
             • Bolletta recente con nome e indirizzo dell’azienda
             • Estratto conto bancario con nome e indirizzo dell’azienda
@@ -4182,7 +4181,7 @@ ${amount} per ${merchant} - ${date}`,
             • Documento di assegnazione TIN con nome e indirizzo dell’azienda
         `),
         userAddressVerification: 'Verifica dell’indirizzo',
-        userAddressVerificationDescription: dedent(`
+        userAddressVerificationDescription: Str.dedent(`
             Carica uno dei seguenti file:
             • Tessera elettorale
             • Patente di guida
@@ -5093,12 +5092,12 @@ ${amount} per ${merchant} - ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Fatture fornitori',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             Le spese anticipate verranno esportate come fatture pagabili al fornitore NetSuite specificato di seguito.
 
                             Se desideri impostare un fornitore specifico per ciascuna carta, vai su *Impostazioni > Domini > Carte aziendali*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             Le spese con carta aziendale verranno esportate come fatture pagabili al fornitore NetSuite specificato di seguito.
 
                             Se desideri impostare un fornitore specifico per ciascuna carta, vai su *Impostazioni > Domini > Carte aziendali*.
@@ -5106,12 +5105,12 @@ ${amount} per ${merchant} - ${date}`,
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: 'Registrazioni contabili',
-                        reimbursableDescription: dedent(`
+                        reimbursableDescription: Str.dedent(`
                             Le spese vive verranno esportate come registrazioni contabili nel conto NetSuite specificato di seguito.
 
                             Se desideri impostare un fornitore specifico per ogni carta, vai su *Impostazioni > Domini > Carte aziendali*.
                         `),
-                        nonReimbursableDescription: dedent(`
+                        nonReimbursableDescription: Str.dedent(`
                             Le spese con carta aziendale verranno esportate come registrazioni contabili sul conto NetSuite specificato qui sotto.
 
                             Se desideri impostare un fornitore specifico per ogni carta, vai su *Impostazioni > Domini > Carte aziendali*.
@@ -9469,7 +9468,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         enterMagicCode: (contactMethod: string) => `Inserisci il codice magico inviato a ${contactMethod} per aggiungere un copilota. Dovrebbe arrivare entro uno o due minuti.`,
         enterMagicCodeUpdate: (contactMethod: string) => `Inserisci il codice magico inviato a ${contactMethod} per aggiornare il tuo copilota.`,
         notAllowed: 'Non così in fretta...',
-        noAccessMessage: dedent(`
+        noAccessMessage: Str.dedent(`
             Come copilota, non hai accesso a questa pagina. Spiacente!
         `),
         notAllowedMessage: (accountOwnerEmail: string) =>
