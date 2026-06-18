@@ -1534,7 +1534,6 @@
 "../../src/utils/times.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/actions/AppTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/actions/BankAccountsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/actions/CopyPolicySettingsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	18
 "../../tests/actions/DomainTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../tests/actions/EnforceActionExportRestrictions.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOU/BuildOnyxDataForMoneyRequestTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	17
