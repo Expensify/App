@@ -10,6 +10,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -27,6 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS>;
 
@@ -57,6 +59,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     });
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {isOffline} = useNetwork();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     const technicalContactEmail = technicalContactSettings?.technicalContactEmail;
@@ -64,7 +67,15 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const admins: DomainAdminRowData[] = (adminAccountIDs ?? [])
         .filter((accountID) => {
             const details = personalDetails?.[accountID];
-            return !!details?.login || !!details?.displayName;
+            if (!details?.login && !details?.displayName) {
+                return false;
+            }
+
+            const pendingAction = domainPendingAction?.[accountID]?.pendingAction;
+            const errors = domainErrors?.adminErrors?.[accountID]?.errors;
+            const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+            return isOffline || !isPendingDelete || !isEmptyObject(errors);
         })
         .map((accountID) => {
             const details = personalDetails?.[accountID];
@@ -76,7 +87,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             return {
                 keyForList: String(accountID),
                 accountID,
-                login,
                 name: formatPhoneNumber(getDisplayNameOrDefault(details)),
                 email: formatPhoneNumber(login),
                 isPrimaryContact: !!technicalContactEmail && !!login && technicalContactEmail === login,
