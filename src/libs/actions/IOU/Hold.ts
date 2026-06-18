@@ -901,7 +901,7 @@ function getReportFromHoldRequestsOnyxData({
             value: {
                 total: iouReport?.unheldTotal ?? 0,
                 nonReimbursableTotal: iouReport?.unheldNonReimbursableTotal ?? 0,
-                reimbursableTotal: iouReport?.unheldReimbursableTotal ?? 0,
+                reimbursableTotal: getUnheldReimbursableTotal(iouReport),
             },
         });
     }
