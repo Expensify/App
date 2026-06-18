@@ -124,6 +124,7 @@ function useDistanceRequestState({
         hasRoute,
         isDistanceRequestWithPendingRoute,
         distanceRequestAmount,
+        commuterExclusionBreakdown,
     };
 }
 
