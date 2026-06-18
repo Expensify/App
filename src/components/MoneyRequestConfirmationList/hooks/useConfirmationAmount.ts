@@ -79,10 +79,10 @@ function useConfirmationAmount({
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
     const shouldCalculatePerDiemAmount = isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates) || prevCurrency !== currency);
 
-    let amountToBeUsed = iouAmount;
-    if (shouldCalculateDistanceAmount) {
-        amountToBeUsed = distanceRequestAmount;
-    } else if (shouldCalculatePerDiemAmount) {
+    // For distance requests, always use the computed distanceRequestAmount since it accounts for
+    // commuter exclusions and rate changes. This avoids stale iouAmount values.
+    let amountToBeUsed = isDistanceRequest ? distanceRequestAmount : iouAmount;
+    if (shouldCalculatePerDiemAmount) {
         amountToBeUsed = computePerDiemExpenseAmount({subRates});
     }
 
