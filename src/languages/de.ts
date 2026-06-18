@@ -7447,7 +7447,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 allowedMerchants: 'Zugelassene Händler',
                 allowedMerchantTypes: 'Zulässige Händlerarten',
                 blockedMerchants: 'Blockierte Händler',
-                blockedMerchantTypes: 'Gesperrte Händlerarten',
                 currencies: 'Währungen',
                 permittedCurrencies: 'Zulässige Währungen',
                 allCurrencies: 'Alle Währungen',

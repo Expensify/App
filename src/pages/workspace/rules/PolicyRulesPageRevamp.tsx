@@ -154,7 +154,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 ruleID: rule.ruleID,
                 isDefault: false,
                 isBlock: rule.isBlock,
-                actionLabel: rule.actionLabel,
+                actionLabel: rule.isBlock ? blockLabel : translate('workspace.rules.spendRules.allow'),
                 cardSummary: rule.cardSummary,
                 ruleSummary,
                 searchTokens: rule.searchTokens,
@@ -240,9 +240,18 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             });
     }, [isOffline, policy?.rules?.codingRules, policyID, translate]);
 
+    const hasPendingCodingRules = useMemo(
+        () => Object.values(policy?.rules?.codingRules ?? {}).some((rule) => !!rule?.pendingAction && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+        [policy?.rules?.codingRules],
+    );
+
     const fetchRules = useCallback(() => {
+        // Avoid refetching while optimistic create/update is in flight — a stale OpenPolicyRulesPage response can overwrite the new rule.
+        if (hasPendingCodingRules) {
+            return;
+        }
         openPolicyRulesPage(policyID);
-    }, [policyID]);
+    }, [hasPendingCodingRules, policyID]);
 
     useEffect(() => {
         fetchRules();

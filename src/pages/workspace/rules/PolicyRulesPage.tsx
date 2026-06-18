@@ -44,6 +44,7 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['Rules']);
     const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
 
@@ -52,10 +53,14 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
     }, [policyID]);
 
     useEffect(() => {
+        // PolicyRulesPageRevamp fetches rules on its own mount — skip here to avoid duplicate OpenPolicyRulesPage calls.
+        if (isRulesRevampEnabled) {
+            return;
+        }
         fetchRules();
-    }, [fetchRules]);
+    }, [fetchRules, isRulesRevampEnabled]);
 
-    if (isBetaEnabled(CONST.BETAS.RULES_REVAMP)) {
+    if (isRulesRevampEnabled) {
         return <PolicyRulesPageRevamp {...props} />;
     }
 

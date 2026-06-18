@@ -7474,7 +7474,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 allowedMerchants: 'Commerçants autorisés',
                 allowedMerchantTypes: 'Types de marchands autorisés',
                 blockedMerchants: 'Commerçants bloqués',
-                blockedMerchantTypes: 'Types de marchands bloqués',
                 currencies: 'Devises',
                 permittedCurrencies: 'Devises autorisées',
                 allCurrencies: 'Toutes les devises',
