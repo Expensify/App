@@ -770,4 +770,4 @@ function SearchList({
 }
 
 export default SearchList;
-export type {SearchListProps, SearchListHandle, SearchListItem};
+export type {SearchListProps};

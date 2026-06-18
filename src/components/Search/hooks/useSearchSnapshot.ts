@@ -181,4 +181,3 @@ function useSearchSnapshot(queryJSON: Readonly<SearchQueryJSON>): SearchSnapshot
 }
 
 export default useSearchSnapshot;
-export type {SearchSnapshotResult};
