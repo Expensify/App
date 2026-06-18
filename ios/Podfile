@@ -107,6 +107,17 @@ target 'NewExpensify' do
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+
+        # RN 0.85 moved react/runtime/* (e.g. JSRuntimeBindings.h, included by
+        # JSIExecutor.h) into a dedicated `jsitooling` pod. Pods like RNLiveMarkdown
+        # pull these headers in transitively via worklets but don't receive the
+        # search path under `use_frameworks!`. Append the jsitooling source dir while
+        # preserving $(inherited) so we don't clobber each pod's own paths (e.g.
+        # libdav1d's generated config.h).
+        header_search_paths = Array(config.build_settings['HEADER_SEARCH_PATHS'])
+        header_search_paths.unshift('$(inherited)') unless header_search_paths.include?('$(inherited)')
+        header_search_paths << '"${PODS_ROOT}/../../node_modules/react-native/ReactCommon/jsitooling"'
+        config.build_settings['HEADER_SEARCH_PATHS'] = header_search_paths
       end
 
       if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"
