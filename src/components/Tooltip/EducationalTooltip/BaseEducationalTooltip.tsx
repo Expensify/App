@@ -55,7 +55,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
             const availableHeightForBottom = dimensions.height - (bottom + variables.bottomTabHeight - offset);
 
             // Calculate available horizontal space, taking into account safe-area insets
-            const availableWidthForLeft = left - offset;
+            const availableWidthForLeft = left + offset;
             const availableWidthForRight = dimensions.width - (right - offset);
 
             // Hide if the element scrolled out vertically or horizontally
