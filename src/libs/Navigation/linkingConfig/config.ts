@@ -1054,6 +1054,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DISTANCE_RATES_UNIT]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.route,
                         },
+                        [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.route,
+                        },
                         [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.route,
                         },
