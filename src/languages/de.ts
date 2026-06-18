@@ -510,6 +510,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beschränkungen',
+        off: 'Aus',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -4975,6 +4976,8 @@ ${amount} für ${merchant} – ${date}`,
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: 'Unternehmen',
             autoSyncDescription: 'Expensify wird jeden Tag automatisch mit Certinia synchronisiert.',
             syncReimbursedReportsDescription:
                 'Wenn diese Option aktiviert ist, wird jedes Mal, wenn eine zu zahlende Rechnung in FFA bezahlt wird, der zugehörige Expensify-Bericht automatisch als erstattet markiert.',
@@ -4987,6 +4990,13 @@ ${amount} für ${merchant} – ${date}`,
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In Bearbeitung',
                     [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Genehmigt',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Übermittelt',
+                },
+            },
+            reportExportStatus: {
+                label: 'Status der Spesenabrechnung',
+                values: {
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: 'Genehmigt',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: 'Übermittelt',
                 },
             },
             exportDate: {
@@ -5002,8 +5012,13 @@ ${amount} für ${merchant} – ${date}`,
                 helperText: 'Als erstattungsfähig markierte Ausgaben werden als Verbindlichkeitsrechnungen auf den*die Mitarbeitende*n exportiert.',
             },
             exportNonReimbursable: {label: 'Nicht erstattungsfähige Ausgaben exportieren als'},
+            expenseReports: 'Spesenabrechnungen',
+            exportReimbursableExpenseReports: {helperText: 'Als erstattungsfähig markierte Ausgaben werden als Spesenabrechnungen für Mitarbeitende exportiert.'},
+            exportNonReimbursableExpenseReports: {helperText: 'Als nicht erstattungsfähig markierte Ausgaben werden als Spesenabrechnungen für Mitarbeitende exportiert.'},
             noVendorsFound: 'Keine Anbieter gefunden',
             noVendorsFoundDescription: 'Bitte synchronisieren Sie die Verbindung erneut, nachdem Lieferanten in Certinia hinzugefügt wurden.',
+            noCompaniesFound: 'Keine Unternehmen gefunden',
+            noCompaniesFoundDescription: 'Bitte synchronisieren Sie die Verbindung erneut, nachdem Unternehmen in Certinia hinzugefügt wurden.',
             prerequisites: {
                 title: 'Bevor Sie die Verbindung herstellen',
                 installBundle: 'Für FFA-Verbindungen',
@@ -6228,6 +6243,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 description: 'Wählen Sie die Einstellungen aus, die in Ihren bestehenden Arbeitsbereichen überschrieben werden sollen.',
                 accountingMismatch: ({part}: {part: string}) =>
                     `Sie können ${part} nur kopieren, wenn alle Arbeitsbereiche dasselbe Buchhaltungssystem und dieselbe Unternehmensverbindung verwenden.`,
+                travelAddressMismatch: 'Sie können Reisen nur kopieren, wenn jeder ausgewählte Arbeitsbereich eine Unternehmensadresse hat.',
             },
             confirmSettings: {
                 title: 'Stellen wir sicher, dass alles richtig aussieht.',
@@ -6320,7 +6336,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 `Wenn du ${memberName} aus diesem Workspace entfernst, ersetzen wir sie/ihn als technischen Kontakt durch ${workspaceOwner}, den/die Workspace-Inhaber:in.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} hat einen ausstehenden Bericht in Bearbeitung, zu dem eine Aktion erforderlich ist. Bitte bitten Sie diese Person, die erforderliche Aktion abzuschließen, bevor Sie sie aus dem Workspace entfernen.`,
-            allMembers: 'Alle Mitglieder',
+            members: 'Mitglieder',
             admins: 'Workspace-Administratoren',
             approvers: 'Genehmigende',
             auditors: 'Prüfer',
@@ -7086,7 +7102,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             },
             controlPolicyRoles: {
                 title: 'Rollen für Richtliniensteuerung',
-                description: 'Verwenden Sie spezialisierte Rollen wie Auditor und Karten-Admin, um Mitgliedern nur den Zugriff zu gewähren, den sie benötigen.',
+                description: 'Gewähren Sie Mitgliedern gezielten Zugriff, indem Sie Rollen wie Prüfer oder Kartenadministrator zuweisen.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Spezialisierte Arbeitsbereichsrollen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
@@ -7323,10 +7339,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 chooseCards: 'Karten auswählen',
                 saveRule: 'Regel speichern',
                 allow: 'Erlauben',
-                spendRuleSectionTitle: 'Ausgabenregel',
-                restrictionType: 'Beschränkungstyp',
-                restrictionTypeHelpAllow: 'Ausgaben werden genehmigt, wenn sie einem beliebigen Händler oder einer Kategorie entsprechen und einen Höchstbetrag nicht überschreiten.',
-                restrictionTypeHelpBlock: 'Buchungen werden abgelehnt, wenn sie mit einem Händler oder einer Kategorie übereinstimmen oder einen Höchstbetrag überschreiten.',
+                spendRuleSectionTitle: 'Ausgabelimits',
                 addMerchant: 'Händler hinzufügen',
                 merchantContains: 'Händler enthält',
                 merchantExactlyMatches: 'Händler stimmt exakt überein',
@@ -7337,11 +7350,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 matchType: 'Übereinstimmungstyp',
                 matchTypeContains: 'Enthält',
                 matchTypeExact: 'Stimmt genau überein',
-                spendCategory: 'Ausgabenkategorie',
                 maxAmount: 'Maximalbetrag',
                 maxAmountHelp: 'Jede Belastung über diesem Betrag wird abgelehnt, unabhängig von Händler- und Ausgabenkategoriebeschränkungen.',
-                currencyMismatchTitle: 'Währungsinkonsistenz',
-                currencyMismatchPrompt: 'Um einen Höchstbetrag festzulegen, wählen Sie Karten aus, die in derselben Währung abgerechnet werden.',
+                maxAmountCurrencyMismatchTitle: 'Währungsabweichung',
+                maxAmountCurrencyMismatchPrompt: 'Um einen Maximalbetrag festzulegen, wählen Sie Karten aus, die in derselben Währung abgerechnet werden.',
                 reviewSelectedCards: 'Ausgewählte Karten prüfen',
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} weitere` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Wenden Sie mindestens eine Ausgabenregel auf eine Karte an',
@@ -7404,6 +7416,26 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blockiert' : 'Erlaubt'} ${shownCount > 1 ? 'Kategorien' : 'Kategorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
+                restrictMerchants: 'Händler einschränken',
+                merchantTypes: 'Händlerarten',
+                allowedMerchants: 'Zugelassene Händler',
+                allowedMerchantTypes: 'Zulässige Händlerarten',
+                blockedMerchants: 'Blockierte Händler',
+                blockedMerchantTypes: 'Gesperrte Händlerarten',
+                currencies: 'Währungen',
+                permittedCurrencies: 'Zulässige Währungen',
+                allCurrencies: 'Alle Währungen',
+                permittedCurrenciesSubtitle: 'Wählen Sie, ob alle oder nur bestimmte Währungen zulässig sind',
+                settlementCurrencyPermittedSubtitle: 'Die Kartenabrechnungswährung ist immer zulässig',
+                currenciesCurrencyMismatchTitle: 'Währungsabweichung',
+                currenciesCurrencyMismatchPrompt: 'Um bevorzugte Währungen festzulegen, wählen Sie Karten aus, die in derselben Währung abgerechnet werden.',
+                restrictMerchantsOffSubtitle: 'Belastungen werden für zulässige Währungen genehmigt, die einen Höchstbetrag nicht überschreiten',
+                restrictMerchantsAllowSubtitle:
+                    'Ausgaben werden genehmigt für zulässige Währungen, die einen Höchstbetrag nicht überschreiten und bei denen das Unternehmen oder der Unternehmenstyp übereinstimmt.',
+                restrictMerchantsBlockSubtitle:
+                    'Gebühren werden genehmigt, wenn sie in zulässigen Währungen erfolgen und einen Höchstbetrag nicht überschreiten oder wenn das Geschäft bzw. die Geschäftsart übereinstimmt.',
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `Erlaubt ${shownCount > 1 ? 'Währungen' : 'Währung'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
             },
             agentRules: {
                 title: 'Agentenregeln',
@@ -9856,5 +9888,21 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         negativeButton: 'Nicht wirklich',
     },
     monthPickerPage: {month: 'Monat', selectMonth: 'Bitte wählen Sie einen Monat aus'},
+    aiFeaturesPromoModal: {
+        subtitle: 'Neu bei Concierge AI',
+        confirmText: 'Los geht’s!',
+        spendAnalysis: {
+            title: 'Interaktive Ausgabenanalyse',
+            description: `<muted-text>Concierge zeigt monatliche Ausgabenanalysen an und ermöglicht es Ihnen, die Details hinter jeder Zahl genauer zu betrachten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Mehr erfahren</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Lernen Sie Ihre neue Spesenassistenz kennen',
+            description: `<muted-text>Chatten Sie mit Concierge, um Ausgaben direkt in der App oder per E-Mail oder SMS zu erstellen und zu aktualisieren. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Mehr erfahren</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Erstellen Sie Ihre eigenen Agenten',
+            description: `<muted-text>Erstellen Sie benutzerdefinierte Agenten, die Ausgaben anhand Ihrer Regeln prüfen, genehmigen und weiterleiten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Mehr erfahren</a>.</muted-text>`,
+        },
+    },
 };
 export default translations;

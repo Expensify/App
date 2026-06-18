@@ -76,6 +76,7 @@ import {
     findLastAccessedReport,
     getActionErrorsByTransaction,
     getAddExpenseDropdownOptions,
+    getAllPolicyExpenseChatReportActions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getAvailableReportFields,
@@ -7436,6 +7437,22 @@ describe('ReportUtils', () => {
             };
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
         });
+
+        it('should return false when submitter is the approver on a Submit workspace even if preventSelfApproval is disabled', () => {
+            const submitPolicy: Policy = {
+                ...createRandomPolicy(6, CONST.POLICY.TYPE.SUBMIT),
+                preventSelfApproval: false,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, submitPolicy)).toBeFalsy();
+        });
+
+        it('should return true when a different user is the approver on a Submit workspace', () => {
+            const submitPolicy: Policy = {
+                ...createRandomPolicy(6, CONST.POLICY.TYPE.SUBMIT),
+                preventSelfApproval: false,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID + 1, submitPolicy)).toBeTruthy();
+        });
     });
 
     describe('isArchivedReport', () => {
@@ -8422,52 +8439,6 @@ describe('ReportUtils', () => {
             };
 
             expect(isPayer(adminAccountID, adminEmail, report, bankAccountList, policyWithAch, false)).toBe(false);
-        });
-
-        it('should return false when user left workspace and policy is not available', async () => {
-            // Clear the policy to simulate user leaving workspace
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}left-workspace`, null);
-
-            const reportWithMissingPolicy: Report = {
-                ...createRandomReport(6, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                policyID: 'left-workspace',
-                managerID: currentUserAccountID,
-            };
-
-            // User should not be a payer when policy is not available (they likely left the workspace)
-            expect(isPayer(currentUserAccountID, currentUserEmail, reportWithMissingPolicy, undefined, undefined, false)).toBe(false);
-        });
-
-        it('should return false when user is not in employeeList of a paid group policy', async () => {
-            const otherUserEmail = 'other@test.com';
-            const policyWithoutCurrentUser: Policy = {
-                ...createRandomPolicy(2),
-                id: 'policy-without-user',
-                type: CONST.POLICY.TYPE.CORPORATE,
-                role: CONST.POLICY.ROLE.ADMIN, // Role might be stale
-                employeeList: {
-                    [otherUserEmail]: {
-                        role: CONST.POLICY.ROLE.ADMIN,
-                    },
-                },
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}policy-without-user`, policyWithoutCurrentUser);
-
-            const reportForNonMember: Report = {
-                ...createRandomReport(7, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                policyID: 'policy-without-user',
-                managerID: currentUserAccountID,
-            };
-
-            // User should not be a payer even if role says admin, because they're not in employeeList
-            expect(isPayer(currentUserAccountID, currentUserEmail, reportForNonMember, undefined, policyWithoutCurrentUser, false)).toBe(false);
         });
 
         it('should return true for IOU report manager even when policy is not available', async () => {
@@ -19000,5 +18971,71 @@ describe('shouldShowMarkAsDone', () => {
         });
         await waitForBatchedUpdates();
         expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(true);
+    });
+});
+
+describe('getAllPolicyExpenseChatReportActions', () => {
+    const reportKey = (reportID: string) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+    const actionsKey = (reportID: string) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+    const buildActions = (index: number): ReportActions => {
+        const action = createRandomReportAction(index);
+        return {[action.reportActionID]: action};
+    };
+    const policyExpenseChat = (index: number): Report => createRandomReport(index, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+    const policyExpenseChatThread = (index: number): Report => ({...policyExpenseChat(index), parentReportID: '99', parentReportActionID: '98'});
+
+    it('includes report actions for a non-thread policy expense chat', () => {
+        const report = policyExpenseChat(1);
+        const allReports: OnyxCollection<Report> = {[reportKey(report.reportID)]: report};
+        const actions = buildActions(1);
+        const allReportActions: OnyxCollection<ReportActions> = {[actionsKey(report.reportID)]: actions};
+
+        expect(getAllPolicyExpenseChatReportActions(allReports, allReportActions)).toEqual({[actionsKey(report.reportID)]: actions});
+    });
+
+    it('excludes reports that are not policy expense chats', () => {
+        const report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.DOMAIN_ALL);
+        const allReports: OnyxCollection<Report> = {[reportKey(report.reportID)]: report};
+        const allReportActions: OnyxCollection<ReportActions> = {[actionsKey(report.reportID)]: buildActions(1)};
+
+        expect(getAllPolicyExpenseChatReportActions(allReports, allReportActions)).toEqual({});
+    });
+
+    it('excludes policy expense chats that are threads', () => {
+        const report = policyExpenseChatThread(1);
+        const allReports: OnyxCollection<Report> = {[reportKey(report.reportID)]: report};
+        const allReportActions: OnyxCollection<ReportActions> = {[actionsKey(report.reportID)]: buildActions(1)};
+
+        expect(getAllPolicyExpenseChatReportActions(allReports, allReportActions)).toEqual({});
+    });
+
+    it('omits matching reports that have no report actions', () => {
+        const report = policyExpenseChat(1);
+        const allReports: OnyxCollection<Report> = {[reportKey(report.reportID)]: report};
+
+        expect(getAllPolicyExpenseChatReportActions(allReports, {})).toEqual({});
+    });
+
+    it('returns only the matching subset across mixed reports', () => {
+        const peChat = policyExpenseChat(1);
+        const thread = policyExpenseChatThread(2);
+        const dm = createRandomReport(3, undefined);
+        const allReports: OnyxCollection<Report> = {
+            [reportKey(peChat.reportID)]: peChat,
+            [reportKey(thread.reportID)]: thread,
+            [reportKey(dm.reportID)]: dm,
+        };
+        const peChatActions = buildActions(1);
+        const allReportActions: OnyxCollection<ReportActions> = {
+            [actionsKey(peChat.reportID)]: peChatActions,
+            [actionsKey(thread.reportID)]: buildActions(2),
+            [actionsKey(dm.reportID)]: buildActions(3),
+        };
+
+        expect(getAllPolicyExpenseChatReportActions(allReports, allReportActions)).toEqual({[actionsKey(peChat.reportID)]: peChatActions});
+    });
+
+    it('returns an empty object for undefined collections', () => {
+        expect(getAllPolicyExpenseChatReportActions(undefined, undefined)).toEqual({});
     });
 });

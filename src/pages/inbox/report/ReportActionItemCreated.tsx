@@ -53,7 +53,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
         <OfflineWithFeedback
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
-            errorRowStyles={[styles.ml10, styles.mr2]}
+            errorRowStyles={[styles.ml10, styles.mr2, styles.mb2]}
             onClose={() =>
                 clearCreateChatError(
                     report,
