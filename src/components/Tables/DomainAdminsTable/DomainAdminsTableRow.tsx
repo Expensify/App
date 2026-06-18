@@ -62,7 +62,7 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
                         <ReportActionAvatars
                             size={avatarSize}
                             accountIDs={[item.accountID]}
-                            fallbackDisplayName={item.name ?? item.email}
+                            fallbackDisplayName={item.name}
                             shouldShowTooltip
                             secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
                         />
