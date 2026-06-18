@@ -25,7 +25,12 @@ type RouteParams = {
     backTo?: string;
 };
 
-function StateSelectionPage() {
+type StateSelectionPageProps = {
+    /** When provided, overrides route.params.backTo. Used by dynamic route wrappers. */
+    backTo?: Route;
+};
+
+function StateSelectionPage({backTo: backToProp}: StateSelectionPageProps = {}) {
     const route = useRoute();
     const {translate} = useLocalize();
 
@@ -33,6 +38,8 @@ function StateSelectionPage() {
     const params = route.params as RouteParams | undefined;
     const currentState = params?.state;
     const label = params?.label;
+    const backTo = backToProp ?? params?.backTo ?? '';
+    const isBackToFromProp = backToProp !== undefined;
     const initialSelectedValue = useInitialSelection(currentState ?? undefined, {resetOnFocus: true});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
@@ -59,17 +66,15 @@ function StateSelectionPage() {
 
     const selectCountryState = useCallback(
         (option: Option) => {
-            const backTo = params?.backTo ?? '';
-
-            // Check the "backTo" parameter to decide navigation behavior
             if (!backTo) {
                 Navigation.goBack();
-            } else {
-                // Set compareParams to false because we want to goUp to this particular screen and update params (state).
-                Navigation.goBack(appendParam(backTo, 'state', option.value), {compareParams: false});
+                return;
             }
+
+            // Set compareParams to false because we want to goUp to this particular screen and update params (state).
+            Navigation.goBack(appendParam(backTo, 'state', option.value), {compareParams: false});
         },
-        [params?.backTo],
+        [backTo],
     );
 
     const textInputOptions = useMemo(
@@ -95,14 +100,17 @@ function StateSelectionPage() {
                 title={label || translate('common.state')}
                 shouldShowBackButton
                 onBackButtonPress={() => {
-                    const backTo = params?.backTo ?? '';
-                    let backToRoute: Route | undefined;
-
-                    if (backTo) {
-                        backToRoute = appendParam(backTo, 'state', currentState ?? '');
+                    if (!backTo) {
+                        Navigation.goBack();
+                        return;
                     }
 
-                    Navigation.goBack(backToRoute);
+                    if (isBackToFromProp && backToProp) {
+                        Navigation.goBack(currentState ? appendParam(backToProp, 'state', currentState) : backToProp, {compareParams: false});
+                        return;
+                    }
+
+                    Navigation.goBack(appendParam(backTo, 'state', currentState ?? ''));
                 }}
             />
             {/* This empty, non-harmful view fixes the issue with SelectionList scrolling and shouldUseDynamicMaxToRenderPerBatch. It can be removed without consequences if a solution for SelectionList is found. See comment https://github.com/Expensify/App/pull/36770#issuecomment-2017028096 */}
