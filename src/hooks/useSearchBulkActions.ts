@@ -2107,7 +2107,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (activeExportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !activeExportDownload?.shouldSendFromConcierge) {
             return;
         }
-        if (activeExportID) {
+        // For the Concierge path the worker deletes the NVP after sending, so clearing it here would wipe
+        // shouldSendFromConcierge before the worker reads it and the file would never reach Concierge.
+        if (activeExportID && !activeExportDownload?.shouldSendFromConcierge) {
             clearExportDownload(activeExportID, activeExportDownload);
         }
         setActiveExportID(undefined);
