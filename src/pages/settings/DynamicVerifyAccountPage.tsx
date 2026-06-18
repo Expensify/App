@@ -2,6 +2,7 @@ import React from 'react';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useDynamicForwardPath from '@hooks/useDynamicForwardPath';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import isDynamicRouteSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteSuffix';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import VerifyAccountPageBase from './VerifyAccountPageBase';
@@ -16,9 +17,8 @@ function DynamicVerifyAccountPage() {
         navigateForwardTo = createDynamicRoute(DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.path, backPath);
     } else if (backPath === ROUTES.SETTINGS_WALLET) {
         navigateForwardTo = ROUTES.SETTINGS_ENABLE_PAYMENTS;
-    } else if (forwardPathFromHook) {
-        // Dynamic suffixes are resolved above; remaining mapped values are static routes.
-        navigateForwardTo = forwardPathFromHook as Route;
+    } else if (forwardPathFromHook && !isDynamicRouteSuffix(forwardPathFromHook)) {
+        navigateForwardTo = forwardPathFromHook;
     }
 
     return (
