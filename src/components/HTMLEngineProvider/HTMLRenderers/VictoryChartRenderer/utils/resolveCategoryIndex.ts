@@ -4,38 +4,25 @@ const TRUNCATION_SUFFIXES = ['…', '...'];
  * When a chart category label is truncated with an ellipsis, the bar data `x` value
  * still uses the full label. Match truncated display labels to their full data values.
  */
-function stripTruncationSuffix(category: string): string | undefined {
+function stripTruncationSuffix(category: string): string {
     for (const suffix of TRUNCATION_SUFFIXES) {
         if (category.endsWith(suffix)) {
             return category.slice(0, -suffix.length);
         }
     }
-    return undefined;
+    return category;
 }
 
 function resolveCategoryIndex(categories: string[] | undefined, dataLabel: string): number {
-    if (!categories?.length) {
-        return -1;
-    }
-
-    const exactIndex = categories.indexOf(dataLabel);
-    if (exactIndex !== -1) {
-        return exactIndex;
-    }
-
-    for (let index = 0; index < categories.length; index++) {
-        const category = categories.at(index);
-        if (!category) {
-            continue;
-        }
-
-        const truncatedPrefix = stripTruncationSuffix(category);
-        if (truncatedPrefix && dataLabel.startsWith(truncatedPrefix)) {
-            return index;
-        }
-    }
-
-    return -1;
+    return (
+        categories?.findIndex((category) => {
+            if (category === dataLabel) {
+                return true;
+            }
+            const prefix = stripTruncationSuffix(category);
+            return prefix !== category && dataLabel.startsWith(prefix);
+        }) ?? -1
+    );
 }
 
 export default resolveCategoryIndex;
