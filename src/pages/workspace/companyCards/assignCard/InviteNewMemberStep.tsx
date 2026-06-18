@@ -11,6 +11,7 @@ import {getCardAssignmentDateOption, getCardAssignmentStartDate, getDefaultCardN
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspaceInviteMessageComponent from '@pages/workspace/members/WorkspaceInviteMessageComponent';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import {clearInviteDraft} from '@userActions/Policy/Member';
@@ -104,26 +105,33 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
     }, [assignCard?.cardToAssign?.invitingMemberEmail, policy?.employeeList, goToNextStep, assignCard?.cardToAssign?.invitingMemberAccountID, policyID]);
 
     return (
-        <InteractiveStepWrapper
-            wrapperID="InviteNewMemberStep"
-            shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
-            headerTitle={translate('workspace.companyCards.assignCard')}
-            handleBackButtonPress={handleBackButtonPress}
-            enableEdgeToEdgeBottomSafeAreaPadding
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
-            <WorkspaceInviteMessageComponent
-                policy={policy}
-                policyID={policyID}
-                backTo={undefined}
-                currentUserPersonalDetails={currentUserPersonalDetails}
-                shouldShowBackButton={false}
-                isInviteNewMemberStep
-                goToNextStep={goToNextStep}
-                shouldShowTooltip={false}
-                shouldShowMemberNames={false}
-            />
-        </InteractiveStepWrapper>
+            <InteractiveStepWrapper
+                wrapperID="InviteNewMemberStep"
+                shouldEnablePickerAvoiding={false}
+                shouldEnableMaxHeight
+                headerTitle={translate('workspace.companyCards.assignCard')}
+                handleBackButtonPress={handleBackButtonPress}
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
+                <WorkspaceInviteMessageComponent
+                    policy={policy}
+                    policyID={policyID}
+                    backTo={undefined}
+                    currentUserPersonalDetails={currentUserPersonalDetails}
+                    shouldShowBackButton={false}
+                    isInviteNewMemberStep
+                    goToNextStep={goToNextStep}
+                    shouldShowTooltip={false}
+                    shouldShowMemberNames={false}
+                />
+            </InteractiveStepWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

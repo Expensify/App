@@ -15,6 +15,7 @@ import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {generateAccountID} from '@libs/UserUtils';
+import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {setIsComposerFullSize} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -33,6 +34,7 @@ function useComposerSubmit(reportID: string) {
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const delegateAccountID = useDelegateAccountID();
+    const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
 
     const {composerRef, attachmentFileRef, textRef} = useComposerMeta();
     const {clearComposer} = useComposerActions();
@@ -66,6 +68,7 @@ function useComposerSubmit(reportID: string) {
         }
 
         if (attachmentFileRef.current) {
+            kickoffWaitingIndicator();
             addAttachmentWithComment({
                 report: targetReport,
                 notifyReportID: reportID,
@@ -148,6 +151,7 @@ function useComposerSubmit(reportID: string) {
                 },
             });
         }
+        kickoffWaitingIndicator();
         addComment({
             report: targetReport,
             notifyReportID: reportID,

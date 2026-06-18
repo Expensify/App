@@ -140,9 +140,11 @@ function IOURequestStepDistanceRate({
             ? effectiveRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
             : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
         const rateForDisplay = DistanceRequestUtils.getFormattedRateValue(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit, getCurrencySymbol);
+        const dateLabel = DistanceRequestUtils.getRateDateLabel(rate, translate);
+        const alternateText = [rate.name ? rateForDisplay : '', dateLabel].filter(Boolean).join(' • ');
         return {
             text: rate.name ?? rateForDisplay,
-            alternateText: rate.name ? rateForDisplay : '',
+            alternateText,
             keyForList: rate.customUnitRateID ?? rateForDisplay,
             value: rate.customUnitRateID,
             isDisabled: !rate.enabled,

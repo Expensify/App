@@ -18,6 +18,7 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
+    getCategoryTaxRateMessage,
     getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
@@ -3357,6 +3358,43 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getForwardedReportActionMessage', () => {
+        const buildForwardedAction = (
+            originalMessage: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>['originalMessage']> = {},
+        ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                created: '2026-06-05 10:00:00',
+                reportActionID: '1',
+                originalMessage: {
+                    amount: 10000,
+                    currency: CONST.CURRENCY.USD,
+                    expenseReportID: '1',
+                    ...originalMessage,
+                },
+            };
+
+            return action;
+        };
+
+        it('should include the memo for a non-DEW forwarded action', () => {
+            const memo = 'Testing approval memo';
+            const action = buildForwardedAction({message: memo});
+
+            expect(ReportActionsUtils.getForwardedReportActionMessage(action, translateLocal)).toBe(translateLocal('iou.forwarded', memo));
+        });
+
+        it('should suppress the memo for a DEW forwarded action with a routed action', () => {
+            const action = buildForwardedAction({
+                message: 'Testing approval memo',
+                to: 'approver@example.com',
+                workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            });
+
+            expect(ReportActionsUtils.getForwardedReportActionMessage(action, translateLocal)).toBe(translateLocal('iou.forwarded'));
+        });
+    });
+
     describe('getPolicyChangeLogMaxExpenseAmountMessage', () => {
         it('should return set message when setting from disabled to a value', () => {
             const action = {
@@ -3994,6 +4032,75 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
             expect(actual).toBe('renamed the Distance rate "Default Rate" to "Custom Rate"');
         });
+
+        it('should return the correct message when a start date is set on a rate without dates', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'dateRange',
+                    newStartDate: '2026-04-01',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('updated the distance rate "Default Rate" to apply from April 1, 2026 (previously for all dates)');
+        });
+
+        it('should return the correct message when both start and end dates are changed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'dateRange',
+                    newStartDate: '2026-04-01',
+                    newEndDate: '2026-05-31',
+                    oldStartDate: '2026-03-01',
+                    oldEndDate: '2026-04-30',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('updated the distance rate "Default Rate" to apply from April 1, 2026 - May 31, 2026 (previously March 1, 2026 - April 30, 2026)');
+        });
+
+        it('should return the correct message when an end date is changed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'dateRange',
+                    newEndDate: '2026-05-31',
+                    oldEndDate: '2026-04-30',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('updated the distance rate "Default Rate" to apply until May 31, 2026 (previously until April 30, 2026)');
+        });
+
+        it('should return the correct message when all dates are cleared', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'dateRange',
+                    oldStartDate: '2026-03-01',
+                    oldEndDate: '2026-04-30',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('updated the distance rate "Default Rate" to apply for all dates (previously March 1, 2026 - April 30, 2026)');
+        });
     });
 
     describe('didMessageMentionCurrentUser', () => {
@@ -4252,6 +4359,57 @@ describe('ReportActionsUtils', () => {
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toBe(9999);
         });
+
+        it('returns CONCIERGE for automatic DEW_APPROVE_FAILED when shouldUseRealActor is false', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                actorAccountID: 2701545,
+                originalMessage: {automaticAction: true, message: 'failed'},
+            };
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {...createRandomReport(1, undefined)};
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, false);
+            expect(actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
+        it('returns real actorAccountID for automatic DEW_APPROVE_FAILED when shouldUseRealActor is true', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                actorAccountID: 2701545,
+                originalMessage: {automaticAction: true, message: 'failed'},
+            };
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {...createRandomReport(1, undefined)};
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, true);
+            expect(actorAccountID).toBe(2701545);
+        });
+
+        it('returns real actorAccountID for harvest-created CREATED action when shouldUseRealActor is true', async () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                actorAccountID: 9999,
+            };
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {...createRandomReport(3, undefined), reportID: 'harvest-report-shouldUseRealActor'};
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {
+                origin: 'harvest',
+                originalID: 'orig-456',
+            });
+            await waitForBatchedUpdates();
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, true);
+            expect(actorAccountID).toBe(9999);
+        });
     });
 
     describe('getInvoiceCompanyNameUpdateMessage', () => {
@@ -4500,6 +4658,46 @@ describe('ReportActionsUtils', () => {
 
             const result = getAutoReimbursementMessage(translateLocal, action);
             expect(result).toBe('changed the auto-pay approved reports threshold to "$1,000.00" (previously "$500.00")');
+        });
+    });
+
+    describe('getCategoryTaxRateMessage', () => {
+        it('should render the changed-tax-rate message with both name and percentage on each side', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Office Supplies',
+                    oldTaxName: 'Tax Exempt',
+                    oldTaxPercentage: '0%',
+                    newTaxName: 'Tax Rate 1',
+                    newTaxPercentage: '5%',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+            expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
+        });
+
+        it('should drop the parens on the side with an empty percentage (e.g. previous tax was deleted)', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Office Supplies',
+                    oldTaxName: 'Deleted Tax Rate',
+                    oldTaxPercentage: '',
+                    newTaxName: 'Tax Rate 1',
+                    newTaxPercentage: '5%',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+            expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Deleted Tax Rate")');
         });
     });
 
