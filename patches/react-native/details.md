@@ -306,16 +306,11 @@
 - E/App issue: https://github.com/Expensify/App/issues/78873
 - PR introducing patch: https://github.com/Expensify/App/pull/84556
 
-### [react-native+0.85.3+040+fix-zero-scale-hit-test-ios.patch](react-native+0.85.3+040+fix-zero-scale-hit-test-ios.patch)
+### [react-native+0.85.3+040+fix-zero-scale-hit.patch](react-native+0.85.3+040+fix-zero-scale-hit.patch)
 
-- Reason: Backports RN 0.86 iOS Fabric fix for views with non-invertible transforms (e.g. `scale: 0`) still receiving touches. `RCTViewComponentView` rejects hits in `pointInside:` when the layer's 2D transform determinant is ~0.
-- Upstream PR/issue: https://github.com/facebook/react-native/pull/56586, https://github.com/facebook/react-native/issues/50797
-- E/App issue: 🛑
-- PR introducing patch: 🛑
-
-### [react-native+0.85.3+041+fix-zero-scale-hit-test-android.patch](react-native+0.85.3+041+fix-zero-scale-hit-test-android.patch)
-
-- Reason: Backports RN 0.86 Android fix for the same zero-scale hit-testing bug. `TouchTargetHelper.getChildPoint` skips children whose transform matrix cannot be inverted, preventing stale inverse-matrix cache leaks from other views.
-- Upstream PR/issue: https://github.com/facebook/react-native/pull/56586, https://github.com/facebook/react-native/issues/50797
-- E/App issue: 🛑
-- PR introducing patch: 🛑
+- Reason: Backports the RN 0.86 fix for views with non-invertible transforms (e.g. `scale: 0`) still receiving touches, on both platforms:
+    - iOS: `RCTViewComponentView` rejects hits in `pointInside:` when the layer's 2D transform determinant is ~0.
+    - Android: `TouchTargetHelper.getChildPoint` skips children whose transform matrix cannot be inverted, preventing stale inverse-matrix cache leaks from other views.
+- Upstream PR/issue: https://github.com/facebook/react-native/pull/56586
+- E/App issue: https://github.com/Expensify/App/issues/91629
+- PR introducing patch: https://github.com/Expensify/App/pull/92484
