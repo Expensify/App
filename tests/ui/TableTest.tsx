@@ -737,7 +737,6 @@ describe('Table', () => {
                         filters={filterConfig}
                     >
                         <Table.SearchBar label="Search" />
-                        <Table.FilterButtons />
                         <Table.Header />
                         <Table.Body />
                     </Table>

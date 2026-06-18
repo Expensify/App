@@ -26,7 +26,6 @@
  *   isItemInFilter={filterFn}
  * >
  *   <Table.SearchBar />
- *   <Table.FilterButtons />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>
@@ -38,7 +37,6 @@ import TableComponent from './Table';
 import TableBody from './TableBody';
 import TableContext from './TableContext';
 import TableFilterBar from './TableFilterBar';
-import TableFilterButtons from './TableFilterBar/OldFilterButtons';
 import TableHeader from './TableHeader';
 import TableRow from './TableRow';
 import TableSearchBar from './TableSearchBar';
@@ -50,7 +48,6 @@ import TableSearchBar from './TableSearchBar';
  * - `Table.Context` - The React context (for advanced usage)
  * - `Table.Header` - Sortable column headers
  * - `Table.Body` - Data rows using FlashList
- * - `Table.FilterButtons` - Dropdown filter buttons
  * - `Table.SearchBar` - Search input
  */
 const Table = Object.assign(TableComponent, {
@@ -62,9 +59,6 @@ const Table = Object.assign(TableComponent, {
 
     /** Renders data rows using FlashList. */
     Body: TableBody,
-
-    /** Renders dropdown filter buttons. */
-    FilterButtons: TableFilterButtons,
 
     /** Renders a search input. */
     SearchBar: TableSearchBar,

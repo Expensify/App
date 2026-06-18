@@ -41,7 +41,6 @@ The Table uses a **compound component pattern** where the parent `<Table>` manag
 | `<Table.Header>` | Renders sortable column headers |
 | `<Table.Body>` | Renders data rows using FlashList |
 | `<Table.SearchBar>` | Search input that filters data |
-| `<Table.FilterButtons>` | Dropdown filter buttons |
 
 ### Flexible Composition
 
@@ -70,7 +69,6 @@ You only include the components you need:
   filters={filterConfig}
 >
   <Table.SearchBar />
-  <Table.FilterButtons />
   <Table.Header />
   <Table.Body />
 </Table>
@@ -129,7 +127,7 @@ import type { FilterConfig, IsItemInFilterCallback } from '@components/Table';
 
 const filterConfig: FilterConfig = {
   status: {
-    filterType: 'single-select', // or 'multi-select'
+    filterType: 'singleSelect',
     options: [
       { label: 'All', value: 'all' },
       { label: 'Active', value: 'active' },
@@ -151,7 +149,6 @@ const isItemInFilter: IsItemInFilterCallback<Item> = (item, filterValues) => {
   filters={filterConfig}
   isItemInFilter={isItemInFilter}
 >
-  <Table.FilterButtons />
   <Table.Body />
 </Table>
 ```

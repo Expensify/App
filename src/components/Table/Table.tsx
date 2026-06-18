@@ -32,7 +32,6 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
  * - `<Table.Header>` - Renders sortable column headers
  * - `<Table.Body>` - Renders the data rows using FlashList
  * - `<Table.SearchBar>` - Renders a search input that filters data
- * - `<Table.FilterButtons>` - Renders dropdown filter buttons
  *
  * ## Middleware Architecture
  *
@@ -117,7 +116,6 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
  *     return filterValues.includes(item.status);
  *   }}
  * >
- *   <Table.FilterButtons />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>
