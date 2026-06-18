@@ -238,6 +238,7 @@ const translations = {
         percentage: 'Percentage',
         progressBarLabel: 'Onboarding progress',
         converted: 'Converted',
+        off: 'Off',
         error: {
             invalidAmount: 'Invalid amount',
             acceptTerms: 'You must accept the Terms of Service to continue',
@@ -6383,7 +6384,7 @@ const translations = {
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
             configureHRSync: (providerName: string) => `Configure ${providerName} sync.`,
             syncWithHR: (providerName: string) => `Sync with ${providerName}`,
-            allMembers: 'All members',
+            members: 'Members',
             admins: 'Workspace Admins',
             cardAdmins: 'Card Admins',
             approvers: 'Approvers',
@@ -7151,7 +7152,7 @@ const translations = {
             },
             controlPolicyRoles: {
                 title: 'Control policy roles',
-                description: 'Use specialized roles like Auditor and Card Admin to grant members access only to what they need.',
+                description: 'Grant members specific access by assigning roles like Auditor or Card Admin.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Specialized workspace roles are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
@@ -7458,10 +7459,8 @@ const translations = {
                 deleteRule: 'Delete rule',
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
                 allow: 'Allow',
-                spendRuleSectionTitle: 'Spend rule',
-                restrictionType: 'Restriction type',
-                restrictionTypeHelpAllow: "Charges are approved if they match any merchant or category, and don't exceed a max amount.",
-                restrictionTypeHelpBlock: 'Charges are declined if they match any merchant or category, or exceed a max amount.',
+                spendRuleSectionTitle: 'Spend rules',
+                restrictMerchants: 'Restrict merchants',
                 addMerchant: 'Add merchant',
                 merchantContains: 'Merchant contains',
                 merchantExactlyMatches: 'Merchant exactly matches',
@@ -7472,12 +7471,24 @@ const translations = {
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Matches exactly',
-                spendCategory: 'Spend category',
+                merchantTypes: 'Merchant types',
                 maxAmount: 'Max amount',
+                allowedMerchants: 'Allowed merchants',
+                allowedMerchantTypes: 'Allowed merchant types',
+                blockedMerchants: 'Blocked merchants',
+                blockedMerchantTypes: 'Blocked merchant types',
                 maxAmountHelp: 'Any charge over this amount will be declined, regardless of merchant and spend category restrictions.',
-                currencyMismatchTitle: 'Currency mismatch',
-                currencyMismatchPrompt: 'To set a max amount, select cards that settle in the same currency.',
+                maxAmountCurrencyMismatchTitle: 'Currency mismatch',
+                maxAmountCurrencyMismatchPrompt: 'To set a max amount, select cards that settle in the same currency.',
+                currenciesCurrencyMismatchTitle: 'Currency mismatch',
+                currenciesCurrencyMismatchPrompt: 'To set preferred currencies, select cards that settle in the same currency.',
                 reviewSelectedCards: 'Review selected cards',
+                allCurrencies: 'All currencies',
+                permittedCurrenciesSubtitle: 'Choose to allow all or specific currencies',
+                settlementCurrencyPermittedSubtitle: 'The card settlement currency is always permitted',
+                restrictMerchantsOffSubtitle: "Charges are approved for permitted currencies that don't exceed a max amount",
+                restrictMerchantsAllowSubtitle: "Charges are approved for permitted currencies that don't exceed a max amount, and the merchant or merchant type matches.",
+                restrictMerchantsBlockSubtitle: "Charges are approved for permitted currencies that don't exceed a max amount, or the merchant or merchant type matches.",
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} more` : summary),
                 summaryMerchants: ({
                     merchants,
@@ -7503,11 +7514,16 @@ const translations = {
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blocked' : 'Allowed'} ${shownCount > 1 ? 'categories' : 'category'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} more` : ''}`,
+
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `Allowed ${shownCount > 1 ? 'currencies' : 'currency'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} more` : ''}`,
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Apply at least one spend rule to one card',
                 confirmErrorCardRequired: 'Card is a required field',
                 confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
                 categories: 'Categories',
                 merchants: 'Merchants',
+                currencies: 'Currencies',
+                permittedCurrencies: 'Permitted currencies',
                 noAvailableCards: 'All cards already have a rule',
                 noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
                 noCardsIssuedTitle: 'No Expensify Cards issued',
@@ -9633,22 +9649,6 @@ const translations = {
             chat: 'Chat on any expense to resolve questions quickly',
         },
     },
-    aiFeaturesPromoModal: {
-        subtitle: 'New to Concierge AI',
-        confirmText: "Let's go!",
-        spendAnalysis: {
-            title: 'Interactive spend analysis',
-            description: `<muted-text>Concierge surfaces monthly spend insights and lets you drill into the details behind every number. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Learn more</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Meet your new expense assistant',
-            description: `<muted-text>Chat with Concierge to create and update expenses, right in the app or by email or text. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Learn more</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Build your own agents',
-            description: `<muted-text>Create custom agents to review, approve, and route expenses based on rules you set. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Learn more</a>.</muted-text>`,
-        },
-    },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
@@ -9855,7 +9855,7 @@ const translations = {
                 title: 'No members in this group',
                 subtitle: 'Add a member or try changing the filter above.',
             },
-            allMembers: 'All members',
+            allMembers: 'Members',
             email: 'Email address',
             closeAccountPrompt: 'Are you sure? This action is permanent.',
             forceCloseAccount: () => ({
