@@ -10,7 +10,7 @@ internalScope: Audience is members who want to grant a Copilot delegated account
 
 Copilot access lets you grant another member access to your Expensify account without sharing your login credentials. You can control their level of access and remove it at any time. This is helpful when you work with an executive assistant, accountant, bookkeeper, or colleague who needs to manage expenses and reports on your behalf.
 
-If you've been granted Copilot access and need help switching accounts or working on someone else's behalf, [learn how to act as a Copilot](/articles/new-expensify/settings/Act-as-a-Copolot) in Expensify.
+If you've been granted Copilot access and need help switching accounts or working on someone else's behalf, [learn how to act as a Copilot](/articles/new-expensify/settings/Act-as-a-Copolot).
 
 If you just need someone to handle approvals while you're away, learn how to [learn how to assign a vacation delegate](/articles/new-expensify/settings/Delegate-when-out-of-office).
 
@@ -80,6 +80,10 @@ After you update a Copilot's access level:
 After you remove a Copilot:
 
  - They can no longer access your account.
+
+**Important:** If a Copilot performs billable activity in your account, both you and the Copilot count as active members for billing purposes.
+
+To learn what actions are considered billable activity and how active members are defined, see [Understand active members and billable activity](/path-to-billing-article).
 
 # FAQ
 
