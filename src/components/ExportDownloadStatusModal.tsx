@@ -13,7 +13,7 @@ import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import addTrailingForwardSlash from '@libs/UrlUtils';
-import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
+import {sendExportFileFromConcierge} from '@userActions/Export';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -92,14 +92,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         }
     };
 
-    const handleClose = () => {
-        clearExportDownload(exportID, displayedExport ?? undefined);
-        onClose();
-    };
-
     const handleDownloadFile = () => {
         downloadFile();
-        handleClose();
+        // Clearing the export download is owned by the parent's onClose handler (it runs on every dismissal and
+        // skips the clear for the Concierge path). Clearing here too would queue a duplicate ClearExportDownload write.
+        onClose();
     };
 
     const isNonDismissible = isPreparing;
@@ -167,7 +164,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     {!!failedBody && <Text style={styles.mb5}>{failedBody}</Text>}
                     <Button
                         text={translate('exportDownload.close')}
-                        onPress={handleClose}
+                        onPress={onClose}
                         style={styles.w100}
                     />
                 </>
