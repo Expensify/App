@@ -252,8 +252,11 @@ function getSpendRuleSummaryParts(
     const allowLabel = translate('workspace.rules.spendRules.allow');
 
     const maxAmount = formValues.maxAmount.trim();
-    const allowedCurrencies = formValues.currencies ?? [];
     const merchantNames = getTruncatedSpendRuleSummary(formValues.merchantNames, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
+    const allowedCurrencies = getTruncatedSpendRuleSummary(formValues.currencies, (currencies, hiddenCount, shownCount) =>
+        translate('workspace.rules.spendRules.summaryCurrencies', {currencies, hiddenCount, shownCount}),
+    );
+
     const categories = getTruncatedSpendRuleSummary(
         formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)),
         (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
@@ -282,7 +285,7 @@ function getSpendRuleSummaryParts(
         summaryParts.push({
             variant: CONST.SPEND_RULES.BADGE_VARIANTS.SUCCESS,
             badgeLabel: allowLabel,
-            text: `${translate('workspace.rules.spendRules.currencies')}: ${allowedCurrencies.join(', ')}`,
+            text: `${translate('workspace.rules.spendRules.currencies')}: ${allowedCurrencies}`,
         });
     }
 

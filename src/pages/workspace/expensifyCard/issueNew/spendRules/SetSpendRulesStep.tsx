@@ -53,8 +53,12 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
 
     const [spendRuleErrorMessage, setSpendRuleErrorMessage] = useState('');
-    const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(true);
     const [expirationToggled, setExpirationToggled] = useState(!!issueNewCard?.data?.validFrom);
+    const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => {
+        const hasMerchants = !!issueNewCard?.data?.spendRuleValue?.merchantNames?.length;
+        const hasCategories = !!issueNewCard?.data?.spendRuleValue?.categories?.length;
+        return !hasMerchants && !hasCategories;
+    });
 
     const isEditing = issueNewCard?.isEditing;
     const currencyCode = issueNewCard?.data?.currency ?? CONST.CURRENCY.USD;
