@@ -470,6 +470,10 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             case RULES_TAB.GENERAL:
                 return (
                     <>
+                        <IndividualExpenseRulesSectionRevamp
+                            policyID={policyID}
+                            canWriteRules={canWriteRules}
+                        />
                         {isCustomAgentBetaEnabled && !isAgentsRulesBannerDismissed && (
                             <AgentPromotionalBanner
                                 title={translate('workspace.rules.agentsPromoBanner.title')}
@@ -482,10 +486,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                 style={[styles.mh5, styles.mb5]}
                             />
                         )}
-                        <IndividualExpenseRulesSectionRevamp
-                            policyID={policyID}
-                            canWriteRules={canWriteRules}
-                        />
                     </>
                 );
             default:
