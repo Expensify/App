@@ -24,6 +24,7 @@ function UserDropdown({label, value, PopoverComponent, sentryLabel, onClosePress
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
             onClosePress={onClosePress}
+            shouldTakeFullHeightOnKeyboardOpenInLandscapeMode
         />
     );
 }
@@ -37,6 +38,7 @@ function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel, onClose
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
             onClosePress={onClosePress}
+            shouldTakeFullHeightOnKeyboardOpenInLandscapeMode
         />
     );
 }
@@ -50,6 +52,7 @@ function FeedDropdown({label, value, PopoverComponent, sentryLabel, onClosePress
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
             onClosePress={onClosePress}
+            shouldTakeFullHeightOnKeyboardOpenInLandscapeMode
         />
     );
 }
@@ -63,6 +66,7 @@ function CardDropdown({label, value, PopoverComponent, sentryLabel, onClosePress
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
             onClosePress={onClosePress}
+            shouldTakeFullHeightOnKeyboardOpenInLandscapeMode
         />
     );
 }
@@ -76,6 +80,7 @@ function TaxRateDropdown({label, value, PopoverComponent, sentryLabel, onClosePr
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
             onClosePress={onClosePress}
+            shouldTakeFullHeightOnKeyboardOpenInLandscapeMode
         />
     );
 }
@@ -89,6 +94,7 @@ function ReportDropdown({label, value, PopoverComponent, sentryLabel, onClosePre
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
             onClosePress={onClosePress}
+            shouldTakeFullHeightOnKeyboardOpenInLandscapeMode
         />
     );
 }
@@ -119,6 +125,7 @@ function SearchFilterBar({item}: {item: SearchFilter & FilterItem}) {
             PopoverComponent={item.PopoverComponent}
             sentryLabel={item.sentryLabel}
             onClosePress={item.onClosePress}
+            shouldTakeFullHeightOnKeyboardOpenInLandscapeMode
         />
     );
 }

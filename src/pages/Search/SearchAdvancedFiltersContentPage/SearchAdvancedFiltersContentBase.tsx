@@ -2,10 +2,12 @@ import {useRoute} from '@react-navigation/core';
 import React, {useContext} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,6 +16,7 @@ import type {SearchAdvancedFiltersParamList} from '@libs/Navigation/types';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import AmountFilterContentPageWrapper from './AmountFilterContentPageWrapper';
@@ -26,10 +29,16 @@ function isFilterKeyValid(filterKey: string): filterKey is SearchFilter['key'] {
     return filterKey in FILTER_VIEW_MAP;
 }
 
+// HeaderWithBackButton in ReportField/index.tsx uses styles.h10
+const REPORT_FIELD_HEADER_HEIGHT = 40;
+
+const CONFIRM_BUTTON_HEIGHT = 56;
+
 function SearchAdvancedFiltersContentBase() {
     const route = useRoute<PlatformStackRouteProp<SearchAdvancedFiltersParamList, typeof SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP>>();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const filterKey = route.params.filterKey;
@@ -42,6 +51,44 @@ function SearchAdvancedFiltersContentBase() {
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
+    const isFilterWithSelectionList =
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID;
+
+    const shouldDisableKeyboardAvoidingView = isInLandscapeMode && isFilterWithSelectionList;
+
+    const getCollapsibleHeaderOffset = () => {
+        if (!validFilterKey) {
+            return undefined;
+        }
+
+        if (validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
+            return REPORT_FIELD_HEADER_HEIGHT;
+        }
+
+        // We want to make space for the confirm button for filters with text inputs without list
+        if (
+            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT ||
+            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
+            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
+            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
+            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
+            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
+            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
+            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
+        ) {
+            return CONFIRM_BUTTON_HEIGHT;
+        }
+
+        return undefined;
+    };
+
     return (
         <ScreenWrapper
             testID="SearchAdvancedFiltersPage"
@@ -49,14 +96,23 @@ function SearchAdvancedFiltersContentBase() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
+            // In landscape mode we don't want to push confirm button above the keyboard for filters with selection list
+            shouldEnableKeyboardAvoidingView={!shouldDisableKeyboardAvoidingView}
         >
             {({didScreenTransitionEnd}) =>
                 validFilterKey ? (
                     <>
-                        <HeaderWithBackButton
-                            title={translate(FILTER_VIEW_MAP[validFilterKey].labelKey)}
-                            onBackButtonPress={goBack}
-                        />
+                        <CollapsibleHeaderOnKeyboard
+                            collapsibleHeaderOffset={getCollapsibleHeaderOffset()}
+                            // In landscape mode we want to show as much of the selection list as possible for filters that use it
+                            alwaysCollapseHeaderOnKeyboard={isFilterWithSelectionList}
+                        >
+                            <HeaderWithBackButton
+                                title={translate(FILTER_VIEW_MAP[validFilterKey].labelKey)}
+                                onBackButtonPress={goBack}
+                            />
+                        </CollapsibleHeaderOnKeyboard>
+
                         <View style={[styles.filterContentContainer]}>
                             <SearchAdvancedFiltersContent
                                 values={currentDraftFilters}

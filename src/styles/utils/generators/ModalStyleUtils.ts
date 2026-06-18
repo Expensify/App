@@ -49,6 +49,8 @@ type GetModalStylesStyleUtil = {
             modalOverlapsWithTopSafeArea?: boolean;
         },
         shouldDisplayBelowModals?: boolean,
+        shouldTakeFullHeightOnKeyboardOpen?: boolean,
+        isKeyboardOpen?: boolean,
     ) => GetModalStyles;
 };
 
@@ -62,6 +64,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         shouldUseModalPaddingStyle = true,
         safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
         shouldDisplayBelowModals = false,
+        shouldTakeFullHeightOnKeyboardOpen = false,
+        isKeyboardOpen = false,
     ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
@@ -230,13 +234,13 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     width: '100%',
                     borderTopLeftRadius: variables.componentBorderRadiusLarge,
                     borderTopRightRadius: variables.componentBorderRadiusLarge,
-                    justifyContent: 'center',
                     overflow: 'hidden',
                     boxShadow: theme.shadow,
                     // Workaround for Safari not supporting interactive-widget=resizes-content, sets max height of a container modal.
                     // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
                     // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
                     ...(isMobile() ? {maxHeight: `${windowDimensions.windowHeight}px`, height: 'fit-content'} : {}),
+                    ...(shouldTakeFullHeightOnKeyboardOpen && isKeyboardOpen ? {height: '90%', justifyContent: 'flex-start'} : {justifyContent: 'center'}),
                 };
 
                 if (shouldUseModalPaddingStyle) {

@@ -33,6 +33,9 @@ type DropdownButtonProps = WithSentryLabel &
         /** Caret wrapper style */
         caretWrapperStyle?: StyleProp<ViewStyle>;
         onClosePress?: () => void;
+
+        /** Whether the dropdown should take the full height of the screen when keyboard is open in landscape mode */
+        shouldTakeFullHeightOnKeyboardOpenInLandscapeMode?: boolean;
     };
 
 function DropdownButton({label, value, medium = false, labelStyle, innerStyles, caretWrapperStyle, sentryLabel, onClosePress, ...props}: DropdownButtonProps) {

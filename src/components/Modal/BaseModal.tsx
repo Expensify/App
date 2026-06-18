@@ -75,6 +75,7 @@ function BaseModal({
     shouldDisplayBelowModals = false,
     shouldKeepRightDockedBackdropInNarrowPane = false,
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
+    shouldTakeFullHeightOnKeyboardOpenInLandscapeMode = false,
 }: BaseModalProps) {
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
@@ -249,6 +250,8 @@ function BaseModal({
                     shouldDisableBottomSafeAreaPadding: !!shouldDisableBottomSafeAreaPadding,
                 },
                 shouldDisplayBelowModals,
+                shouldTakeFullHeightOnKeyboardOpenInLandscapeMode && isInLandscapeMode,
+                keyboardStateContextValue.isKeyboardActive,
             ),
         [
             StyleUtils,
@@ -264,6 +267,9 @@ function BaseModal({
             modalOverlapsWithTopSafeArea,
             shouldDisableBottomSafeAreaPadding,
             shouldDisplayBelowModals,
+            shouldTakeFullHeightOnKeyboardOpenInLandscapeMode,
+            isInLandscapeMode,
+            keyboardStateContextValue.isKeyboardActive,
         ],
     );
 
@@ -382,7 +388,7 @@ function BaseModal({
                         statusBarTranslucent={statusBarTranslucent}
                         navigationBarTranslucent={navigationBarTranslucent}
                         onLayout={onLayout}
-                        avoidKeyboard={avoidKeyboard}
+                        avoidKeyboard={isInLandscapeMode ? !shouldTakeFullHeightOnKeyboardOpenInLandscapeMode : avoidKeyboard}
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
                         shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}

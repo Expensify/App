@@ -43,6 +43,9 @@ type FilterPopupButtonProps = {
 
     /** The component to render as the button */
     renderButton: (props: ButtonComponentProps) => ReactNode;
+
+    /** Whether the dropdown should take the full height of the screen when keyboard is open in landscape mode */
+    shouldTakeFullHeightOnKeyboardOpenInLandscapeMode?: boolean;
 };
 
 const ANCHOR_ORIGIN = {
@@ -50,7 +53,15 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popoverAnchorAlignment: popoverAnchorAlignmentProp, PopoverComponent, renderButton}: FilterPopupButtonProps) {
+function FilterPopupButton({
+    viewportOffsetTop,
+    popoverWidth,
+    wrapperStyle,
+    popoverAnchorAlignment: popoverAnchorAlignmentProp,
+    PopoverComponent,
+    renderButton,
+    shouldTakeFullHeightOnKeyboardOpenInLandscapeMode = false,
+}: FilterPopupButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHP and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -127,6 +138,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
                     shouldSkipRemeasurement
                     shouldDisplayBelowModals
                     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+                    shouldTakeFullHeightOnKeyboardOpenInLandscapeMode={shouldTakeFullHeightOnKeyboardOpenInLandscapeMode}
                 >
                     {popoverContent}
                 </PopoverWithMeasuredContent>

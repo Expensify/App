@@ -30,7 +30,7 @@ function isKeyboardOpeningAtGivenProgress(keyboardProgress: number, prevKeyboard
  * Intended for landscape mode on phones where the keyboard + header can leave no room for inputs.
  * Uses height animation (not translateY) so the freed space is reclaimed by the layout below.
  */
-function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: CollapsibleHeaderOnKeyboardProps) {
+function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0, alwaysCollapseHeaderOnKeyboard = false}: CollapsibleHeaderOnKeyboardProps) {
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     // JS ref guards against re-measurement when the Reanimated.View fires onLayout with height=0
@@ -166,7 +166,7 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
             // Target header height: give the input exactly the space it needs above the keyboard,
             // the header gets what remains. Clamped to [0, naturalHeight].
             const keyboardTop = windowHeightValue + keyboardHeight;
-            const targetHeight = Math.max(0, keyboardTop - VERTICAL_SPACE_FOR_FOCUSED_INPUT - collapsibleHeaderOffsetSV.get());
+            const targetHeight = alwaysCollapseHeaderOnKeyboard ? 0 : Math.max(0, keyboardTop - VERTICAL_SPACE_FOR_FOCUSED_INPUT - collapsibleHeaderOffsetSV.get());
             const naturalHeightValue = naturalHeight.get();
 
             if (targetHeight >= naturalHeightValue) {
