@@ -63,7 +63,8 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     const report = useReportOrReportDraft(reportID);
 
     const isOffline = useNetwork().isOffline;
-    const [isVideoOffline, setIsVideoOffline] = useState(false);
+    // A player mounted while already offline should not auto-play content retained in the browser cache.
+    const [isVideoOffline, setIsVideoOffline] = useState(() => isOffline);
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const [duration, setDuration] = useState(videoDuration);
@@ -94,7 +95,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     // `useEvent` — direct `.playing` read wouldn't re-render when play state changes.
     const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {isPlaying: videoPlayerRef.current.playing, oldIsPlaying: false} as PlayingChangeEventPayload);
 
-    const {currentTime, bufferedPosition} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
+    const {currentTime} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
     const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: shouldUseSharedVideoElement ? playerStatus.current : 'loading'} as StatusChangeEventPayload);
 
     const isLoading = useMemo(() => {
@@ -161,8 +162,9 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         return isLoading && (!isPlaying || currentTime <= 0) && !isVideoOffline && !hasError;
     }, [currentTime, hasError, isLoading, isVideoOffline, isPlaying]);
     const shouldShowOfflineIndicator = useMemo(() => {
-        return isVideoOffline && currentTime + bufferedPosition <= 0;
-    }, [bufferedPosition, currentTime, isVideoOffline]);
+        return isVideoOffline && !isPlaying;
+    }, [isPlaying, isVideoOffline]);
+
     const {updateVolume} = useVolumeActions();
     const {lastNonZeroVolume} = useVolumeState();
     useHandleNativeVideoControls({
@@ -172,6 +174,10 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     });
 
     const togglePlayCurrentVideo = useCallback(() => {
+        if (isOffline) {
+            return;
+        }
+
         if (!isCurrentlyURLSet) {
             updateCurrentURLAndReportID(url, report, reportID);
             return;
@@ -195,7 +201,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
 
         allowSharedAutoPlayRef.current = true;
         playVideo();
-    }, [isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
+    }, [isOffline, isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
         if (isEnded || isSeeking) {
@@ -294,7 +300,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         setHasErrorIconVisible(false);
         if (isFirstLoad) {
             setIsFirstLoad(false);
-            if (videoPlayerRef.current === currentVideoPlayerRef.current && !isUploading) {
+            if (videoPlayerRef.current === currentVideoPlayerRef.current && !isUploading && !isOffline) {
                 playVideo();
             }
         }
