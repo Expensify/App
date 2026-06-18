@@ -4950,6 +4950,8 @@ ${amount} voor ${merchant} - ${date}`,
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: 'Bedrijf',
             autoSyncDescription: 'Expensify wordt elke dag automatisch met Certinia gesynchroniseerd.',
             syncReimbursedReportsDescription:
                 'Als deze optie is ingeschakeld, wordt elke keer dat een te betalen factuur in FFA wordt betaald, het bijbehorende Expensify-rapport automatisch als terugbetaald gemarkeerd.',
@@ -4962,6 +4964,13 @@ ${amount} voor ${merchant} - ${date}`,
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'Bezig',
                     [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Goedgekeurd',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Ingediend',
+                },
+            },
+            reportExportStatus: {
+                label: 'Status van declaratie',
+                values: {
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: 'Goedgekeurd',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: 'Ingediend',
                 },
             },
             exportDate: {
@@ -4977,8 +4986,13 @@ ${amount} voor ${merchant} - ${date}`,
                 helperText: 'Declarabele uitgaven worden geëxporteerd als te betalen facturen op naam van de werknemer.',
             },
             exportNonReimbursable: {label: 'Niet-declarabele uitgaven exporteren als'},
+            expenseReports: 'Declaraties',
+            exportReimbursableExpenseReports: {helperText: 'Declarabele uitgaven worden geëxporteerd als declaraties op naam van de werknemer.'},
+            exportNonReimbursableExpenseReports: {helperText: 'Niet-declarabele uitgaven worden geëxporteerd als declaraties op naam van de werknemer.'},
             noVendorsFound: 'Geen leveranciers gevonden',
             noVendorsFoundDescription: 'Synchroniseer de verbinding opnieuw nadat leveranciers zijn toegevoegd in Certinia.',
+            noCompaniesFound: 'Geen bedrijven gevonden',
+            noCompaniesFoundDescription: 'Synchroniseer de verbinding opnieuw nadat bedrijven zijn toegevoegd in Certinia.',
             prerequisites: {
                 title: 'Voordat je verbinding maakt',
                 installBundle: 'Voor FFA-verbindingen',
@@ -6195,6 +6209,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Selecteer functies om te kopiëren',
                 description: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
                 accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
+                travelAddressMismatch: 'Je kunt reizen alleen kopiëren als elke geselecteerde werkruimte een bedrijfsadres heeft.',
             },
             confirmSettings: {
                 title: 'Laten we controleren of alles er goed uitziet.',
@@ -7046,7 +7061,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             },
             controlPolicyRoles: {
                 title: 'Beleidsrollen controleren',
-                description: 'Gebruik gespecialiseerde rollen zoals Auditor en Kaartbeheerder om leden alleen toegang te geven tot wat ze nodig hebben.',
+                description: 'Geef leden specifieke toegang door rollen zoals Auditor of Kaartbeheerder toe te wijzen.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Gespecialiseerde werkruimterollen zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
@@ -9809,5 +9824,21 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         negativeButton: 'Niet echt',
     },
     monthPickerPage: {month: 'Maand', selectMonth: 'Selecteer een maand'},
+    aiFeaturesPromoModal: {
+        subtitle: 'Nieuw bij Concierge AI',
+        confirmText: 'Laten we gaan!',
+        spendAnalysis: {
+            title: 'Interactieve uitgavenanalyse',
+            description: `<muted-text>Concierge toont maandelijkse uitgaveninzichten en laat je inzoomen op de details achter elk getal. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Meer informatie</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Maak kennis met je nieuwe declaratie-assistent',
+            description: `<muted-text>Chat met Concierge om uitgaven aan te maken en bij te werken, rechtstreeks in de app of via e-mail of sms. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Meer informatie</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Bouw je eigen agents',
+            description: `<muted-text>Maak aangepaste agents om uitgaven te beoordelen, goed te keuren en door te sturen op basis van regels die jij instelt. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Meer informatie</a>.</muted-text>`,
+        },
+    },
 };
 export default translations;

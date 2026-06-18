@@ -5067,6 +5067,8 @@ const translations = {
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: 'Company',
             autoSyncDescription: 'Expensify will automatically sync with Certinia every day.',
             syncReimbursedReportsDescription: 'With this option enabled, anytime a Payable Invoice is paid in FFA, the related Expensify report will be automatically marked as reimbursed.',
             exportDescription: 'Configure how Expensify data exports to Certinia.',
@@ -5078,6 +5080,13 @@ const translations = {
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In Progress',
                     [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Approved',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Submitted',
+                },
+            },
+            reportExportStatus: {
+                label: 'Expense report status',
+                values: {
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: 'Approved',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: 'Submitted',
                 },
             },
             exportDate: {
@@ -5095,8 +5104,17 @@ const translations = {
             exportNonReimbursable: {
                 label: 'Export non-reimbursable expenses as',
             },
+            expenseReports: 'Expense Reports',
+            exportReimbursableExpenseReports: {
+                helperText: 'Expenses marked as reimbursable will be exported as Expense Reports made out to the employee.',
+            },
+            exportNonReimbursableExpenseReports: {
+                helperText: 'Expenses marked as non-reimbursable will be exported as Expense Reports made out to the employee.',
+            },
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please sync the connection again after vendors are added in Certinia.',
+            noCompaniesFound: 'No companies found',
+            noCompaniesFoundDescription: 'Please sync the connection again after companies are added in Certinia.',
             prerequisites: {
                 title: 'Before you connect',
                 installBundle: 'For FFA Connections',
@@ -6281,6 +6299,7 @@ const translations = {
                 title: 'Select settings',
                 description: 'Select the settings to overwrite on your existing workspaces.',
                 accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
+                travelAddressMismatch: 'You can only copy travel if every selected workspace has a company address.',
             },
             confirmSettings: {
                 title: 'Let’s make sure everything looks right.',
@@ -7132,7 +7151,7 @@ const translations = {
             },
             controlPolicyRoles: {
                 title: 'Control policy roles',
-                description: 'Use specialized roles like Auditor and Card Admin to grant members access only to what they need.',
+                description: 'Grant members specific access by assigning roles like Auditor or Card Admin.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Specialized workspace roles are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
@@ -9612,6 +9631,22 @@ const translations = {
             search: 'More powerful search on mobile, web, and desktop',
             concierge: 'Built-in Concierge AI to help automate your expenses',
             chat: 'Chat on any expense to resolve questions quickly',
+        },
+    },
+    aiFeaturesPromoModal: {
+        subtitle: 'New to Concierge AI',
+        confirmText: "Let's go!",
+        spendAnalysis: {
+            title: 'Interactive spend analysis',
+            description: `<muted-text>Concierge surfaces monthly spend insights and lets you drill into the details behind every number. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Learn more</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Meet your new expense assistant',
+            description: `<muted-text>Chat with Concierge to create and update expenses, right in the app or by email or text. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Learn more</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Build your own agents',
+            description: `<muted-text>Create custom agents to review, approve, and route expenses based on rules you set. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Learn more</a>.</muted-text>`,
         },
     },
     productTrainingTooltip: {

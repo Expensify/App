@@ -4960,6 +4960,8 @@ ${amount} per ${merchant} - ${date}`,
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: 'Azienda',
             autoSyncDescription: 'Expensify si sincronizzerà automaticamente con Certinia ogni giorno.',
             syncReimbursedReportsDescription:
                 'Con questa opzione abilitata, ogni volta che una fattura da pagare viene saldata in FFA, il relativo report Expensify sarà automaticamente contrassegnato come rimborsato.',
@@ -4972,6 +4974,13 @@ ${amount} per ${merchant} - ${date}`,
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In corso',
                     [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Approvato',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Inviato',
+                },
+            },
+            reportExportStatus: {
+                label: 'Stato della nota spese',
+                values: {
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: 'Approvato',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: 'Inviato',
                 },
             },
             exportDate: {
@@ -4987,8 +4996,13 @@ ${amount} per ${merchant} - ${date}`,
                 helperText: 'Le spese contrassegnate come rimborsabili verranno esportate come fatture passive intestate al dipendente.',
             },
             exportNonReimbursable: {label: 'Esporta le spese non rimborsabili come'},
+            expenseReports: 'Note spese',
+            exportReimbursableExpenseReports: {helperText: 'Le spese contrassegnate come rimborsabili verranno esportate come note spese intestate al dipendente.'},
+            exportNonReimbursableExpenseReports: {helperText: 'Le spese contrassegnate come non rimborsabili verranno esportate come note spese intestate al dipendente.'},
             noVendorsFound: 'Nessun fornitore trovato',
             noVendorsFoundDescription: 'Sincronizza di nuovo la connessione dopo che i fornitori sono stati aggiunti in Certinia.',
+            noCompaniesFound: 'Nessuna azienda trovata',
+            noCompaniesFoundDescription: 'Sincronizza di nuovo la connessione dopo che le aziende sono state aggiunte in Certinia.',
             prerequisites: {
                 title: 'Prima di connetterti',
                 installBundle: 'Per connessioni FFA',
@@ -6218,6 +6232,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 description: 'Seleziona le impostazioni da sovrascrivere nei tuoi workspace esistenti.',
                 accountingMismatch: ({part}: {part: string}) =>
                     `Puoi copiare ${part} solo se tutti gli spazi di lavoro usano lo stesso sistema di contabilità e la stessa connessione aziendale.`,
+                travelAddressMismatch: 'Puoi copiare i viaggi solo se ogni spazio di lavoro selezionato ha un indirizzo aziendale.',
             },
             confirmSettings: {
                 title: 'Assicuriamoci che sia tutto corretto.',
@@ -7070,7 +7085,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             },
             controlPolicyRoles: {
                 title: 'Ruoli dei criteri di controllo',
-                description: 'Usa ruoli specializzati come Revisore e Amministratore carte per concedere ai membri l’accesso solo a ciò di cui hanno bisogno.',
+                description: 'Concedi ai membri un accesso specifico assegnando ruoli come Revisore o Amministratore carte.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>I ruoli specializzati dello spazio di lavoro sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
@@ -9846,5 +9861,21 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         negativeButton: 'Non proprio',
     },
     monthPickerPage: {month: 'Mese', selectMonth: 'Seleziona un mese'},
+    aiFeaturesPromoModal: {
+        subtitle: 'Nuovo in Concierge AI',
+        confirmText: 'Andiamo!',
+        spendAnalysis: {
+            title: 'Analisi interattiva delle spese',
+            description: `<muted-text>Concierge mette in evidenza approfondimenti sulla spesa mensile e ti permette di approfondire i dettagli dietro ogni numero. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Scopri di più</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Incontra il tuo nuovo assistente per le spese',
+            description: `<muted-text>Chatta con Concierge per creare e aggiornare le spese direttamente nell’app o via email o SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Scopri di più</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Crea i tuoi agenti',
+            description: `<muted-text>Crea agenti personalizzati per verificare, approvare e instradare le spese in base alle regole che imposti. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Scopri di più</a>.</muted-text>`,
+        },
+    },
 };
 export default translations;

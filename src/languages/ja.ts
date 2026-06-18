@@ -4919,6 +4919,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: '会社',
             autoSyncDescription: 'Expensify は毎日自動的に Certinia と同期します。',
             syncReimbursedReportsDescription: 'このオプションを有効にすると、FFA で買掛請求書が支払われるたびに、関連する Expensify レポートが自動的に精算済みとしてマークされます。',
             exportDescription: 'Expensify のデータを Certinia へエクスポートする方法を設定します。',
@@ -4932,6 +4934,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '送信済み',
                 },
             },
+            reportExportStatus: {
+                label: '経費レポートステータス',
+                values: {
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: '承認済み',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: '送信済み',
+                },
+            },
             exportDate: {
                 label: '支払予定請求書日',
                 values: {
@@ -4942,8 +4951,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             exportReimbursable: {label: '精算対象経費の書き出し形式', helperText: '払い戻し対象としてマークされた経費は、従業員宛ての未払請求書としてエクスポートされます。'},
             exportNonReimbursable: {label: '未払い精算の対象外経費を次の形式でエクスポートする'},
+            expenseReports: '経費レポート',
+            exportReimbursableExpenseReports: {helperText: '払い戻し対象としてマークされた経費は、従業員宛ての経費レポートとしてエクスポートされます。'},
+            exportNonReimbursableExpenseReports: {helperText: '払い戻し対象外としてマークされた経費は、従業員宛ての経費レポートとしてエクスポートされます。'},
             noVendorsFound: 'ベンダーが見つかりませんでした',
             noVendorsFoundDescription: 'Certinia にベンダーを追加した後に、もう一度接続の同期を行ってください。',
+            noCompaniesFound: '会社が見つかりませんでした',
+            noCompaniesFoundDescription: 'Certinia に会社を追加した後に、もう一度接続の同期を行ってください。',
             prerequisites: {
                 title: '接続する前に',
                 installBundle: 'FFA 接続用',
@@ -6147,6 +6161,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'コピーする機能を選択します',
                 description: '既存のワークスペースで上書きする設定を選択します。',
                 accountingMismatch: ({part}: {part: string}) => `すべてのワークスペースが同じ会計システムと会社接続を使用している場合にのみ、${part} をコピーできます。`,
+                travelAddressMismatch: '出張をコピーできるのは、選択したすべてのワークスペースに会社の住所がある場合のみです。',
             },
             confirmSettings: {
                 title: 'すべて正しく表示されているか確認しましょう。',
@@ -6991,7 +7006,7 @@ ${reportName}`,
             },
             controlPolicyRoles: {
                 title: 'コントロールポリシーのロール',
-                description: '監査人やカード管理者などの専用ロールを使って、メンバーが必要なものにだけアクセスできるようにします。',
+                description: '監査人やカード管理者などのロールを割り当てて、メンバーに特定のアクセス権を付与します。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>特別なワークスペースロールは Control プランでのみご利用いただけます（<strong>${formattedPrice}</strong> から、${hasTeam2025Pricing ? `メンバー1人あたり月額。` : `アクティブメンバー1人あたり／月`}）。</muted-text>`,
             },
@@ -9718,5 +9733,21 @@ ${reportName}`,
         negativeButton: 'そうでもありません',
     },
     monthPickerPage: {month: '月', selectMonth: '月を選択してください'},
+    aiFeaturesPromoModal: {
+        subtitle: 'はじめての Concierge AI',
+        confirmText: '始めましょう！',
+        spendAnalysis: {
+            title: 'インタラクティブな支出分析',
+            description: `<muted-text>Concierge は毎月の支出インサイトを提示し、すべての数値の内訳を詳しく確認できるようにします。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">詳しく見る</a>。</muted-text>`,
+        },
+        expenseAssistant: {
+            title: '新しい経費アシスタントをご紹介します',
+            description: `<muted-text>アプリ内やメール、テキストメッセージでConciergeとチャットして、経費を作成・更新できます。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">詳しく見る</a>。</muted-text>`,
+        },
+        customAgents: {
+            title: '独自のエージェントを作成する',
+            description: `<muted-text>設定したルールに基づいて経費を確認、承認、振り分けるカスタムエージェントを作成できます。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">さらに詳しく</a>。</muted-text>`,
+        },
+    },
 };
 export default translations;

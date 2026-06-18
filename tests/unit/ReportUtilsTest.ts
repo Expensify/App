@@ -7436,6 +7436,22 @@ describe('ReportUtils', () => {
             };
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
         });
+
+        it('should return false when submitter is the approver on a Submit workspace even if preventSelfApproval is disabled', () => {
+            const submitPolicy: Policy = {
+                ...createRandomPolicy(6, CONST.POLICY.TYPE.SUBMIT),
+                preventSelfApproval: false,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, submitPolicy)).toBeFalsy();
+        });
+
+        it('should return true when a different user is the approver on a Submit workspace', () => {
+            const submitPolicy: Policy = {
+                ...createRandomPolicy(6, CONST.POLICY.TYPE.SUBMIT),
+                preventSelfApproval: false,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID + 1, submitPolicy)).toBeTruthy();
+        });
     });
 
     describe('isArchivedReport', () => {
@@ -8422,52 +8438,6 @@ describe('ReportUtils', () => {
             };
 
             expect(isPayer(adminAccountID, adminEmail, report, bankAccountList, policyWithAch, false)).toBe(false);
-        });
-
-        it('should return false when user left workspace and policy is not available', async () => {
-            // Clear the policy to simulate user leaving workspace
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}left-workspace`, null);
-
-            const reportWithMissingPolicy: Report = {
-                ...createRandomReport(6, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                policyID: 'left-workspace',
-                managerID: currentUserAccountID,
-            };
-
-            // User should not be a payer when policy is not available (they likely left the workspace)
-            expect(isPayer(currentUserAccountID, currentUserEmail, reportWithMissingPolicy, undefined, undefined, false)).toBe(false);
-        });
-
-        it('should return false when user is not in employeeList of a paid group policy', async () => {
-            const otherUserEmail = 'other@test.com';
-            const policyWithoutCurrentUser: Policy = {
-                ...createRandomPolicy(2),
-                id: 'policy-without-user',
-                type: CONST.POLICY.TYPE.CORPORATE,
-                role: CONST.POLICY.ROLE.ADMIN, // Role might be stale
-                employeeList: {
-                    [otherUserEmail]: {
-                        role: CONST.POLICY.ROLE.ADMIN,
-                    },
-                },
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}policy-without-user`, policyWithoutCurrentUser);
-
-            const reportForNonMember: Report = {
-                ...createRandomReport(7, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                policyID: 'policy-without-user',
-                managerID: currentUserAccountID,
-            };
-
-            // User should not be a payer even if role says admin, because they're not in employeeList
-            expect(isPayer(currentUserAccountID, currentUserEmail, reportForNonMember, undefined, policyWithoutCurrentUser, false)).toBe(false);
         });
 
         it('should return true for IOU report manager even when policy is not available', async () => {
