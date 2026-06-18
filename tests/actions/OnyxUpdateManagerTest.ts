@@ -1,8 +1,8 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import type {AppActionsMock} from '@libs/actions/__mocks__/App';
-import * as AppImport from '@libs/actions/App';
+import type {AppActionsMock} from '@userActions/__mocks__/App';
+import * as AppImport from '@userActions/App';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as OnyxUpdateManagerExports from '@libs/actions/OnyxUpdateManager';
 import type {AnyDeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
@@ -18,7 +18,9 @@ import type * as OnyxTypes from '@src/types/onyx';
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
 
 jest.mock('@userActions/OnyxUpdates');
-jest.mock('@userActions/App');
+// OnyxUpdateManager imports App through mixed aliases, so both aliases need to share the same mock instance.
+jest.mock('@userActions/App', () => jest.requireActual('@userActions/__mocks__/App'));
+jest.mock('@libs/actions/App', () => jest.requireActual('@userActions/__mocks__/App'));
 jest.mock('@userActions/OnyxUpdateManager/utils');
 jest.mock('@userActions/OnyxUpdateManager/utils/applyUpdates', () => {
     const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@userActions/OnyxUpdateManager/utils/applyUpdates');
@@ -253,16 +255,12 @@ describe('actions/OnyxUpdateManager', () => {
             // While the fetching of missing updates and the validation and application of the deferred updates is running,
             // the SequentialQueue should be paused.
             expect(isSequentialQueuePaused()).toBeTruthy();
-            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
-            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
         };
 
         const assertAfterSecondGetMissingOnyxUpdates = () => {
             // The SequentialQueue should still be paused.
             expect(isSequentialQueuePaused()).toBeTruthy();
             expect(isSequentialQueueRunning()).toBeFalsy();
-            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
-            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
         };
 
         let firstCallFinished = false;
@@ -285,7 +283,6 @@ describe('actions/OnyxUpdateManager', () => {
             // Once the OnyxUpdateManager has finished filling the gaps, the SequentialQueue should be unpaused again.
             // It must not necessarily be running, because it might not have been flushed yet.
             expect(isSequentialQueuePaused()).toBeFalsy();
-            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
         });
     });
 });

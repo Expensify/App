@@ -12,8 +12,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
 
-jest.mock('@userActions/OnyxUpdates');
-jest.mock('@userActions/App');
+// OnyxUpdateManager imports these actions through mixed aliases, so both aliases need to share the same mock instances.
+jest.mock('@userActions/OnyxUpdates', () => jest.requireActual('@userActions/__mocks__/OnyxUpdates'));
+jest.mock('@libs/actions/OnyxUpdates', () => jest.requireActual('@userActions/__mocks__/OnyxUpdates'));
+jest.mock('@userActions/App', () => jest.requireActual('@userActions/__mocks__/App'));
+jest.mock('@libs/actions/App', () => jest.requireActual('@userActions/__mocks__/App'));
 jest.mock('@userActions/OnyxUpdateManager/utils');
 jest.mock('@userActions/OnyxUpdateManager/utils/applyUpdates');
 
