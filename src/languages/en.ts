@@ -7067,7 +7067,7 @@ const translations = {
                 description:
                     'Review, approve, and keep spending on track in one place. Approval Workflows help you control costs, enforce company policies, and reimburse your employees faster.',
                 onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
-                    `<muted-text>Approve Workflows are only available on the Collect plan, starting at <strong>${formattedPrice}</strong> per active member per month.</muted-text>`,
+                    `<muted-text>Approval Workflows are only available on the Collect plan, starting at <strong>${formattedPrice}</strong> per active member per month.</muted-text>`,
             },
             categories: {
                 title: 'Categories',
