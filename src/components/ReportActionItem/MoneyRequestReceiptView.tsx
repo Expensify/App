@@ -152,6 +152,9 @@ function MoneyRequestReceiptView({
     const delegateAccountID = useDelegateAccountID();
 
     const [isLoading, setIsLoading] = useState(true);
+    // True only after the pointer has moved over the image since the last receipt source change.
+    // Prevents the distance overlay from appearing when the cursor is parked under a newly-loaded map.
+    const [pointerMovedAfterLoad, setPointerMovedAfterLoad] = useState(false);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const [parentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportAction?.childReportID)}`);
 
@@ -220,7 +223,19 @@ function MoneyRequestReceiptView({
             return;
         }
         setIsLoading(true);
+        setPointerMovedAfterLoad(false);
     }, [displayedReceiptSource, prevDisplayedReceiptSource]);
+
+    // Reset the hover gate as soon as regeneration starts so that the overlay
+    // cannot reappear during the pendingFields-cleared → new-source-arrived gap.
+    const isPendingReceiptRegeneration = hasPendingDistanceReceiptRegeneration(displayedTransaction);
+    const prevIsPendingReceiptRegeneration = usePrevious(isPendingReceiptRegeneration);
+    useEffect(() => {
+        if (prevIsPendingReceiptRegeneration || !isPendingReceiptRegeneration) {
+            return;
+        }
+        setPointerMovedAfterLoad(false);
+    }, [isPendingReceiptRegeneration, prevIsPendingReceiptRegeneration]);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -624,12 +639,21 @@ function MoneyRequestReceiptView({
                         <View
                             ref={receiptContainerRef}
                             style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}
-                            onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
+                            onMouseEnter={() => {
+                                if (isLoading) {
+                                    return;
+                                }
+                                hoverBind.onMouseEnter();
+                            }}
                             // `onMouseEnter` alone isn't enough to keep `hovered` in sync: when `hovered` resets while
                             // the cursor is already over the receipt (e.g. after closing the RHP) or `onMouseEnter` fires
                             // while the receipt is still loading, no new `mouseenter` event occurs, so we re-sync on mouse move.
                             onMouseMove={() => {
-                                if (isLoading || hovered) {
+                                if (isLoading) {
+                                    return;
+                                }
+                                setPointerMovedAfterLoad(true);
+                                if (hovered) {
                                     return;
                                 }
                                 hoverBind.onMouseEnter();
@@ -660,7 +684,9 @@ function MoneyRequestReceiptView({
                                             onLoad={() => setIsLoading(false)}
                                             onLoadFailure={() => setIsLoading(false)}
                                         />
-                                        {canShowDistanceEReceipt && hovered && !!displayedTransaction && <HoveredDistanceEReceipt transaction={displayedTransaction} />}
+                                        {canShowDistanceEReceipt && hovered && pointerMovedAfterLoad && !!displayedTransaction && (
+                                            <HoveredDistanceEReceipt transaction={displayedTransaction} />
+                                        )}
                                     </>
                                 </ReceiptHoverZoom>
                             </View>
