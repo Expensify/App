@@ -15,7 +15,9 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getOutstandingChildRequest,
     getPersonalDetailsForAccountID,
+    getReimbursableTotal,
     getReportTransactions,
+    getUnheldReimbursableTotal,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOutstandingChildRequest,
     isArchivedReport,
@@ -160,6 +162,10 @@ function prepareToCleanUpMoneyRequest(
         getAmount(transaction, isExpenseReportType) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) ? getAmount(curr, isExpenseReportType) : 0), 0) ?? 0);
 
     if (iouReport && isExpenseReportType) {
+        // Capture previous fresh reimbursable totals before mutating, so the diffs apply whether or
+        // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+        const previousReimbursableTotal = getReimbursableTotal(iouReport);
+        const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
         updatedIOUReport = {...iouReport};
 
         if (typeof updatedIOUReport.total === 'number' && currency === iouReport?.currency && canEditTotal) {
@@ -172,10 +178,10 @@ function prepareToCleanUpMoneyRequest(
                 updatedIOUReport.nonReimbursableTotal += nonReimbursableAmountDiff;
             }
 
-            if (transaction?.reimbursable && typeof updatedIOUReport.reimbursableTotal === 'number') {
+            if (transaction?.reimbursable) {
                 const reimbursableAmountDiff =
                     getAmount(transaction, true) + (transactionPendingDelete?.reduce((prev, curr) => prev + (curr?.reimbursable ? getAmount(curr, true) : 0), 0) ?? 0);
-                updatedIOUReport.reimbursableTotal += reimbursableAmountDiff;
+                updatedIOUReport.reimbursableTotal = previousReimbursableTotal + reimbursableAmountDiff;
             }
 
             if (!isTransactionOnHold) {
@@ -190,10 +196,10 @@ function prepareToCleanUpMoneyRequest(
                     updatedIOUReport.unheldNonReimbursableTotal += unheldNonReimbursableAmountDiff;
                 }
 
-                if (transaction?.reimbursable && typeof updatedIOUReport.unheldReimbursableTotal === 'number') {
+                if (transaction?.reimbursable) {
                     const unheldReimbursableAmountDiff =
                         getAmount(transaction, true) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) && curr?.reimbursable ? getAmount(curr, true) : 0), 0) ?? 0);
-                    updatedIOUReport.unheldReimbursableTotal += unheldReimbursableAmountDiff;
+                    updatedIOUReport.unheldReimbursableTotal = previousUnheldReimbursableTotal + unheldReimbursableAmountDiff;
                 }
             }
         }
