@@ -335,13 +335,6 @@ function WorkspaceCompanyCardsTable({
         />
     );
 
-    const ListHeader = (
-        <>
-            {headerButtonsComponent}
-            {!isLoadingFeed && !isFeedPending && showCards && <Table.Header />}
-        </>
-    );
-
     return (
         <Table
             ref={tableRef}
@@ -355,10 +348,10 @@ function WorkspaceCompanyCardsTable({
             isItemInFilter={isItemInFilter}
             initialSortColumn="member"
             title={translate('workspace.common.companyCards')}
-            ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
+            ListHeaderComponent={shouldUseNarrowTableLayout ? headerButtonsComponent : undefined}
             ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
-            {!shouldUseNarrowTableLayout && ListHeader}
+            {!shouldUseNarrowTableLayout && headerButtonsComponent}
 
             {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (
                 <ScrollView addBottomSafeAreaPadding>
@@ -405,7 +398,13 @@ function WorkspaceCompanyCardsTable({
                 </ScrollView>
             )}
 
-            {showCards && <Table.Body />}
+            {showCards && (
+                <>
+                    <Table.FilterBar label={translate('workspace.companyCards.findCard')} />
+                    <Table.Header />
+                    <Table.Body />
+                </>
+            )}
         </Table>
     );
 }

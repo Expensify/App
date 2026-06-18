@@ -3,14 +3,15 @@ import type {PropsWithChildren} from 'react';
 import {View} from 'react-native-web';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+import * as PopoverMenu from '@components/PopoverMenu/v2';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useTableContext} from '@components/Table/TableContext';
+import TableSearchBar from '@components/Table/TableSearchBar';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useTableContext} from './TableContext';
-import TableSearchBar from './TableSearchBar';
 
 type TableFilterBarProps = PropsWithChildren<{
     /** Label and accessibility label for the search input. */
@@ -42,19 +43,28 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
                     )}
 
                     {shouldUseNarrowTableLayout && hasFiltersAvailable && (
-                        <PressableWithFeedback
-                            accessibilityLabel={translate('search.filtersHeader')}
-                            role={CONST.ROLE.BUTTON}
-                            sentryLabel={CONST.SENTRY_LABEL.TABLE.FILTERS}
-                            hoverStyle={styles.buttonHoveredBG}
-                            style={[styles.justifyContentCenter, styles.componentSizeNormal, styles.borderRadiusCircle]}
-                        >
-                            <Icon
-                                small
-                                src={icons.Filter}
-                                fill={theme.icon}
-                            />
-                        </PressableWithFeedback>
+                        <PopoverMenu.Root>
+                            <PopoverMenu.Trigger>
+                                <PressableWithFeedback
+                                    accessibilityLabel={translate('search.filtersHeader')}
+                                    role={CONST.ROLE.BUTTON}
+                                    sentryLabel={CONST.SENTRY_LABEL.TABLE.FILTERS}
+                                    hoverStyle={styles.buttonHoveredBG}
+                                    style={[styles.justifyContentCenter, styles.componentSizeNormal, styles.borderRadiusCircle]}
+                                    onPress={() => {}}
+                                >
+                                    <Icon
+                                        small
+                                        src={icons.Filter}
+                                        fill={theme.icon}
+                                    />
+                                </PressableWithFeedback>
+                            </PopoverMenu.Trigger>
+
+                            <PopoverMenu.Content>
+                                <PopoverMenu.Header>Hello World</PopoverMenu.Header>
+                            </PopoverMenu.Content>
+                        </PopoverMenu.Root>
                     )}
 
                     {children}

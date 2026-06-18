@@ -38,7 +38,7 @@ import TableComponent from './Table';
 import TableBody from './TableBody';
 import TableContext from './TableContext';
 import TableFilterBar from './TableFilterBar';
-import TableFilterButtons from './TableFilterButtons';
+import TableFilterButtons from './TableFilterBar/OldFilterButtons';
 import TableHeader from './TableHeader';
 import TableRow from './TableRow';
 import TableSearchBar from './TableSearchBar';

@@ -155,15 +155,6 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                 <View
                     style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
                 >
-                    {!isLoading && showTableControls && (
-                        <View style={[styles.mnw200]}>
-                            <Table.SearchBar
-                                style={[styles.mh0, styles.mb0]}
-                                label={translate('workspace.companyCards.findCard')}
-                            />
-                        </View>
-                    )}
-
                     <View style={[styles.flexRow, styles.gap3]}>
                         {!isLoading && (
                             <>
