@@ -11,7 +11,6 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
-import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteToGroupChat, searchUserInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
@@ -40,8 +39,6 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
@@ -155,14 +152,9 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         <FormAlertWithSubmitButton
             isDisabled={!selectedOptions.length}
             buttonText={translate('common.invite')}
-            shouldShowLoadingImmediatelyOnPress={false}
-            isLoading={isPressed || isSubmitting}
             onSubmit={() => {
-                startPressLoading(() => {
-                    setIsSubmitting(true);
-                    clearUserSearchPhrase();
-                    inviteUsers();
-                });
+                clearUserSearchPhrase();
+                inviteUsers();
             }}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline

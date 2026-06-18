@@ -113,14 +113,14 @@ function FormAlertWithSubmitButton({
     const styles = useThemeStyles();
     const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
 
-    const {isPressed, startPressLoading} = usePressLoading(isLoading);
+    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading({isLoading});
 
     const handlePress = () => {
         if (!shouldShowLoadingImmediatelyOnPress) {
             onSubmit();
             return;
         }
-        startPressLoading(onSubmit);
+        startWithLoading(onSubmit);
     };
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
@@ -165,7 +165,7 @@ function FormAlertWithSubmitButton({
                             style={style}
                             onPress={handlePress}
                             isDisabled={isDisabled}
-                            isLoading={isPressed || isLoading}
+                            isLoading={effectiveLoading}
                             danger={isSubmitActionDangerous}
                             medium={useSmallerSubmitButtonSize}
                             large={!useSmallerSubmitButtonSize}

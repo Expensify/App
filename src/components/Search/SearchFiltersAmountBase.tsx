@@ -29,7 +29,6 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const [selectedModifier, setSelectedModifier] = useState<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | null>(null);
-    const [isSaving, setIsSaving] = useState(false);
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as keyof SearchAdvancedFiltersForm;
@@ -99,7 +98,6 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
     };
 
     const save = () => {
-        setIsSaving(true);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
@@ -190,7 +188,6 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                         buttonText={translate('common.save')}
                         containerStyles={[styles.m4, styles.mt3, styles.mb5]}
                         onSubmit={save}
-                        isLoading={isSaving}
                         enabledWhenOffline
                     />
                 </View>

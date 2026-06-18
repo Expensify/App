@@ -1,5 +1,4 @@
-import {NavigationContext} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -53,8 +52,6 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     const {translate, formatPhoneNumber} = useLocalize();
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE.path);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const navigation = useContext(NavigationContext);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -71,14 +68,6 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     }, []);
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
-
-    useEffect(() => {
-        if (!navigation) {
-            return;
-        }
-        const unsubscribe = navigation.addListener('focus', () => setIsSubmitting(false));
-        return unsubscribe;
-    }, [navigation]);
 
     const excludedUsers = useMemo(() => {
         const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
@@ -187,7 +176,6 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     );
 
     const inviteUser = useCallback(() => {
-        setIsSubmitting(true);
         Keyboard.dismiss();
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
 
@@ -229,10 +217,9 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
                 onSubmit={inviteUser}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
-                isLoading={isSubmitting}
             />
         ),
-        [inviteUser, isSubmitting, selectedOptions.length, shouldShowAlertPrompt, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
+        [inviteUser, selectedOptions.length, shouldShowAlertPrompt, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
     );
 
     useEffect(() => {

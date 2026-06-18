@@ -95,7 +95,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     // Cannot use useRef because react compiler fails
     const [isSaving, setIsSaving] = useState(false);
     const [shouldShowError, setShouldShowError] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading(isSaving);
+    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading({isLoading: isSaving});
     const styles = useThemeStyles();
 
     useEffect(() => () => clearDraftRule(), []);
@@ -139,7 +139,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
             return;
         }
 
-        startPressLoading(() => {
+        startWithLoading(() => {
             setIsSaving(true);
 
             const newRule = extractRuleFromForm(form, selectedTaxRate);
@@ -281,7 +281,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     isAlertVisible={shouldShowError && !!errorMessage}
                     message={errorMessage}
                     onSubmit={handleSubmit}
-                    isLoading={isPressed || isSaving}
+                    isLoading={effectiveLoading}
                     shouldShowLoadingImmediatelyOnPress={false}
                     enabledWhenOffline
                 />

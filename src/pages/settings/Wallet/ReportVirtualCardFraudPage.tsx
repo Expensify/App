@@ -1,5 +1,4 @@
-import {NavigationContext} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -32,8 +31,6 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
     const {translate} = useLocalize();
     const cardList = useNonPersonalCardList();
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const navigation = useContext(NavigationContext);
 
     const virtualCard = cardList?.[cardID];
     const virtualCardError = getLatestErrorMessage(virtualCard);
@@ -42,16 +39,7 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
         clearReportVirtualCardFraudForm();
     }, []);
 
-    useEffect(() => {
-        if (!navigation) {
-            return;
-        }
-        const unsubscribe = navigation.addListener('focus', () => setIsSubmitting(false));
-        return unsubscribe;
-    }, [navigation]);
-
     const handleSubmit = useCallback(() => {
-        setIsSubmitting(true);
         Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD_VERIFY_ACCOUNT.getRoute(String(cardID)));
     }, [cardID]);
 
@@ -76,7 +64,6 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
                     <Text style={[styles.webViewStyles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
                     <FormAlertWithSubmitButton
                         isAlertVisible={!!virtualCardError}
-                        isLoading={isSubmitting}
                         onSubmit={handleSubmit}
                         message={virtualCardError}
                         buttonText={translate('reportFraudPage.deactivateCard')}

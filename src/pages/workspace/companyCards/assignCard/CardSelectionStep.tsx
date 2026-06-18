@@ -1,6 +1,5 @@
-import {NavigationContext} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useContext, useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
@@ -60,17 +59,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
 
     const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
-    const navigation = useContext(NavigationContext);
-
-    useEffect(() => {
-        if (!navigation) {
-            return;
-        }
-        const unsubscribe = navigation.addListener('focus', () => setIsSubmitting(false));
-        return unsubscribe;
-    }, [navigation]);
+    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
 
     const cardListOptions = filteredCardList.map((card: UnassignedCard) => ({
         keyForList: card.cardID,
@@ -115,8 +104,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
             return;
         }
 
-        startPressLoading(() => {
-            setIsSubmitting(true);
+        startWithLoading(() => {
             // Find the card by its ID to get the display name
             const selectedCard = filteredCardList.find((card) => card.cardID === cardSelected);
             const cardName = selectedCard?.cardName ?? '';
@@ -215,7 +203,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                                 containerStyles={[!shouldShowError && styles.mt5]}
                                 message={translate('common.error.pleaseSelectOne')}
                                 shouldShowLoadingImmediatelyOnPress={false}
-                                isLoading={isPressed || isSubmitting}
+                                isLoading={effectiveLoading}
                             />
                         }
                     />

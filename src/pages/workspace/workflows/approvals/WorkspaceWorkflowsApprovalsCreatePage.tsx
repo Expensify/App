@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import {View} from 'react-native';
@@ -38,8 +38,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const addExpenseApprovalsTaskReportID = introSelected?.addExpenseApprovals;
     const [addExpenseApprovalsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`);
     const formRef = useRef<ScrollView>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
+    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
 
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy);
@@ -53,12 +52,11 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        startPressLoading(() => {
-            setIsSubmitting(true);
+        startWithLoading(() => {
             createApprovalWorkflowAction({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
             Navigation.dismissModal();
         });
-    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport, startPressLoading]);
+    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport, startWithLoading]);
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 
@@ -100,7 +98,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                                 containerStyles={submitButtonContainerStyles}
                                 enabledWhenOffline
                                 shouldShowLoadingImmediatelyOnPress={false}
-                                isLoading={isPressed || isSubmitting}
+                                isLoading={effectiveLoading}
                             />
                         </>
                     )}

@@ -31,7 +31,6 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const [selectedCategories, setSelectedCategories] = useState<SpendRuleCategory[]>(categories);
-    const [isSaving, setIsSaving] = useState(false);
 
     const categoryItems: CategoryListItem[] = SPEND_RULE_CATEGORIES.map((category) => ({
         keyForList: category,
@@ -80,7 +79,6 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
     };
 
     const handleSave = () => {
-        setIsSaving(true);
         onCategoriesChange(selectedCategories);
         goBack();
     };
@@ -130,7 +128,6 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
                         buttonText={translate('common.save')}
                         isAlertVisible={false}
                         onSubmit={handleSave}
-                        isLoading={isSaving}
                         enabledWhenOffline
                         containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                     />

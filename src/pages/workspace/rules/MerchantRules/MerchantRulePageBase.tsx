@@ -99,8 +99,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading(isSaving);
+    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
     const isEditing = !!ruleID;
     const isInLandscapeMode = useIsInLandscapeMode();
 
@@ -240,7 +239,6 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         if (!form) {
             return;
         }
-        setIsSaving(true);
         setPolicyCodingRule(policyID, form, policy, ruleID, shouldUpdateMatchingTransactions);
         Navigation.goBack();
     };
@@ -274,7 +272,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             return;
         }
 
-        startPressLoading(() => saveRule());
+        startWithLoading(() => saveRule());
     };
 
     const handleDelete = () => {
@@ -401,7 +399,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             isAlertVisible={shouldShowError && !!errorMessage}
             message={errorMessage}
             onSubmit={handleSubmit}
-            isLoading={isPressed || isSaving}
+            isLoading={effectiveLoading}
             shouldShowLoadingImmediatelyOnPress={false}
             enabledWhenOffline
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SAVE}

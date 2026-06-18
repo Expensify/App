@@ -73,8 +73,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const [isErrorVisible, setIsErrorVisible] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading(isSaving);
+    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
     const currentRuleID = ruleID ?? ROUTES.NEW;
     const isEditing = currentRuleID !== ROUTES.NEW;
     const existingRule = isEditing ? expensifyCardSettings?.cardRules?.[currentRuleID] : undefined;
@@ -171,8 +170,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             return;
         }
 
-        startPressLoading(() => {
-            setIsSaving(true);
+        startWithLoading(() => {
             clearError();
             setExpensifyCardRule(domainAccountID, isEditing ? currentRuleID : rand64(), spendRuleForm, existingRule);
             clearDraftSpendRule();
@@ -321,7 +319,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         message={errorMessage}
                         isAlertVisible={isErrorVisible}
                         onSubmit={handleSaveRule}
-                        isLoading={isPressed || isSaving}
+                        isLoading={effectiveLoading}
                         shouldShowLoadingImmediatelyOnPress={false}
                         enabledWhenOffline
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}

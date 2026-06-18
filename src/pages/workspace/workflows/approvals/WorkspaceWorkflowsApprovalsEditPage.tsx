@@ -46,8 +46,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const formRef = useRef<ScrollView>(null);
     const {showConfirmModal} = useConfirmModal();
     const isDeleting = useRef(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
+    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
 
     const updateApprovalWorkflowCallback = () => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {
@@ -58,8 +57,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
-        startPressLoading(() => {
-            setIsSubmitting(true);
+        startWithLoading(() => {
             // We need to remove members and approvers that are no longer in the updated workflow
             const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
             const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
@@ -216,7 +214,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                 enabledWhenOffline
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_EDIT_SAVE}
                                 shouldShowLoadingImmediatelyOnPress={false}
-                                isLoading={isPressed || isSubmitting}
+                                isLoading={effectiveLoading}
                             />
                         </>
                     )}

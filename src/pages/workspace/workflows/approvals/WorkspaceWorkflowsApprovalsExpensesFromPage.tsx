@@ -1,6 +1,5 @@
-import {NavigationContext} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -51,17 +50,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const navigation = useContext(NavigationContext);
-
-    useEffect(() => {
-        if (!navigation) {
-            return;
-        }
-        const unsubscribe = navigation.addListener('focus', () => setIsSubmitting(false));
-        return unsubscribe;
-    }, [navigation]);
-
     // Set true when nextStep navigates to the invite-message page so the cleanup
     // effect below knows to leave the draft intact for that page to consume.
     const isHandingOffToInviteRef = useRef(false);
@@ -317,7 +305,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     };
 
     const nextStep = useCallback(() => {
-        setIsSubmitting(true);
         const existingMembers: Member[] = [];
         const usersToInvite: Array<{email: string; accountID?: number}> = [];
 
@@ -405,20 +392,12 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             <FormAlertWithSubmitButton
                 isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
                 buttonText={buttonText}
-                onSubmit={
-                    shouldShowListEmptyContent
-                        ? () => {
-                              setIsSubmitting(true);
-                              Navigation.goBack();
-                          }
-                        : nextStep
-                }
+                onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
-                isLoading={isSubmitting}
             />
         );
-    }, [isInitialCreationFlow, translate, shouldShowListEmptyContent, selectedMembers.length, nextStep, styles, isSubmitting]);
+    }, [isInitialCreationFlow, translate, shouldShowListEmptyContent, selectedMembers.length, nextStep, styles]);
 
     // Clean up invite draft when leaving the expenses-from page to prevent
     // stale non-member data from persisting in the approval workflow. Skip

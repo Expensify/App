@@ -49,9 +49,8 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     });
 
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const didInvite = useRef<boolean>(false);
-    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
+    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
 
     const domainName = domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
 
@@ -85,8 +84,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         didInvite.current = true;
 
         const {accountID, login, isOptimisticPersonalDetail} = selectedOption;
-        startPressLoading(() => {
-            setIsSubmitting(true);
+        startWithLoading(() => {
             addAdminToDomain(domainAccountID, accountID, login, domainName, !!isOptimisticPersonalDetail);
             Navigation.dismissModal();
         });
@@ -125,7 +123,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             isAlertVisible={false}
             buttonText={translate('common.invite')}
             shouldShowLoadingImmediatelyOnPress={false}
-            isLoading={isPressed || isSubmitting}
+            isLoading={effectiveLoading}
             onSubmit={inviteUser}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline

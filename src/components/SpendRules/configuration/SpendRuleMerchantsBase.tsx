@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -30,7 +30,6 @@ function SpendRuleMerchantsBase({policyID, action, merchantMatchTypes, merchantN
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const illustrations = useMemoizedLazyIllustrations(['FoodTruck']);
-    const [isSaving, setIsSaving] = useState(false);
     const canWriteCardSpendRules = useCanWriteCardSpendRules(policyID);
 
     const emptyStateTitle =
@@ -41,11 +40,6 @@ function SpendRuleMerchantsBase({policyID, action, merchantMatchTypes, merchantN
 
     const goBack = () => {
         Navigation.goBack();
-    };
-
-    const handleSave = () => {
-        setIsSaving(true);
-        goBack();
     };
 
     const navigateToMerchantEdit = (merchantIndex: string) => {
@@ -115,8 +109,7 @@ function SpendRuleMerchantsBase({policyID, action, merchantMatchTypes, merchantN
                     buttonText={translate('common.save')}
                     containerStyles={[styles.m4, styles.mb5]}
                     isAlertVisible={false}
-                    onSubmit={handleSave}
-                    isLoading={isSaving}
+                    onSubmit={goBack}
                     enabledWhenOffline
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
                 />

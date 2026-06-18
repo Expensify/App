@@ -1,5 +1,5 @@
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import type {SectionListData} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -65,8 +65,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const isReportArchived = useReportIsArchived(report.reportID);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
+    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
@@ -145,8 +144,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
             invitedEmailsToAccountIDs[login] = accountID;
         }
         if (report?.reportID) {
-            startPressLoading(() => {
-                setIsSubmitting(true);
+            startWithLoading(() => {
                 clearUserSearchPhrase();
                 // Defer the invite action until after the navigation transition completes to prevent
                 // a race condition on iOS where optimistic Onyx updates trigger a re-render of the
@@ -206,7 +204,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
             isDisabled={!validSelectedOptions.length}
             buttonText={translate('common.invite')}
             shouldShowLoadingImmediatelyOnPress={false}
-            isLoading={isPressed || isSubmitting}
+            isLoading={effectiveLoading}
             onSubmit={inviteUsers}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline

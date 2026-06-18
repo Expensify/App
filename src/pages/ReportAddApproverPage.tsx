@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
@@ -37,20 +37,19 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
-    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
+    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
 
     const employeeList = policy?.employeeList;
-    const allApprovers = useMemo(() => {
+    const allApprovers = (() => {
         if (!employeeList) {
             return [];
         }
@@ -86,15 +85,14 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [employeeList, report, policy, personalDetails, formatPhoneNumber, selectedApproverEmail, icons.FallbackAvatar, translate]);
+    })();
 
-    const addApprover = useCallback(() => {
+    const addApprover = () => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;
         if (!selectedApproverEmail || !employeeAccountID) {
             return;
         }
-        startPressLoading(() => {
-            setIsSubmitting(true);
+        startWithLoading(() => {
             addReportApprover(
                 report,
                 selectedApproverEmail,
@@ -108,37 +106,24 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             );
             Navigation.dismissToPreviousRHP();
         });
-    }, [
-        allApprovers,
-        selectedApproverEmail,
-        startPressLoading,
-        report,
-        currentUserDetails.accountID,
-        currentUserDetails.email,
-        policy,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        reportNextStep,
-    ]);
+    };
 
-    const button = useMemo(() => {
-        return (
-            <FormAlertWithSubmitButton
-                isDisabled={!selectedApproverEmail}
-                buttonText={translate('common.save')}
-                shouldShowLoadingImmediatelyOnPress={false}
-                isLoading={isPressed || isSubmitting}
-                onSubmit={addApprover}
-                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                enabledWhenOffline
-                shouldBlendOpacity
-            />
-        );
-    }, [addApprover, isPressed, isSubmitting, selectedApproverEmail, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
+    const button = (
+        <FormAlertWithSubmitButton
+            isDisabled={!selectedApproverEmail}
+            buttonText={translate('common.save')}
+            shouldShowLoadingImmediatelyOnPress={false}
+            isLoading={effectiveLoading}
+            onSubmit={addApprover}
+            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+            enabledWhenOffline
+            shouldBlendOpacity
+        />
+    );
 
-    const toggleApprover = useCallback((approvers: SelectionListApprover[]) => {
+    const toggleApprover = (approvers: SelectionListApprover[]) => {
         setSelectedApproverEmail(approvers.at(0)?.login ?? undefined);
-    }, []);
+    };
 
     const shouldShowNotFoundView = !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
 

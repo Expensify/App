@@ -273,13 +273,12 @@ function FormProvider({
         [touchedInputs],
     );
 
-    // Press-driven spinner bridge: covers the gap between the click and the parent committing formState.isLoading=true (typically driven by Onyx)
-    const {isPressed, startPressLoading} = usePressLoading(!!formState?.isLoading || isLoading);
+    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading({isLoading: !!formState?.isLoading || isLoading});
 
     const submit = useDebounceNonReactive(
         useCallback(() => {
             // Return early if the form is already submitting to avoid duplicate submission
-            if (!!formState?.isLoading || isLoading || isPressed) {
+            if (effectiveLoading) {
                 return;
             }
 
@@ -308,31 +307,16 @@ function FormProvider({
                 return;
             }
 
-            startPressLoading(() => {
-                const dispatchSubmit = () => onSubmit(trimmedStringValues);
+            startWithLoading(() => {
                 if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
-                    KeyboardUtils.dismiss().then(dispatchSubmit);
+                    KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
                 } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
-                    KeyboardUtils.dismissKeyboardAndExecute(dispatchSubmit);
+                    KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
                 } else {
-                    dispatchSubmit();
+                    onSubmit(trimmedStringValues);
                 }
             });
-        }, [
-            enabledWhenOffline,
-            formState?.isLoading,
-            inputValues,
-            isLoading,
-            isPressed,
-            isOffline,
-            onSubmit,
-            onValidate,
-            shouldTrimValues,
-            hasServerError,
-            keyboardSubmitBehavior,
-            onBeforeSubmit,
-            startPressLoading,
-        ]),
+        }, [enabledWhenOffline, effectiveLoading, inputValues, isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior, onBeforeSubmit, startWithLoading]),
         1000,
         {leading: true, trailing: false},
     );
@@ -557,7 +541,7 @@ function FormProvider({
                 onSubmit={submitAndAnnounce}
                 inputRefs={inputRefs}
                 errors={errors}
-                isLoading={isLoading || isPressed}
+                isLoading={effectiveLoading}
                 enabledWhenOffline={enabledWhenOffline}
                 shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}

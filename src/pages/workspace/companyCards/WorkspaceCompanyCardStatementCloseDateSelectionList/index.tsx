@@ -61,8 +61,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
     const [selectedCustomDate, setSelectedCustomDate] = useState<number | undefined>(defaultStatementPeriodEndDay);
     const [isChoosingCustomDate, setIsChoosingCustomDate] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
+    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
 
     const title = useMemo(
         () => (isChoosingCustomDate ? translate('workspace.companyCards.customCloseDate') : translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')),
@@ -103,8 +102,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
             return;
         }
 
-        startPressLoading(() => {
-            setIsSubmitting(true);
+        startWithLoading(() => {
             if (selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH) {
                 onSubmit(undefined, selectedCustomDate);
                 return;
@@ -112,7 +110,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
 
             onSubmit(selectedDate, undefined);
         });
-    }, [selectedDate, selectedCustomDate, onSubmit, translate, startPressLoading]);
+    }, [selectedDate, selectedCustomDate, onSubmit, translate, startWithLoading]);
 
     return (
         <ScreenWrapper
@@ -185,7 +183,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                             onSubmit={submit}
                             enabledWhenOffline={enabledWhenOffline}
                             shouldShowLoadingImmediatelyOnPress={false}
-                            isLoading={isPressed || isSubmitting}
+                            isLoading={effectiveLoading}
                         />
                     </FixedFooter>
                 </>

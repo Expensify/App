@@ -1,5 +1,4 @@
-import {NavigationContext} from '@react-navigation/native';
-import React, {useContext, useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -52,17 +51,7 @@ function CountrySelection() {
 
     const [selectedCountry, setSelectedCountry] = useState<string>(initialCountry);
     const [shouldShowError, setShouldShowError] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isPressed, startPressLoading} = usePressLoading(isSubmitting);
-    const navigation = useContext(NavigationContext);
-
-    useEffect(() => {
-        if (!navigation) {
-            return;
-        }
-        const unsubscribe = navigation.addListener('focus', () => setIsSubmitting(false));
-        return unsubscribe;
-    }, [navigation]);
+    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
 
     const onCountrySelected = (countryChecked: string) => {
         setShouldShowError(false);
@@ -74,8 +63,7 @@ function CountrySelection() {
             setShouldShowError(true);
             return;
         }
-        startPressLoading(() => {
-            setIsSubmitting(true);
+        startWithLoading(() => {
             clearReimbursementAccount();
             clearReimbursementAccountDraft();
             updateReimbursementAccountDraft({country: selectedCountry as Country, currency: CONST.BBA_COUNTRY_CURRENCY_MAP[selectedCountry]});
@@ -93,7 +81,7 @@ function CountrySelection() {
                 <FormAlertWithSubmitButton
                     buttonText={translate('common.next')}
                     shouldShowLoadingImmediatelyOnPress={false}
-                    isLoading={isPressed || isSubmitting}
+                    isLoading={effectiveLoading}
                     onSubmit={onConfirm}
                     isAlertVisible={shouldShowError}
                     containerStyles={[!shouldShowError && styles.mt5]}
