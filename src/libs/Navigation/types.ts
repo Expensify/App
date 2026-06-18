@@ -1959,6 +1959,10 @@ type MoneyRequestNavigatorParamList = {
     };
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: undefined;
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: undefined;
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STATE_SELECTOR]: {
+        state?: string;
+        label?: string;
+    };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: {
         action: IOUAction;
         iouType: IOUType;

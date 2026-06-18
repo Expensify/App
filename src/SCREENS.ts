@@ -392,7 +392,7 @@ const SCREENS = {
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         RECEIPT: 'Money_Request_Receipt',
-        STATE_SELECTOR: 'Money_Request_State_Selector',
+        DYNAMIC_STATE_SELECTOR: 'Dynamic_Money_Request_State_Selector',
         STEP_ATTENDEES: 'Money_Request_Attendee',
         STEP_ACCOUNTANT: 'Money_Request_Accountant',
         STEP_DESTINATION: 'Money_Request_Destination',

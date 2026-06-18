@@ -346,7 +346,7 @@ function PaymentCardForm({
                 {!!showStateSelector && (
                     <View style={[styles.mt4, styles.mhn5]}>
                         <InputWrapper
-                            stateSelectorRoute={route.name === SCREENS.IOU_SEND.ADD_DEBIT_CARD ? ROUTES.MONEY_REQUEST_STATE_SELECTOR : undefined}
+                            isMoneyRequestDynamicStateSelector={route.name === SCREENS.IOU_SEND.ADD_DEBIT_CARD}
                             InputComponent={StateSelector}
                             inputID={INPUT_IDS.ADDRESS_STATE}
                         />
