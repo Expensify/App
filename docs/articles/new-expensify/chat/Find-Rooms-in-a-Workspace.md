@@ -15,14 +15,14 @@ All workspace members and workspace admins can access the Rooms directory.
 
 The rooms you see depend on your permissions and the room's visibility settings. Workspace admins can see all rooms in the workspace. Workspace members can only see rooms they have been added to.
 
-## How to find workspace rooms 
+## How to find rooms in the Rooms directory
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Workspaces > [Workspace name]**
 2. Click **Rooms**.
 3. Select a room to open its details page.
 4. Click **Go to room** to open the conversation.
 
-The Rooms directory displays the rooms you can access in that workspace. 
+The Rooms directory displays the rooms you can access in that workspace.
 
 <!-- SCREENSHOT:
 Suggestion: The Rooms directory showing multiple rooms with icon, room name, creator, and member count columns.
