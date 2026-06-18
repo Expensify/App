@@ -1579,7 +1579,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
             }
 
-            if (expensifyCardStatementSelection) {
+            // "Select all matching" only loads the visible rows, so we would export an incomplete set of
+            // settlements while the UI claims everything is selected. The statement has no whole-query export
+            // path (unlike CSV/templates), so offer it only when the selection is the explicitly chosen rows.
+            if (expensifyCardStatementSelection && !areAllMatchingItemsSelected) {
                 exportOptions.push({
                     text: translate('export.exportAsPDF'),
                     icon: expensifyIcons.Document,

@@ -72,12 +72,13 @@ const mockClearSelectedTransactions = jest.fn();
 let mockSelectedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockCurrentSearchResults: SearchResults | undefined;
+let mockAreAllMatchingItemsSelected = false;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
         selectedReports: mockSelectedReports,
-        areAllMatchingItemsSelected: false,
+        areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
     useSearchResultsContext: () => ({
         currentSearchResults: mockCurrentSearchResults,
@@ -212,6 +213,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
         mockSelectedTransactions = {};
         mockSelectedReports = [];
         mockCurrentSearchResults = undefined;
+        mockAreAllMatchingItemsSelected = false;
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report1`, {
@@ -538,6 +540,26 @@ describe('useSearchBulkActions - Download as PDF', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         // A settlement with no policyID can't be scoped to a workspace, so the export option is never shown for it.
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions).toBeDefined();
+        });
+        expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeUndefined();
+        expect(getExpensifyCardStatementPDF).not.toHaveBeenCalled();
+    });
+
+    it('should not offer Export as PDF when all matching items are selected', async () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        mockSelectedTransactions = {
+            firstTxn: makeSelectedTransaction({groupKey, reportID: undefined}),
+        };
+        mockCurrentSearchResults = makeCurrentSearchResults({
+            [groupKey]: makeSettlementGroup(),
+        });
+        // Select-all-matching only loads the visible rows, so the statement would be incomplete.
+        mockAreAllMatchingItemsSelected = true;
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
         });
