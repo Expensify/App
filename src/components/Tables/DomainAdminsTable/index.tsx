@@ -76,13 +76,9 @@ export default function DomainAdminsTable({admins}: DomainAdminsTableProps) {
             title={translate('domain.admins.title')}
             keyExtractor={(item) => item.keyForList}
         >
-            {admins.length > 0 && (
-                <>
-                    {admins.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('domain.admins.findAdmin')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            {admins.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('domain.admins.findAdmin')} />}
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }
