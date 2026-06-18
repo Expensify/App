@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {
     ReportFieldDateKey,
     ReportFieldKey,
@@ -38,7 +38,7 @@ const NEGATABLE_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
 ] as const;
 
-type SearchNegatableFilterKeys = (typeof NEGATABLE_FILTER_KEYS)[number];
+type SearchNegatableFilterKeys = TupleToUnion<typeof NEGATABLE_FILTER_KEYS>;
 
 const NEGATABLE_FILTERS = new Set<SearchNegatableFilterKeys>(NEGATABLE_FILTER_KEYS);
 
