@@ -545,7 +545,7 @@ const DYNAMIC_ROUTES = {
     },
     SUBSCRIPTION_DOWNGRADE_BLOCKED: {
         path: 'subscription-downgrade-blocked',
-        entryScreens: ['*'],
+        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_PLAN],
     },
     WORKSPACE_CATEGORIES_IMPORT: {
         path: 'import',
