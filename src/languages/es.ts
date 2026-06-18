@@ -315,7 +315,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText2: 'o crea algo usando el botón',
             subtitleText3: '.',
             noUnreadChats: 'No hay chats sin leer',
-            noTodos: 'No hay tareas pendientes',
+            noTodos: 'No hay pendientes',
             caughtUp: 'Te has puesto al día. ¡Bien hecho!',
             seeAllChats: 'Ver todos los chats',
         },
@@ -1304,6 +1304,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payElsewhere: (formattedAmount) => (formattedAmount ? `Marcar ${formattedAmount} como pagado` : `Marcar como pagado`),
         confirmPaymentReceivedModalTitle: 'Confirmar el pago recibido',
         receivedPayment: 'Pago recibido',
+        receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}pago recibido`,
         receivedPaymentConfirmation: 'Por favor, continúa solo si ya has recibido el pago fuera de Expensify.',
         confirmReceivedPayment: 'Sí, he recibido el pago.',
         settleInvoicePersonal: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta personal ${last4Digits}` : `Pagado con cuenta personal`),
@@ -1763,7 +1764,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (actor, actorType, _eta, _etaType) => {
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Esperando a que <strong>tú</strong> lo marques como listo.`;
@@ -2819,7 +2819,7 @@ ${amount} para ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Mantente al tanto de todo viendo solo los chats no leídos o los chats que necesitan tu atención. No te preocupes, puedes cambiarlo en cualquier momento en los <a href="${priorityModePageUrl}">ajustes</a>.`,
     },
-    inboxTabs: {all: 'Todo', todo: 'Tareas pendientes', unread: 'No leído'},
+    inboxTabs: {all: 'Todo', todo: 'Pendientes', unread: 'No leído'},
     reportDetailsPage: {
         goToRoom: 'Ir a la sala',
         inWorkspace: (policyName) => `en ${policyName}`,
@@ -4856,6 +4856,8 @@ ${amount} para ${merchant} - ${date}`,
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: 'Empresa',
             autoSyncDescription: 'Expensify se sincronizará automáticamente con Certinia cada día.',
             syncReimbursedReportsDescription:
                 'Con esta opción habilitada, cada vez que se pague una factura por pagar en FFA, el informe de Expensify relacionado se marcará automáticamente como reembolsado.',
@@ -4868,6 +4870,13 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'En curso',
                     [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Aprobado',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
+                },
+            },
+            reportExportStatus: {
+                label: 'Estado del informe de gastos',
+                values: {
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: 'Aprobado',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: 'Enviado',
                 },
             },
             exportDate: {
@@ -4883,8 +4892,13 @@ ${amount} para ${merchant} - ${date}`,
                 helperText: 'Los gastos marcados como reembolsables se exportarán como facturas por pagar a nombre de la persona empleada.',
             },
             exportNonReimbursable: {label: 'Exportar gastos no reembolsables como'},
+            expenseReports: 'Informes de gastos',
+            exportReimbursableExpenseReports: {helperText: 'Los gastos marcados como reembolsables se exportarán como informes de gastos emitidos al empleado.'},
+            exportNonReimbursableExpenseReports: {helperText: 'Los gastos marcados como no reembolsables se exportarán como informes de gastos emitidos al empleado.'},
             noVendorsFound: 'No se encontraron proveedores',
             noVendorsFoundDescription: 'Vuelve a sincronizar la conexión después de añadir los proveedores en Certinia.',
+            noCompaniesFound: 'No se encontraron empresas',
+            noCompaniesFoundDescription: 'Vuelve a sincronizar la conexión después de añadir las empresas en Certinia.',
             prerequisites: {
                 title: 'Antes de conectarte',
                 installBundle: 'Para conexiones FFA',
@@ -6060,6 +6074,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: 'Selecciona los ajustes que se sobrescribirán en tus espacios de trabajo existentes.',
                 accountingMismatch: ({part}: {part: string}) =>
                     `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
+                travelAddressMismatch: 'Solo puedes copiar los viajes si cada espacio de trabajo seleccionado tiene una dirección de empresa.',
             },
             confirmSettings: {
                 title: 'Vamos a asegurarnos de que todo se vea bien.',
@@ -7301,12 +7316,12 @@ ${amount} para ${merchant} - ${date}`,
                 },
             },
             agentRules: {
-                title: 'Reglas de Agente',
-                subtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas.',
-                addRule: 'Añadir regla de Agente',
-                findRule: 'Buscar regla de Agente',
+                title: 'Reglas del agente',
+                subtitle: 'Configura reglas para cómo los agentes de IA gestionan los gastos en este espacio de trabajo.',
+                addRule: 'Añadir regla de agente',
+                findRule: 'Encontrar regla de agente',
                 addRuleTitle: 'Añadir regla',
-                describeRuleTitle: 'Describe tu regla y Concierge la creará',
+                describeRuleTitle: 'Describe la regla que debe seguir tu agente de IA',
                 editRuleTitle: 'Editar regla',
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',
@@ -10097,6 +10112,22 @@ ${amount} para ${merchant} - ${date}`,
             button: 'Ver progreso',
             lockScreenBadgeText: 'Distancia',
             lockScreenTrackingText: 'Siguiendo...',
+        },
+    },
+    aiFeaturesPromoModal: {
+        subtitle: 'Nuevo en Concierge AI',
+        confirmText: '¡Vamos!',
+        spendAnalysis: {
+            title: 'Análisis interactivo del gasto',
+            description: `<muted-text>Concierge muestra información mensual sobre gastos y te permite profundizar en los detalles detrás de cada cifra. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Más información</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Conoce a tu nuevo asistente de gastos',
+            description: `<muted-text>Chatea con Concierge para crear y actualizar gastos, directamente en la aplicación o por correo electrónico o mensaje de texto. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Más información</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Crea tus propios agentes',
+            description: `<muted-text>Crea agentes personalizados para revisar, aprobar y asignar gastos según las reglas que configures. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Más información</a>.</muted-text>`,
         },
     },
 };
