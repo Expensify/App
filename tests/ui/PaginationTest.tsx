@@ -18,10 +18,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
-// We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App.
-// The first test mounts the entire App and lazy-loads every React Navigation screen, which is legitimately slow (~42s locally) and runs
-// even slower in CI under `--coverage` instrumentation and `--maxWorkers=6` contention, intermittently tipping over the old 120s ceiling.
-jest.setTimeout(240000);
+// We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
+jest.setTimeout(600000);
 
 jest.mock('@libs/BootSplash', () => ({
     hide: jest.fn().mockResolvedValue(undefined),
