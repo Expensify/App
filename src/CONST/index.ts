@@ -3014,7 +3014,6 @@ const CONST = {
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         PARENT_TAG_MAPPING: 'parentTagMapping',
         SYNC_MILESTONES: 'syncMilestones',
-        REPORT_EXPORT_STATUS: 'reportExportStatus',
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
         COMPANY: 'company',
@@ -3025,6 +3024,11 @@ const CONST = {
     CERTINIA_EXPORT_STATUS: {
         COMPLETE: 'Complete',
         IN_PROGRESS: 'In Progress',
+        APPROVED: 'Approved',
+        SUBMITTED: 'Submitted',
+    },
+
+    CERTINIA_REPORT_EXPORT_STATUS: {
         APPROVED: 'Approved',
         SUBMITTED: 'Submitted',
     },
@@ -7696,20 +7700,23 @@ const CONST = {
             SIGN_UP: {
                 NAME: 'sign_up',
                 META: 'CompleteRegistration',
-                REDDIT: 'SignUp',
-                LINKEDIN: 507587661,
             },
+            // Fired for workspace creations that don't match the "sales-eligible" profile. Uses a custom Meta event
+            // so the lower-value, higher-volume conversions don't dilute the standard "Lead" optimization below.
             WORKSPACE_CREATED: {
                 NAME: 'workspace_created',
+                META: 'workspace_created',
+                IS_CUSTOM_PIXEL_EVENT: true,
+            },
+            // Fired for workspace creations that match the "sales-eligible" profile (see getWorkspaceCreatedAnalyticsEvent).
+            // Uses the standard "Lead" event so Meta can optimize bids toward these higher-value leads.
+            WORKSPACE_CREATED_SALES_ELIGIBLE: {
+                NAME: 'workspace_created_sales_eligible',
                 META: 'Lead',
-                REDDIT: 'Lead',
-                LINKEDIN: 25474804,
             },
             PAID_ADOPTION: {
                 NAME: 'paid_adoption',
                 META: 'Purchase',
-                REDDIT: 'Purchase',
-                LINKEDIN: 25474820,
             },
         },
     },

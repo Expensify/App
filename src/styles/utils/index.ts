@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
-import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/UserAvatarCatalog';
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/letterAvatarPalette';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
