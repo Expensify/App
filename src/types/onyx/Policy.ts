@@ -1542,6 +1542,177 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     FinancialForceOfflineStateKeys
 >;
 
+/**
+ * Rillet subsidiary
+ */
+type RilletSubsidiaryType = 'LEGAL_ENTITY';
+type RilletSubsidiary = {
+    id: string;
+    tradeName: string;
+    currency: string;
+    timezone: string;
+    type: RilletSubsidiaryType;
+};
+
+/**
+ * Rillet account
+ */
+type RilletAccountStatus = 'ACTIVE' | 'INACTIVE';
+type RilletAccountType = 'ASSET' | 'LIABILITY' | 'EQUITY' | 'EXPENSE' | 'INCOME';
+type RilletAccount = {
+    id: string;
+    code: string;
+    name: string;
+    type: RilletAccountType;
+    subtype: string;
+    status: RilletAccountStatus;
+    intercompany: boolean;
+    updatedAt: string;
+};
+
+/**
+ * Rillet field
+ */
+type RilletFieldValue = {id: string; name: string; deactivated: boolean};
+type RilletField = {
+    id: string;
+    name: string;
+    values: RilletFieldValue[];
+    updatedAt: string;
+};
+
+/**
+ * Rillet tax rate
+ */
+type RilletTaxRate = {
+    id: string;
+    code: string;
+    country: string;
+    description: string;
+    percentage: string;
+};
+
+/**
+ * Rillet vendor
+ */
+type RilletVendor = {
+    id: string;
+    name: string;
+    email?: string;
+    accountCode?: string;
+    updatedAt: string;
+};
+
+/**
+ * Rillet bank account
+ */
+type RilletBankAccountStatus = 'ACTIVE' | 'INACTIVE';
+type RilletBankAccount = {
+    id: string;
+    name: string;
+    currency: string;
+    bankName: string;
+    subsidiaryID?: string;
+    accountCode?: string;
+    status: RilletBankAccountStatus;
+};
+
+/**
+ * Connection data for Rillet
+ */
+type RilletConnectionData = {
+    /** Collection of subsidiaries */
+    subsidiaries: RilletSubsidiary[];
+
+    /** Collection of accounts */
+    accounts: RilletAccount[];
+
+    /** Collection of fields */
+    fields: RilletField[];
+
+    /** Collection of tax rates */
+    taxRates: RilletTaxRate[];
+
+    /** Collection of vendors */
+    vendors: RilletVendor[];
+
+    /** Collection of bank accounts */
+    bankAccounts: RilletBankAccount[];
+};
+
+/** Rillet Coding */
+type RilletCodingFieldMappingValue = 'NONE' | 'TAG';
+type RilletCoding = {
+    fieldMappings: Record<string, RilletCodingFieldMappingValue>;
+    syncTaxRates: boolean;
+};
+
+/** Rillet Export */
+type RilletExportDate = 'LAST_EXPENSE' | 'REPORT_EXPORTED' | 'REPORT_SUBMITTED';
+type RilletExportReimbursable = 'VENDOR_BILL';
+type RilletExportCompanyCard = 'CREDIT_CARD';
+type RilletExport = {
+    exporter: string;
+    exportDate: RilletExportDate;
+    reimbursable: RilletExportReimbursable;
+    companyCard: RilletExportCompanyCard;
+    defaultVendorID: string;
+    creditCardAccountCode: string;
+    exportToMultipleAccounts: boolean;
+    cardProgramAccounts: Record<string, string>;
+    accountingMethod: string;
+};
+
+/** Rillet Auto-sync */
+type RilletAutoSync = {
+    enabled: boolean;
+};
+
+/** Rillet Sync */
+type RilletSync = {
+    syncReimbursedReports: boolean;
+    billPaymentAccountCode: string;
+    syncExpensifyCardSettlements: boolean;
+    settlementsBankAccountID: string;
+    syncTravelInvoicingSettlements: boolean;
+    travelInvoicingSettlementsBankAccountID: string;
+};
+
+/**
+ * Connection config for Rillet
+ */
+type RilletConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** The internalID of the selected subsidiary in Rillet */
+        subsidiaryID: string;
+
+        /** Whether the connection has been configured */
+        isConfigured: boolean;
+
+        /** Whether to enable a new Expense Category into Expensify */
+        enableNewCategories: boolean;
+
+        /** Coding settings */
+        coding: RilletCoding;
+
+        /** Export settings */
+        export: RilletExport;
+
+        /** Auto-sync settings */
+        autoSync?: RilletAutoSync;
+
+        /** Sync settings */
+        sync: RilletSync;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    keyof RilletCoding | keyof RilletExport | keyof RilletAutoSync | keyof RilletSync
+>;
+
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
@@ -1745,7 +1916,7 @@ type Connections = {
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<FinancialForceConnectionData, FinancialForceConnectionConfig>;
 
     /** Rillet integration connection */
-    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: Connection<unknown, unknown>; // s77rt TODO
+    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: Connection<RilletConnectionData, RilletConnectionsConfig>;
 
     /** Gusto integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
