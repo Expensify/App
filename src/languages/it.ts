@@ -9560,6 +9560,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             theresAProblemWithYourWallet: 'Si è verificato un problema con il tuo portafoglio',
             theresAProblemWithYourWalletTerms: 'C’è un problema con i termini del tuo portafoglio',
             aBankAccountIsLocked: 'Un conto bancario è bloccato',
+            completeHrSetup: 'Completa la configurazione HR',
         },
     },
     emptySearchView: {

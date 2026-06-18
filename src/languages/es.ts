@@ -9727,6 +9727,7 @@ ${amount} para ${merchant} - ${date}`,
             theresAProblemWithYourWallet: 'Hay un problema con tu billetera',
             theresAProblemWithYourWalletTerms: 'Hay un problema con los términos de tu billetera',
             aBankAccountIsLocked: 'Una cuenta bancaria está bloqueada',
+            completeHrSetup: 'Completa la configuración de RR. HH.',
         },
     },
     emptySearchView: {

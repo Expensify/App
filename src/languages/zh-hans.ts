@@ -9261,6 +9261,7 @@ ${reportName}`,
             theresAProblemWithYourWallet: '您的钱包出现问题',
             theresAProblemWithYourWalletTerms: '您的钱包条款存在问题',
             aBankAccountIsLocked: '银行账户已锁定',
+            completeHrSetup: '完成人力资源设置',
         },
     },
     emptySearchView: {
