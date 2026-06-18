@@ -21,6 +21,10 @@ function getModalState(snapshot: MfaSnapshot): MfaModalState {
  * Maps the machine snapshot to the state shape consumers read. The modal lifecycle is derived from
  * the chart, not stored: `modalState` mirrors the top-level state and drives the navigator's mount,
  * teardown animation, and unmount.
+ *
+ * Transitional: this wrapper lets existing consumers keep reading `state.X` while the machine is built
+ * out. Once the chart is complete, consumers will read the machine directly via `useSelector` from
+ * `@xstate/react` (a dedicated later PR), which retires this function and the `MfaState` bridge shape.
  */
 function snapshotToState(snapshot: MfaSnapshot): MfaState {
     return {...snapshot.context, modalState: getModalState(snapshot)};

@@ -9,9 +9,11 @@ import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {AuthTypeInfo} from '@libs/MultifactorAuthentication/shared/types';
 
 /**
- * The MFA state shape, shared so the machine layer can build its context from it without importing
- * the reducer. The Provider maps the machine snapshot back to this shape so consumers keep reading
- * `state.X` unchanged.
+ * The full MFA state shape. During the reducer-to-machine migration it is the single definition both
+ * layers build on, so the field set is not forked: the reducer (`stateReducer`) uses it directly and
+ * owns the fields not yet moved to the machine, while the machine derives its context (`MfaContext`)
+ * as a `Pick` of it, without importing the reducer. Consumers read the machine side through the
+ * narrower `MfaState` (that `Pick` plus `modalState`) via `snapshotToState`, not this full shape.
  */
 type MultifactorAuthenticationState = {
     /** Current error state - stops the flow and navigates to failure outcome */
