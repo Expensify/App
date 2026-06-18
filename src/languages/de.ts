@@ -4980,6 +4980,12 @@ ${amount} für ${merchant} – ${date}`,
             autoSyncDescription: 'Expensify wird jeden Tag automatisch mit Certinia synchronisiert.',
             syncReimbursedReportsDescription:
                 'Wenn diese Option aktiviert ist, wird jedes Mal, wenn eine zu zahlende Rechnung in FFA bezahlt wird, der zugehörige Expensify-Bericht automatisch als erstattet markiert.',
+            taxNonBillable: 'Steuer als nicht abrechenbar exportieren',
+            taxNonBillableDescription:
+                'Beim Exportieren abrechenbarer Ausgaben, die mit Steuersätzen aus Expensify codiert sind, wird der Steueranteil beim Export nach Certinia PSA als nicht abrechenbar markiert.',
+            foreignCurrencyAmount: 'Betrag in Fremdwährung exportieren',
+            foreignCurrencyAmountDescription:
+                'Wenn Sie erstattungsfähige Ausgaben als Spesenabrechnungen exportieren, exportieren wir den ursprünglichen Fremdwährungsbetrag jeder Transaktion nach Certinia, falls vorhanden.',
             exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach Certinia exportiert werden.',
             payableInvoices: 'Fällige Rechnungen',
             exportStatus: {

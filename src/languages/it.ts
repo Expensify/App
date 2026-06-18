@@ -4965,6 +4965,12 @@ ${amount} per ${merchant} - ${date}`,
             autoSyncDescription: 'Expensify si sincronizzerà automaticamente con Certinia ogni giorno.',
             syncReimbursedReportsDescription:
                 'Con questa opzione abilitata, ogni volta che una fattura da pagare viene saldata in FFA, il relativo report Expensify sarà automaticamente contrassegnato come rimborsato.',
+            taxNonBillable: 'Esporta imposte come non fatturabili',
+            taxNonBillableDescription:
+                'Quando esporti spese fatturabili codificate con aliquote fiscali da Expensify, la parte relativa alle imposte verrà contrassegnata come non fatturabile durante l’esportazione in Certinia PSA.',
+            foreignCurrencyAmount: 'Esporta importo in valuta estera',
+            foreignCurrencyAmountDescription:
+                'Se esporti le spese rimborsabili come note spese, esporteremo in Certinia l’importo originale in valuta estera di ogni transazione, se esiste.',
             exportDescription: 'Configura come i dati di Expensify vengono esportati in Certinia.',
             payableInvoices: 'Fatture da pagare',
             exportStatus: {
