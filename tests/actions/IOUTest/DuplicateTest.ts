@@ -138,14 +138,14 @@ describe('actions/Duplicate', () => {
             {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
         ];
 
-        const createMockIouAction = (transactionID: string, reportActionID: string, childReportID: string, IOUReportID?: string): ReportAction => ({
+        const createMockIouAction = (transactionID: string, reportActionID: string, childReportID: string, reportID?: string): ReportAction => ({
             reportActionID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             created: '2024-01-01 12:00:00',
+            reportID,
             originalMessage: {
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                IOUReportID,
             } as OriginalMessageIOU,
             message: [{type: 'TEXT', text: 'Test IOU message'}],
             childReportID,
