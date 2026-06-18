@@ -30,7 +30,7 @@ function NegatableFilter({baseFilterKey, isNegated, children, style, onNegationC
     return (
         <View style={[styles.flex1, styles.gap3, style]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>
-                <Text style={[styles.textSupporting]}>{translate('search.filters.filterType.label')}</Text>
+                <Text style={[styles.textLabelSupporting]}>{translate('search.filters.filterType.label')}</Text>
                 <View style={[styles.border, styles.negatableFilterButtons]}>
                     <Button
                         style={[styles.flex1]}
