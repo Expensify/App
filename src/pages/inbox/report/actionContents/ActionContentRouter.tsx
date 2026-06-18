@@ -447,7 +447,11 @@ function ActionContentRouter({
         );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION)) {
-        return <ReportActionItemBasicMessage message={getCommuterExclusionMessage(translate, action)} />;
+        return (
+            <ReportActionItemBasicMessage>
+                <RenderHTML html={`<comment><muted-text>${getCommuterExclusionMessage(translate, action, report?.policyID)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport) {
         return <CreateHarvestReportAction reportID={reportID} />;

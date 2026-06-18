@@ -48,6 +48,7 @@ import {getBankName, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import DistanceRequestUtils from './DistanceRequestUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
@@ -4204,7 +4205,9 @@ function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, repo
         const unit = originalMessage?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 
         if (originalMessage?.oldValue == null) {
-            return translate('workspaceActions.commuterExclusions.setFixedDistance', {distance: newValue, unit});
+            const unitLabel = DistanceRequestUtils.getDistanceUnitLabel(newValue, unit, translate);
+            const formattedDistance = `${newValue} ${unitLabel}`;
+            return translate('workspaceActions.commuterExclusions.setFixedDistance', {formattedDistance});
         }
 
         const oldValue = typeof originalMessage.oldValue === 'number' ? originalMessage.oldValue : Number(originalMessage.oldValue);
@@ -4659,11 +4662,19 @@ function getPlaidBalanceFailureMessage(translate: LocalizedTranslate, action: On
     });
 }
 
-function getCommuterExclusionMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
+function getCommuterExclusionMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>, policyID?: string): string {
     const original = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION>) ?? {distance: '0', unit: ''};
+    const distanceValue = Number(original.distance ?? 0);
+    const unit = String(original.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+    const unitLabel = DistanceRequestUtils.getDistanceUnitLabel(distanceValue, unit, translate);
+    const commuterLabel = translate('common.commuter');
+    const formattedDistance = `${distanceValue.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${commuterLabel} ${unitLabel}`;
+
+    const workspaceDistanceSettingsLink = policyID ? `${environmentURL}/${ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID)}` : '';
+
     return translate('distance.commuterExclusion.systemMessage', {
-        distance: String(original.distance ?? '0'),
-        unit: String(original.unit ?? ''),
+        formattedDistance,
+        workspaceDistanceSettingsLink,
     });
 }
 
