@@ -281,6 +281,8 @@ function updateMoneyRequestDate({
             transactionThreadReport,
             parentReport,
             rateID: newRateID,
+            created: value,
+            shouldSendCreatedToAPI: false,
             policy: effectivePolicy,
             policyTagList: policyTags,
             policyCategories,
@@ -1140,6 +1142,7 @@ function updateMoneyRequestDistanceRate({
     parentReport,
     rateID,
     created,
+    shouldSendCreatedToAPI = true,
     policy,
     policyTagList,
     policyCategories,
@@ -1161,6 +1164,7 @@ function updateMoneyRequestDistanceRate({
     parentReport: OnyxEntry<OnyxTypes.Report>;
     rateID: string;
     created?: string;
+    shouldSendCreatedToAPI?: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -1226,9 +1230,10 @@ function updateMoneyRequestDistanceRate({
         }
     }
     const {params, onyxData} = data;
-    // `taxAmount` & `taxCode` only needs to be updated in the optimistic data, so we need to remove them from the params
-    const {taxAmount, taxCode, ...paramsWithoutTaxUpdated} = params;
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsWithoutTaxUpdated, onyxData);
+    // `taxAmount`, `taxCode`, and optionally `created` only need to be updated in the optimistic data, so we need to remove them from the params
+    const {taxAmount, taxCode, created: createdParam, ...paramsWithoutTaxUpdated} = params;
+    const paramsForAPI = shouldSendCreatedToAPI && createdParam ? {...paramsWithoutTaxUpdated, created: createdParam} : paramsWithoutTaxUpdated;
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsForAPI, onyxData);
 }
 
 type UpdateMoneyRequestAmountAndCurrencyParams = {
