@@ -19,6 +19,7 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {
+    getReportOrDraftReport,
     hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
@@ -171,11 +172,12 @@ function PayActionButton({
         } else if (hasHeldExpensesReportUtils(transactions)) {
             onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, shouldShowPayButton);
         } else if (chatReport && iouReport) {
+            const currentChatReport = getReportOrDraftReport(chatReportID) ?? chatReport;
             if (isInvoiceReportUtils(iouReport)) {
                 startAnimation();
                 payInvoice({
                     paymentMethodType: type,
-                    chatReport,
+                    chatReport: currentChatReport,
                     invoiceReport: iouReport,
                     invoiceReportCurrentNextStepDeprecated: iouReportNextStep,
                     introSelected,
@@ -194,7 +196,7 @@ function PayActionButton({
             } else {
                 payMoneyRequest({
                     paymentType: type,
-                    chatReport,
+                    chatReport: currentChatReport,
                     iouReport,
                     introSelected,
                     iouReportCurrentNextStepDeprecated: iouReportNextStep,
