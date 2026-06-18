@@ -909,6 +909,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_REPORT_EXPORT_STATUS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaReportExportStatusPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_COMPANY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/CertiniaCompanySelectorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/RilletSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,

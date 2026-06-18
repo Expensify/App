@@ -700,6 +700,7 @@ const SCREENS = {
             CERTINIA_TAGS_MAPPING: 'Policy_Accounting_Certinia_Tags_Mapping',
             CERTINIA_REPORT_EXPORT_STATUS: 'Policy_Accounting_Certinia_Report_Export_Status',
             CERTINIA_COMPANY_SELECTOR: 'Policy_Accounting_Certinia_Company_Selector',
+            RILLET_SETUP: 'Policy_Rillet_Setup',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS: 'Dynamic_Policy_Accounting_Reconciliation_Account_Settings',

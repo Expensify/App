@@ -531,6 +531,7 @@ const translations = {
         goToConcierge: 'Go to Concierge',
         allSet: 'All Set!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `enter digit ${digitIndex} of ${totalDigits}`,
+        apiKey: 'API key',
     },
     socials: {
         podcast: 'Follow us on Podcast',
@@ -5491,6 +5492,11 @@ const translations = {
                         return 'mappings';
                 }
             },
+        },
+        rillet: {
+            rilletSetup: 'Rillet setup',
+            enterCredentials: 'Enter your Rillet API key',
+            howToFindAPIKey: '<strong>Finding your API key.</strong><ol><li>Log in to Rillet</li><li>Navigate to Account -> Settings</li><li>Copy the API key below</li></ol>',
         },
         type: {
             free: 'Free',

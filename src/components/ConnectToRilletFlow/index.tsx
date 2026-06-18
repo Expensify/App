@@ -16,7 +16,7 @@ function ConnectToRilletFlow({policyID}: ConnectToRilletFlowProps) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));
             return;
         }
-        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
+        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_SETUP.getRoute(policyID));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
