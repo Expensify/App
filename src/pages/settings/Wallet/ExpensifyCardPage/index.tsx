@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -29,7 +29,7 @@ import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {freezeCard, openCardDetailsPage, unfreezeCard} from '@libs/actions/Card';
+import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
@@ -97,7 +97,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const cardList = useNonPersonalCardList();
     const [, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [isLoadingCardDetailsFromServer] = useOnyx(ONYXKEYS.IS_LOADING_CARD_DETAILS);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -131,12 +131,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const currentPhysicalCard = useMemo(() => physicalCards?.find((card) => String(card?.cardID) === cardID) ?? physicalCards?.at(0), [physicalCards, cardID]);
     const revealedPIN = useRevealedPhysicalCardPin(String(currentPhysicalCard?.cardID));
     const scaRevealedCardDetails = useAllRevealedVirtualCardDetails();
-
-    // When opening this page directly (e.g. via a deep link from OldDot), the card may not be in CARD_LIST yet, so we
-    // fetch it from the server on mount. Until that fetch settles we show a loading indicator rather than the NotFoundPage.
-    useEffect(() => {
-        openCardDetailsPage(Number(cardID));
-    }, [cardID]);
 
     // Resets card details and revealed PIN when navigating away from the page.
     useFocusEffect(
@@ -282,16 +276,16 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
-    // The card details are fetched from the server on mount, so while CARD_LIST is still hydrating or that fetch is in
-    // flight we show the loading indicator instead of the NotFoundPage. When offline we cannot fetch, so we rely solely on
-    // whatever is already cached.
-    const isLoadingCardData = !currentCard && !isOffline && (isLoadingOnyxValue(cardListResult) || isLoadingCardDetailsFromServer !== false);
+    // The card data is loaded by the OpenApp request, so until the app has finished loading or CARD_LIST is still
+    // hydrating we show the loading indicator instead of the NotFoundPage. Otherwise, when opening this page directly
+    // (e.g. via a deep link from OldDot), the NotFoundPage briefly flashes before OpenApp populates CARD_LIST.
+    const isLoadingCardData = !currentCard && (!hasLoadedApp || isLoadingOnyxValue(cardListResult));
 
     if (isLoadingCardData) {
         return (
             <FullScreenLoadingIndicator
                 shouldUseGoBackButton
-                reasonAttributes={{context: 'ExpensifyCardPage', isOffline, isLoadingCardDetails: !!isLoadingCardDetailsFromServer}}
+                reasonAttributes={{context: 'ExpensifyCardPage', isOffline, hasLoadedApp: !!hasLoadedApp}}
             />
         );
     }
