@@ -9641,7 +9641,7 @@ Hey! Ich habe gerade für uns *3 kostenlose Monate* bekommen, um Expensify zu te
 Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     },
     export: {
-        exportAsPDF: 'Als PDF exportieren',
+        downloadStatementPDF: 'Kontoauszug als PDF herunterladen',
         basicExport: 'Standardexport',
         reportLevelExport: 'Alle Daten – Berichtsebene',
         expenseLevelExport: 'Alle Daten – Ausgabenebene',

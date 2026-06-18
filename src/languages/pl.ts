@@ -9581,7 +9581,7 @@ Cześć! Właśnie załatwiłem(am) nam *3 miesiące za darmo*, żeby wypróbowa
 Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     },
     export: {
-        exportAsPDF: 'Eksportuj jako PDF',
+        downloadStatementPDF: 'Pobierz wyciąg w PDF',
         basicExport: 'Podstawowy eksport',
         reportLevelExport: 'Wszystkie dane – poziom raportu',
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',

@@ -6553,6 +6553,7 @@ const CONST = {
             EDIT: 'edit',
             EXPORT: 'export',
             DOWNLOAD_PDF: 'downloadPDF',
+            DOWNLOAD_STATEMENT_PDF: 'downloadStatementPDF',
             APPROVE: 'approve',
             CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',

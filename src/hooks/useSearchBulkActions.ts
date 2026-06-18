@@ -531,9 +531,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [queryJSON, searchResults?.data, selectedTransactions],
     );
 
-    // `Export as PDF` is a submenu item invoked with shouldCallAfterModalHide, so PopoverMenu snapshots
-    // it and runs onSelected detached from the current render. Read the latest selection from a ref so
-    // the request always reflects what is selected now, not what was selected when the menu was built.
+    // PopoverMenu snapshots its items, so onSelected can run detached from the current render. Read the
+    // latest selection from a ref so the request reflects what is selected now, not what was when the menu
+    // was built.
     const expensifyCardStatementSelectionRef = useRef(expensifyCardStatementSelection);
     expensifyCardStatementSelectionRef.current = expensifyCardStatementSelection;
 
@@ -1579,19 +1579,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
             }
 
-            // "Select all matching" only loads the visible rows, so we would export an incomplete set of
-            // settlements while the UI claims everything is selected. The statement has no whole-query export
-            // path (unlike CSV/templates), so offer it only when the selection is the explicitly chosen rows.
-            if (expensifyCardStatementSelection && !areAllMatchingItemsSelected) {
-                exportOptions.push({
-                    text: translate('export.exportAsPDF'),
-                    icon: expensifyIcons.Document,
-                    onSelected: exportExpensifyCardStatementPDF,
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                });
-            }
-
             return exportOptions;
         };
 
@@ -1855,6 +1842,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     setPdfReportID(reportIDForPDF);
                     setIsPdfModalVisible(true);
                 },
+            });
+        }
+
+        // A standalone bulk action (not nested under Export). "Select all matching" only loads the visible
+        // rows, so we would export an incomplete set of settlements while the UI claims everything is selected;
+        // the statement has no whole-query export path (unlike CSV/templates), so require an explicit selection.
+        if (expensifyCardStatementSelection && !areAllMatchingItemsSelected) {
+            options.push({
+                icon: expensifyIcons.Document,
+                text: translate('export.downloadStatementPDF'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_STATEMENT_PDF,
+                onSelected: exportExpensifyCardStatementPDF,
+                shouldCloseModalOnSelect: true,
             });
         }
 

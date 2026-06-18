@@ -186,17 +186,8 @@ function makeCurrentSearchResults(groups: Record<string, SearchWithdrawalIDGroup
     };
 }
 
-function getExportAsPDFOption(options: Array<DropdownOption<SearchHeaderOptionValue>>) {
-    const exportOption = options.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-    if (!exportOption) {
-        return undefined;
-    }
-
-    if (exportOption.text === 'export.exportAsPDF') {
-        return exportOption;
-    }
-
-    return exportOption.subMenuItems?.find((subMenuItem) => subMenuItem.text === 'export.exportAsPDF');
+function getDownloadStatementPDFOption(options: Array<DropdownOption<SearchHeaderOptionValue>>) {
+    return options.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_STATEMENT_PDF);
 }
 
 // ---- tests ----
@@ -390,7 +381,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
-            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+            expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
         });
     });
 
@@ -407,10 +398,10 @@ describe('useSearchBulkActions - Download as PDF', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
-            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+            expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
         });
 
-        const exportAsPDFOption = getExportAsPDFOption(result.current.headerButtonsOptions);
+        const exportAsPDFOption = getDownloadStatementPDFOption(result.current.headerButtonsOptions);
         await act(async () => {
             await exportAsPDFOption?.onSelected?.();
         });
@@ -433,10 +424,10 @@ describe('useSearchBulkActions - Download as PDF', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
-            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+            expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
         });
 
-        const exportAsPDFOption = getExportAsPDFOption(result.current.headerButtonsOptions);
+        const exportAsPDFOption = getDownloadStatementPDFOption(result.current.headerButtonsOptions);
         await act(async () => {
             await exportAsPDFOption?.onSelected?.();
         });
@@ -470,12 +461,12 @@ describe('useSearchBulkActions - Download as PDF', () => {
         mockSelectedTransactions = {firstTxn: makeSelectedTransaction({groupKey: firstGroupKey, reportID: undefined})};
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
         await waitFor(() => {
-            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+            expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
         });
 
         // Start the first export, then switch the selection and start the second.
         await act(async () => {
-            await getExportAsPDFOption(result.current.headerButtonsOptions)?.onSelected?.();
+            await getDownloadStatementPDFOption(result.current.headerButtonsOptions)?.onSelected?.();
         });
         mockSelectedTransactions = {secondTxn: makeSelectedTransaction({groupKey: secondGroupKey, reportID: undefined})};
         // Re-render so the hook picks up the new selection, then start the second export.
@@ -483,10 +474,10 @@ describe('useSearchBulkActions - Download as PDF', () => {
             result.current.handleExpensifyCardStatementPDFModalHide();
         });
         await waitFor(() => {
-            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+            expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
         });
         await act(async () => {
-            await getExportAsPDFOption(result.current.headerButtonsOptions)?.onSelected?.();
+            await getDownloadStatementPDFOption(result.current.headerButtonsOptions)?.onSelected?.();
         });
 
         // The now-stale first request fails. It must not close the second export's modal or show an error.
@@ -515,10 +506,10 @@ describe('useSearchBulkActions - Download as PDF', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
-            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+            expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
         });
 
-        const exportAsPDFOption = getExportAsPDFOption(result.current.headerButtonsOptions);
+        const exportAsPDFOption = getDownloadStatementPDFOption(result.current.headerButtonsOptions);
         await act(async () => {
             await exportAsPDFOption?.onSelected?.();
         });
@@ -543,7 +534,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
         });
-        expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeUndefined();
+        expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeUndefined();
         expect(getExpensifyCardStatementPDF).not.toHaveBeenCalled();
     });
 
@@ -563,7 +554,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
         });
-        expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeUndefined();
+        expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeUndefined();
         expect(getExpensifyCardStatementPDF).not.toHaveBeenCalled();
     });
 
@@ -582,13 +573,13 @@ describe('useSearchBulkActions - Download as PDF', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
-            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+            expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
         });
 
         // Capture the handler now and reuse it after the selection changes. PopoverMenu snapshots the
         // submenu item and fires it detached from the current render, so a stale handler must still
         // request the latest selection.
-        const snapshottedOnSelected = getExportAsPDFOption(result.current.headerButtonsOptions)?.onSelected;
+        const snapshottedOnSelected = getDownloadStatementPDFOption(result.current.headerButtonsOptions)?.onSelected;
         await act(async () => {
             await snapshottedOnSelected?.();
         });
@@ -628,10 +619,10 @@ describe('useSearchBulkActions - Download as PDF', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
-            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+            expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
         });
 
-        const exportAsPDFOption = getExportAsPDFOption(result.current.headerButtonsOptions);
+        const exportAsPDFOption = getDownloadStatementPDFOption(result.current.headerButtonsOptions);
         await act(async () => {
             await exportAsPDFOption?.onSelected?.();
         });

@@ -9585,7 +9585,7 @@ Ei! Acabei de conseguir *3 meses grátis* para a gente testar o Expensify, a man
 Aqui está um *comprovante de teste* para mostrar como funciona:`,
     },
     export: {
-        exportAsPDF: 'Exportar como PDF',
+        downloadStatementPDF: 'Baixar PDF do extrato',
         basicExport: 'Exportação básica',
         reportLevelExport: 'Todos os dados - nível de relatório',
         expenseLevelExport: 'Todos os dados - nível de despesa',

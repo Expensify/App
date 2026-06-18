@@ -9508,7 +9508,7 @@ ${reportName}`,
 使い方がわかるように、こちらが*テスト用レシート*です。`,
     },
     export: {
-        exportAsPDF: 'PDFとしてエクスポート',
+        downloadStatementPDF: '明細書をPDFでダウンロード',
         basicExport: '基本エクスポート',
         reportLevelExport: 'すべてのデータ - レポートレベル',
         expenseLevelExport: 'すべてのデータ - 経費レベル',

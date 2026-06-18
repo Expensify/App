@@ -9629,7 +9629,7 @@ Ciao! Ho appena ottenuto *3 mesi gratis* per noi per provare Expensify, il modo 
 Ecco una *ricevuta di prova* per mostrarti come funziona:`,
     },
     export: {
-        exportAsPDF: 'Esporta come PDF',
+        downloadStatementPDF: 'Scarica estratto conto in PDF',
         basicExport: 'Esportazione di base',
         reportLevelExport: 'Tutti i dati - livello report',
         expenseLevelExport: 'Tutti i dati - livello spesa',
