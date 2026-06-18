@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
+import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
 import mapValues from 'lodash/mapValues';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -58,10 +58,11 @@ import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     hasEReceipt,
+    hasPendingDistanceReceiptRegeneration,
     hasReceiptSource,
     hasReceipt as hasReceiptTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
-    isManualDistanceRequest,
+    isMapBasedDistanceRequest,
     isScanning,
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
@@ -79,6 +80,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import HoveredDistanceEReceipt from './HoveredDistanceEReceipt';
 import {isElementHovered, resetButtonHoverState} from './receiptHoverUtils';
 import ReportActionItemImage from './ReportActionItemImage';
 
@@ -143,9 +145,9 @@ function MoneyRequestReceiptView({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
-    const reportOwnerSelector = useMemo(() => personalDetailByAccountIDSelector(report?.ownerAccountID), [report?.ownerAccountID]);
+    const reportOwnerSelector = useMemo(() => personalDetailsSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
-    const chatReportOwnerSelector = useMemo(() => personalDetailByAccountIDSelector(chatReport?.ownerAccountID), [chatReport?.ownerAccountID]);
+    const chatReportOwnerSelector = useMemo(() => personalDetailsSelector(chatReport?.ownerAccountID), [chatReport?.ownerAccountID]);
     const [chatReportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: chatReportOwnerSelector}, [chatReportOwnerSelector]);
     const delegateAccountID = useDelegateAccountID();
 
@@ -169,11 +171,20 @@ function MoneyRequestReceiptView({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const [rawTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${moneyRequestReport?.policyID}`);
 
-    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
-    const hasReceipt = hasReceiptTransactionUtils(updatedTransaction ?? transaction);
-    const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
+    const displayedTransaction = updatedTransaction ?? transaction;
+    const isDistanceRequest = isDistanceRequestTransactionUtils(displayedTransaction);
+
+    // The hover overlay shows the full distance e-receipt (map + amount + waypoints), so only surface it for
+    // map/route-based distance expenses. Odometer and pure-manual distance expenses have no map and must be excluded.
+    const isMapDistanceRequest = isMapBasedDistanceRequest(displayedTransaction);
+    // While the receipt is regenerating (e.g. after an offline waypoint edit) the stored map is stale and can't be
+    // redrawn locally, so don't surface the e-receipt overlay — the receipt box already shows the pending map.
+    const canShowDistanceEReceipt = isMapDistanceRequest && !hasPendingDistanceReceiptRegeneration(displayedTransaction);
+    const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
+    const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
@@ -255,11 +266,10 @@ function MoneyRequestReceiptView({
 
     let receiptURIs;
     if (hasReceipt) {
-        receiptURIs = getThumbnailAndImageURIs(updatedTransaction ?? transaction);
+        receiptURIs = getThumbnailAndImageURIs(displayedTransaction);
     }
-    const transactionForReceipt = updatedTransaction ?? transaction;
-    const isEReceiptTransaction = !!transactionForReceipt && !hasReceiptSource(transactionForReceipt) && hasEReceipt(transactionForReceipt);
-    const canZoomReceipt = hasReceipt && !isLoading && !isTransactionScanning && !isEReceiptTransaction && !!receiptURIs?.image;
+    const isEReceiptTransaction = !!displayedTransaction && !hasReceiptSource(displayedTransaction) && hasEReceipt(displayedTransaction);
+    const canZoomReceipt = hasReceipt && !isLoading && !isEReceiptTransaction && !!receiptURIs?.image;
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => {
@@ -504,12 +514,9 @@ function MoneyRequestReceiptView({
 
     const showBorderlessLoading = isLoading && fillSpace;
 
-    const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
-
-    // "Add additional receipt" stays hidden for map distance receipts: the map image is auto-generated, so there is nothing to supplement.
-    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !isMapDistanceRequest && !mergeTransactionID;
-    // "Expand" is a read-only action that works for any receipt (the transaction receipt route already renders the map), so it is not gated on !isMapDistanceRequest.
-    const canShowExpandButton = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
+    // Map distance receipts (auto-generated map image) should still show both hover actions — "Add additional receipt" and "Expand" —
+    // just like regular receipts, so we don't exclude isMapDistanceRequest here.
+    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
@@ -536,6 +543,7 @@ function MoneyRequestReceiptView({
             transactionPolicy: policy,
             transactionPolicyCategories: policyCategories,
             transactionPolicyTagList: policyTagList,
+            transactionViolations: rawTransactionViolations,
         });
     };
 
@@ -619,6 +627,15 @@ function MoneyRequestReceiptView({
                             ref={receiptContainerRef}
                             style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}
                             onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
+                            // `onMouseEnter` alone isn't enough to keep `hovered` in sync: when `hovered` resets while
+                            // the cursor is already over the receipt (e.g. after closing the RHP) or `onMouseEnter` fires
+                            // while the receipt is still loading, no new `mouseenter` event occurs, so we re-sync on mouse move.
+                            onMouseMove={() => {
+                                if (isLoading || hovered) {
+                                    return;
+                                }
+                                hoverBind.onMouseEnter();
+                            }}
                             onMouseLeave={hoverBind.onMouseLeave}
                         >
                             <View style={[styles.flex1, isReceiptOfflinePending && styles.offlineFeedbackPending]}>
@@ -626,67 +643,69 @@ function MoneyRequestReceiptView({
                                     isEnabled={canZoomReceipt}
                                     hoverContainerRef={receiptContainerRef}
                                 >
-                                    <ReportActionItemImage
-                                        shouldUseThumbnailImage={!fillSpace}
-                                        shouldUseFullHeight={fillSpace}
-                                        thumbnail={receiptURIs?.thumbnail}
-                                        fileExtension={receiptURIs?.fileExtension}
-                                        isThumbnail={receiptURIs?.isThumbnail}
-                                        image={receiptURIs?.image}
-                                        isLocalFile={receiptURIs?.isLocalFile}
-                                        filename={receiptURIs?.filename}
-                                        transaction={updatedTransaction ?? transaction}
-                                        enablePreviewModal
-                                        readonly={readonly || !canEditReceipt}
-                                        mergeTransactionID={mergeTransactionID}
-                                        report={report}
-                                        onLoad={() => setIsLoading(false)}
-                                        onLoadFailure={() => setIsLoading(false)}
-                                    />
+                                    <>
+                                        <ReportActionItemImage
+                                            shouldUseThumbnailImage={!fillSpace}
+                                            shouldUseFullHeight={fillSpace}
+                                            canZoomReceipt={canZoomReceipt}
+                                            thumbnail={receiptURIs?.thumbnail}
+                                            fileExtension={receiptURIs?.fileExtension}
+                                            isThumbnail={receiptURIs?.isThumbnail}
+                                            image={receiptURIs?.image}
+                                            isLocalFile={receiptURIs?.isLocalFile}
+                                            filename={receiptURIs?.filename}
+                                            transaction={updatedTransaction ?? transaction}
+                                            enablePreviewModal
+                                            readonly={readonly || !canEditReceipt}
+                                            mergeTransactionID={mergeTransactionID}
+                                            report={report}
+                                            onLoad={() => setIsLoading(false)}
+                                            onLoadFailure={() => setIsLoading(false)}
+                                        />
+                                        {canShowDistanceEReceipt && hovered && !!displayedTransaction && <HoveredDistanceEReceipt transaction={displayedTransaction} />}
+                                    </>
                                 </ReceiptHoverZoom>
                             </View>
-                            {canShowExpandButton && (
+                            {canShowReceiptActions && (
                                 <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isPickerOpen && deviceHasHoverSupport && styles.opacity0]}>
-                                    {canShowReceiptActions && (
-                                        <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
-                                            {({openPicker}) => (
-                                                <Tooltip text={translate('receipt.addAdditionalReceipt')}>
-                                                    <PressableWithoutFeedback
-                                                        ref={addButtonRef}
-                                                        onPress={() => {
-                                                            setIsPickerOpen(true);
-                                                            resetButtonHoverState(addButtonRef);
-                                                            const onPickerClosed = () => {
-                                                                setIsPickerOpen(false);
-                                                                if (isElementHovered(receiptContainerRef)) {
-                                                                    hoverBind.onMouseEnter();
-                                                                }
-                                                            };
-                                                            openPicker({
-                                                                onPicked: (files) => {
-                                                                    onPickerClosed();
-                                                                    validateFiles(files, undefined, {isValidatingReceipts: false});
-                                                                },
-                                                                onCanceled: onPickerClosed,
-                                                            });
-                                                        }}
-                                                        style={styles.receiptActionButton}
-                                                        hoverStyle={styles.buttonDefaultHovered}
-                                                        accessibilityLabel={translate('receipt.addAdditionalReceipt')}
-                                                        role={CONST.ROLE.BUTTON}
-                                                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
-                                                    >
-                                                        <Icon
-                                                            src={lazyIcons.ReceiptPlus}
-                                                            height={variables.iconSizeSmall}
-                                                            width={variables.iconSizeSmall}
-                                                            fill={theme.icon}
-                                                        />
-                                                    </PressableWithoutFeedback>
-                                                </Tooltip>
-                                            )}
-                                        </AttachmentPicker>
-                                    )}
+                                    <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
+                                        {({openPicker}) => (
+                                            <Tooltip text={translate('receipt.addAdditionalReceipt')}>
+                                                <PressableWithoutFeedback
+                                                    ref={addButtonRef}
+                                                    onPress={() => {
+                                                        setIsPickerOpen(true);
+                                                        resetButtonHoverState(addButtonRef);
+                                                        const onPickerClosed = () => {
+                                                            setIsPickerOpen(false);
+                                                            if (isElementHovered(receiptContainerRef)) {
+                                                                hoverBind.onMouseEnter();
+                                                            }
+                                                        };
+                                                        openPicker({
+                                                            onPicked: (files) => {
+                                                                onPickerClosed();
+                                                                validateFiles(files, undefined, {isValidatingReceipts: false});
+                                                            },
+                                                            onCanceled: onPickerClosed,
+                                                        });
+                                                    }}
+                                                    style={styles.receiptActionButton}
+                                                    hoverStyle={styles.buttonDefaultHovered}
+                                                    accessibilityLabel={translate('receipt.addAdditionalReceipt')}
+                                                    role={CONST.ROLE.BUTTON}
+                                                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
+                                                >
+                                                    <Icon
+                                                        src={lazyIcons.ReceiptPlus}
+                                                        height={variables.iconSizeSmall}
+                                                        width={variables.iconSizeSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                </PressableWithoutFeedback>
+                                            </Tooltip>
+                                        )}
+                                    </AttachmentPicker>
                                     <Tooltip text={translate('reportActionCompose.expand')}>
                                         <PressableWithoutFocus
                                             onPress={() =>

@@ -80,6 +80,10 @@ function ApprovalWorkflowSection({
 
     const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
 
+    // Mirror the approver row's pending opacity on the "Expenses from" row so both fade together while
+    // the workflow (e.g. a member invited offline) is still pending server confirmation.
+    const membersPendingAction = sortedMembers.find((member) => !!member.pendingFields?.submitsTo)?.pendingFields?.submitsTo;
+
     const members = approvalWorkflow.isDefault ? translate('workspace.common.everyone') : sortedMembers.map((m) => Str.removeSMSDomain(m.displayName)).join(', ');
 
     const memberPills = sortedMembers.map((m) => ({
@@ -115,38 +119,40 @@ function ApprovalWorkflowSection({
                         </Text>
                     </View>
                 )}
-                <MenuItem
-                    title={translate('workflowsExpensesFromPage.title')}
-                    style={styles.p0}
-                    titleStyle={styles.textLabelSupportingNormal}
-                    descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
-                    description={approvalWorkflow.isDefault ? members : undefined}
-                    numberOfLinesDescription={4}
-                    shouldBeAccessible={false}
-                    tabIndex={-1}
-                    icon={icons.Users}
-                    iconHeight={20}
-                    iconWidth={20}
-                    iconFill={theme.icon}
-                    onPress={pressAction}
-                    shouldRemoveBackground
-                    titleComponent={
-                        !approvalWorkflow.isDefault ? (
-                            <View style={styles.ml3}>
-                                {!isDisabled && onShowAllMembersPress ? (
-                                    <UserPills
-                                        users={memberPills}
-                                        onShowAllPress={onShowAllMembersPress}
-                                        showAllSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_SHOW_ALL_MEMBERS}
-                                    />
-                                ) : (
-                                    <UserPills users={memberPills} />
-                                )}
-                            </View>
-                        ) : undefined
-                    }
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_EXPENSES_FROM}
-                />
+                <OfflineWithFeedback pendingAction={membersPendingAction}>
+                    <MenuItem
+                        title={translate('workflowsExpensesFromPage.title')}
+                        style={styles.p0}
+                        titleStyle={styles.textLabelSupportingNormal}
+                        descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
+                        description={approvalWorkflow.isDefault ? members : undefined}
+                        numberOfLinesDescription={4}
+                        shouldBeAccessible={false}
+                        tabIndex={-1}
+                        icon={icons.Users}
+                        iconHeight={20}
+                        iconWidth={20}
+                        iconFill={theme.icon}
+                        onPress={pressAction}
+                        shouldRemoveBackground
+                        titleComponent={
+                            !approvalWorkflow.isDefault ? (
+                                <View style={styles.ml3}>
+                                    {!isDisabled && onShowAllMembersPress ? (
+                                        <UserPills
+                                            users={memberPills}
+                                            onShowAllPress={onShowAllMembersPress}
+                                            showAllSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_SHOW_ALL_MEMBERS}
+                                        />
+                                    ) : (
+                                        <UserPills users={memberPills} />
+                                    )}
+                                </View>
+                            ) : undefined
+                        }
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_EXPENSES_FROM}
+                    />
+                </OfflineWithFeedback>
 
                 {approvalWorkflow.approvers.map((approver, index) => (
                     <OfflineWithFeedback
