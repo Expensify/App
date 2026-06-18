@@ -88,7 +88,6 @@ type LetterAvatarIDs =
     | 'letter-default-avatar_y'
     | 'letter-default-avatar_z';
 
-type LetterAvatarColorStyle = {backgroundColor: string; fillColor: string};
 type UserAvatarID = DefaultAvatarIDs | SeasonF1AvatarIDs;
 
-export type {DefaultAvatarIDs, SeasonF1AvatarIDs, LetterAvatarIDs, UserAvatarID, LetterAvatarColorStyle};
+export type {DefaultAvatarIDs, SeasonF1AvatarIDs, LetterAvatarIDs, UserAvatarID};
