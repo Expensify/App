@@ -268,6 +268,21 @@ const config = defineConfig([
             lodash,
         },
 
+        settings: {
+            // `plugin:@dword-design/import-alias/recommended` overrides `import/resolver`
+            // with JS-only extensions. Restore TS resolution so `import/extensions` can resolve
+            // extensionless relative imports like `../src/foo` to `foo.ts`.
+            'import/resolver': {
+                node: {
+                    extensions: ['.mjs', '.js', '.jsx', '.json', '.ts', '.tsx', '.d.ts', '.cts', '.mts'],
+                },
+            },
+            'import/extensions': ['.js', '.mjs', '.jsx', '.ts', '.tsx', '.d.ts', '.cts', '.mts'],
+            'import/parsers': {
+                '@typescript-eslint/parser': ['.ts', '.tsx', '.d.ts', '.cts', '.mts'],
+            },
+        },
+
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.json'),
