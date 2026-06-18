@@ -14,9 +14,11 @@ When a company card connection breaks, transactions stop importing. Workspace Ad
 
 Workspace Admins see indicators in Expensify when a company card feed is broken: 
 
-- A notification appears in the **Time Sensitive** section on **Home**.
+- A **Fix company card connection** task appears in the **Time Sensitive** section on **Home**.
 - Concierge sends a message to the #admins room
 - A red dot appears on the card feed with the message “Card feed connection is broken”
+
+The **Time Sensitive** task on **Home** appears only for direct card feeds connected through a bank login (such as OAuth or Plaid), and only one task is shown per feed even if multiple cards on that feed are affected. Commercial (file-based) card feeds are not reconnected through a bank login, so they do not show a **Time Sensitive** task. For those feeds, use the red dot indicator on the card feed and the Concierge message in the #admins room.
 
 ---
 
