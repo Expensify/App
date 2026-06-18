@@ -663,10 +663,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    // Flag the new tx for useNewTransactions — the render-to-render diff misses txs added before the view mounts.
-    // REPORT_METADATA is persisted, so both successData and failureData clear the flag to prevent a stale highlight
-    // on the next session. successData is race-safe: the optimistic merge latches useAnimatedHighlightStyle
-    // synchronously, while successData arrives only after a network round-trip.
+    // Flag the new tx for useNewTransactions; success/failure clear it because REPORT_METADATA is persisted (else stale highlight on next session).
     if (iou.report?.reportID && transaction.transactionID) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
