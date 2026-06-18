@@ -402,7 +402,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            accessibilityLabel={getExpenseReportRowAccessibilityLabel(liveReportItem)}
+            accessibilityLabel={getExpenseReportRowAccessibilityLabel(liveReportItem, translate('iou.receiptStatusTitle'))}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
             isFocused={isFocused}
