@@ -9,8 +9,6 @@
  * This loader replaces oxc-loader entirely for Rule A (app source).
  */
 
-'use strict';
-
 const path = require('path');
 const {getTsconfig} = require('get-tsconfig');
 
@@ -19,15 +17,19 @@ const {getTsconfig} = require('get-tsconfig');
 const oxcTransformPath = require.resolve('oxc-transform', {
     paths: [path.resolve(__dirname, '../../node_modules/oxc-loader')],
 });
-// eslint-disable-next-line import/no-dynamic-require, @typescript-eslint/no-unsafe-assignment
-const {transform, transformSync} = require(oxcTransformPath);
+
+const {transform} = require(oxcTransformPath);
 
 function extractTsconfigOptions(rootContext) {
     try {
         const tsconfig = getTsconfig(rootContext);
-        if (!tsconfig) return {};
+        if (!tsconfig) {
+            return {};
+        }
         const {compilerOptions} = tsconfig.config;
-        if (!compilerOptions) return {};
+        if (!compilerOptions) {
+            return {};
+        }
         const opts = {};
         if (compilerOptions.target) {
             const map = {
@@ -42,12 +44,27 @@ function extractTsconfigOptions(rootContext) {
                 ESNEXT: 'esnext',
             };
             const t = map[compilerOptions.target.toUpperCase()];
-            if (t) opts.target = t;
+            if (t) {
+                opts.target = t;
+            }
         }
         return opts;
     } catch {
         return {};
     }
+}
+
+function getLang(ext) {
+    if (ext === 'tsx') {
+        return 'tsx';
+    }
+    if (ext === 'jsx') {
+        return 'jsx';
+    }
+    if (ext === 'ts') {
+        return 'ts';
+    }
+    return 'js';
 }
 
 module.exports = async function oxcReactCompilerLoader(source) {
@@ -59,7 +76,7 @@ module.exports = async function oxcReactCompilerLoader(source) {
 
         const resourcePath = this.resourcePath;
         const ext = path.extname(resourcePath).slice(1);
-        const lang = ext === 'tsx' || ext === 'jsx' ? (ext === 'tsx' ? 'tsx' : 'jsx') : ext === 'ts' ? 'ts' : 'js';
+        const lang = getLang(ext);
 
         const transformOptions = {
             ...tsconfigOptions,
@@ -78,8 +95,8 @@ module.exports = async function oxcReactCompilerLoader(source) {
         const rcErrors = (result.errors || []).filter((e) => e.message && e.message.includes('[ReactCompiler]'));
         const fatalErrors = (result.errors || []).filter((e) => !e.message?.includes('[ReactCompiler]'));
 
-        if (rcErrors.length > 0) {
-            rcErrors.forEach((e) => this.emitWarning(new Error(`oxc-react-compiler-loader: ${e.message}`)));
+        for (const e of rcErrors) {
+            this.emitWarning(new Error(`oxc-react-compiler-loader: ${e.message}`));
         }
 
         if (fatalErrors.length > 0) {

@@ -21,44 +21,27 @@ function traceTransformer() {
     };
 }
 
-/**
- * Setting targets to node 20 to reduce JS bundle size
- * It is also recommended by babel:
- * https://babeljs.io/docs/options#no-targets
- */
-const defaultPresetsForWeb = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
-const defaultPluginsForWeb = [
-    ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
-    // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
-    ['react-native-web'],
-
-    '@babel/transform-runtime',
-    '@babel/plugin-proposal-class-properties',
-    ['@babel/plugin-transform-object-rest-spread', {useBuiltIns: true, loose: true}],
-
-    // We use `@babel/plugin-transform-class-properties` for transforming ReactNative libraries and do not use it for our own
-    // source code transformation as we do not use class property assignment.
-    '@babel/plugin-transform-class-properties',
-    '@babel/plugin-proposal-export-namespace-from',
-    // Keep it last
-    'react-native-worklets/plugin',
-    '@babel/plugin-transform-export-namespace-from',
-];
-
-defaultPluginsForWeb.push([
-    '@fullstory/babel-plugin-annotate-react',
-    {
-        native: true,
-    },
-]);
-
-if (process.env.DEBUG_BABEL_TRACE) {
-    defaultPluginsForWeb.push(traceTransformer);
-}
-
+// This config is no longer read by the web build. Rsbuild's JS/TS/JSX pipeline (see
+// config/rsbuild/rsbuild.common.ts) uses OXC directly with inline loader options
+// (configFile:false), bypassing this file entirely. Kept here for tooling compatibility
+// (e.g. IDE plugins that load babel.config.js without setting a caller name).
+// The presets/plugins that previously lived here (@babel/preset-react, @babel/preset-env,
+// @babel/preset-flow, @babel/preset-typescript, babel-plugin-react-native-web, and several
+// class-property/export-namespace transforms) have been removed from devDependencies because
+// OXC now handles those transforms natively in the web build.
 const web = {
-    presets: defaultPresetsForWeb,
-    plugins: defaultPluginsForWeb,
+    presets: [],
+    plugins: [
+        ['babel-plugin-react-compiler', ReactCompilerConfig],
+        'react-native-worklets/plugin',
+        '@babel/plugin-transform-export-namespace-from',
+        [
+            '@fullstory/babel-plugin-annotate-react',
+            {
+                native: true,
+            },
+        ],
+    ],
 };
 
 const metro = {
@@ -172,9 +155,9 @@ module.exports = (api) => {
     }
 
     // For `react-native` (iOS/Android) caller will be "metro"
-    // For the web build (Rspack) caller will be "babel-loader"
     // For jest, it will be babel-jest
-    // For `storybook` there won't be any config at all so we must give default argument of an empty object
+    // The web build and Storybook (Rsbuild) don't call into this file at all — their JS/TS/JSX
+    // pipeline goes through OXC directly (see config/rsbuild/rsbuild.common.ts), bypassing Babel.
     const runningIn = api.caller((args = {}) => args.name);
     if (!process.env.KNIP) {
         console.debug('  - running in: ', runningIn);

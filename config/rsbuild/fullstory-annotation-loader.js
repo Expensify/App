@@ -15,8 +15,6 @@
  * Supports `native: true` mode only (matches the existing webpack config).
  */
 
-'use strict';
-
 const parser = require('@babel/parser');
 const traverse = require('@babel/traverse').default;
 const generate = require('@babel/generator').default;
@@ -186,9 +184,13 @@ function hasAttribute(openingElement, name) {
 }
 
 function isFragment(openingElement) {
-    if (!openingElement || !openingElement.name) return false;
+    if (!openingElement || !openingElement.name) {
+        return false;
+    }
     const name = openingElement.name;
-    if (t.isJSXIdentifier(name, {name: 'Fragment'}) || t.isJSXIdentifier(name, {name: 'React.Fragment'})) return true;
+    if (t.isJSXIdentifier(name, {name: 'Fragment'}) || t.isJSXIdentifier(name, {name: 'React.Fragment'})) {
+        return true;
+    }
     if (t.isJSXMemberExpression(name)) {
         return t.isJSXIdentifier(name.object, {name: 'React'}) && t.isJSXIdentifier(name.property, {name: 'Fragment'});
     }
@@ -196,13 +198,17 @@ function isFragment(openingElement) {
 }
 
 function addAttribute(openingElement, attrName, value) {
-    if (!openingElement || isFragment(openingElement) || hasAttribute(openingElement, attrName)) return;
+    if (!openingElement || isFragment(openingElement) || hasAttribute(openingElement, attrName)) {
+        return;
+    }
     openingElement.attributes.push(t.jSXAttribute(t.jSXIdentifier(attrName), t.stringLiteral(value)));
 }
 
-function annotateJSXNode(jsxPath, componentName, sourceFileName) {
+function applyPropsToJSXNode(jsxPath, componentName, sourceFileName) {
     const openingEl = jsxPath.node.openingElement;
-    if (!openingEl || isFragment(openingEl)) return;
+    if (!openingEl || isFragment(openingEl)) {
+        return;
+    }
 
     const elementName = t.isJSXIdentifier(openingEl.name) ? openingEl.name.name : 'unknown';
 
@@ -212,38 +218,48 @@ function annotateJSXNode(jsxPath, componentName, sourceFileName) {
     }
 
     // dataComponent — only for root element of a component
-    if (componentName) addAttribute(openingEl, ATTR_COMPONENT, componentName);
+    if (componentName) {
+        addAttribute(openingEl, ATTR_COMPONENT, componentName);
+    }
 
     // dataSourceFile
-    if (sourceFileName) addAttribute(openingEl, ATTR_SOURCE_FILE, sourceFileName);
+    if (sourceFileName) {
+        addAttribute(openingEl, ATTR_SOURCE_FILE, sourceFileName);
+    }
 
     // Recurse into children (they get dataElement + dataSourceFile, but not dataComponent)
     for (const child of jsxPath.get('children')) {
         if (child.isJSXElement()) {
-            annotateJSXNode(child, null, sourceFileName);
+            applyPropsToJSXNode(child, null, sourceFileName);
         }
     }
 }
 
-function annotateComponent(funcPath, componentName, sourceFileName) {
+function applyPropsToComponent(funcPath, componentName, sourceFileName) {
     // Find the top-level JSX return in the function body
     let jsxPath = null;
 
     const body = funcPath.get('body');
     if (!body.isBlockStatement()) {
         // Arrow with expression body: `() => <Foo />`
-        if (body.isJSXElement() || body.isJSXFragment()) jsxPath = body;
+        if (body.isJSXElement() || body.isJSXFragment()) {
+            jsxPath = body;
+        }
     } else {
         const stmts = body.get('body');
         const returnStmt = stmts.find((s) => s.isReturnStatement());
         if (returnStmt) {
             const arg = returnStmt.get('argument');
-            if (arg.isJSXElement() || arg.isJSXFragment()) jsxPath = arg;
+            if (arg.isJSXElement() || arg.isJSXFragment()) {
+                jsxPath = arg;
+            }
         }
     }
 
-    if (!jsxPath) return;
-    annotateJSXNode(jsxPath, componentName, sourceFileName);
+    if (!jsxPath) {
+        return;
+    }
+    applyPropsToJSXNode(jsxPath, componentName, sourceFileName);
 }
 
 module.exports = function fullstoryAnnotationLoader(source) {
@@ -255,7 +271,9 @@ module.exports = function fullstoryAnnotationLoader(source) {
     }
 
     // Only process files that likely contain JSX
-    if (!/\.(jsx|tsx|js|ts)$/.test(resourcePath)) return source;
+    if (!/\.(jsx|tsx|js|ts)$/.test(resourcePath)) {
+        return source;
+    }
 
     const sourceFileName = resourcePath.split('/').pop();
 
@@ -277,43 +295,60 @@ module.exports = function fullstoryAnnotationLoader(source) {
     traverse(ast, {
         FunctionDeclaration(path) {
             const name = path.node.id && path.node.id.name;
-            if (!name) return;
+            if (!name) {
+                return;
+            }
             const before = JSON.stringify(path.node);
-            annotateComponent(path, name, sourceFileName);
-            if (JSON.stringify(path.node) !== before) modified = true;
+            applyPropsToComponent(path, name, sourceFileName);
+            if (JSON.stringify(path.node) !== before) {
+                modified = true;
+            }
         },
         ArrowFunctionExpression(path) {
             const parent = path.parent;
             const name = t.isVariableDeclarator(parent) && t.isIdentifier(parent.id) ? parent.id.name : null;
-            if (!name) return;
+            if (!name) {
+                return;
+            }
             const before = JSON.stringify(path.node);
-            annotateComponent(path, name, sourceFileName);
-            if (JSON.stringify(path.node) !== before) modified = true;
+            applyPropsToComponent(path, name, sourceFileName);
+            if (JSON.stringify(path.node) !== before) {
+                modified = true;
+            }
         },
         ClassDeclaration(path) {
             const name = path.node.id && path.node.id.name;
-            if (!name) return;
-            path.get('body')
-                .get('body')
-                .forEach((member) => {
-                    if (!member.isClassMethod()) return;
-                    if (!t.isIdentifier(member.node.key, {name: 'render'})) return;
-                    member
-                        .get('body')
-                        .get('body')
-                        .forEach((stmt) => {
-                            if (!stmt.isReturnStatement()) return;
-                            const arg = stmt.get('argument');
-                            if (!arg.isJSXElement() && !arg.isJSXFragment()) return;
-                            const before = JSON.stringify(arg.node);
-                            annotateJSXNode(arg, name, sourceFileName);
-                            if (JSON.stringify(arg.node) !== before) modified = true;
-                        });
-                });
+            if (!name) {
+                return;
+            }
+            for (const member of path.get('body').get('body')) {
+                if (!member.isClassMethod()) {
+                    continue;
+                }
+                if (!t.isIdentifier(member.node.key, {name: 'render'})) {
+                    continue;
+                }
+                for (const stmt of member.get('body').get('body')) {
+                    if (!stmt.isReturnStatement()) {
+                        continue;
+                    }
+                    const arg = stmt.get('argument');
+                    if (!arg.isJSXElement() && !arg.isJSXFragment()) {
+                        continue;
+                    }
+                    const before = JSON.stringify(arg.node);
+                    applyPropsToJSXNode(arg, name, sourceFileName);
+                    if (JSON.stringify(arg.node) !== before) {
+                        modified = true;
+                    }
+                }
+            }
         },
     });
 
-    if (!modified) return source;
+    if (!modified) {
+        return source;
+    }
 
     const {code, map} = generate(ast, {sourceMaps: !!this.sourceMap, sourceFileName: resourcePath}, source);
 
