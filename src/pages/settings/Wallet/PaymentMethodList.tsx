@@ -292,10 +292,19 @@ function PaymentMethodList({
                     statusText: translate(isCardInactive(card) ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active'),
                     statusTone: shouldShowCardConnectionMessage ? 'danger' : isCardInactive(card) ? 'default' : 'success',
                     message: shouldShowCardConnectionMessage
-                        ? translate(!isUserPersonalCard && isAdminForCardPolicy ? 'walletPage.cardStatus.fixConnectionIn' : isUserPersonalCard ? 'walletPage.cardStatus.fixConnection' : 'walletPage.cardStatus.askAdminToFixConnection')
+                        ? translate(
+                              !isUserPersonalCard && isAdminForCardPolicy
+                                  ? 'walletPage.cardStatus.fixConnectionIn'
+                                  : isUserPersonalCard
+                                    ? 'walletPage.cardStatus.fixConnection'
+                                    : 'walletPage.cardStatus.askAdminToFixConnection',
+                          )
                         : undefined,
                     actionText: isUserPersonalCard && shouldShowCardConnectionMessage ? translate('walletPage.cardStatus.fixConnection') : undefined,
-                    onActionPress: isUserPersonalCard && shouldShowCardConnectionMessage ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID))) : undefined,
+                    onActionPress:
+                        isUserPersonalCard && shouldShowCardConnectionMessage
+                            ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID)))
+                            : undefined,
                     linkText: !isUserPersonalCard && isAdminForCardPolicy && shouldShowCardConnectionMessage ? translate('walletPage.cardStatus.companyCardsLink') : undefined,
                     onLinkPress:
                         !isUserPersonalCard && isAdminForCardPolicy && policyIDForCard && shouldShowCardConnectionMessage

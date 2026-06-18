@@ -241,11 +241,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     {!!item.connectionStatus.actionText && !!item.connectionStatus.onActionPress && (
                         <>
                             {' '}
-                            <TextLink
-                                onPress={item.connectionStatus.isActionDisabled ? () => {} : item.connectionStatus.onActionPress}
-                            >
-                                {item.connectionStatus.actionText}
-                            </TextLink>
+                            <TextLink onPress={item.connectionStatus.isActionDisabled ? () => {} : item.connectionStatus.onActionPress}>{item.connectionStatus.actionText}</TextLink>
                         </>
                     )}
                     {!!item.connectionStatus.linkText && !!item.connectionStatus.onLinkPress && (
