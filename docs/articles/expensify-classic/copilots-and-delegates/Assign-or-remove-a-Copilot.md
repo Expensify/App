@@ -1,86 +1,89 @@
 ---
-title: Understanding the Copilot Function
-description: Safely delegate tasks to a Copilot without sharing your login information.
-keywords: [Expensify Classic, Copilot, copilot access, delegate access, expense management, full access, submit only access, account delegation, share account, behalf of, proxy access, delegate, assistant, manage someone else's account, shared access, account access, executive assistant, accountant]
-internalScope: Applies to all members. Covers how to delegate a CoPilot and navigate between accounts as a CoPilot. Does not cover taking account actions once access is delegated. 
+
+title: Manage Copilot access
+description: Add, update, or remove Copilot access so someone can help manage your Expensify account without sharing your login credentials.
+keywords: [copilot access, add a copilot, remove a copilot, change copilot access, copilot permissions, delegated access, account delegation, proxy access, manage copilot, delegate access, account assistant, manage someone else's account, shared account access, account access, executive assistant, accountant, bookkeeping, expense management]
+internalScope: Audience is members who want to grant a Copilot delegated account access. Covers adding, updating, and removing Copilots. Does not cover switching into a Copilot account or acting as a Copilot.
 ---
 
-You can safely delegate tasks to someone else without sharing your login information by assigning them as your **Copilot**. A Copilot can access your Expensify account through their own login to:
+# Manage Copilot access
 
-- Prepare expenses on your behalf.
-- Approve and reimburse expense reports (Full Access Copilots only).
-- View and modify your account, domain, and workspace settings.
-- View all expenses visible in your account.
+Copilot access lets you grant another member access to your Expensify account without sharing your login credentials. You can control their level of access and remove it at any time. This is helpful when you work with an executive assistant, accountant, bookkeeper, or colleague who needs to manage expenses and reports on your behalf.
 
----
+If you've been granted Copilot access and need help switching accounts or working on someone else's behalf, [learn how to act as a Copilot](articles/expensify-classic/copilots-and-delegates/Act-as-a-Copilot). 
 
-# How to Assign a Copilot
+If you just need someone to handle approvals while you're away, [learn how to assign a vacation delegate](/articles/new-expensify/settings/Delegate-when-out-of-office).
 
-1. Go to **Settings > Account > Profile**.
-2. Under **Copilot Access**, enter the email or phone number of the person you want to assign as your Copilot.
-3. Select the access level:
-   - **Full Access**: The Copilot can manage expenses, approvals, reimbursements, and account settings but **cannot** add or remove other Copilots.
-   - **Submit Only Access**: The Copilot can submit reports but **cannot** approve them.
-4. Click **Invite copilot**.
+## Who can add a Copilot
 
-**Note:** If the invited person has an Expensify account, they’ll receive an email notification. Otherwise, they’ll get a link to create an account.
+Any Expensify member can grant Copilot access to another member.
 
----
+You can invite someone who doesn't yet have an Expensify account. They'll receive an invitation to create one before accessing yours.
 
-# Remove a Copilot
+## What a Copilot can and cannot do
 
-1. Go to **Settings > Account > Profile**.
-2. Under **Copilot Access**, find the Copilot you want to remove.
-3. Click the **red X** next to their name to remove them.
+A Copilot can:
 
-**Note:** Only the account owner can remove a Copilot. Copilots cannot remove other Copilots.
+ - View expenses and chats
+ - Create and manage expenses on your behalf
+ - Review reports
+ - Access account, workspace, and domain settings based on their assigned permissions
 
----
+A Copilot cannot:
 
-# Switch to Copilot Mode  
+ - Add or remove other Copilots
+ - Perform actions restricted by their assigned access level
 
-A **Copilot** in Expensify allows you to manage another account with granted permissions, making it easy to assist with expenses and reports.
+## How to add a Copilot
 
-**On the website:**
-1. Click your **profile icon** in the upper left.
-2. Under **Copilot Access**, select the account you want to access.
+1. In the navigation tabs on the left, click **Settings > Account**.
+2. Click **Profile**.
+3. In the **Copilot: Delegated Access** section, enter the email or phone number of the person to delegate access to. 
+4. Choose an access level:
+   * **Full Access** — Grants access to all available actions.
+   * **Limited Access** — Allows a Copilot to manage expenses and reports, but prevents approval and payment-related actions, including approvals, payments, rejections, holds, retractions, and reopens.
+5. Click **Add copilot**.
 
-**On the mobile app:**
-1. Tap the **menu icon** in the top left.
-2. Tap your **profile icon**.
-3. Tap **Switch to Copilot Mode** and select the account.
+**Note:** A Copilot can only be added on the Expensify website. This option is not available in the mobile app.
 
-**Note:** When in Copilot mode, the Expensify header turns blue, and an airplane icon appears. To return to your account, click your profile icon and select **Return to your account**.
+## How to remove a Copilot
 
----
+1. In the navigation tabs on the left, click **Settings > Account**.
+2. Click **Profile**.
+3. In the **Copilot: Delegated Access** section, locate the Copilot whose access you want to remove. 
+4. Click **X** to remove their access.
+5. Confirm the removal.
+
+## What happens after you manage Copilot access
+
+After you add a Copilot:
+
+ - They can switch into your account immediately.
+ - Their available actions depend on the assigned access level.
+ - Actions they take are labeled as being performed on your behalf.
+
+After you update a Copilot's access level:
+
+ - Their permissions are updated immediately.
+
+After you remove a Copilot:
+
+ - They can no longer access your account.
+
+**Note:** If a Copilot performs billable activity in your account, both the Copilot and the account owner count as active members.
+
+[Learn about billable activity and how active members are defined](/articles/expensify-classic/expensify-billing/Receipt-Breakdown#billable-activity).
 
 # FAQ
 
-## Can I have more than one Copilot?
+## Can I add someone who doesn't have an Expensify account?
 
-Yes, there is no limit to the number of Copilots you can add to your account.
+Yes. They'll receive an invitation to create an account before accessing yours.
 
-## Can a Copilot forward receipts to my account?
+## Can a Copilot add or remove other Copilots?
 
-Yes, a Copilot can forward receipts from any email address linked to their Expensify account.
+No. Only the account owner can manage Copilot access.
 
-To ensure the receipt is sent to the correct account, email it to **receipts@expensify.com** and enter the copiloted account’s email in the subject line.
+## Can I have multiple Copilots?
 
-## Can a Copilot add another Copilot to an account?
-
-No, only the account owner can assign additional Copilots.
-
----
-
-## How to decide between a Copilot and a Vacation Delegate
-
-| | Copilot | Vacation Delegate |
-|---|---|---|
-| **Purpose** | Ongoing shared access to your account | Temporary approval coverage while you're away |
-| **Duration** | Permanent until removed | Temporary -- removed when you return |
-| **What they can do** | Submit expenses, approve reports, manage settings | Approve reports redirected to them |
-| **Access level options** | Full Access or Submit Only Access | N/A |
-| **Best for** | Executive assistants, accountants, or anyone who regularly helps manage your expenses | Covering approvals during vacation or leave |
-
-If you need someone to temporarily handle approvals while you're out of office, see [Delegate When Out of Office](/articles/expensify-classic/copilots-and-delegates/Delegate-when-out-of-office) instead.
-If you need someone to temporarily handle approvals while you're out of office, see [Delegate When Out of Office](/articles/expensify-classic/copilots-and-delegates/Delegate-when-out-of-office) instead.
+Yes. You can add multiple Copilots to your account. You must wait one minute between adding each Copilot.
