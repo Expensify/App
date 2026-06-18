@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DebugUtils from '@libs/DebugUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
@@ -62,6 +63,8 @@ function DebugReportActionCreatePage({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     const reportAction = useMemo(() => parseReportActionJSON(draftReportAction), [draftReportAction]);
 
@@ -128,7 +131,8 @@ function DebugReportActionCreatePage({
                                 <ReportActionItem
                                     action={reportAction}
                                     transactionThreadReport={transactionThreadReport}
-                                    report={{reportID}}
+                                    report={report}
+                                    chatReport={chatReport}
                                     parentReportAction={undefined}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}

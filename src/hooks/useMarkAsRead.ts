@@ -1,5 +1,4 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import type {RefObject} from 'react';
 import {useEffect, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -34,7 +33,11 @@ type UseMarkAsReadParams = {
 };
 
 type UseMarkAsReadResult = {
-    readActionSkippedRef: RefObject<boolean>;
+    /** Marks the newest action as read and clears any pending skipped mark-as-read */
+    markNewestActionAsRead: () => void;
+
+    /** Completes a previously skipped mark-as-read; no-op when none is pending */
+    completeSkippedMarkAsRead: () => void;
 };
 
 function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisibleReportActions, isScrolledToEnd, hasNewerActions}: UseMarkAsReadParams): UseMarkAsReadResult {
@@ -153,7 +156,19 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, isFocused, reportLoadingState?.hasOnceLoadedReportActions]);
 
-    return {readActionSkippedRef};
+    const markNewestActionAsRead = () => {
+        readActionSkippedRef.current = false;
+        readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+    };
+
+    const completeSkippedMarkAsRead = () => {
+        if (!readActionSkippedRef.current) {
+            return;
+        }
+        markNewestActionAsRead();
+    };
+
+    return {markNewestActionAsRead, completeSkippedMarkAsRead};
 }
 
 export default useMarkAsRead;

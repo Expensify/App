@@ -1,7 +1,6 @@
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import * as Browser from '@libs/Browser';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Modal} from '@src/types/onyx';
@@ -22,8 +21,8 @@ function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: M
     if (!isFocused && !onyxFocused && !modal.willAlertModalBecomeVisible && !modal.isVisible && refSave) {
         if (!ReportActionComposeFocusManager.isFocused()) {
             // Focusing will fail when it is called immediately after closing modal so we call it after interaction.
-            InteractionManager.runAfterInteractions(() => {
-                refSave?.focus();
+            TransitionTracker.runAfterTransitions({
+                callback: () => refSave?.focus(),
             });
         } else {
             refSave = undefined;

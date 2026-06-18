@@ -36,6 +36,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
+import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -83,6 +84,7 @@ function useSelectedTransactionsActions({
     const {currentSearchHash} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const allTransactions = useAllTransactions();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -143,7 +145,7 @@ function useSelectedTransactionsActions({
             continue;
         }
 
-        const parentReport = getReportOrDraftReport(reportID);
+        const parentReport = getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
         const ownerAccountID = parentReport?.ownerAccountID;
 
         if (typeof ownerAccountID === 'number') {
@@ -430,7 +432,13 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
 
-            const canMoveExpense = canEditFieldOfMoneyRequest({reportAction: iouReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, outstandingReportsByPolicyID, transaction});
+            const canMoveExpense = canEditFieldOfMoneyRequest({
+                reportAction: iouReportAction,
+                fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                outstandingReportsByPolicyID,
+                transaction,
+                archivedReportsIDSet,
+            });
             return canMoveExpense;
         });
 

@@ -219,6 +219,7 @@ describe('actions/Transaction', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,

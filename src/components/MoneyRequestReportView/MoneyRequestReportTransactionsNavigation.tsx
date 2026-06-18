@@ -93,7 +93,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         };
     }, [nextTransactionID, parentReportActions, prevTransactionID, transactionIDsList]);
 
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`);
+    const [prevParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevTransaction?.reportID}`);
+    const [nextParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextTransaction?.reportID}`);
     const [prevThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportAction?.childReportID}`);
     const [nextThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`);
 
@@ -132,7 +133,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
         // We know that the next thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
         if (!nextThreadReport && nextThreadReportID) {
-            setOptimisticTransactionThread(nextThreadReportID, parentReport?.reportID, nextParentReportAction?.reportActionID, parentReport?.policyID);
+            setOptimisticTransactionThread(nextThreadReportID, nextParentReport?.reportID, nextParentReportAction?.reportActionID, nextParentReport?.policyID);
         }
         // The transaction thread doesn't exist yet, so we should create it
         if (!nextThreadReportID) {
@@ -141,7 +142,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                 currentUserLogin: currentUserEmail ?? '',
                 currentUserAccountID,
                 betas,
-                iouReport: parentReport,
+                iouReport: nextParentReport,
                 iouReportAction: nextParentReportAction,
                 transaction: nextTransaction,
             });
@@ -168,7 +169,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
         // We know that the previous thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
         if (!prevThreadReport && prevThreadReportID) {
-            setOptimisticTransactionThread(prevThreadReportID, parentReport?.reportID, prevParentReportAction?.reportActionID, parentReport?.policyID);
+            setOptimisticTransactionThread(prevThreadReportID, prevParentReport?.reportID, prevParentReportAction?.reportActionID, prevParentReport?.policyID);
         }
         // The transaction thread doesn't exist yet, so we should create it
         if (!prevThreadReportID) {
@@ -177,7 +178,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                 currentUserLogin: currentUserEmail ?? '',
                 currentUserAccountID,
                 betas,
-                iouReport: parentReport,
+                iouReport: prevParentReport,
                 iouReportAction: prevParentReportAction,
                 transaction: prevTransaction,
             });

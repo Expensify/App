@@ -1,7 +1,7 @@
 ---
 title: Connect a US Business Bank Account
 description: Learn how to connect and verify a US business bank account in Expensify for reimbursements, Expensify Card payments, and invoice payouts.
-keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH]
+keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH, verification documents, Tax ID Verification, address verification, verification failed, KYB documents]
 internalScope: Audience is Workspace Admins. Covers connecting a new US business bank account from a workspace or Wallet, and linking an existing one to a workspace for reimbursements. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account.
 ---
 
@@ -95,7 +95,7 @@ Provide the following company information:
 
 After you submit your details:
 
-1. **Documentation review** — In some cases, Concierge may request additional documents such as business address verification or a bank letter. Concierge will follow up directly if needed.
+1. **Documentation review** — If automated verification can't confirm your details, a **Verification** step appears asking you to upload additional documents before you finish. Only the documents needed for the checks that failed are shown. Upload each requested file with **Choose file**, then click **Verify**. If you'd rather submit the documents another way, click **Finish via chat** to complete verification with Concierge.
 2. **Test transactions** — Once your account is nearly ready, you'll see the message **"Your bank account is almost set up!"** This means Expensify has sent three test transactions, which usually arrive within 1–2 business days.
 3. **Validation** — Enter the three exact amounts to complete setup. Learn how to [validate a business bank account](/articles/new-expensify/wallet-and-payments/Validate-a-Business-Bank-Account).
 
@@ -154,7 +154,15 @@ All individuals associated with the account must have a US address, US photo ID,
 
 ## Why am I asked for documents when adding my bank account?
 
-Expensify follows federal regulations (BSA/AML laws) and anti-fraud measures. If automatic verification fails, Expensify may request manual verification such as address verification or a bank ownership letter. Contact Concierge for assistance.
+Expensify follows federal regulations (BSA/AML laws) and anti-fraud measures. If automated verification fails, a **Verification** step appears during setup asking you to upload the documents needed to confirm your identity and your business. Depending on which checks failed, you may be asked for any of the following:
+
+- **Tax ID Verification** — Proof of your IRS-assigned TIN/EIN.
+- **Name Change Document** — Required if your company's name changed since you filed for the TIN/EIN.
+- **Company address verification** — Proof of your company's address, such as a recent utility bill or bank statement.
+- **Address verification** — Proof of your personal address, such as a driver's license or utility bill.
+- **Date of birth verification** — A US-issued ID.
+
+Upload each requested file with **Choose file**, then click **Verify**. You can also click **Finish via chat** to submit the documents to Concierge instead.
 
 ## What should I do if I don't see all three test transactions?
 
