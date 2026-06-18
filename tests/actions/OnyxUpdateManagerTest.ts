@@ -16,7 +16,6 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@userActions/OnyxUpdates');
 jest.mock('@userActions/App');
@@ -138,10 +137,8 @@ describe('actions/OnyxUpdateManager', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         await Onyx.clear();
-        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 1);
         await Onyx.set(ONYX_KEY, initialData);
-        await waitForBatchedUpdates();
 
         OnyxUpdateManagerUtils.mockValues.beforeValidateAndApplyDeferredUpdates = undefined;
         App.mockValues.missingOnyxUpdatesToBeApplied = undefined;
