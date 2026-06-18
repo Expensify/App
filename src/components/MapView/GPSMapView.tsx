@@ -1,10 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
 import Mapbox, {MarkerView} from '@rnmapbox/maps';
-import {requestForegroundPermissionsAsync} from 'expo-location';
+import {getForegroundPermissionsAsync, requestForegroundPermissionsAsync} from 'expo-location';
 import {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
+import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -63,20 +64,25 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
         };
     });
 
+    // Check for foreground location permissions in case user backgrounded app and foregrounded it again
+    // to ensure we have the latest permissions status in case user changed them in the settings in the meantime
+    useAppFocusEvent(() => {
+        if (isOffline) {
+            return;
+        }
+        getForegroundPermissionsAsync().then(({granted}) => {
+            setForegroundLocationPermissionsGranted(granted);
+        });
+    });
+
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const centerCoordinate = userLocation ? [userLocation.longitude, userLocation.latitude] : CONST.MAPBOX.DEFAULT_COORDINATE;
 
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
-    const [shouldUseImmediateFollowTransition, setShouldUseImmediateFollowTransition] = useState(noWaypoints);
+    const [shouldUseImmediateFollowTransition, setShouldUseImmediateFollowTransition] = useState(noWaypoints || isTrackingGPS);
     const [lastLocation, setLastLocation] = useState<{longitude: number; latitude: number} | undefined>();
-
-    const [hasEverTrackedGPS, setHasEverTrackedGPS] = useState(!!isTrackingGPS);
-    useEffect(() => {
-        if (!isTrackingGPS) {
-            return;
-        }
-        setHasEverTrackedGPS(true);
-    }, [isTrackingGPS]);
+    const [isLocationPuckLayerReady, setIsLocationPuckLayerReady] = useState(false);
+    const hasSetLocationPuckLayerReady = useRef(false);
 
     // Determines if map can be panned to user's detected location without bothering the user. It will return
     // false if user has already started dragging the map or if there are one or more waypoints present
@@ -157,6 +163,25 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
         setLastLocation({longitude: coords.longitude, latitude: coords.latitude});
     };
 
+    // On first render LocationPuck layer is not ready to be used as belowLayerID prop
+    // for GPSDirection and GPSWaypointLayer, so we need to wait for the layer to be ready
+    const onDidFinishRenderingFrameFully = () => {
+        if (hasSetLocationPuckLayerReady.current && foregroundLocationPermissionsGranted) {
+            return;
+        }
+
+        // We need to reset the state to false to ensure we later remount the components with the new belowLayerID prop
+        // if user changes location permissions in the meantime (so fallback location marker is shown instead of the location puck)
+        if (!foregroundLocationPermissionsGranted) {
+            hasSetLocationPuckLayerReady.current = false;
+            setIsLocationPuckLayerReady(false);
+            return;
+        }
+
+        hasSetLocationPuckLayerReady.current = true;
+        setIsLocationPuckLayerReady(true);
+    };
+
     const shouldFollowFallbackLocation = noWaypoints && foregroundLocationPermissionsGranted === false;
 
     const cameraPadding: Mapbox.CameraPadding | undefined =
@@ -184,6 +209,7 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
                 compassEnabled
                 compassPosition={{...styles.l2, ...styles.t5}}
                 logoPosition={{...styles.l2, ...styles.b2}}
+                onDidFinishRenderingFrameFully={onDidFinishRenderingFrameFully}
                 {...responder.panHandlers}
             >
                 <Mapbox.Viewport
@@ -222,18 +248,19 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
                     </MarkerView>
                 )}
 
+                <Mapbox.Images>
+                    <Mapbox.Image name={CURRENT_LOCATION_PUCK_IMAGE}>
+                        <ImageSVG
+                            src={expensifyIcons.MapCurrentLocationPuck}
+                            width={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.width}
+                            height={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.height}
+                        />
+                    </Mapbox.Image>
+                </Mapbox.Images>
+
                 {/** We want to use our custom current location marker instead of the default one */}
                 {!!foregroundLocationPermissionsGranted && (
                     <>
-                        <Mapbox.Images>
-                            <Mapbox.Image name={CURRENT_LOCATION_PUCK_IMAGE}>
-                                <ImageSVG
-                                    src={expensifyIcons.MapCurrentLocationPuck}
-                                    width={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.width}
-                                    height={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.height}
-                                />
-                            </Mapbox.Image>
-                        </Mapbox.Images>
                         <Mapbox.LocationPuck
                             pulsing={LOCATION_PUCK_PULSING}
                             topImage={CURRENT_LOCATION_PUCK_IMAGE}
@@ -247,13 +274,12 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
 
                 <GPSWaypointLayer
                     waypoints={waypoints}
-                    // To ensure that waypoints are shown below the location puck we need to pass its belowLayerID
-                    // which on iOS is not ready on the first render, so we pass it only after user has started a GPS trip
-                    // Android does not support dynamic belowLayerID prop change, so we pass key to remount this component instead
-                    key={hasEverTrackedGPS || isTrackingGPS ? 'below-location-puck' : 'default'}
+                    // To ensure that waypoints are shown below the location puck we need to pass belowLayerID prop
+                    // Android does not support dynamic belowLayerID prop change, so we pass key to remount this component witch belowLayerID change
+                    key={isLocationPuckLayerReady ? 'below-location-puck' : 'default-waypoints'}
                     // The native Mapbox SDK renders the user-location puck on its own dedicated layer. We render waypoints below
-                    // that layer so the puck always stays on top of the line. The layer id differs per platform.
-                    belowLayerID={hasEverTrackedGPS || isTrackingGPS ? LOCATION_PUCK_LAYER_ID : undefined}
+                    // that layer so the puck always stays on top of the waypoints. The layer id differs per platform.
+                    belowLayerID={isLocationPuckLayerReady ? LOCATION_PUCK_LAYER_ID : undefined}
                 />
 
                 {!noWaypoints && (
@@ -261,6 +287,9 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
                         directionCoordinates={directionCoordinatesProp}
                         isTrackingGPS={isTrackingGPS}
                         lastLocation={lastLocation}
+                        // Similarly to GPSWaypointLayer, we want to show the direction below the location puck and also below the waypoints
+                        key={isLocationPuckLayerReady ? 'below-waypoints' : 'default-direction'}
+                        belowLayerID={isLocationPuckLayerReady ? CONST.MAP_VIEW_LAYERS.WAYPOINTS : undefined}
                     />
                 )}
             </Mapbox.MapView>

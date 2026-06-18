@@ -57,6 +57,9 @@ type GPSDirectionProps = {
 
     // List of coordinates which together forms a direction.
     directionCoordinates: Coordinate[][];
+
+    // ID of the layer to place the line layer below
+    belowLayerID?: string;
 };
 
 type DirectionProps = {

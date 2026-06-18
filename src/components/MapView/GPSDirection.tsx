@@ -1,11 +1,10 @@
-import CONST from '@src/CONST';
 import Direction from './Direction';
 import type {Coordinate, GPSDirectionProps} from './MapViewTypes';
 import useAnimatedTrailingDirectionCoordinate from './useAnimatedTrailingDirectionCoordinate';
 
-function GPSDirection({directionCoordinates, isTrackingGPS, lastLocation}: GPSDirectionProps) {
+function GPSDirection({directionCoordinates, isTrackingGPS, lastLocation, belowLayerID}: GPSDirectionProps) {
     const animatedTrailingCoordinate = useAnimatedTrailingDirectionCoordinate({
-        isEnabled: isTrackingGPS && !!lastLocation,
+        isEnabled: isTrackingGPS && !!lastLocation && directionCoordinates.flat().length > 0,
         targetCoordinate: lastLocation ? [lastLocation.longitude, lastLocation.latitude] : undefined,
         directionCoordinates,
     });
@@ -31,7 +30,7 @@ function GPSDirection({directionCoordinates, isTrackingGPS, lastLocation}: GPSDi
     return (
         <Direction
             coordinates={getCoordinates()}
-            belowLayerID={CONST.MAP_VIEW_LAYERS.WAYPOINTS}
+            belowLayerID={belowLayerID}
         />
     );
 }
