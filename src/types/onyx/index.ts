@@ -7,6 +7,8 @@ import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
 import type Attachment from './Attachment';
+import type AvatarCropDraft from './AvatarCropDraft';
+import type AvatarCropResult from './AvatarCropResult';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type BankAccountShareDetails from './BankAccountShareDetails';
@@ -201,6 +203,8 @@ export type {
     FileObject,
     TryNewDot,
     Attachment,
+    AvatarCropDraft,
+    AvatarCropResult,
     Account,
     AccountData,
     AssignCard,

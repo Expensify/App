@@ -10,6 +10,7 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 import type {
     AddExistingExpensesParamList,
     AddPersonalBankAccountNavigatorParamList,
+    AvatarCropNavigatorParamList,
     ChronosScheduleOOONavigatorParamList,
     DebugParamList,
     EditRequestNavigatorParamList,
@@ -1293,6 +1294,21 @@ const DebugModalStackNavigator = createModalStackNavigator<DebugParamList>({
     [SCREENS.DEBUG.TRANSACTION_VIOLATION]: () => require<ReactComponentModule>('../../../../pages/Debug/TransactionViolation/DebugTransactionViolationPage').default,
 });
 
+const AvatarCropModalStackNavigator = createModalStackNavigator<AvatarCropNavigatorParamList>({
+    [SCREENS.AVATAR_CROP.ROOT]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+    [SCREENS.AVATAR_CROP.PROFILE]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+    [SCREENS.AVATAR_CROP.AGENT_ADD]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+    [SCREENS.AVATAR_CROP.AGENT_EDIT]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+    [SCREENS.AVATAR_CROP.WORKSPACE_OVERVIEW]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+    [SCREENS.AVATAR_CROP.WORKSPACE_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+    [SCREENS.AVATAR_CROP.WORKSPACE_CONFIRMATION_OWNER_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+    [SCREENS.AVATAR_CROP.WORKSPACE_DUPLICATE]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+    [SCREENS.AVATAR_CROP.TRAVEL_WORKSPACE_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+    [SCREENS.AVATAR_CROP.NEW_CHAT_CONFIRM]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+    [SCREENS.AVATAR_CROP.REPORT_DETAILS]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+    [SCREENS.AVATAR_CROP.MONEY_REQUEST_UPGRADE]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+});
+
 const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallParamList>({
     [SCREENS.SCHEDULE_CALL.BOOK]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallPage').default,
     [SCREENS.SCHEDULE_CALL.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallConfirmationPage').default,
@@ -1315,6 +1331,7 @@ const MultifactorAuthenticationStackNavigator = createModalStackNavigator<Multif
 export {
     AddPersonalBankAccountModalStackNavigator,
     AddExistingExpenseModalStackNavigator,
+    AvatarCropModalStackNavigator,
     CategoriesModalStackNavigator,
     DebugModalStackNavigator,
     DomainCardModalStackNavigator,

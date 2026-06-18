@@ -1,6 +1,5 @@
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
-import AvatarCropModal from '@components/AvatarCropModal/AvatarCropModal';
 import AvatarSelector from '@components/AvatarSelector';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -8,6 +7,7 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useAvatarCrop from '@hooks/useAvatarCrop';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -30,7 +30,6 @@ const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
 
 function ProfileAvatar() {
     const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
-    const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
 
     const [selected, setSelected] = useState<string | undefined>();
     const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
@@ -39,7 +38,6 @@ function ProfileAvatar() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const [cropImageData, setCropImageData] = useState<ImageData>({...EMPTY_FILE});
     const [imageData, setImageData] = useState<ImageData>({...EMPTY_FILE});
 
     const isDirty = imageData.uri !== '' || !!selected;
@@ -66,8 +64,9 @@ function ProfileAvatar() {
             file,
             type: '',
         });
-        setIsAvatarCropModalOpen(false);
     };
+
+    const {openCropper} = useAvatarCrop({buttonLabelKey: 'avatarPage.upload', onCropped: onImageSelected});
 
     const onPress = () => {
         isSavingRef.current = true;
@@ -174,9 +173,7 @@ function ProfileAvatar() {
                     imageData={imageData}
                     setImageData={setImageData}
                     setError={setError}
-                    setCropImageData={setCropImageData}
-                    setIsAvatarCropModalOpen={setIsAvatarCropModalOpen}
-                    isAvatarCropModalOpen={isAvatarCropModalOpen}
+                    openCropper={openCropper}
                 />
             )}
 
@@ -193,9 +190,7 @@ function ProfileAvatar() {
                         imageData={imageData}
                         setImageData={setImageData}
                         setError={setError}
-                        setCropImageData={setCropImageData}
-                        setIsAvatarCropModalOpen={setIsAvatarCropModalOpen}
-                        isAvatarCropModalOpen={isAvatarCropModalOpen}
+                        openCropper={openCropper}
                     />
                 )}
                 <View style={[styles.ph5, styles.pb5, styles.flexColumn, styles.flex1, styles.gap3]}>
@@ -229,22 +224,6 @@ function ProfileAvatar() {
                     pressOnEnter
                 />
             </FixedFooter>
-
-            <AvatarCropModal
-                onClose={() => {
-                    if (!isAvatarCropModalOpen) {
-                        return;
-                    }
-                    setCropImageData({...EMPTY_FILE});
-                    setIsAvatarCropModalOpen(false);
-                }}
-                isVisible={isAvatarCropModalOpen}
-                onSave={onImageSelected}
-                imageUri={cropImageData.uri}
-                imageName={cropImageData.name}
-                imageType={cropImageData.type}
-                buttonLabel={translate('avatarPage.upload')}
-            />
         </ScreenWrapper>
     );
 }

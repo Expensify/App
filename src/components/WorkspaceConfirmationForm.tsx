@@ -21,6 +21,7 @@ import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -64,9 +65,18 @@ type WorkspaceConfirmationFormProps = {
 
     /** Whether bottom safe area padding should be added */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Explicit crop route, for openers whose contextual URL can't be derived from the active route */
+    cropRoute?: Route;
 };
 
-function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButtonPress = () => Navigation.goBack(), addBottomSafeAreaPadding = true}: WorkspaceConfirmationFormProps) {
+function WorkspaceConfirmationForm({
+    onSubmit,
+    policyOwnerEmail = '',
+    onBackButtonPress = () => Navigation.goBack(),
+    addBottomSafeAreaPadding = true,
+    cropRoute,
+}: WorkspaceConfirmationFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -202,6 +212,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}
                     DefaultAvatar={DefaultAvatar}
                     editorMaskImage={icons.ImageCropSquareMask}
+                    cropRoute={cropRoute}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM}
