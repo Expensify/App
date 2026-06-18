@@ -19,7 +19,6 @@ import globals from 'globals';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import typescriptEslint from 'typescript-eslint';
 import reportNameUtilsPlugin from './plugins/eslint-plugin-report-name-utils.mjs';
 import expensifyProcessor from './processors/eslint-processor-expensify.mjs';
 
@@ -210,8 +209,8 @@ const restrictedPaidGroupPolicyImportPatterns = [
 const config = defineConfig([
     ...browserConfig,
     ...reactConfig,
-    ...tsExpensifyConfig,
     ...expensifyPluginConfig,
+    ...tsExpensifyConfig,
     ...scriptsConfig,
     ...jestConfig,
     {
@@ -221,8 +220,6 @@ const config = defineConfig([
             },
         },
     },
-    typescriptEslint.configs.recommendedTypeChecked,
-    typescriptEslint.configs.stylisticTypeChecked,
     fileProgress.configs['recommended-ci'],
 
     // Suppress lint rules that are unnecessary for files successfully compiled by React Compiler.
@@ -256,7 +253,6 @@ const config = defineConfig([
 
     {
         extends: new FlatCompat({baseDirectory: projectRoot}).extends(
-            'airbnb-typescript',
             'plugin:storybook/recommended',
             'plugin:react-native-a11y/all',
             'plugin:@dword-design/import-alias/recommended',
@@ -285,82 +281,13 @@ const config = defineConfig([
 
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
-            // TypeScript specific rules
-            '@typescript-eslint/no-var-requires': 'off',
-            '@typescript-eslint/no-unsafe-type-assertion': 'error',
-            '@typescript-eslint/switch-exhaustiveness-check': ['error', {considerDefaultExhaustiveForUnions: true}],
-            '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
-            '@typescript-eslint/no-floating-promises': 'off',
-            '@typescript-eslint/max-params': ['error', {max: 10}],
-            '@typescript-eslint/naming-convention': [
-                'error',
-                {
-                    selector: ['variable', 'property'],
-                    format: null,
-                    // Allow __esModule because it is a well-known interop property injected by bundlers
-                    // (e.g. Babel/Webpack) and sometimes required by library internals (e.g. react-native-skia).
-                    filter: {
-                        regex: '^__esModule$',
-                        match: true,
-                    },
-                },
-                {
-                    selector: ['variable', 'property'],
-                    format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
-                    // This filter excludes variables and properties that start with "private_" to make them valid.
-                    //
-                    // Examples:
-                    // - "private_a" → valid
-                    // - "private_test" → valid
-                    // - "private_" → not valid
-                    filter: {
-                        regex: '^private_[a-z][a-zA-Z0-9]*$',
-                        match: false,
-                    },
-                },
-                {
-                    selector: 'function',
-                    format: ['camelCase', 'PascalCase'],
-                },
-                {
-                    selector: ['typeLike', 'enumMember'],
-                    format: ['PascalCase'],
-                },
-                {
-                    selector: ['parameter', 'method'],
-                    format: ['camelCase', 'PascalCase'],
-                    leadingUnderscore: 'allow',
-                },
-            ],
-            '@typescript-eslint/no-restricted-types': [
-                'error',
-                {
-                    types: {
-                        object: "Use 'Record<string, T>' instead.",
-                    },
-                },
-            ],
-            '@typescript-eslint/consistent-type-imports': [
-                'error',
-                {
-                    prefer: 'type-imports',
-                    fixStyle: 'separate-type-imports',
-                },
-            ],
-            '@typescript-eslint/consistent-type-exports': [
-                'error',
-                {
-                    fixMixedExportsWithInlineTypeSpecifier: false,
-                },
-            ],
-            '@typescript-eslint/no-use-before-define': ['error', {functions: false}],
+            '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
 
             // ESLint core rules
             // eslint-config-expensify/react re-enables class-methods-use-this; App keeps it off.
             'class-methods-use-this': 'off',
             'es/no-nullish-coalescing-operators': 'off',
             'es/no-optional-chaining': 'off',
-            '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
             'arrow-body-style': 'off',
             'no-empty': ['error', {allowEmptyCatch: true}],
 
@@ -525,54 +452,6 @@ const config = defineConfig([
         },
     },
 
-    // Some rules became stricter or stopped working after upgrading to ESLint 9, so these configs adjust the rules to match the old behavior.
-    {
-        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
-        rules: {
-            // @typescript-eslint/lines-between-class-members was moved to @stylistic/eslint-plugin, so replaced with lines-between-class-members.
-            'lines-between-class-members': 'error',
-            '@typescript-eslint/lines-between-class-members': 'off',
-
-            // Sometimes it's useful to include duplicate types for documentation purposes.
-            '@typescript-eslint/no-duplicate-type-constituents': ['error', {ignoreUnions: true}],
-
-            '@typescript-eslint/no-require-imports': 'off',
-
-            // @typescript-eslint/no-throw-literal was removed, so replaced with no-throw-literal.
-            'no-throw-literal': 'error',
-            '@typescript-eslint/no-throw-literal': 'off',
-
-            '@typescript-eslint/no-unused-vars': [
-                'error',
-                {
-                    vars: 'all',
-                    args: 'after-used',
-                    caughtErrors: 'none',
-                    ignoreRestSiblings: true,
-                },
-            ],
-            '@typescript-eslint/prefer-find': 'off',
-            '@typescript-eslint/prefer-includes': 'off',
-            '@typescript-eslint/prefer-optional-chain': 'off',
-            '@typescript-eslint/prefer-nullish-coalescing': [
-                'error',
-                {
-                    ignoreIfStatements: true,
-                    ignorePrimitives: {
-                        // string: true,
-                    },
-                    ignoreTernaryTests: true,
-                },
-            ],
-
-            // @typescript-eslint/prefer-promise-reject-errors enforces Promises are only rejected with Error objects, so replaced with prefer-promise-reject-errors.
-            'prefer-promise-reject-errors': 'error',
-            '@typescript-eslint/prefer-promise-reject-errors': 'off',
-
-            '@typescript-eslint/prefer-regexp-exec': 'off',
-        },
-    },
-
     // Enforces every Onyx type and its properties to have a comment explaining its purpose.
     {
         files: ['src/types/onyx/**/*.ts'],
@@ -586,10 +465,6 @@ const config = defineConfig([
         },
     },
 
-    {
-        files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
-        ...typescriptEslint.configs.disableTypeChecked,
-    },
     {
         files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
@@ -621,14 +496,6 @@ const config = defineConfig([
         files: ['**/en.ts', '**/es.ts'],
         rules: {
             'rulesdir/use-periods-for-error-messages': 'error',
-        },
-    },
-
-    {
-        files: ['**/*.ts', '**/*.tsx'],
-        rules: {
-            'rulesdir/prefer-at': 'error',
-            'rulesdir/boolean-conditional-rendering': 'error',
         },
     },
 
