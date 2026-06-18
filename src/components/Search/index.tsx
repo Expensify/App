@@ -532,7 +532,20 @@ function Search({
             prevReportsLength: filteredDataLength,
             isLoading: false,
         });
-    }, [currentSearchKey, filteredDataLength, handleSearch, hasErrors, isFocused, isOffline, offset, prevIsOffline, queryJSON, searchResults?.data, searchResults?.search?.isLoading, shouldCalculateTotals]);
+    }, [
+        currentSearchKey,
+        filteredDataLength,
+        handleSearch,
+        hasErrors,
+        isFocused,
+        isOffline,
+        offset,
+        prevIsOffline,
+        queryJSON,
+        searchResults?.data,
+        searchResults?.search?.isLoading,
+        shouldCalculateTotals,
+    ]);
 
     useEffect(() => {
         if (offset === 0 || offset === searchResults?.search?.offset || !isFocused || isOffline || searchResults?.search?.isLoading) {
