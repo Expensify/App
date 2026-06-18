@@ -1,6 +1,6 @@
 import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
@@ -88,6 +88,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
     const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(initialQuery);
     const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
+    const navigationSuggestions = useMemo<SearchQueryItem[]>(() => [], []);
 
     useEffect(() => {
         clearPendingRouterQuery();
@@ -121,13 +122,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
         ({recentReports}, sectionIndex) => {
-            if (!contextualReportID) {
-                return undefined;
-            }
-
-            // We will only show the contextual search suggestion if the user has not typed anything
-            if (textInputValue) {
-                return undefined;
+            if (!contextualReportID || textInputValue) {
+                return navigationSuggestions.length ? [{sectionIndex, data: navigationSuggestions}] : undefined;
             }
 
             if (!isSearchRouterDisplayed && !isSearchRouterScreen) {
@@ -210,6 +206,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         [
             contextualReportID,
             textInputValue,
+            navigationSuggestions,
             isSearchRouterDisplayed,
             isSearchRouterScreen,
             translate,
@@ -315,6 +312,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             };
 
             if (isSearchQueryItem(item)) {
+                if (item.action) {
+                    const {action} = item;
+                    backHistory(() => {
+                        onRouterClose();
+                        action();
+                    });
+                    return;
+                }
+
                 if (!item.searchQuery) {
                     return;
                 }
