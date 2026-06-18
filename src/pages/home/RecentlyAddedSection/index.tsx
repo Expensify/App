@@ -34,6 +34,10 @@ import {useRecentlyAddedData} from './useRecentlyAddedData';
 
 const HEADER_RECEIPT_ICON_SIZE = 16;
 
+// The overflow button is sized to its icon so it doesn't inflate the centered widget header row;
+// hitSlop keeps a comfortable tap target without adding visual height.
+const OVERFLOW_MENU_HIT_SLOP = {top: 10, bottom: 10, left: 10, right: 10};
+
 const OVERFLOW_MENU_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -148,7 +152,8 @@ function RecentlyAddedSection() {
                 accessibilityLabel={translate('common.more')}
                 sentryLabel="RecentlyAddedOverflowMenu"
                 onPress={openOverflowMenu}
-                style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth]}
+                hitSlop={OVERFLOW_MENU_HIT_SLOP}
+                style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.threeDotsMenuIconWidth]}
             >
                 <Icon
                     src={icons.ThreeDots}
