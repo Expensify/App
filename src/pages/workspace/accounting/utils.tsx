@@ -46,7 +46,7 @@ function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
-    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean},
+    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean; rillet: boolean},
     policy?: Policy,
     key?: number,
     integrationToDisconnect?: ConnectionName,
@@ -84,6 +84,15 @@ function getAccountingIntegrationData(
             return ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID);
         }
         return ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID);
+    };
+    const getBackToAfterWorkspaceUpgradeRouteForRillet = () => {
+        if (integrationToDisconnect) {
+            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+        }
+        if (existingConnections.rillet) {
+            return ROUTES.POLICY_ACCOUNTING_RILLET_EXISTING_CONNECTIONS.getRoute(policyID);
+        }
+        return ROUTES.POLICY_ACCOUNTING_RILLET_SETUP.getRoute(policyID);
     };
 
     switch (connectionName) {
@@ -386,7 +395,7 @@ function getAccountingIntegrationData(
                 subscribedAdvancedSettings: [],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.rillet.alias,
-                    backToAfterWorkspaceUpgradeRoute: 's77rt',
+                    backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForRillet(),
                 },
                 pendingFields: policy?.connections?.rillet?.config?.pendingFields,
                 errorFields: policy?.connections?.rillet?.config?.errorFields,

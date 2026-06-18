@@ -13,7 +13,7 @@ function ConnectToRilletFlow({policyID}: ConnectToRilletFlowProps) {
 
     useEffect(() => {
         if (hasReusablePoliciesConnectedToRillet) {
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXISTING_CONNECTIONS.getRoute(policyID));
             return;
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_SETUP.getRoute(policyID));
