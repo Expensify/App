@@ -4,7 +4,7 @@ title: Act as a Copilot
 description: Learn how to switch into another member's account as a Copilot, act on their behalf, and remove your access when it's no longer needed.
 keywords: [act as a copilot, copilot access, switch to a copilot account, switch accounts, delegated access, delegated account access, copilot account, access another account, account switching, proxy access, manage someone else's account, executive assistant, accountant, bookkeeper, shared account access, remove copilot access, remove my copilot access, forward receipts, submit expenses on behalf of someone, act on behalf of another user, copilot permissions]
 internalScope: Audience is members who have been granted Copilot access. Covers accessing another account, forwarding receipts, and removing your own access. Does not cover granting or managing Copilot access for others.
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---
 
 # Act as a Copilot
 
