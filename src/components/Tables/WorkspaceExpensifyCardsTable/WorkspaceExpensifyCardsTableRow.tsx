@@ -69,7 +69,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
         >
             {({hovered}) => (
                 <>
-                    <View style={[shouldUseNarrowTableLayout ? styles.flex4 : styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                         <Avatar
                             source={item.cardholder?.avatar ?? icons.FallbackAvatar}
                             avatarID={item.cardholder?.accountID}
@@ -83,12 +83,21 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                 text={cardholderName}
                                 style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
                             />
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={item.name}
-                                style={styles.textLabelSupporting}
-                            />
+                            {shouldUseNarrowTableLayout ? (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={item.lastFourPAN}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
+                                />
+                            ) : (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={item.name}
+                                    style={styles.textLabelSupporting}
+                                />
+                            )}
                             {!!frozenByText && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt1]}>
                                     <Icon
@@ -122,27 +131,22 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                         </View>
                     )}
 
-                    <View
-                        style={[
-                            styles.flexRow,
-                            styles.alignItemsCenter,
-                            shouldUseNarrowTableLayout ? styles.flex2 : styles.flex1,
-                            shouldUseNarrowTableLayout ? styles.justifyContentCenter : styles.justifyContentStart,
-                        ]}
-                    >
-                        <TextWithTooltip
-                            shouldShowTooltip
-                            numberOfLines={1}
-                            text={item.lastFourPAN}
-                        />
-                    </View>
+                    {!shouldUseNarrowTableLayout && (
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.lastFourPAN}
+                            />
+                        </View>
+                    )}
 
                     <View
                         style={[
                             shouldUseNarrowTableLayout ? styles.flexColumn : styles.flexRow,
-                            shouldUseNarrowTableLayout ? styles.flex3 : styles.flex1,
-                            shouldUseNarrowTableLayout ? styles.alignItemsEnd : styles.alignItemsCenter,
-                            shouldUseNarrowTableLayout ? styles.justifyContentStart : styles.justifyContentEnd,
+                            shouldUseNarrowTableLayout ? styles.alignItemsEnd : styles.flex1,
+                            shouldUseNarrowTableLayout ? styles.justifyContentStart : styles.alignItemsCenter,
+                            shouldUseNarrowTableLayout ? undefined : styles.justifyContentEnd,
                         ]}
                     >
                         <TextWithTooltip
@@ -160,13 +164,15 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                         )}
                     </View>
 
-                    <Icon
-                        src={icons.ArrowRight}
-                        fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, !hovered && styles.opacitySemiTransparent]}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
+                        <Icon
+                            src={icons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
                 </>
             )}
         </Table.Row>
