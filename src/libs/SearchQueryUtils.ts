@@ -46,6 +46,7 @@ import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import navigationRef from './Navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
+import {isRecord} from './ObjectUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
@@ -1931,10 +1932,6 @@ function isSearchRootParams(params: unknown): params is SearchRootParams {
         typeof params.q === 'string' &&
         (!('rawQuery' in params) || params.rawQuery === undefined || typeof params.rawQuery === 'string')
     );
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
 function isUnknownArray(value: unknown): value is unknown[] {
