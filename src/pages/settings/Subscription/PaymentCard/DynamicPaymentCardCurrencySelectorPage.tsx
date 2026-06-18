@@ -29,14 +29,14 @@ function DynamicPaymentCardCurrencySelectorPage() {
     // selector for the other entry points (add payment card / workspace owner change) where it isn't displayed yet.
     const shouldShowCurrencyNote = backPath !== ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY;
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM_DRAFT);
-    const [addCardForm] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+    const [addCardFormDraft] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
 
     const fallbackCurrency = useMemo(
         () => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard)?.accountData?.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
         [fundList],
     );
-    const currentCurrency = (formDraft?.[INPUT_IDS.CURRENCY] ?? addCardForm?.currency ?? fallbackCurrency) as Currency;
+    const currentCurrency = (formDraft?.[INPUT_IDS.CURRENCY] ?? addCardFormDraft?.currency ?? fallbackCurrency) as Currency;
 
     const currencyOptions = useMemo(() => {
         const canUseEurBilling = isBetaEnabled(CONST.BETAS.EUR_BILLING);

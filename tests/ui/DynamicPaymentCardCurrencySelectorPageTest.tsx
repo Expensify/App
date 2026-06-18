@@ -87,16 +87,17 @@ const mockSetPaymentMethodCurrency = jest.mocked(setPaymentMethodCurrency);
 const mockGoBack = jest.mocked(Navigation.goBack);
 
 /**
- * The page reads three Onyx keys in order: the CHANGE_BILLING_CURRENCY form draft, the in-flight
- * ADD_PAYMENT_CARD form, and the fund list (for the billing card fallback).
+ * The page reads three Onyx keys in order: the CHANGE_BILLING_CURRENCY form draft, the
+ * ADD_PAYMENT_CARD form draft (where the selector mirrors picks so the add-card form's
+ * FormProvider hydrates correctly on next mount), and the fund list (billing card fallback).
  */
-const mockOnyx = (formDraftCurrency?: string, addCardCurrency?: string, billingCardCurrency?: string) => {
+const mockOnyx = (formDraftCurrency?: string, addCardDraftCurrency?: string, billingCardCurrency?: string) => {
     mockUseOnyx.mockImplementation((key: string) => {
         if (key === ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM_DRAFT) {
             return [formDraftCurrency ? {currency: formDraftCurrency} : undefined, {status: 'loaded'}] as ReturnType<typeof useOnyx>;
         }
-        if (key === ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM) {
-            return [addCardCurrency ? {currency: addCardCurrency} : undefined, {status: 'loaded'}] as ReturnType<typeof useOnyx>;
+        if (key === ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT) {
+            return [addCardDraftCurrency ? {currency: addCardDraftCurrency} : undefined, {status: 'loaded'}] as ReturnType<typeof useOnyx>;
         }
         if (key === ONYXKEYS.FUND_LIST) {
             return [billingCardCurrency ? {card1: {accountData: {additionalData: {isBillingCard: true}, currency: billingCardCurrency}}} : undefined, {status: 'loaded'}] as ReturnType<
@@ -144,7 +145,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         expect(selected.at(0)?.value).toBe('AUD');
     });
 
-    it('falls back to the add-payment-card form currency when the draft is empty', () => {
+    it('falls back to the add-payment-card form draft currency when the change-billing-currency draft is empty', () => {
         mockOnyx(undefined, 'NZD');
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
@@ -152,7 +153,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         expect(capturedData.find((option) => option.isSelected)?.value).toBe('NZD');
     });
 
-    it('falls back to the billing card currency when both the draft and the add-card form are empty', () => {
+    it('falls back to the billing card currency when both the change-billing-currency draft and the add-card draft are empty', () => {
         mockOnyx(undefined, undefined, 'GBP');
 
         render(<DynamicPaymentCardCurrencySelectorPage />);

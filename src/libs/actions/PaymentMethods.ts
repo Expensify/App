@@ -328,7 +328,7 @@ function verifySetupIntent(accountID: number, isVerifying = true) {
  *
  */
 function setPaymentMethodCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) {
-    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
+    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT, {
         [INPUT_IDS.CURRENCY]: currency,
     });
 }

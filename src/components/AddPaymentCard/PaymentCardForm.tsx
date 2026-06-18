@@ -355,7 +355,7 @@ function PaymentCardForm({
                 {!!showCurrencyField && (
                     <View style={[styles.mt4, styles.mhn5]}>
                         <InputWrapper
-                            value={data?.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD}
+                            defaultValue={CONST.PAYMENT_CARD_CURRENCY.USD}
                             InputComponent={CurrencySelector}
                             inputID={INPUT_IDS.CURRENCY}
                         />

@@ -61,7 +61,7 @@ function ChangeBillingCurrency() {
         clearErrors(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
         return () => {
             clearDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
-            // The currency selector mirrors the picked currency into ADD_PAYMENT_CARD_FORM; reset it on exit so reopening
+            // The currency selector mirrors the picked currency into ADD_PAYMENT_CARD_FORM_DRAFT; reset it on exit so reopening
             // the flow doesn't show a stale selection that no longer matches the card's actual currency.
             PaymentMethods.setPaymentMethodCurrency((initialCurrencyRef.current ?? CONST.PAYMENT_CARD_CURRENCY.USD) as Currency);
         };
