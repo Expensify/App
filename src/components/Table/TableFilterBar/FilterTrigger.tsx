@@ -38,7 +38,7 @@ export default function TableFilterTrigger() {
                             role={CONST.ROLE.BUTTON}
                             sentryLabel={CONST.SENTRY_LABEL.TABLE.FILTERS}
                             hoverStyle={styles.buttonHoveredBG}
-                            style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.componentSizeNormal, styles.borderRadiusCircle, isExpanded && styles.buttonHoveredBG]}
+                            style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.componentSizeNormal, styles.borderRadiusCircle]}
                             onPress={onPress}
                         >
                             <Icon
@@ -57,6 +57,7 @@ export default function TableFilterTrigger() {
                         text="Filters"
                         icon={icons.Filter}
                         onPress={onPress}
+                        style={isExpanded && styles.buttonHoveredBG}
                     />
                 );
             }}
