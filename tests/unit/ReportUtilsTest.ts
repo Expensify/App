@@ -10150,7 +10150,6 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...mockTransaction,
                 reportID: openIOUReport.reportID,
-                policyID: fakePolicyID,
                 category: fakePolicyCategoryNameToDelete,
                 tag: fakePolicyTagsToDelete.at(0)?.[0] ?? '',
             };
@@ -10252,7 +10251,6 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...mockTransaction,
                 reportID: openIOUReport.reportID,
-                policyID: fakePolicyID,
                 category: categoryToDisable,
                 tag: '',
             };
@@ -10305,7 +10303,6 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...mockTransaction,
                 reportID: openIOUReport.reportID,
-                policyID: fakePolicyID,
                 category: '',
                 tag: tagToDisable,
             };
@@ -10349,7 +10346,6 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...mockTransaction,
                 reportID: openIOUReport.reportID,
-                policyID: fakePolicyID,
                 category: categoryToDisable,
                 tag: '',
             };
@@ -10383,7 +10379,6 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...mockTransaction,
                 reportID: openIOUReport.reportID,
-                policyID: fakePolicyID,
                 category: transactionCategory,
                 tag: '',
             };
@@ -10415,7 +10410,6 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...mockTransaction,
                 reportID: approvedIOUReport.reportID,
-                policyID: fakePolicyID,
                 category: categoryToDisable,
                 tag: '',
             };
