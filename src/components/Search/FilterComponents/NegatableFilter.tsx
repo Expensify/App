@@ -5,14 +5,13 @@ import Button from '@components/Button';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SearchFilter} from '@libs/SearchUIUtils';
+import {isFilterNegatable} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
-import {NEGATABLE_FILTERS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchNegatableFilterKeys} from '../types';
+import type {FilterComponentsProps} from '.';
 
 type NegatableFilterProps = React.PropsWithChildren & {
     isNegated: boolean;
-    baseFilterKey: SearchFilter['key'];
+    baseFilterKey: FilterComponentsProps['baseFilterKey'];
     style?: StyleProp<ViewStyle>;
     onNegationChange: (isNegated: boolean) => void;
 };
@@ -21,16 +20,12 @@ function NegatableFilter({baseFilterKey, isNegated, children, style, onNegationC
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    if (!NEGATABLE_FILTERS.has(baseFilterKey as SearchNegatableFilterKeys)) {
+    if (!isFilterNegatable(baseFilterKey)) {
         return children;
     }
 
     const positive = translate(baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS ? 'search.filters.filterType.has.positive' : 'search.filters.filterType.is.positive');
     const negative = translate(baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS ? 'search.filters.filterType.has.negative' : 'search.filters.filterType.is.negative');
-
-    const handleNegationChange = (isNegated: boolean) => {
-        onNegationChange(isNegated);
-    };
 
     return (
         <View style={[styles.flex1, styles.gap3, style]}>
@@ -43,7 +38,7 @@ function NegatableFilter({baseFilterKey, isNegated, children, style, onNegationC
                         small
                         text={positive}
                         textStyles={[isNegated ? styles.textMicroBoldSupporting : undefined]}
-                        onPress={() => handleNegationChange(false)}
+                        onPress={() => onNegationChange(false)}
                     />
                     <Button
                         style={[styles.flex1]}
@@ -51,7 +46,7 @@ function NegatableFilter({baseFilterKey, isNegated, children, style, onNegationC
                         small
                         text={negative}
                         textStyles={[isNegated ? undefined : styles.textMicroBoldSupporting]}
-                        onPress={() => handleNegationChange(true)}
+                        onPress={() => onNegationChange(true)}
                     />
                 </View>
             </View>

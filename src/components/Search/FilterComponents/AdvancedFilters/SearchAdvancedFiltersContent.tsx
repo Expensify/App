@@ -1,7 +1,6 @@
 import React from 'react';
-import useFilterNegatableValue from '@components/Search/hooks/useFilterNegatableValue';
-import useGetFilterFormValues from '@components/Search/hooks/useGetFilterFormValues';
-import {isAmountFilterKey, isDateFilterKey} from '@libs/SearchUIUtils';
+import {getFilterFormValues} from '@libs/SearchQueryUtils';
+import {getFilterNegatableValue, isAmountFilterKey, isDateFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -43,8 +42,7 @@ type SingleAdvancedFiltersContentProps = Pick<SearchAdvancedFiltersContentProps,
 };
 
 function SingleAdvancedFiltersContent({baseFilterKey, values, policyIDQuery, ready, components, onChange}: SingleAdvancedFiltersContentProps) {
-    const {isNegated, value} = useFilterNegatableValue(baseFilterKey, values);
-    const getFilterFormValues = useGetFilterFormValues();
+    const {isNegated, value} = getFilterNegatableValue(baseFilterKey, values);
 
     if (
         baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||

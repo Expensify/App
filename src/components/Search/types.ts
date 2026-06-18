@@ -5,6 +5,7 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
+import type {SearchNegatableFilterKeys} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -275,15 +276,6 @@ type QueryFilter = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
     value: string | number;
 };
-
-type SearchNegatableFilterKeys =
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TO
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO;
 
 // Report fields are dynamic keys, that policies can configure. They match:
 // reportField-<key> : Normal report field

@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {FilterComponentsProps} from '@components/Search/FilterComponents';
 import type {
     ASTNode,
     QueryFilter,
@@ -2211,6 +2212,22 @@ function removeNegation(filterKey: string) {
     return filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
 }
 
+function getFilterFormValues<K extends FilterComponentsProps['baseFilterKey']>(
+    filterKey: K,
+    value: SearchAdvancedFiltersForm[K] | undefined,
+    isNegated: boolean,
+): Partial<SearchAdvancedFiltersForm> {
+    const update: Partial<SearchAdvancedFiltersForm> = {};
+    if (isFilterNegatable(filterKey)) {
+        const negatedFilterKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as K;
+        update[negatedFilterKey] = isNegated ? value : undefined;
+        update[filterKey] = isNegated ? undefined : value;
+    } else {
+        update[filterKey] = value;
+    }
+    return update;
+}
+
 export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
@@ -2251,6 +2268,7 @@ export {
     serializeQueryJSONForBackend,
     isFilterNegatable,
     removeNegation,
+    getFilterFormValues,
 };
 
 export type {BuildUserReadableQueryStringParams};

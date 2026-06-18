@@ -8,7 +8,6 @@ import type {
     SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchGroupBy,
-    SearchNegatableFilterKeys,
     SearchView,
     SearchWithdrawalStatus,
     SearchWithdrawalType,
@@ -29,7 +28,7 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
 
 const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT];
 
-const NEGATABLE_FILTERS = new Set<SearchNegatableFilterKeys>([
+const NEGATABLE_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
@@ -37,7 +36,11 @@ const NEGATABLE_FILTERS = new Set<SearchNegatableFilterKeys>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
-]);
+] as const;
+
+type SearchNegatableFilterKeys = (typeof NEGATABLE_FILTER_KEYS)[number];
+
+const NEGATABLE_FILTERS = new Set<SearchNegatableFilterKeys>(NEGATABLE_FILTER_KEYS);
 
 const FILTER_KEYS = {
     POLICY_ID: 'policyID',
@@ -769,6 +772,16 @@ type SearchAdvancedFiltersForm = Form<
         Record<ReportFieldNegatedKey, string>
 >;
 
-export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, ExpenseTypeValue, ExpenseTypeValues};
+export type {
+    SearchAdvancedFiltersForm,
+    SearchAdvancedFiltersKey,
+    HasFilterValue,
+    HasFilterValues,
+    IsFilterValue,
+    IsFilterValues,
+    ExpenseTypeValue,
+    ExpenseTypeValues,
+    SearchNegatableFilterKeys,
+};
 export default FILTER_KEYS;
 export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, NEGATABLE_FILTERS};

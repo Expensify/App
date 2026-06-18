@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import FilterComponents from '@components/Search/FilterComponents';
 import type {FilterComponentsProps} from '@components/Search/FilterComponents';
+import {getFilterFormValues} from '@libs/SearchQueryUtils';
+import {getFilterNegatableValue} from '@libs/SearchUIUtils';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import useFilterNegatableValue from '../hooks/useFilterNegatableValue';
-import useGetFilterFormValues from '../hooks/useGetFilterFormValues';
 import BasePopup from './BasePopup';
 import type {PopoverComponentProps} from './FilterPopupButton';
 
@@ -15,10 +15,9 @@ type CommonPopupProps = Pick<FilterComponentsProps, 'baseFilterKey' | 'policyIDQ
 };
 
 function CommonPopup({baseFilterKey, values, label, policyIDQuery, updateFilterForm, closeOverlay}: CommonPopupProps) {
-    const {isNegated: initialIsNegated, value: initialValue} = useFilterNegatableValue(baseFilterKey, values);
+    const {isNegated: initialIsNegated, value: initialValue} = getFilterNegatableValue(baseFilterKey, values);
     const [value, setValue] = useState(initialValue);
     const [isNegated, setIsNegated] = useState(initialIsNegated);
-    const getFilterFormValues = useGetFilterFormValues();
 
     const applyChanges = () => {
         updateFilterForm(getFilterFormValues(baseFilterKey, value, isNegated));
