@@ -2,8 +2,8 @@
  * @jest-environment node
  */
 import {execSync} from 'child_process';
-import fs from 'fs';
 import {Str} from 'expensify-common';
+import fs from 'fs';
 import Git from '@scripts/utils/Git';
 
 // Mock execSync to control git diff output

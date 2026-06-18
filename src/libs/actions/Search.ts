@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -76,7 +77,6 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
-import {SafeString} from 'expensify-common';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';

@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
@@ -5,7 +6,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import {SafeString} from 'expensify-common';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isGroupPolicy} from './PolicyUtils';

@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import ts from 'typescript';
 import TSCompilerUtils from '../../scripts/utils/TSCompilerUtils';
 
-
 function createSourceFile(content: string): ts.SourceFile {
     return ts.createSourceFile('test.ts', content, ts.ScriptTarget.Latest, true);
 }

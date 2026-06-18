@@ -1,18 +1,18 @@
-import { Str } from "expensify-common";
-import path from "path";
-import type { Chunk, Compiler, NormalModule } from "webpack";
-import webpack from "webpack";
+import path from 'path';
+import type {Chunk, Compiler, NormalModule} from 'webpack';
+import webpack from 'webpack';
+// @libs alias is not available in Node.js/Storybook context — use relative path instead
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+// eslint-disable-next-line import/extensions, @dword-design/import-alias/prefer-alias
+import dedent from '../../src/libs/StringUtils/dedent.ts';
 
-const PLUGIN_NAME = "ModuleInitTimingPlugin";
+const PLUGIN_NAME = 'ModuleInitTimingPlugin';
 
 function createTimingRuntimeModule(): webpack.RuntimeModule {
-  const mod = new webpack.RuntimeModule(
-    "module init timing",
-    webpack.RuntimeModule.STAGE_ATTACH,
-  );
+    const mod = new webpack.RuntimeModule('module init timing', webpack.RuntimeModule.STAGE_ATTACH);
 
-  mod.generate = (): string =>
-    Str.dedent(`
+    mod.generate = (): string =>
+        dedent(`
             // Web module init timing — consumed by src/setup/telemetry/index.web.ts.
             if (typeof self !== 'undefined' && !self.__moduleInitTimes) {
                 self.__moduleInitTimes = Object.create(null);
@@ -25,7 +25,7 @@ function createTimingRuntimeModule(): webpack.RuntimeModule {
                     };
                 });
             }`);
-  return mod;
+    return mod;
 }
 
 /**
@@ -37,54 +37,46 @@ function createTimingRuntimeModule(): webpack.RuntimeModule {
  * of compiled assets needed.
  */
 class ModuleInitTimingPlugin {
-  apply(compiler: Compiler): void {
-    if (compiler.isChild()) {
-      return;
-    }
-    compiler.hooks.compilation.tap(PLUGIN_NAME, (compilation) => {
-      // Ensure webpack generates the __webpack_require__.i interception
-      // mechanism for every chunk that has a runtime.
-      compilation.hooks.additionalTreeRuntimeRequirements.tap(
-        PLUGIN_NAME,
-        (_chunk: Chunk, set: Set<string>) => {
-          set.add(webpack.RuntimeGlobals.interceptModuleExecution);
-        },
-      );
+    apply(compiler: Compiler): void {
+        if (compiler.isChild()) {
+            return;
+        }
+        compiler.hooks.compilation.tap(PLUGIN_NAME, (compilation) => {
+            // Ensure webpack generates the __webpack_require__.i interception
+            // mechanism for every chunk that has a runtime.
+            compilation.hooks.additionalTreeRuntimeRequirements.tap(PLUGIN_NAME, (_chunk: Chunk, set: Set<string>) => {
+                set.add(webpack.RuntimeGlobals.interceptModuleExecution);
+            });
 
-      // Once webpack has processed that requirement, inject our RuntimeModule.
-      compilation.hooks.runtimeRequirementInTree
-        .for(webpack.RuntimeGlobals.interceptModuleExecution)
-        .tap(PLUGIN_NAME, (chunk: Chunk) => {
-          compilation.addRuntimeModule(chunk, createTimingRuntimeModule());
+            // Once webpack has processed that requirement, inject our RuntimeModule.
+            compilation.hooks.runtimeRequirementInTree.for(webpack.RuntimeGlobals.interceptModuleExecution).tap(PLUGIN_NAME, (chunk: Chunk) => {
+                compilation.addRuntimeModule(chunk, createTimingRuntimeModule());
+            });
         });
-    });
 
-    // Emit module-names.json once per build (after all compilations are sealed).
-    // Using compiler.hooks.emit rather than compilation.hooks.processAssets avoids
-    // conflicts when multiple compilation rounds run in the same build (e.g. Sentry plugin).
-    compiler.hooks.emit.tap(PLUGIN_NAME, (compilation) => {
-      const names: Record<string, string> = {};
-      for (const module of compilation.modules) {
-        const id = compilation.chunkGraph.getModuleId(module);
-        if (id === null) {
-          continue;
-        }
-        const resource =
-          "resource" in module ? (module as NormalModule).resource : undefined;
-        if (!resource) {
-          continue;
-        }
-        const relativePath = `./${path.relative(compiler.context, resource).replaceAll("\\", "/")}`;
-        names[String(id)] = relativePath;
-      }
-      if (Object.keys(names).length > 0) {
-        // eslint-disable-next-line no-param-reassign
-        compilation.assets["module-names.json"] = new webpack.sources.RawSource(
-          JSON.stringify(names),
-        );
-      }
-    });
-  }
+        // Emit module-names.json once per build (after all compilations are sealed).
+        // Using compiler.hooks.emit rather than compilation.hooks.processAssets avoids
+        // conflicts when multiple compilation rounds run in the same build (e.g. Sentry plugin).
+        compiler.hooks.emit.tap(PLUGIN_NAME, (compilation) => {
+            const names: Record<string, string> = {};
+            for (const module of compilation.modules) {
+                const id = compilation.chunkGraph.getModuleId(module);
+                if (id === null) {
+                    continue;
+                }
+                const resource = 'resource' in module ? (module as NormalModule).resource : undefined;
+                if (!resource) {
+                    continue;
+                }
+                const relativePath = `./${path.relative(compiler.context, resource).replaceAll('\\', '/')}`;
+                names[String(id)] = relativePath;
+            }
+            if (Object.keys(names).length > 0) {
+                // eslint-disable-next-line no-param-reassign
+                compilation.assets['module-names.json'] = new webpack.sources.RawSource(JSON.stringify(names));
+            }
+        });
+    }
 }
 
 export default ModuleInitTimingPlugin;
