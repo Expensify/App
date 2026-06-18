@@ -100,6 +100,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
+    // Synthetic sentinel row used only to render the sticky table header; it is never passed to renderItem as real data.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const tableHeaderItem = {keyForList: TABLE_HEADER_KEY} as DataType;
     const listData = shouldRenderStickyHeader ? [tableHeaderItem, ...filteredAndSortedData] : filteredAndSortedData;

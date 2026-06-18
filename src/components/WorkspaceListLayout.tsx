@@ -60,30 +60,23 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
         Navigation.navigate(matchingNavigationOption.route);
     };
 
-    const headerComponent = (
+    const renderHeader = (shouldShowHeaderButton: boolean) => (
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
             <TabSelectorBase
                 tabs={navigationOptions}
                 activeTabKey={activeTabKey}
                 onTabPress={onTabPress}
             />
-            {headerButton}
+            {shouldShowHeaderButton && headerButton}
         </View>
     );
+    const headerComponent = renderHeader(true);
     const shouldRenderHeaderInTable = typeof children === 'function';
     const content = shouldRenderHeaderInTable ? (
         (children as (headerComponent: React.ReactElement) => React.ReactNode)(headerComponent)
     ) : (
         <>
-            <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
-                <TabSelectorBase
-                    tabs={navigationOptions}
-                    activeTabKey={activeTabKey}
-                    onTabPress={onTabPress}
-                />
-                {shouldDisplayButtonsInSeparateLine && headerButton}
-            </View>
-
+            {renderHeader(shouldDisplayButtonsInSeparateLine)}
             {children}
         </>
     );
