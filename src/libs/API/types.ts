@@ -1506,6 +1506,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP: 'ConnectPolicyToQuickbooksDesktop',
     MERGE_INTO_ACCOUNT_AND_LOGIN: 'MergeIntoAccountAndLogIn',
     ADD_WORK_EMAIL: 'AddWorkEmail',
+    SEARCH: 'Search',
     GET_SCIM_TOKEN: 'GetSCIMToken',
 
     LOG_OUT: 'LogOut',
