@@ -755,6 +755,7 @@ const SCREENS = {
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT: 'Workspace_ExpensifyCard_Rule_Merchant_Edit',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY: 'Workspace_ExpensifyCard_Rule_Category',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT: 'Workspace_ExpensifyCard_Rule_Max_Amount',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY: 'Workspace_ExpensifyCard_Rule_Currency',
         EXPENSIFY_CARD_VERIFY_WORK_EMAIL: 'Workspace_ExpensifyCard_Verify_Work_Email',
         EXPENSIFY_CARD_BANK_ACCOUNT: 'Workspace_ExpensifyCard_BankAccount',
         EXPENSIFY_CARD_SETTINGS: 'Workspace_ExpensifyCard_Settings',
@@ -903,6 +904,7 @@ const SCREENS = {
         RULES_SPEND_CARD: 'Rules_Spend_Card',
         RULES_SPEND_CATEGORY: 'Rules_Spend_Category',
         RULES_SPEND_MAX_AMOUNT: 'Rules_Spend_Max_Amount',
+        RULES_SPEND_CURRENCIES: 'Rules_Spend_Currencies',
         RULES_MERCHANT_MERCHANT_TO_MATCH: 'Rules_Merchant_Merchant_To_Match',
         RULES_MERCHANT_MATCH_TYPE: 'Rules_Merchant_Match_Type',
         RULES_MERCHANT_MERCHANT: 'Rules_Merchant_Merchant',
@@ -969,6 +971,10 @@ const SCREENS = {
 
     MIGRATED_USER_WELCOME_MODAL: {
         ROOT: 'MigratedUserWelcomeModal_Root',
+    },
+
+    AI_FEATURES_PROMO_MODAL: {
+        ROOT: 'AIFeaturesPromoModal_Root',
     },
 
     TEST_DRIVE_MODAL: {
