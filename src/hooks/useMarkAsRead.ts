@@ -121,7 +121,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
 
-    const markAsReadWhenVisibleAndFocused = () => {
+    useEffect(() => {
         if (didMarkOnReportChangeRef.current) {
             didMarkOnReportChangeRef.current = false;
             return;
@@ -155,10 +155,6 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
         readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
         userActiveSince.current = DateUtils.getDBTime();
-    };
-
-    useEffect(() => {
-        markAsReadWhenVisibleAndFocused();
         // This effect should only run when app visibility/focus changes; the helper reads the latest report/action values without making every action update mark the report as read.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, isFocused, reportLoadingState?.hasOnceLoadedReportActions]);

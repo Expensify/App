@@ -370,7 +370,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report?.reportID, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
 
-    const markAsReadWhenVisibleAndFocused = () => {
+    useEffect(() => {
         if (!isVisible || !Visibility.hasFocus() || !isFocused) {
             if (!lastMessageTime.current) {
                 lastMessageTime.current = lastAction?.created ?? '';
@@ -399,10 +399,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
-    };
-
-    useEffect(() => {
-        markAsReadWhenVisibleAndFocused();
         // This effect should only run when app visibility/focus changes; the helper reads the latest report/action values without making every action update mark the report as read.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
