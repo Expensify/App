@@ -3,15 +3,17 @@ import React from 'react';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import type {ListItem} from '@components/SelectionList/types';
-import {getCardFeedIcon, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
+import {getVisibleCompanyCardFeedsForSelector} from '@libs/CardFeedUtils';
+import {getCardFeedIcon, getCardFeedWithDomainID, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import useCardFeedErrors from './useCardFeedErrors';
-import useCardFeedsForActivePolicies from './useCardFeedsForActivePolicies';
 import {useCompanyCardFeedIcons} from './useCompanyCardIcons';
 import useCompanyCards from './useCompanyCards';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useThemeIllustrations from './useThemeIllustrations';
@@ -37,53 +39,62 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
-    const {feedName: selectedFeedName} = useCompanyCards({policyID});
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
+    const {feedName: selectedFeedName, companyCardFeeds} = useCompanyCards({policyID});
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
+
+    const visibleFeeds = getVisibleCompanyCardFeedsForSelector(allFeeds, translate, feedKeysWithCards, allPolicies, allDomains, currentUserAccountID);
 
     const getOtherFeeds = () => {
         const otherPolicyFeeds: CardFeedListItem[] = [];
-        for (const [feedPolicyID, cardFeeds] of Object.entries(cardFeedsByPolicy ?? {})) {
-            for (const feed of cardFeeds) {
-                if (feed?.linkedPolicyIDs?.includes(policyID)) {
-                    continue;
-                }
-                const feedName = feed.feed;
-                const plaidUrl = getPlaidInstitutionIconUrl(feedName);
-                const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feed.fundID}`];
-                const feedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${feed?.linkedPolicyIDs?.[0] ?? feedPolicyID}`];
-                const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
-                const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feed.id];
-
-                otherPolicyFeeds.push({
-                    value: feed.id as CompanyCardFeedWithDomainID,
-                    feed: feedName as CompanyCardFeedWithNumber,
-                    fundID: Number(feed.fundID),
-                    country: feed?.country,
-                    alternateText: domainName ?? feedPolicy?.name,
-                    text: getCustomOrFormattedFeedName(translate, feedName, feed.name),
-                    // Composite key so rows stay distinct if the same feed id appears under multiple policies
-                    keyForList: `${feedPolicyID}_${feed.id}`,
-                    isSelected: feed.id === selectedFeedName,
-                    brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                    canShowSeveralIndicators: shouldShowRBR,
-                    leftElement: plaidUrl ? (
-                        <PlaidCardFeedIcon
-                            plaidUrl={plaidUrl}
-                            style={styles.mr3}
-                        />
-                    ) : (
-                        <Icon
-                            src={getCardFeedIcon(feed.feed, illustrations, companyCardFeedIcons)}
-                            height={variables.cardIconHeight}
-                            width={variables.cardIconWidth}
-                            additionalStyles={[styles.mr3, styles.cardIcon]}
-                        />
-                    ),
-                });
+        for (const feed of visibleFeeds) {
+            // Feeds linked to the active policy are shown as available feeds, not under "From other workspaces".
+            if (feed?.linkedPolicyIDs?.includes(policyID)) {
+                continue;
             }
+            // Skip feeds already present in the active policy's available list to avoid duplicate rows across the two lists.
+            const feedValueForActivePolicy = getCardFeedWithDomainID(feed.feed, Number(feed.fundID)) as CompanyCardFeedWithDomainID;
+            if (companyCardFeeds?.[feedValueForActivePolicy]) {
+                continue;
+            }
+            const feedName = feed.feed;
+            const plaidUrl = getPlaidInstitutionIconUrl(feedName);
+            const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feed.fundID}`];
+            const firstLinkedPolicyID = feed?.linkedPolicyIDs?.at(0);
+            const linkedPolicy = firstLinkedPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstLinkedPolicyID}`] : undefined;
+            const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
+            const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feed.id];
+
+            otherPolicyFeeds.push({
+                value: feed.id as CompanyCardFeedWithDomainID,
+                feed: feedName as CompanyCardFeedWithNumber,
+                fundID: Number(feed.fundID),
+                country: feed?.country,
+                alternateText: domainName ?? linkedPolicy?.name,
+                text: getCustomOrFormattedFeedName(translate, feedName, feed.name),
+                // feed.id (`${fundID}_${feed}`) is unique per feed, so a stable key avoids duplicate rows.
+                keyForList: feed.id,
+                isSelected: feed.id === selectedFeedName,
+                brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                canShowSeveralIndicators: shouldShowRBR,
+                leftElement: plaidUrl ? (
+                    <PlaidCardFeedIcon
+                        plaidUrl={plaidUrl}
+                        style={styles.mr3}
+                    />
+                ) : (
+                    <Icon
+                        src={getCardFeedIcon(feed.feed, illustrations, companyCardFeedIcons)}
+                        height={variables.cardIconHeight}
+                        width={variables.cardIconWidth}
+                        additionalStyles={[styles.mr3, styles.cardIcon]}
+                    />
+                ),
+            });
         }
         return otherPolicyFeeds;
     };

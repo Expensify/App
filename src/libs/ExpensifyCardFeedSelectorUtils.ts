@@ -26,75 +26,35 @@ function hasLoadedExpensifyCardSettings(settings: ExpensifyCardSettings | undefi
 /**
  * Determines whether an Expensify card feed should be visible to the current user.
  *
- * The function uses a fallback chain to decide visibility:
- *  1. If the feed has `linkedPolicyIDs`, show it when the user is an admin of at least one
- *     linked policy that is not pending deletion.
- *  2. Otherwise, if the feed has a `preferredPolicy`, show it when the user is an admin of
- *     that policy and the policy is not pending deletion.
- *  3. Otherwise (orphan feed with neither linkedPolicyIDs nor preferredPolicy):
- *     Only surface it when the fund has an issued Expensify Card. Workspaces that merely have
- *     the feature enabled (no card) would otherwise each produce a feed that resolves to the
- *     same domain name, showing as duplicate entries in the selector. Among feeds that pass
- *     that gate:
- *     a. Show it if the user is a domain admin for the domain whose ID matches the fundID.
- *     b. Show it if any non-deleted policy the user administers has a `policyAccountID`
- *        equal to the fundID (i.e. the fund backs that workspace).
+ * A feed is gathered from one of two sources, regardless of its `linkedPolicyIDs`:
+ *  1. The user is an admin of the domain whose account ID matches the feed's fundID.
+ *  2. The user is an admin of a non-deleted policy whose `policyAccountID` matches the feed's
+ *     fundID (i.e. the fund backs that workspace account).
+ *
+ * Whether the feed shows as an available feed or under "From other workspaces" is decided
+ * separately by `isFeedPrimaryForPolicy` using `linkedPolicyIDs`. There is intentionally no
+ * decisioning based on `preferredPolicy` (oldDot-only) nor on whether a card has been issued.
  */
-function isExpensifyCardFeedVisibleToAdmin(
-    settings: ExpensifyCardSettings,
-    policies: OnyxCollection<Policy>,
-    fundID: number,
-    domains: OnyxCollection<Domain>,
-    currentUserAccountID: number,
-    cardList: CardList | undefined,
-): boolean {
+function isExpensifyCardFeedVisibleToAdmin(settings: ExpensifyCardSettings, policies: OnyxCollection<Policy>, fundID: number, domains: OnyxCollection<Domain>, currentUserAccountID: number): boolean {
     if (!hasLoadedExpensifyCardSettings(settings)) {
         return false;
     }
-    const linkedPolicyIDs = getLinkedPolicyIDsFromExpensifyCardSettings(settings);
-    if (linkedPolicyIDs?.length) {
-        return linkedPolicyIDs.some((linkedPolicyID) => {
-            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${linkedPolicyID.toUpperCase()}`];
-            return isPolicyAdmin(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-        });
-    }
-    const preferredPolicy = getPreferredPolicyFromExpensifyCardSettings(settings);
-    if (preferredPolicy) {
-        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicy.toUpperCase()}`];
-        return isPolicyAdmin(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    }
 
-    const hasIssuedExpensifyCard = Object.values(cardList ?? {}).some((card) => card?.fundID === fundID.toString() && card?.bank === CONST.EXPENSIFY_CARD.BANK);
-    if (!hasIssuedExpensifyCard) {
-        return false;
-    }
-
+    // Source 1: the user is an admin of the domain whose ID matches the fundID.
     const domain = domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`] ?? Object.values(domains ?? {}).find((entry) => entry?.accountID === fundID);
     if (isAdminSelector(currentUserAccountID)(domain)) {
         return true;
     }
 
+    // Source 2: the user is an admin of a non-deleted policy whose policyAccountID matches the fundID.
     return Object.values(policies ?? {}).some(
         (policy) => policy?.policyAccountID === fundID && isPolicyAdmin(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
 }
 
-function isFeedLinkedToPolicy(entry: ExpensifyCardFeedEntry, policyID: string): boolean {
-    return isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings), policyID);
-}
-
-function isFeedForCurrentWorkspace(entry: ExpensifyCardFeedEntry, policyID: string): boolean {
-    const preferred = getPreferredPolicyFromExpensifyCardSettings(entry.settings);
-    return preferred?.toUpperCase() === policyID.toUpperCase();
-}
-
-/** Primary vs other: use linkedPolicyIDs when present; otherwise preferredPolicy (legacy). */
+/** A feed shows as available for a policy when that policy is in the feed's `linkedPolicyIDs`; otherwise it shows under "From other workspaces". */
 function isFeedPrimaryForPolicy(entry: ExpensifyCardFeedEntry, policyID: string): boolean {
-    const linked = getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings);
-    if (linked?.length) {
-        return isFeedLinkedToPolicy(entry, policyID);
-    }
-    return isFeedForCurrentWorkspace(entry, policyID);
+    return isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings), policyID);
 }
 
 function getAdminExpensifyCardFeedEntries(
@@ -102,14 +62,13 @@ function getAdminExpensifyCardFeedEntries(
     policies: OnyxCollection<Policy>,
     domains: OnyxCollection<Domain>,
     currentUserAccountID: number,
-    cardList: CardList | undefined,
 ): ExpensifyCardFeedEntry[] {
     return Object.entries(cardSettingsCollection ?? {}).flatMap(([settingsKey, settings]) => {
         if (!settings) {
             return [];
         }
         const fundID = getFundIdFromSettingsKey(settingsKey);
-        if (!isExpensifyCardFeedVisibleToAdmin(settings, policies, fundID, domains, currentUserAccountID, cardList)) {
+        if (!isExpensifyCardFeedVisibleToAdmin(settings, policies, fundID, domains, currentUserAccountID)) {
             return [];
         }
         return [{settingsKey, fundID, settings}];
