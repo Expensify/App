@@ -6385,7 +6385,7 @@ const translations = {
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
             configureHRSync: (providerName: string) => `Configure ${providerName} sync.`,
             syncWithHR: (providerName: string) => `Sync with ${providerName}`,
-            allMembers: 'All members',
+            members: 'Members',
             admins: 'Workspace Admins',
             cardAdmins: 'Card Admins',
             approvers: 'Approvers',
@@ -7153,7 +7153,7 @@ const translations = {
             },
             controlPolicyRoles: {
                 title: 'Control policy roles',
-                description: 'Use specialized roles like Auditor and Card Admin to grant members access only to what they need.',
+                description: 'Grant members specific access by assigning roles like Auditor or Card Admin.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Specialized workspace roles are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
@@ -9635,6 +9635,22 @@ const translations = {
             chat: 'Chat on any expense to resolve questions quickly',
         },
     },
+    aiFeaturesPromoModal: {
+        subtitle: 'New to Concierge AI',
+        confirmText: "Let's go!",
+        spendAnalysis: {
+            title: 'Interactive spend analysis',
+            description: `<muted-text>Concierge surfaces monthly spend insights and lets you drill into the details behind every number. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Learn more</a>.</muted-text>`,
+        },
+        expenseAssistant: {
+            title: 'Meet your new expense assistant',
+            description: `<muted-text>Chat with Concierge to create and update expenses, right in the app or by email or text. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Learn more</a>.</muted-text>`,
+        },
+        customAgents: {
+            title: 'Build your own agents',
+            description: `<muted-text>Create custom agents to review, approve, and route expenses based on rules you set. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Learn more</a>.</muted-text>`,
+        },
+    },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
@@ -9841,7 +9857,7 @@ const translations = {
                 title: 'No members in this group',
                 subtitle: 'Add a member or try changing the filter above.',
             },
-            allMembers: 'All members',
+            allMembers: 'Members',
             email: 'Email address',
             closeAccountPrompt: 'Are you sure? This action is permanent.',
             forceCloseAccount: () => ({

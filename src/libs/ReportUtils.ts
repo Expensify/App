@@ -1800,6 +1800,25 @@ function isThread(report: OnyxInputOrEntry<Report>): report is Thread {
 }
 
 /**
+ * Returns reportActions filtered to only policy expense chat reports (non-thread).
+ */
+function getAllPolicyExpenseChatReportActions(reports: OnyxCollection<Report>, reportActions: OnyxCollection<ReportActions>) {
+    const filteredReportActions: Record<string, ReportActions> = {};
+    for (const report of Object.values(reports ?? {})) {
+        if (!report?.reportID || !isPolicyExpenseChat(report) || isThread(report)) {
+            continue;
+        }
+        const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`;
+        const actions = reportActions?.[key];
+        if (actions) {
+            filteredReportActions[key] = actions;
+        }
+    }
+
+    return filteredReportActions;
+}
+
+/**
  * Returns true if report is of type chat and has a parent and is therefore a Thread.
  */
 function isChatThread(report: OnyxInputOrEntry<Report>): report is Thread {
@@ -13182,6 +13201,7 @@ function shouldShowMarkAsDone({isTrackIntentUser, report, policy}: {isTrackInten
 
 export {
     areAllRequestsBeingSmartScanned,
+    getAllPolicyExpenseChatReportActions,
     buildConciergeGreetingReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
