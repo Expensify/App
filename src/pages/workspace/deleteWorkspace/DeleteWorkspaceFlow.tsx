@@ -1,6 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import RenderHTML from '@components/RenderHTML';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
@@ -8,8 +11,10 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
+import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
-import {calculateBillNewDot, deleteWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
+import {calculateBillNewDot, deleteWorkspace} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,6 +48,7 @@ type DeleteWorkspaceFlowProps = {
  */
 function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
     const {translate, localeCompare} = useLocalize();
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -90,16 +96,32 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
         !isEmptyObject(cardsList) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
-    const hasExpensifyCard = !!policy?.areExpensifyCardsEnabled && !isEmptyObject(cardsList);
-    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
+    const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
+    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCardsEnabledOnWorkspace && !!isOffline;
 
     const policyLatestErrorMessage = getLatestErrorMessage(policy);
     const isPendingDelete = isPendingDeletePolicy(policy);
-    const prevIsPendingDeleteRef = useRef(isPendingDelete);
-    const isErrorModalShowingRef = useRef(false);
+    const prevIsPendingDelete = usePrevious(isPendingDelete);
 
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const {shouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(ownedPaidPoliciesCounts?.active ?? 0, onDismiss);
+    const [shouldShowDeleteWorkspaceErrorModal, setShouldShowDeleteWorkspaceErrorModal] = useState(false);
+
+    const hideDeleteWorkspaceErrorModal = useCallback(() => {
+        setShouldShowDeleteWorkspaceErrorModal(false);
+        onDismiss();
+    }, [onDismiss]);
+
+    const isDeleteWorkspaceErrorModalOpen = shouldShowDeleteWorkspaceErrorModal && hasExpensifyCardsEnabledOnWorkspace && isFocused;
+
+    const deleteWorkspaceErrorPrompt = (
+        <View style={[styles.renderHTML, styles.flexRow]}>
+            <RenderHTML
+                html={translate('workspace.common.deleteOpenExpensifyCardsError')}
+                onConciergeLinkPress={hideDeleteWorkspaceErrorModal}
+            />
+        </View>
+    );
 
     // Always invoked after a re-render (from the start effect below for normal deletes, or from usePayAndDowngrade for billed deletes),
     // so the workspace being deleted and its derived data are read from the latest state.
@@ -112,7 +134,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
-            isConfirmLoading: isPendingDelete,
+            ...(hasDeleteWorkspaceExpensifyCardsError ? {} : {isConfirmLoading: isPendingDelete}),
         }).then((result) => {
             if (!policyName || result.action !== ModalActions.CONFIRM) {
                 onDismiss();
@@ -138,11 +160,11 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
                 currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 accountIDToLogin: accountIDToLogin ?? {},
             });
-            if (isOffline) {
-                closeModal();
-                if (!hasDeleteWorkspaceExpensifyCardsError) {
-                    onDismiss();
-                }
+
+            if (hasDeleteWorkspaceExpensifyCardsError) {
+                setShouldShowDeleteWorkspaceErrorModal(true);
+            } else if (isOffline) {
+                onDismiss();
             }
         });
     };
@@ -177,57 +199,46 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
         continueDeleteWorkspace();
     });
 
-    const hideDeleteWorkspaceErrorModal = () => {
-        if (policy) {
-            dismissWorkspaceError(policy.id, policy.pendingAction);
-        }
-        onDismiss();
-    };
-
-    const showErrorModal = () => {
-        if (isErrorModalShowingRef.current) {
-            return;
-        }
-        isErrorModalShowingRef.current = true;
-        showConfirmModal({
-            title: translate('workspace.common.delete'),
-            prompt: policyLatestErrorMessage,
-            confirmText: translate('common.buttonConfirm'),
-            cancelText: translate('common.cancel'),
-            success: false,
-            shouldShowCancelButton: false,
-        }).then(() => {
-            isErrorModalShowingRef.current = false;
-            hideDeleteWorkspaceErrorModal();
-        });
-    };
-
     useEffect(() => {
-        const prevIsPendingDelete = prevIsPendingDeleteRef.current;
-        prevIsPendingDeleteRef.current = isPendingDelete;
-
-        // Handle showing error modal when offline and error occurs
-        if (isOffline && policyLatestErrorMessage) {
-            showErrorModal();
+        if (isOffline) {
             return;
         }
 
         if (!prevIsPendingDelete || isPendingDelete) {
             return;
         }
+
         closeModal();
-        if (!isFocused || !policyLatestErrorMessage) {
-            // The deletion either succeeded or there is no error modal to show, so the flow is finished.
-            if (!isErrorModalShowingRef.current) {
-                onDismiss();
-            }
+
+        if (policyLatestErrorMessage && hasExpensifyCardsEnabledOnWorkspace) {
+            setShouldShowDeleteWorkspaceErrorModal(true);
             return;
         }
 
-        showErrorModal();
-    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyLatestErrorMessage, isPendingDelete, isFocused, closeModal, onDismiss, showErrorModal]);
+        onDismiss();
+    }, [isOffline, isPendingDelete, prevIsPendingDelete, policyLatestErrorMessage, hasExpensifyCardsEnabledOnWorkspace, closeModal, onDismiss]);
 
-    return outstandingBalanceModal;
+    const deleteWorkspaceErrorModal = (
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Local modal avoids stacking issues with the global delete confirmation modal on mobile.
+        <ConfirmModal
+            title={translate('workspace.common.delete')}
+            isVisible={isDeleteWorkspaceErrorModalOpen}
+            onConfirm={hideDeleteWorkspaceErrorModal}
+            onCancel={hideDeleteWorkspaceErrorModal}
+            prompt={deleteWorkspaceErrorPrompt}
+            confirmText={translate('common.buttonConfirm')}
+            shouldShowCancelButton={false}
+            success={false}
+            shouldHandleNavigationBack={false}
+        />
+    );
+
+    return (
+        <>
+            {outstandingBalanceModal}
+            {deleteWorkspaceErrorModal}
+        </>
+    );
 }
 
 export default DeleteWorkspaceFlow;
