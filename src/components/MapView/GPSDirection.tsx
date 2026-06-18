@@ -16,11 +16,7 @@ function GPSDirection({directionCoordinates, isTrackingGPS, lastLocation}: GPSDi
         }
 
         const lastSegment = directionCoordinates.at(-1);
-        if (!lastSegment) {
-            return directionCoordinates;
-        }
-
-        if (lastSegment.length === 0) {
+        if (!lastSegment?.length) {
             return directionCoordinates;
         }
 

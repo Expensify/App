@@ -120,7 +120,7 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
 
     const centerMap = () => {
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
-        if (!isTrackingGPS && (waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1)) {
+        if (!isTrackingGPS && (waypointCoordinates.length > 1 || directionCoordinates?.length > 1)) {
             const {southWest, northEast} = utils.getBounds(waypointCoordinates, directionCoordinates);
             cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
             return;
