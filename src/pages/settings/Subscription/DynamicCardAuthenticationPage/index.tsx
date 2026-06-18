@@ -7,13 +7,13 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {clearPaymentCard3dsVerification, verifySetupIntent} from '@userActions/PaymentMethods';
 import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type DynamicCardAuthenticationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DYNAMIC_CARD_AUTHENTICATION>;
+type DynamicCardAuthenticationPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.DYNAMIC_CARD_AUTHENTICATION>;
 
 function DynamicCardAuthenticationPage({route}: DynamicCardAuthenticationPageProps) {
     const {translate} = useLocalize();

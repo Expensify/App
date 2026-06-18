@@ -8,6 +8,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNavigateToCardAuthenticationOnLink from '@hooks/useNavigateToCardAuthenticationOnLink';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -59,7 +60,6 @@ function CardSection() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
-    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [purchaseList] = useOnyx(ONYXKEYS.PURCHASE_LIST);
@@ -196,12 +196,8 @@ function CardSection() {
         clearOutstandingBalance();
     };
 
-    useEffect(() => {
-        if (!authenticationLink || (privateStripeCustomerID?.status !== CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED && !hasFailedLastBilling)) {
-            return;
-        }
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
-    }, [authenticationLink, privateStripeCustomerID?.status, hasFailedLastBilling]);
+    const shouldNavigateToCardAuthentication = privateStripeCustomerID?.status === CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED || hasFailedLastBilling;
+    useNavigateToCardAuthenticationOnLink(shouldNavigateToCardAuthentication);
 
     const handleAuthenticatePayment = () => {
         verifySetupIntent(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, false);
