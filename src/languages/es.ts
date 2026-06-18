@@ -7024,7 +7024,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             controlPolicyRoles: {
                 title: 'Controlar roles de la política',
-                description: 'Usa roles especializados como Auditor y Administrador de tarjetas para dar a los miembros acceso solo a lo que necesitan.',
+                description: 'Concede acceso específico a los miembros asignando roles como Auditor o Administrador de tarjetas.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Los roles especializados del espacio de trabajo solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
