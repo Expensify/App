@@ -111,7 +111,25 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const canSelectMultiple = canWriteTags && !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
-    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && !!policy?.areRulesEnabled;
+    const tagApproverEmails = useMemo(() => {
+        const approverEmails: Record<string, string> = {};
+
+        if (isMultiLevelTags) {
+            return approverEmails;
+        }
+
+        for (const tag of Object.values(policyTagLists?.at(0)?.tags ?? {})) {
+            const approverEmail = getTagApproverRule(policy, tag.name)?.approver;
+
+            if (approverEmail) {
+                approverEmails[tag.name] = approverEmail;
+            }
+        }
+
+        return approverEmails;
+    }, [isMultiLevelTags, policy, policyTagLists]);
+
+    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && !!policy?.areRulesEnabled && Object.keys(tagApproverEmails).length > 0;
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -229,7 +247,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         },
         [canWriteTags, policyData, showReadOnlyModal],
     );
-    const shouldShowGLCodeColumn = isControlPolicyWithWideLayout && !isMultiLevelTags;
+    const shouldShowGLCodeColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && Object.values(policyTagLists?.at(0)?.tags ?? {}).some((tag) => !!tag['GL Code']);
 
     const showAllTagsDisabledWarning = useCallback(() => {
         showConfirmModal({
@@ -355,7 +373,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 return acc;
             }
 
-            const approverEmail = shouldShowApproverColumn ? (getTagApproverRule(policy, tag.name)?.approver ?? '') : '';
+            const approverEmail = shouldShowApproverColumn ? tagApproverEmails[tag.name] : undefined;
             const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
             const {avatar: approverAvatar, displayName = approverEmail, accountID: approverAccountID} = approverPersonalDetail ?? {};
             const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
@@ -395,6 +413,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         policyTagLists,
         policyTags,
         shouldShowApproverColumn,
+        tagApproverEmails,
     ]);
 
     const tagRowsKeyedByName = useMemo(

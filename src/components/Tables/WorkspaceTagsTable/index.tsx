@@ -41,7 +41,7 @@ export default function WorkspaceTagsTable({
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-    const shouldShowTagCountColumn = hasDependentTags && !shouldUseNarrowTableLayout;
+    const shouldShowTagCountColumn = isMultiLevelTags && !shouldUseNarrowTableLayout;
     const shouldShowEnabledColumn = !isMultiLevelTags;
     const shouldShowRequiredColumn = isMultiLevelTags && !hasDependentTags;
 
