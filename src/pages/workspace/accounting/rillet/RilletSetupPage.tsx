@@ -66,7 +66,6 @@ function RilletSetupPage({route}: RilletSetupPageProps) {
                 validate={validate}
                 onSubmit={confirmCredentials}
                 submitButtonText={translate('common.confirm')}
-                enabledWhenOffline
                 shouldValidateOnBlur
                 shouldUseScrollView
                 shouldValidateOnChange
