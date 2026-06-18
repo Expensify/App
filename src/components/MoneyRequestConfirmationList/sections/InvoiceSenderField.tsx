@@ -38,11 +38,9 @@ type InvoiceSenderFieldProps = {
 const senderWorkspaceSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => (policy ? {id: policy.id, name: policy.name, avatarURL: policy.avatarURL} : undefined);
 
 const createCanUpdateSenderWorkspaceSelector =
-    (selectedParticipants: Participant[], currentUserLogin: string | undefined, isFromGlobalCreate: boolean) =>
-    (policies: OnyxCollection<OnyxTypes.Policy>): boolean => {
-        const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
-        return canSendInvoice(policies ?? null, currentUserLogin) && isFromGlobalCreate && !isInvoiceRoomParticipant;
-    };
+    (isInvoiceRoomParticipant: boolean, currentUserLogin: string | undefined, isFromGlobalCreate: boolean) =>
+    (policies: OnyxCollection<OnyxTypes.Policy>): boolean =>
+        canSendInvoice(policies ?? null, currentUserLogin) && isFromGlobalCreate && !isInvoiceRoomParticipant;
 
 function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouType, reportID, transaction}: InvoiceSenderFieldProps) {
     const styles = useThemeStyles();
@@ -55,16 +53,15 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouTy
 
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
-    // `selectedParticipants` is a `.filter()` result (fresh array every render), so key the memoized
-    // selector on its contents rather than the array reference — otherwise the selector identity
-    // changes each render and defeats useOnyx's memoization (re-subscribing endlessly under the
-    // store-based engine).
-    const selectedParticipantsKey = JSON.stringify(selectedParticipants);
+    // The selector only needs whether any selected participant is an invoice room — project to that
+    // primitive so the memoized selector depends on a stable boolean rather than the `.filter()` result
+    // (a fresh array every render), which would otherwise change the selector identity each render and
+    // defeat useOnyx's memoization (re-subscribing endlessly under the store-based engine).
+    const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
     // canSendInvoice needs the full policy collection to check all admin workspaces
     const canUpdateSenderWorkspaceSelector = useCallback(
-        (policies: OnyxCollection<OnyxTypes.Policy>) => createCanUpdateSenderWorkspaceSelector(selectedParticipants, currentUserLogin, isFromGlobalCreate)(policies),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [selectedParticipantsKey, currentUserLogin, isFromGlobalCreate],
+        (policies: OnyxCollection<OnyxTypes.Policy>) => createCanUpdateSenderWorkspaceSelector(isInvoiceRoomParticipant, currentUserLogin, isFromGlobalCreate)(policies),
+        [isInvoiceRoomParticipant, currentUserLogin, isFromGlobalCreate],
     );
     const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: canUpdateSenderWorkspaceSelector});
 

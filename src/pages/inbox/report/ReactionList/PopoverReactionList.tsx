@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import useStableArrayReference from '@hooks/useStableArrayReference';
 import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
 import type {ReactionListAnchor} from '@pages/inbox/ReportScreenContext';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,14 +34,13 @@ function PopoverReactionList({isVisible, emojiName, reportActionID, anchorPositi
     const isReady = !!selectedReaction;
     const {emojiCodes = [], reactionCount = 0, hasUserReacted = false, userAccountIDs = []} = selectedReaction ? getEmojiReactionDetails(emojiName, selectedReaction, accountID) : {};
 
-    // `userAccountIDs` is destructured fresh on every render, so key the memoized selector on its
-    // contents rather than the array reference — otherwise the selector identity changes each render
+    // `userAccountIDs` is destructured fresh on every render, so stabilize its reference (keyed on
+    // contents) before the selector depends on it — otherwise the selector identity changes each render
     // and defeats useOnyx's memoization (re-subscribing endlessly under the store-based engine).
-    const userAccountIDsKey = userAccountIDs.join(',');
+    const stableUserAccountIDs = useStableArrayReference(userAccountIDs);
     const reactionUsersSelector = useCallback(
-        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => multiPersonalDetailsSelector(isReady ? userAccountIDs : [])(personalDetailsList),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [isReady, userAccountIDsKey],
+        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => multiPersonalDetailsSelector(isReady ? stableUserAccountIDs : getEmptyArray<number>())(personalDetailsList),
+        [isReady, stableUserAccountIDs],
     );
     const [users = getEmptyArray<PersonalDetails>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: reactionUsersSelector,
