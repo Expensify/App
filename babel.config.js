@@ -56,6 +56,9 @@ if (process.env.DEBUG_BABEL_TRACE) {
     defaultPluginsForWebpack.push(traceTransformer);
 }
 
+// This config is no longer read by webpack. The webpack build uses inline loader
+// options in config/webpack/webpack.common.ts (babel-loader with configFile:false).
+// Kept here for tooling compatibility (e.g. babel-jest, IDE plugins).
 const webpack = {
     presets: defaultPresetsForWebpack,
     plugins: defaultPluginsForWebpack,
