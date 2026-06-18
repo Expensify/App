@@ -53,6 +53,9 @@ type BannerProps = {
 
     /** Callback called when pressing the button */
     onButtonPress?: () => void;
+
+    /** Custom action content rendered in the right side of the banner. Overrides the configured `shouldShowButton` when provided. */
+    children?: React.ReactNode;
 };
 
 function Banner({
@@ -64,6 +67,7 @@ function Banner({
     onButtonPress,
     containerStyles,
     textStyles,
+    children,
     shouldRenderHTML = false,
     shouldShowIcon = false,
     shouldShowCloseButton = false,
@@ -118,14 +122,15 @@ function Banner({
                                     </Text>
                                 ))}
                         </View>
-                        {shouldShowButton && (
-                            <Button
-                                success
-                                style={[styles.ph3]}
-                                text={translate('common.chatNow')}
-                                onPress={onButtonPress}
-                            />
-                        )}
+                        {children ??
+                            (shouldShowButton && (
+                                <Button
+                                    success
+                                    style={[styles.ph3]}
+                                    text={translate('common.chatNow')}
+                                    onPress={onButtonPress}
+                                />
+                            ))}
                         {shouldShowCloseButton && !!onClose && (
                             <Tooltip text={translate('common.close')}>
                                 <PressableWithFeedback

@@ -1,10 +1,10 @@
 ---
 title: Track Taxes
 description: Set up and manage tax rates in your Expensify workspace for non-USD currencies.
-keywords: [New Expensify, tax rates, VAT, GST, QST, PST, expense tax codes, foreign currency taxes, workspace settings]
+keywords: [New Expensify, tax rates, VAT, GST, QST, PST, expense tax codes, foreign currency taxes, workspace settings, SmartScan tax, scanned tax, receipt tax]
 ---
 
-Workspaces on **Collect** and **Control** plans can add tax rates to track VAT, GST, or other regional taxes. Tax rates are applied by default based on currency, but can also be manually selected per expense.
+Workspaces on **Collect** and **Control** plans can add tax rates to track VAT, GST, or other regional taxes. Tax rates are applied by default based on currency, but can also be manually selected per expense. When you SmartScan a receipt, Expensify also reads the tax amount printed on the receipt and applies it automatically where possible. You can always review and edit the tax on the expense.
 
 **Note:** If your workspace uses a direct accounting integration (like QuickBooks, Xero, or NetSuite), you must manage tax rates within that system, not in Expensify.
 
@@ -106,7 +106,7 @@ You'll have the option to change the tax rate from within the expense as needed.
 
 ## What should I do if the tax amount on my expense is missing or incorrect?
 
-In Expensify, tax is *inclusive*, meaning it's already part of the total amount shown. If the tax amount doesn't show up on your receipt or is different from the calculated amount, you can manually type in the correct amount.
+In Expensify, tax is *inclusive*, meaning it's already part of the total amount shown. When you SmartScan a receipt, Expensify attempts to read the tax amount directly from the receipt and apply it automatically. If the receipt doesn't show a tax amount, or the amount that was applied is different from what's on your receipt, you can manually type in the correct amount.
 
 To determine the inclusive tax from a total price that already includes tax, you can use the following formula:
 

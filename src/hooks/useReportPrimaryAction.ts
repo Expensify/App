@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {isExpenseReport as isExpenseReportUtils} from '@libs/ReportUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -32,7 +32,7 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
-    if (isExpenseReportUtils(moneyRequestReport) && !isPaidGroupPolicy(policy)) {
+    if (isExpenseReportUtils(moneyRequestReport) && !isGroupPolicy(policy)) {
         return '';
     }
 

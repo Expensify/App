@@ -7,6 +7,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {TableData} from '.';
 import {useTableContext} from './TableContext';
 
 /**
@@ -45,10 +46,19 @@ type TableBodyProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) {
+function TableBody<DataType extends TableData>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {processedData: filteredAndSortedData, activeSearchString, listProps, listRef, shouldUseNarrowTableLayout, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
+    const {
+        processedData: filteredAndSortedData,
+        activeSearchString,
+        listProps,
+        listRef,
+        shouldUseNarrowTableLayout,
+        hasActiveFilters,
+        hasSearchString,
+        isEmptyResult,
+    } = useTableContext<DataType>();
     const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
@@ -88,7 +98,7 @@ function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) 
             style={[styles.flex1, styles.mnh0, style]}
             {...props}
         >
-            <FlashList<T>
+            <FlashList<DataType>
                 ref={listRef}
                 data={filteredAndSortedData}
                 style={[styles.flex1, styles.mnh0]}
