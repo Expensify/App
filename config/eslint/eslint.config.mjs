@@ -19,6 +19,7 @@ import globals from 'globals';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import tseslint from 'typescript-eslint';
 import reportNameUtilsPlugin from './plugins/eslint-plugin-report-name-utils.mjs';
 import expensifyProcessor from './processors/eslint-processor-expensify.mjs';
 
@@ -281,8 +282,6 @@ const config = defineConfig([
 
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
-            '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
-
             // ESLint core rules
             // eslint-config-expensify/react re-enables class-methods-use-this; App keeps it off.
             'class-methods-use-this': 'off',
@@ -555,8 +554,20 @@ const config = defineConfig([
     },
 
     {
+        files: ['**/*.ts', '**/*.tsx'],
+        plugins: {
+            '@typescript-eslint': tseslint.plugin,
+        },
+        rules: {
+            '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
+        },
+    },
+
+    {
         files: ['tests/**/*'],
         rules: {
+            'import/extensions': 'off',
+
             // This helps disable the `prefer-alias` rule for tests
             '@dword-design/import-alias/prefer-alias': ['off'],
 
