@@ -14,7 +14,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberManageMemberWithRole, canMemberManageRole, isControlPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {canMemberAssignRole, canMemberManageMemberWithRole, isControlPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +34,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const canManageAuditorRole = canMemberManageRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR);
+    const canManageAuditorRole = canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR);
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -132,7 +132,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             let role = isPolicyMember ? (policy?.employeeList?.[email]?.role ?? '') : '';
             const importedRole = membersRoles?.[containsHeader ? index + 1 : index];
             const canManageCurrentRole = !isPolicyMember || canMemberManageMemberWithRole(policy, currentUserLogin, role);
-            if (canManageAuditorRole && membersRolesColumn !== -1 && importedRole && canManageCurrentRole && canMemberManageRole(policy, currentUserLogin, importedRole)) {
+            if (canManageAuditorRole && membersRolesColumn !== -1 && importedRole && canManageCurrentRole && canMemberAssignRole(policy, currentUserLogin, importedRole)) {
                 role = importedRole;
             }
             if (canManageAuditorRole && membersRolesColumn !== -1 && !role) {

@@ -68,8 +68,8 @@ import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils
 import {getDisplayNameOrDefault, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
+    canMemberAssignRole,
     canMemberManageMemberWithRole,
-    canMemberManageRole,
     canMemberWrite,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
@@ -265,7 +265,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      * Remove selected users from the workspace
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
-    const removeUsers = useCallback(() => {
+    const removeUsers = () => {
         // Check if any of the members are approvers
         const hasApprovers = selectedEmployees.some((email) => isPolicyApprover(policy, email));
 
@@ -301,12 +301,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         setSelectedEmployees([]);
         removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
-    }, [approvalWorkflows, ownerDetails, personalDetails, policy, policyMemberEmailsToAccountIDs, selectedEmployees, setSelectedEmployees]);
+    };
 
     /**
      * Show the modal to confirm removal of the selected members
      */
-    const askForConfirmationToRemove = useCallback(async () => {
+    const askForConfirmationToRemove = async () => {
         const result = await showConfirmModal({
             danger: true,
             title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
@@ -325,7 +325,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
 
         removeUsers();
-    }, [confirmModalPrompt, removeUsers, selectedEmployees.length, showConfirmModal, translate]);
+    };
 
     /**
      * Add or remove all users passed from the selectedEmployees list
@@ -884,7 +884,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const isReimbursementEnabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
         const hasAtLeastOnePayer = isReimbursementEnabled && policy?.achAccount?.reimburser ? selectedEmployees.includes(policy?.achAccount?.reimburser) : false;
 
-        if (hasAtLeastOneNonMemberRole && !hasAtLeastOnePayer && canManageSelectedEmployees && canMemberManageRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.USER)) {
+        if (hasAtLeastOneNonMemberRole && !hasAtLeastOnePayer && canManageSelectedEmployees && canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.USER)) {
             options.push(memberOption);
         }
 
@@ -897,7 +897,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             isControlPolicy(policy) &&
             !hasAtLeastOnePayer &&
             canManageSelectedEmployees &&
-            canMemberManageRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.AUDITOR)
+            canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.AUDITOR)
         ) {
             options.push(auditorOption);
         }

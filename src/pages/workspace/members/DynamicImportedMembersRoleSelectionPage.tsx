@@ -9,7 +9,7 @@ import {setImportedSpreadsheetMemberRole} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberManageRole} from '@libs/PolicyUtils';
+import {canMemberAssignRole} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,7 +30,7 @@ function DynamicImportedMembersRoleSelectionPage({route}: DynamicImportedMembers
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!canMemberManageRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR)}
+            shouldBeBlocked={!canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR)}
         >
             <ScreenWrapper
                 testID="DynamicImportedMembersRoleSelectionPage"
@@ -41,7 +41,7 @@ function DynamicImportedMembersRoleSelectionPage({route}: DynamicImportedMembers
                     role={role}
                     policy={policy}
                     onSelectRole={({value}) => {
-                        if (!canMemberManageRole(policy, currentUserLogin, value)) {
+                        if (!canMemberAssignRole(policy, currentUserLogin, value)) {
                             return;
                         }
                         setImportedSpreadsheetMemberRole(value);

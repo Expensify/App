@@ -9,7 +9,7 @@ import {updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberManageRole} from '@libs/PolicyUtils';
+import {canMemberAssignRole} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -30,7 +30,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
-    const canManageSelectedMemberRole = canMemberManageRole(policy, currentUserLogin, member?.role);
+    const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     useRedirectSubmitWorkspaceFeatureUpgrade({
         policy,
         backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
@@ -41,7 +41,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         if (value === member?.role) {
             return;
         }
-        if (!canMemberManageRole(policy, currentUserLogin, value)) {
+        if (!canMemberAssignRole(policy, currentUserLogin, value)) {
             return;
         }
         updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value);

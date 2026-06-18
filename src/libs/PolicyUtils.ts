@@ -203,7 +203,7 @@ function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature
     return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
 }
 
-function canMemberManageRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
+function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
     if (!role) {
         return false;
     }
@@ -221,7 +221,7 @@ function canMemberManageRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
 }
 
 function canMemberManageMemberWithRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
-    if (canMemberManageRole(policy, login, role)) {
+    if (canMemberAssignRole(policy, login, role)) {
         return true;
     }
 
@@ -2555,7 +2555,7 @@ export {
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
-    canMemberManageRole,
+    canMemberAssignRole,
     canMemberManageMemberWithRole,
     isGroupPolicy,
     isGroupPolicyByType,

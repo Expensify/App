@@ -7,8 +7,8 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     canAccessSubmitWorkspaceFeatures,
+    canMemberAssignRole,
     canMemberManageMemberWithRole,
-    canMemberManageRole,
     canMemberRead,
     canMemberWrite,
     canSendInvoiceFromWorkspace,
@@ -323,12 +323,12 @@ describe('PolicyUtils', () => {
         it('limits People Admin member role management to members and auditors', () => {
             const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
 
-            expect(canMemberManageRole(policy, memberLogin, CONST.POLICY.ROLE.USER)).toBe(true);
-            expect(canMemberManageRole(policy, memberLogin, CONST.POLICY.ROLE.AUDITOR)).toBe(true);
-            expect(canMemberManageRole(policy, memberLogin, CONST.POLICY.ROLE.ADMIN)).toBe(false);
-            expect(canMemberManageRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
-            expect(canMemberManageRole(policy, memberLogin, CONST.POLICY.ROLE.PEOPLE_ADMIN)).toBe(false);
-            expect(canMemberManageRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.USER)).toBe(true);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.AUDITOR)).toBe(true);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.ADMIN)).toBe(false);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PEOPLE_ADMIN)).toBe(false);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
         });
 
         it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
@@ -338,7 +338,7 @@ describe('PolicyUtils', () => {
             };
 
             expect(canMemberManageMemberWithRole(policy, memberLogin, CONST.POLICY.ROLE.EDITOR)).toBe(true);
-            expect(canMemberManageRole(policy, memberLogin, CONST.POLICY.ROLE.EDITOR)).toBe(false);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.EDITOR)).toBe(false);
         });
     });
 

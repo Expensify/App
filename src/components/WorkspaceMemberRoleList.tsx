@@ -6,7 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {canMemberManageRole, isControlPolicy} from '@libs/PolicyUtils';
+import {canMemberAssignRole, isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
@@ -84,7 +84,7 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
         if (item.value === CONST.POLICY.ROLE.PEOPLE_ADMIN && !isPolicyControl) {
             return false;
         }
-        return canMemberManageRole(policy, currentUserLogin, item.value);
+        return canMemberAssignRole(policy, currentUserLogin, item.value);
     });
 
     return (

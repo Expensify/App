@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {canMemberManageRole, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {canMemberAssignRole, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,8 +44,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const canManageAuditorRole = canMemberManageRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR);
-    const role = canMemberManageRole(policy, currentUserLogin, roleFromOnyx) ? roleFromOnyx : CONST.POLICY.ROLE.USER;
+    const canManageAuditorRole = canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.AUDITOR);
+    const role = canMemberAssignRole(policy, currentUserLogin, roleFromOnyx) ? roleFromOnyx : CONST.POLICY.ROLE.USER;
     const [isImporting, setIsImporting] = useState(false);
     const {isOffline} = useNetwork();
 
