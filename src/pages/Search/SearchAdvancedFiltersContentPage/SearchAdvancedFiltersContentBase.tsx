@@ -60,7 +60,7 @@ function SearchAdvancedFiltersContentBase() {
                         <View style={[styles.filterContentContainer]}>
                             <SearchAdvancedFiltersContent
                                 values={currentDraftFilters}
-                                filterKey={validFilterKey}
+                                baseFilterKey={validFilterKey}
                                 policyIDQuery={currentSearchQueryJSON?.policyID}
                                 ready={didScreenTransitionEnd}
                                 components={{

@@ -276,6 +276,15 @@ type QueryFilter = {
     value: string | number;
 };
 
+type SearchNegatableFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TO
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO;
+
 // Report fields are dynamic keys, that policies can configure. They match:
 // reportField-<key> : Normal report field
 // reportField<modifier>-<key> : Report field with a modifier, such as On, After, Before, Not, so that we can handle Dates and negation
@@ -450,6 +459,7 @@ export type {
     SelectedTransactions,
     SearchColumnType,
     SearchSortBy,
+    SearchNegatableFilterKeys,
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchDateKey,

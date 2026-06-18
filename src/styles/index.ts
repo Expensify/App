@@ -5071,6 +5071,12 @@ const staticStyles = (theme: ThemeColors) =>
             minWidth: CONST.ADVANCED_FILTERS_CONTENT_WIDTH,
         },
 
+        negatableFilterButtons: {
+            flexDirection: 'row',
+            minWidth: 180,
+            borderRadius: variables.buttonBorderRadius,
+        },
+
         searchActionsBarContainer: {
             marginBottom: 16,
             paddingHorizontal: 20,

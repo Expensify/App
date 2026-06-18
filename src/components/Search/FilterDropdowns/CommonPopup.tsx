@@ -2,25 +2,26 @@ import React, {useState} from 'react';
 import FilterComponents from '@components/Search/FilterComponents';
 import type {FilterComponentsProps} from '@components/Search/FilterComponents';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
+import useFilterNegatableValue from '../hooks/useFilterNegatableValue';
+import useGetFilterFormValues from '../hooks/useGetFilterFormValues';
 import BasePopup from './BasePopup';
 import type {PopoverComponentProps} from './FilterPopupButton';
 
-type CommonPopupProps = {
-    filterKey: FilterComponentsProps['filterKey'];
-    value: FilterComponentsProps['value'];
-    type: FilterComponentsProps['type'];
-    policyIDs: FilterComponentsProps['policyIDs'];
+type CommonPopupProps = Pick<FilterComponentsProps, 'baseFilterKey' | 'policyIDQuery'> & {
+    values: Partial<SearchAdvancedFiltersForm> | undefined;
     label: string;
-    policyIDQuery: string[] | undefined;
     closeOverlay: PopoverComponentProps['closeOverlay'];
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function CommonPopup({filterKey, value: initialValue, type, policyIDs, label, policyIDQuery, updateFilterForm, closeOverlay}: CommonPopupProps) {
+function CommonPopup({baseFilterKey, values, label, policyIDQuery, updateFilterForm, closeOverlay}: CommonPopupProps) {
+    const {isNegated: initialIsNegated, value: initialValue} = useFilterNegatableValue(baseFilterKey, values);
     const [value, setValue] = useState(initialValue);
+    const [isNegated, setIsNegated] = useState(initialIsNegated);
+    const getFilterFormValues = useGetFilterFormValues();
 
     const applyChanges = () => {
-        updateFilterForm({[filterKey]: value} as Partial<SearchAdvancedFiltersForm>);
+        updateFilterForm(getFilterFormValues(baseFilterKey, value, isNegated));
         closeOverlay();
     };
 
@@ -28,15 +29,17 @@ function CommonPopup({filterKey, value: initialValue, type, policyIDs, label, po
         <BasePopup
             label={label}
             onApply={applyChanges}
-            applySentryLabel={`Search-FilterPopupApply-${filterKey}`}
+            applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
         >
             <FilterComponents
-                filterKey={filterKey}
+                baseFilterKey={baseFilterKey}
                 value={value}
-                type={type}
-                policyIDs={policyIDs}
+                isNegated={isNegated}
+                type={values?.type}
+                policyIDs={values?.policyID}
                 policyIDQuery={policyIDQuery}
                 onChange={setValue}
+                onNegationChange={setIsNegated}
             />
         </BasePopup>
     );
