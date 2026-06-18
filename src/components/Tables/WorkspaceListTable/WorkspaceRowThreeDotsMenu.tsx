@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/core';
 import React, {useEffect, useRef, useState} from 'react';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -50,7 +51,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -61,7 +62,9 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
     const [canDowngrade] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canDowngradeSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
-    const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(session?.accountID)}, [session?.accountID]);
+    const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)}, [
+        currentUserPersonalDetails.accountID,
+    ]);
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
 
@@ -79,7 +82,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
     }, [isLoadingBill]);
 
     const isDefault = activePolicyID === item.policyID;
-    const isOwner = item.ownerAccountID === session?.accountID;
+    const isOwner = item.ownerAccountID === currentUserPersonalDetails.accountID;
     const isAdmin = item.role === CONST.POLICY.ROLE.ADMIN;
 
     const menuItems: PopoverMenuItem[] = [
@@ -95,6 +98,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
             icon: icons.Exit,
             text: translate('common.leave'),
             onSelected: callFunctionIfActionIsAllowed(() => setActiveAction('leave')),
+            shouldCallAfterModalHide: true,
         });
     }
 
@@ -159,6 +163,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
             icon: icons.Transfer,
             text: translate('workspace.people.transferOwner'),
             onSelected: () => setActiveAction('transferOwnership'),
+            shouldCallAfterModalHide: true,
         });
     }
 
