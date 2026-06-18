@@ -39,6 +39,7 @@ import type {
     Vendor,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
+import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
@@ -239,9 +240,9 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
  */
 function hasPolicyRulesError(policy: OnyxEntry<Policy>): boolean {
     const codingRules = Object.values(policy?.rules?.codingRules ?? {});
-    const aiRules = Object.values(policy?.rules?.aiRules ?? {});
+    const agentRules = Object.values(policy?.rules?.agentRules ?? {});
 
-    return codingRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0) || aiRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
+    return codingRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0) || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
 }
 
 /**
@@ -338,7 +339,13 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
         for (const admin of getAdminEmployees(policy)) {
             const email = admin?.email;
             // Check if the email is for the active user or an existing user in the sharees array or admins list to avoid extra iterations
-            if (!email || email === currentUserLogin || adminMap.has(email) || shareesSet.has(email)) {
+            if (
+                !email ||
+                email === currentUserLogin ||
+                adminMap.has(email) ||
+                shareesSet.has(email) ||
+                (isExpensifyTeam(email) && shouldFilterExpensifyTeam(policy.owner, currentUserLogin))
+            ) {
                 continue;
             }
             const personalDetails = getPersonalDetailByEmail(email);
@@ -368,7 +375,7 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
  */
 function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
-    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin);
     if (!activePolicies) {
         return false;
     }
@@ -378,7 +385,7 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
         const admins = getAdminEmployees(policy);
         for (const admin of admins) {
             const email = admin?.email;
-            if (!email || email === currentUserLogin || alreadySharedSharees.has(email)) {
+            if (!email || email === currentUserLogin || alreadySharedSharees.has(email) || (isExpensifyTeam(email) && shouldFilterExpensifyTeam(policy.owner, currentUserLogin))) {
                 continue;
             }
 
@@ -733,6 +740,13 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     }
 
     return memberEmailsToExclude;
+}
+
+/**
+ * Get excluded users as a Record for use in search selector
+ */
+function getExcludedUsers(employeeList?: PolicyEmployeeList): Record<string, boolean> {
+    return Object.fromEntries(getIneligibleInvitees(employeeList).map((login) => [login, true]));
 }
 
 /**
@@ -1121,6 +1135,18 @@ function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
 
 function isSubmitPolicyByType(policyType: string | undefined): boolean {
     return policyType === CONST.POLICY.TYPE.SUBMIT;
+}
+
+/**
+ * Checks if the submitter's approval is blocked on the submit workspace.
+ *
+ * @param policy - The policy to check
+ * @param reportOwnerAccountID - The account ID of the report owner
+ * @param approverAccountID - The account ID of the approver
+ * @returns True if the submitter's approval is blocked on the submit workspace, false otherwise
+ */
+function isSubmitterApproveBlockedOnSubmitWorkspace(policy: OnyxInputOrEntry<Policy>, reportOwnerAccountID: number | undefined, approverAccountID: number): boolean {
+    return isSubmitPolicy(policy) && reportOwnerAccountID === approverAccountID;
 }
 
 /**
@@ -2385,6 +2411,11 @@ function isPreferredExporter(policy: Policy, currentUserLogin: string) {
     return exporters.some((exporter) => exporter && exporter === currentUserLogin);
 }
 
+/** Whether a workspace has been provisioned with a Spotnana entity. */
+function isWorkspaceProvisionedForTravel(travelSettings?: WorkspaceTravelSettings): boolean {
+    return !!(travelSettings?.spotnanaCompanyID ?? travelSettings?.associatedTravelDomainAccountID);
+}
+
 /**
  * Determines which travel step should be shown based on policy state
  */
@@ -2494,6 +2525,7 @@ export {
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
+    getExcludedUsers,
     getMemberAccountIDsForWorkspace,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
@@ -2647,6 +2679,7 @@ export {
     getPolicyEmployeeAccountIDs,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getTravelStep,
+    isWorkspaceProvisionedForTravel,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
     isTimeTrackingEnabled,
@@ -2660,6 +2693,7 @@ export {
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     isSubmitPolicy,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
 };
 
-export type {MemberEmailsToAccountIDs, PolicyFeature};
+export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};

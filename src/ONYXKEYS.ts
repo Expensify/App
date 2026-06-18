@@ -980,12 +980,8 @@ const ONYXKEYS = {
         CHRONOS_SCHEDULE_OOO_FORM_DRAFT: 'chronosScheduleOOOFormDraft',
         REPORT_DESCRIPTION_FORM: 'reportDescriptionForm',
         REPORT_DESCRIPTION_FORM_DRAFT: 'reportDescriptionFormDraft',
-        LEGAL_NAME_FORM: 'legalNameForm',
-        LEGAL_NAME_FORM_DRAFT: 'legalNameFormDraft',
         WORKSPACE_INVITE_MESSAGE_FORM: 'workspaceInviteMessageForm',
         WORKSPACE_INVITE_MESSAGE_FORM_DRAFT: 'workspaceInviteMessageFormDraft',
-        DATE_OF_BIRTH_FORM: 'dateOfBirthForm',
-        DATE_OF_BIRTH_FORM_DRAFT: 'dateOfBirthFormDraft',
         HOME_ADDRESS_FORM: 'homeAddressForm',
         HOME_ADDRESS_FORM_DRAFT: 'homeAddressFormDraft',
         PERSONAL_DETAILS_FORM: 'personalDetailsForm',
@@ -1182,10 +1178,10 @@ const ONYXKEYS = {
         EDIT_AGENT_NAME_FORM_DRAFT: 'editAgentNameFormDraft',
         EDIT_AGENT_PROMPT_FORM: 'editAgentPromptForm',
         EDIT_AGENT_PROMPT_FORM_DRAFT: 'editAgentPromptFormDraft',
-        ADD_AI_RULE_FORM: 'addAIRuleForm',
-        ADD_AI_RULE_FORM_DRAFT: 'addAIRuleFormDraft',
-        EDIT_AI_RULE_FORM: 'editAIRuleForm',
-        EDIT_AI_RULE_FORM_DRAFT: 'editAIRuleFormDraft',
+        ADD_AGENT_RULE_FORM: 'addAgentRuleForm',
+        ADD_AGENT_RULE_FORM_DRAFT: 'addAgentRuleFormDraft',
+        EDIT_AGENT_RULE_FORM: 'editAgentRuleForm',
+        EDIT_AGENT_RULE_FORM_DRAFT: 'editAgentRuleFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1229,9 +1225,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ROOM_NAME_FORM]: FormTypes.RoomNameForm;
     [ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM]: FormTypes.ChronosScheduleOOOForm;
     [ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM]: FormTypes.ReportDescriptionForm;
-    [ONYXKEYS.FORMS.LEGAL_NAME_FORM]: FormTypes.LegalNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM]: FormTypes.WorkspaceInviteMessageForm;
-    [ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM]: FormTypes.DateOfBirthForm;
     [ONYXKEYS.FORMS.HOME_ADDRESS_FORM]: FormTypes.HomeAddressForm;
     [ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM]: FormTypes.PersonalDetailsForm;
     [ONYXKEYS.FORMS.NEW_ROOM_FORM]: FormTypes.NewRoomForm;
@@ -1337,8 +1331,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.CREATE_DOMAIN_GROUP_FORM]: FormTypes.DomainGroupCreateForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM]: FormTypes.EditAgentNameForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM]: FormTypes.EditAgentPromptForm;
-    [ONYXKEYS.FORMS.ADD_AI_RULE_FORM]: FormTypes.AddAIRuleForm;
-    [ONYXKEYS.FORMS.EDIT_AI_RULE_FORM]: FormTypes.EditAIRuleForm;
+    [ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM]: FormTypes.AddAgentRuleForm;
+    [ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM]: FormTypes.EditAgentRuleForm;
 };
 
 type OnyxFormDraftValuesMapping = {

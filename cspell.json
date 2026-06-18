@@ -516,6 +516,7 @@
         "creditamount",
         "creditcards",
         "crios",
+        "csvexport",
         "csvg",
         "customairshipextender",
         "customfield",
@@ -1009,7 +1010,8 @@
         "NitroFetch",
         "Prefetch",
         "Prefetcher",
-        "knip"
+        "knip",
+        "lottiefiles"
     ],
     "ignorePaths": [
         ".gitignore",
