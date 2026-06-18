@@ -83,7 +83,7 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
         >
-            <Table.SearchBar label={translate('workspace.common.findRoom')} />
+            <Table.FilterBar label={translate('workspace.common.findRoom')} />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>

@@ -119,7 +119,6 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
     );
 
     const isEmpty = ratesData.length === 0;
-    const shouldShowSearchBar = ratesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return (
         <Table
@@ -138,7 +137,7 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
         >
             {!isEmpty && (
                 <>
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.distanceRates.findRate')} />}
+                    <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />
                     <Table.Header />
                     <Table.Body />
                 </>
