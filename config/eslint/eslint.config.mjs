@@ -1,6 +1,7 @@
 import {FlatCompat} from '@eslint/eslintrc';
 import browserConfig from 'eslint-config-expensify/browser';
 import expensifyPluginConfig from 'eslint-config-expensify/expensify';
+import jestConfig from 'eslint-config-expensify/jest';
 import reactConfig from 'eslint-config-expensify/react';
 import scriptsConfig from 'eslint-config-expensify/scripts';
 import tsExpensifyConfig from 'eslint-config-expensify/typescript';
@@ -212,6 +213,7 @@ const config = defineConfig([
     ...tsExpensifyConfig,
     ...expensifyPluginConfig,
     ...scriptsConfig,
+    ...jestConfig,
     {
         languageOptions: {
             globals: {
@@ -354,9 +356,7 @@ const config = defineConfig([
             '@typescript-eslint/no-use-before-define': ['error', {functions: false}],
 
             // ESLint core rules
-            // Previously set in eslint-config-expensify/style (now in ./formatting, which we skip because Prettier handles formatting)
-            'no-console': ['error', {allow: ['debug', 'error']}],
-            // Previously set in eslint-config-expensify/rules/style.js after react (4.0.1 react re-enables this rule)
+            // eslint-config-expensify/react re-enables class-methods-use-this; App keeps it off.
             'class-methods-use-this': 'off',
             'es/no-nullish-coalescing-operators': 'off',
             'es/no-optional-chaining': 'off',
@@ -664,14 +664,6 @@ const config = defineConfig([
                 ...globals.node,
             },
         },
-        // Re-apply after the main rules block, which sets no-console with allow: [debug, error]
-        rules: {
-            'no-console': 'off',
-        },
-    },
-
-    {
-        files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*'],
         rules: {
             'no-await-in-loop': 'off',
             'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
@@ -698,8 +690,6 @@ const config = defineConfig([
     {
         files: ['tests/**/*'],
         rules: {
-            'no-import-assign': 'off',
-
             // This helps disable the `prefer-alias` rule for tests
             '@dword-design/import-alias/prefer-alias': ['off'],
 
