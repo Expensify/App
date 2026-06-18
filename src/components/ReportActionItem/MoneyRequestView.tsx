@@ -48,7 +48,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
-import {updateMoneyRequestBillable, updateMoneyRequestReimbursable, updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
+import {updateMoneyRequestBillable, updateMoneyRequestCategory, updateMoneyRequestReimbursable, updateMoneyRequestTag, updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {enrichAndSortAttendees, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from '@libs/CardUtils';
@@ -70,6 +70,7 @@ import {
     hasVendorFeature,
     isAttendeeTrackingEnabled,
     isGroupPolicyByType,
+    isMultiLevelTags,
     isPolicyAccessible,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
@@ -444,6 +445,11 @@ function MoneyRequestView({
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || (canEdit && hasEnabledTags(policyTagLists)));
+    // Surface a delete confirmation (like tax) when the value is stale and there's nothing valid to select, instead
+    // of navigating to edit. Categories need at least one, so they only hit this when disabled; tags can be fully
+    // emptied, so also cover "no enabled tags remain". Scoped to single-level tag lists.
+    const shouldShowCategoryDisabledAlert = !policy?.areCategoriesEnabled && !!category;
+    const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !hasEnabledTags(policyTagLists)) && !!transactionTag && !isMultiLevelTags(policyTagList);
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || isBillableEnabledOnPolicy(policy) || !!updatedTransaction?.billable);
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
@@ -745,6 +751,73 @@ function MoneyRequestView({
         });
     };
 
+    const showCategoryDisabledAlert = () => {
+        const transactionID = transaction?.transactionID;
+        if (!transactionID) {
+            return;
+        }
+        showConfirmModal({
+            title: translate('iou.categoryDisabledAlert.title'),
+            prompt: translate('iou.categoryDisabledAlert.prompt'),
+            confirmText: translate('iou.categoryDisabledAlert.confirmText'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM || !canEdit) {
+                return;
+            }
+
+            updateMoneyRequestCategory({
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                category: '',
+                policy,
+                policyTagList,
+                policyCategories,
+                policyRecentlyUsedCategories: undefined,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+                parentReportNextStep,
+                delegateAccountID,
+            });
+        });
+    };
+
+    const showTagDisabledAlert = () => {
+        const transactionID = transaction?.transactionID;
+        if (!transactionID) {
+            return;
+        }
+        showConfirmModal({
+            title: translate('iou.tagDisabledAlert.title'),
+            prompt: translate('iou.tagDisabledAlert.prompt'),
+            confirmText: translate('iou.tagDisabledAlert.confirmText'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM || !canEdit) {
+                return;
+            }
+
+            updateMoneyRequestTag({
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                tag: '',
+                policy,
+                policyTagList,
+                policyRecentlyUsedTags: undefined,
+                policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+                parentReportNextStep,
+                isOffline,
+                delegateAccountID,
+            });
+        });
+    };
+
     const distanceCopyValue = !canEditDistance ? distanceToDisplay : undefined;
     const distanceRateCopyValue = !canEditDistanceRate ? rateToDisplay : undefined;
     const amountCopyValue = !canEditAmount ? amountTitle : undefined;
@@ -929,6 +1002,10 @@ function MoneyRequestView({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
+                            return;
+                        }
+                        if (shouldShowTagDisabledAlert) {
+                            showTagDisabledAlert();
                             return;
                         }
                         Navigation.navigate(
@@ -1130,6 +1207,11 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => {
+                                if (shouldShowCategoryDisabledAlert) {
+                                    showCategoryDisabledAlert();
+                                    return;
+                                }
+
                                 if (shouldNavigateToUpgradePath && transactionThreadReport) {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
