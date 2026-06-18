@@ -550,21 +550,38 @@ function MoneyRequestView({
     const customUnitCommuterExclusion = transaction?.comment?.customUnit?.commuterExclusion;
     const customUnitReimbursableDistance = transaction?.comment?.customUnit?.reimbursableDistance;
     const customUnitDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+    const customUnitQuantity = transaction?.comment?.customUnit?.quantity;
 
     // Compute commuter exclusion display data for the distance field
     const commuterExclusionDisplayData = useMemo(() => {
-        const commuterExclusion = customUnitCommuterExclusion;
-        const reimbursableDistance = customUnitReimbursableDistance;
-        const distanceUnitValue = customUnitDistanceUnit ?? unit;
+        const distanceUnitValue = customUnitDistanceUnit ?? unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 
-        if (!commuterExclusion || commuterExclusion <= 0 || !reimbursableDistance || !distanceUnitValue) {
+        let commuterExclusion = customUnitCommuterExclusion;
+        let reimbursableDistanceValue = customUnitReimbursableDistance;
+
+        // If commuter exclusion isn't stored in transaction, compute it from policy
+        if ((commuterExclusion === undefined || commuterExclusion === null) && policy?.commuterExclusions) {
+            // Get quantity from transaction or compute from distance
+            let quantityInUnit = customUnitQuantity ?? 0;
+            if (quantityInUnit <= 0 && distance > 0) {
+                quantityInUnit = DistanceRequestUtils.convertDistanceUnit(distance, distanceUnitValue);
+            }
+
+            const breakdown = DistanceRequestUtils.getCommuterExclusionBreakdown(transaction, policy, quantityInUnit);
+            if (breakdown) {
+                commuterExclusion = breakdown.commuterExclusion;
+                reimbursableDistanceValue = breakdown.reimbursableDistance;
+            }
+        }
+
+        if (!commuterExclusion || commuterExclusion <= 0 || !reimbursableDistanceValue || !distanceUnitValue) {
             return null;
         }
 
         const formatDistanceValue = (value: number, unitValue: string) => `${value.toFixed(2)} ${unitValue}`;
-        const originalDistance = reimbursableDistance + commuterExclusion;
+        const originalDistance = reimbursableDistanceValue + commuterExclusion;
         const originalDistanceFormatted = formatDistanceValue(originalDistance, distanceUnitValue);
-        const reimbursableFormatted = formatDistanceValue(reimbursableDistance, distanceUnitValue);
+        const reimbursableFormatted = formatDistanceValue(reimbursableDistanceValue, distanceUnitValue);
 
         return {
             description: `${translate('common.distance')} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`,
@@ -576,7 +593,7 @@ function MoneyRequestView({
                 />
             ),
         };
-    }, [customUnitCommuterExclusion, customUnitReimbursableDistance, customUnitDistanceUnit, unit, translate]);
+    }, [customUnitCommuterExclusion, customUnitReimbursableDistance, customUnitDistanceUnit, customUnitQuantity, unit, policy, transaction, distance, translate]);
 
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount?.toString() || '';
