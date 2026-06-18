@@ -11,7 +11,7 @@ describe('getExpenseReportRowAccessibilityLabel', () => {
     it('should combine sender, report name, status, amount, date, and expense count', () => {
         const label = getExpenseReportRowAccessibilityLabel(
             {
-                formattedFrom: 'Natu 310',
+                formattedFrom: 'Alex 310',
                 reportName: "Aki's expenses",
                 formattedStatus: 'Approved',
                 totalDisplaySpend: 12345,
@@ -23,7 +23,7 @@ describe('getExpenseReportRowAccessibilityLabel', () => {
             translateLocal,
         );
 
-        expect(label).toContain('Natu 310');
+        expect(label).toContain('Alex 310');
         expect(label).toContain("Aki's expenses");
         expect(label).toContain('Approved');
         expect(label).toContain('123.45');
