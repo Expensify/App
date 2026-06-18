@@ -1744,6 +1744,9 @@ type Connections = {
     /** Certinia integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<FinancialForceConnectionData, FinancialForceConnectionConfig>;
 
+    /** Rillet integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: Connection<unknown, unknown>; // s77rt TODO
+
     /** Gusto integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
 
