@@ -4,6 +4,7 @@ import {dirname, isAbsolute, join} from 'node:path';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import buildSkiaFontManager from '@components/Charts/utils/buildSkiaFontManager';
 import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from '@components/Charts/utils/chartFontAssets';
+import hasAnyLoadedChartTypeface from '@components/Charts/utils/hasAnyLoadedChartTypeface';
 import loadChartTypefacesFromAssets from '@components/Charts/utils/loadChartTypefacesFromAssets';
 import logChartFontLoadError from '@components/Charts/utils/logChartFontLoadError';
 
@@ -38,7 +39,7 @@ async function loadTypefaceFromAsset(source: DataModule | string): Promise<SkTyp
 async function loadChartFontsForCli(): Promise<ChartFontsValue> {
     const typefaces = await loadChartTypefacesFromAssets(CHART_SKIA_TYPEFACE_ASSETS, async (asset) => loadTypefaceFromAsset(asset), logChartFontLoadError);
 
-    if (!Object.values(typefaces).some((typeface) => typeface !== null)) {
+    if (!hasAnyLoadedChartTypeface(typefaces)) {
         return {typefaces, fontMgr: null};
     }
 

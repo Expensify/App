@@ -119,4 +119,32 @@ describe('chartFontsCache', () => {
         expect(Object.values(fonts.typefaces).every((typeface) => typeface === null)).toBe(true);
         expect(fonts.fontMgr).toBeNull();
     });
+
+    it('should retry loading when every font-mgr typeface fails to load', async () => {
+        mockFromURI.mockRejectedValue(new Error('Failed to load font'));
+        mockMakeFreeTypeFaceFromData.mockReturnValue(null);
+
+        await loadChartFontsOnce();
+        await loadChartFontsOnce();
+
+        expect(mockFromURI).toHaveBeenCalledTimes(22);
+    });
+
+    it('should not build fontMgr when only the emoji font loads', async () => {
+        mockFromURI.mockImplementation((uri: string) => {
+            const key = uri.replace('mock://font/', '');
+
+            if (key === 'CUSTOM_EMOJI_FONT') {
+                return Promise.resolve({uri});
+            }
+
+            return Promise.reject(new Error(`Failed to load ${key}`));
+        });
+        mockMakeFreeTypeFaceFromData.mockImplementation((data: {uri: string}) => makeMockTypeface(data.uri.replace('mock://font/', '')));
+
+        const fonts = await loadChartFontsOnce();
+
+        expect(fonts.fontMgr).toBeNull();
+        expect(Object.values(fonts.typefaces).every((typeface) => typeface === null)).toBe(true);
+    });
 });
