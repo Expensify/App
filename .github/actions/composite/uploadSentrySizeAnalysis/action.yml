@@ -64,7 +64,7 @@ runs:
         OUTPUT=$(npx sentry-cli build upload "$ASSET" \
           --org expensify --project app --build-configuration Release --log-level info 2>&1)
         echo "$OUTPUT"
-        SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
+        SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ )"}]+' | head -1)
         if [ -n "$SENTRY_URL" ]; then
           echo "::notice::${PLATFORM} Sentry size analysis: $SENTRY_URL"
           echo "SENTRY_URL=$SENTRY_URL" >> "$GITHUB_OUTPUT"

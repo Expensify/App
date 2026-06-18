@@ -1031,7 +1031,7 @@ jobs:
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Upload to Sentry for size analysis
-        id: sentry
+        id: sentry-upload
         uses: ./.github/actions/composite/uploadSentrySizeAnalysis
         env:
           GH_TOKEN: ${{ github.token }}
