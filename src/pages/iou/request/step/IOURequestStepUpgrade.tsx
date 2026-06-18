@@ -1,5 +1,4 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -252,6 +251,7 @@ function IOURequestStepUpgrade({
         allPolicyTags,
         createReportForCurrentUser,
         transactionViolations,
+        isTrackIntentUser,
     ]);
 
     const participant = transaction?.participants?.[0];

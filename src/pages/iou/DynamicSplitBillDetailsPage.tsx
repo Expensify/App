@@ -102,7 +102,19 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             isTrackIntentUser,
             session?.email,
         );
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas, personalDetails]);
+    }, [
+        reportID,
+        reportAction,
+        draftTransaction,
+        session?.accountID,
+        session?.email,
+        isASAPSubmitBetaEnabled,
+        quickAction,
+        transactionViolations,
+        betas,
+        personalDetails,
+        isTrackIntentUser,
+    ]);
 
     return (
         <ScreenWrapper testID="DynamicSplitBillDetailsPage">

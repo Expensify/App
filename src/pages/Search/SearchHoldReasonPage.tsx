@@ -102,6 +102,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             currentUserLogin,
             currentUserAccountID,
             selectedTransactionViolations,
+            isTrackIntentUser,
         ],
     );
 

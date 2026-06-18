@@ -392,6 +392,7 @@ function IOURequestStepDistanceMap({
         recentWaypoints,
         distanceOriginalPolicy,
         delegateAccountID,
+        isTrackIntentUser,
     ]);
 
     const renderItem = useCallback(

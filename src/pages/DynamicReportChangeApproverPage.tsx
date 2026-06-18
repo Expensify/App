@@ -84,7 +84,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         }
         assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep, isTrackIntentUser);
         Navigation.dismissToPreviousRHP();
-    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep]);
+    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep, isTrackIntentUser]);
 
     const approverTypes = useMemo(() => {
         const data: Array<ListItem<ApproverType>> = [

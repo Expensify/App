@@ -287,6 +287,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         activePolicy,
         chatReportPolicy,
         nextStep,
+        isTrackIntentUser,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

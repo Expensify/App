@@ -31,7 +31,7 @@ function useCreateNewReport() {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
             return createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, betas, false, isTrackIntentUser, shouldDismissEmptyReportsConfirmation);
         },
-        [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies],
+        [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser],
     );
 }
 

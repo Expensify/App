@@ -104,6 +104,7 @@ function IOURequestStepAttendees({
         parentReportNextStep,
         isOffline,
         delegateAccountID,
+        isTrackIntentUser,
     ]);
 
     const navigateBack = () => {

@@ -105,7 +105,18 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             isTrackIntentUser,
         );
         Navigation.dismissToPreviousRHP();
-    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep]);
+    }, [
+        allApprovers,
+        selectedApproverEmail,
+        report,
+        currentUserDetails.accountID,
+        currentUserDetails.email,
+        policy,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        reportNextStep,
+        isTrackIntentUser,
+    ]);
 
     const button = useMemo(() => {
         return (

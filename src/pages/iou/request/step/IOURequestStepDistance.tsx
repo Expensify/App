@@ -528,6 +528,7 @@ function IOURequestStepDistance({
         parentReportNextStep,
         delegateAccountID,
         distanceOriginalPolicy,
+        isTrackIntentUser,
     ]);
 
     const submitManualDistance = useCallback(() => {
@@ -632,6 +633,7 @@ function IOURequestStepDistance({
         hasRouteError,
         delegateAccountID,
         distanceOriginalPolicy,
+        isTrackIntentUser,
     ]);
 
     const renderItem = useCallback(

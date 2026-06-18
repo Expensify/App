@@ -4264,6 +4264,7 @@ describe('actions/Report', () => {
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                isTrackIntentUser: false,
             });
         });
 

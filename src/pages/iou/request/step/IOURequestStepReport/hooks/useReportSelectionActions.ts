@@ -1,5 +1,5 @@
-// eslint-disable-next-line no-restricted-imports
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
