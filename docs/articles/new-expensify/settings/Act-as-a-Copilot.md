@@ -66,6 +66,8 @@ When acting as a Copilot:
 * Actions you perform are labeled as being completed on behalf of the account owner.
 * Some actions may be unavailable if you've been granted Limited Access.
 * You can return to your own account at any time by switching accounts again.
+
+**Important:** If you're acting as a Copilot, both you and the account owner count as active members when you perform billable activity in the account.
     
 # FAQ
 
