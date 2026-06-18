@@ -2104,7 +2104,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         // confirm or correct these values via the success-data replay. For any other method
         // (R2 homeAndOffice, future types) we leave optimistic behavior unchanged.
         const exclusionConfig = policy?.commuterExclusions;
-        const fixedExclusionDistance = exclusionConfig?.method === CONST.COMMUTER_EXCLUSIONS.METHOD.FIXED_DISTANCE ? Math.max(0, exclusionConfig.fixedDistance ?? 0) : 0;
+        const fixedExclusionDistance = exclusionConfig?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? Math.max(0, exclusionConfig.fixedDistance ?? 0) : 0;
         const quantity = transaction.comment?.customUnit?.quantity ?? 0;
         const distanceUnit = transaction.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
         const distanceRate = transaction.comment?.customUnit?.defaultP2PRate ?? 0;
@@ -2124,7 +2124,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                         customUnit: {
                             commuterExclusion,
                             reimbursableDistance,
-                            commuterExclusionMethod: CONST.COMMUTER_EXCLUSIONS.METHOD.FIXED_DISTANCE,
+                            commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
                         },
                     },
                 },

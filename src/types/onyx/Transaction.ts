@@ -217,10 +217,10 @@ type TransactionCustomUnit = {
     reimbursableDistance?: number;
 
     /** The kind of commute the exclusion represents (R3 — currently unused) */
-    commuterExclusionType?: ValueOf<typeof CONST.COMMUTER_EXCLUSIONS.TYPE>;
+    commuterExclusionType?: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_TYPE>;
 
     /** How the exclusion was configured on the policy (R1: fixedDistance; R2: homeAndOffice) */
-    commuterExclusionMethod?: ValueOf<typeof CONST.COMMUTER_EXCLUSIONS.METHOD>;
+    commuterExclusionMethod?: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>;
 };
 
 /** Types of geometry */
