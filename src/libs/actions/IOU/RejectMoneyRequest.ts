@@ -374,6 +374,7 @@ function prepareRejectMoneyRequestData(
 
         if (existingOpenReport) {
             const originalRejectedReportTotal = existingOpenReport?.total ?? 0;
+            const originalRejectedReimbursableTotal = getReimbursableTotal(existingOpenReport);
             movedToReport = {
                 ...existingOpenReport,
                 total: originalRejectedReportTotal - transactionAmount,
@@ -443,6 +444,7 @@ function prepareRejectMoneyRequestData(
                     key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
                     value: {
                         total: originalRejectedReportTotal,
+                        reimbursableTotal: originalRejectedReimbursableTotal,
                         pendingFields: {total: null},
                     },
                 },
