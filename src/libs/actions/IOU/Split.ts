@@ -1021,6 +1021,12 @@ function completeSplitBill(
             if (typeof oneOnOneIOUReport?.reimbursableTotal === 'number') {
                 oneOnOneIOUReport.reimbursableTotal -= splitAmount;
             }
+            if (typeof oneOnOneIOUReport?.unheldTotal === 'number') {
+                oneOnOneIOUReport.unheldTotal -= splitAmount;
+            }
+            if (typeof oneOnOneIOUReport?.unheldReimbursableTotal === 'number') {
+                oneOnOneIOUReport.unheldReimbursableTotal -= splitAmount;
+            }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
         }
