@@ -13,7 +13,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
 
 const {default: isSearchTopmostFullScreenRoute}: {default: () => boolean} = jest.requireActual('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute');
 
-const tabState = {
+const makeTabState = () => ({
     stale: false as const,
     type: 'tab',
     key: 'tab-state-key',
@@ -24,9 +24,9 @@ const tabState = {
         {key: 'reports-key', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
         {key: 'search-key', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
     ],
-};
+});
 
-const rootStateWithTab = (state?: typeof tabState) => ({
+const rootStateWithTab = (state?: ReturnType<typeof makeTabState>) => ({
     stale: false,
     type: 'stack',
     key: 'root-key',
@@ -59,6 +59,7 @@ const rootStateWithTabScreenParam = () => ({
 describe('isSearchTopmostFullScreenRoute', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        const tabState = makeTabState();
         mockNavigationRef.getRootState.mockReturnValue(rootStateWithTab(tabState));
         setPreservedNavigatorState('tab-key', tabState);
     });
