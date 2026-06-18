@@ -33,6 +33,12 @@ type MoneyRequestReportPreviewProps = {
     /** The associated chatReport */
     chatReportID: string | undefined;
 
+    /**
+     * The chat report this preview belongs to, threaded down as a heartbeat-stripped stable projection.
+     * Passed in (instead of subscribed to in-row) so the preview subtree does not re-render on chat heartbeat writes.
+     */
+    chatReport: OnyxEntry<Report>;
+
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
 
@@ -53,7 +59,6 @@ type MoneyRequestReportPreviewProps = {
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {
-    chatReport: OnyxEntry<Report>;
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     iouReport: OnyxEntry<Report>;
     transactions: Transaction[];

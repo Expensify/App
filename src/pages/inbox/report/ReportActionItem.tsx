@@ -593,6 +593,7 @@ function ReportActionItem({
                                                             <ActionContentRouter
                                                                 action={action}
                                                                 report={report}
+                                                                chatReport={chatReport}
                                                                 reportID={reportID}
                                                                 originalReportID={originalReportID}
                                                                 iouReport={iouReport}

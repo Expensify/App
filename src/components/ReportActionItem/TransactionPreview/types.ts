@@ -16,6 +16,9 @@ type TransactionPreviewProps = {
     /** The associated chatReport */
     chatReportID: string | undefined;
 
+    /** The associated chat report, passed from the parent to avoid subscribing to chat heartbeat fields in each preview */
+    chatReport: OnyxEntry<Report>;
+
     /** The ID of the current report */
     reportID: string | undefined;
 
@@ -101,7 +104,7 @@ type TransactionPreviewContentProps = {
     violations: TransactionViolations;
 
     /** Holds the chat report entry from Onyx */
-    chatReport?: Report;
+    chatReport: OnyxEntry<Report>;
 
     /** Optional details about people involved in the transaction */
     personalDetails?: PersonalDetailsList;

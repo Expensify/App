@@ -75,6 +75,9 @@ type ActionContentRouterProps = {
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** The chat report associated with the report for this action */
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+
     /** ID of the original report from which the given reportAction is first created */
     originalReportID?: string;
 
@@ -124,6 +127,7 @@ type ActionContentRouterProps = {
 function ActionContentRouter({
     action,
     report,
+    chatReport,
     originalReportID,
     iouReport,
     reportID,
@@ -168,6 +172,7 @@ function ActionContentRouter({
                 action={action}
                 reportID={reportID}
                 chatReportID={report?.type === CONST.REPORT.TYPE.CHAT ? reportID : report?.chatReportID}
+                chatReport={report?.type === CONST.REPORT.TYPE.CHAT ? report : chatReport}
                 iouReport={report?.type === CONST.REPORT.TYPE.CHAT ? iouReport : report}
                 shouldShowSplitPreview={shouldShowSplitPreview}
                 transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
@@ -192,6 +197,7 @@ function ActionContentRouter({
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
                 policyID={policyID}
                 chatReportID={reportID}
+                chatReport={report}
                 action={action}
                 isHovered={hovered}
                 isWhisper={isWhisper}
