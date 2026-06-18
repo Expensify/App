@@ -114,14 +114,13 @@ function canApproveIOU(
     currentUserAccountID: number,
     iouTransactions?: OnyxTypes.Transaction[],
 ) {
-    // TODO: Submit workspaces should show the APPROVE button and redirect to an upgrade modal instead of hiding it.
-    // This will be addressed as part of the Wave 3 "Upgrade on Approval" feature.
-    if (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
+    const isSubmitWorkspace = isSubmitPolicy(policy);
+    if (!isExpenseReport(iouReport) || !policy || !(isPaidGroupPolicy(policy) || isSubmitWorkspace)) {
         return false;
     }
 
     const isOnSubmitAndClosePolicy = isSubmitAndClose(policy);
-    if (isOnSubmitAndClosePolicy) {
+    if (isOnSubmitAndClosePolicy && !isSubmitWorkspace) {
         return false;
     }
 
